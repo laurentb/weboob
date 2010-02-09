@@ -85,16 +85,6 @@ class DLFP(Browser):
     def keepalive(self):
         self.home()
 
-    def change_location(func):
-        def inner(self, *args, **kwargs):
-            if args and args[0][0] == '/' and (not self.request or self.request.host != 'www.adopteunmec.com'):
-                args = ('http://www.adopteunmec.com%s' % args[0],) + args[1:]
-                print args
-
-            return func(self, *args, **kwargs)
-        return inner
-
-    @change_location
     def openurl(self, *args, **kwargs):
         try:
             return Browser.open(self, *args, **kwargs)
@@ -130,7 +120,6 @@ class DLFP(Browser):
             self.home()
             raise DLFPUnavailable()
 
-    @change_location
     def location(self, *args, **kwargs):
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
