@@ -18,21 +18,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from mechanize import FormNotFoundError
+from dlfp.pages.base import BasePage
 
-class BasePage:
-    def __init__(self, dlfp, document, url=''):
-        self.dlfp = dlfp
-        self.document = document
-        self.url = url
+class IndexPage(BasePage):
+    pass
 
-    def loaded(self):
-        pass
-
-    def isLogged(self):
-        forms = self.document.getElementsByTagName('form')
-        for form in forms:
-            if form.getAttribute('id') == 'formulaire':
-                return False
-
-        return True
+class LoginPage(BasePage):
+    def hasError(self):
+        plist = self.document.getElementsByTagName('p')
+        for p in plist:
+            p = p.childNodes[0]
+            if hasattr(p, 'data') and p.data.startswith(u'Vous avez rentrÃ© un mauvais mot de passe'):
+                return True
+        return False

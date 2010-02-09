@@ -27,6 +27,7 @@ import time
 from logging import warning, error
 from copy import copy
 
+from dlfp.pages.login import IndexPage, LoginPage
 from dlfp.exceptions import DLFPIncorrectPassword, DLFPUnavailable, DLFPRetry
 from dlfp.firefox_cookies import FirefoxCookieJar
 
@@ -39,10 +40,13 @@ class NoHistory:
 
 class DLFP(Browser):
 
-    pages = {'http://linuxfr.org/': IndexPage
+    pages = {'https://linuxfr.org/': IndexPage,
+             'https://linuxfr.org/pub/': IndexPage,
+             'https://linuxfr.org/my/': IndexPage,
+             'https://linuxfr.org/login.html': LoginPage,
             }
 
-    def __init__(self, login, password=None, firefox_cookies=None):
+    def __init__(self, username, password=None, firefox_cookies=None):
         Browser.__init__(self, history=NoHistory())
         self.addheaders = [
                 ['User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3']
@@ -59,7 +63,7 @@ class DLFP(Browser):
         self.__parser = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
         self.__page = None
         self.__last_update = 0.0
-        self.login = login
+        self.username = username
         self.password = password
         if self.password:
             try:
@@ -71,11 +75,11 @@ class DLFP(Browser):
         return self.__page
 
     def home(self):
-        return self.location('http://linuxfr.org')
+        return self.location('https://linuxfr.org')
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
-            if not self.__page or self.isOnPage(LoginPage) and self.password:
+            if not self.__page or not self.__page.isLogged() and self.password:
                 self.home()
 
             return func(self, *args, **kwargs)
@@ -84,6 +88,9 @@ class DLFP(Browser):
     @pageaccess
     def keepalive(self):
         self.home()
+
+    def login(self):
+        self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
 
     def openurl(self, *args, **kwargs):
         try:
@@ -149,15 +156,15 @@ class DLFP(Browser):
 
         # Not found
         if not pageCls:
-            warning('Ho my fucking god, there isn\'t any page named %s' % result.geturl())
             self.__page = None
             r = result.read()
             if isinstance(r, unicode):
                 r = r.encode('iso-8859-15', 'replace')
             print r
+            warning('Ho my fucking god, there isn\'t any page named %s' % result.geturl())
             return
 
-        print '[%s] Gone on %s' % (self.login, result.geturl())
+        print '[%s] Gone on %s' % (self.username, result.geturl())
         self.__last_update = time.time()
 
         document = self.__parser.parse(result, encoding='iso-8859-1')
@@ -165,12 +172,14 @@ class DLFP(Browser):
         self.__page.loaded()
 
         # Special pages
-        if isinstance(self.__page, LoginPage) and self.password:
-            print '!! Relogin !!'
-            self.__page.login(self.login, self.password)
+        if isinstance(self.__page, LoginPage):
+            if self.__page.hasError():
+                raise DLFPIncorrectPassword()
             raise DLFPRetry()
-        if isinstance(self.__page, ErrPage):
-            raise DLFPIncorrectPassword()
+        if not self.__page.isLogged() and self.password:
+            print '!! Relogin !!'
+            self.login()
+            return
 
         if self.__cookie:
             self.__cookie.save()
