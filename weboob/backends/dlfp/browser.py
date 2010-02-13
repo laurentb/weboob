@@ -22,8 +22,8 @@ from weboob.tools.browser import Browser
 from weboob.backends.dlfp.pages.index import IndexPage, LoginPage
 
 class DLFP(Browser):
-
     DOMAIN = 'linuxfr.org'
+    PROTOCOL = 'https'
     PAGES = {'https://linuxfr.org/': IndexPage,
              'https://linuxfr.org/pub/': IndexPage,
              'https://linuxfr.org/my/': IndexPage,

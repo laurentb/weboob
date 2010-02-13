@@ -60,6 +60,7 @@ class Browser(mechanize.Browser):
     # ------ Class attributes --------------------------------------
 
     DOMAIN = None
+    PROTOCOL = 'http'
     PAGES = {}
     USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3'
 
