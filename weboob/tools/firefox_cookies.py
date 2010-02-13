@@ -31,11 +31,10 @@ from mechanize import CookieJar, Cookie
 #logger.setLevel(logging.DEBUG)
 
 class FirefoxCookieJar(CookieJar):
-
-    def __init__(self, sqlite_file=None, policy=None):
-
+    def __init__(self, domain, sqlite_file=None, policy=None):
         CookieJar.__init__(self, policy)
 
+        self.domain = domain
         self.sqlite_file = sqlite_file
 
     def __connect(self):
@@ -47,7 +46,6 @@ class FirefoxCookieJar(CookieJar):
 
         return db
 
-
     def load(self):
 
         db = self.__connect()
@@ -55,7 +53,7 @@ class FirefoxCookieJar(CookieJar):
 
         cookies = db.execute("""SELECT host, path, name, value, expiry, lastAccessed, isSecure
                                 FROM moz_cookies
-                                WHERE host LIKE '%linuxfr%'""")
+                                WHERE host LIKE '%%%s%%'""" % self.domain)
 
         for entry in cookies:
 
@@ -91,7 +89,7 @@ class FirefoxCookieJar(CookieJar):
         db = self.__connect()
         if not db: return
 
-        db.execute("DELETE FROM moz_cookies WHERE host LIKE '%linuxfr%'")
+        db.execute("DELETE FROM moz_cookies WHERE host LIKE '%%%s%%'" % self.domain)
         for cookie in self:
             if cookie.secure: secure = 1
             else: secure = 0

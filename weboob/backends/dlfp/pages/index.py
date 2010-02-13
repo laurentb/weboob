@@ -18,12 +18,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from dlfp.pages.base import BasePage
+from weboob.tools.browser import BrowserIncorrectPassword, BasePage
 
-class IndexPage(BasePage):
+class DLFPPage(BasePage):
+    def isLogged(self):
+        forms = self.document.getElementsByTagName('form')
+        for form in forms:
+            if form.getAttribute('id') == 'formulaire':
+                return False
+
+        return True
+
+class IndexPage(DLFPPage):
     pass
 
-class LoginPage(BasePage):
+class LoginPage(DLFPPage):
+
+    def loaded(self):
+        if self.hasError():
+            raise BrowserIncorrectPassword()
+
     def hasError(self):
         plist = self.document.getElementsByTagName('p')
         for p in plist:

@@ -18,7 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from mechanize import Browser, response_seek_wrapper, BrowserStateError
+import mechanize.Browser
+from mechanize import response_seek_wrapper, BrowserStateError
 import urllib2
 import html5lib
 from html5lib import treebuilders
@@ -27,9 +28,16 @@ import time
 from logging import warning, error
 from copy import copy
 
-from dlfp.pages.login import IndexPage, LoginPage
-from dlfp.exceptions import DLFPIncorrectPassword, DLFPUnavailable, DLFPRetry
-from dlfp.firefox_cookies import FirefoxCookieJar
+from weboob.tools.firefox_cookies import FirefoxCookieJar
+
+class BrowserIncorrectPassword(Exception):
+    pass
+
+class BrowserUnavailable(Exception):
+    pass
+
+class BrowserRetry(Exception):
+    pass
 
 class NoHistory:
     def __init__(self): pass
@@ -38,48 +46,67 @@ class NoHistory:
     def clear(self): pass
     def close(self): pass
 
-class DLFP(Browser):
+class BasePage:
+    def __init__(self, browser, document, url=''):
+        self.browser = browser
+        self.document = document
+        self.url = url
 
-    pages = {'https://linuxfr.org/': IndexPage,
-             'https://linuxfr.org/pub/': IndexPage,
-             'https://linuxfr.org/my/': IndexPage,
-             'https://linuxfr.org/login.html': LoginPage,
-            }
+    def loaded(self):
+        pass
+
+class Browser(mechanize.Browser):
+
+    # ------ Class attributes --------------------------------------
+
+    DOMAIN = None
+    PAGES = {}
+    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3'
+
+    # ------ Abstract methods --------------------------------------
+
+    # Go to home
+    def home(self):
+        raise NotImplementedError()
+
+    # Login to the website
+    def login(self):
+        raise NotImplementedError()
+
+    # Return True if we are logged on website
+    def isLogged(self):
+        raise NotImplementedError()
+
+    # ------ Browser methods ---------------------------------------
 
     def __init__(self, username, password=None, firefox_cookies=None):
-        Browser.__init__(self, history=NoHistory())
+        mechanize.Browser.__init__(self, history=NoHistory())
         self.addheaders = [
-                ['User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3']
+                ['User-agent', self.USER_AGENT]
             ]
 
         # Share cookies with firefox
         if firefox_cookies:
-            self.__cookie = FirefoxCookieJar(firefox_cookies)
+            self.__cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
             self.__cookie.load()
             self.set_cookiejar(self.__cookie)
         else:
             self.__cookie = None
 
         self.__parser = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
-        self.__page = None
-        self.__last_update = 0.0
+        self.page = None
+        self.last_update = 0.0
         self.username = username
         self.password = password
         if self.password:
             try:
                 self.home()
-            except DLFPUnavailable:
+            except BrowserUnavailable:
                 pass
-
-    def page(self):
-        return self.__page
-
-    def home(self):
-        return self.location('https://linuxfr.org')
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
-            if not self.__page or not self.__page.isLogged() and self.password:
+            if not self.page or not self.page.isLogged() and self.password:
                 self.home()
 
             return func(self, *args, **kwargs)
@@ -89,57 +116,65 @@ class DLFP(Browser):
     def keepalive(self):
         self.home()
 
-    def login(self):
-        self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
+    def change_location(func):
+        def inner(self, *args, **kwargs):
+            if args and args[0][0] == '/' and (not self.request or self.request.host != self.DOMAIN):
+                args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
+                print args
 
+            return func(self, *args, **kwargs)
+        return inner
+
+    @change_location
     def openurl(self, *args, **kwargs):
         try:
-            return Browser.open(self, *args, **kwargs)
+            return mechanize.Browser.open(self, *args, **kwargs)
         except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
-            raise DLFPUnavailable()
+            raise BrowserUnavailable()
         except BrowserStateError:
             self.home()
-            return Browser.open(self, *args, **kwargs)
+            return mechanize.Browser.open(self, *args, **kwargs)
 
     def submit(self, *args, **kwargs):
         try:
-            self.__changeLocation(Browser.submit(self, *args, **kwargs))
+            self.__changeLocation(mechanize.Browser.submit(self, *args, **kwargs))
         except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
-            self.__page = None
-            raise DLFPUnavailable()
-        except (BrowserStateError,DLFPRetry):
+            self.page = None
+            raise BrowserUnavailable()
+        except (BrowserStateError,BrowserRetry):
             self.home()
-            raise DLFPUnavailable()
+            raise BrowserUnavailable()
 
     def isOnPage(self, pageCls):
-        return isinstance(self.__page, pageCls)
+        return isinstance(self.page, pageCls)
 
     def follow_link(self, *args, **kwargs):
         try:
-            self.__changeLocation(Browser.follow_link(self, *args, **kwargs))
+            self.__changeLocation(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
-            self.__page = None
-            raise DLFPUnavailable()
-        except (BrowserStateError,DLFPRetry):
+            self.page = None
+            raise BrowserUnavailable()
+        except (BrowserStateError,BrowserRetry):
             self.home()
-            raise DLFPUnavailable()
+            raise BrowserUnavailable()
 
+    @change_location
     def location(self, *args, **kwargs):
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
 
         try:
-            self.__changeLocation(Browser.open(self, *args, **kwargs))
-        except DLFPRetry:
-            if not self.__page or not args or self.__page.url != args[0]:
+            self.__changeLocation(mechanize.Browser.open(self, *args, **kwargs))
+        except BrowserRetry:
+            if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
         except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
-            self.__page = None
-            raise DLFPUnavailable()
+            self.page = None
+            raise BrowserUnavailable()
         except BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
@@ -147,7 +182,7 @@ class DLFP(Browser):
     def __changeLocation(self, result):
         # Find page from url
         pageCls = None
-        for key, value in self.pages.items():
+        for key, value in self.PAGES.items():
             regexp = re.compile('^%s$' % key)
             m = regexp.match(result.geturl())
             if m:
@@ -156,7 +191,7 @@ class DLFP(Browser):
 
         # Not found
         if not pageCls:
-            self.__page = None
+            self.page = None
             r = result.read()
             if isinstance(r, unicode):
                 r = r.encode('iso-8859-15', 'replace')
@@ -165,18 +200,13 @@ class DLFP(Browser):
             return
 
         print '[%s] Gone on %s' % (self.username, result.geturl())
-        self.__last_update = time.time()
+        self.last_update = time.time()
 
         document = self.__parser.parse(result, encoding='iso-8859-1')
-        self.__page = pageCls(self, document, result.geturl())
-        self.__page.loaded()
+        self.page = pageCls(self, document, result.geturl())
+        self.page.loaded()
 
-        # Special pages
-        if isinstance(self.__page, LoginPage):
-            if self.__page.hasError():
-                raise DLFPIncorrectPassword()
-            raise DLFPRetry()
-        if not self.__page.isLogged() and self.password:
+        if not self.isLogged() and self.password:
             print '!! Relogin !!'
             self.login()
             return

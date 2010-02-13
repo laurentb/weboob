@@ -18,21 +18,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from mechanize import FormNotFoundError
+from weboob.tools.browser import Browser
+from weboob.backends.dlfp.pages.index import IndexPage, LoginPage
 
-class BasePage:
-    def __init__(self, dlfp, document, url=''):
-        self.dlfp = dlfp
-        self.document = document
-        self.url = url
+class DLFP(Browser):
 
-    def loaded(self):
-        pass
+    DOMAIN = 'linuxfr.org'
+    PAGES = {'https://linuxfr.org/': IndexPage,
+             'https://linuxfr.org/pub/': IndexPage,
+             'https://linuxfr.org/my/': IndexPage,
+             'https://linuxfr.org/login.html': LoginPage,
+            }
+
+    def home(self):
+        return self.location('https://linuxfr.org')
+
+    def login(self):
+        self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
 
     def isLogged(self):
-        forms = self.document.getElementsByTagName('form')
-        for form in forms:
-            if form.getAttribute('id') == 'formulaire':
-                return False
-
-        return True
+        return (self.page and self.page.isLogged())

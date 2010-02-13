@@ -24,14 +24,15 @@ import re
 class Article:
     RSS = None
 
-    def __init__(self, _id, title, author, datetime):
+    def __init__(self, _id, url, title, author, datetime):
         self._id = _id
+        self.url = url
         self.title = title
         self.author = author
         self.datetime = datetime
 
 class Newspaper(Article):
-    RSS = 'http://linuxfr.org/backend/news/rss20.rss'
+    RSS = 'https://linuxfr.org/backend/news/rss20.rss'
 
 class Telegram(Article):
     RSS = 'https://linuxfr.org/backend/journaux/rss20.rss'
@@ -58,5 +59,5 @@ class ArticlesList:
                     warning('Unable to parse ID from link \'%s\'' % item['link'])
                     continue
                 _id = m.group(1)
-                article = klass(_id, item['title'], item['author'], item['date_parsed'])
+                article = klass(_id, item['link'], item['title'], item['author'], item['date_parsed'])
                 print _id, item['author'], item['title']
