@@ -18,4 +18,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from ouiboube import Weboob
+import os
+
+from weboob.modules import ModulesLoader
+from weboob.config import Config
+
+class Weboob:
+    CONFIG_FILE = '%s/.weboobrc' % os.path.expanduser("~")
+
+    def __init__(self, app_name, config_file=CONFIG_FILE):
+        self.app_name = app_name
+        self.backends = {}
+        self.config = Config(self.CONFIG_FILE)
+        self.config.load()
+        self.modules_loader = ModulesLoader()
+        self.modules_loader.load()
+

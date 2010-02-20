@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import re
 import os
 import sys
-from logging import warning
+from logging import warning, debug
 
 import weboob.backends as backends
 
@@ -53,4 +53,4 @@ class ModulesLoader:
             warning('Module "%s" is already loaded (%s)' % self.modules[name].module)
             return
         self.modules[name] = backend
-        print 'Loaded module %s (%s)' % (name, backend.module.__name__)
+        debug('Loaded module %s (%s)' % (name, backend.module.__name__))
