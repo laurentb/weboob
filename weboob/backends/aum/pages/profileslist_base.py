@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2008  Romain Bignon
+Copyright(C) 2008-2010  Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ class ProfilesListBase(PageBase):
 
     PROFILE_REGEXP = re.compile(".*window\.location='(.*)'")
     PHOTO_REGEXP = re.compile(".*background-image:url\(([A-Za-z0-9_\-:/\.]+)\).*")
-    WITHOUT_PHOTO = 'http://s.adopteunmec.com/img/thumb1.gif'
+    WITHOUT_PHOTO = 'http://s.adopteunmec.com/img/thumb0.gif'
     SHOW_WITHOUT_PHOTO = True
 
     def loaded(self):
