@@ -18,8 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import mechanize.Browser
-from mechanize import response_seek_wrapper, BrowserStateError
+import mechanize
 import urllib2
 import html5lib
 from html5lib import treebuilders
@@ -130,21 +129,21 @@ class Browser(mechanize.Browser):
     def openurl(self, *args, **kwargs):
         try:
             return mechanize.Browser.open(self, *args, **kwargs)
-        except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             raise BrowserUnavailable()
-        except BrowserStateError:
+        except mechanize.BrowserStateError:
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def submit(self, *args, **kwargs):
         try:
             self.__changeLocation(mechanize.Browser.submit(self, *args, **kwargs))
-        except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
             raise BrowserUnavailable()
-        except (BrowserStateError,BrowserRetry):
+        except (mechanize.BrowserStateError,BrowserRetry):
             self.home()
             raise BrowserUnavailable()
 
@@ -154,11 +153,11 @@ class Browser(mechanize.Browser):
     def follow_link(self, *args, **kwargs):
         try:
             self.__changeLocation(mechanize.Browser.follow_link(self, *args, **kwargs))
-        except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
             raise BrowserUnavailable()
-        except (BrowserStateError,BrowserRetry):
+        except (mechanize.BrowserStateError,BrowserRetry):
             self.home()
             raise BrowserUnavailable()
 
@@ -172,11 +171,11 @@ class Browser(mechanize.Browser):
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
-        except (response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
             raise BrowserUnavailable()
-        except BrowserStateError:
+        except mechanize.BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
 
