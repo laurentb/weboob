@@ -34,3 +34,10 @@ class Weboob:
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
 
+    def loadmodules(self, caps=None, name=None):
+        for name, module in self.modules_loader.modules.iteritems():
+            if (not caps or module.hasCaps(caps)) and \
+               (not name or module.name == name):
+                backend = module.createBackend()
+                self.backends[module.name] = backend
+

@@ -18,4 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .ouiboube import Weboob
+from weboob.backend import Backend
+from weboob.capabilities import CAP_MAILS
+
+class AuMBackend(Backend):
+    CAPS = CAP_MAILS

@@ -22,13 +22,29 @@ import re
 import os
 import sys
 from logging import warning, debug
+from types import ClassType
 
 import weboob.backends as backends
+from backend import Backend
 
-class Backend:
+class Module:
     def __init__(self, name, module):
         self.name = name
         self.module = module
+        self.klass = None
+        for attrname in dir(self.module):
+            attr = getattr(self.module, attrname)
+            if isinstance(attr, ClassType) and issubclass(attr, Backend) and attr != Backend:
+                self.klass = attr
+
+        if not self.klass:
+            raise ImportError("This is not a backend module (no Backend class found)")
+
+    def hasCaps(self, caps):
+        return self.klass.CAPS & caps
+
+    def createBackend(self):
+        return self.klass()
 
 class ModulesLoader:
     def __init__(self):
@@ -44,10 +60,9 @@ class ModulesLoader:
 
     def load_module(self, name):
         try:
-            backend = Backend(name, __import__(name, fromlist=[name]))
-        except ImportError:
-            warning('Unable to import %s (%s)' % (name, path))
-            raise
+            backend = Module(name, __import__(name, fromlist=[name]))
+        except ImportError, e:
+            warning('Unable to load module %s: %s' % (name, e))
             return
         if name in self.modules:
             warning('Module "%s" is already loaded (%s)' % self.modules[name].module)
