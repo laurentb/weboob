@@ -20,7 +20,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from email.mime.text import MIMEText
+from smtplib import SMTP
+from email.Header import Header
+from email.Utils import parseaddr, formataddr
+import time
 import sys
+
 from weboob import Weboob
 from weboob.capabilities import CAP_MAILS
 
@@ -38,6 +44,77 @@ class Application:
 
     def main(self, argv):
         self.weboob.loadmodules(CAP_MAILS)
+
+        self.weboob.schedule(interval, self.process)
+        self.weboob.loop()
+
+    def process(self):
+        backends = self.weboob.getBackends()
+        for b in backends:
+            messages = b.getNewMessages()
+            for m in messages:
+                self.send_email(m)
+
+    def send_email(self, mail):
+        domain = ''
+        recipient = ''
+
+        reply_id = ''
+        if mail.getReplyID():
+            reply_id = u'%s@%s' % (mail.getFullReplyID(), domain)
+        subject = u'%s%s' % ((reply_id) and 'Re: ' or '', mail.getTitle())
+        sender = u'%s <%d@%s>' % (mail.getFrom(), mail.getThreadID(), domain)
+
+        # assume that getDate() returns an UTC datetime
+        date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.getDate().timetuple())
+        msg_id = u'%s@%s' % (mail.getFullID(), domain)
+        body = mail.getContent()
+
+        body += u'\n\n-- \n'
+        body += mail.getSignature()
+
+        # Header class is smart enough to try US-ASCII, then the charset we
+        # provide, then fall back to UTF-8.
+        header_charset = 'ISO-8859-1'
+
+        # We must choose the body charset manually
+        for body_charset in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
+            try:
+                body.encode(body_charset)
+            except UnicodeError:
+                pass
+            else:
+                break
+
+        # Split real name (which is optional) and email address parts
+        sender_name, sender_addr = parseaddr(sender)
+        recipient_name, recipient_addr = parseaddr(recipient)
+
+        # We must always pass Unicode strings to Header, otherwise it will
+        # use RFC 2047 encoding even on plain ASCII strings.
+        sender_name = str(Header(unicode(sender_name), header_charset))
+        recipient_name = str(Header(unicode(recipient_name), header_charset))
+
+        # Make sure email addresses do not contain non-ASCII characters
+        sender_addr = sender_addr.encode('ascii')
+        recipient_addr = recipient_addr.encode('ascii')
+
+        # Create the message ('plain' stands for Content-Type: text/plain)
+        msg = MIMEText(body.encode(body_charset), 'plain', body_charset)
+        msg['From'] = formataddr((sender_name, sender_addr))
+        msg['To'] = formataddr((recipient_name, recipient_addr))
+        msg['Subject'] = Header(unicode(subject), header_charset)
+        msg['Message-Id'] = msg_id
+        msg['Date'] = date
+        if reply_id:
+            msg['In-Reply-To'] = reply_id
+
+        # Send the message via SMTP to localhost:25
+        smtp = SMTP(self.config['smtp'])
+        smtp.sendmail(sender, recipient, msg.as_string())
+        smtp.quit()
+
+        return msg['Message-Id']
 
 if __name__ == '__main__':
     app = Application()
