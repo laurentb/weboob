@@ -20,74 +20,50 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
-from ConfigParser import SafeConfigParser
+import yaml
 
-class Section:
-    def __init__(self, name):
-        self.name = name
-        self.values = {}
-
-    def save(self, parser):
-        section_created = False
-        for key, value in self.values.iteritems():
-            if isinstance(value, Section):
-                value.save(parser)
-            else:
-                if not section_created:
-                    parser.add_section(self.name)
-                    section_created = True
-                parser.set(self.name, key, value)
+class ConfigError(Exception): pass
 
 class Config:
     def __init__(self, path):
         self.path = path
-        self.sections = {}
-
-    def get(self, *args):
-        s = None
-        path = ''
-        for a in args:
-            if path: path += '.'
-            path += a
-            if not s:
-                try:
-                    s = self.sections[a]
-                except KeyError:
-                    s = self.sections[a] = Section(path)
-            else:
-                try:
-                    s = s.values[a]
-                except KeyError:
-                    s = s.values[a] = Section(path)
-
-        return s
+        self.values = {}
 
     def load(self):
-        parser = SafeConfigParser()
-        parser.read(self.path)
-        for section in parser.sections():
-            path = section.split('.')
-            s = None
-            name = ''
-            for part in path:
-                if name: name += '.'
-                name += part
+        with open(self.path, 'r') as f:
+            self.values = yaml.load(f)
 
-                if s:
-                    d = s.values
+    def get(self, *args, **kwargs):
+        create = False
+        if 'create' in kwargs:
+            create = kwargs['create']
+
+        v = self.values
+        for a in args:
+            try:
+                v = v[a]
+            except KeyError:
+                if create:
+                    v = v[a] = {}
                 else:
-                    d = self.sections
+                    raise ConfigError()
+            except TypeError:
+                raise ConfigError()
 
-                if not part in d:
-                    d[part] = Section(name)
-                s = d[part]
-            options = parser.options(section)
-            for o in options:
-                s.values[o] = parser.get(section, o)
+        return v
+
+    def set(self, *args):
+        v = self.values
+        for a in args[:-2]:
+            try:
+                v = v[a]
+            except KeyError:
+                v = v[a] = {}
+            except TypeError:
+                raise ConfigError()
+
+        v[args[-2]] = args[-1]
 
     def save(self):
-        parser = SafeConfigParser()
-        for section in self.sections.itervalues():
-            section.save(parser)
-        with open(self.path, 'wb') as configfile:
-            parser.write(configfile)
+        with open(self.path, 'w') as f:
+            yaml.dump(self.values, f)
