@@ -43,6 +43,25 @@ class Config:
         self.path = path
         self.sections = {}
 
+    def get(self, *args):
+        s = None
+        path = ''
+        for a in args:
+            if path: path += '.'
+            path += a
+            if not s:
+                try:
+                    s = self.sections[a]
+                except KeyError:
+                    s = self.sections[a] = Section(path)
+            else:
+                try:
+                    s = s.values[a]
+                except KeyError:
+                    s = s.values[a] = Section(path)
+
+        return s
+
     def load(self):
         parser = SafeConfigParser()
         parser.read(self.path)
