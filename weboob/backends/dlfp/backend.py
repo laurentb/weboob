@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.backend import Backend
-from weboob.capabilities import CAP_MAILS
+from weboob.capabilities.messages import IMessages, IMessagesReply
 
-class DLFPBackend(Backend):
-    CAPS = CAP_MAILS
+class DLFPBackend(Backend, IMessages, IMessagesReply):
+    pass

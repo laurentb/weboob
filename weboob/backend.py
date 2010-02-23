@@ -20,4 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 class Backend:
-    CAPS = 0
+    def __init__(self, config):
+        self.config = config
+
+    def hasCaps(self, caps):
+        if not isinstance(caps, (list,tuple)):
+            caps = (caps,)
+
+        for c in caps:
+            if isinstance(self, c):
+                return True
+        return False

@@ -20,12 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 import os
-import sys
 from logging import warning, debug
 from types import ClassType
 
 import weboob.backends as backends
-from backend import Backend
+from weboob.backend import Backend
 
 class Module:
     def __init__(self, name, module):
@@ -41,10 +40,16 @@ class Module:
             raise ImportError("This is not a backend module (no Backend class found)")
 
     def hasCaps(self, caps):
-        return self.klass.CAPS & caps
+        if not isinstance(caps, (list,tuple)):
+            caps = (caps,)
 
-    def createBackend(self):
-        return self.klass()
+        for c in caps:
+            if issubclass(self.klass, c):
+                return True
+        return False
+
+    def createBackend(self, config):
+        return self.klass(config)
 
 class ModulesLoader:
     def __init__(self):
