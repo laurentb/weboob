@@ -29,6 +29,7 @@ import sys
 
 from weboob import Weboob
 from weboob.capabilities import CAP_MAILS
+from weboob.tools.application import BaseApplication
 
 class User:
     def __init__(self, username, password, email):
@@ -36,13 +37,15 @@ class User:
         self.password = password
         self.email = email
 
-class Application:
+class Application(BaseApplication):
     APPNAME = 'weboob2mail'
 
-    def __init__(self):
-        self.weboob = Weboob(self.APPNAME)
-
     def main(self, argv):
+        if not self.config.values:
+            print >>sys.stderr, "Error: %s is not configured yet. Please call 'weboob2mail -c'" % argv[0]
+            print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
+            return -1
+
         self.weboob.loadmodules(CAP_MAILS)
 
         self.weboob.schedule(interval, self.process)
@@ -56,8 +59,8 @@ class Application:
                 self.send_email(m)
 
     def send_email(self, mail):
-        domain = ''
-        recipient = ''
+        domain = self.config.items['domain']
+        recipient = self.config.items['recipient']
 
         reply_id = ''
         if mail.getReplyID():

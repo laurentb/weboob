@@ -27,7 +27,12 @@ import time
 from logging import warning, error
 from copy import copy
 
-from weboob.tools.firefox_cookies import FirefoxCookieJar
+try:
+    from weboob.tools.firefox_cookies import FirefoxCookieJar
+    HAVE_COOKIES = True
+except ImportError, e:
+    warning("Unable to store cookies: %s" % e)
+    HAVE_COOKIES = False
 
 class BrowserIncorrectPassword(Exception):
     pass
@@ -86,7 +91,7 @@ class Browser(mechanize.Browser):
             ]
 
         # Share cookies with firefox
-        if firefox_cookies:
+        if firefox_cookies and HAVE_COOKIES:
             self.__cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
             self.__cookie.load()
             self.set_cookiejar(self.__cookie)
