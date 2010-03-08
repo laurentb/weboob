@@ -28,7 +28,7 @@ import time
 import sys
 
 from weboob import Weboob
-from weboob.capabilities import CAP_MAILS
+from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
 class User:
@@ -39,42 +39,48 @@ class User:
 
 class Application(BaseApplication):
     APPNAME = 'weboob2mail'
+    CONFIG = {'interval':  15,
+              'domain':    'weboob.example.org',
+              'recipient': 'weboob@example.org',
+              'smtp':      'localhost'}
 
     def main(self, argv):
-        if not self.config.values:
+        if not self.config:
             print >>sys.stderr, "Error: %s is not configured yet. Please call 'weboob2mail -c'" % argv[0]
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
-        self.weboob.loadmodules(CAP_MAILS)
+        self.weboob.loadmodules(ICapMessages)
 
-        self.weboob.schedule(interval, self.process)
+        self.weboob.schedule(self.config['interval'], self.process)
+        self.weboob.config.save()
         self.weboob.loop()
 
     def process(self):
         backends = self.weboob.getBackends()
-        for b in backends:
+        for name, b in backends.iteritems():
             messages = b.getNewMessages()
             for m in messages:
-                self.send_email(m)
+                self.send_email(name, m)
 
-    def send_email(self, mail):
-        domain = self.config.items['domain']
-        recipient = self.config.items['recipient']
+    def send_email(self, backend_name, mail):
+        domain = self.config['domain']
+        recipient = self.config['recipient']
 
         reply_id = ''
         if mail.getReplyID():
-            reply_id = u'%s@%s' % (mail.getFullReplyID(), domain)
+            reply_id = u'%s.%s@%s' % (backend_name, mail.getFullReplyID(), domain)
         subject = u'%s%s' % ((reply_id) and 'Re: ' or '', mail.getTitle())
-        sender = u'%s <%d@%s>' % (mail.getFrom(), mail.getThreadID(), domain)
+        sender = u'%s <%s.%s.%s@%s>' % (mail.getFrom(), backend_name, mail.getThreadID(), mail.getID(), domain)
 
         # assume that getDate() returns an UTC datetime
         date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.getDate().timetuple())
-        msg_id = u'%s@%s' % (mail.getFullID(), domain)
+        msg_id = u'%s.%s@%s' % (backend_name, mail.getFullID(), domain)
         body = mail.getContent()
 
-        body += u'\n\n-- \n'
-        body += mail.getSignature()
+        if mail.getSignature():
+            body += u'\n\n-- \n'
+            body += mail.getSignature()
 
         # Header class is smart enough to try US-ASCII, then the charset we
         # provide, then fall back to UTF-8.
