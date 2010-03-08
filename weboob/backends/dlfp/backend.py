@@ -19,7 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.backend import Backend
-from weboob.capabilities.messages import IMessages, IMessagesReply
+from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 
-class DLFPBackend(Backend, IMessages, IMessagesReply):
-    pass
+class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
+    def __init__(self, weboob):
+        Backend.__init__(self, weboob)
+
+    def getNewMessages(self, thread=None):
+        m = Message('threadid', 'msgid', 'Title', 'Sender', signature='Bite bite bite bite', content='Content content\nContent content.')
+        return [m]

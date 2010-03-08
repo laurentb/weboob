@@ -27,46 +27,46 @@ from weboob import Weboob
 
 class BaseApplication(object):
     APPNAME = ''
+    CONFIG = {}
 
     def __init__(self):
         self.weboob = Weboob(self.APPNAME)
-        self.config = self.weboob.getFrontendConfig()
+        self.config = self.weboob.getFrontendConfig(self.CONFIG)
 
-def ask(question, default=None, masked=False, regexp=None):
-    """
-    Ask a question to user.
+    def ask(self, question, default=None, masked=False, regexp=None):
+        """
+        Ask a question to user.
 
-    @param question  text displayed (str)
-    @param default  optional default value (str)
-    @param masked  if True, do not show typed text (bool)
-    @param regexp  text must match this regexp (str)
-    @return  entered text by user (str)
-    """
+        @param question  text displayed (str)
+        @param default  optional default value (str)
+        @param masked  if True, do not show typed text (bool)
+        @param regexp  text must match this regexp (str)
+        @return  entered text by user (str)
+        """
 
-    correct = False
+        correct = False
 
-    if not default is None:
-        question = '%s [%s]' % (question, default)
+        if not default is None:
+            question = '%s [%s]' % (question, default)
 
-    while not correct:
+        while not correct:
+            sys.stdout.write('%s: ' % (question))
 
-        sys.stdout.write('%s: ' % (question))
+            if masked:
+                attr = termios.tcgetattr(sys.stdin)
+                tty.setcbreak(sys.stdin)
 
-        if masked:
-            attr = termios.tcgetattr(sys.stdin)
-            tty.setcbreak(sys.stdin)
+            line = sys.stdin.readline().split('\n')[0]
 
-        line = sys.stdin.readline().split('\n')[0]
+            if not line and not default is None:
+                line = default
 
-        if not line and not default is None:
-            line = default
+            if masked:
+                termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, attr)
+                sys.stdout.write('\n')
 
-        if masked:
-            termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, attr)
-            sys.stdout.write('\n')
+            correct = not regexp or re.match(regexp, str(line))
 
-        correct = not regexp or re.match(regexp, str(line))
-
-    return line
+        return line
 
 

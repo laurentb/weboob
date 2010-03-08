@@ -48,8 +48,8 @@ class Module:
                 return True
         return False
 
-    def createBackend(self, config):
-        return self.klass(config)
+    def createBackend(self, weboob):
+        return self.klass(weboob)
 
 class ModulesLoader:
     def __init__(self):
