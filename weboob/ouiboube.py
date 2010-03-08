@@ -19,16 +19,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import os
+import sched
+import time
 
 from weboob.modules import ModulesLoader
 from weboob.config import Config
 
 class Weboob:
-    CONFIG_FILE = '%s/.weboobrc' % os.path.expanduser("~")
+    CONFIG_FILE = '%s/.weboob/config' % os.path.expanduser("~")
+    DATA_DIR = '%s/.weboob/' % os.path.expanduser("~")
 
-    def __init__(self, app_name, config_file=CONFIG_FILE):
+    def __init__(self, app_name, config_file=CONFIG_FILE, data_dir=DATA_DIR):
         self.app_name = app_name
         self.backends = {}
+        self.scheduler = sched.scheduler(time.time, time.sleep)
         self.config = Config(self.CONFIG_FILE)
         self.config.load()
         self.modules_loader = ModulesLoader()
@@ -60,3 +64,9 @@ class Weboob:
             if backend.hasCaps(caps):
                 d[name] = backend
         return d
+
+    def schedule(self, interval, function, *args):
+        self.scheduler.enter(interval, 1, function, args)
+
+    def loop(self):
+        self.scheduler.run()
