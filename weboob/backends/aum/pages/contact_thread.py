@@ -185,7 +185,9 @@ class MailParser(Mail):
             if not td.hasAttribute('class') or td.getAttribute('class') != 'mini_pseudo':
                 continue
 
-            self.sender = td.childNodes[0].data
+            if td.childNodes:
+                self.sender = td.childNodes[0].data
+
             return
 
         warning('Warning: unable to find from in the mail %s' % self.getID())
@@ -237,7 +239,7 @@ class ContactThreadPage(PageBase):
 
             self.browser.submit()  # submit current form
         except FormNotFoundError:
-            error = 'Unknown error'
+            error = 'Unknown error (%s)' % e
             p_list = self.document.getElementsByTagName('p')
             for p in p_list:
                 if p.hasAttribute('align') and p.getAttribute('align') == 'center':

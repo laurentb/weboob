@@ -22,4 +22,8 @@ from weboob.backend import Backend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 
 class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
-    pass
+    def __init__(self, weboob):
+        Backend.__init__(self, weboob)
+
+    def getNewMessages(self, thread=None):
+        pass

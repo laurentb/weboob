@@ -219,3 +219,25 @@ class Browser(mechanize.Browser):
         if self.__cookie:
             self.__cookie.save()
 
+    def set_field(self, args, label, field=None, value=None, is_list=False):
+        try:
+            if not field:
+                field = label
+            if args.get(label, None) is not None:
+                if not value:
+                    if is_list:
+                        if isinstance(is_list, (list, tuple)):
+                            try:
+                                value = [str(is_list.index(args[label]))]
+                            except ValueError, e:
+                                if args[label]:
+                                    print '[%s] %s: %s' % (label, args[label], e)
+                                return
+                        else:
+                            value = [str(args[label])]
+                    else:
+                        value = str(args[label])
+                self[field] = value
+        except ClientForm.ControlNotFoundError:
+            return
+

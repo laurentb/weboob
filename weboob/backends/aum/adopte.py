@@ -52,12 +52,13 @@ class AdopteUnMec(Browser):
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
              'http://www.adopteunmec.com/thread.php\?id=([0-9]+)': ContactThreadPage,
              'http://www.adopteunmec.com/edit.php\?type=1': EditPhotoPage,
-             'http://s\d+.adopteunmec.com/upload2.php\?.*': EditPhotoCbPage,
+             'http://s\d+.adopteunmec.com/upload\d.php\?.*': EditPhotoCbPage,
              'http://www.adopteunmec.com/edit.php\?type=2': EditAnnouncePage,
              'http://www.adopteunmec.com/edit.php\?type=3': EditDescriptionPage,
              'http://www.adopteunmec.com/edit.php\?type=4': EditSexPage,
              'http://www.adopteunmec.com/edit.php\?type=5': EditPersonalityPage,
              'http://www.adopteunmec.com/search.php.*': SearchPage,
+             'http://www.adopteunmec.com/searchRes.php.*': SearchPage,
              'http://www.adopteunmec.com/rencontres-femmes/(.*)/([0-9]+)': ProfilePage,
              'http://www.adopteunmec.com/catalogue-hommes/(.*)/([0-9]+)': ProfilePage,
              'http://www.adopteunmec.com/view2.php': ProfilePage, # my own profile
@@ -112,6 +113,12 @@ class AdopteUnMec(Browser):
         return self.page.setAnnounce(title, description, lookingfor)
 
     @pageaccess
+    def setDescription(self, **args):
+        if not self.isOnPage(EditDescriptionPage):
+            self.location('/edit.php?type=3')
+        return self.page.setDescription(**args)
+
+    @pageaccess
     def score(self):
         if time.time() - self.__last_update > 60:
             self.home()
@@ -158,6 +165,11 @@ class AdopteUnMec(Browser):
         return self.page.getProfilesIDsList()
 
     @pageaccess
+    def flushVisits(self):
+        """ Does nothing, only flush new visits to increase my score """
+        self.openurl('/mails.php?type=3')
+
+    @pageaccess
     def getContactList(self):
         if not self.isOnPage(ContactListPage):
             self.location('/mails.php')
@@ -187,12 +199,17 @@ class AdopteUnMec(Browser):
         # TODO check if it works (but it should)
         return True
 
+    def deblock(self, id):
+        result = self.openurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id).read()
+        warning('Deblock: %s' % result)
+        return True
+
     @pageaccess
     def rate(self, id, what, rating):
         print 'rate "%s"' % id, what, rating
         result = self.openurl('http://www.adopteunmec.com/fajax_vote.php', 'member=%s&what=%s&rating=%s' % (id, what, rating)).read()
         print result
-        return True
+        return float(result)
 
     @pageaccess
     def searchProfiles(self, **kwargs):
@@ -206,6 +223,23 @@ class AdopteUnMec(Browser):
             link = link[1:]
         self.location('/%s' % link)
         return self.page
+
+    @pageaccess
+    def getSlutState(self, id):
+        result = self.openurl('http://www.adopteunmec.com/%s' % id).read()
+        if result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0:
+            r = 'online'
+        elif result.find('Cet utilisateur a quitt\xe9 le site<br />') >= 0:
+            r = 'removed'
+        elif result.find('ce profil a \xe9t\xe9 bloqu\xe9 par l\'\xe9quipe de mod\xe9ration<br />') >= 0:
+            r = 'removed'
+        elif result.find('<div align=center style="color:#ff0000;font-size:16px"><br /><br />Cette personne<br>vous a bloqu\xe9</div>') >= 0:
+            r = 'blocked'
+        else:
+            r = 'offline'
+
+        print 'getSlutState(%s) = %s' % (id, r)
+        return r
 
     @pageaccess
     def isSlutOnline(self, id):

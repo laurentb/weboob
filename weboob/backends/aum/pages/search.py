@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2008  Romain Bignon
+Copyright(C) 2008-2010  Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,33 +22,18 @@ import ClientForm
 from weboob.backends.aum.pages.profileslist_base import ProfilesListBase
 
 class SearchPage(ProfilesListBase):
-
     SHOW_WITHOUT_PHOTO = False
 
-    def set_field(self, args, label, field=None, value=None, is_list=False):
-        try:
-            if not field:
-                field = label
-            if args.get(label, None) is not None:
-                if not value:
-                    if is_list:
-                        value = [str(args[label])]
-                    else:
-                        value = str(args[label])
-                self.browser[field] = value
-        except ClientForm.ControlNotFoundError:
-            return
-
     def search(self, **kwargs):
-
         self.browser.select_form(name="form")
         self.browser.set_all_readonly(False)
 
-        self.set_field(kwargs, 'ageMin', is_list=True)
-        self.set_field(kwargs, 'ageMax', is_list=True)
-        self.set_field(kwargs, 'country', is_list=True)
-        self.set_field(kwargs, 'dist', is_list=True)
-        self.set_field(kwargs, 'nickname', field='pseudo')
-        self.set_field(kwargs, 'save', value='true')
+        self.browser.set_field(kwargs, 'ageMin', is_list=True)
+        self.browser.set_field(kwargs, 'ageMax', is_list=True)
+        self.browser.set_field(kwargs, 'country', is_list=True)
+        self.browser.set_field(kwargs, 'dist', is_list=True)
+        self.browser.set_field(kwargs, 'nickname', field='pseudo')
+        self.browser.set_field(kwargs, 'save', value='true')
+        self.browser['originsV[]'] = ['1'] # excludes niggers (it doesn't work :( )
 
         self.browser.submit()

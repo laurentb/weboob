@@ -39,17 +39,39 @@ class EditAnnouncePage(PageBase):
 
     def setAnnounce(self, title=None, description=None, lookingfor=None):
         self.browser.select_form(name="form")
-        if title is not None:
-            self.browser['title'] = title
-        if description is not None:
-            self.browser['about1'] = description
-        if lookingfor is not None:
-            self.browser['about2'] = lookingfor
+        self.browser.set_field(kwargs, 'title')
+        self.browser.set_field(kwargs, 'description', field='about1')
+        self.browser.set_field(kwargs, 'lookingfor', field='about2')
 
         self.browser.submit()
 
 class EditDescriptionPage(PageBase):
-    pass
+    SHAPES = ['--', 'svelte', 'sportive', u'équilibrée', 'pulpeuse', u'généreuse', 'normale']
+    HAIR_COLORS = ['--', 'blancs', 'gris', 'noirs', 'bruns', 'chatains', 'roux', 'blonds', 'platines', u'colorés']
+    HAIR_SIZES = ['--', u'rasés', 'courts', 'mi-longs', 'longs']
+    EYES = ['--', 'noirs', 'marrons', 'noisettes', 'bleus', 'verts', 'gris']
+    ORIGINS = ['--', u'européennes', 'afro', 'maghrebines', 'asiatiques', u'métisses', 'eurasiennes', 'latines']
+    STYLES = ['--', 'fashion', 'chic', 'sport', u'décontracté', 'rock', u'bohème', 'masculin', 'dark', 'excentrique', 'electro', 'skate']
+    FOODS = ['--', 'mange de tout', 'piscovore', u'végétarien', u'végétalien', 'bio']
+    DRINKS = ['--', 'jamais', 'de temps en temps', 'souvent', 'pilier de bar']
+    SMOKES = ['--', u'ne tolère pas la fumée', u'tolère la fumée', 'fume de temps en temps', 'fume souvent']
+
+    def setDescription(self, **kwargs):
+        self.browser.select_form(name='form')
+
+        self.browser.set_field(kwargs, 'height', field='size', is_list=True)
+        self.browser.set_field(kwargs, 'weight', is_list=True)
+        self.browser.set_field(kwargs, 'shape', is_list=self.SHAPES)
+        self.browser.set_field(kwargs, 'hair_color', is_list=self.HAIR_COLORS)
+        self.browser.set_field(kwargs, 'hair_size', is_list=self.HAIR_SIZES)
+        self.browser.set_field(kwargs, 'eyes', is_list=self.EYES)
+        self.browser.set_field(kwargs, 'origins', is_list=self.ORIGINS)
+        self.browser.set_field(kwargs, 'style', is_list=self.STYLES)
+        self.browser.set_field(kwargs, 'food', is_list=self.FOODS)
+        self.browser.set_field(kwargs, 'drink', is_list=self.DRINKS)
+        self.browser.set_field(kwargs, 'smoke', is_list=self.SMOKES)
+
+        self.browser.submit()
 
 class EditSexPage(PageBase):
     pass

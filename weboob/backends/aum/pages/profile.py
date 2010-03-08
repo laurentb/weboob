@@ -45,11 +45,25 @@ class FieldWideList(FieldBase):
         d[self.key] += [value]
 
 class FieldOld(FieldBase):
-    regexp = re.compile('([0-9]+) ans')
+    regexp = re.compile(u'([0-9]+) ans( \(Née le  ([0-9]+) ([^ ]+) ([0-9]+)\))?')
+    month2i = ['', 'janvier', u'février', 'mars', 'avril', 'mai', 'juin', 'juillet', u'août', 'septembre', 'octobre', 'novembre', u'décembre']
+
     def putValue(self, d, value):
         m = self.regexp.match(value)
-        if m:
-            d[self.key] = int(m.group(1))
+        warning(value)
+        if not m:
+            return
+
+        d[self.key] = int(m.group(1))
+        if not m.group(2):
+            return
+
+        try:
+            d['birthday'] = (int(m.group(3)),
+                             self.month2i.index(m.group(4)),
+                             int(m.group(5)))
+        except ValueError, e:
+            print str(e)
 
 class FieldLocation(FieldBase):
     location = re.compile('(.*) \(([0-9]{5})\), (.*)')
@@ -114,6 +128,7 @@ class FieldParticularSignes(FieldBase):
 class ProfilePage(PageBase):
 
     empty_table = {'details':      {'old':           0,
+                                    'birthday':      (0,0,0),
                                     'zipcode':       0,
                                     'location':      '',
                                     'country':       '',

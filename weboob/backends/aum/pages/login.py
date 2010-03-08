@@ -44,7 +44,8 @@ class RegisterPage(PageBase):
               - godfather
         """
         self.browser.select_form(name="form2")
-        self.browser.controls.pop()
+        self.browser.controls.pop() # pop the 'sex' control which is twice on page
+        self.browser.set_all_readonly(False)
 
         if isinstance(nickname, unicode):
             nickname = nickname.encode('iso-8859-15', 'ignore')
