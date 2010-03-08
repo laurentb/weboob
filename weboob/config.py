@@ -30,25 +30,38 @@ class Config:
         self.values = {}
 
     def load(self):
-        with open(self.path, 'r') as f:
-            self.values = yaml.load(f)
+        try:
+            with open(self.path, 'r') as f:
+                self.values = yaml.load(f)
+        except IOError:
+            pass
+
+        if self.values is None:
+            self.values = {}
 
     def get(self, *args, **kwargs):
-        create = False
-        if 'create' in kwargs:
-            create = kwargs['create']
+        default = None
+        if 'default' in kwargs:
+            default = kwargs['default']
 
         v = self.values
-        for a in args:
+        for a in args[:-1]:
             try:
                 v = v[a]
             except KeyError:
-                if create:
-                    v = v[a] = {}
+                if not default is None:
+                    v[a] = {}
+                    v = v[a]
                 else:
                     raise ConfigError()
             except TypeError:
                 raise ConfigError()
+
+        try:
+            v = v[args[-1]]
+        except KeyError:
+            v[args[-1]] = default
+            v = v[args[-1]]
 
         return v
 
@@ -58,7 +71,8 @@ class Config:
             try:
                 v = v[a]
             except KeyError:
-                v = v[a] = {}
+                v[a] = {}
+                v = v[a]
             except TypeError:
                 raise ConfigError()
 
