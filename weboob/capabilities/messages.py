@@ -22,15 +22,16 @@ import datetime
 import time
 
 class Message:
-    def __init__(self, thread_id, id, title, sender, date=None, reply_id=''):
+    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u''):
         self.thread_id = unicode(thread_id)
-        self.id = unicode(id)
+        self._id = unicode(_id)
         self.reply_id = unicode(reply_id)
         self.title = unicode(title)
         self.sender = unicode(sender)
+        self.signature = unicode(signature)
 
         self.new = False
-        self.content = u''
+        self.content = content
         if date is None:
             date = datetime.datetime.utcnow()
         self.date = date
@@ -39,13 +40,13 @@ class Message:
         return int(time.strftime('%Y%m%d%H%M%S', self.getDate().timetuple()))
 
     def getFullID(self):
-        return '%s.%s' % (self.id, self.thread_id)
+        return '%s.%s' % (self._id, self.thread_id)
 
     def getFullReplyID(self):
         return '%s.%s' % (self.reply_id, self.thread_id)
 
     def getID(self):
-        return self.id
+        return self._id
 
     def getThreadID(self):
         return self.thread_id
@@ -64,6 +65,9 @@ class Message:
 
     def getContent(self):
         return self.content
+
+    def getSignature(self):
+        return self.signature
 
     def isNew(self):
         return self.new
