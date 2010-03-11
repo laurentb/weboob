@@ -55,15 +55,12 @@ class Weboob:
         module = self.modules_loader[modname]
         self.backends[instname] = module.create_backend(self)
 
-    def get_backends(self, caps=None):
+    def iter_backends(self, caps=None):
         if caps is None:
-            return self.backends
-
-        d = {}
-        for name, backend in self.backends.iteritems():
-            if backend.has_caps(caps):
-                d[name] = backend
-        return d
+            return self.backends.iteritems()
+        else:
+            return dict((name, backend) for name, backend in self.backends.iteritems()
+                        if backend.has_caps(caps)).iteritems()
 
     def schedule(self, interval, function, *args):
         self.scheduler.enter(interval, 1, function, args)

@@ -57,9 +57,8 @@ class Application(BaseApplication):
         self.weboob.loop()
 
     def process(self):
-        backends = self.weboob.get_backends()
-        for name, b in backends.iteritems():
-            for message in b.iter_new_messages():
+        for name, backend in self.weboob.iter_backends():
+            for message in backend.iter_new_messages():
                 self.send_email(name, message)
 
     def send_email(self, backend_name, mail):
