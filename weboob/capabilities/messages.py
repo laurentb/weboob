@@ -73,9 +73,18 @@ class Message:
         return self.new
 
 class ICapMessages:
-    def iter_messages(self, thread=None):
+    def getNewMessages(self, thread=None):
         """
         Get new messages from last time this function has been called.
+
+        @param thread [str]  if given, get new messages for a specific thread.
+        @return [list]  a list of Message objects.
+        """
+        return [m for m in self.iterNewMessages(thread)]
+
+    def iterNewMessages(self, thread=None):
+        """
+        Iterates on new messages from last time this function has been called.
 
         @param thread [str]  if given, get new messages for a specific thread.
         @return [list]  a list of Message objects.
