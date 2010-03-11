@@ -73,7 +73,7 @@ class Message:
         return self.new
 
 class ICapMessages:
-    def getNewMessages(self, thread=None):
+    def iter_messages(self, thread=None):
         """
         Get new messages from last time this function has been called.
 

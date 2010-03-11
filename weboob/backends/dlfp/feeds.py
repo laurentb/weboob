@@ -47,7 +47,7 @@ class ArticlesList:
         self.section = section
         self.articles = []
 
-    def fetch(self):
+    def iter_articles(self):
         for section, klass in self.RSS.iteritems():
             if self.section and self.section != section:
                 continue
@@ -61,4 +61,4 @@ class ArticlesList:
                     continue
                 _id = m.group(1)
                 article = klass(_id, item['link'], item['title'], item['author'], item['date_parsed'])
-                print _id, item['author'], item['title']
+                yield _id, item['author'], item['title']

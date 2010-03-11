@@ -25,5 +25,5 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
 
-    def getNewMessages(self, thread=None):
+    def iter_messages(self, thread=None):
         pass
