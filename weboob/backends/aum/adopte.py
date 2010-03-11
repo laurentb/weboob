@@ -65,6 +65,10 @@ class AdopteUnMec(Browser):
              'http://www.adopteunmec.com/(\w+)': ProfilePage, # a custom profile url
             }
 
+    def __init__(self, *args, **kwargs):
+        Browser.__init__(self, *args, **kwargs)
+        self.my_id = 0
+
     def login(self):
         if not self.is_on_page(LoginPage):
             self.home()
@@ -132,9 +136,13 @@ class AdopteUnMec(Browser):
 
     @pageaccess
     def get_my_id(self):
+        if self.my_id:
+            return self.my_id
+
         if not self.is_on_page(HomePage):
             self.home()
-        return self.page.get_my_id()
+        self.my_id = self.page.get_my_id()
+        return self.my_id
 
     @pageaccess
     def nb_new_mails(self):
