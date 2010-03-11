@@ -26,4 +26,4 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
         Backend.__init__(self, weboob)
 
     def iter_new_messages(self, thread=None):
-        pass
+        return dict().iteritems()
