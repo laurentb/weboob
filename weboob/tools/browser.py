@@ -79,7 +79,7 @@ class Browser(mechanize.Browser):
         raise NotImplementedError()
 
     # Return True if we are logged on website
-    def isLogged(self):
+    def is_logged(self):
         raise NotImplementedError()
 
     # ------ Browser methods ---------------------------------------
@@ -111,7 +111,7 @@ class Browser(mechanize.Browser):
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
-            if not self.page or not self.page.isLogged() and self.password:
+            if not self.page or not self.page.is_logged() and self.password:
                 self.home()
 
             return func(self, *args, **kwargs)
@@ -152,7 +152,7 @@ class Browser(mechanize.Browser):
             self.home()
             raise BrowserUnavailable()
 
-    def isOnPage(self, pageCls):
+    def is_on_page(self, pageCls):
         return isinstance(self.page, pageCls)
 
     def follow_link(self, *args, **kwargs):
@@ -184,7 +184,7 @@ class Browser(mechanize.Browser):
             self.home()
             self.location(*keep_args, **keep_kwargs)
 
-    def __changeLocation(self, result):
+    def __change_location(self, result):
         # Find page from url
         pageCls = None
         for key, value in self.PAGES.items():
@@ -211,7 +211,7 @@ class Browser(mechanize.Browser):
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
-        if not self.isLogged() and self.password:
+        if not self.is_logged() and self.password:
             print '!! Relogin !!'
             self.login()
             return

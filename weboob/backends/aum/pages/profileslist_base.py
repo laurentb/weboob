@@ -43,8 +43,8 @@ class ProfilesListBase(PageBase):
                        m and (self.SHOW_WITHOUT_PHOTO or m.group(1) != self.WITHOUT_PHOTO):
                         self.id_list.append(url)
 
-    def getProfilesIDs(self):
+    def get_profiles_ids(self):
         return set(self.id_list)
 
-    def getProfilesIDsList(self):
+    def get_profiles_ids_list(self):
         return self.id_list

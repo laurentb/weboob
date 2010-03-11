@@ -54,7 +54,7 @@ class ContactItem:
 
         return self.tr.getElementsByTagName('td')[self.fields.index(id)]
 
-    def getName(self):
+    def get_name(self):
         tag = self.__get_element('name')
         node = tag.getElementsByTagName('b')[0].firstChild
         if node:
@@ -65,24 +65,24 @@ class ContactItem:
 
         return name
 
-    def getStatus(self):
+    def get_status(self):
 
         tag = self.__get_element('status')
 
         return tag.firstChild.data
 
-    def isNew(self):
-        return self.getStatus() == u'nouveau'
+    def is_new(self):
+        return self.get_status() == u'nouveau'
 
-    def isAnswered(self):
-        return self.getStatus() == u'répondu'
+    def is_answered(self):
+        return self.get_status() == u'répondu'
 
-    def getResume(self):
+    def get_resume(self):
         tag = self.__get_element('resume')
 
         return tag.getElementsByTagName('b')[0].firstChild.data.split('\n')[0]
 
-    def getID(self):
+    def get_id(self):
         tag = self.__get_element('thread_link')
 
         text = tag.getAttribute('onclick')
@@ -113,5 +113,5 @@ class ContactListPage(PageBase):
 
             self.items += [ContactItem(tag)]
 
-    def getContactList(self):
+    def get_contact_list(self):
         return self.items

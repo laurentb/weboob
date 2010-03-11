@@ -38,30 +38,30 @@ class Weboob:
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
 
-    def getFrontendConfig(self, default={}):
+    def get_frontend_config(self, default={}):
         return self.config.get('frontends', self.app_name, default=default)
 
-    def getBackendConfig(self, backend_name, default={}):
+    def get_backend_config(self, backend_name, default={}):
         return self.config.get('backends', backend_name, default=default)
 
-    def loadmodules(self, caps=None, name=None):
+    def load_modules(self, caps=None, name=None):
         for name, module in self.modules_loader.modules.iteritems():
-            if (not caps or module.hasCaps(caps)) and \
+            if (not caps or module.has_caps(caps)) and \
                (not name or module.name == name):
-                backend = module.createBackend(self)
+                backend = module.create_backend(self)
                 self.backends[module.name] = backend
 
-    def loadmodule(self, modname, instname):
+    def load_module(self, modname, instname):
         module = self.modules_loader[modname]
-        self.backends[instname] = module.createBackend(self)
+        self.backends[instname] = module.create_backend(self)
 
-    def getBackends(self, caps=None):
+    def get_backends(self, caps=None):
         if caps is None:
             return self.backends
 
         d = {}
         for name, backend in self.backends.iteritems():
-            if backend.hasCaps(caps):
+            if backend.has_caps(caps):
                 d[name] = backend
         return d
 

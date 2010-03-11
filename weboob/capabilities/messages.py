@@ -36,53 +36,44 @@ class Message:
             date = datetime.datetime.utcnow()
         self.date = date
 
-    def getDateInt(self):
-        return int(time.strftime('%Y%m%d%H%M%S', self.getDate().timetuple()))
+    def get_date_int(self):
+        return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
 
-    def getFullID(self):
+    def get_full_id(self):
         return '%s.%s' % (self._id, self.thread_id)
 
-    def getFullReplyID(self):
+    def get_full_reply_id(self):
         return '%s.%s' % (self.reply_id, self.thread_id)
 
-    def getID(self):
+    def get_id(self):
         return self._id
 
-    def getThreadID(self):
+    def get_thread_id(self):
         return self.thread_id
 
-    def getReplyID(self):
+    def get_reply_id(self):
         return self.reply_id
 
-    def getTitle(self):
+    def get_title(self):
         return self.title
 
-    def getDate(self):
+    def get_date(self):
         return self.date
 
-    def getFrom(self):
+    def get_from(self):
         return self.sender
 
-    def getContent(self):
+    def get_content(self):
         return self.content
 
-    def getSignature(self):
+    def get_signature(self):
         return self.signature
 
-    def isNew(self):
+    def is_new(self):
         return self.new
 
 class ICapMessages:
-    def getNewMessages(self, thread=None):
-        """
-        Get new messages from last time this function has been called.
-
-        @param thread [str]  if given, get new messages for a specific thread.
-        @return [list]  a list of Message objects.
-        """
-        return [m for m in self.iterNewMessages(thread)]
-
-    def iterNewMessages(self, thread=None):
+    def iter_new_messages(self, thread=None):
         """
         Iterates on new messages from last time this function has been called.
 
@@ -92,5 +83,5 @@ class ICapMessages:
         raise NotImplementedError()
 
 class ICapMessagesReply:
-    def postReply(self, message):
+    def post_reply(self, message):
         raise NotImplementedError()

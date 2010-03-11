@@ -31,7 +31,7 @@ class BaseApplication(object):
 
     def __init__(self):
         self.weboob = Weboob(self.APPNAME)
-        self.config = self.weboob.getFrontendConfig(self.CONFIG)
+        self.config = self.weboob.get_frontend_config(self.CONFIG)
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """

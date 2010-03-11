@@ -28,27 +28,27 @@ class FieldBase:
     def __init__(self, key):
         self.key = key
 
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         raise NotImplementedError
 
 class FieldString(FieldBase):
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         d[self.key] = unicode(value)
 
 class FieldList(FieldBase):
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         d[self.key] = value.split(', ')
 
 class FieldWideList(FieldBase):
 
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         d[self.key] += [value]
 
 class FieldOld(FieldBase):
     regexp = re.compile(u'([0-9]+) ans( \(Née le  ([0-9]+) ([^ ]+) ([0-9]+)\))?')
     month2i = ['', 'janvier', u'février', 'mars', 'avril', 'mai', 'juin', 'juillet', u'août', 'septembre', 'octobre', 'novembre', u'décembre']
 
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         m = self.regexp.match(value)
         warning(value)
         if not m:
@@ -70,7 +70,7 @@ class FieldLocation(FieldBase):
 
     def __init__(self):
         FieldBase.__init__(self, '')
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         # TODO: determine distance, or something like
         m = self.location.match(value)
         if m:
@@ -88,7 +88,7 @@ class FieldMeasurements(FieldBase):
 
     def __init__(self):
         FieldBase.__init__(self, '')
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         for s in value.split(', '):
             m = self.height.match(s)
             if m:
@@ -114,7 +114,7 @@ class FieldMeasurements(FieldBase):
 
 class FieldParticularSignes(FieldBase):
     def __init__(self): FieldBase.__init__(self, '')
-    def putValue(self, d, value):
+    def put_value(self, d, value):
         for s in value.split(', '):
             if s.find('tatouages') >= 0:
                 d['tatoos'] = True
@@ -284,10 +284,10 @@ class ProfilePage(PageBase):
         for div in divs:
             if div.hasAttribute('id'):
                 if div.getAttribute('id') == 'about_div':
-                    self.parseDescription(div)
+                    self.parse_description(div)
 
                 if div.getAttribute('id').startswith('tab_'):
-                    self.parseTable(div)
+                    self.parse_table(div)
 
         for tag in ('img', 'td'):
             imgs = self.document.getElementsByTagName(tag)
@@ -300,7 +300,7 @@ class ProfilePage(PageBase):
             if self.id:
                 break
 
-    def parseDescription(self, div):
+    def parse_description(self, div):
         # look for description
 
         description = ''
@@ -312,7 +312,7 @@ class ProfilePage(PageBase):
 
         self.description = description
 
-    def parseTable(self, div):
+    def parse_table(self, div):
 
         d = self.table[self.tables[div.getAttribute('id')]]
         fields = self.fields[self.tables[div.getAttribute('id')]]
@@ -354,7 +354,7 @@ class ProfilePage(PageBase):
             if label1 and value2:
                 # This is a typically tuple of key/value on the line.
                 try:
-                    fields[label1].putValue(d, value2)
+                    fields[label1].put_value(d, value2)
                 except KeyError:
                     warning('Unable to find "%s" (%s)' % (label1, repr(label1)))
             elif label1 and label2:
@@ -365,45 +365,45 @@ class ProfilePage(PageBase):
             elif not label1 and not label1:
                 # two values, so it is a line of values
                 if field1 and value1:
-                    field1.putValue(d, value1)
+                    field1.put_value(d, value1)
                 if field2 and value2:
-                    field2.putValue(d, value2)
+                    field2.put_value(d, value2)
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def getDescription(self):
+    def get_description(self):
         return self.description
 
-    def getTable(self):
+    def get_table(self):
         return self.table
 
-    def getID(self):
+    def get_id(self):
         return self.id
 
-    def getPhotos(self):
+    def get_photos(self):
         return self.photos
 
-    def getStatus(self):
+    def get_status(self):
         return self.status
 
-    def isOnline(self):
+    def is_online(self):
         return self.status.find('en ligne') >= 0
 
-    def getStats(self):
+    def get_stats(self):
         return self.stats
 
-    def getProfileText(self):
+    def get_profile_text(self):
         body = u'Status: %s' % unicode(self.status)
         if self.photos:
             body += u'\nPhotos:'
             for photo in self.photos:
                 body += u'\n\t\t%s' % unicode(photo)
         body += u'\nStats:'
-        for label, value in self.getStats().iteritems():
+        for label, value in self.get_stats().iteritems():
             body += u'\n\t\t%-15s %s' % (label + ':', value)
         body += u'\n\nInformations:'
-        for section, d in self.getTable().iteritems():
+        for section, d in self.get_table().iteritems():
             body += u'\n\t%s\n' % section
             for key, value in d.items():
                 key = '%s:' % key
@@ -413,7 +413,7 @@ class ProfilePage(PageBase):
                     body += u'\t\t%-15s %.2f\n' % (key, value)
                 else:
                     body += u'\t\t%-15s %s\n' % (key, unicode(value))
-        body += u'\n\nDescription:\n%s' % unicode(self.getDescription())
+        body += u'\n\nDescription:\n%s' % unicode(self.get_description())
 
         return body
 

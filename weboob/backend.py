@@ -23,7 +23,7 @@ class Backend:
     def __init__(self, weboob):
         self.weboob = weboob
 
-    def hasCaps(self, caps):
+    def has_caps(self, caps):
         if not isinstance(caps, (list,tuple)):
             caps = (caps,)
 

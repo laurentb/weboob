@@ -34,36 +34,36 @@ class Mail:
         self.content = ''
         self.date = datetime.datetime.utcnow()
 
-    def getDateInt(self):
-        return int(time.strftime('%Y%m%d%H%M%S', self.getDate().timetuple()))
+    def get_date_int(self):
+        return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
 
-    def getMsgID(self, sender):
-        return '<%s.%d@%s>' % (self.getDateInt(), self.id, sender)
+    def get_msg_id(self, sender):
+        return '<%s.%d@%s>' % (self.get_date_int(), self.id, sender)
 
-    def getReplyID(self, sender):
+    def get_reply_id(self, sender):
         if self.reply_date:
             return '<%s.%d@%s>' % (self.reply_date, self.id, sender)
         else:
             return ''
 
-    def getID(self):
+    def get_id(self):
         return self.id
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def getDate(self):
+    def get_date(self):
         return self.date
 
-    def getProfileLink(self):
+    def get_profile_link(self):
         return self.profile_link
 
-    def getFrom(self):
+    def get_from(self):
         return self.sender
 
-    def getContent(self):
+    def get_content(self):
         return self.content
 
-    def isNew(self):
+    def is_new(self):
         return self.new
 

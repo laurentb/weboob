@@ -27,7 +27,7 @@ class HomePage(PageBase):
 
     MYID_REGEXP = re.compile("http://www.adopteunmec.com/\?mid=(\d+)")
 
-    def getMyID(self):
+    def get_my_id(self):
         fonts = self.document.getElementsByTagName('font')
         for font in fonts:
             m = self.MYID_REGEXP.match(font.firstChild.data)
@@ -37,7 +37,7 @@ class HomePage(PageBase):
         error("Error: Unable to find my ID")
         return 0
 
-    def nbAvailableCharms(self):
+    def nb_available_charms(self):
         tables = self.document.getElementsByTagName('table')
         for table in tables:
             if table.hasAttribute('style') and table.getAttribute('style') == 'background-color:black;background-image:url(http://s.adopteunmec.com/img/barmec.gif);background-repeat:no-repeat':

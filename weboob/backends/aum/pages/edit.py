@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.backends.aum.pages.base import PageBase
 
 class EditPhotoPage(PageBase):
-    def addPhoto(self, name, f):
+    def add_photo(self, name, f):
         self.browser.select_form(name="form")
         self.browser.find_control('uploaded').add_file(f, 'image/jpeg', name)
         self.browser.submit()
@@ -32,12 +32,12 @@ class EditPhotoCbPage(PageBase):
     pass
 
 class EditAnnouncePage(PageBase):
-    def setNickname(self, nickname):
+    def set_nickname(self, nickname):
         self.browser.select_form(name="form")
         self.browser['pseudo'] = nickname
         self.browser.submit()
 
-    def setAnnounce(self, title=None, description=None, lookingfor=None):
+    def set_announce(self, title=None, description=None, lookingfor=None):
         self.browser.select_form(name="form")
         self.browser.set_field(kwargs, 'title')
         self.browser.set_field(kwargs, 'description', field='about1')
@@ -56,7 +56,7 @@ class EditDescriptionPage(PageBase):
     DRINKS = ['--', 'jamais', 'de temps en temps', 'souvent', 'pilier de bar']
     SMOKES = ['--', u'ne tolère pas la fumée', u'tolère la fumée', 'fume de temps en temps', 'fume souvent']
 
-    def setDescription(self, **kwargs):
+    def set_description(self, **kwargs):
         self.browser.select_form(name='form')
 
         self.browser.set_field(kwargs, 'height', field='size', is_list=True)

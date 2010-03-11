@@ -36,5 +36,5 @@ class DLFP(Browser):
     def login(self):
         self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
 
-    def isLogged(self):
-        return (self.page and self.page.isLogged())
+    def is_logged(self):
+        return (self.page and self.page.is_logged())

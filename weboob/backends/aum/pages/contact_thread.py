@@ -113,7 +113,7 @@ class MailParser(Mail):
                 for child in td.childNodes[1].childNodes:
                     if hasattr(child, 'data'):
                         date += child.data
-                self.parseDate(date)
+                self.parse_date(date)
                 content = ''
                 for c in td.childNodes[3].childNodes:
                     if hasattr(c, 'data'):
@@ -131,10 +131,10 @@ class MailParser(Mail):
                 self.content = content
                 break
 
-        self.parseProfileLink()
-        self.parseFrom()
+        self.parse_profile_link()
+        self.parse_from()
 
-    def parseDate(self, date_str):
+    def parse_date(self, date_str):
 
 
         # To match regexp, we have to remove any return chars in string
@@ -161,7 +161,7 @@ class MailParser(Mail):
         else:
             error('Error: unable to parse the datetime string "%s"' % date_str)
 
-    def parseProfileLink(self):
+    def parse_profile_link(self):
         tables = self.tr.getElementsByTagName('div')
 
         for table in tables:
@@ -176,9 +176,9 @@ class MailParser(Mail):
                     self.profile_link = m.group(1)
                     return
 
-        warning('Unable to find the profile URL in the message %s@%s' % (self.getFrom(), self.getID()))
+        warning('Unable to find the profile URL in the message %s@%s' % (self.get_from(), self.get_id()))
 
-    def parseFrom(self):
+    def parse_from(self):
         tds = self.tr.getElementsByTagName('div')
 
         for td in tds:
@@ -190,7 +190,7 @@ class MailParser(Mail):
 
             return
 
-        warning('Warning: unable to find from in the mail %s' % self.getID())
+        warning('Warning: unable to find from in the mail %s' % self.get_id())
 
 class ContactThreadPage(PageBase):
 
@@ -308,9 +308,9 @@ class ContactThreadPage(PageBase):
             mail = MailParser(self.id, self.name, tag)
 
             if self.items:
-                self.items[-1].reply_date = mail.getDateInt()
+                self.items[-1].reply_date = mail.get_date_int()
             self.items += [mail]
 
-    def getMails(self):
+    def get_mails(self):
 
         return self.items

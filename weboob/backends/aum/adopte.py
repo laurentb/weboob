@@ -66,57 +66,57 @@ class AdopteUnMec(Browser):
             }
 
     def login(self):
-        if not self.isOnPage(LoginPage):
+        if not self.is_on_page(LoginPage):
             self.home()
         self.page.login(self.username, self.password)
 
-    def isLogged(self):
-        return not self.isOnPage(LoginPage)
+    def is_logged(self):
+        return not self.is_on_page(LoginPage)
 
     def home(self):
         return self.location('http://www.adopteunmec.com/home.php')
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
-            if self.isOnPage(WaitPage):
+            if self.is_on_page(WaitPage):
                 if not self.page.check():
                     raise AdopteWait()
                 self.home()
-            if not self.page or self.isOnPage(LoginPage) and self.password:
+            if not self.page or self.is_on_page(LoginPage) and self.password:
                 self.home()
 
             return func(self, *args, **kwargs)
         return inner
 
     def register(self, nickname, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=''):
-        if not self.isOnPage(RegisterPage):
+        if not self.is_on_page(RegisterPage):
             self.location('http://www.adopteunmec.com/register2.php')
 
         return self.page.register(nickname, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather)
 
     @pageaccess
-    def addPhoto(self, name, f):
-        if not self.isOnPage(EditPhotoPage):
+    def add_photo(self, name, f):
+        if not self.is_on_page(EditPhotoPage):
             self.location('/edit.php?type=1')
-        return self.page.addPhoto(name, f)
+        return self.page.add_photo(name, f)
 
     @pageaccess
-    def setNickname(self, nickname):
-        if not self.isOnPage(EditAnnouncePage):
+    def set_nickname(self, nickname):
+        if not self.is_on_page(EditAnnouncePage):
             self.location('/edit.php?type=2')
-        return self.page.setNickname(nickname)
+        return self.page.set_nickname(nickname)
 
     @pageaccess
-    def setAnnounce(self, title=None, description=None, lookingfor=None):
-        if not self.isOnPage(EditAnnouncePage):
+    def set_announce(self, title=None, description=None, lookingfor=None):
+        if not self.is_on_page(EditAnnouncePage):
             self.location('/edit.php?type=2')
-        return self.page.setAnnounce(title, description, lookingfor)
+        return self.page.set_announce(title, description, lookingfor)
 
     @pageaccess
-    def setDescription(self, **args):
-        if not self.isOnPage(EditDescriptionPage):
+    def set_description(self, **args):
+        if not self.is_on_page(EditDescriptionPage):
             self.location('/edit.php?type=3')
-        return self.page.setDescription(**args)
+        return self.page.set_description(**args)
 
     @pageaccess
     def score(self):
@@ -125,75 +125,75 @@ class AdopteUnMec(Browser):
         return self.page.score()
 
     @pageaccess
-    def getMyName(self):
+    def get_my_name(self):
         if time.time() - self.__last_update > 60:
             self.home()
-        return self.page.getMyName()
+        return self.page.get_my_name()
 
     @pageaccess
-    def getMyID(self):
-        if not self.isOnPage(HomePage):
+    def get_my_id(self):
+        if not self.is_on_page(HomePage):
             self.home()
-        return self.page.getMyID()
+        return self.page.get_my_id()
 
     @pageaccess
-    def nbNewMails(self):
+    def nb_new_mails(self):
         if time.time() - self.__last_update > 60:
             self.home()
-        return self.page.nbNewMails()
+        return self.page.nb_new_mails()
 
     @pageaccess
-    def nbNewBaskets(self):
+    def nb_new_baskets(self):
         if time.time() - self.__last_update > 60:
             self.home()
-        return self.page.nbNewBaskets()
+        return self.page.nb_new_baskets()
 
     @pageaccess
-    def nbNewVisites(self):
+    def nb_new_visites(self):
         if time.time() - self.__last_update > 60:
             self.home()
-        return self.page.nbNewVisites()
+        return self.page.nb_new_visites()
 
     @pageaccess
-    def nbAvailableCharms(self):
+    def nb_available_charms(self):
         self.home()
-        return self.page.nbAvailableCharms()
+        return self.page.nb_available_charms()
 
     @pageaccess
-    def getBaskets(self):
+    def get_baskets(self):
         self.location('/mails.php?type=1')
-        return self.page.getProfilesIDsList()
+        return self.page.get_profiles_ids_list()
 
     @pageaccess
-    def flushVisits(self):
+    def flush_visits(self):
         """ Does nothing, only flush new visits to increase my score """
         self.openurl('/mails.php?type=3')
 
     @pageaccess
-    def getContactList(self):
-        if not self.isOnPage(ContactListPage):
+    def get_contact_list(self):
+        if not self.is_on_page(ContactListPage):
             self.location('/mails.php')
 
-        return self.page.getContactList()
+        return self.page.get_contact_list()
 
     @pageaccess
-    def getThreadMails(self, id):
-        self.page.openThreadPage(id)
-        return self.page.getMails()
+    def get_thread_mails(self, id):
+        self.page.open_thread_page(id)
+        return self.page.get_mails()
 
     @pageaccess
-    def postMail(self, id, content):
-        self.page.openThreadPage(id)
+    def post_mail(self, id, content):
+        self.page.open_thread_page(id)
         self.page.post(content)
 
     @pageaccess
-    def sendCharm(self, id):
+    def send_charm(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
         warning('Charm: %s' % result)
         return result.find('noMoreFlashes') < 0
 
     @pageaccess
-    def addBasket(self, id):
+    def add_basket(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
         warning('Basket: %s' % result)
         # TODO check if it works (but it should)
@@ -212,20 +212,20 @@ class AdopteUnMec(Browser):
         return float(result)
 
     @pageaccess
-    def searchProfiles(self, **kwargs):
+    def search_profiles(self, **kwargs):
         self.location('/search.php?display=1')
         self.page.search(**kwargs)
-        return self.page.getProfilesIDs()
+        return self.page.get_profiles_ids()
 
     @pageaccess
-    def getProfile(self, link):
+    def get_profile(self, link):
         if isinstance(link, (str,unicode)) and link.startswith('/'):
             link = link[1:]
         self.location('/%s' % link)
         return self.page
 
     @pageaccess
-    def getSlutState(self, id):
+    def get_slut_state(self, id):
         result = self.openurl('http://www.adopteunmec.com/%s' % id).read()
         if result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0:
             r = 'online'
@@ -242,7 +242,7 @@ class AdopteUnMec(Browser):
         return r
 
     @pageaccess
-    def isSlutOnline(self, id):
+    def is_slut_online(self, id):
         result = self.openurl('http://www.adopteunmec.com/%s' % id).read()
         r = result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0
         print 'isSlutOnline(%s) = %s' % (id, r)

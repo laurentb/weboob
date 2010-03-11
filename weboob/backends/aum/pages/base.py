@@ -23,10 +23,10 @@ from logging import error, warning
 from weboob.tools.browser import BasePage
 
 class PageBase(BasePage):
-    def openContactListPage(self):
+    def open_contact_list_page(self):
         self.browser.follow_link(url_regex=r"/mails.php$")
 
-    def openThreadPage(self, id):
+    def open_thread_page(self, id):
         self.browser.location('/thread.php?id=%d' % int(id))
 
     def score(self):
@@ -70,7 +70,7 @@ class PageBase(BasePage):
         return 0
 
     MYNAME_REGEXP = re.compile("Bonjour (.*)")
-    def getMyName(self):
+    def get_my_name(self):
         """ <span class=header2>Bonjour Romain</span> """
 
         tags = self.document.getElementsByTagName('span')
@@ -83,14 +83,14 @@ class PageBase(BasePage):
         warning('Warning: Unable to fetch name')
         return '?'
 
-    def nbNewMails(self):
+    def nb_new_mails(self):
 
         return self.__get_indicator(u'mailsCounter')
 
-    def nbNewBaskets(self):
+    def nb_new_baskets(self):
 
         return self.__get_indicator(u'flashsCounter')
 
-    def nbNewVisites(self):
+    def nb_new_visites(self):
 
         return self.__get_indicator(u'visitesCounter')

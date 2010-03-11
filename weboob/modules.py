@@ -39,7 +39,7 @@ class Module:
         if not self.klass:
             raise ImportError("This is not a backend module (no Backend class found)")
 
-    def hasCaps(self, caps):
+    def has_caps(self, caps):
         if not isinstance(caps, (list,tuple)):
             caps = (caps,)
 
@@ -48,7 +48,7 @@ class Module:
                 return True
         return False
 
-    def createBackend(self, weboob):
+    def create_backend(self, weboob):
         return self.klass(weboob)
 
 class ModulesLoader:

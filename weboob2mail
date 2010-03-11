@@ -50,16 +50,16 @@ class Application(BaseApplication):
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
-        self.weboob.loadmodules(ICapMessages)
+        self.weboob.load_modules(ICapMessages)
 
         self.weboob.schedule(self.config['interval'], self.process)
         self.weboob.config.save()
         self.weboob.loop()
 
     def process(self):
-        backends = self.weboob.getBackends()
+        backends = self.weboob.get_backends()
         for name, b in backends.iteritems():
-            for message in b.iterNewMessages():
+            for message in b.iter_new_messages():
                 self.send_email(name, message)
 
     def send_email(self, backend_name, mail):
@@ -67,19 +67,19 @@ class Application(BaseApplication):
         recipient = self.config['recipient']
 
         reply_id = ''
-        if mail.getReplyID():
-            reply_id = u'%s.%s@%s' % (backend_name, mail.getFullReplyID(), domain)
-        subject = u'%s%s' % ((reply_id) and 'Re: ' or '', mail.getTitle())
-        sender = u'%s <%s.%s.%s@%s>' % (mail.getFrom(), backend_name, mail.getThreadID(), mail.getID(), domain)
+        if mail.get_reply_id():
+            reply_id = u'%s.%s@%s' % (backend_name, mail.get_full_reply_id(), domain)
+        subject = u'%s%s' % ((reply_id) and 'Re: ' or '', mail.get_title())
+        sender = u'%s <%s.%s.%s@%s>' % (mail.get_from(), backend_name, mail.get_thread_id(), mail.get_id(), domain)
 
-        # assume that getDate() returns an UTC datetime
-        date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.getDate().timetuple())
-        msg_id = u'%s.%s@%s' % (backend_name, mail.getFullID(), domain)
-        body = mail.getContent()
+        # assume that get_date() returns an UTC datetime
+        date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
+        msg_id = u'%s.%s@%s' % (backend_name, mail.get_full_id(), domain)
+        body = mail.get_content()
 
-        if mail.getSignature():
+        if mail.get_signature():
             body += u'\n\n-- \n'
-            body += mail.getSignature()
+            body += mail.get_signature()
 
         # Header class is smart enough to try US-ASCII, then the charset we
         # provide, then fall back to UTF-8.

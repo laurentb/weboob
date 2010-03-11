@@ -31,7 +31,7 @@ class WaitPage(PageBase):
         result = self.browser.openurl('http://www.adopteunmec.com/fajax_checkEnter.php?anticache=0.46168455299380795').read()
         return result == 'Ok'
 
-    def processWait(self):
+    def process_wait(self):
         while not self.check(self):
             sleep(10)
 
