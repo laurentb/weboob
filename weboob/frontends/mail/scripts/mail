@@ -31,14 +31,8 @@ from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
-class User:
-    def __init__(self, username, password, email):
-        self.username = username
-        self.password = password
-        self.email = email
-
 class Application(BaseApplication):
-    APPNAME = 'weboob2mail'
+    APPNAME = 'mail'
     CONFIG = {'interval':  15,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
