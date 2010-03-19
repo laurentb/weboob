@@ -72,6 +72,11 @@ class Message:
     def is_new(self):
         return self.new
 
+    def __str__(self):
+        result = '<Message title="%s" date="%s" from="%s" content="%s">' % (
+            self.title, self.date, self.sender, self.content)
+        return result.encode('utf-8')
+
 class ICapMessages:
     def iter_new_messages(self, thread=None):
         """
