@@ -22,6 +22,7 @@ from weboob.backend import Backend
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 
 from .browser import Transilien
+from .stations import STATIONS
 
 class TransilienBackend(Backend, ICapTravel):
     MAINTAINER = u'Julien Hébert'
@@ -32,9 +33,10 @@ class TransilienBackend(Backend, ICapTravel):
         Backend.__init__(self, weboob)
 
     def iter_station_search(self, pattern):
-        transilien = Transilien()
-        for _id, name in transilien.iter_station_search(pattern):
-            yield Station(_id, name)
+        pattern = pattern.lower()
+        for _id, name in STATIONS.iteritems():
+            if name.lower().find(pattern) >= 0:
+                yield Station(_id, name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
         transilien = Transilien()
