@@ -28,6 +28,6 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
 
     def iter_new_messages(self, thread=None):
         articles_list = ArticlesList('newspaper')
-        for id, author, title in articles_list.iter_articles():
-            yield Message('threadid', id, title, author, signature='Bite bite bite bite',
+        for article in articles_list.iter_articles():
+            yield Message('threadid', article._id, article.title, article.author, signature='Bite bite bite bite',
                           content='Content content\nContent content.')

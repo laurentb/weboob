@@ -61,4 +61,4 @@ class ArticlesList:
                     continue
                 _id = m.group(1)
                 article = klass(_id, item['link'], item['title'], item['author'], item['date_parsed'])
-                yield _id, item['author'], item['title']
+                yield article
