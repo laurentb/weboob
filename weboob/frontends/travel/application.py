@@ -74,8 +74,8 @@ class Application(BaseApplication):
 
     def command_help(self):
         print 'Available commands are:'
-        print '      stations <pattern>       Search stations'
-        print '      departures <station>     List all departures on a special station'
+        print '      stations <pattern>              Search stations'
+        print '      departures <station> [arrival]  List all departures on a special station'
 
     def command_stations(self, pattern):
         print ".--------------------------------.---------------------------------------------."
@@ -90,13 +90,13 @@ class Application(BaseApplication):
         print "| %3d stations listed                                                          |" % count
         print "'------------------------------------------------------------------------------'"
 
-    def command_departures(self, station):
+    def command_departures(self, station, arrival_station=None):
         print ".-----.-----------.-------.-----------------------.-------.--------------------."
         print "| ID  | Type      | Time  | Arrival               | Late  | Info               |"
         print "+-----+-----------+-------+-----------------------+-------+--------------------+"
         count = 0
         for name, backend, in self.weboob.iter_backends():
-            for departure in backend.iter_station_departures(station):
+            for departure in backend.iter_station_departures(station, arrival_station):
                 print u"| %3d | %-9s | %5s | %-21s | %5s | %-18s |" % (departure.id,
                                                                    departure.type,
                                                                    departure.time.strftime("%H:%M"),

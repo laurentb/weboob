@@ -24,6 +24,10 @@ from weboob.capabilities.travel import ICapTravel, Station, Departure
 from .browser import CanalTP
 
 class CanalTPBackend(Backend, ICapTravel):
+    MAINTAINER = 'Romain Bignon'
+    EMAIL = 'romain@peerfuse.org'
+    VERSION = '1.0'
+
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
 
@@ -32,9 +36,9 @@ class CanalTPBackend(Backend, ICapTravel):
         for _id, name in canaltp.iter_station_search(pattern):
             yield Station(_id, name)
 
-    def iter_station_departures(self, station_id):
+    def iter_station_departures(self, station_id, arrival_id=None):
         canaltp = CanalTP()
-        for i, d in enumerate(canaltp.iter_station_departures(station_id)):
+        for i, d in enumerate(canaltp.iter_station_departures(station_id, arrival_id)):
             departure = Departure(i, d['type'], d['time'])
             departure.departure_station = d['departure']
             departure.arrival_station = d['arrival']

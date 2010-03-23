@@ -30,11 +30,12 @@ class ICapTravel:
         """
         raise NotImplementedError()
 
-    def iter_station_departures(self, station_id):
+    def iter_station_departures(self, station_id, arrival_id):
         """
         Iterate on departures.
 
         @param station_id [id]  the station id
+        @param arrival_id [id]  optionnal arrival station id
         @return [iter]  result of Departure objects
         """
         raise NotImplementedError()

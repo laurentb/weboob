@@ -40,7 +40,7 @@ class CanalTP(Browser):
             else:
                 yield _id, toUnicode(name)
 
-    def iter_station_departures(self, station_id):
+    def iter_station_departures(self, station_id, arrival_id=None):
         result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/index.php?gare=%s" % unicode(station_id)).read()
         result = result
         departure = ''
