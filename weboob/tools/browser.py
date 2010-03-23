@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import mechanize
 import urllib2
 import html5lib
+import ClientForm
 from html5lib import treebuilders
 import re
 import time
@@ -59,6 +60,13 @@ class BasePage:
     def loaded(self):
         pass
 
+class StandardParser(html5lib.HTMLParser):
+    def __init__(self):
+        html5lib.HTMLParser.__init__(tree=treebuilders.getTreeBuilder("dom"))
+
+    def parse(self, data):
+        return html5lib.HTMLParser.parse(data, encoding='iso-8859-1')
+
 class Browser(mechanize.Browser):
 
     # ------ Class attributes --------------------------------------
@@ -84,7 +92,7 @@ class Browser(mechanize.Browser):
 
     # ------ Browser methods ---------------------------------------
 
-    def __init__(self, username, password=None, firefox_cookies=None):
+    def __init__(self, username, password=None, firefox_cookies=None, parser=StandardParser):
         mechanize.Browser.__init__(self, history=NoHistory())
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -98,7 +106,7 @@ class Browser(mechanize.Browser):
         else:
             self.__cookie = None
 
-        self.__parser = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
+        self.__parser = parser()
         self.page = None
         self.last_update = 0.0
         self.username = username
@@ -108,6 +116,9 @@ class Browser(mechanize.Browser):
                 self.home()
             except BrowserUnavailable:
                 pass
+
+    def set_parser(self, parser):
+        self.__parser = parser
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
@@ -207,7 +218,7 @@ class Browser(mechanize.Browser):
         print '[%s] Gone on %s' % (self.username, result.geturl())
         self.last_update = time.time()
 
-        document = self.__parser.parse(result, encoding='iso-8859-1')
+        document = self.__parser.parse()
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
