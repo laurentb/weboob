@@ -21,9 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.backend import Backend
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 
-from .canaltp import CanalTP
+from .browser import CanalTP
 
-class SNCFBackend(Backend, ICapTravel):
+class CanalTPBackend(Backend, ICapTravel):
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
 
