@@ -33,7 +33,6 @@ class IndexPage(DLFPPage):
     pass
 
 class LoginPage(DLFPPage):
-
     def loaded(self):
         if self.has_error():
             raise BrowserIncorrectPassword()

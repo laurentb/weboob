@@ -23,6 +23,10 @@ from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Messag
 from feeds import ArticlesList
 
 class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
+    MAINTAINER = 'Romain Bignon'
+    EMAIL = 'romain@peerfuse.org'
+    VERSION = '1.0'
+
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
 

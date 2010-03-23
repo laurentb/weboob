@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 class Backend:
+    MAINTAINER = '<unspecifier>'
+    EMAIL = '<unspecified>'
+    VERSION = '<unspecified>'
+
     def __init__(self, weboob):
         self.weboob = weboob
 
