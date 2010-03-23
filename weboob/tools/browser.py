@@ -62,7 +62,7 @@ class BasePage:
 
 class StandardParser(html5lib.HTMLParser):
     def __init__(self):
-        html5lib.HTMLParser.__init__(tree=treebuilders.getTreeBuilder("dom"))
+        html5lib.HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder("dom"))
 
     def parse(self, data):
         return html5lib.HTMLParser.parse(data, encoding='iso-8859-1')
@@ -154,7 +154,7 @@ class Browser(mechanize.Browser):
 
     def submit(self, *args, **kwargs):
         try:
-            self.__changeLocation(mechanize.Browser.submit(self, *args, **kwargs))
+            self.__change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
@@ -168,7 +168,7 @@ class Browser(mechanize.Browser):
 
     def follow_link(self, *args, **kwargs):
         try:
-            self.__changeLocation(mechanize.Browser.follow_link(self, *args, **kwargs))
+            self.__change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
@@ -183,7 +183,7 @@ class Browser(mechanize.Browser):
         keep_kwargs = kwargs.copy()
 
         try:
-            self.__changeLocation(mechanize.Browser.open(self, *args, **kwargs))
+            self.__change_location(mechanize.Browser.open(self, *args, **kwargs))
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
@@ -218,7 +218,7 @@ class Browser(mechanize.Browser):
         print '[%s] Gone on %s' % (self.username, result.geturl())
         self.last_update = time.time()
 
-        document = self.__parser.parse()
+        document = self.__parser.parse(result)
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
