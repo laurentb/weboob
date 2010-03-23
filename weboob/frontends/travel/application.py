@@ -78,21 +78,21 @@ class Application(BaseApplication):
         print '      departures <station>     List all departures on a special station'
 
     def command_stations(self, pattern):
-        print ".-----------------.----------------------------------------."
-        print '| ID              | Name                                   |'
-        print '+-----------------+----------------------------------------+'
+        print ".--------------------------------.---------------------------------------------."
+        print '| ID                             | Name                                        |'
+        print '+--------------------------------+---------------------------------------------+'
         count = 0
         for name, backend, in self.weboob.iter_backends():
             for station in backend.iter_station_search(pattern):
-                print '| %-15s | %-38s |' % (station.id, station.name)
+                print '| %-30s | %-43s |' % (station.id, station.name)
                 count += 1
-        print "+-----------------'----------------------------------------+"
-        print "| %3d stations listed                                      |" % count
-        print "'----------------------------------------------------------'"
+        print "+--------------------------------'---------------------------------------------+"
+        print "| %3d stations listed                                                          |" % count
+        print "'------------------------------------------------------------------------------'"
 
     def command_departures(self, station):
         print ".-----.-----------.-------.-----------------------.-------.--------------------."
-        print "| ID  | Type      | Time  |  Arrival              |  Late | Info               |"
+        print "| ID  | Type      | Time  | Arrival               | Late  | Info               |"
         print "+-----+-----------+-------+-----------------------+-------+--------------------+"
         count = 0
         for name, backend, in self.weboob.iter_backends():
@@ -102,7 +102,7 @@ class Application(BaseApplication):
                                                                    departure.time.strftime("%H:%M"),
                                                                    departure.arrival_station,
                                                                    departure.late and departure.late.strftime("%H:%M") or '',
-                                                                   departure.information.replace('\n', '').strip())
+                                                                   departure.information)
                 count += 1
         print "+-----'-----------'-------'-----------------------'-------'--------------------+"
         print "| %3d departures listed                                                        |" % count
