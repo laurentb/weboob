@@ -33,11 +33,11 @@ class Application(BaseApplication):
         self.weboob.load_modules()
         for name, backend in self.weboob.iter_backends():
             print '= Processing backend name = %s' % name
-            if isinstance(backend, ICapMessages):
+            if backend.has_caps(ICapMessages):
                 print '== Backend is ICapMessages => print its messages'
                 for message in backend.iter_new_messages():
                     print '=== %s' % message
-            if isinstance(backend, ICapMessagesReply):
+            if backend.has_caps(ICapMessagesReply):
                 print '== Backend is ICapMessagesReply => TODO'
 
 if __name__ == '__main__':

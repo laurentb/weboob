@@ -39,10 +39,7 @@ class Module:
         if not self.klass:
             raise ImportError("This is not a backend module (no Backend class found)")
 
-    def has_caps(self, caps):
-        if not isinstance(caps, (list,tuple)):
-            caps = (caps,)
-
+    def has_caps(self, *caps):
         for c in caps:
             if issubclass(self.klass, c):
                 return True
