@@ -33,6 +33,9 @@ class BaseApplication(object):
         self.weboob = Weboob(self.APPNAME)
         self.config = self.weboob.get_frontend_config(self.CONFIG)
 
+    def main(self, argv):
+        raise NotImplementedError()
+
     def ask(self, question, default=None, masked=False, regexp=None):
         """
         Ask a question to user.

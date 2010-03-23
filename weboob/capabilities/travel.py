@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from datetime import time
+
 class ICapTravel:
     def iter_station_search(self, pattern):
         """
@@ -52,6 +54,7 @@ class Departure(object):
         self.time = _time
         self.departure_station = u''
         self.arrival_station = u''
+        self.late = time()
         self.information = u''
 
     def __repr__(self):

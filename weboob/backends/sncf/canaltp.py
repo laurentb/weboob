@@ -41,6 +41,7 @@ class CanalTP(Browser):
 
     def iter_station_departures(self, station_id):
         result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/index.php?gare=%s" % unicode(station_id)).read()
+        result = unicode(result, "utf8")
         departure = ''
         for line in result.split('&'):
             key, value = line.split('=', 1)
