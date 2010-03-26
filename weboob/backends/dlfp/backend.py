@@ -20,9 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.backend import Backend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
+from weboob.capabilities.updatable import ICapUpdatable
 from feeds import ArticlesList
 
-class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
+class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
@@ -30,7 +31,7 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
 
-    def iter_new_messages(self, thread=None):
+    def iter_messages(self):
         articles_list = ArticlesList('newspaper')
         for article in articles_list.iter_articles():
             yield Message('threadid', article._id, article.title, article.author, signature='Bite bite bite bite',

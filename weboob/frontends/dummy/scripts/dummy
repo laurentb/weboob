@@ -35,7 +35,7 @@ class Application(BaseApplication):
             print '= Processing backend name = %s' % name
             if backend.has_caps(ICapMessages):
                 print '== Backend is ICapMessages => print its messages'
-                for message in backend.iter_new_messages():
+                for message in backend.iter_messages():
                     print '=== %s' % message
             if backend.has_caps(ICapMessagesReply):
                 print '== Backend is ICapMessagesReply => TODO'
