@@ -47,7 +47,6 @@ class Application(BaseApplication):
         self.weboob.load_modules(ICapMessages)
 
         self.weboob.schedule(self.config['interval'], self.process)
-        self.weboob.config.save()
         self.weboob.loop()
 
     def process(self):

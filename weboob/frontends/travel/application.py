@@ -32,11 +32,6 @@ class Application(BaseApplication):
     CONFIG = {}
 
     def main(self, argv):
-        #if not self.config:
-        #    print >>sys.stderr, "Error: %s is not configured yet. Please call 'weboob.travel -c'" % argv[0]
-        #    print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
-        #    return -1
-
         self.weboob.load_modules(ICapTravel)
 
         if len(argv) == 1:

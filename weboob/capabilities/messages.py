@@ -24,7 +24,7 @@ import time
 class Message:
     def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u''):
         self.thread_id = unicode(thread_id)
-        self._id = unicode(_id)
+        self.id = unicode(_id)
         self.reply_id = unicode(reply_id)
         self.title = unicode(title)
         self.sender = unicode(sender)
@@ -40,13 +40,13 @@ class Message:
         return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
 
     def get_full_id(self):
-        return '%s.%s' % (self._id, self.thread_id)
+        return '%s.%s' % (self.id, self.thread_id)
 
     def get_full_reply_id(self):
         return '%s.%s' % (self.reply_id, self.thread_id)
 
     def get_id(self):
-        return self._id
+        return self.id
 
     def get_thread_id(self):
         return self.thread_id
@@ -72,9 +72,9 @@ class Message:
     def is_new(self):
         return self.new
 
-    def __str__(self):
-        result = '<Message title="%s" date="%s" from="%s" content="%s">' % (
-            self.title, self.date, self.sender, self.content)
+    def __repr__(self):
+        result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
+            self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
 class ICapMessages:
