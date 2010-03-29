@@ -238,7 +238,7 @@ class ContactThreadPage(PageBase):
             self.browser['message'] = content
 
             self.browser.submit()  # submit current form
-        except FormNotFoundError:
+        except FormNotFoundError, e:
             error = 'Unknown error (%s)' % e
             p_list = self.document.getElementsByTagName('p')
             for p in p_list:

@@ -37,7 +37,7 @@ class EditAnnouncePage(PageBase):
         self.browser['pseudo'] = nickname
         self.browser.submit()
 
-    def set_announce(self, title=None, description=None, lookingfor=None):
+    def set_announce(self, **kwargs):
         self.browser.select_form(name="form")
         self.browser.set_field(kwargs, 'title')
         self.browser.set_field(kwargs, 'description', field='about1')
