@@ -37,20 +37,17 @@ class Application(BaseApplication):
     def main(self, argv):
         self.weboob.load_modules()
 
+template_lookup = TemplateLookup(directories=['%s/../templates' % os.path.dirname(__file__)],
+                                 output_encoding='utf-8', encoding_errors='replace')
+
 @wee.get('/')
 def index(request):
-    script_path = os.path.dirname(__file__)
-    lookup = TemplateLookup(directories=['%s/../templates' % script_path],
-                            output_encoding='utf-8', encoding_errors='replace')
-    template = lookup.get_template('index.mako')
+    template = template_lookup.get_template('index.mako')
     return template.render().strip()
 
 @wee.get('/messages')
 def messages(request):
-    script_path = os.path.dirname(__file__)
-    lookup = TemplateLookup(directories=['%s/../templates' % script_path],
-                            output_encoding='utf-8', encoding_errors='replace')
-    template = lookup.get_template('messages.mako')
+    template = template_lookup.get_template('messages.mako')
     backends = list(app.weboob.iter_backends(ICapMessages))
     return template.render(backends=backends).strip()
 
@@ -59,4 +56,3 @@ if __name__ == '__main__':
     app.main(sys.argv)
     srv = make_server('localhost', 8080, wee.make_app())
     srv.serve_forever()
-
