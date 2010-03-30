@@ -27,6 +27,7 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
+    LICENSE = 'GPLv3'
 
     def __init__(self, weboob):
         Backend.__init__(self, weboob)

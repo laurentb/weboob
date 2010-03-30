@@ -23,6 +23,7 @@ class Backend:
     MAINTAINER = '<unspecifier>'
     EMAIL = '<unspecified>'
     VERSION = '<unspecified>'
+    LICENSE = '<unspecified>'
 
     def __init__(self, weboob):
         self.weboob = weboob

@@ -28,6 +28,7 @@ class TransilienBackend(Backend, ICapTravel):
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.0'
+    LICENSE = 'GPLv3'
 
     def __init__(self, weboob):
         Backend.__init__(self, weboob)
