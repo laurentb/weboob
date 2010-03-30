@@ -72,13 +72,16 @@ class Message:
     def is_new(self):
         return self.new
 
+    def __eq__(self, msg):
+        return self.id == msg.id and self.thread_id == msg.thread_id
+
     def __repr__(self):
         result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
             self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
 class ICapMessages:
-    def iter_messages(self):
+    def iter_new_messages(self):
         """
         Iterates on new messages from last time this function has been called.
 
@@ -86,6 +89,12 @@ class ICapMessages:
         """
         raise NotImplementedError()
 
+    def iter_messages(self):
+        """
+        Iterates on every messages
+        """
+        raise NotImplementedError()
+
 class ICapMessagesReply:
-    def post_reply(self, message):
+    def post_reply(self, to, message):
         raise NotImplementedError()

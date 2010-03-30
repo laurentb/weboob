@@ -20,9 +20,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import mechanize
 import urllib2
-import html5lib
 import ClientForm
-from html5lib import treebuilders
+try:
+    from html5lib import treebuilders, HTMLParser
+except ImportError:
+    # XXX change this to use another lib than html5lib
+    class StandardParser:
+        def parse(self, data):
+            return None
+else:
+    class StandardParser(HTMLParser):
+        def __init__(self):
+            HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder("dom"))
+
+        def parse(self, data):
+            return HTMLParser.parse(data, encoding='iso-8859-1')
 import re
 import time
 from logging import warning, error
@@ -59,13 +71,6 @@ class BasePage:
 
     def loaded(self):
         pass
-
-class StandardParser(html5lib.HTMLParser):
-    def __init__(self):
-        html5lib.HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder("dom"))
-
-    def parse(self, data):
-        return html5lib.HTMLParser.parse(data, encoding='iso-8859-1')
 
 class Browser(mechanize.Browser):
 
