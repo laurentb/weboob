@@ -26,7 +26,7 @@ class Article:
     RSS = None
 
     def __init__(self, _id, url, title, author, datetime):
-        self._id = _id
+        self.id = _id
         self.url = url
         self.title = title
         self.author = author
@@ -60,5 +60,5 @@ class ArticlesList:
                     warning('Unable to parse ID from link \'%s\'' % item['link'])
                     continue
                 _id = m.group(1)
-                article = klass(_id, item['link'], item['title'], item['author'], item['date_parsed'])
+                article = klass(_id, item['link'], item['title'], item['author'], datetime(*item['date_parsed'][:7]))
                 yield article
