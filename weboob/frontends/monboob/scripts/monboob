@@ -31,7 +31,7 @@ from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
-class Application(BaseApplication):
+class Monboob(BaseApplication):
     APPNAME = 'mail'
     CONFIG = {'interval':  15,
               'domain':    'weboob.example.org',
@@ -41,7 +41,7 @@ class Application(BaseApplication):
     def main(self, argv):
         self.load_config()
         if not self.myconfig:
-            print >>sys.stderr, "Error: %s is not configured yet. Please call 'weboob2mail -c'" % argv[0]
+            print >>sys.stderr, "Error: %s is not configured yet. Please call 'monboob -c'" % argv[0]
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
@@ -118,4 +118,4 @@ class Application(BaseApplication):
         return msg['Message-Id']
 
 if __name__ == '__main__':
-    Application.run()
+    Monboob.run()
