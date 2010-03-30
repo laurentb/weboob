@@ -25,11 +25,10 @@ from types import MethodType
 
 from weboob import Weboob
 from weboob.capabilities.travel import ICapTravel
-from weboob.tools.application import BaseApplication
+from weboob.tools.application import ConsoleApplication
 
-class Application(BaseApplication):
+class Travel(ConsoleApplication):
     APPNAME = 'travel'
-    CONFIG = {}
 
     def main(self, argv):
         self.weboob.load_modules(ICapTravel)

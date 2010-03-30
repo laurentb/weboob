@@ -47,7 +47,6 @@ class FirefoxCookieJar(CookieJar):
         return db
 
     def load(self):
-
         db = self.__connect()
         if not db: return
 
@@ -56,7 +55,6 @@ class FirefoxCookieJar(CookieJar):
                                 WHERE host LIKE '%%%s%%'""" % self.domain)
 
         for entry in cookies:
-
             domain = entry[0]
             initial_dot = domain.startswith(".")
             domain_specified = initial_dot
@@ -85,7 +83,6 @@ class FirefoxCookieJar(CookieJar):
             self.set_cookie(c)
 
     def save(self):
-
         db = self.__connect()
         if not db: return
 

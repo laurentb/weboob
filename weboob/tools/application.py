@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sys, tty, termios
+import sys, tty, termios, os
 import re
 
 from weboob import Weboob
@@ -28,14 +28,46 @@ from weboob import Weboob
 class BaseApplication(object):
     APPNAME = ''
     CONFIG = {}
+    CONFDIR = '%s/.weboob/' % os.path.expanduser("~")
 
     def __init__(self):
         self.weboob = Weboob(self.APPNAME)
-        self.config = self.weboob.get_frontend_config(self.CONFIG)
+        self.config = None
+
+    def load_config(self, path=None, klass=None):
+        """
+        Load a configuration file and get his object.
+
+        @param path [str]  an optional specific path.
+        @param klass [IConfig]  what klass to instance.
+        @return  a IConfig object
+        """
+        if klass is None:
+            # load Config only here because some applications don't want
+            # to depend on yaml and do not use this function
+            from weboob.tools.config import Config
+            klass = Config
+
+        if path is None:
+            path = self.CONFDIR + 'weboobrc'
+        elif not path.startswith('/'):
+            path = self.CONFDIR + path
+
+        self.config = klass(path)
+        self.config.load()
+        self.myconfig = self.CONFIG
+        self.myconfig.update(self.config.getfrontend(self.APPNAME))
 
     def main(self, argv):
+        """ Main function """
         raise NotImplementedError()
 
+    @classmethod
+    def run(klass):
+        app = klass()
+        sys.exit(app.main(sys.argv))
+
+class ConsoleApplication(BaseApplication):
     def ask(self, question, default=None, masked=False, regexp=None):
         """
         Ask a question to user.
@@ -71,5 +103,3 @@ class BaseApplication(object):
             correct = not regexp or re.match(regexp, str(line))
 
         return line
-
-

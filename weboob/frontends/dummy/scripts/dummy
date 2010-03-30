@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sys
-
 from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.tools.application import BaseApplication
@@ -30,7 +28,9 @@ class Application(BaseApplication):
     APPNAME = 'dummy'
 
     def main(self, argv):
-        self.weboob.load_modules()
+        self.load_config()
+        self.weboob.load_modules(backends=self.config.getbackends())
+
         for name, backend in self.weboob.iter_backends():
             print '= Processing backend name = %s' % name
             if backend.has_caps(ICapMessages):
@@ -41,5 +41,4 @@ class Application(BaseApplication):
                 print '== Backend is ICapMessagesReply => TODO'
 
 if __name__ == '__main__':
-    app = Application()
-    sys.exit(app.main(sys.argv))
+    Application.run()

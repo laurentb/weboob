@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
 Copyright(C) 2010  Romain Bignon
@@ -20,8 +18,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sys
-from weboob.frontends.travel import Travel
+class ConfigError(Exception): pass
 
-if __name__ == '__main__':
-    Travel.run()
+class BackendConfig(object):
+    def __init__(self, name, _type, config):
+        self.name = name
+        self.type = _type
+        self.config = config
+
+class IConfig:
+    def load(self):
+        raise NotImplementedError()
+
+    def save(self):
+        raise NotImplementedError()
+
+    def set(self, *args):
+        raise NotImplementedError()
+
+    def get(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def getfrontend(self, name):
+        raise NotImplementedError()
+
+    def getbackends(self):
+        raise NotImplementedError()

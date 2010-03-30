@@ -18,49 +18,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import os
 import sched
 import time
 
 from weboob.modules import ModulesLoader
-from weboob.config import Config
 
 class Weboob:
-    CONFIG_FILE = '%s/.weboob/config' % os.path.expanduser("~")
-    DATA_DIR = '%s/.weboob/' % os.path.expanduser("~")
-
-    def __init__(self, app_name, config_file=CONFIG_FILE, data_dir=DATA_DIR):
+    def __init__(self, app_name):
         self.app_name = app_name
         self.backends = {}
         self.scheduler = sched.scheduler(time.time, time.sleep)
-        self.config = Config(self.CONFIG_FILE)
-        self.config.load()
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
 
-    def get_frontend_config(self, default={}):
-        return self.config.get('frontends', self.app_name, default=default)
-
-    def get_backend_config(self, backend_name, default={}):
-        return self.config.get('backends', backend_name, default=default)
-
-    def load_modules(self, caps=None, name=None):
-        for name, module in self.modules_loader.modules.iteritems():
-            if (not caps or module.has_caps(caps)) and \
-               (not name or module.name == name):
-                backend = module.create_backend(self)
-                self.backends[module.name] = backend
+    def load_modules(self, caps=None, name=None, backends=None):
+        if backends is None:
+            for name, module in self.modules_loader.modules.iteritems():
+                if (not caps or module.has_caps(caps)) and \
+                   (not name or module.name == name):
+                    backend = module.create_backend(self)
+                    self.backends[module.name] = backend
+        else:
+            for key, backendcfg in backends.iteritems():
+                try:
+                    module = self.modules_loader[backendcfg.type]
+                except KeyError:
+                    continue
+                if (caps and not module.has_caps(caps)) or \
+                   (name and module.name != name):
+                    continue
+                self.backends[backendcfg.name] = module.create_backend(self, backendcfg)
 
     def load_module(self, modname, instname):
         module = self.modules_loader[modname]
         self.backends[instname] = module.create_backend(self)
 
     def iter_backends(self, caps=None):
-        if caps is None:
-            return self.backends.iteritems()
-        else:
-            return dict((name, backend) for name, backend in self.backends.iteritems()
-                        if backend.has_caps(caps)).iteritems()
+        for name, backend in self.backends.iteritems():
+            if caps is None or backend.has_caps(caps):
+                yield (name, backend)
 
     def schedule(self, interval, function, *args):
         self.scheduler.enter(interval, 1, function, args)

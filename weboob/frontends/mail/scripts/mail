@@ -39,14 +39,15 @@ class Application(BaseApplication):
               'smtp':      'localhost'}
 
     def main(self, argv):
-        if not self.config:
+        self.load_config()
+        if not self.myconfig:
             print >>sys.stderr, "Error: %s is not configured yet. Please call 'weboob2mail -c'" % argv[0]
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
-        self.weboob.load_modules(ICapMessages)
+        self.weboob.load_modules(ICapMessages, backends=self.config.getbackends())
 
-        self.weboob.schedule(self.config['interval'], self.process)
+        self.weboob.schedule(self.myconfig['interval'], self.process)
         self.weboob.loop()
 
     def process(self):
@@ -55,8 +56,8 @@ class Application(BaseApplication):
                 self.send_email(name, message)
 
     def send_email(self, backend_name, mail):
-        domain = self.config['domain']
-        recipient = self.config['recipient']
+        domain = self.myconfig['domain']
+        recipient = self.myconfig['recipient']
 
         reply_id = ''
         if mail.get_reply_id():
@@ -110,12 +111,11 @@ class Application(BaseApplication):
             msg['In-Reply-To'] = reply_id
 
         # Send the message via SMTP to localhost:25
-        smtp = SMTP(self.config['smtp'])
+        smtp = SMTP(self.myconfig['smtp'])
         smtp.sendmail(sender, recipient, msg.as_string())
         smtp.quit()
 
         return msg['Message-Id']
 
 if __name__ == '__main__':
-    app = Application()
-    sys.exit(app.main(sys.argv))
+    Application.run()
