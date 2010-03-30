@@ -84,7 +84,7 @@ class Config(IConfig):
         v[args[-2]] = args[-1]
 
     def getfrontend(self, name):
-        return self.get('frontends', name)
+        return self.get('frontends', name, default={})
 
     def getbackends(self):
         d = {}

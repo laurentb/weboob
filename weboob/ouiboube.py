@@ -36,7 +36,7 @@ class Weboob:
             for name, module in self.modules_loader.modules.iteritems():
                 if (not caps or module.has_caps(caps)) and \
                    (not name or module.name == name):
-                    backend = module.create_backend(self)
+                    backend = module.create_backend(self, None)
                     self.backends[module.name] = backend
         else:
             for key, backendcfg in backends.iteritems():
@@ -49,9 +49,9 @@ class Weboob:
                     continue
                 self.backends[backendcfg.name] = module.create_backend(self, backendcfg)
 
-    def load_module(self, modname, instname):
+    def load_module(self, modname, instname, backendcfg=None):
         module = self.modules_loader[modname]
-        self.backends[instname] = module.create_backend(self)
+        self.backends[instname] = module.create_backend(self, backendcfg)
 
     def iter_backends(self, caps=None):
         for name, backend in self.backends.iteritems():
