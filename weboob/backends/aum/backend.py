@@ -27,8 +27,5 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
 
-    def __init__(self, weboob):
-        Backend.__init__(self, weboob)
-
     def iter_messages(self, thread=None):
         return dict().iteritems()

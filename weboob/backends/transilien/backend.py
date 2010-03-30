@@ -30,9 +30,6 @@ class TransilienBackend(Backend, ICapTravel):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
 
-    def __init__(self, weboob):
-        Backend.__init__(self, weboob)
-
     def iter_station_search(self, pattern):
         pattern = pattern.lower()
         for _id, name in STATIONS.iteritems():

@@ -29,9 +29,6 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
 
-    def __init__(self, weboob):
-        Backend.__init__(self, weboob)
-
     def iter_messages(self):
         articles_list = ArticlesList('newspaper')
         for article in articles_list.iter_articles():

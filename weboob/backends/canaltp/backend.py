@@ -29,9 +29,6 @@ class CanalTPBackend(Backend, ICapTravel):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
 
-    def __init__(self, weboob):
-        Backend.__init__(self, weboob)
-
     def iter_station_search(self, pattern):
         canaltp = CanalTP()
         for _id, name in canaltp.iter_station_search(pattern):

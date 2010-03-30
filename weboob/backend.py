@@ -25,8 +25,9 @@ class Backend:
     VERSION = '<unspecified>'
     LICENSE = '<unspecified>'
 
-    def __init__(self, weboob):
+    def __init__(self, weboob, config):
         self.weboob = weboob
+        self.config = config
 
     def has_caps(self, *caps):
         for c in caps:
