@@ -42,9 +42,11 @@ class Weboob:
 
     def load_backends(self, caps=None, names=None):
         self.backends.update(self.modules_loader.load_backends(self.get_backends_filename(), caps, names))
+        return self.backends
 
     def load_modules(self, caps=None, names=None):
         self.backends.update(self.modules_loader.load_modules_as_backends(caps, names))
+        return self.backends
 
     def iter_backends(self, caps=None):
         for name, backend in self.backends.iteritems():

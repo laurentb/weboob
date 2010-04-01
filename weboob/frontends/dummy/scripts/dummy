@@ -22,22 +22,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
+from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
 
 class Application(BaseApplication):
     APPNAME = 'dummy'
 
     def main(self, argv):
-        self.weboob.load_backends()
+        if not self.weboob.load_backends():
+            self.weboob.load_modules()
 
         for name, backend in self.weboob.iter_backends():
-            print '= Processing backend name = %s' % name
+            print 'Backend [%s]' % name
             if backend.has_caps(ICapMessages):
-                print '== Backend is ICapMessages => print its messages'
+                print '|- ICapMessages        [Print its messages]'
                 for message in backend.iter_messages():
-                    print '=== %s' % message
+                    print '|  |- %s' % message
             if backend.has_caps(ICapMessagesReply):
-                print '== Backend is ICapMessagesReply => TODO'
+                print '|- ICapMessagesReply   [TODO]'
+            if backend.has_caps(ICapTravel):
+                print '|- ICapTravel.stations [Search station \'defense\']'
+                s = None
+                for station in backend.iter_station_search('defense'):
+                    print '|  |- [%s] %s' % (station.id, station.name)
+                    if s is None:
+                        s = station.id
+                print '|- ICapTravel.departures [Departures from \'%s\']' % s
+                for departure in backend.iter_station_departures(s):
+                    print '|  |- [%s] %s at %s to %s' % (departure.id, departure.type, departure.time.strftime("%H:%M"), departure.arrival_station)
 
 if __name__ == '__main__':
     Application.run()

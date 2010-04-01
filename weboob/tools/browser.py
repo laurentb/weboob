@@ -37,7 +37,7 @@ else:
             return HTMLParser.parse(data, encoding='iso-8859-1')
 import re
 import time
-from logging import warning, error
+from logging import warning, error, debug
 from copy import copy
 
 try:
@@ -220,7 +220,7 @@ class Browser(mechanize.Browser):
             warning('Ho my fucking god, there isn\'t any page named %s' % result.geturl())
             return
 
-        print '[%s] Gone on %s' % (self.username, result.geturl())
+        debug('[%s] Gone on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
         document = self.__parser.parse(result)
