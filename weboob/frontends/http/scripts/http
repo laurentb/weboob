@@ -35,7 +35,7 @@ class Application(BaseApplication):
     APPNAME = 'http'
 
     def main(self, argv):
-        self.weboob.load_modules()
+        self.weboob.load_backends()
 
 template_lookup = TemplateLookup(directories=['%s/../templates' % os.path.dirname(__file__)],
                                  output_encoding='utf-8', encoding_errors='replace')

@@ -20,14 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 class ConfigError(Exception): pass
 
-class BackendConfig(object):
-    def __init__(self, name, _type, config):
-        self.name = name
-        self.type = _type
-        self.config = config
-
 class IConfig:
-    def load(self):
+    def load(self, default={}):
         raise NotImplementedError()
 
     def save(self):
@@ -37,10 +31,4 @@ class IConfig:
         raise NotImplementedError()
 
     def get(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def getfrontend(self, name):
-        raise NotImplementedError()
-
-    def getbackends(self):
         raise NotImplementedError()

@@ -21,16 +21,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from __future__ import with_statement
 
 import yaml
-from logging import warning
 
-from weboob.iconfig import IConfig, ConfigError, BackendConfig
+from .iconfig import IConfig, ConfigError
 
-class Config(IConfig):
+class YamlConfig(IConfig):
     def __init__(self, path):
         self.path = path
         self.values = {}
 
-    def load(self):
+    def load(self, default={}):
+        self.values = default.copy()
+
         try:
             with open(self.path, 'r') as f:
                 self.values = yaml.load(f)
@@ -82,15 +83,3 @@ class Config(IConfig):
                 raise ConfigError()
 
         v[args[-2]] = args[-1]
-
-    def getfrontend(self, name):
-        return self.get('frontends', name, default={})
-
-    def getbackends(self):
-        d = {}
-        for key, value in self.get('backends', default={}).iteritems():
-            if not 'type' in value:
-                warning("Missing 'type' item in config of '%s' backend" % key)
-            else:
-                d[key] = BackendConfig(key, value['type'], value.get('config', {}))
-        return d

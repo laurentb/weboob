@@ -28,7 +28,7 @@ from weboob import Weboob
 class BaseApplication(object):
     APPNAME = ''
     CONFIG = {}
-    CONFDIR = '%s/.weboob/' % os.path.expanduser("~")
+    CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
 
     def __init__(self):
         self.weboob = Weboob(self.APPNAME)
@@ -45,18 +45,16 @@ class BaseApplication(object):
         if klass is None:
             # load Config only here because some applications don't want
             # to depend on yaml and do not use this function
-            from weboob.tools.config import Config
-            klass = Config
+            from weboob.tools.config.yaml import YamlConfig
+            klass = YamlConfig
 
         if path is None:
-            path = self.CONFDIR + 'weboobrc'
+            path = os.path.join(self.CONFDIR, self.APPNAME)
         elif not path.startswith('/'):
-            path = self.CONFDIR + path
+            path = os.path.join(self.CONFDIR, path)
 
         self.config = klass(path)
-        self.config.load()
-        self.myconfig = self.CONFIG
-        self.myconfig.update(self.config.getfrontend(self.APPNAME))
+        self.config.load(self.CONFIG)
 
     def main(self, argv):
         """ Main function """
