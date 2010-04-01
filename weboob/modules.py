@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 import os
+from ConfigParser import SafeConfigParser
 from logging import warning, debug
 from types import ClassType
 
@@ -38,6 +39,9 @@ class Module:
 
         if not self.klass:
             raise ImportError("This is not a backend module (no Backend class found)")
+
+    def get_name(self):
+        return self.klass.NAME
 
     def has_caps(self, *caps):
         for c in caps:
@@ -62,12 +66,47 @@ class ModulesLoader:
 
     def load_module(self, name):
         try:
-            backend = Module(name, __import__(name, fromlist=[name]))
+            module = Module(name, __import__(name, fromlist=[name]))
         except ImportError, e:
             warning('Unable to load module %s: %s' % (name, e))
             return
         if name in self.modules:
             warning('Module "%s" is already loaded (%s)' % self.modules[name].module)
             return
-        self.modules[name] = backend
-        debug('Loaded module %s (%s)' % (name, backend.module.__name__))
+        self.modules[module.get_name()] = module
+        debug('Loaded module %s (%s)' % (name, module.module.__name__))
+
+    def load_backends(self, confpath, caps, names):
+        config = SafeConfigParser()
+        config.read(confpath)
+        backends = {}
+        for name in config.sections():
+            params = dict(config.items(name))
+            try:
+                module = self.modules[params['_type']]
+            except KeyError:
+                warning('Unable to find module %s', name)
+                continue
+
+            # Check conditions
+            if (not caps is None and not module.has_caps(caps)) or \
+               (not names is None and not module.name in name):
+                continue
+
+            try:
+                backends[name] = module.create_backend(self, params)
+            except Exception, e:
+                warning('Unable to load %s backend: %s' % (name, e))
+
+        return backends
+
+    def load_modules_as_backends(self, caps, names):
+        backends = {}
+        for name, module in self.modules.iteritems():
+            if (caps is None or module.has_caps(caps)) and \
+               (names is None or module.name in names):
+                try:
+                    backends[module.name] = module.create_backend(self, {})
+                except Exception, e:
+                    warning('Unable to load %s backend: %s' % (name, e))
+        return backends

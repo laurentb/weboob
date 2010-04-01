@@ -18,15 +18,50 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import re
+
 class Backend:
+    # Module name.
+    NAME = None
+    # Name of the maintainer of this module.
     MAINTAINER = '<unspecifier>'
+    # Email address of the maintainer.
     EMAIL = '<unspecified>'
+    # Version of module (for information only).
     VERSION = '<unspecified>'
+    # License of this module.
     LICENSE = '<unspecified>'
+    # Configuration required for this module.  # Values must be ConfigField
+    # objects.
+    CONFIG = {}
+
+    class ConfigField(object):
+        def __init__(self, default=None, is_masked=False, regexp=None, description=None):
+            self.default = default
+            self.is_masked = is_masked
+            self.regexp = regexp
+            self.description = description
+
+    class ConfigError(Exception): pass
 
     def __init__(self, weboob, config):
         self.weboob = weboob
-        self.config = config
+        self.config = {}
+        for name, field in self.CONFIG.iteritems():
+            value = config.get(name, field.default)
+
+            if value is None:
+                raise Backend.ConfigError("Missing parameter '%s'" % name)
+
+            if field.regexp and re.match(field.regexp, str(value)):
+                raise Backend.ConfigError("Value of '%s' does not match regexp '%s'" % (name, field.regexp))
+
+            if not field.default is None:
+                if isinstance(field.default, int):
+                    value = int(value)
+                if isinstance(field.default, float):
+                    value = float(value)
+            self.config[name] = value
 
     def has_caps(self, *caps):
         for c in caps:

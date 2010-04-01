@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from logging import warning
 import feedparser
 import re
-import datetime
+from datetime import datetime
 
 class Article:
     RSS = None

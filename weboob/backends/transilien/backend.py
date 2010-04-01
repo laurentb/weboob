@@ -25,6 +25,7 @@ from .browser import Transilien
 from .stations import STATIONS
 
 class TransilienBackend(Backend, ICapTravel):
+    NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'
     VERSION = '1.0'

@@ -22,6 +22,7 @@ from weboob.backend import Backend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 
 class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
+    NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'

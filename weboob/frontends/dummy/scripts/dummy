@@ -28,7 +28,7 @@ class Application(BaseApplication):
     APPNAME = 'dummy'
 
     def main(self, argv):
-        self.weboob.load_modules()
+        self.weboob.load_backends()
 
         for name, backend in self.weboob.iter_backends():
             print '= Processing backend name = %s' % name

@@ -24,10 +24,14 @@ from weboob.capabilities.updatable import ICapUpdatable
 from feeds import ArticlesList
 
 class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
+    NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    CONFIG = {'username': Backend.ConfigField(description='Username on website'),
+              'password': Backend.ConfigField(description='Password of account', is_masked=True)
+             }
 
     def iter_messages(self):
         articles_list = ArticlesList('newspaper')

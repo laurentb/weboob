@@ -24,6 +24,7 @@ from weboob.capabilities.travel import ICapTravel, Station, Departure
 from .browser import CanalTP
 
 class CanalTPBackend(Backend, ICapTravel):
+    NAME = 'canaltp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'

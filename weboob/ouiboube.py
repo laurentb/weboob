@@ -18,40 +18,33 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import os
 import sched
 import time
 
 from weboob.modules import ModulesLoader
 
 class Weboob:
-    def __init__(self, app_name):
+    WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
+    BACKENDS_FILENAME = 'backends'
+
+    def __init__(self, app_name, workdir=WORKDIR):
         self.app_name = app_name
+        self.workdir = workdir
         self.backends = {}
         self.scheduler = sched.scheduler(time.time, time.sleep)
+
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
 
-    def load_modules(self, caps=None, name=None, backends=None):
-        if backends is None:
-            for name, module in self.modules_loader.modules.iteritems():
-                if (not caps or module.has_caps(caps)) and \
-                   (not name or module.name == name):
-                    backend = module.create_backend(self, None)
-                    self.backends[module.name] = backend
-        else:
-            for key, backendcfg in backends.iteritems():
-                try:
-                    module = self.modules_loader[backendcfg.type]
-                except KeyError:
-                    continue
-                if (caps and not module.has_caps(caps)) or \
-                   (name and module.name != name):
-                    continue
-                self.backends[backendcfg.name] = module.create_backend(self, backendcfg)
+    def get_backends_filename(self):
+        return os.path.join(self.workdir, self.BACKENDS_FILENAME)
 
-    def load_module(self, modname, instname, backendcfg=None):
-        module = self.modules_loader[modname]
-        self.backends[instname] = module.create_backend(self, backendcfg)
+    def load_backends(self, caps=None, names=None):
+        self.backends.update(self.modules_loader.load_backends(self.get_backends_filename(), caps, names))
+
+    def load_modules(self, caps=None, names=None):
+        self.backends.update(self.modules_loader.load_modules_as_backends(caps, names))
 
     def iter_backends(self, caps=None):
         for name, backend in self.backends.iteritems():
