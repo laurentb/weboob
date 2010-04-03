@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.tools.browser import BrowserIncorrectPassword, BasePage
+from weboob.capabilities.messages import Message
 
 class DLFPPage(BasePage):
     def is_logged(self):
-        forms = self.document.getElementsByTagName('form')
-        for form in forms:
-            if form.getAttribute('id') == 'formulaire':
+        for form in self.document.getiterator('form'):
+            if form.attrib.get('id', None) == 'formulaire':
                 return False
 
         return True
@@ -38,9 +38,7 @@ class LoginPage(DLFPPage):
             raise BrowserIncorrectPassword()
 
     def has_error(self):
-        plist = self.document.getElementsByTagName('p')
-        for p in plist:
-            p = p.childNodes[0]
-            if hasattr(p, 'data') and p.data.startswith(u'Vous avez rentrÃ© un mauvais mot de passe'):
+        for p in self.document.getiterator('p'):
+            if p.text and p.text.startswith(u'Vous avez rentré un mauvais mot de passe'):
                 return True
         return False

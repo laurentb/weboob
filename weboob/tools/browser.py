@@ -21,32 +21,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import mechanize
 import urllib2
 import ClientForm
-try:
-    from html5lib import treebuilders, HTMLParser
-except ImportError:
-    # XXX change this to use another lib than html5lib
-    class StandardParser:
-        def parse(self, data):
-            return None
-else:
-    class StandardParser(HTMLParser):
-        def __init__(self):
-            HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder("dom"))
-
-        def parse(self, data):
-            return HTMLParser.parse(data, encoding='iso-8859-1')
 import re
 import time
 from logging import warning, error, debug
 from copy import copy
 
+from weboob.tools.parser import StandardParser
+
+# Try to load cookies
 try:
     from weboob.tools.firefox_cookies import FirefoxCookieJar
-    HAVE_COOKIES = True
 except ImportError, e:
     warning("Unable to store cookies: %s" % e)
     HAVE_COOKIES = False
+else:
+    HAVE_COOKIES = True
 
+# Exceptions
 class BrowserIncorrectPassword(Exception):
     pass
 
@@ -57,6 +48,9 @@ class BrowserRetry(Exception):
     pass
 
 class NoHistory:
+    """
+    We don't want to fill memory with history
+    """
     def __init__(self): pass
     def add(self, request, response): pass
     def back(self, n, _response): pass
@@ -64,15 +58,24 @@ class NoHistory:
     def close(self): pass
 
 class BasePage:
+    """
+    Base page
+    """
     def __init__(self, browser, document, url=''):
         self.browser = browser
         self.document = document
         self.url = url
 
     def loaded(self):
+        """
+        Called when the page is loaded.
+        """
         pass
 
 class Browser(mechanize.Browser):
+    """
+    Base browser class to navigate on a website.
+    """
 
     # ------ Class attributes --------------------------------------
 
@@ -83,21 +86,27 @@ class Browser(mechanize.Browser):
 
     # ------ Abstract methods --------------------------------------
 
-    # Go to home
     def home(self):
+        """
+        Go to the home page.
+        """
         raise NotImplementedError()
 
-    # Login to the website
     def login(self):
+        """
+        Login to the website.
+        """
         raise NotImplementedError()
 
-    # Return True if we are logged on website
     def is_logged(self):
+        """
+        Return True if we are loggen on website.
+        """
         raise NotImplementedError()
 
     # ------ Browser methods ---------------------------------------
 
-    def __init__(self, username, password=None, firefox_cookies=None, parser=StandardParser):
+    def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser):
         mechanize.Browser.__init__(self, history=NoHistory())
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -127,7 +136,7 @@ class Browser(mechanize.Browser):
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
-            if not self.page or not self.page.is_logged() and self.password:
+            if not self.page or self.password and not self.page.is_logged():
                 self.home()
 
             return func(self, *args, **kwargs)
@@ -227,7 +236,7 @@ class Browser(mechanize.Browser):
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
-        if not self.is_logged() and self.password:
+        if self.password and not self.is_logged():
             print '!! Relogin !!'
             self.login()
             return
