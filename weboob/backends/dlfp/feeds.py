@@ -23,6 +23,8 @@ import feedparser
 import re
 from datetime import datetime
 
+from .tools import url2id
+
 class Article:
     RSS = None
 
@@ -56,10 +58,5 @@ class ArticlesList:
             url = klass.RSS
             feed = feedparser.parse(url)
             for item in feed['items']:
-                m = re.match('.*/([0-9]+).html', item['link'])
-                if not m:
-                    warning('Unable to parse ID from link \'%s\'' % item['link'])
-                    continue
-                _id = m.group(1)
-                article = klass(_id, item['link'], item['title'], item['author'], datetime(*item['date_parsed'][:7]))
+                article = klass(url2id(item['link']), item['link'], item['title'], item['author'], datetime(*item['date_parsed'][:7]))
                 yield article
