@@ -46,7 +46,7 @@ class BaseApplication(object):
         if klass is None:
             # load Config only here because some applications don't want
             # to depend on yaml and do not use this function
-            from weboob.tools.config.yaml import YamlConfig
+            from weboob.tools.config.yamlconfig import YamlConfig
             klass = YamlConfig
 
         if path is None:

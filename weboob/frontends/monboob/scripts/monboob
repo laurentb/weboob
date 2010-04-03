@@ -32,7 +32,7 @@ from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
 class Monboob(BaseApplication):
-    APPNAME = 'mail'
+    APPNAME = 'monboob'
     CONFIG = {'interval':  15,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
@@ -45,7 +45,7 @@ class Monboob(BaseApplication):
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
-        self.weboob.load_modules(ICapMessages)
+        self.weboob.load_backends(ICapMessages)
 
         self.weboob.schedule(self.config.get('interval'), self.process)
         self.weboob.loop()
