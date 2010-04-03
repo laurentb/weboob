@@ -84,13 +84,10 @@ class PageBase(BasePage):
         return '?'
 
     def nb_new_mails(self):
-
         return self.__get_indicator(u'mailsCounter')
 
     def nb_new_baskets(self):
-
         return self.__get_indicator(u'flashsCounter')
 
     def nb_new_visites(self):
-
         return self.__get_indicator(u'visitesCounter')

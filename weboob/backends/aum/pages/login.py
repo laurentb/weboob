@@ -77,6 +77,9 @@ class RedirectPage(PageBase):
 class BanPage(PageBase):
     pass
 
+class ShopPage(PageBase):
+    pass
+
 class ErrPage(PageBase):
     def loaded(self):
-        raise BrowserIncorrectPassword()
+        raise BrowserIncorrectPassword('Incorrect login/password')

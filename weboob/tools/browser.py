@@ -41,6 +41,9 @@ else:
 class BrowserIncorrectPassword(Exception):
     pass
 
+class BrowserBanned(BrowserIncorrectPassword):
+    pass
+
 class BrowserUnavailable(Exception):
     pass
 

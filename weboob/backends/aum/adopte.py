@@ -31,7 +31,7 @@ from weboob.backends.aum.pages.contact_thread import ContactThreadPage
 from weboob.backends.aum.pages.baskets import BasketsPage
 from weboob.backends.aum.pages.profile import ProfilePage
 from weboob.backends.aum.pages.search import SearchPage
-from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, RegisterWaitPage, RegisterConfirmPage
+from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, RegisterWaitPage, RegisterConfirmPage, ShopPage
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
@@ -49,13 +49,14 @@ class AdopteUnMec(Browser):
              'http://www.adopteunmec.com/index.html': LoginPage,
              'http://www.adopteunmec.com/index.php': LoginPage,
              'http://www.adopteunmec.com/loginErr.php.*': ErrPage,
-             'http://www.adopteunmec.com/bans.php\?who=auto': BanPage,
+             'http://www.adopteunmec.com/bans.php.*': BanPage,
              'http://www.adopteunmec.com/redirect.php\?action=login': RedirectPage,
              'http://www.adopteunmec.com/wait.php': WaitPage,
              'http://www.adopteunmec.com/register2.php': RegisterPage,
              'http://www.adopteunmec.com/register3.php.*': RegisterWaitPage,
              'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
              'http://www.adopteunmec.com/home.php': HomePage,
+             'http://www.adopteunmec.com/shop2c.php': ShopPage,
              'http://www.adopteunmec.com/mails.php': ContactListPage,
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
              'http://www.adopteunmec.com/thread.php\?id=([0-9]+)': ContactThreadPage,
@@ -133,13 +134,13 @@ class AdopteUnMec(Browser):
 
     @pageaccess
     def score(self):
-        if time.time() - self.__last_update > 60:
+        if time.time() - self.last_update > 60:
             self.home()
         return self.page.score()
 
     @pageaccess
     def get_my_name(self):
-        if time.time() - self.__last_update > 60:
+        if time.time() - self.last_update > 60:
             self.home()
         return self.page.get_my_name()
 
@@ -155,19 +156,19 @@ class AdopteUnMec(Browser):
 
     @pageaccess
     def nb_new_mails(self):
-        if time.time() - self.__last_update > 60:
+        if time.time() - self.last_update > 60:
             self.home()
         return self.page.nb_new_mails()
 
     @pageaccess
     def nb_new_baskets(self):
-        if time.time() - self.__last_update > 60:
+        if time.time() - self.last_update > 60:
             self.home()
         return self.page.nb_new_baskets()
 
     @pageaccess
     def nb_new_visites(self):
-        if time.time() - self.__last_update > 60:
+        if time.time() - self.last_update > 60:
             self.home()
         return self.page.nb_new_visites()
 
