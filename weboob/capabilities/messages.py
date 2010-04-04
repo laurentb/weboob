@@ -40,10 +40,10 @@ class Message:
         return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
 
     def get_full_id(self):
-        return '%s.%s' % (self.id, self.thread_id)
+        return '%s.%s' % (self.thread_id, self.id)
 
     def get_full_reply_id(self):
-        return '%s.%s' % (self.reply_id, self.thread_id)
+        return '%s.%s' % (self.thread_id, self.reply_id)
 
     def get_id(self):
         return self.id

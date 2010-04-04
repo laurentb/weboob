@@ -26,6 +26,7 @@ from email.Header import Header
 from email.Utils import parseaddr, formataddr
 import time
 import sys
+from html2text import html2text
 
 from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages
@@ -61,14 +62,14 @@ class Monboob(BaseApplication):
 
         reply_id = ''
         if mail.get_reply_id():
-            reply_id = u'%s.%s@%s' % (backend_name, mail.get_full_reply_id(), domain)
-        subject = u'%s%s' % ((reply_id) and 'Re: ' or '', mail.get_title())
-        sender = u'%s <%s.%s.%s@%s>' % (mail.get_from(), backend_name, mail.get_thread_id(), mail.get_id(), domain)
+            reply_id = u'<%s.%s@%s>' % (backend_name, mail.get_full_reply_id(), domain)
+        subject = mail.get_title()
+        sender = u'%s <%s@%s>' % (mail.get_from(), backend_name, domain)
 
         # assume that get_date() returns an UTC datetime
         date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
-        msg_id = u'%s.%s@%s' % (backend_name, mail.get_full_id(), domain)
-        body = mail.get_content()
+        msg_id = u'<%s.%s@%s>' % (backend_name, mail.get_full_id(), domain)
+        body = html2text(mail.get_content())
 
         if mail.get_signature():
             body += u'\n\n-- \n'
@@ -112,6 +113,7 @@ class Monboob(BaseApplication):
 
         # Send the message via SMTP to localhost:25
         smtp = SMTP(self.config.get('smtp'))
+        print 'Send mail from <%s> to <%s>' % (sender, recipient)
         smtp.sendmail(sender, recipient, msg.as_string())
         smtp.quit()
 
