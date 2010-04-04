@@ -1,0 +1,108 @@
+#!/usr/bin/env python2.5
+# -*- coding: utf-8 -*-
+
+"""
+Copyright(C) 2009-2010  Romain Bignon
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+"""
+
+from __future__ import with_statement
+
+import sys
+from types import MethodType
+
+from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.tools.application import ConsoleApplication
+
+class Boobank(ConsoleApplication):
+    APPNAME = 'boobank'
+
+    def main(self, argv):
+        self.weboob.load_backends(ICapBank)
+
+        if len(argv) == 1:
+            print >>sys.stderr, "Usage: %s <command> [args ...]" % argv[0]
+            return -1
+
+        return self.command(argv[1], *argv[2:])
+
+    def getMethods(self, prefix):
+        services = {}
+        for attrname in dir(self):
+            if not attrname.startswith(prefix):
+                continue
+            attr = getattr(self, attrname)
+            if not isinstance(attr, MethodType):
+                continue
+            name = attrname[len(prefix):]
+            services[name] = attr
+        return services
+
+    def command(self, command, *args):
+        commands = self.getMethods('command_')
+        if not command in commands:
+            print >>sys.stderr, "No such command: %s" % command
+            self.command_help()
+            return 1
+        try:
+            return commands[command](*args)
+        except TypeError, e:
+            try:
+                print >>sys.stderr, "Command %s takes %s arguments" % (command, int(str(e).split(' ')[3]) - 1)
+            except:
+                print >>sys.stderr, '%s' % e
+            return 1
+
+    def command_help(self):
+        print 'Available commands are:'
+        print '      list            List every available accounts'
+        print '      coming <ID>     Display all future operations'
+
+    def command_list(self):
+        print '               ID   Account                    Balance        Coming  '
+        print '+-----------------+---------------------+--------------+-------------+'
+
+        for name, backend, in self.weboob.iter_backends():
+            for account in backend.iter_accounts():
+                print '%17s   %-20s   %11.2f   %11.2f' % (account.id,
+                                                          account.label,
+                                                          account.balance,
+                                                          account.coming)
+
+    def command_coming(self, id):
+        found = 0
+        for name, backend in self.weboob.iter_backends():
+            try:
+                account = backend.get_account(id)
+            except AccountNotFound:
+                if found == 0:
+                    found = -1
+            else:
+                if found == 0:
+                    print '      Date   Label                                                     Amount  '
+                    print '+----------+----------------------------------------------------+-------------+'
+
+                found = 1
+                for operation in backend.iter_operations(account):
+                    print '  %8s   %-50s   %11.2f' % (operation.date,
+                                                      operation.label,
+                                                      operation.amount)
+        if found < 0:
+            print >>sys.stderr, "Error: account %s not found" % id
+            return 1
+
+if __name__ == '__main__':
+    Boobank.run()
