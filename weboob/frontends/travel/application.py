@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import sys
 from types import MethodType
 
-from weboob import Weboob
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import ConsoleApplication
 
