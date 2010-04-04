@@ -19,7 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.tools.browser import BrowserIncorrectPassword, BasePage
-from weboob.capabilities.messages import Message
 
 class DLFPPage(BasePage):
     def is_logged(self):

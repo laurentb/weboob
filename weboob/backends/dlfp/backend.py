@@ -31,8 +31,10 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
-    CONFIG = {'username': Backend.ConfigField(description='Username on website'),
-              'password': Backend.ConfigField(description='Password of account', is_masked=True)
+    CONFIG = {'username':      Backend.ConfigField(description='Username on website'),
+              'password':      Backend.ConfigField(description='Password of account', is_masked=True),
+              'get_news':      Backend.ConfigField(default=True, description='Get newspapers'),
+              'get_telegrams': Backend.ConfigField(default=False, description='Get telegrams'),
              }
     browser = None
 
@@ -46,9 +48,15 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
 
     @need_browser
     def iter_messages(self):
-        articles_list = ArticlesList('newspaper')
-        for article in articles_list.iter_articles():
-            print article.id
+        if self.config['get_news']:
+            for message in self._iter_messages('newspaper'):
+                yield message
+        if self.config['get_telegrams']:
+            for message in self._iter_messages('telegram'):
+                yield message
+
+    def _iter_messages(self, what):
+        for article in ArticlesList(what).iter_articles():
             thread = self.browser.get_content(article.id)
             yield Message(thread.id, 0, thread.title, thread.author, article.datetime, signature='URL: %s' % article.url, content=''.join([thread.body, thread.part2]))
             for comment in thread.iter_all_comments():

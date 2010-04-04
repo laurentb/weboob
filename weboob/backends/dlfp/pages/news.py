@@ -79,7 +79,12 @@ class Article(object):
                 for a in div.find('h1').getiterator('a'):
                     if a.text: self.title += a.text
                     if a.tail: self.title += a.tail
-                date_s = unicode(div.findall('a')[1].text)
+                subdivs = div.findall('a')
+                if len(subdivs) > 1:
+                    date_s = unicode(subdivs[1].text)
+                else:
+                    date_s = unicode(div.find('i').tail)
+                print date_s
             if div.attrib.get('class', '').startswith('bodydiv '):
                 self.body = tostring(div)
 
@@ -99,13 +104,19 @@ class ContentPage(DLFPPage):
     def loaded(self):
         self.article = None
         for div in self.document.find('body').find('div').findall('div'):
-            if div.attrib.get('class', '') == 'newsdiv':
-                self.article = Article(url2id(self.url), div)
-            if div.attrib.get('class', '') == 'articlediv':
-                self.article.parse_part2(div)
-            if div.attrib.get('class', '') == 'comments':
-                comment = Comment(div, 0)
-                self.article.append_comment(comment)
+            self.parse_div(div)
+            if div.attrib.get('class', '') == 'centraldiv':
+                for subdiv in div.findall('div'):
+                    self.parse_div(subdiv)
+
+    def parse_div(self, div):
+        if div.attrib.get('class', '') in ('newsdiv', 'centraldiv'):
+            self.article = Article(url2id(self.url), div)
+        if div.attrib.get('class', '') == 'articlediv':
+            self.article.parse_part2(div)
+        if div.attrib.get('class', '') == 'comments':
+            comment = Comment(div, 0)
+            self.article.append_comment(comment)
 
     def get_article(self):
         return self.article
