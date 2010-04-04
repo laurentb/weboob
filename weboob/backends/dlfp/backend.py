@@ -21,7 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.backend import Backend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.updatable import ICapUpdatable
-from feeds import ArticlesList
+
+from .feeds import ArticlesList
+from .browser import DLFP
 
 class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     NAME = 'dlfp'
@@ -32,9 +34,25 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     CONFIG = {'username': Backend.ConfigField(description='Username on website'),
               'password': Backend.ConfigField(description='Password of account', is_masked=True)
              }
+    browser = None
 
+    def need_browser(func):
+        def inner(self, *args, **kwargs):
+            if not self.browser:
+                self.browser = DLFP(self.config['username'], self.config['password'])
+
+            return func(self, *args, **kwargs)
+        return inner
+
+    @need_browser
     def iter_messages(self):
         articles_list = ArticlesList('newspaper')
         for article in articles_list.iter_articles():
-            yield Message('threadid', article.id, article.title, article.author, article.datetime, signature='Bite bite bite bite',
-                          content='Content content\nContent content.')
+            print article.id
+            thread = self.browser.get_content(article.id)
+            yield Message(thread.id, 0, thread.title, thread.author, article.datetime, signature='URL: %s' % article.url, content=''.join([thread.body, thread.part2]))
+            for comment in thread.iter_all_comments():
+                yield Message(thread.id, comment.id, comment.title, comment.author, comment.date, comment.reply_id, comment.body)
+
+    def iter_new_messages(self):
+        return self.iter_messages()

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.tools.browser import Browser
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
+from .tools import id2url
 
 class DLFP(Browser):
     DOMAIN = 'linuxfr.org'
@@ -36,7 +37,8 @@ class DLFP(Browser):
         return self.location('https://linuxfr.org')
 
     def get_content(self, _id):
-        pass
+        self.location(id2url(_id))
+        return self.page.get_article()
 
     def login(self):
         self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
