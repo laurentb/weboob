@@ -30,7 +30,7 @@ class BNParser(StandardParser):
         s = data.read()
         s = s.replace('<?Pub Caret>', '')
         data = StringIO(s)
-        return StandardParser.parse(self, data)
+        return StandardParser.parse(self, data, encoding)
 
 # Browser
 class BNPorc(Browser):

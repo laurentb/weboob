@@ -58,9 +58,22 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     def _iter_messages(self, what):
         for article in ArticlesList(what).iter_articles():
             thread = self.browser.get_content(article.id)
-            yield Message(thread.id, 0, thread.title, thread.author, article.datetime, signature='URL: %s' % article.url, content=''.join([thread.body, thread.part2]))
+            yield Message(thread.id,
+                          0,
+                          thread.title,
+                          thread.author,
+                          article.datetime,
+                          content=''.join([thread.body, thread.part2]),
+                          signature='URL: %s' % article.url)
             for comment in thread.iter_all_comments():
-                yield Message(thread.id, comment.id, comment.title, comment.author, comment.date, comment.reply_id, comment.body)
+                yield Message(thread.id,
+                              comment.id,
+                              comment.title,
+                              comment.author,
+                              comment.date,
+                              comment.reply_id,
+                              comment.body,
+                              'Score: %d' % comment.score)
 
     def iter_new_messages(self):
         return self.iter_messages()
