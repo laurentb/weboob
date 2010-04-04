@@ -84,6 +84,7 @@ class Browser(mechanize.Browser):
 
     DOMAIN = None
     PROTOCOL = 'http'
+    ENCODING = 'utf-8'
     PAGES = {}
     USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3'
 
@@ -110,7 +111,7 @@ class Browser(mechanize.Browser):
     # ------ Browser methods ---------------------------------------
 
     def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser):
-        mechanize.Browser.__init__(self, history=NoHistory())
+        mechanize.Browser.__init__(self)#, history=NoHistory())
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
             ]
@@ -235,12 +236,12 @@ class Browser(mechanize.Browser):
         debug('[%s] Gone on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
-        document = self.__parser.parse(result)
+        document = self.__parser.parse(result, self.ENCODING)
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
         if self.password and not self.is_logged():
-            print '!! Relogin !!'
+            debug('!! Relogin !!')
             self.login()
             return
 

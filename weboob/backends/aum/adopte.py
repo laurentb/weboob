@@ -39,12 +39,13 @@ class AdopteParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder("dom"))
 
-    def parse(self, data):
-        return HTMLParser.parse(self, data, encoding='iso-8859-1')
+    def parse(self, data, encoding):
+        return HTMLParser.parse(self, data, encoding=encoding)
 
 class AdopteUnMec(Browser):
     DOMAIN = 'www.adopteunmec.com'
     PROTOCOL = 'http'
+    ENCODING = 'iso-8859-1'
     PAGES = {'http://www.adopteunmec.com/': LoginPage,
              'http://www.adopteunmec.com/index.html': LoginPage,
              'http://www.adopteunmec.com/index.php': LoginPage,

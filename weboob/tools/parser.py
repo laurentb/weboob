@@ -26,15 +26,12 @@ except ImportError:
 try:
     from elementtidy import TidyHTMLTreeBuilder
     TidyHTMLTreeBuilder.ElementTree = ElementTree # force cElementTree if using it.
-    class HTMLTreeBuilder(TidyHTMLTreeBuilder.TidyHTMLTreeBuilder):
-        def __init__(self):
-            TidyHTMLTreeBuilder.TidyHTMLTreeBuilder.__init__(self, 'utf-8')
-
+    HTMLTreeBuilder = TidyHTMLTreeBuilder.TidyHTMLTreeBuilder
 except ImportError:
     from HTMLParser import HTMLParser
 
     class HTMLTreeBuilder(HTMLParser):
-        def __init__(self, html=0, target=None):
+        def __init__(self, encoding=None):
             HTMLParser.__init__(self)
             if target is None:
                 target = ElementTree.TreeBuilder()
@@ -61,8 +58,8 @@ except ImportError:
             self._target.end(tag)
 
 class StandardParser(object):
-    def parse(self, data):
-        parser = HTMLTreeBuilder()
+    def parse(self, data, encoding=None):
+        parser = HTMLTreeBuilder(encoding)
         tree = ElementTree.parse(data, parser)
 
         for elem in tree.getiterator():
