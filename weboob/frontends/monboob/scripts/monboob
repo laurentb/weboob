@@ -48,7 +48,7 @@ class Monboob(BaseApplication):
 
         self.weboob.load_backends(ICapMessages)
 
-        self.weboob.schedule(self.config.get('interval'), self.process)
+        self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
 
     def process(self):

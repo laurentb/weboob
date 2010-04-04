@@ -57,9 +57,11 @@ class Backend:
                 raise Backend.ConfigError("Value of '%s' does not match regexp '%s'" % (name, field.regexp))
 
             if not field.default is None:
-                if isinstance(field.default, int):
+                if isinstance(field.default, bool):
+                    value = value.lower() in ('1', 'true', 'on', 'yes')
+                elif isinstance(field.default, int):
                     value = int(value)
-                if isinstance(field.default, float):
+                elif isinstance(field.default, float):
                     value = float(value)
             self.config[name] = value
 

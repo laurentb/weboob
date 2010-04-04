@@ -33,9 +33,7 @@ except ImportError:
     class HTMLTreeBuilder(HTMLParser):
         def __init__(self, encoding=None):
             HTMLParser.__init__(self)
-            if target is None:
-                target = ElementTree.TreeBuilder()
-            self._target = target
+            self._target = ElementTree.TreeBuilder()
 
         def doctype(self, name, pubid, system):
             pass

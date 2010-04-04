@@ -84,7 +84,7 @@ class Article(object):
                     date_s = unicode(subdivs[1].text)
                 else:
                     date_s = unicode(div.find('i').tail)
-                print date_s
+                #print date_s
             if div.attrib.get('class', '').startswith('bodydiv '):
                 self.body = tostring(div)
 

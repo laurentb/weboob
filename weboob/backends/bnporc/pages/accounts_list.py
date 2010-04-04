@@ -22,7 +22,6 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
-from weboob.tools.parser import tostring
 
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")

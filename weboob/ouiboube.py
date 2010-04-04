@@ -19,20 +19,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import os
-import sched
-import time
 
 from weboob.modules import ModulesLoader
+from weboob.scheduler import Scheduler
 
 class Weboob:
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, app_name, workdir=WORKDIR):
+    def __init__(self, app_name, workdir=WORKDIR, scheduler=None):
         self.app_name = app_name
         self.workdir = workdir
         self.backends = {}
-        self.scheduler = sched.scheduler(time.time, time.sleep)
+
+        if scheduler is None:
+            scheduler = Scheduler()
+        self.scheduler = scheduler
 
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
@@ -54,7 +56,10 @@ class Weboob:
                 yield (name, backend)
 
     def schedule(self, interval, function, *args):
-        self.scheduler.enter(interval, 1, function, args)
+        return self.scheduler.schedule(interval, function, *args)
+
+    def repeat(self, interval, function, *args):
+        return self.scheduler.repeat(interval, function, *args)
 
     def loop(self):
-        self.scheduler.run()
+        return self.scheduler.run()
