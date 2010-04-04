@@ -44,8 +44,9 @@ class Backend:
 
     class ConfigError(Exception): pass
 
-    def __init__(self, weboob, config):
+    def __init__(self, weboob, name, config):
         self.weboob = weboob
+        self.name = name
         self.config = {}
         for name, field in self.CONFIG.iteritems():
             value = config.get(name, field.default)

@@ -49,8 +49,8 @@ class Module:
                 return True
         return False
 
-    def create_backend(self, weboob, config):
-        return self.klass(weboob, config)
+    def create_backend(self, weboob, name, config):
+        return self.klass(weboob, name, config)
 
 class ModulesLoader:
     def __init__(self):
@@ -94,7 +94,7 @@ class ModulesLoader:
                 continue
 
             try:
-                backends[name] = module.create_backend(self, params)
+                backends[name] = module.create_backend(self, name, params)
             except Exception, e:
                 warning('Unable to load %s backend: %s' % (name, e))
 
@@ -106,7 +106,7 @@ class ModulesLoader:
             if (caps is None or module.has_caps(caps)) and \
                (names is None or module.name in names):
                 try:
-                    backends[module.name] = module.create_backend(self, {})
+                    backends[module.name] = module.create_backend(self, module.name, {})
                 except Exception, e:
                     warning('Unable to load %s backend: %s' % (name, e))
         return backends
