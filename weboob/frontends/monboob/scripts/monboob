@@ -37,7 +37,8 @@ class Monboob(BaseApplication):
     CONFIG = {'interval':  15,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
-              'smtp':      'localhost'}
+              'smtp':      'localhost',
+              'html':      False}
 
     def main(self, argv):
         self.load_config()
@@ -54,26 +55,35 @@ class Monboob(BaseApplication):
     def process(self):
         for name, backend in self.weboob.iter_backends():
             for message in backend.iter_new_messages():
-                self.send_email(name, message)
+                self.send_email(backend, message)
 
-    def send_email(self, backend_name, mail):
+    def send_email(self, backend, mail):
         domain = self.config.get('domain')
         recipient = self.config.get('recipient')
 
         reply_id = ''
         if mail.get_reply_id():
-            reply_id = u'<%s.%s@%s>' % (backend_name, mail.get_full_reply_id(), domain)
+            reply_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_reply_id(), domain)
         subject = mail.get_title()
-        sender = u'%s <%s@%s>' % (mail.get_from(), backend_name, domain)
+        sender = u'%s <%s@%s>' % (mail.get_from(), backend.name, domain)
 
         # assume that get_date() returns an UTC datetime
         date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
-        msg_id = u'<%s.%s@%s>' % (backend_name, mail.get_full_id(), domain)
-        body = html2text(mail.get_content())
+        msg_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_id(), domain)
+
+        if self.config.get('html'):
+            body = mail.get_content()
+            content_type = 'html'
+        else:
+            body = html2text(mail.get_content())
+            content_type = 'plain'
 
         if mail.get_signature():
-            body += u'\n\n-- \n'
-            body += mail.get_signature()
+            if self.config.get('html'):
+                body += u'<p>-- <br />%s</p>' % mail.get_signature()
+            else:
+                body += u'\n\n-- \n'
+                body += html2text(mail.get_signature())
 
         # Header class is smart enough to try US-ASCII, then the charset we
         # provide, then fall back to UTF-8.
@@ -102,7 +112,7 @@ class Monboob(BaseApplication):
         recipient_addr = recipient_addr.encode('ascii')
 
         # Create the message ('plain' stands for Content-Type: text/plain)
-        msg = MIMEText(body.encode(body_charset), 'plain', body_charset)
+        msg = MIMEText(body.encode(body_charset), content_type, body_charset)
         msg['From'] = formataddr((sender_name, sender_addr))
         msg['To'] = formataddr((recipient_name, recipient_addr))
         msg['Subject'] = Header(unicode(subject), header_charset)
