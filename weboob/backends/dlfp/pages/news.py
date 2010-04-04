@@ -18,10 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .index import DLFPPage
-from weboob.tools.parser import tostring
 from datetime import datetime
+
+from weboob.tools.parser import tostring
+from weboob.tools.misc import local2utc
+
 from weboob.backends.dlfp.tools import url2id
+from .index import DLFPPage
 
 class Comment(object):
     def __init__(self, div, reply_id):
@@ -49,7 +52,7 @@ class Comment(object):
                 self.comments.append(comment)
 
     def parse_date(self, date_s):
-        return datetime.strptime(unicode(date_s.strip()), u'le %d/%m/%Y à %H:%M.')
+        return local2utc(datetime.strptime(unicode(date_s.strip()), u'le %d/%m/%Y à %H:%M.'))
 
     def iter_all_comments(self):
         for comment in self.comments:
