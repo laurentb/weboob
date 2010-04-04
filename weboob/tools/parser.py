@@ -69,3 +69,12 @@ class StandardParser(object):
             if elem.tag.startswith('{'):
                 elem.tag = elem.tag[elem.tag.find('}')+1:]
         return tree
+
+def tostring(element):
+    e = ElementTree.Element('body')
+    e.text = element.text
+    e.tail = element.tail
+    for sub in element.getchildren():
+        e.append(sub)
+    s = ElementTree.tostring(e, 'utf-8')
+    return unicode(s)
