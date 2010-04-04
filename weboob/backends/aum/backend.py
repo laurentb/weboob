@@ -30,3 +30,6 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
 
     def iter_messages(self, thread=None):
         return dict().iteritems()
+
+    def iter_new_messages(self, thread=None):
+        return dict().iteritems()
