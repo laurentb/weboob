@@ -53,7 +53,7 @@ class Parser(HTMLParser.HTMLParser):
         self.__liste_destination = []
         self.__liste_platform = []
 
-    def parse(self, data):
+    def parse(self, data, encoding):
         self.feed(data.read())
         return self
 
