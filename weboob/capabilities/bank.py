@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from .cap import ICap
+
 class AccountNotFound(Exception): pass
 
 class Account(object):
@@ -69,7 +71,7 @@ class Operation(object):
         self.amount = amount
 
 
-class ICapBank:
+class ICapBank(ICap):
     def iter_accounts(self):
         raise NotImplementedError()
 

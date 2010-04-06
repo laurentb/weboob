@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import datetime
 import time
 
+from .cap import ICap
+
 class Message:
     def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u''):
         self.thread_id = unicode(thread_id)
@@ -80,7 +82,7 @@ class Message:
             self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
-class ICapMessages:
+class ICapMessages(ICap):
     def iter_new_messages(self):
         """
         Iterates on new messages from last time this function has been called.
@@ -95,6 +97,6 @@ class ICapMessages:
         """
         raise NotImplementedError()
 
-class ICapMessagesReply:
+class ICapMessagesReply(ICap):
     def post_reply(self, to, message):
         raise NotImplementedError()

@@ -22,10 +22,11 @@ import re
 import os
 from ConfigParser import SafeConfigParser
 from logging import warning, debug
-from types import ClassType
 
 import weboob.backends as backends
 from weboob.backend import Backend
+from weboob.capabilities.cap import ICap
+from weboob.tools.misc import itersubclasses
 
 class Module:
     def __init__(self, name, module):
@@ -34,7 +35,7 @@ class Module:
         self.klass = None
         for attrname in dir(self.module):
             attr = getattr(self.module, attrname)
-            if isinstance(attr, ClassType) and issubclass(attr, Backend) and attr != Backend:
+            if isinstance(attr, type) and issubclass(attr, Backend) and attr != Backend:
                 self.klass = attr
 
         if not self.klass:
@@ -42,6 +43,26 @@ class Module:
 
     def get_name(self):
         return self.klass.NAME
+
+    def get_maintainer(self):
+        return '%s <%s>' % (self.klass.MAINTAINER, self.klass.EMAIL)
+
+    def get_version(self):
+        return self.klass.VERSION
+
+    def get_description(self):
+        return self.klass.DESCRIPTION
+
+    def get_license(self):
+        return self.klass.LICENSE
+
+    def get_config(self):
+        return self.klass.CONFIG
+
+    def iter_caps(self):
+        for subclass in itersubclasses(self.klass):
+            if issubclass(subclass, ICap):
+                yield subclass
 
     def has_caps(self, *caps):
         for c in caps:
@@ -51,6 +72,36 @@ class Module:
 
     def create_backend(self, weboob, name, config):
         return self.klass(weboob, name, config)
+
+class BackendsConfig:
+    def __init__(self, confpath):
+        self.confpath = confpath
+
+    def iter_backends(self):
+        config = SafeConfigParser()
+        config.read(self.confpath)
+        for name in config.sections():
+            params = dict(config.items(name))
+            try:
+                yield name, params.pop('_type'), params
+            except KeyError:
+                warning("Missing field '_type' for backend '%s'", name)
+                continue
+
+    def add_backend(self, name, _type, params):
+        config = SafeConfigParser()
+        config.read(self.confpath)
+        config.add_section(name)
+        config.set(name, '_type', _type)
+        for key, value in params.iteritems():
+            config.set(name, key, value)
+        config.save(self.confpath)
+
+    def remove_backend(self, name):
+        config = SafeConfigParser()
+        config.read(self.confpath)
+        config.remove_section(name)
+        config.save(self.confpath)
 
 class ModulesLoader:
     def __init__(self):
@@ -75,38 +126,3 @@ class ModulesLoader:
             return
         self.modules[module.get_name()] = module
         debug('Loaded module %s (%s)' % (name, module.module.__name__))
-
-    def load_backends(self, confpath, caps, names):
-        config = SafeConfigParser()
-        config.read(confpath)
-        backends = {}
-        for name in config.sections():
-            params = dict(config.items(name))
-            try:
-                module = self.modules[params['_type']]
-            except KeyError:
-                warning('Unable to find module %s', name)
-                continue
-
-            # Check conditions
-            if (not caps is None and not module.has_caps(caps)) or \
-               (not names is None and not module.name in name):
-                continue
-
-            try:
-                backends[name] = module.create_backend(self, name, params)
-            except Exception, e:
-                warning('Unable to load %s backend: %s' % (name, e))
-
-        return backends
-
-    def load_modules_as_backends(self, caps, names):
-        backends = {}
-        for name, module in self.modules.iteritems():
-            if (caps is None or module.has_caps(caps)) and \
-               (names is None or module.name in names):
-                try:
-                    backends[module.name] = module.create_backend(self, module.name, {})
-                except Exception, e:
-                    warning('Unable to load %s backend: %s' % (name, e))
-        return backends

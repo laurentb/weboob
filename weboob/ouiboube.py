@@ -20,34 +20,62 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
 
-from weboob.modules import ModulesLoader
+from weboob.modules import ModulesLoader, BackendsConfig
 from weboob.scheduler import Scheduler
 
 class Weboob:
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, app_name, workdir=WORKDIR, scheduler=None):
+    def __init__(self, app_name, workdir=WORKDIR, backends_filename=None, scheduler=None):
         self.app_name = app_name
         self.workdir = workdir
         self.backends = {}
 
+        # Scheduler
         if scheduler is None:
             scheduler = Scheduler()
         self.scheduler = scheduler
 
+        # Modules loader
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
 
-    def get_backends_filename(self):
-        return os.path.join(self.workdir, self.BACKENDS_FILENAME)
+        # Backends config
+        if not backends_filename:
+            backends_filename = os.path.join(self.workdir, self.BACKENDS_FILENAME)
+        elif not backends_filename.startswith('/'):
+            backends_filename = os.path.join(self.workdir, backends_filename)
+        self.backends_config = BackendsConfig(backends_filename)
 
     def load_backends(self, caps=None, names=None):
-        self.backends.update(self.modules_loader.load_backends(self.get_backends_filename(), caps, names))
+        for name, _type, params in self.backends_config.iter_backends():
+            try:
+                module = self.modules_loader.modules[_type]
+            except KeyError:
+                warning('Unable to find module %s', name)
+                continue
+
+            # Check conditions
+            if (not caps is None and not module.has_caps(caps)) or \
+               (not names is None and not module.name in name):
+                continue
+
+            try:
+                self.backends[name] = module.create_backend(self, name, params)
+            except Exception, e:
+                warning('Unable to load %s backend: %s' % (name, e))
+
         return self.backends
 
     def load_modules(self, caps=None, names=None):
-        self.backends.update(self.modules_loader.load_modules_as_backends(caps, names))
+        for name, module in self.modules_loader.modules.iteritems():
+            if (caps is None or module.has_caps(caps)) and \
+               (names is None or module.name in names):
+                try:
+                    self.backends[module.name] = module.create_backend(self, module.name, {})
+                except Exception, e:
+                    warning('Unable to load %s backend: %s' % (name, e))
         return self.backends
 
     def iter_backends(self, caps=None):

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 
-class Backend:
+class Backend(object):
     # Module name.
     NAME = None
     # Name of the maintainer of this module.
@@ -29,6 +29,8 @@ class Backend:
     EMAIL = '<unspecified>'
     # Version of module (for information only).
     VERSION = '<unspecified>'
+    # Description
+    DESCRIPTION = '<unspecified>'
     # License of this module.
     LICENSE = '<unspecified>'
     # Configuration required for this module.  # Values must be ConfigField

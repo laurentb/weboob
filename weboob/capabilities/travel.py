@@ -20,7 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from datetime import time
 
-class ICapTravel:
+from .cap import ICap
+
+class ICapTravel(ICap):
     def iter_station_search(self, pattern):
         """
         Iterates on search results of stations.
