@@ -31,16 +31,17 @@ class Cragr(Browser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        self.PAGES = {'https://%s/'           % website:   pages.LoginPage,
-                      'https://%s/.*\.c.*'    % website:   pages.AccountsList,
+        self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
+                      'https://%s/.*\.c.*'       % website:   pages.AccountsList,
+                      'https://%s/login/process' % website:   pages.AccountsList,
                      }
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('https://%s/' % self.DOMAIN)
+        self.location('https://%s/login/process' % self.DOMAIN)
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage) or self.is_logging
+        return not self.is_on_page(pages.LoginPage) or self.page.is_logged()
 
     def login(self):
         assert isinstance(self.username, (str,unicode))
