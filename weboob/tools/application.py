@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys, tty, termios, os
 import re
+from functools import partial
+from inspect import getargspec
 
 from weboob import Weboob
 
@@ -102,3 +104,64 @@ class ConsoleApplication(BaseApplication):
             correct = not regexp or re.match(regexp, str(line))
 
         return line
+
+    def process_command(self, command='help', *args):
+        def f(x):
+            return x.startswith('command_' + command)
+
+        matching_commands = filter(f, dir(self))
+
+        if len(matching_commands) == 0:
+            sys.stderr.write("No such command: %s.\n" % command)
+        elif len(matching_commands) == 1:
+            try:
+                getattr(self, matching_commands[0])(*args)
+            except TypeError, e:
+                try:
+                    sys.stderr.write("Command '%s' takes %s arguments.\n" % \
+                            (command, int(str(e).split(' ')[3]) - 1))
+                except:
+                    sys.stderr.write('%s\n' % e)
+        else:
+            sys.stderr.write("Ambiguious command %s: %s.\n" %
+                             (command,
+                              ', '.join([s.replace('command_', '', 1)
+                                                for s in matching_commands])))
+
+
+    _command_help = []
+    def register_command(f, doc_string, register_to=_command_help):
+        def getArguments(func, skip=0):
+            """
+            Get arguments of a function as a string.
+            skip is the number of skipped arguments.
+            """
+            skip += 1
+            args, varargs, varkw, defaults = getargspec(func)
+            cut = len(args)
+            if defaults:
+                cut -= len(defaults)
+            args = ["<%s>" % a for a in args[skip:cut]] + \
+                   ["[%s]" % a for a in args[cut:]]
+            if varargs:
+                args.append("[*%s]" % varargs)
+            if varkw:
+                args.append("[**%s]" % varkw)
+            return " ".join(args)
+
+        command = '%s %s' % (f.func_name.replace('command_', ''),
+                             getArguments(f))
+        register_to.append('%-30s %s' % (command, doc_string))
+        return f
+
+    def command(doc_string, f=register_command):
+        return partial(f, doc_string=doc_string)
+
+    @command("display this notice")
+    def command_help(self):
+        sys.stdout.write("Available commands:\n")
+        for f in self._command_help:
+            sys.stdout.write('   %s\n' % f)
+
+    register_command = staticmethod(register_command)
+    command = staticmethod(command)

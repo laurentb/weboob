@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
 Copyright(C) 2009-2010  Romain Bignon
@@ -33,44 +34,9 @@ class Boobank(ConsoleApplication):
     def main(self, argv):
         self.weboob.load_backends(ICapBank)
 
-        if len(argv) == 1:
-            print >>sys.stderr, "Usage: %s <command> [args ...]" % argv[0]
-            return -1
+        return self.process_command(*argv[1:])
 
-        return self.command(argv[1], *argv[2:])
-
-    def getMethods(self, prefix):
-        services = {}
-        for attrname in dir(self):
-            if not attrname.startswith(prefix):
-                continue
-            attr = getattr(self, attrname)
-            if not isinstance(attr, MethodType):
-                continue
-            name = attrname[len(prefix):]
-            services[name] = attr
-        return services
-
-    def command(self, command, *args):
-        commands = self.getMethods('command_')
-        if not command in commands:
-            print >>sys.stderr, "No such command: %s" % command
-            self.command_help()
-            return 1
-        try:
-            return commands[command](*args)
-        except TypeError, e:
-            try:
-                print >>sys.stderr, "Command %s takes %s arguments" % (command, int(str(e).split(' ')[3]) - 1)
-            except:
-                print >>sys.stderr, '%s' % e
-            return 1
-
-    def command_help(self):
-        print 'Available commands are:'
-        print '      list            List every available accounts'
-        print '      coming <ID>     Display all future operations'
-
+    @ConsoleApplication.command('List every available accounts')
     def command_list(self):
         print '               ID   Account                    Balance        Coming  '
         print '+-----------------+---------------------+--------------+-------------+'
@@ -82,6 +48,7 @@ class Boobank(ConsoleApplication):
                                                           account.balance,
                                                           account.coming)
 
+    @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
         found = 0
         for name, backend in self.weboob.iter_backends():

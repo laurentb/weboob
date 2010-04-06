@@ -30,44 +30,9 @@ class Travel(ConsoleApplication):
     def main(self, argv):
         self.weboob.load_modules(ICapTravel)
 
-        if len(argv) == 1:
-            print >>sys.stderr, "Usage: %s <command> [args ...]" % argv[0]
-            return -1
+        return self.process_command(*argv[1:])
 
-        return self.command(argv[1], *argv[2:])
-
-    def getMethods(self, prefix):
-        services = {}
-        for attrname in dir(self):
-            if not attrname.startswith(prefix):
-                continue
-            attr = getattr(self, attrname)
-            if not isinstance(attr, MethodType):
-                continue
-            name = attrname[len(prefix):]
-            services[name] = attr
-        return services
-
-    def command(self, command, *args):
-        commands = self.getMethods('command_')
-        if not command in commands:
-            print >>sys.stderr, "No such command: %s" % command
-            self.command_help()
-            return 1
-        try:
-            return commands[command](*args)
-        except TypeError, e:
-            try:
-                print >>sys.stderr, "Command %s takes %s arguments" % (command, int(str(e).split(' ')[3]) - 1)
-            except:
-                print >>sys.stderr, '%s' % e
-            return 1
-
-    def command_help(self):
-        print 'Available commands are:'
-        print '      stations <pattern>              Search stations'
-        print '      departures <station> [arrival]  List all departures on a special station'
-
+    @ConsoleApplication.command('Search stations')
     def command_stations(self, pattern):
         print ".--------------------------------.---------------------------------------------."
         print '| ID                             | Name                                        |'
@@ -81,13 +46,14 @@ class Travel(ConsoleApplication):
         print "| %3d stations listed                                                          |" % count
         print "'------------------------------------------------------------------------------'"
 
-    def command_departures(self, station, arrival_station=None):
+    @ConsoleApplication.command('List all departures on a special station')
+    def command_departures(self, station, arrival=None):
         print ".-----.-----------.-------.-----------------------.-------.--------------------."
         print "| ID  | Type      | Time  | Arrival               | Late  | Info               |"
         print "+-----+-----------+-------+-----------------------+-------+--------------------+"
         count = 0
         for name, backend, in self.weboob.iter_backends():
-            for departure in backend.iter_station_departures(station, arrival_station):
+            for departure in backend.iter_station_departures(station, arrival):
                 print u"| %3d | %-9s | %5s | %-21s | %5s | %-18s |" % (departure.id,
                                                                    departure.type,
                                                                    departure.time.strftime("%H:%M"),
