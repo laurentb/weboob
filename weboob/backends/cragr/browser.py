@@ -37,7 +37,7 @@ class Cragr(Browser):
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('https://m.lefil.com/')
+        self.location('https://%s/' % self.DOMAIN)
 
     def is_logged(self):
         return not self.is_on_page(pages.LoginPage) or self.is_logging
