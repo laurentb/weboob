@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from __future__ import with_statement
+
 import re
 import os
 from ConfigParser import SafeConfigParser
@@ -26,7 +28,6 @@ from logging import warning, debug
 import weboob.backends as backends
 from weboob.backend import Backend
 from weboob.capabilities.cap import ICap
-from weboob.tools.misc import itersubclasses
 
 class Module:
     def __init__(self, name, module):
@@ -60,9 +61,9 @@ class Module:
         return self.klass.CONFIG
 
     def iter_caps(self):
-        for subclass in itersubclasses(self.klass):
-            if issubclass(subclass, ICap):
-                yield subclass
+        for cap in self.klass.__bases__:
+            if issubclass(cap, ICap) and cap != ICap:
+                yield cap
 
     def has_caps(self, *caps):
         for c in caps:
@@ -95,13 +96,15 @@ class BackendsConfig:
         config.set(name, '_type', _type)
         for key, value in params.iteritems():
             config.set(name, key, value)
-        config.save(self.confpath)
+        with open(self.confpath, 'wb') as f:
+            config.write(f)
 
     def remove_backend(self, name):
         config = SafeConfigParser()
         config.read(self.confpath)
         config.remove_section(name)
-        config.save(self.confpath)
+        with open(self.confpath, 'wb') as f:
+            config.write(f)
 
 class ModulesLoader:
     def __init__(self):

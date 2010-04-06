@@ -18,28 +18,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from dateutil import tz
-
-def toUnicode(text):
-    r"""
-    >>> toUnicode('ascii')
-    u'ascii'
-    >>> toUnicode(u'utf\xe9'.encode('UTF-8'))
-    u'utf\xe9'
-    >>> toUnicode(u'unicode')
-    u'unicode'
-    """
-    if isinstance(text, unicode):
-        return text
-    if not isinstance(text, str):
-        text = str(text)
-    try:
-        return unicode(text, "utf8")
-    except UnicodeError:
-        pass
-    return unicode(text, "ISO-8859-1")
-
-def local2utc(d):
-    d = d.replace(tzinfo=tz.tzlocal())
-    d = d.astimezone(tz.tzutc())
-    return d
+from .application import WeboobCfg

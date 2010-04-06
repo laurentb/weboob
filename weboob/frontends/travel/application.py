@@ -40,7 +40,7 @@ class Travel(ConsoleApplication):
         count = 0
         for name, backend, in self.weboob.iter_backends():
             for station in backend.iter_station_search(pattern):
-                print '| %-30s | %-43s |' % (station.id, station.name)
+                print '| %-31s| %-44s|' % (station.id, station.name)
                 count += 1
         print "+--------------------------------'---------------------------------------------+"
         print "| %3d stations listed                                                          |" % count
@@ -54,7 +54,7 @@ class Travel(ConsoleApplication):
         count = 0
         for name, backend, in self.weboob.iter_backends():
             for departure in backend.iter_station_departures(station, arrival):
-                print u"| %3d | %-9s | %5s | %-21s | %5s | %-18s |" % (departure.id,
+                print u"|%4d | %-10s|%6s | %-22s|%6s | %-19s|" % (departure.id,
                                                                    departure.type,
                                                                    departure.time.strftime("%H:%M"),
                                                                    departure.arrival_station,

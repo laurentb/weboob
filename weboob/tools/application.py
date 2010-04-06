@@ -115,7 +115,7 @@ class ConsoleApplication(BaseApplication):
             sys.stderr.write("No such command: %s.\n" % command)
         elif len(matching_commands) == 1:
             try:
-                getattr(self, matching_commands[0])(*args)
+                return getattr(self, matching_commands[0])(*args)
             except TypeError, e:
                 try:
                     sys.stderr.write("Command '%s' takes %s arguments.\n" % \

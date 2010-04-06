@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
 Copyright(C) 2010  Romain Bignon
@@ -18,28 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from dateutil import tz
+from weboob.frontends.weboobcfg import WeboobCfg
 
-def toUnicode(text):
-    r"""
-    >>> toUnicode('ascii')
-    u'ascii'
-    >>> toUnicode(u'utf\xe9'.encode('UTF-8'))
-    u'utf\xe9'
-    >>> toUnicode(u'unicode')
-    u'unicode'
-    """
-    if isinstance(text, unicode):
-        return text
-    if not isinstance(text, str):
-        text = str(text)
-    try:
-        return unicode(text, "utf8")
-    except UnicodeError:
-        pass
-    return unicode(text, "ISO-8859-1")
-
-def local2utc(d):
-    d = d.replace(tzinfo=tz.tzlocal())
-    d = d.astimezone(tz.tzutc())
-    return d
+if __name__ == '__main__':
+    WeboobCfg.run()
