@@ -30,6 +30,7 @@ class TransilienBackend(Backend, ICapTravel):
     EMAIL = 'juke@free.fr'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    DESCRIPTION = "Transports in Paris"
 
     def iter_station_search(self, pattern):
         pattern = pattern.lower()

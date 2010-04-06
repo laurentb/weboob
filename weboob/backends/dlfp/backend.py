@@ -31,6 +31,8 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    DESCRIPTION = "Da Linux French Page"
+
     CONFIG = {'username':      Backend.ConfigField(description='Username on website'),
               'password':      Backend.ConfigField(description='Password of account', is_masked=True),
               'get_news':      Backend.ConfigField(default=True, description='Get newspapers'),

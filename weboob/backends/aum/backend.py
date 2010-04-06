@@ -27,6 +27,7 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    DESCRIPTION = "French dating website"
 
     def iter_messages(self, thread=None):
         return dict().iteritems()

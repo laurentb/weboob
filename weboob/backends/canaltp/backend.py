@@ -29,6 +29,7 @@ class CanalTPBackend(Backend, ICapTravel):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    DESCRIPTION = "French trains"
 
     def iter_station_search(self, pattern):
         canaltp = CanalTP()

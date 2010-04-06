@@ -29,6 +29,7 @@ class BNPorcBackend(Backend, ICapBank):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    DESCRIPTION = 'BNP Paribas french bank\' website'
 
     CONFIG = {'login':    Backend.ConfigField(description='Account ID'),
               'password': Backend.ConfigField(description='Password of account', is_masked=True)

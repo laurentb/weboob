@@ -28,6 +28,7 @@ class CragrBackend(Backend, ICapBank):
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
+    DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
 
     CONFIG = {'login':    Backend.ConfigField(description='Account ID'),
