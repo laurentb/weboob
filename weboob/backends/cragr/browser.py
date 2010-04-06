@@ -32,7 +32,7 @@ class Cragr(Browser):
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
         self.PAGES = {'https://%s/'           % website:   pages.LoginPage,
-                      'https://%s/.*\.c.*'    % website:   pages.AccountList,
+                      'https://%s/.*\.c.*'    % website:   pages.AccountsList,
                      }
         Browser.__init__(self, *args, **kwargs)
 
