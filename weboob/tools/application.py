@@ -144,9 +144,9 @@ class ConsoleApplication(BaseApplication):
             args = ["<%s>" % a for a in args[skip:cut]] + \
                    ["[%s]" % a for a in args[cut:]]
             if varargs:
-                args.append("[*%s]" % varargs)
+                args.append("[%s..]" % varargs)
             if varkw:
-                args.append("[**%s]" % varkw)
+                args.append("{WTF}" % varkw)
             return " ".join(args)
 
         command = '%s %s' % (f.func_name.replace('command_', ''),
