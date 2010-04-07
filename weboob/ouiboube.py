@@ -37,6 +37,12 @@ class Weboob:
             scheduler = Scheduler()
         self.scheduler = scheduler
 
+        # Create WORKDIR
+        if not os.path.exists(self.workdir):
+            os.mkdir(self.workdir)
+        elif not os.path.isdir(self.workdir):
+            warning("'%s' is not a directory" % self.workdir)
+
         # Modules loader
         self.modules_loader = ModulesLoader()
         self.modules_loader.load()
