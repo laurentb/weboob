@@ -20,14 +20,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import ClientForm
 
-from weboob.tools.browser import BasePage
+from .base import CragrBasePage
 
-class LoginPage(BasePage):
+class LoginPage(CragrBasePage):
     def loaded(self):
         pass
 
     def login(self, login, password):
-        self.browser.select_form()
+        self.browser.select_form(nr=0)
+        print self.browser.controls
         try:
             self.browser['numero'] = login
             self.browser['code'] = password
@@ -35,11 +36,12 @@ class LoginPage(BasePage):
             try:
                 self.browser['userLogin'] = login
                 self.browser['userPassword'] = password
-            except ClientForm.ControlNotFoundError:
-                print 'WTF'
-                return
+            except ClientForm.ControlNotFoundError, e:
+                print 'WTF', e
+                self.browser.controls.append(ClientForm.TextControl('text', 'userLogin', {'value': ''}))
+                self.browser.controls.append(ClientForm.TextControl('text', 'userPassword', {'value': ''}))
+                self.browser.set_all_readonly(False)
+                self.browser['userLogin'] = login
+                self.browser['userPassword'] = password
 
         self.browser.submit()
-
-class ConfirmPage(BasePage):
-    pass

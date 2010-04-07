@@ -37,25 +37,40 @@ class Cragr(Browser):
                      }
         Browser.__init__(self, *args, **kwargs)
 
+    def viewing_html(self):
+        """
+        As the fucking HTTP server returns a document in unknown mimetype
+        'application/vnd.wap.xhtml+xml' it is not recognized by mechanize.
+
+        So this is a fucking hack.
+        """
+        return True
+
     def home(self):
-        self.location('https://%s/login/process' % self.DOMAIN)
+        self.location('https://%s/' % self.DOMAIN)
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage) or self.page.is_logged()
+        return self.page and self.page.is_logged() or self.is_logging
 
     def login(self):
         assert isinstance(self.username, (str,unicode))
         assert isinstance(self.password, (str,unicode))
 
+        self.is_logging = True
+        print 'kikoo'
         if not self.is_on_page(pages.LoginPage):
             self.home()
 
-        self.is_logging = True
-        self.page.login(self.username, self.password)
-
-        if self.is_on_page(pages.LoginPage):
-            raise BrowserIncorrectPassword()
+        print '1'
+        try:
+            self.page.login(self.username, self.password)
+        except Exception, e:
+            print type(e), e
+            raise
         self.is_logging = False
+
+        if not self.is_logged():
+            raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
         if not self.is_on_page(pages.AccountsList):
