@@ -32,7 +32,7 @@ class AccountsList(CragrBasePage):
                 account = Account()
                 account.setLabel(div.find('a').text.strip())
                 account.setID(long(div.findall('br')[1].tail.strip()))
-                s = div.find('div').find('span').find('span').find('b').text
+                s = div.find('div').find('span').find('b').text
                 balance = u''
                 for c in s:
                     if c.isdigit():
