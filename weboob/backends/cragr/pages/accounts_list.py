@@ -28,15 +28,17 @@ class AccountsList(CragrBasePage):
     def get_list(self):
         l = []
         for div in self.document.getiterator('div'):
-            print 'div.class = ', div.attrib.get('class', '')
-            print 'div.children = ', div.getchildren()
-            if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag == 'a':
-                print 'yeah'
-                a = div.getchildren()[0]
+            if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag == 'br':
                 account = Account()
-                account.setLabel(a.text.strip())
-                account.setID(long(a.getchildren('br')[0].tail.strip()))
-                balance = a.getchildren('span')[0].getchildren('span')[0].getchildren('b')[0].text
-                balance = balance.replace(',', '.').replace(u' ', '').replace(u' €', '')
+                account.setLabel(div.find('a').text.strip())
+                account.setID(long(div.findall('br')[1].tail.strip()))
+                s = div.find('div').find('span').find('span').find('b').text
+                balance = u''
+                for c in s:
+                    if c.isdigit():
+                        balance += c
+                    if c == ',':
+                        balance += '.'
                 account.setBalance(float(balance))
+                l.append(account)
         return l
