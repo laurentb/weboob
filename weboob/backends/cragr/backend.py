@@ -25,8 +25,8 @@ from .browser import Cragr
 
 class CragrBackend(Backend, ICapBank):
     NAME = 'cragr'
-    MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    MAINTAINER = 'Laurent Bachelier'
+    EMAIL = 'laurent@bachelier.name'
     VERSION = '1.0'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
