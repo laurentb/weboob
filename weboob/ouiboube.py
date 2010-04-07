@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import os
+from logging import warning
 
 from weboob.modules import ModulesLoader, BackendsConfig
 from weboob.scheduler import Scheduler
