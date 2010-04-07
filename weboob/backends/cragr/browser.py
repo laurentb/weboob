@@ -57,16 +57,10 @@ class Cragr(Browser):
         assert isinstance(self.password, (str,unicode))
 
         self.is_logging = True
-        print 'kikoo'
         if not self.is_on_page(pages.LoginPage):
             self.home()
 
-        print '1'
-        try:
-            self.page.login(self.username, self.password)
-        except Exception, e:
-            print type(e), e
-            raise
+        self.page.login(self.username, self.password)
         self.is_logging = False
 
         if not self.is_logged():

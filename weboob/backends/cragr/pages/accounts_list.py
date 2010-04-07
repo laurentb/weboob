@@ -28,7 +28,10 @@ class AccountsList(CragrBasePage):
     def get_list(self):
         l = []
         for div in self.document.getiterator('div'):
+            print 'div.class = ', div.attrib.get('class', '')
+            print 'div.children = ', div.getchildren()
             if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag == 'a':
+                print 'yeah'
                 a = div.getchildren()[0]
                 account = Account()
                 account.setLabel(a.text.strip())
