@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import ConfigParser
 import sys
 
 from weboob.tools.application import ConsoleApplication
@@ -87,7 +88,11 @@ class WeboobCfg(ConsoleApplication):
                 return 1
 
             params[key] = value
-        self.weboob.backends_config.add_backend(name, type, params)
+        try:
+            self.weboob.backends_config.add_backend(name, type, params)
+        except ConfigParser.DuplicateSectionError, e:
+            print >>sys.stderr, 'Error: %s (filename=%s)' % (e.message, self.weboob.backends_config.confpath)
+            return 1
 
     @ConsoleApplication.command('List backends')
     def command_list(self):
