@@ -25,6 +25,7 @@ from __future__ import with_statement
 import sys
 from types import MethodType
 
+import weboob
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.application import ConsoleApplication
 
@@ -38,15 +39,17 @@ class Boobank(ConsoleApplication):
 
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
-        print '               ID   Account                    Balance        Coming  '
-        print '+-----------------+---------------------+--------------+-------------+'
-
+        lines = ['               ID   Account                    Balance        Coming  ',
+                  '+-----------------+---------------------+--------------+-------------+']
         for name, backend, in self.weboob.iter_backends():
-            for account in backend.iter_accounts():
-                print '%17s   %-20s   %11.2f   %11.2f' % (account.id,
-                                                          account.label,
-                                                          account.balance,
-                                                          account.coming)
+            try:
+                for account in backend.iter_accounts():
+                    lines.append('%17s   %-20s   %11.2f   %11.2f' % (
+                        account.id, account.label, account.balance, account.coming))
+            except weboob.tools.browser.BrowserIncorrectPassword:
+                print >>sys.stderr, 'Error: Incorrect password for backend %s' % name
+                return 1
+        print '\n'.join(lines)
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
