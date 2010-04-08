@@ -54,7 +54,7 @@ class Weboob:
             backends_filename = os.path.join(self.workdir, backends_filename)
         self.backends_config = BackendsConfig(backends_filename)
 
-    def load_backends(self, caps=None, names=None):
+    def load_backends(self, caps=None, names=None, storage=None):
         for name, _type, params in self.backends_config.iter_backends():
             try:
                 module = self.modules_loader.get_or_load_module(_type)
@@ -68,19 +68,19 @@ class Weboob:
                 continue
 
             try:
-                self.backends[name] = module.create_backend(self, name, params)
+                self.backends[name] = module.create_backend(self, name, params, storage)
             except Exception, e:
                 warning('Unable to load "%s" backend: %s. filename=%s' % (name, e, self.backends_config.confpath))
 
         return self.backends
 
-    def load_modules(self, caps=None, names=None):
+    def load_modules(self, caps=None, names=None, storage=None):
         self.modules_loader.load()
         for name, module in self.modules_loader.modules.iteritems():
             if (caps is None or module.has_caps(caps)) and \
                (names is None or module.name in names):
                 try:
-                    self.backends[module.name] = module.create_backend(self, module.name, {})
+                    self.backends[module.name] = module.create_backend(self, module.name, {}, storage)
                 except Exception, e:
                     warning('Unable to load "%s" module as backend with no config: %s' % (name, e))
         return self.backends

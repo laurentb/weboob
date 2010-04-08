@@ -36,6 +36,8 @@ class Backend(object):
     # Configuration required for this module.  # Values must be ConfigField
     # objects.
     CONFIG = {}
+    # Storage
+    STORAGE = {}
 
     class ConfigField(object):
         def __init__(self, default=None, is_masked=False, regexp=None, description=None):
@@ -46,7 +48,7 @@ class Backend(object):
 
     class ConfigError(Exception): pass
 
-    def __init__(self, weboob, name, config):
+    def __init__(self, weboob, name, config, storage):
         self.weboob = weboob
         self.name = name
         self.config = {}
@@ -67,6 +69,9 @@ class Backend(object):
                 elif isinstance(field.default, float):
                     value = float(value)
             self.config[name] = value
+        self.storage = storage
+        if self.storage:
+            self.storage.load(self.name, self.CONFIG)
 
     def has_caps(self, *caps):
         for c in caps:

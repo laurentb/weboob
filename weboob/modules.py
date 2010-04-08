@@ -72,8 +72,8 @@ class Module:
                 return True
         return False
 
-    def create_backend(self, weboob, name, config):
-        return self.klass(weboob, name, config)
+    def create_backend(self, weboob, name, config, storage):
+        return self.klass(weboob, name, config, storage)
 
 class BackendsConfig:
     class WrongPermissions(Exception):
