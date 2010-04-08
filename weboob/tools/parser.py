@@ -24,6 +24,7 @@ except ImportError:
     from xml.etree import ElementTree
 
 try:
+    raise ImportError
     from elementtidy import TidyHTMLTreeBuilder
     TidyHTMLTreeBuilder.ElementTree = ElementTree # force cElementTree if using it.
     HTMLTreeBuilder = TidyHTMLTreeBuilder.TidyHTMLTreeBuilder
