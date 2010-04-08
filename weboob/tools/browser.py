@@ -240,7 +240,7 @@ class Browser(mechanize.Browser):
         self.page = pageCls(self, document, result.geturl())
         self.page.loaded()
 
-        if self.password and not self.is_logged():
+        if self.password is not None and not self.is_logged():
             debug('!! Relogin !!')
             self.login()
             return
