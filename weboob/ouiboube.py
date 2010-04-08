@@ -46,7 +46,6 @@ class Weboob:
 
         # Modules loader
         self.modules_loader = ModulesLoader()
-        self.modules_loader.load()
 
         # Backends config
         if not backends_filename:
@@ -58,7 +57,7 @@ class Weboob:
     def load_backends(self, caps=None, names=None):
         for name, _type, params in self.backends_config.iter_backends():
             try:
-                module = self.modules_loader.modules[_type]
+                module = self.modules_loader.get_or_load_module(_type)
             except KeyError:
                 warning('Unable to find module "%s" for backend "%s"' % (_type, name))
                 continue
@@ -76,6 +75,7 @@ class Weboob:
         return self.backends
 
     def load_modules(self, caps=None, names=None):
+        self.modules_loader.load()
         for name, module in self.modules_loader.modules.iteritems():
             if (caps is None or module.has_caps(caps)) and \
                (names is None or module.name in names):

@@ -118,6 +118,11 @@ class ModulesLoader:
     def __init__(self):
         self.modules = {}
 
+    def get_or_load_module(self, name):
+        if name not in self.modules:
+            self.load_module('weboob.backends.%s' % name)
+        return self.modules[name]
+
     def load(self):
         path = backends.__path__[0]
         regexp = re.compile('^%s/([\w\d_]+)$' % path)
