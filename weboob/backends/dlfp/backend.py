@@ -38,6 +38,7 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
               'get_news':      Backend.ConfigField(default=True, description='Get newspapers'),
               'get_telegrams': Backend.ConfigField(default=False, description='Get telegrams'),
              }
+    STORAGE = {'seen': {'contents': [], 'comments': []}}
     browser = None
 
     def need_browser(func):
@@ -60,22 +61,27 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
     def _iter_messages(self, what):
         for article in ArticlesList(what).iter_articles():
             thread = self.browser.get_content(article.id)
-            yield Message(thread.id,
-                          0,
-                          thread.title,
-                          thread.author,
-                          article.datetime,
-                          content=''.join([thread.body, thread.part2]),
-                          signature='URL: %s' % article.url)
-            for comment in thread.iter_all_comments():
+            if not thread.id in self.storage.get(self.name, 'seen', 'contents'):
+                self.storage.get(self.name, 'seen', 'contents').append(thread.id)
                 yield Message(thread.id,
-                              comment.id,
-                              comment.title,
-                              comment.author,
-                              comment.date,
-                              comment.reply_id,
-                              comment.body,
-                              'Score: %d' % comment.score)
+                              0,
+                              thread.title,
+                              thread.author,
+                              article.datetime,
+                              content=''.join([thread.body, thread.part2]),
+                              signature='URL: %s' % article.url)
+            for comment in thread.iter_all_comments():
+                if not comment.id in self.storage.get(self.name, 'seen', 'comments'):
+                    self.storage.get(self.name, 'seen', 'comments').append(comment.id)
+                    yield Message(thread.id,
+                                  comment.id,
+                                  comment.title,
+                                  comment.author,
+                                  comment.date,
+                                  comment.reply_id,
+                                  comment.body,
+                                  'Score: %d' % comment.score)
+            self.storage.save(self.name)
 
     def iter_new_messages(self):
         return self.iter_messages()

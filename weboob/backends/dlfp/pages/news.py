@@ -79,6 +79,7 @@ class Article(object):
                 for a in div.find('h1').getiterator('a'):
                     if a.text: self.title += a.text
                     if a.tail: self.title += a.tail
+                self.title = self.title.strip()
                 subdivs = div.findall('a')
                 if len(subdivs) > 1:
                     date_s = unicode(subdivs[1].text)

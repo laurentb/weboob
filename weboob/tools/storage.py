@@ -48,11 +48,11 @@ else:
             self.config.values[backend] = default.copy()
             self.config.values[backend].update(d)
 
-        def save(self):
+        def save(self, backend):
             self.config.save()
 
         def set(self, backend, *args):
-            self.config.set(backend, self.backends[backend])
+            self.config.set(backend, *args)
 
         def get(self, backend, *args, **kwargs):
             return self.config.get(backend, *args, **kwargs)

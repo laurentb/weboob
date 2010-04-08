@@ -71,7 +71,7 @@ class Backend(object):
             self.config[name] = value
         self.storage = storage
         if self.storage:
-            self.storage.load(self.name, self.CONFIG)
+            self.storage.load(self.name, self.STORAGE)
 
     def has_caps(self, *caps):
         for c in caps:
