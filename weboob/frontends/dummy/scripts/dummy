@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob import Weboob
+from weboob.capabilities.bank import ICapBank
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
@@ -48,7 +49,12 @@ class Application(BaseApplication):
                         s = station.id
                 print '|- ICapTravel.departures [Departures from \'%s\']' % s
                 for departure in backend.iter_station_departures(s):
-                    print '|  |- [%s] %s at %s to %s' % (departure.id, departure.type, departure.time.strftime("%H:%M"), departure.arrival_station)
+                    print '|  |- [%s] %s at %s to %s' % (departure.id, departure.type, departure.time.strftime("%H:%M"),
+                                                         departure.arrival_station)
+            if backend.has_caps(ICapBank):
+                for account in backend.iter_accounts():
+                    print '|  |- [%s] label=%s balance=%s coming=%s' % (
+                        account.id, account.label, account.balance, account.coming)
 
 if __name__ == '__main__':
     Application.run()
