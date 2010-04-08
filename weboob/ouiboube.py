@@ -42,7 +42,7 @@ class Weboob:
         if not os.path.exists(self.workdir):
             os.mkdir(self.workdir)
         elif not os.path.isdir(self.workdir):
-            warning("'%s' is not a directory" % self.workdir)
+            warning('"%s" is not a directory' % self.workdir)
 
         # Modules loader
         self.modules_loader = ModulesLoader()
@@ -60,7 +60,7 @@ class Weboob:
             try:
                 module = self.modules_loader.modules[_type]
             except KeyError:
-                warning('Unable to find module %s', name)
+                warning('Unable to find module "%s" for backend "%s"' % (_type, name))
                 continue
 
             # Check conditions
@@ -71,7 +71,7 @@ class Weboob:
             try:
                 self.backends[name] = module.create_backend(self, name, params)
             except Exception, e:
-                warning('Unable to load %s backend: %s' % (name, e))
+                warning('Unable to load "%s" backend: %s. filename=%s' % (name, e, self.backends_config.confpath))
 
         return self.backends
 
@@ -82,7 +82,7 @@ class Weboob:
                 try:
                     self.backends[module.name] = module.create_backend(self, module.name, {})
                 except Exception, e:
-                    warning('Unable to load %s backend: %s' % (name, e))
+                    warning('Unable to load "%s" module as backend with no config: %s' % (name, e))
         return self.backends
 
     def iter_backends(self, caps=None):

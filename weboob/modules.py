@@ -94,7 +94,7 @@ class BackendsConfig:
             try:
                 yield name, params.pop('_type'), params
             except KeyError:
-                warning("Missing field '_type' for backend '%s'", name)
+                warning('Missing field "_type" for backend "%s"', name)
                 continue
 
     def add_backend(self, name, _type, params):
@@ -130,10 +130,10 @@ class ModulesLoader:
         try:
             module = Module(name, __import__(name, fromlist=[name]))
         except ImportError, e:
-            warning('Unable to load module %s: %s' % (name, e))
+            warning('Unable to load module "%s": %s' % (name, e))
             return
         if name in self.modules:
             warning('Module "%s" is already loaded (%s)' % self.modules[name].module)
             return
         self.modules[module.get_name()] = module
-        debug('Loaded module %s (%s)' % (name, module.module.__name__))
+        debug('Loaded module "%s" (%s)' % (name, module.module.__name__))

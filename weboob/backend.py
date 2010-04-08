@@ -54,10 +54,10 @@ class Backend(object):
             value = config.get(name, field.default)
 
             if value is None:
-                raise Backend.ConfigError("Missing parameter '%s' (%s)" % (name, field.description))
+                raise Backend.ConfigError('Missing parameter "%s" (%s)' % (name, field.description))
 
             if field.regexp and re.match(field.regexp, str(value)):
-                raise Backend.ConfigError("Value of '%s' does not match regexp '%s'" % (name, field.regexp))
+                raise Backend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
 
             if not field.default is None:
                 if isinstance(field.default, bool):
