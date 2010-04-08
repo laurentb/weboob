@@ -53,6 +53,7 @@ class Boobank(ConsoleApplication):
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
+        operations = []
         found = 0
         for name, backend in self.weboob.iter_backends():
             try:
@@ -61,18 +62,19 @@ class Boobank(ConsoleApplication):
                 if found == 0:
                     found = -1
             else:
-                if found == 0:
-                    print '      Date   Label                                                     Amount  '
-                    print '+----------+----------------------------------------------------+-------------+'
-
                 found = 1
                 for operation in backend.iter_operations(account):
-                    print '  %8s   %-50s   %11.2f' % (operation.date,
-                                                      operation.label,
-                                                      operation.amount)
+                    operations.append('  %8s   %-50s   %11.2f' % (operation.date, operation.label, operation.amount))
         if found < 0:
             print >>sys.stderr, "Error: account %s not found" % id
             return 1
+        else:
+            if operations:
+                print '      Date   Label                                                     Amount  '
+                print '+----------+----------------------------------------------------+-------------+'
+                print '\n'.join(operations)
+            else:
+                print 'No coming operations for ID=%s' % id
 
 if __name__ == '__main__':
     Boobank.run()
