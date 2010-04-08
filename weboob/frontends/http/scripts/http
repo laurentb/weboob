@@ -33,8 +33,10 @@ from weboob.tools.application import BaseApplication
 
 class Application(BaseApplication):
     APPNAME = 'http'
+    CONFIG = dict(host='localhost', port=8080)
 
     def main(self, argv):
+        self.load_config()
         self.weboob.load_backends()
 
 template_lookup = TemplateLookup(directories=['%s/../templates' % os.path.dirname(__file__)],
@@ -54,5 +56,5 @@ def messages(request):
 if __name__ == '__main__':
     app = Application()
     app.main(sys.argv)
-    srv = make_server('localhost', 8080, wee.make_app())
+    srv = make_server(app.config.get('host'), app.config.get('port'), wee.make_app())
     srv.serve_forever()
