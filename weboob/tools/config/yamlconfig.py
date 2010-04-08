@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
+import logging
 import yaml
 
 from .iconfig import IConfig, ConfigError
@@ -35,8 +36,10 @@ class YamlConfig(IConfig):
         try:
             with open(self.path, 'r') as f:
                 self.values = yaml.load(f)
+            logging.debug(u'Frontend configuration file loaded: %s.' % self.path)
         except IOError:
-            pass
+            self.save()
+            logging.debug(u'Frontend configuration file created with default values: %s. Please customize it.' % self.path)
 
         if self.values is None:
             self.values = {}
