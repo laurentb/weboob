@@ -22,6 +22,7 @@ import sys, tty, termios, os
 import re
 from functools import partial
 from inspect import getargspec
+import logging
 
 from weboob import Weboob
 from weboob.modules import BackendsConfig
@@ -35,6 +36,7 @@ class BaseApplication(object):
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
 
     def __init__(self):
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
         self.weboob = Weboob(self.APPNAME)
         self.config = None
 
