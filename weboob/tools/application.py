@@ -36,7 +36,8 @@ class BaseApplication(object):
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
 
     def __init__(self):
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format = log_format)
         self.weboob = Weboob(self.APPNAME)
         self.config = None
 
