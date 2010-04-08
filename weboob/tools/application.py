@@ -24,6 +24,7 @@ from functools import partial
 from inspect import getargspec
 
 from weboob import Weboob
+from weboob.modules import BackendsConfig
 
 class BaseApplication(object):
     # Application name
@@ -69,6 +70,13 @@ class BaseApplication(object):
         sys.exit(app.main(sys.argv))
 
 class ConsoleApplication(BaseApplication):
+    def __init__(self):
+        try:
+            BaseApplication.__init__(self)
+        except BackendsConfig.WrongPermissions, e:
+            print >>sys.stderr, 'Error: %s' % e.message
+            sys.exit(1)
+
     def ask(self, question, default=None, masked=False, regexp=None):
         """
         Ask a question to user.

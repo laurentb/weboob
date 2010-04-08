@@ -22,6 +22,7 @@ from __future__ import with_statement
 
 import re
 import os
+import stat
 from ConfigParser import SafeConfigParser
 from logging import warning, debug
 
@@ -75,8 +76,15 @@ class Module:
         return self.klass(weboob, name, config)
 
 class BackendsConfig:
+    class WrongPermissions(Exception):
+        pass
+
     def __init__(self, confpath):
         self.confpath = confpath
+        mode = os.stat(confpath).st_mode
+        if mode & stat.S_IRGRP or mode & stat.S_IROTH:
+            raise self.WrongPermissions(
+                u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
 
     def iter_backends(self):
         config = SafeConfigParser()
