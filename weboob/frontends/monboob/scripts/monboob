@@ -47,7 +47,7 @@ class Monboob(BaseApplication):
             print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
             return -1
 
-        self.weboob.load_backends(ICapMessages)
+        self.weboob.load_backends(ICapMessages, storage=self.create_storage())
 
         self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
