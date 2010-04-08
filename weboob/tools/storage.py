@@ -34,7 +34,7 @@ class IStorage:
         raise NotImplementedError()
 
 try:
-    from .config.yamlconfig import YamlConfig, ConfigError
+    from .config.yamlconfig import YamlConfig
 except ImportError, e:
     debug('Import error for weboob.tools.config.yamlconfig: %s' % e)
 else:
