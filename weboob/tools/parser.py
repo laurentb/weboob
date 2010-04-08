@@ -24,7 +24,15 @@ except ImportError:
     from xml.etree import ElementTree
 
 try:
+    # XXX Currently, elementtidy segfaults when there are no error, because of
+    # the behavior of libtidy.
+    # A patch has been sent to Debian:
+    # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576343
+    #
+    # As it is not integrated in Debian yet, and as this problem persists on other
+    # systems, using elementtidy is for now disabled.
     raise ImportError
+
     from elementtidy import TidyHTMLTreeBuilder
     TidyHTMLTreeBuilder.ElementTree = ElementTree # force cElementTree if using it.
     HTMLTreeBuilder = TidyHTMLTreeBuilder.TidyHTMLTreeBuilder
