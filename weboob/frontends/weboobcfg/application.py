@@ -33,6 +33,7 @@ class WeboobCfg(ConsoleApplication):
     def command_modules(self):
         print '  Name            Capabilities          Description                             '
         print '+--------------+----------------------+----------------------------------------+'
+        self.weboob.modules_loader.load()
         for name, module in self.weboob.modules_loader.modules.iteritems():
             first_line = True
             for cap in module.iter_caps():
@@ -47,7 +48,7 @@ class WeboobCfg(ConsoleApplication):
     @ConsoleApplication.command('Display a module')
     def command_modinfo(self, name):
         try:
-            module = self.weboob.modules_loader.modules[name]
+            module = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
             print >>sys.stderr, 'No such module: %s' % name
             return 1
