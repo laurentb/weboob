@@ -41,6 +41,27 @@ class BaseApplication(object):
         self.weboob = Weboob(self.APPNAME)
         self.config = None
 
+    def create_storage(self, path=None, klass=None):
+        """
+        Create a storage object.
+
+        @param path [str]  an optional specific path.
+        @param klass [IStorage]  what klass to instance.
+        @return  a IStorage object
+        """
+        if klass is None:
+            # load StandardStorage only here because some applications don't
+            # want # to depend on yaml and do not use this function
+            from weboob.tools.storage import StandardStorage
+            klass = StandardStorage
+
+        if path is None:
+            path = os.path.join(self.CONFDIR, self.APPNAME + '.storage')
+        elif not path.startswith('/'):
+            path = os.path.join(self.CONFDIR, path)
+
+        return klass(path)
+
     def load_config(self, path=None, klass=None):
         """
         Load a configuration file and get his object.
