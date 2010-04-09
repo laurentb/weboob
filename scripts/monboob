@@ -28,7 +28,6 @@ import time
 import sys
 from html2text import html2text
 
-from weboob import Weboob
 from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
