@@ -1,0 +1,27 @@
+Weboob installation
+===================
+
+Like any setuptools package, Weboob can be installed in normal mode,
+or in development mode.
+
+normal mode
+-----------
+
+Install:
+# ./setup.py install --record installed_files.txt
+
+The files are simply copied in /usr/lib/python2.5/site-packages/Weboob-x.y-py2.5.egg
+The --record flag is used to remember which files were copied.
+
+Uninstall:
+# cat installed_files.txt | xargs rm -rf
+
+development mode
+----------------
+
+The development mode doesn't copy files, but it creates an egg-link
+which points to the development directory.
+It is useful for development when files often change.
+
+# ./setup.py develop
+Creates /usr/lib/python2.5/site-packages/Weboob.egg-link
