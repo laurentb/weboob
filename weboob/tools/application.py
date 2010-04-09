@@ -28,8 +28,6 @@ from weboob import Weboob
 from weboob.modules import BackendsConfig
 
 class BaseApplication(object):
-    # Application name
-    APPNAME = ''
     # Default configuration
     CONFIG = {}
     # Configuration directory
