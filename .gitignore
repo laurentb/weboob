@@ -1,3 +1,5 @@
 *.pyc
 Session.vim
 *.egg-info
+build
+dist
