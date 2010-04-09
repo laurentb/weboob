@@ -40,7 +40,7 @@ class Weboob:
 
         # Create WORKDIR
         if not os.path.exists(self.workdir):
-            os.mkdir(self.workdir, mode=0700)
+            os.mkdir(self.workdir, 0700)
         elif not os.path.isdir(self.workdir):
             warning('"%s" is not a directory' % self.workdir)
 
