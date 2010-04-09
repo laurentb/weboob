@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from weboob import Weboob
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.application import BaseApplication
