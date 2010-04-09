@@ -81,10 +81,14 @@ class BackendsConfig:
 
     def __init__(self, confpath):
         self.confpath = confpath
-        mode = os.stat(confpath).st_mode
-        if mode & stat.S_IRGRP or mode & stat.S_IROTH:
-            raise self.WrongPermissions(
-                u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
+        try:
+            mode = os.stat(confpath).st_mode
+        except OSError:
+            os.mknod(confpath, 0600)
+        else:
+            if mode & stat.S_IRGRP or mode & stat.S_IROTH:
+                raise self.WrongPermissions(
+                    u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
 
     def iter_backends(self):
         config = SafeConfigParser()
