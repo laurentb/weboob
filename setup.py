@@ -19,5 +19,5 @@ setup(
     license='GPLv3',
     url='',
     packages=find_packages(exclude=['ez_setup']),
-    # scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
 )
