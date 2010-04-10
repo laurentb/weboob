@@ -98,5 +98,13 @@ class ICapMessages(ICap):
         raise NotImplementedError()
 
 class ICapMessagesReply(ICap):
-    def post_reply(self, to, message):
+    def post_reply(self, thread_id, reply_id, title, message):
+        """
+        Post a reply.
+
+        @param thread_id  ID of thread
+        @param reply_id  message's id to reply
+        @param title  title of message
+        @param message  message to send
+        """
         raise NotImplementedError()

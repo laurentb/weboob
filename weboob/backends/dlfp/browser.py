@@ -18,12 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import urllib
 from cStringIO import StringIO
 
 from weboob.tools.browser import Browser
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
-from .tools import id2url
+from .tools import id2url, id2threadid, id2contenttype
 
 from weboob.tools.parser import StandardParser
 
@@ -56,6 +57,44 @@ class DLFP(Browser):
     def get_content(self, _id):
         self.location(id2url(_id))
         return self.page.get_article()
+
+    def post_reply(self, thread, reply_id, title, message):
+        content_type = id2contenttype(thread)
+        thread_id = id2threadid(thread)
+        reply_id = int(reply_id)
+
+        if not content_type or not thread_id:
+            return False
+
+        # Define every data fields
+        d = {'news_id': thread_id,
+             'com_parent': reply_id,
+             'timestamp': '',
+             'res_type': content_type,
+             'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
+             'subject': title,
+             'body': message,
+             'format': 3,
+             'submit': 'Envoyer',
+        }
+
+        data = ''
+        for key, value in d.iteritems():
+            if data:
+                data += '&'
+            data += key
+            data += '='
+            if isinstance(value, unicode):
+                value = value.encode('utf-8')
+            else:
+                value = str(value)
+            data += urllib.quote_plus(value)
+
+        url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL, self.DOMAIN, thread_id, reply_id, content_type)
+
+        request = self.request_class(url, data, {'Referer': url})
+        result = self.openurl(request).read()
+        return result.find('<div class="commentsreplythanks">') >= 0
 
     def login(self):
         self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))

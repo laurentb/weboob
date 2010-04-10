@@ -20,12 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.backend import Backend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
-from weboob.capabilities.updatable import ICapUpdatable
 
 from .feeds import ArticlesList
 from .browser import DLFP
 
-class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
+class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -104,3 +103,6 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply, ICapUpdatable):
                                   'Score: %d' % comment.score)
         self.storage.set(self.name, 'seen', what, seen)
         self.storage.save(self.name)
+
+    def post_reply(self, thread_id, reply_id, message):
+        return self.browser.post(thread_id, reply_id, message)

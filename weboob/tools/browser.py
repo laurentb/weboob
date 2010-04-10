@@ -152,7 +152,7 @@ class Browser(mechanize.Browser):
 
     def change_location(func):
         def inner(self, *args, **kwargs):
-            if args and args[0][0] == '/' and (not self.request or self.request.host != self.DOMAIN):
+            if args and isinstance(args[0], (str,unicode)) and args[0][0] == '/' and (not self.request or self.request.host != self.DOMAIN):
                 args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
                 print args
 

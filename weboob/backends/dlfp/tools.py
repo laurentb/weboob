@@ -42,3 +42,21 @@ def id2url(_id):
     if m:
         return '/~%s/%d.html' % (m.group(1), int(m.group(2)))
     return None
+
+def id2threadid(_id):
+    m = URL2ID_NEWSPAPER.match(_id)
+    if m:
+        return int(m.group(4))
+    m = URL2ID_TELEGRAM.match(_id)
+    if m:
+        return int(m.group(2))
+    return None
+
+def id2contenttype(_id):
+    if not _id:
+        return None
+    if _id[0] == 'N':
+        return 1
+    if _id[0] == 'T':
+        return 5
+    return None
