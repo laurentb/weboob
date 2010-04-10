@@ -62,7 +62,10 @@ except ImportError:
             self._target.data(data)
 
         def handle_endtag(self, tag):
-            self._target.end(tag)
+            try:
+                self._target.end(tag)
+            except:
+                pass
 
 class StandardParser(object):
     def parse(self, data, encoding=None):
