@@ -47,28 +47,31 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
             return self._browser
         raise AttributeError, name
 
-    def iter_messages(self):
-        for message in self._iter_messages(False):
+    def iter_messages(self, thread=None):
+        for message in self._iter_messages(thread, False):
             yield message
 
-    def iter_new_messages(self):
-        for message in self._iter_messages(True):
+    def iter_new_messages(self, thread=None):
+        for message in self._iter_messages(thread, True):
             yield message
 
-    def _iter_messages(self, only_new):
+    def _iter_messages(self, thread, only_new):
         if self.config['get_news']:
-            for message in self._iter_messages_of('newspaper', only_new):
+            for message in self._iter_messages_of('newspaper', thread, only_new):
                 yield message
         if self.config['get_telegrams']:
-            for message in self._iter_messages_of('telegram', only_new):
+            for message in self._iter_messages_of('telegram', thread, only_new):
                 yield message
 
-    def _iter_messages_of(self, what, only_new):
+    def _iter_messages_of(self, what, thread, only_new):
         if not what in self.storage.get(self.name, 'seen'):
             self.storage.set(self.name, 'seen', what, {})
 
         seen = {}
         for article in ArticlesList(what).iter_articles():
+            if thread and thread != article.id:
+                continue
+
             thread = self.browser.get_content(article.id)
 
             if not article.id in self.storage.get(self.name, 'seen', what):

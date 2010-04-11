@@ -64,7 +64,7 @@ class Weboob:
 
             # Check conditions
             if (not caps is None and not module.has_caps(caps)) or \
-               (not names is None and not module.name in name):
+               (not names is None and not name in names):
                 continue
 
             try:

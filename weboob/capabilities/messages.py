@@ -83,17 +83,21 @@ class Message:
         return result.encode('utf-8')
 
 class ICapMessages(ICap):
-    def iter_new_messages(self):
+    def iter_new_messages(self, thread=None):
         """
         Iterates on new messages from last time this function has been called.
 
+        @param thread  thread name (optional)
         @return [list]  Message objects
         """
         raise NotImplementedError()
 
-    def iter_messages(self):
+    def iter_messages(self, thread=None):
         """
         Iterates on every messages
+
+        @param thread  thread name (optional)
+        @return [list]  Message objects
         """
         raise NotImplementedError()
 

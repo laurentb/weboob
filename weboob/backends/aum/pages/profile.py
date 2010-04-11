@@ -50,7 +50,6 @@ class FieldOld(FieldBase):
 
     def put_value(self, d, value):
         m = self.regexp.match(value)
-        warning(value)
         if not m:
             return
 

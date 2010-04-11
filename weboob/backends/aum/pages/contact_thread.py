@@ -26,9 +26,9 @@ from mechanize import FormNotFoundError
 
 from weboob.backends.aum.pages.base import PageBase
 from weboob.backends.aum.exceptions import AdopteCantPostMail
-from weboob.backends.aum.mail import Mail
+from weboob.capabilities.messages import Message
 
-class MailParser(Mail):
+class MailParser(Message):
 
     """
     <td>
@@ -96,7 +96,7 @@ class MailParser(Mail):
 
     def __init__(self, id, name, tr):
         #             <td>             <table>  implicit<tbody>  <tr>
-        Mail.__init__(self, id, name)
+        Message.__init__(self, id, 0, 'Discussion with %s' % name, name)
         self.tr = tr.childNodes[0].childNodes[1].childNodes[0].childNodes[0]
 
         tds = self.tr.childNodes
@@ -135,8 +135,6 @@ class MailParser(Mail):
         self.parse_from()
 
     def parse_date(self, date_str):
-
-
         # To match regexp, we have to remove any return chars in string
         # before the status ('nouveau', 'lu', etc)
         date_str = u''.join(date_str.split(u'\n'))
@@ -155,6 +153,7 @@ class MailParser(Mail):
             d = d.astimezone(tz.tzutc())
             # and get timestamp
             self.date = d
+            self.id = self.get_date_int()
 
             if m.group(7).find('nouveau') >= 0:
                 self.new = True
@@ -174,6 +173,7 @@ class MailParser(Mail):
 
                 if m:
                     self.profile_link = m.group(1)
+                    self.signature = u'Profile link: %s' % self.profile_link
                     return
 
         warning('Unable to find the profile URL in the message %s@%s' % (self.get_from(), self.get_id()))
