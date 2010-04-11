@@ -50,9 +50,10 @@ class RegisterPage(PageBase):
         if isinstance(nickname, unicode):
             nickname = nickname.encode('iso-8859-15', 'ignore')
         self.browser['pseudo'] = nickname
-        self.browser['email'] = self.browser.login
+        self.browser['email'] = self.browser.username
         self.browser['pass'] = password
-        self.browser['sex'] = [str(sex)]
+        self.browser['sex0'] = [str(sex)]
+        self.browser['sex'] = str(sex)
         self.browser['birthday0'] = [str(birthday_d)]
         self.browser['birthday1'] = [str(birthday_m)]
         self.browser['birthday2'] = [str(birthday_y)]

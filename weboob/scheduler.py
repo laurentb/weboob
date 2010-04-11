@@ -36,6 +36,8 @@ class Scheduler(object):
         self.running = True
         while self.running:
             self.scheduler.run()
+            if not self.scheduler.queue:
+                self.scheduler.delayfunc(0.001)
         return True
 
     def want_stop(self):

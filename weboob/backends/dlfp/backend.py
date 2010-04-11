@@ -63,22 +63,22 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
             for message in self._iter_messages_of('telegram', thread, only_new):
                 yield message
 
-    def _iter_messages_of(self, what, thread, only_new):
-        if not what in self.storage.get(self.name, 'seen'):
-            self.storage.set(self.name, 'seen', what, {})
+    def _iter_messages_of(self, what, thread_wanted, only_new):
+        if not what in self.storage.get('seen'):
+            self.storage.set('seen', what, {})
 
         seen = {}
         for article in ArticlesList(what).iter_articles():
-            if thread and thread != article.id:
+            if thread_wanted and thread_wanted != article.id:
                 continue
 
             thread = self.browser.get_content(article.id)
 
-            if not article.id in self.storage.get(self.name, 'seen', what):
+            if not article.id in self.storage.get('seen', what):
                 seen[article.id] = {'comments': []}
                 new = True
             else:
-                seen[article.id] = self.storage.get(self.name, 'seen', what, article.id)
+                seen[article.id] = self.storage.get('seen', what, article.id)
                 new = False
             if not only_new or new:
                 yield Message(thread.id,
@@ -104,8 +104,8 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
                                   comment.reply_id,
                                   comment.body,
                                   'Score: %d' % comment.score)
-        self.storage.set(self.name, 'seen', what, seen)
-        self.storage.save(self.name)
+        self.storage.set('seen', what, seen)
+        self.storage.save()
 
     def post_reply(self, thread_id, reply_id, title, message):
         return self.browser.post(thread_id, reply_id, title, message)

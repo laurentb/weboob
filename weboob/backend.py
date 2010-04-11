@@ -20,6 +20,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 
+class BackendStorage(object):
+    def __init__(self, name, storage):
+        self.name = name
+        self.storage = storage
+
+    def set(self, *args):
+        if self.storage:
+            return self.storage.set(self.name, *args)
+
+    def get(self, *args, **kwargs):
+        if self.storage:
+            return self.storage.get(self.name, *args, **kwargs)
+        else:
+            return kwargs.get('default', None)
+
+    def load(self, default):
+        if self.storage:
+            return self.storage.load(self.name, default)
+
+    def save(self):
+        if self.storage:
+            return self.storage.save(self.name)
+
 class Backend(object):
     # Module name.
     NAME = None
@@ -69,9 +92,8 @@ class Backend(object):
                 elif isinstance(field.default, float):
                     value = float(value)
             self.config[name] = value
-        self.storage = storage
-        if self.storage:
-            self.storage.load(self.name, self.STORAGE)
+        self.storage = BackendStorage(self.name, storage)
+        self.storage.load(self.STORAGE)
 
     def has_caps(self, *caps):
         for c in caps:
