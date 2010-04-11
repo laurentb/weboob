@@ -43,3 +43,9 @@ def local2utc(d):
     d = d.replace(tzinfo=tz.tzlocal())
     d = d.astimezone(tz.tzutc())
     return d
+
+try:
+    from html2text import html2text
+except ImportError:
+    def html2text(s):
+        return s
