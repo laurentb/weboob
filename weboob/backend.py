@@ -85,11 +85,11 @@ class Backend(object):
                 raise Backend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
 
             if not field.default is None:
-                if isinstance(field.default, bool):
+                if isinstance(field.default, bool) and not isinstance(value, bool):
                     value = value.lower() in ('1', 'true', 'on', 'yes')
-                elif isinstance(field.default, int):
+                elif isinstance(field.default, int) and not isinstance(value, int):
                     value = int(value)
-                elif isinstance(field.default, float):
+                elif isinstance(field.default, float) and not isinstance(value, float):
                     value = float(value)
             self.config[name] = value
         self.storage = BackendStorage(self.name, storage)
