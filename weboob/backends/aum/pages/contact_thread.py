@@ -267,7 +267,6 @@ class ContactThreadPage(PageBase):
     id_regexp = re.compile("/thread.php\?id=([0-9]+)")
 
     def loaded(self):
-
         self.items = []
 
         a_list = self.document.getElementsByTagName('a')
@@ -311,6 +310,8 @@ class ContactThreadPage(PageBase):
                 self.items[-1].reply_date = mail.get_date_int()
             self.items += [mail]
 
-    def get_mails(self):
+    def get_id(self):
+        return self.id
 
+    def get_mails(self):
         return self.items

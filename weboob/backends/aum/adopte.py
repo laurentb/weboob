@@ -197,12 +197,14 @@ class AdopteUnMec(Browser):
 
     @pageaccess
     def get_thread_mails(self, id):
-        self.page.open_thread_page(id)
+        if not self.is_on_page(ContactThreadPage) or self.page.get_id() != int(id):
+            self.page.open_thread_page(id)
         return self.page.get_mails()
 
     @pageaccess
     def post_mail(self, id, content):
-        self.page.open_thread_page(id)
+        if not self.is_on_page(ContactThreadPage) or self.page.get_id() != int(id):
+            self.page.open_thread_page(id)
         self.page.post(content)
 
     @pageaccess

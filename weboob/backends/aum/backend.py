@@ -40,6 +40,10 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
             if not self._browser:
                 self._browser = AdopteUnMec(self.config['username'], self.config['password'])
             return self._browser
+        if name == 'queue_messages':
+            if not hasattr(self, '_queue_messages'):
+                self._queue_messages = []
+            return self._queue_messages
         raise AttributeError, name
 
     def iter_messages(self, thread=None):
@@ -47,6 +51,11 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
             yield message
 
     def iter_new_messages(self, thread=None):
+        for message in self.queue_messages:
+            if not thread or message.get_thread_id() == thread:
+                yield message
+        self.queue_messages = []
+
         for message in self._iter_messages(thread, True):
             yield message
 
@@ -57,7 +66,7 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
             contacts.reverse()
 
             for contact in contacts:
-                if only_new and not contact.is_new():
+                if only_new and not contact.is_new() or thread and int(thread) != contact.get_id():
                     continue
 
                 mails = self.browser.get_thread_mails(contact.get_id())
@@ -70,5 +79,9 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply):
                     if not profile:
                         profile = self.browser.get_profile(contact.get_id())
                     mail.signature += u'\n%s' % profile.get_profile_text()
-                    print mail.signature
                     yield mail
+
+    def post_reply(self, thread_id, reply_id, title, message):
+        for message in self._iter_messages(thread_id, True):
+            self.queue_messages.append(message)
+        return self.browser.post(thread_id, message)
