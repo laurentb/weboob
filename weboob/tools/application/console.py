@@ -18,78 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sys, tty, termios, os
+import sys, tty, termios
 import re
-from functools import partial
 from inspect import getargspec
-import logging
-
-from weboob import Weboob
+from functools import partial
 from weboob.modules import BackendsConfig
 
-class BaseApplication(object):
-    # Default configuration
-    CONFIG = {}
-    # Configuration directory
-    CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
-
-    def __init__(self):
-        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format = log_format)
-        self.weboob = Weboob(self.APPNAME)
-        self.config = None
-
-    def create_storage(self, path=None, klass=None):
-        """
-        Create a storage object.
-
-        @param path [str]  an optional specific path.
-        @param klass [IStorage]  what klass to instance.
-        @return  a IStorage object
-        """
-        if klass is None:
-            # load StandardStorage only here because some applications don't
-            # want # to depend on yaml and do not use this function
-            from weboob.tools.storage import StandardStorage
-            klass = StandardStorage
-
-        if path is None:
-            path = os.path.join(self.CONFDIR, self.APPNAME + '.storage')
-        elif not path.startswith('/'):
-            path = os.path.join(self.CONFDIR, path)
-
-        return klass(path)
-
-    def load_config(self, path=None, klass=None):
-        """
-        Load a configuration file and get his object.
-
-        @param path [str]  an optional specific path.
-        @param klass [IConfig]  what klass to instance.
-        @return  a IConfig object
-        """
-        if klass is None:
-            # load Config only here because some applications don't want
-            # to depend on yaml and do not use this function
-            from weboob.tools.config.yamlconfig import YamlConfig
-            klass = YamlConfig
-
-        if path is None:
-            path = os.path.join(self.CONFDIR, self.APPNAME)
-        elif not path.startswith('/'):
-            path = os.path.join(self.CONFDIR, path)
-
-        self.config = klass(path)
-        self.config.load(self.CONFIG)
-
-    def main(self, argv):
-        """ Main function """
-        raise NotImplementedError()
-
-    @classmethod
-    def run(klass):
-        app = klass()
-        sys.exit(app.main(sys.argv))
+from .base import BaseApplication
 
 class ConsoleApplication(BaseApplication):
     def __init__(self):
