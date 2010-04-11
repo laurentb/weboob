@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.backends.aum.pages.base import PageBase
+from weboob.capabilities.dating import Profile
+
 from copy import deepcopy
 from logging import warning
 import re
@@ -124,8 +126,7 @@ class FieldParticularSignes(FieldBase):
             elif s.find('rousseur') >= 0:
                 d['freckle'] = True
 
-class ProfilePage(PageBase):
-
+class ProfilePage(PageBase, Profile):
     empty_table = {'details':      {'old':           0,
                                     'birthday':      (0,0,0),
                                     'zipcode':       0,
@@ -229,7 +230,7 @@ class ProfilePage(PageBase):
 
     def __repr__(self):
         if isinstance(self.name, unicode):
-            name = self.name.encode('ascii', 'backslashreplace')
+            name = self.name.encode('utf-8', 'backslashreplace')
         else:
             name = self.name
         return '<Profile name="%s">' % name
@@ -312,7 +313,6 @@ class ProfilePage(PageBase):
         self.description = description
 
     def parse_table(self, div):
-
         d = self.table[self.tables[div.getAttribute('id')]]
         fields = self.fields[self.tables[div.getAttribute('id')]]
         table = div.getElementsByTagName('table')[1]
@@ -391,29 +391,3 @@ class ProfilePage(PageBase):
 
     def get_stats(self):
         return self.stats
-
-    def get_profile_text(self):
-        body = u'Status: %s' % unicode(self.status)
-        if self.photos:
-            body += u'\nPhotos:'
-            for photo in self.photos:
-                body += u'\n\t\t%s' % unicode(photo)
-        body += u'\nStats:'
-        for label, value in self.get_stats().iteritems():
-            body += u'\n\t\t%-15s %s' % (label + ':', value)
-        body += u'\n\nInformations:'
-        for section, d in self.get_table().iteritems():
-            body += u'\n\t%s\n' % section
-            for key, value in d.items():
-                key = '%s:' % key
-                if isinstance(value, list):
-                    body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
-                elif isinstance(value, float):
-                    body += u'\t\t%-15s %.2f\n' % (key, value)
-                else:
-                    body += u'\t\t%-15s %s\n' % (key, unicode(value))
-        body += u'\n\nDescription:\n%s' % unicode(self.get_description())
-
-        return body
-
-
