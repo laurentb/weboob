@@ -24,14 +24,16 @@ from email.mime.text import MIMEText
 from smtplib import SMTP
 from email.Header import Header
 from email.Utils import parseaddr, formataddr
+from email import message_from_file
 import time
+import re
 import sys
 from html2text import html2text
 
 from weboob.capabilities.messages import ICapMessages
-from weboob.tools.application import BaseApplication
+from weboob.tools.application import ConsoleApplication
 
-class Monboob(BaseApplication):
+class Monboob(ConsoleApplication):
     APPNAME = 'monboob'
     CONFIG = {'interval':  15,
               'domain':    'weboob.example.org',
@@ -41,13 +43,60 @@ class Monboob(BaseApplication):
 
     def main(self, argv):
         self.load_config()
-        if not self.config:
-            print >>sys.stderr, "Error: %s is not configured yet. Please call 'monboob -c'" % argv[0]
-            print >>sys.stderr, "Also, you need to use 'weboobcfg' to set backend configs"
-            return -1
-
         self.weboob.load_backends(ICapMessages, storage=self.create_storage())
 
+        return self.process_command(*argv[1:])
+
+    @ConsoleApplication.command("pipe with a mail to post message")
+    def command_post(self):
+        msg = message_from_file(sys.stdin)
+        reply_to = msg.get('In-Reply-To')
+        if not reply_to:
+            print >>sys.stderr, 'This is not a reply (no Reply-To field)'
+            return 1
+
+        m = re.match('<(.*)@(.*)>', reply_to)
+        if m:
+            reply_to = m.group(1)
+        title = msg.get('Subject')
+
+        content = u''
+        for part in msg.walk():
+            if part.get_content_type() == 'text/plain':
+                s = part.get_payload(decode=True)
+                charsets = part.get_charsets() + msg.get_charsets()
+                for charset in charsets:
+                    try:
+                        content += unicode(s, charset)
+                    except:
+                        continue
+                    else:
+                        break
+
+        # remove signature
+        content = content.split(u'\n-- \n')[0]
+
+        bname, id = reply_to.split('.', 1)
+        backend = self.weboob.backends[bname]
+
+        thread_id, msg_id = id.rsplit('.', 1)
+        backend.post_reply(thread_id, msg_id, title, content)
+
+    MAIL_REGEXP = re.compile('(.*) <(.*)@(.*)>')
+    def get_mail(self, text):
+        if not text:
+            return None
+
+        m = self.MAIL_REGEXP.match(text)
+        if not m:
+            to = text.split('@')[0]
+        else:
+            to = m.group(2)
+
+        return to
+
+    @ConsoleApplication.command("run daemon")
+    def command_run(self):
         self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
 
