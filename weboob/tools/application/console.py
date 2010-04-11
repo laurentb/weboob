@@ -79,14 +79,19 @@ class ConsoleApplication(BaseApplication):
         if len(matching_commands) == 0:
             sys.stderr.write("No such command: %s.\n" % command)
         elif len(matching_commands) == 1:
-            try:
-                return getattr(self, matching_commands[0])(*args)
-            except TypeError, e:
-                try:
-                    sys.stderr.write("Command '%s' takes %s arguments.\n" % \
-                            (command, int(str(e).split(' ')[3]) - 1))
-                except:
-                    sys.stderr.write('%s\n' % e)
+            func = getattr(self, matching_commands[0])
+
+            _args, varargs, varkw, defaults = getargspec(func)
+            nb_args = len(_args) - 1
+            if defaults:
+                nb_args -= len(defaults)
+            if len(args) < nb_args or len(args) > nb_args and not varargs:
+                if varargs:
+                    sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_args))
+                else:
+                    sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_args))
+                return
+            return func(*args)
         else:
             sys.stderr.write("Ambiguious command %s: %s.\n" %
                              (command,
