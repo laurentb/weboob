@@ -45,7 +45,10 @@ def local2utc(d):
     return d
 
 try:
-    from html2text import html2text
+    import html2text as h2t
+    h2t.UNICODE_SNOB = 1
+    h2t.SKIP_INTERNAL_LINKS = True
+    html2text = h2t.html2text
 except ImportError:
     def html2text(s):
         return s
