@@ -1,4 +1,5 @@
 *.pyc
+*.swp
 Session.vim
 *.egg-info
 build
