@@ -87,7 +87,8 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
                               thread.author,
                               article.datetime,
                               content=''.join([thread.body, thread.part2]),
-                              signature='URL: %s' % article.url)
+                              signature='URL: %s' % article.url,
+                              is_html=True)
 
             for comment in thread.iter_all_comments():
                 if not comment.id in seen[article.id]['comments']:
@@ -103,7 +104,8 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
                                   comment.date,
                                   comment.reply_id,
                                   comment.body,
-                                  'Score: %d' % comment.score)
+                                  'Score: %d' % comment.score,
+                                  is_html=True)
         self.storage.set('seen', what, seen)
         self.storage.save()
 

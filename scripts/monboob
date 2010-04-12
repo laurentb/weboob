@@ -119,19 +119,25 @@ class Monboob(ConsoleApplication):
         date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
         msg_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_id(), domain)
 
-        if self.config.get('html'):
+        if self.config.get('html') and mail.is_html:
             body = mail.get_content()
             content_type = 'html'
         else:
-            body = html2text(mail.get_content())
+            if mail.is_html:
+                body = html2text(mail.get_content())
+            else:
+                body = mail.get_content()
             content_type = 'plain'
 
         if mail.get_signature():
-            if self.config.get('html'):
+            if self.config.get('html') and mail.is_html:
                 body += u'<p>-- <br />%s</p>' % mail.get_signature()
             else:
                 body += u'\n\n-- \n'
-                body += html2text(mail.get_signature())
+                if mail.is_html:
+                    body += html2text(mail.get_signature())
+                else:
+                    body += mail.get_signature()
 
         # Header class is smart enough to try US-ASCII, then the charset we
         # provide, then fall back to UTF-8.

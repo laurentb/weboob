@@ -24,7 +24,7 @@ import time
 from .cap import ICap
 
 class Message:
-    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u''):
+    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u'', is_html=False):
         self.thread_id = unicode(thread_id)
         self.id = unicode(_id)
         self.reply_id = unicode(reply_id)
@@ -37,6 +37,7 @@ class Message:
         if date is None:
             date = datetime.datetime.utcnow()
         self.date = date
+        self.is_html = is_html
 
     def get_date_int(self):
         return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
