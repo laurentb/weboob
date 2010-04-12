@@ -68,7 +68,7 @@ class AuMBackend(Backend, ICapMessages, ICapMessagesReply, ICapDating):
 
     def _iter_messages(self, thread, only_new):
         try:
-            if only_new and not self.browser.nb_new_mails():
+            if not only_new or self.browser.nb_new_mails():
                 my_name = self.browser.get_my_name()
                 contacts = self.browser.get_contact_list()
                 contacts.reverse()
