@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys, os
 import logging
+from optparse import OptionParser
 
 from weboob import Weboob
 
@@ -32,8 +33,6 @@ class BaseApplication(object):
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
 
     def __init__(self):
-        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format = log_format)
         self.weboob = self.create_weboob()
         self.config = None
 
@@ -90,4 +89,19 @@ class BaseApplication(object):
     @classmethod
     def run(klass):
         app = klass()
-        sys.exit(app.main(sys.argv))
+        parser = OptionParser('Usage: %prog [options (-h for help)] URL...') 
+        parser.add_option('-d', '--debug', action='store_true', help='display debug messages') 
+        parser.add_option('-q', '--quiet', action='store_true', help='display only error messages') 
+        parser.add_option('-v', '--verbose', action='store_true', help='display info messages') 
+        options, args = parser.parse_args(sys.argv)
+        if options.debug:
+            level=logging.DEBUG
+        elif options.verbose:
+            level = logging.INFO
+        elif options.quiet:
+            level = logging.ERROR
+        else:
+            level = logging.WARNING
+        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
+        logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
+        sys.exit(app.main(args))
