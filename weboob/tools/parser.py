@@ -63,7 +63,10 @@ except ImportError:
             self._target.data(unichr(int(name)))
 
         def handle_entityref(self, name):
-            self._target.data(unichr(htmlentitydefs.name2codepoint[name]))
+            try:
+                self._target.data(unichr(htmlentitydefs.name2codepoint[name]))
+            except KeyError:
+                self._target.data('&' + name)
 
         def handle_data(self, data):
             self._target.data(data)
