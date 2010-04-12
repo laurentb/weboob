@@ -104,4 +104,7 @@ class BaseApplication(object):
             level = logging.WARNING
         log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        sys.exit(app.main(args))
+        try:
+            sys.exit(app.main(args))
+        except KeyboardInterrupt:
+            print 'Program killed by SIGINT'
