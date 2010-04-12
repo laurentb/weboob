@@ -38,6 +38,7 @@ try:
     HTMLTreeBuilder = TidyHTMLTreeBuilder.TidyHTMLTreeBuilder
 except ImportError:
     from HTMLParser import HTMLParser
+    import htmlentitydefs
 
     class HTMLTreeBuilder(HTMLParser):
         def __init__(self, encoding=None):
@@ -57,6 +58,12 @@ except ImportError:
         def handle_startendtag(self, tag, attrs):
             self._target.start(tag, dict(attrs))
             self._target.end(tag)
+
+        def handle_charref(self, name):
+            self._target.data(unichr(int(name)))
+
+        def handle_entityref(self, name):
+            self._target.data(unichr(htmlentitydefs.name2codepoint[name]))
 
         def handle_data(self, data):
             self._target.data(data)
