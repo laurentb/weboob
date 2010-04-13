@@ -46,4 +46,5 @@ class TransilienBackend(Backend, ICapTravel):
             departure.arrival_station = d['arrival']
             departure.late = d['late']
             departure.information = d['late_reason']
+            departure.plateform = d['plateform']
             yield departure

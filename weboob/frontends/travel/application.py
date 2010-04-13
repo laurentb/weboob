@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Romain Bignon
+Copyright(C) 2010  Romain Bignon, Julien Hébert
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,18 +45,19 @@ class Travel(ConsoleApplication):
 
     @ConsoleApplication.command('List all departures on a special station')
     def command_departures(self, station, arrival=None):
-        print ".-----.-----------.-------.-----------------------.-------.--------------------."
-        print "| ID  | Type      | Time  | Arrival               | Late  | Info               |"
-        print "+-----+-----------+-------+-----------------------+-------+--------------------+"
+        print ".-----.-----------.-------.-----------------------.-------.--------------------.------------"
+        print "| ID  | Type      | Time  | Arrival               | Late  | Info               | Plateform |"
+        print "+-----+-----------+-------+-----------------------+-------+--------------------+-----------+"
         count = 0
         for name, backend, in self.weboob.iter_backends():
             for departure in backend.iter_station_departures(station, arrival):
-                print u"|%4d | %-10s|%6s | %-22s|%6s | %-19s|" % (departure.id,
+                print u"|%4d | %-10s|%6s | %-22s|%6s | %-19s| %-10s|" % (departure.id,
                                                                    departure.type,
                                                                    departure.time.strftime("%H:%M"),
                                                                    departure.arrival_station,
                                                                    departure.late and departure.late.strftime("%H:%M") or '',
-                                                                   departure.information)
+                                                                   departure.information,
+                                                                   departure.plateform)
                 count += 1
         print "+-----'-----------'-------'-----------------------'-------'--------------------+"
         print "| %3d departures listed                                                        |" % count
