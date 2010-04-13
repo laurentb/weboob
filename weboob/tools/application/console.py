@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Romain Bignon
+Copyright(C) 2010  Romain Bignon, Julien Hébert
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -85,7 +85,8 @@ class ConsoleApplication(BaseApplication):
             nb_args = len(_args) - 1
             if defaults:
                 nb_args -= len(defaults)
-            if len(args) < nb_args or len(args) > nb_args and not varargs:
+
+            if len(args) < nb_args  and not varargs:
                 if varargs:
                     sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_args))
                 else:
