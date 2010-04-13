@@ -133,12 +133,20 @@ class Transilien(Browser):
         else:
             self.location('http://www.transilien.com/web/ITProchainsTrains.do?tr3a=%s&urlModule=/site/pid/184' % station_id)
         for route in self.page.document.list_route:
-            yield {'type':        toUnicode(route.code_mission),
-                   'time':        datetime.combine(date.today(), time(*[int(x) for x in route.time.split(':')])),
-                   'departure':   toUnicode(station_id),
-                   'arrival':     toUnicode(route.destination),
-                   'late':        time(),
-                   'late_reason': toUnicode(route.platform)}
+            _late_reason = None
+            try :
+                _time = datetime.combine(date.today(), time(*[int(x) for x in route.time.split(':')]))
+            except ValueError:
+                _time = None
+                _late_reason = route.time
+            else:
+                yield {'type':        toUnicode(route.code_mission),
+                       'time':        _time,
+                       'departure':   toUnicode(station_id),
+                       'arrival':     toUnicode(route.destination),
+                       'late':        time(),
+                       'late_reason': _late_reason,
+                       'plateform':   toUnicode(route.platform)}
 
     def home(self):
         pass

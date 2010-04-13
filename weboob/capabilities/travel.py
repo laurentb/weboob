@@ -59,6 +59,7 @@ class Departure(object):
         self.arrival_station = u''
         self.late = time()
         self.information = u''
+        self.plateform = u''
 
     def __repr__(self):
         return "<Departure id='%s' type='%s' time='%s' departure='%s' arrival='%s'>" % (self.id,
