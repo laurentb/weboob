@@ -110,7 +110,7 @@ class Browser(mechanize.Browser):
 
     # ------ Browser methods ---------------------------------------
 
-    def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser):
+    def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser()):
         mechanize.Browser.__init__(self)#, history=NoHistory())
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -124,7 +124,7 @@ class Browser(mechanize.Browser):
         else:
             self.__cookie = None
 
-        self.__parser = parser()
+        self.__parser = parser
         self.page = None
         self.last_update = 0.0
         self.username = username
@@ -134,9 +134,6 @@ class Browser(mechanize.Browser):
                 self.home()
             except BrowserUnavailable:
                 pass
-
-    def set_parser(self, parser):
-        self.__parser = parser
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
