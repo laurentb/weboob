@@ -46,5 +46,9 @@ class YoutubeBackend(Backend, ICapVideoProvider):
         raise NotImplementedError()
 
     @need_browser
+    def get_video_title(self, page_url):
+        return self.browser.get_video_title(page_url)
+
+    @need_browser
     def get_video_url(self, page_url):
         return self.browser.get_video_url(page_url)
