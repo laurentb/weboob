@@ -93,5 +93,14 @@ def tostring(element):
     e.tail = element.tail
     for sub in element.getchildren():
         e.append(sub)
-    s = ElementTree.tostring(e, 'utf-8')
+
+    s = ''
+    # XXX OK if it doesn't work with utf-8, the result will be fucking ugly.
+    for encoding in ('utf-8', 'ISO-8859-1'):
+        try:
+            s = ElementTree.tostring(e, encoding)
+        except UnicodeError:
+            continue
+        else:
+            break
     return unicode(s)
