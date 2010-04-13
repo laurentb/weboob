@@ -29,7 +29,7 @@ class YoutubeBrowser(Browser):
     regex = re.compile(r'&t=([^ ,&]*)')
 
     def __init__(self, *args, **kwargs):
-        kwargs['parser'] = LxmlHtmlParser
+        kwargs['parser'] = LxmlHtmlParser()
         self.PAGES = {r'http://.*\.youtube\.com/watch\?v=(.+)': VideoPage}
         Browser.__init__(self, *args, **kwargs)
 
