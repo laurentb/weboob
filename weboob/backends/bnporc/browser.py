@@ -50,6 +50,7 @@ class BNPorc(Browser):
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = BNParser()
+        kwargs['history'] = None # need history
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
