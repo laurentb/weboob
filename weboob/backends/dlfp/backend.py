@@ -48,12 +48,10 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
         raise AttributeError, name
 
     def iter_messages(self, thread=None):
-        for message in self._iter_messages(thread, False):
-            yield message
+        return self._iter_messages(thread, False)
 
     def iter_new_messages(self, thread=None):
-        for message in self._iter_messages(thread, True):
-            yield message
+        return self._iter_messages(thread, True)
 
     def _iter_messages(self, thread, only_new):
         if self.config['get_news']:
@@ -64,7 +62,7 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
                 yield message
 
     def _iter_messages_of(self, what, thread_wanted, only_new):
-        if not what in self.storage.get('seen'):
+        if not what in self.storage.get('seen', default={}):
             self.storage.set('seen', what, {})
 
         seen = {}
@@ -74,11 +72,11 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
 
             thread = self.browser.get_content(article.id)
 
-            if not article.id in self.storage.get('seen', what):
+            if not article.id in self.storage.get('seen', what, default={}):
                 seen[article.id] = {'comments': []}
                 new = True
             else:
-                seen[article.id] = self.storage.get('seen', what, article.id)
+                seen[article.id] = self.storage.get('seen', what, article.id, default={})
                 new = False
             if not only_new or new:
                 yield Message(thread.id,
