@@ -91,9 +91,7 @@ class TransilienUI():
             for station in backend.iter_station_search(""):
                 liste.append(station)
 
-        liste.sort()
         for station in liste:
-            print station
             self.combo_source.append_text(station.name.capitalize())
             self.combo_dest.append_text(station.name.capitalize())
 
@@ -128,7 +126,6 @@ class TransilienUI():
         "exit application at the window close"
         gtk.main_quit()
 
-
     def on_retour_button_clicked(self, widget):
         "the button is clicked"
         col_source = self.combo_source.get_active(0)
@@ -143,13 +140,13 @@ class TransilienUI():
 
     def refresh(self):
         "update departures"
+        self.treestore.clear()
         for name, backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(self.combo_source.get_current_text()):
                 for name, backend in self.weboob.iter_backends():
                     for arrival in backend.iter_station_search(self.combo_dest.get_current_text()):
                         for name, backend, in self.weboob.iter_backends():
                             for departure in backend.iter_station_departures(station.id, arrival.id):
-                                print departure.id, departure.type, departure.time, departure.arrival_station, departure.late, departure.information
                                 self.treestore.append(None, [departure.type, departure.time, departure.arrival_station, departure.information])
 
 class Travel(BaseApplication):
