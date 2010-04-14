@@ -18,7 +18,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .elementtidyparser import ElementTidyParser
-from .html5libparser import Html5libParser
-from .lxmlparser import LxmlHtmlParser
 from .standardparser import StandardParser, tostring
+
+try:
+    from .elementtidyparser import ElementTidyParser
+except ImportError:
+    pass
+try:
+    from .html5libparser import Html5libParser
+except ImportError:
+    pass
+try:
+    from .lxmlparser import LxmlHtmlParser
+except ImportError:
+    pass
