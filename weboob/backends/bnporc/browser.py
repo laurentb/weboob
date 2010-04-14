@@ -43,7 +43,7 @@ class BNPorc(Browser):
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
              '.*type=homeconnex.*':                         pages.LoginPage,
-             '.*layout=HomeConnexion':                      pages.ConfirmPage,
+             '.*layout=HomeConnexion.*':                    pages.ConfirmPage,
             }
 
     is_logging = False
