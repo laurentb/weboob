@@ -25,8 +25,20 @@ except ImportError:
     from xml.etree import ElementTree
 
 class Html5libParser(HTMLParser):
+    """
+    Parser using html5lib.
+
+    Note that it is not available on every systems.
+    """
+
+    # Default implementation for each type of API.
+    defaults = {'etree': ElementTree,
+               }
     def __init__(self, api='etree'):
-        HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder(api, ElementTree))
+        # if no default implementation is defined for this api, set it to None
+        # to let getTreeBuilder() using the corresponding implementation.
+        implementation = self.defaults.get(api, None)
+        HTMLParser.__init__(self, tree=treebuilders.getTreeBuilder(api, implementation))
 
     def parse(self, data, encoding):
         return HTMLParser.parse(self, data, encoding=encoding)
