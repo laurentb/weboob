@@ -26,7 +26,7 @@ from weboob.tools.parser import LxmlHtmlParser
 from .pages import VideoPage
 
 class YoutubeBrowser(Browser):
-    regex = re.compile(r'&t=([^ ,&]*)')
+    video_signature_regex = re.compile(r'&t=([^ ,&]*)')
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = LxmlHtmlParser()
@@ -38,13 +38,16 @@ class YoutubeBrowser(Browser):
         return self.page.title
 
     def get_video_url(self, page_url):
-        result = self.openurl(page_url).read()
-        for _signature in re.finditer(self.regex, result):
-            signature = _signature.group(1)
-            break
+        def find_video_signature(data):
+            for video_signature in re.finditer(self.video_signature_regex, data):
+                return video_signature.group(1)
+            return None
+        data = self.openurl(page_url).read()
+        video_signature = find_video_signature(data)
+        m = re.match(r'http://.*\.youtube\.com/watch\?v=(.+)', page_url)
+        if m:
+            video_id = m.group(1)
+            url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (video_id, video_signature)
+            return url
         else:
             return None
-        m = re.match(r'http://.*\.youtube\.com/watch\?v=(.+)', page_url)
-        video_id = m.group(1)
-        url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (video_id, signature)
-        return url

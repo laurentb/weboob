@@ -38,6 +38,9 @@ class YoutubeBackend(Backend, ICapVideoProvider):
         def inner(self, *args, **kwargs):
             if not self.browser:
                 self.browser = YoutubeBrowser()
+            url = args[0]
+            if u'youtube.com' not in url:
+                return None
             return func(self, *args, **kwargs)
         return inner
 
