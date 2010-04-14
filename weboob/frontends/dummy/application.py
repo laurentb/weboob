@@ -3,7 +3,7 @@
 # vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
-Copyright(C) 2010  Romain Bignon
+Copyright(C) 2010  Romain Bignon, Christophe Benz
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
 
-class Application(BaseApplication):
+class Dummy(BaseApplication):
     APPNAME = 'dummy'
 
     def main(self, argv):
@@ -54,6 +54,3 @@ class Application(BaseApplication):
                 for account in backend.iter_accounts():
                     print '|  |- [%s] label=%s balance=%s coming=%s' % (
                         account.id, account.label, account.balance, account.coming)
-
-if __name__ == '__main__':
-    Application.run()
