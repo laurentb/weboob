@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.frontends.boobank.monfric import MonFric
+from weboob.frontends.boobank import MonFric
 
 if __name__ == '__main__':
     MonFric.run()
