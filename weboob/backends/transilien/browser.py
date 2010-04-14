@@ -122,7 +122,7 @@ class Transilien(Browser):
             }
 
     def __init__(self):
-        Browser.__init__(self, '', parser=Parser)
+        Browser.__init__(self, '', parser=Parser())
 
     def iter_station_search(self, pattern):
         pass
