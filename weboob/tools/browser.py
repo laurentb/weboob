@@ -110,8 +110,8 @@ class Browser(mechanize.Browser):
 
     # ------ Browser methods ---------------------------------------
 
-    def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser()):
-        mechanize.Browser.__init__(self)#, history=NoHistory())
+    def __init__(self, username=None, password=None, firefox_cookies=None, parser=StandardParser(), history=NoHistory()):
+        mechanize.Browser.__init__(self, history=history)
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
             ]
