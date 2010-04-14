@@ -102,7 +102,7 @@ class BaseApplication(object):
             level = logging.ERROR
         else:
             level = logging.WARNING
-        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d %(message)s'
+        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         try:
             sys.exit(app.main(args))
