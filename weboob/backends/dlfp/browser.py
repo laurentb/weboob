@@ -48,7 +48,7 @@ class DLFP(Browser):
             }
 
     def __init__(self, *args, **kwargs):
-        kwargs['parser'] = DLFParser
+        kwargs['parser'] = DLFParser()
         Browser.__init__(self, *args, **kwargs)
 
     def home(self):
