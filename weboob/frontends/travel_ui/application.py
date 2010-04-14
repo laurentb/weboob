@@ -53,6 +53,7 @@ class TransilienUI():
         self.treestore = gtk.TreeStore(str, str, str, str)
         self.treeview = gtk.TreeView(self.treestore)
 
+
         self.treeview.append_column(
             gtk.TreeViewColumn(
                 'Train',
@@ -149,6 +150,7 @@ class TransilienUI():
                         for name, backend, in self.weboob.iter_backends():
                             for departure in backend.iter_station_departures(station.id, arrival.id):
                                 print departure.id, departure.type, departure.time, departure.arrival_station, departure.late, departure.information
+                                self.treestore.append(None, [departure.type, departure.time, departure.arrival_station, departure.information])
 
 class Travel(BaseApplication):
     APPNAME = 'travel'
