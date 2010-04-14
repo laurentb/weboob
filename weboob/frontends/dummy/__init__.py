@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
 Copyright(C) 2010  Christophe Benz
@@ -20,7 +18,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.frontends.boobank import MonFric
-
-if __name__ == '__main__':
-    MonFric.run()
+from .application import Dummy

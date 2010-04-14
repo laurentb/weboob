@@ -30,11 +30,11 @@ class Videoob(ConsoleApplication):
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video file URL from page URL')
-    def command_file_url(self, page_url):
+    def command_file_url(self, url):
         for name, backend in self.weboob.iter_backends(ICapVideoProvider):
-            print backend.get_video_url(page_url)
+            print backend.get_video_url(url)
 
     @ConsoleApplication.command('Get video title from page URL')
-    def command_title(self, page_url):
+    def command_title(self, url):
         for name, backend in self.weboob.iter_backends(ICapVideoProvider):
-            print backend.get_video_title(page_url)
+            print backend.get_video_title(url)
