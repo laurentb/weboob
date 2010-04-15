@@ -87,7 +87,7 @@ class TransilienUI():
         liste = []
 
         #liste = ConfFile('/opt/masstransit/masstransit.cfg').config.items('ListeDesGares')
-        for name, backend in self.weboob.iter_backends():
+        for None, backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station)
 
@@ -143,11 +143,10 @@ class TransilienUI():
         self.treestore.clear()
         for name, backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(self.combo_source.get_current_text()):
-                for name, backend in self.weboob.iter_backends():
-                    for arrival in backend.iter_station_search(self.combo_dest.get_current_text()):
-                        for name, backend, in self.weboob.iter_backends():
-                            for departure in backend.iter_station_departures(station.id, arrival.id):
-                                self.treestore.append(None, [departure.type, departure.time, departure.arrival_station, departure.information])
+                for arrival in backend.iter_station_search(self.combo_dest.get_current_text()):
+                    for departure in backend.iter_station_departures(station.id, arrival.id):
+                        self.treestore.append(None, [departure.type, departure.time, departure.arrival_station, departure.information])
+
 
 class Travel(BaseApplication):
     APPNAME = 'travel'
