@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import re
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parsers.lxmlhtmlparser import LxmlHtmlParser
+from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 
 from .pages import VideoPage
 
