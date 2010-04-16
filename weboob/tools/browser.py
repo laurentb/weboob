@@ -50,7 +50,7 @@ class BrowserUnavailable(Exception):
 class BrowserRetry(Exception):
     pass
 
-class NoHistory:
+class NoHistory(object):
     """
     We don't want to fill memory with history
     """
@@ -60,7 +60,7 @@ class NoHistory:
     def clear(self): pass
     def close(self): pass
 
-class BasePage:
+class BasePage(object):
     """
     Base page
     """
