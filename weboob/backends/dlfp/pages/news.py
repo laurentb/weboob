@@ -20,14 +20,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from datetime import datetime
 
-from weboob.tools.parser import tostring
 from weboob.tools.misc import local2utc
 
 from weboob.backends.dlfp.tools import url2id
 from .index import DLFPPage
 
 class Comment(object):
-    def __init__(self, div, reply_id):
+    def __init__(self, browser, div, reply_id):
+        self.browser = browser
         self.id = ''
         self.reply_id = reply_id
         self.title = u''
@@ -46,9 +46,9 @@ class Comment(object):
                 self.author = sub.find('a').text
                 self.date = self.parse_date(sub.find('i').tail)
                 self.score = int(sub.findall('i')[1].find('span').text)
-                self.body = tostring(sub.find('p'))
+                self.body = self.browser.tostring(sub.find('p'))
             elif sub.attrib.get('class', '') == 'commentsul':
-                comment = Comment(sub.find('li'), self.id)
+                comment = Comment(self.browser, sub.find('li'), self.id)
                 self.comments.append(comment)
 
     def parse_date(self, date_s):
@@ -64,7 +64,8 @@ class Comment(object):
         return u"<Comment id='%s' author='%s' title='%s'>" % (self.id, self.author, self.title)
 
 class Article(object):
-    def __init__(self, _id, tree):
+    def __init__(self, browser, _id, tree):
+        self.browser = browser
         self.id = _id
         self.title = u''
         self.author = u''
@@ -87,7 +88,7 @@ class Article(object):
                     date_s = unicode(div.find('i').tail)
                 #print date_s
             if div.attrib.get('class', '').startswith('bodydiv '):
-                self.body = tostring(div)
+                self.body = self.browser.tostring(div)
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -99,7 +100,7 @@ class Article(object):
                 yield c
 
     def parse_part2(self, div):
-        self.part2 = tostring(div)
+        self.part2 = self.browser.tostring(div)
 
 class ContentPage(DLFPPage):
     def loaded(self):
@@ -112,11 +113,11 @@ class ContentPage(DLFPPage):
 
     def parse_div(self, div):
         if div.attrib.get('class', '') in ('newsdiv', 'centraldiv'):
-            self.article = Article(url2id(self.url), div)
+            self.article = Article(self.browser, url2id(self.url), div)
         if div.attrib.get('class', '') == 'articlediv':
             self.article.parse_part2(div)
         if div.attrib.get('class', '') == 'comments':
-            comment = Comment(div, 0)
+            comment = Comment(self.browser, div, 0)
             self.article.append_comment(comment)
 
     def get_article(self):

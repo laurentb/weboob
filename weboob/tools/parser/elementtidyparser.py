@@ -32,7 +32,9 @@ try:
 except ImportError:
     from xml.etree import ElementTree
 
-class ElementTidyParser(object):
+from .iparser import IParser
+
+class ElementTidyParser(IParser):
     def parse(self, data, encoding=None):
         TidyHTMLTreeBuilder.ElementTree = ElementTree
         HTMLTreeBuilder = TidyHTMLTreeBuilder.TidyHTMLTreeBuilder
@@ -42,3 +44,20 @@ class ElementTidyParser(object):
             if elem.tag.startswith('{'):
                 elem.tag = elem.tag[elem.tag.find('}')+1:]
         return tree
+
+    def dump(self, element):
+        e = ElementTree.Element('body')
+        e.text = element.text
+        e.tail = element.tail
+        for sub in element.getchildren():
+            e.append(sub)
+        s = ''
+        # XXX OK if it doesn't work with utf-8, the result will be fucking ugly.
+        for encoding in ('utf-8', 'ISO-8859-1'):
+            try:
+                s = ElementTree.tostring(e, encoding)
+            except UnicodeError:
+                continue
+            else:
+                break
+        return unicode(s)

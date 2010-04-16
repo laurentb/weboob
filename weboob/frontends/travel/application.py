@@ -35,7 +35,7 @@ class Travel(ConsoleApplication):
         print '| ID                             | Name                                        |'
         print '+--------------------------------+---------------------------------------------+'
         count = 0
-        for backend, in self.weboob.iter_backends():
+        for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(pattern):
                 print '| %-31s| %-44s|' % (station.id, station.name)
                 count += 1
@@ -49,7 +49,7 @@ class Travel(ConsoleApplication):
         print "| ID  | Type      | Time  | Arrival               | Late  | Info               | Plateform |"
         print "+-----+-----------+-------+-----------------------+-------+--------------------+-----------+"
         count = 0
-        for backend, in self.weboob.iter_backends():
+        for backend in self.weboob.iter_backends():
             for departure in backend.iter_station_departures(station, arrival):
                 print u"|%4d | %-10s|%6s | %-22s|%6s | %-19s| %-10s|" % (departure.id,
                                                                    departure.type,
@@ -59,6 +59,6 @@ class Travel(ConsoleApplication):
                                                                    departure.information,
                                                                    departure.plateform)
                 count += 1
-        print "+-----'-----------'-------'-----------------------'-------'--------------------+"
-        print "| %3d departures listed                                                        |" % count
-        print "'------------------------------------------------------------------------------'"
+        print "+-----'-----------'-------'-----------------------'-------'--------------------'-----------+"
+        print "| %3d departures listed                                                                    |" % count
+        print "'------------------------------------------------------------------------------------------'"

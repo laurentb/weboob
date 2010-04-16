@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz
+Copyright(C) 2010  Christophe Benz, Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,17 +18,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .standardparser import StandardParser, tostring
-
+# Low performances
+# v
+# v
 try:
-    from .elementtidyparser import ElementTidyParser
+    from .elementtidyparser import ElementTidyParser, ElementTidyParser as StandardParser
 except ImportError:
     pass
+# v
 try:
-    from .html5libparser import Html5libParser
+    from .htmlparser import HTMLParser, HTMLParser as StandardParser
 except ImportError:
     pass
+# v
 try:
-    from .lxmlparser import LxmlHtmlParser
+    from .html5libparser import Html5libParser, Html5libParser as StandardParser
 except ImportError:
     pass
+# v
+try:
+    from .lxmlparser import LxmlHtmlParser, LxmlHtmlParser as StandardParser
+except ImportError:
+    pass
+# v
+# v
+# High performances

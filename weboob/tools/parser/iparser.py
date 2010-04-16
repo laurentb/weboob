@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz
+Copyright(C) 2010  Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,13 +18,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import lxml.html
-from .iparser import IParser
+class IParser(object):
+    def dump(self, elem):
+        """
+        Get HTML string from an element.
+        """
+        raise NotImplementedError()
 
-class LxmlHtmlParser(IParser):
     def parse(self, data, encoding=None):
-        parser = lxml.html.HTMLParser(encoding=encoding)
-        return lxml.html.parse(data, parser)
+        """
+        Parse a HTML document with a specific encoding to get a tree.
 
-    def dump(self, element):
-        return lxml.html.tostring(element, encoding=unicode)
+        @param data  [str] HTML document
+        @param encoding  [str] encoding to use
+        @return  an object with the structured document
+        """
+        raise NotImplementedError()

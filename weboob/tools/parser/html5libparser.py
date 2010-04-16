@@ -24,7 +24,9 @@ try:
 except ImportError:
     from xml.etree import ElementTree
 
-class Html5libParser(HTMLParser):
+from .iparser import IParser
+
+class Html5libParser(HTMLParser, IParser):
     """
     Parser using html5lib.
 
@@ -42,3 +44,7 @@ class Html5libParser(HTMLParser):
 
     def parse(self, data, encoding):
         return HTMLParser.parse(self, data, encoding=encoding)
+
+    def dump(self, elem):
+        # TODO
+        raise NotImplementedError()

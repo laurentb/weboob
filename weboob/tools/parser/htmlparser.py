@@ -18,18 +18,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-__all__ = ['StandardParser', 'tostring']
+__all__ = ['HTMLParser']
 
-from HTMLParser import HTMLParser
+from HTMLParser import HTMLParser as _HTMLParser
 import htmlentitydefs
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
     from xml.etree import ElementTree
 
-class HTMLTreeBuilder(HTMLParser):
+from .iparser import IParser
+
+class HTMLTreeBuilder(_HTMLParser):
     def __init__(self, encoding=None):
-        HTMLParser.__init__(self)
+        _HTMLParser.__init__(self)
         self._target = ElementTree.TreeBuilder()
 
     def doctype(self, name, pubid, system):
@@ -64,7 +66,7 @@ class HTMLTreeBuilder(HTMLParser):
         except:
             pass
 
-class StandardParser(object):
+class HTMLParser(IParser):
     def parse(self, data, encoding=None):
         parser = HTMLTreeBuilder(encoding)
         tree = ElementTree.parse(data, parser)
@@ -73,19 +75,19 @@ class StandardParser(object):
                 elem.tag = elem.tag[elem.tag.find('}')+1:]
         return tree
 
-def tostring(element):
-    e = ElementTree.Element('body')
-    e.text = element.text
-    e.tail = element.tail
-    for sub in element.getchildren():
-        e.append(sub)
-    s = ''
-    # XXX OK if it doesn't work with utf-8, the result will be fucking ugly.
-    for encoding in ('utf-8', 'ISO-8859-1'):
-        try:
-            s = ElementTree.tostring(e, encoding)
-        except UnicodeError:
-            continue
-        else:
-            break
-    return unicode(s)
+    def dump(self, element):
+        e = ElementTree.Element('body')
+        e.text = element.text
+        e.tail = element.tail
+        for sub in element.getchildren():
+            e.append(sub)
+        s = ''
+        # XXX OK if it doesn't work with utf-8, the result will be fucking ugly.
+        for encoding in ('utf-8', 'ISO-8859-1'):
+            try:
+                s = ElementTree.tostring(e, encoding)
+            except UnicodeError:
+                continue
+            else:
+                break
+        return unicode(s)
