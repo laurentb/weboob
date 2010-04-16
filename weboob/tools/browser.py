@@ -123,13 +123,13 @@ class BaseBrowser(mechanize.Browser):
 
         # Share cookies with firefox
         if firefox_cookies and HAVE_COOKIES:
-            self.__cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
-            self.__cookie.load()
-            self.set_cookiejar(self.__cookie)
+            self._cookie = FirefoxCookieJar(self.DOMAIN, firefox_cookies)
+            self._cookie.load()
+            self.set_cookiejar(self._cookie)
         else:
-            self.__cookie = None
+            self._cookie = None
 
-        self.__parser = parser
+        self.parser = parser
         self.page = None
         self.last_update = 0.0
         self.username = username
@@ -154,7 +154,8 @@ class BaseBrowser(mechanize.Browser):
 
     def change_location(func):
         def inner(self, *args, **kwargs):
-            if args and isinstance(args[0], (str,unicode)) and args[0][0] == '/' and (not self.request or self.request.host != self.DOMAIN):
+            if args and isinstance(args[0], (str,unicode)) and args[0][0] == '/' and \
+               (not self.request or self.request.host != self.DOMAIN):
                 args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
 
             return func(self, *args, **kwargs)
@@ -173,12 +174,12 @@ class BaseBrowser(mechanize.Browser):
 
     def submit(self, *args, **kwargs):
         try:
-            self.__change_location(mechanize.Browser.submit(self, *args, **kwargs))
+            self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
             raise BrowserUnavailable()
-        except (mechanize.BrowserStateError,BrowserRetry):
+        except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             raise BrowserUnavailable()
 
@@ -187,12 +188,12 @@ class BaseBrowser(mechanize.Browser):
 
     def follow_link(self, *args, **kwargs):
         try:
-            self.__change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
+            self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             error(e)
             self.page = None
             raise BrowserUnavailable()
-        except (mechanize.BrowserStateError,BrowserRetry):
+        except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             raise BrowserUnavailable()
 
@@ -202,7 +203,7 @@ class BaseBrowser(mechanize.Browser):
         keep_kwargs = kwargs.copy()
 
         try:
-            self.__change_location(mechanize.Browser.open(self, *args, **kwargs))
+            self._change_location(mechanize.Browser.open(self, *args, **kwargs))
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
@@ -214,7 +215,7 @@ class BaseBrowser(mechanize.Browser):
             self.home()
             self.location(*keep_args, **keep_kwargs)
 
-    def __change_location(self, result):
+    def _change_location(self, result):
         # Find page from url
         pageCls = None
         for key, value in self.PAGES.items():
@@ -237,7 +238,7 @@ class BaseBrowser(mechanize.Browser):
         debug('[%s] Gone on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
-        document = self.__parser.parse(result, self.ENCODING)
+        document = self.parser.parse(result, self.ENCODING)
         self.page = pageCls(self, document, result.geturl())
         self.page.on_loaded()
 
@@ -246,8 +247,8 @@ class BaseBrowser(mechanize.Browser):
             self.login()
             return
 
-        if self.__cookie:
-            self.__cookie.save()
+        if self._cookie:
+            self._cookie.save()
 
     def str(self, s):
         if isinstance(s, unicode):
@@ -275,4 +276,3 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ClientForm.ControlNotFoundError:
             return
-
