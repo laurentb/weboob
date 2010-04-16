@@ -115,7 +115,8 @@ class BaseBrowser(mechanize.Browser):
 
     # ------ Browser methods ---------------------------------------
 
-    def __init__(self, username=None, password=None, firefox_cookies=None, parser=get_parser(), history=NoHistory()):
+    def __init__(self, username=None, password=None, firefox_cookies=None,
+                 parser=None, history=NoHistory()):
         mechanize.Browser.__init__(self, history=history)
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -129,6 +130,8 @@ class BaseBrowser(mechanize.Browser):
         else:
             self._cookie = None
 
+        if parser is None:
+            parser = get_parser()()
         self.parser = parser
         self.page = None
         self.last_update = 0.0

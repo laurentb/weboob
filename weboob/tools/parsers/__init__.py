@@ -26,23 +26,23 @@ __all__ = ['get_parser', 'NoParserFound']
 
 class NoParserFound(Exception): pass
 
-def load_lxml(*args, **kwargs):
+def load_lxml():
     from .lxmlparser import LxmlHtmlParser
-    return LxmlHtmlParser()
+    return LxmlHtmlParser
 
-def load_html5lib(*args, **kwargs):
+def load_html5lib():
     from .html5libparser import Html5libParser
-    return Html5libParser(*args, **kwargs)
+    return Html5libParser
 
-def load_elementtidy(*args, **kwargs):
+def load_elementtidy():
     from .elementtidyparser import ElementTidyParser
-    return ElementTidyParser()
+    return ElementTidyParser
 
-def load_buildtin(*args, **kwargs):
+def load_buildtin():
     from .htmlparser import HTMLParser
-    return HTMLParser()
+    return HTMLParser
 
-def get_parser(preference_order=['lxml', 'html5lib', 'elementtidy', 'builtin'], *args, **kwargs):
+def get_parser(preference_order=['lxml', 'html5lib', 'elementtidy', 'builtin']):
     """
     Get a parser from a preference order list.
     This allows Weboob to run on systems without lxml, which is the default parser.
