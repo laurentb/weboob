@@ -26,6 +26,21 @@ __all__ = ['get_parser', 'NoParserFound']
 
 class NoParserFound(Exception): pass
 
+def load_lxml(*args, **kwargs):
+    from .lxmlparser import LxmlHtmlParser
+    return LxmlHtmlParser()
+
+def load_html5lib(*args, **kwargs):
+    from .html5libparser import Html5libParser
+    return Html5libParser(*args, **kwargs)
+
+def load_elementtidy(*args, **kwargs):
+    from .elementtidyparser import ElementTidyParser
+    return ElementTidyParser()
+
+def load_buildtin(*args, **kwargs):
+    from .htmlparser import HTMLParser
+    return HTMLParser()
 
 def get_parser(preference_order=['lxml', 'html5lib', 'elementtidy', 'builtin'], *args, **kwargs):
     """
@@ -36,28 +51,12 @@ def get_parser(preference_order=['lxml', 'html5lib', 'elementtidy', 'builtin'], 
     if not isinstance(preference_order, (tuple, list)):
         preference_order = [preference_order]
     for kind in preference_order:
-        if kind == 'lxml':
-            try:
-                from .lxmlparser import LxmlHtmlParser
-                return LxmlHtmlParser()
-            except ImportError:
-                logging.debug('%s is not installed.' % kind)
-        elif kind == 'html5lib':
-            try:
-                from .html5libparser import Html5libParser
-                return Html5libParser(*args, **kwargs)
-            except ImportError:
-                logging.debug('%s is not installed.' % kind)
-        elif kind == 'elementtidy':
-            try:
-                from .elementtidyparser import ElementTidyParser
-                return ElementTidyParser()
-            except ImportError:
-                logging.debug('%s is not installed.' % kind)
-        elif kind == 'builtin':
-            try:
-                from .htmlparser import HTMLParser
-                return HTMLParser()
-            except ImportError:
-                logging.debug('%s is not installed.' % kind)
+        if not 'load_%s' % kind in globals():
+            continue
+
+        try:
+            return globals()['load_%s' % kind]()
+        except ImportError:
+            logging.debug('%s is not installed.' % kind)
+
     raise NoParserFound()
