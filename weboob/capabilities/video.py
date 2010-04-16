@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .cap import ICap
 
+
+__all__ = ['ICapVideoProvider', 'Video']
+
+
 class Video(object):
     def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0, rating_max=0):
         self.id = _id
