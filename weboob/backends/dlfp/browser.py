@@ -28,14 +28,6 @@ from .tools import id2url, id2threadid, id2contenttype
 
 from weboob.tools.parsers.htmlparser import HTMLParser
 
-# Parser
-class DLFParser(HTMLParser):
-    def parse(self, data, encoding):
-        s = data.read()
-        s = s.replace('<<', '<')
-        data = StringIO(s)
-        return HTMLParser.parse(self, data, encoding)
-
 # Browser
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
@@ -46,10 +38,6 @@ class DLFP(BaseBrowser):
              'https://linuxfr.org/login.html': LoginPage,
              'https://linuxfr.org/.*/\d+.html': ContentPage
             }
-
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = DLFParser()
-        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         return self.location('https://linuxfr.org')
