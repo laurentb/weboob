@@ -21,10 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
 
-try:
-    import hildon
-except ImportError:
-    raise ImportError("Unable to import hildon http://maemo.org/packages/view/python-hildon/")
+import hildon
 
 import gtk
 
@@ -86,7 +83,6 @@ class TransilienUI():
 
         liste = []
 
-        #liste = ConfFile('/opt/masstransit/masstransit.cfg').config.items('ListeDesGares')
         for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station)
@@ -142,16 +138,25 @@ class TransilienUI():
         "update departures"
         self.treestore.clear()
         for backend in self.weboob.iter_backends():
-            for station in backend.iter_station_search(self.combo_source.get_current_text()):
-                for arrival in backend.iter_station_search(self.combo_dest.get_current_text()):
-                    for departure in backend.iter_station_departures(station.id, arrival.id):
-                        self.treestore.append(None, [departure.type, departure.time, departure.arrival_station, departure.information])
+            for station in \
+            backend.iter_station_search(self.combo_source.get_current_text()):
+                for arrival in \
+                backend.iter_station_search(self.combo_dest.get_current_text()):
+                    for departure in \
+                    backend.iter_station_departures(station.id, arrival.id):
+                        self.treestore.append(None, 
+                                             [departure.type, 
+                                             departure.time, 
+                                             departure.arrival_station, 
+                                             departure.information])
 
 
 class Travel(BaseApplication):
+    "Application Class"
     APPNAME = 'travel'
 
     def main(self, argv):
+        "main fonction"
         self.weboob.load_modules(ICapTravel)
         TransilienUI(self.weboob)
         gtk.main()
