@@ -88,7 +88,7 @@ class Weboob:
     def iter_backends(self, caps=None):
         for name, backend in self.backends.iteritems():
             if caps is None or backend.has_caps(caps):
-                yield (name, backend)
+                yield backend
 
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)

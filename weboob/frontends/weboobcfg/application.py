@@ -106,8 +106,8 @@ class WeboobCfg(ConsoleApplication):
 
     @ConsoleApplication.command('Remove a backend')
     def command_remove(self, name):
-        if not name in self.weboob.backends_config.iter_backends():
+        try:
+            self.weboob.backends_config.remove_backend(name)
+        except ConfigParser.NoSectionError:
             print >>sys.stderr, "Backend '%s' does not exist" % name
             return 1
-
-        self.weboob.backends_config.remove_backend(name)

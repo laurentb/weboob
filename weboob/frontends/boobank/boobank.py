@@ -39,13 +39,13 @@ class Boobank(ConsoleApplication):
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
         accounts = []
-        for name, backend, in self.weboob.iter_backends():
+        for backend, in self.weboob.iter_backends():
             try:
                 for account in backend.iter_accounts():
                     accounts.append('%17s   %-20s   %11.2f   %11.2f' % (
                         account.id, account.label, account.balance, account.coming))
             except weboob.tools.browser.BrowserIncorrectPassword:
-                print >>sys.stderr, 'Error: Incorrect password for backend %s' % name
+                print >>sys.stderr, 'Error: Incorrect password for backend %s' % backend.name
                 return 1
         if len(accounts):
             print '               ID   Account                    Balance        Coming  '
@@ -58,7 +58,7 @@ class Boobank(ConsoleApplication):
     def command_coming(self, id):
         operations = []
         found = 0
-        for name, backend in self.weboob.iter_backends():
+        for backend in self.weboob.iter_backends():
             try:
                 account = backend.get_account(id)
             except AccountNotFound:

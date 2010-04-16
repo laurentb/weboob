@@ -59,5 +59,5 @@ class HaveSex(PromptApplication):
 
     @PromptApplication.command("start profiles walker")
     def command_walker(self):
-        for name, backend in self.weboob.iter_backends():
+        for backend in self.weboob.iter_backends():
             backend.start_profiles_walker()

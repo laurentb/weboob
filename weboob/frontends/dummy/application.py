@@ -31,8 +31,8 @@ class Dummy(BaseApplication):
     def main(self, argv):
         self.weboob.load_backends()
 
-        for name, backend in self.weboob.iter_backends():
-            print 'Backend [%s]' % name
+        for backend in self.weboob.iter_backends():
+            print 'Backend [%s]' % backend.name
             if backend.has_caps(ICapMessages):
                 print '|- ICapMessages        [Print its messages]'
                 for message in backend.iter_messages():

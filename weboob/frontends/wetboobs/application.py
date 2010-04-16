@@ -35,7 +35,7 @@ class WetBoobs(ConsoleApplication):
         print '| ID                             | Name                                        |'
         print '+--------------------------------+---------------------------------------------+'
         count = 0
-        for name, backend, in self.weboob.iter_backends():
+        for backend, in self.weboob.iter_backends():
             for city in backend.iter_city_search(pattern):
                 print u'| %-31s| %-44s|' % (city.city_id, city.name)
                 count += 1
@@ -49,7 +49,7 @@ class WetBoobs(ConsoleApplication):
         print '| Temperature | Text                                                           |'
         print '+-------------+----------------------------------------------------------------+'
         found = 0
-        for name, backend, in self.weboob.iter_backends():
+        for backend, in self.weboob.iter_backends():
             try:
                 current = backend.get_current(city)
                 print u'| %-12s| %-63s|' % (u'%d °%s' % (current.temp, current.unit), current.text)
@@ -67,7 +67,7 @@ class WetBoobs(ConsoleApplication):
         print '| Date        |   Min |   Max | Text                                           |'
         print '+-------------+-------+-------+------------------------------------------------+'
         found = 0
-        for name, backend, in self.weboob.iter_backends():
+        for backend, in self.weboob.iter_backends():
             try:
                 for f in backend.iter_forecast(city):
                     found = 1
