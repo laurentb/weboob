@@ -87,7 +87,7 @@ class TransilienUI():
         liste = []
 
         #liste = ConfFile('/opt/masstransit/masstransit.cfg').config.items('ListeDesGares')
-        for None, backend in self.weboob.iter_backends():
+        for name, backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station)
 
