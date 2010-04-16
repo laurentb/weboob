@@ -35,7 +35,7 @@ class LoginPage(CragrBasePage):
             try:
                 self.browser['userLogin'] = login
                 self.browser['userPassword'] = password
-            except ClientForm.ControlNotFoundError, e:
+            except ClientForm.ControlNotFoundError:
                 self.browser.controls.append(ClientForm.TextControl('text', 'userLogin', {'value': ''}))
                 self.browser.controls.append(ClientForm.TextControl('text', 'userPassword', {'value': ''}))
                 self.browser.set_all_readonly(False)

@@ -25,10 +25,6 @@ except ImportError, e:
 
 from mechanize import CookieJar, Cookie
 
-#import sys, logging
-#logger = logging.getLogger("mechanize")
-#logger.addHandler(logging.StreamHandler(sys.stdout))
-#logger.setLevel(logging.DEBUG)
 
 class FirefoxCookieJar(CookieJar):
     def __init__(self, domain, sqlite_file=None, policy=None):

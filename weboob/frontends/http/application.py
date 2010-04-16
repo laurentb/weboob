@@ -24,7 +24,7 @@ from mako.lookup import TemplateLookup
 import wee
 from wsgiref.simple_server import make_server
 
-from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
+from weboob.capabilities.messages import ICapMessages
 from weboob.tools.application import BaseApplication
 
 class HTTPApplication(BaseApplication):

@@ -49,7 +49,7 @@ class BaseApplication(object):
         """
         if klass is None:
             # load StandardStorage only here because some applications don't
-            # want # to depend on yaml and do not use this function
+            # want to depend on yaml and do not use this function
             from weboob.tools.storage import StandardStorage
             klass = StandardStorage
 

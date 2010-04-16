@@ -128,7 +128,7 @@ class ModulesLoader:
         return self.modules[name]
 
     def load(self):
-        path = backends.__path__[0]
+        path = weboob.backends.__path__[0]
         regexp = re.compile('^%s/([\w\d_]+)$' % path)
         for root, dirs, files in os.walk(path):
             m = regexp.match(root)
