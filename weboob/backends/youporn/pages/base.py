@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import ClientForm
+from mechanize import FormNotFoundError
 from weboob.tools.browser import BasePage
 
 class PornPage(BasePage):
@@ -27,5 +28,5 @@ class PornPage(BasePage):
             self.browser.select_form(nr=0)
             self.browser.submit(name='user_choice')
             return False
-        except ClientForm.ControlNotFoundError, e:
+        except (ClientForm.ControlNotFoundError,FormNotFoundError):
             return True

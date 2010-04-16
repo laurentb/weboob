@@ -29,7 +29,7 @@ class VideoPage(PornPage):
     URL_REGEXP = re.compile("https?://[w\.]*youporn.com/watch/(\d+)/?.*")
 
     def on_loaded(self):
-        if not PornPage.loaded(self):
+        if not PornPage.on_loaded(self):
             return
 
         self.video = Video(self.get_id(),
