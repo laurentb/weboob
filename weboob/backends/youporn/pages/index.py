@@ -19,8 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from .base import PornPage
+from weboob.capabilities.video import Video
 
 class IndexPage(PornPage):
-    def loaded(self):
-        if not PornPage.loaded(self):
-            return
+    def iter_videos(self):
+        for h1 in self.document.getiterator('h1'):
+            a = h1.find('a')
+            if a is None:
+                continue
+
+            url = a.attrib['href']
+            _id = url[len('/watch/'):]
+            _id = _id[:_id.find('/')]
+            title = a.text
+            yield Video(int(_id), title)

@@ -53,6 +53,9 @@ class YoupornBackend(Backend, ICapVideoProvider):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
+    def iter_search_results(self, pattern=None):
+        return self.browser.iter_search_results(pattern)
+
     @need_url
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

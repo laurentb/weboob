@@ -35,6 +35,15 @@ class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
+    def iter_search_results(self, pattern=None):
+        """
+        Iter results of a search on a pattern. Note that if pattern is None,
+        it get the latest videos.
+
+        @param pattern  [str] pattern to search on
+        """
+        raise NotImplementedError()
+
     def get_video(self, _id):
         """
         Get a Video from an ID.

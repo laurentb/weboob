@@ -49,6 +49,24 @@ class Videoob(ConsoleApplication):
                 print u"| Rating          | %s" % video.rating
             print u"'-----------------'                                                             "
 
+    @ConsoleApplication.command('Search videos')
+    def command_search(self, pattern=None):
+        print u'.------------------------------------------------------------------------------.'
+        if pattern:
+            print u'| %-76s |' % (u'Search: %s' % pattern)
+        else:
+            print u'| %-76s |' % 'Last videos'
+        print u"+------------.-----------------------------------------------------------------'"
+        for backend in self.weboob.iter_backends():
+            try:
+                iterator = backend.iter_search_results(pattern)
+            except NotImplementedError:
+                continue
+            else:
+                for video in iterator:
+                    print u"| %10d | %-63s |" % (video.id, video.title)
+        print u"'--------------'---------------------------------------------------------------'"
+
     @ConsoleApplication.command('Get video file URL from page URL')
     def command_file_url(self, url):
         for backend in self.weboob.iter_backends(ICapVideoProvider):

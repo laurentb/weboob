@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import re
+import urllib
 
 from weboob.tools.browser import Browser
 
@@ -29,6 +30,7 @@ class YoupornBrowser(Browser):
     DOMAIN = 'youporn.com'
     PROTOCOL = 'http'
     PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
+             'http://[w\.]*youporn\.com/search.*': IndexPage,
              'http://[w\.]*youporn\.com/watch/.+': VideoPage,
             }
 
@@ -38,9 +40,18 @@ class YoupornBrowser(Browser):
 
     def id2url(self, _id):
         if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
-            return 'http://www.youporn.com/watch/%d' % _id
+            return 'http://www.youporn.com/watch/%d' % int(_id)
         else:
             return str(_id)
+
+    def iter_search_results(self, pattern):
+        if not pattern:
+            self.home()
+        else:
+            self.location('/search?query=%s' % urllib.quote_plus(pattern))
+
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
 
     def get_video(self, _id):
         self.location(self.id2url(_id))
