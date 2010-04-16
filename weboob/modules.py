@@ -30,6 +30,10 @@ import weboob.backends
 from weboob.backend import BaseBackend
 from weboob.capabilities.cap import ICap
 
+
+__all__ = ['Module']
+
+
 class Module:
     def __init__(self, name, module):
         self.name = name

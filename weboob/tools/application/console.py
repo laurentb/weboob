@@ -26,6 +26,10 @@ from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
 
+
+__all__ = ['ConsoleApplication']
+
+
 class ConsoleApplication(BaseApplication):
     def __init__(self):
         try:

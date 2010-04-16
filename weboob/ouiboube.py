@@ -24,7 +24,11 @@ from logging import warning
 from weboob.modules import ModulesLoader, BackendsConfig
 from weboob.scheduler import Scheduler
 
-class Weboob:
+
+__all__ = ['Weboob']
+
+
+class Weboob(object):
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 

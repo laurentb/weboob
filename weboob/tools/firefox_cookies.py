@@ -26,6 +26,9 @@ except ImportError, e:
 from mechanize import CookieJar, Cookie
 
 
+__all__ = ['FirefoxCookieJar']
+
+
 class FirefoxCookieJar(CookieJar):
     def __init__(self, domain, sqlite_file=None, policy=None):
         CookieJar.__init__(self, policy)

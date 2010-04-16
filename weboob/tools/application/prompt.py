@@ -28,6 +28,10 @@ from weboob.scheduler import Scheduler
 
 from .console import ConsoleApplication
 
+
+__all__ = ['PromptApplication']
+
+
 class PromptScheduler(Scheduler):
     def __init__(self, prompt_cb, read_cb):
         self.scheduler = sched.scheduler(time.time, self.sleep)

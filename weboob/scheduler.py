@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import sched
 import time
 
+
+__all__ = ['Scheduler']
+
+
 class Scheduler(object):
     def __init__(self):
         self.scheduler = sched.scheduler(time.time, time.sleep)

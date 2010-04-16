@@ -24,6 +24,10 @@ from optparse import OptionParser
 
 from weboob import Weboob
 
+
+__all__ = ['BaseApplication']
+
+
 class BaseApplication(object):
     # Application name
     APPNAME = ''

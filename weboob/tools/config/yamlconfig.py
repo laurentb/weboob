@@ -25,6 +25,10 @@ import yaml
 
 from .iconfig import IConfig, ConfigError
 
+
+__all__ = ['YamlConfig']
+
+
 class YamlConfig(IConfig):
     def __init__(self, path):
         self.path = path

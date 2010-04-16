@@ -25,7 +25,7 @@ from weboob.tools.parsers.lxmlhtmlparser import LxmlHtmlParser
 
 from .pages import VideoPage
 
-    video_signature_regex = re.compile(r'&t=([^ ,&]*)')
+__all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
     video_signature_regex = re.compile(r'&t=([^ ,&]*)')
