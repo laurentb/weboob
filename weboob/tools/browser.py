@@ -104,12 +104,18 @@ class BaseBrowser(mechanize.Browser):
     def login(self):
         """
         Login to the website.
+
+        This function is called when is_logged() returns False and the password
+        attribute is not None.
         """
         raise NotImplementedError()
 
     def is_logged(self):
         """
-        Return True if we are loggen on website.
+        Return True if we are logged on website. When Browser tries to access
+        to a page, if this method returns False, it calls login().
+
+        It is never called if the password attribute is None.
         """
         raise NotImplementedError()
 
@@ -117,6 +123,17 @@ class BaseBrowser(mechanize.Browser):
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
                  parser=None, history=NoHistory()):
+        """
+        Constructor of Browser.
+
+        @param username [str] username on website.
+        @param password [str] password on website. If it is None, Browser will
+                              not try to login.
+        @param filefox_cookies [str] Path to cookies' sqlite file.
+        @param parser [IParser]  parser to use on HTML files.
+        @param hisory [object]  History manager. Default value is an object
+                                which does not keep history.
+        """
         mechanize.Browser.__init__(self, history=history)
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
@@ -132,6 +149,8 @@ class BaseBrowser(mechanize.Browser):
 
         if parser is None:
             parser = get_parser()()
+        elif isinstance(parser, (tuple,list)):
+            parser = get_parser(parser)()
         self.parser = parser
         self.page = None
         self.last_update = 0.0
@@ -166,6 +185,9 @@ class BaseBrowser(mechanize.Browser):
 
     @change_location
     def openurl(self, *args, **kwargs):
+        """
+        Open an URL but do not create a Page object.
+        """
         try:
             return mechanize.Browser.open(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
@@ -176,6 +198,9 @@ class BaseBrowser(mechanize.Browser):
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def submit(self, *args, **kwargs):
+        """
+        Submit the selected form.
+        """
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
@@ -202,6 +227,16 @@ class BaseBrowser(mechanize.Browser):
 
     @change_location
     def location(self, *args, **kwargs):
+        """
+        Change location of browser on an URL.
+
+        When the page is loaded, it looks up PAGES to find a regexp which
+        matches, and create the object. Then, the 'on_loaded' method of
+        this object is called.
+
+        If a password is set, and is_logged() returns False, it tries to login
+        with login() and reload the page.
+        """
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
 
@@ -219,6 +254,11 @@ class BaseBrowser(mechanize.Browser):
             self.location(*keep_args, **keep_kwargs)
 
     def _change_location(self, result):
+        """
+        This function is called when we have moved to a page, to load a Page
+        object.
+        """
+
         # Find page from url
         pageCls = None
         for key, value in self.PAGES.items():
@@ -259,6 +299,15 @@ class BaseBrowser(mechanize.Browser):
         return s
 
     def set_field(self, args, label, field=None, value=None, is_list=False):
+        """
+        Set a value to a form field.
+
+        @param args [dict]  arguments where to look for value.
+        @param label [str]  label in args.
+        @param field [str]  field name. If None, use label instead.
+        @param value [str]  value to give on field.
+        @param is_list [bool]  the field is a list.
+        """
         try:
             if not field:
                 field = label
