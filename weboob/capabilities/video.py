@@ -20,12 +20,33 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .cap import ICap
 
+class Video(object):
+    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0):
+        self.id = _id
+        self.title = title
+        self.url = url
+        self.author = author
+        self.duration = duration
+        self.date = date
+        self.rating = rating
+
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
+    def get_video(self, _id):
+        """
+        Get a Video from an ID.
+
+        @param _id  the video id. It can be a numeric ID, or a page url, or so.
+        @return  a Video object
+        """
+        raise NotImplementedError()
+
+    # XXX deprecated
     def get_video_title(self, page_url):
         raise NotImplementedError()
 
+    # XXX deprecated
     def get_video_url(self, page_url):
         raise NotImplementedError()
