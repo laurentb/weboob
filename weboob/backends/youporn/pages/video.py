@@ -28,7 +28,7 @@ from weboob.capabilities.video import Video
 class VideoPage(PornPage):
     URL_REGEXP = re.compile("https?://[w\.]*youporn.com/watch/(\d+)/?.*")
 
-    def loaded(self):
+    def on_loaded(self):
         if not PornPage.loaded(self):
             return
 

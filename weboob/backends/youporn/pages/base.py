@@ -22,7 +22,7 @@ import ClientForm
 from weboob.tools.browser import BasePage
 
 class PornPage(BasePage):
-    def loaded(self):
+    def on_loaded(self):
         try:
             self.browser.select_form(nr=0)
             self.browser.submit(name='user_choice')
