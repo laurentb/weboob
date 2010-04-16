@@ -79,7 +79,9 @@ class VideoPage(PornPage):
             elif name == 'Submitted:':
                 v.author = li.find('i').text
             elif name == 'Rating:':
-                v.rating = float(value[:value.find(' ')])
+                r = value.split()
+                v.rating = float(r[0])
+                v.rating_max = float(r[2])
             elif name == 'Date:':
                 m = self.DATE_REGEXP.match(value)
                 if m:

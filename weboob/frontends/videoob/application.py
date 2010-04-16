@@ -43,7 +43,10 @@ class Videoob(ConsoleApplication):
             print u"| URL             | %s" % video.url
             print u"| Author          | %s" % video.author
             print u"| Date            | %s" % video.date
-            print u"| Rating          | %s" % video.rating
+            if video.rating_max:
+                print u"| Rating          | %s / %s" % (video.rating, video.rating_max)
+            elif video.rating:
+                print u"| Rating          | %s" % video.rating
             print u"'-----------------'                                                             "
 
     @ConsoleApplication.command('Get video file URL from page URL')

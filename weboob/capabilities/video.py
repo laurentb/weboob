@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from .cap import ICap
 
 class Video(object):
-    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0):
+    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0, rating_max=0):
         self.id = _id
         self.title = title
         self.url = url
@@ -29,6 +29,7 @@ class Video(object):
         self.duration = duration
         self.date = date
         self.rating = rating
+        self.rating_max = rating_max
 
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
