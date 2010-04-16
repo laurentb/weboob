@@ -23,7 +23,7 @@ from weboob.capabilities.bank import Operation
 
 class AccountComing(BasePage):
 
-    def loaded(self):
+    def on_loaded(self):
         self.operations = []
 
         for tr in self.document.getiterator('tr'):

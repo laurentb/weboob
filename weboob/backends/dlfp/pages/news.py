@@ -103,7 +103,7 @@ class Article(object):
         self.part2 = self.browser.tostring(div)
 
 class ContentPage(DLFPPage):
-    def loaded(self):
+    def on_loaded(self):
         self.article = None
         for div in self.document.find('body').find('div').findall('div'):
             self.parse_div(div)

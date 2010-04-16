@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage
 from weboob.backends.bnporc.captcha import Captcha, TileError
 
 class LoginPage(BasePage):
-    def loaded(self):
+    def on_loaded(self):
         pass
 
     def login(self, login, password):

@@ -22,7 +22,7 @@ from weboob.capabilities.bank import Account
 from .base import CragrBasePage
 
 class AccountsList(CragrBasePage):
-    def loaded(self):
+    def on_loaded(self):
         pass
 
     def get_list(self):

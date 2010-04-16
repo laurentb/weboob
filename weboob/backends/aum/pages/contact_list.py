@@ -97,7 +97,7 @@ class ContactItem:
 
 
 class ContactListPage(PageBase):
-    def loaded(self):
+    def on_loaded(self):
         self.items = []
 
         tags = self.document.getElementsByTagName('form')[0].childNodes[3].childNodes[1].childNodes

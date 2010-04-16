@@ -28,7 +28,7 @@ class ProfilesListBase(PageBase):
     WITHOUT_PHOTO = 'http://s.adopteunmec.com/img/thumb0.gif'
     SHOW_WITHOUT_PHOTO = True
 
-    def loaded(self):
+    def on_loaded(self):
 
         self.id_list = []
 

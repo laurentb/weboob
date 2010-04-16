@@ -21,5 +21,5 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.tools.browser import BasePage
 
 class RoutePage(BasePage):
-    def loaded(self):
+    def on_loaded(self):
         return

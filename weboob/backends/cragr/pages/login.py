@@ -23,7 +23,7 @@ import ClientForm
 from .base import CragrBasePage
 
 class LoginPage(CragrBasePage):
-    def loaded(self):
+    def on_loaded(self):
         pass
 
     def login(self, login, password):

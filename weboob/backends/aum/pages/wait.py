@@ -24,7 +24,7 @@ from time import sleep
 
 class WaitPage(PageBase):
 
-    def loaded(self):
+    def on_loaded(self):
         raise AdopteWait()
 
     def check(self):

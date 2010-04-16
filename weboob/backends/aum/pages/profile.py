@@ -235,7 +235,7 @@ class ProfilePage(PageBase, Profile):
             name = self.name
         return '<Profile name="%s">' % name
 
-    def loaded(self):
+    def on_loaded(self):
         self.name = u''
         self.description = u''
         self.table = deepcopy(self.empty_table)

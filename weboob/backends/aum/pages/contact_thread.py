@@ -266,7 +266,7 @@ class ContactThreadPage(PageBase):
 
     id_regexp = re.compile("/thread.php\?id=([0-9]+)")
 
-    def loaded(self):
+    def on_loaded(self):
         self.items = []
 
         a_list = self.document.getElementsByTagName('a')

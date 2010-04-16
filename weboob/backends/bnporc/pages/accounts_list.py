@@ -26,7 +26,7 @@ from weboob.tools.browser import BasePage
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 
-    def loaded(self):
+    def on_loaded(self):
         pass
 
     def get_list(self):

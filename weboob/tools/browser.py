@@ -69,7 +69,7 @@ class BasePage(object):
         self.document = document
         self.url = url
 
-    def loaded(self):
+    def on_loaded(self):
         """
         Called when the page is loaded.
         """
@@ -234,7 +234,7 @@ class BaseBrowser(mechanize.Browser):
 
         document = self.__parser.parse(result, self.ENCODING)
         self.page = pageCls(self, document, result.geturl())
-        self.page.loaded()
+        self.page.on_loaded()
 
         if self.password is not None and not self.is_logged():
             debug('!! Relogin !!')

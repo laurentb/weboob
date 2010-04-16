@@ -70,7 +70,7 @@ class RegisterConfirmPage(PageBase):
     pass
 
 class RedirectPage(PageBase):
-    def loaded(self):
+    def on_loaded(self):
         for link in self.browser.links():
             print link
         self.browser.location('/wait.php')
@@ -82,5 +82,5 @@ class ShopPage(PageBase):
     pass
 
 class ErrPage(PageBase):
-    def loaded(self):
+    def on_loaded(self):
         raise BrowserIncorrectPassword('Incorrect login/password')
