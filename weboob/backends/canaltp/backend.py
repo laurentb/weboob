@@ -18,12 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 
 from .browser import CanalTP
 
-class CanalTPBackend(Backend, ICapTravel):
+class CanalTPBackend(BaseBackend, ICapTravel):
     NAME = 'canaltp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'

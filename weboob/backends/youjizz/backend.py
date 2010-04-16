@@ -18,12 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoujizzBrowser
 
-class YoujizzBackend(Backend, ICapVideoProvider):
+class YoujizzBackend(BaseBackend, ICapVideoProvider):
     NAME = 'youjizz'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'

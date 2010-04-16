@@ -18,12 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoutubeBrowser
 
-class YoutubeBackend(Backend, ICapVideoProvider):
+class YoutubeBackend(BaseBackend, ICapVideoProvider):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'

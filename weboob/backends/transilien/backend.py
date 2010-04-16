@@ -18,13 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 
 from .browser import Transilien
 from .stations import STATIONS
 
-class TransilienBackend(Backend, ICapTravel):
+class TransilienBackend(BaseBackend, ICapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'

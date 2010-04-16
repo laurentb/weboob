@@ -22,12 +22,12 @@ import urllib2
 from xml.dom import minidom
 
 # TODO store datetime objects instead of strings
-from datetime import datetime
+# from datetime import datetime
 
-from weboob.backend import Backend
-from weboob.capabilities.weather import ICapWeather, CityNotFound, City, Current, Forecast
+from weboob.backend import BaseBackend
+from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Forecast
 
-class YWeatherBackend(Backend, ICapWeather):
+class YWeatherBackend(BaseBackend, ICapWeather):
     NAME = 'yweather'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'

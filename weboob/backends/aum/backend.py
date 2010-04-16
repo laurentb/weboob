@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
@@ -26,15 +26,15 @@ from weboob.tools.browser import BrowserUnavailable
 from .adopte import AdopteUnMec
 from .optim.profiles_walker import ProfilesWalker
 
-class AuMBackend(Backend, ICapMessages, ICapMessagesReply, ICapDating):
+class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
     DESCRIPTION = "French dating website"
-    CONFIG = {'username':      Backend.ConfigField(description='Username on website'),
-              'password':      Backend.ConfigField(description='Password of account', is_masked=True),
+    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
+              'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
              }
     STORAGE = {'profiles_walker': {'viewed': []} }
 

@@ -18,13 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 
 from .feeds import ArticlesList
 from .browser import DLFP
 
-class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
+class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -32,10 +32,10 @@ class DLFPBackend(Backend, ICapMessages, ICapMessagesReply):
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
 
-    CONFIG = {'username':      Backend.ConfigField(description='Username on website'),
-              'password':      Backend.ConfigField(description='Password of account', is_masked=True),
-              'get_news':      Backend.ConfigField(default=True, description='Get newspapers'),
-              'get_telegrams': Backend.ConfigField(default=False, description='Get telegrams'),
+    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
+              'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
+              'get_news':      BaseBackend.ConfigField(default=True, description='Get newspapers'),
+              'get_telegrams': BaseBackend.ConfigField(default=False, description='Get telegrams'),
              }
     STORAGE = {'seen': {}}
     _browser = None

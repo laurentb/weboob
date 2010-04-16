@@ -18,12 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 
 from .browser import BNPorc
 
-class BNPorcBackend(Backend, ICapBank):
+class BNPorcBackend(BaseBackend, ICapBank):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -31,8 +31,8 @@ class BNPorcBackend(Backend, ICapBank):
     LICENSE = 'GPLv3'
     DESCRIPTION = 'BNP Paribas french bank\' website'
 
-    CONFIG = {'login':    Backend.ConfigField(description='Account ID'),
-              'password': Backend.ConfigField(description='Password of account', is_masked=True)
+    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
+              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
              }
     browser = None
 

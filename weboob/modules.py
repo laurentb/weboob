@@ -26,8 +26,8 @@ import stat
 from ConfigParser import SafeConfigParser
 from logging import warning, debug
 
-import weboob.backends as backends
-from weboob.backend import Backend
+import weboob.backends
+from weboob.backend import BaseBackend
 from weboob.capabilities.cap import ICap
 
 class Module:
@@ -37,11 +37,11 @@ class Module:
         self.klass = None
         for attrname in dir(self.module):
             attr = getattr(self.module, attrname)
-            if isinstance(attr, type) and issubclass(attr, Backend) and attr != Backend:
+            if isinstance(attr, type) and issubclass(attr, BaseBackend) and attr != BaseBackend:
                 self.klass = attr
 
         if not self.klass:
-            raise ImportError("This is not a backend module (no Backend class found)")
+            raise ImportError("This is not a backend module (no BaseBackend class found)")
 
     def get_name(self):
         return self.klass.NAME

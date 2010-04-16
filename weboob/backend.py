@@ -43,7 +43,7 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.save(self.name)
 
-class Backend(object):
+class BaseBackend(object):
     # Module name.
     NAME = None
     # Name of the maintainer of this module.
@@ -79,10 +79,10 @@ class Backend(object):
             value = config.get(name, field.default)
 
             if value is None:
-                raise Backend.ConfigError('Missing parameter "%s" (%s)' % (name, field.description))
+                raise BaseBackend.ConfigError('Missing parameter "%s" (%s)' % (name, field.description))
 
             if field.regexp and re.match(field.regexp, str(value)):
-                raise Backend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
+                raise BaseBackend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
 
             if not field.default is None:
                 if isinstance(field.default, bool) and not isinstance(value, bool):

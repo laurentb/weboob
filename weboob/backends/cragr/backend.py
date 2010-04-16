@@ -18,12 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import Backend
+from weboob.backend import BaseBackend
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 
 from .browser import Cragr
 
-class CragrBackend(Backend, ICapBank):
+class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
@@ -31,9 +31,9 @@ class CragrBackend(Backend, ICapBank):
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
 
-    CONFIG = {'login':    Backend.ConfigField(description='Account ID'),
-              'password': Backend.ConfigField(description='Password of account', is_masked=True),
-              'website':  Backend.ConfigField(description='What website to use', default='m.lefil.com'),
+    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
+              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
+              'website':  BaseBackend.ConfigField(description='What website to use', default='m.lefil.com'),
              }
     browser = None
 
