@@ -18,5 +18,5 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .adopte import AdopteUnMec
+from .browser import AdopteUnMec
 from .backend import AuMBackend

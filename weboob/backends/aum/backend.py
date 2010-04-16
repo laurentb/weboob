@@ -23,7 +23,7 @@ from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
 
-from .adopte import AdopteUnMec
+from .browser import AdopteUnMec
 from .optim.profiles_walker import ProfilesWalker
 
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
