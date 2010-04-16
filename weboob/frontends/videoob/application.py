@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz
+Copyright(C) 2010  Christophe Benz, Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,6 +28,23 @@ class Videoob(ConsoleApplication):
     def main(self, argv):
         self.weboob.load_backends(ICapVideoProvider)
         return self.process_command(*argv[1:])
+
+    @ConsoleApplication.command('Get video information')
+    def command_info(self, _id):
+        for backend in self.weboob.iter_backends(ICapVideoProvider):
+            try:
+                video = backend.get_video(_id)
+            except NotImplementedError:
+                continue
+            print u'.------------------------------------------------------------------------------.'
+            print u'| %-76s |' % (u'%s: %s' % (backend.name, video.title))
+            print u"+-----------------.------------------------------------------------------------'"
+            print u"| Duration        | %d:%02d:%02d" % (video.duration/3600, (video.duration%3600)/60, video.duration%60)
+            print u"| URL             | %s" % video.url
+            print u"| Author          | %s" % video.author
+            print u"| Date            | %s" % video.date
+            print u"| Rating          | %s" % video.rating
+            print u"'-----------------'                                                             "
 
     @ConsoleApplication.command('Get video file URL from page URL')
     def command_file_url(self, url):
