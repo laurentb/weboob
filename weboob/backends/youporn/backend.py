@@ -44,10 +44,14 @@ class YoupornBackend(Backend, ICapVideoProvider):
     def need_url(func):
         def inner(self, *args, **kwargs):
             url = args[0]
-            if u'youporn.com' not in url:
+            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youporn.com' not in url:
                 return None
             return func(self, *args, **kwargs)
         return inner
+
+    @need_url
+    def get_video(self, _id):
+        return self.browser.get_video(_id)
 
     @need_url
     def iter_page_urls(self, mozaic_url):
