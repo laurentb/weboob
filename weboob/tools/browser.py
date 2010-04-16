@@ -249,12 +249,6 @@ class BaseBrowser(mechanize.Browser):
         if self.__cookie:
             self.__cookie.save()
 
-    def tostring(self, elem):
-        """
-        Get HTML string from document.
-        """
-        return self.__parser.dump(elem)
-
     def str(self, s):
         if isinstance(s, unicode):
             s = s.encode('iso-8859-15', 'replace')

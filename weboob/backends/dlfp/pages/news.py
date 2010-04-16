@@ -46,7 +46,7 @@ class Comment(object):
                 self.author = sub.find('a').text
                 self.date = self.parse_date(sub.find('i').tail)
                 self.score = int(sub.findall('i')[1].find('span').text)
-                self.body = self.browser.tostring(sub.find('p'))
+                self.body = self.browser.parser.tostring(sub.find('p'))
             elif sub.attrib.get('class', '') == 'commentsul':
                 comment = Comment(self.browser, sub.find('li'), self.id)
                 self.comments.append(comment)
@@ -88,7 +88,7 @@ class Article(object):
                     date_s = unicode(div.find('i').tail)
                 #print date_s
             if div.attrib.get('class', '').startswith('bodydiv '):
-                self.body = self.browser.tostring(div)
+                self.body = self.browser.parser.tostring(div)
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -100,7 +100,7 @@ class Article(object):
                 yield c
 
     def parse_part2(self, div):
-        self.part2 = self.browser.tostring(div)
+        self.part2 = self.browser.parser.tostring(div)
 
 class ContentPage(DLFPPage):
     def on_loaded(self):
