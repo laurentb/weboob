@@ -21,12 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import re
 import urllib
 
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
 
-class YoupornBrowser(Browser):
+class YoupornBrowser(BaseBrowser):
     DOMAIN = 'youporn.com'
     PROTOCOL = 'http'
     PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
@@ -36,7 +36,7 @@ class YoupornBrowser(Browser):
 
     def __init__(self):
         # Disallow arguments
-        Browser.__init__(self)
+        BaseBrowser.__init__(self)
 
     def id2url(self, _id):
         if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
