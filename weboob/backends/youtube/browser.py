@@ -46,7 +46,7 @@ class YoutubeBrowser(BaseBrowser):
             return None
         data = self.openurl(page_url).read()
         video_signature = find_video_signature(data)
-        m = re.match(r'http://.*\.youtube\.com/watch\?v=(.+)', page_url)
+        m = re.match(r'.*youtube\.com/watch\?v=(.+)', page_url)
         if m:
             video_id = m.group(1)
             url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (video_id, video_signature)
