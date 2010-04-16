@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import urllib
 from cStringIO import StringIO
 
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
 from .tools import id2url, id2threadid, id2contenttype
@@ -37,7 +37,7 @@ class DLFParser(StandardParser):
         return StandardParser.parse(self, data, encoding)
 
 # Browser
-class DLFP(Browser):
+class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
     PAGES = {'https://linuxfr.org/': IndexPage,
@@ -49,7 +49,7 @@ class DLFP(Browser):
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = DLFParser()
-        Browser.__init__(self, *args, **kwargs)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         return self.location('https://linuxfr.org')

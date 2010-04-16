@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from cStringIO import StringIO
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.parser import ElementTidyParser
 from weboob.backends.bnporc import pages
 
@@ -33,7 +33,7 @@ class BNParser(ElementTidyParser):
         return ElementTidyParser.parse(self, data, encoding)
 
 # Browser
-class BNPorc(Browser):
+class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
@@ -51,7 +51,7 @@ class BNPorc(Browser):
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = BNParser()
         kwargs['history'] = None # need history
-        Browser.__init__(self, *args, **kwargs)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')

@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import time
 from logging import warning
 
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.parser import Html5libParser
 
 from weboob.backends.aum.exceptions import AdopteWait
@@ -36,7 +36,7 @@ from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, Er
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
-class AdopteUnMec(Browser):
+class AdopteUnMec(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     PROTOCOL = 'http'
     ENCODING = 'iso-8859-1'
@@ -71,7 +71,7 @@ class AdopteUnMec(Browser):
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = Html5libParser(api='dom')
-        Browser.__init__(self, *args, **kwargs)
+        BaseBrowser.__init__(self, *args, **kwargs)
         self.my_id = 0
 
     def login(self):

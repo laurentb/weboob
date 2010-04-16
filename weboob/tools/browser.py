@@ -75,7 +75,7 @@ class BasePage(object):
         """
         pass
 
-class Browser(mechanize.Browser):
+class BaseBrowser(mechanize.Browser):
     """
     Base browser class to navigate on a website.
     """

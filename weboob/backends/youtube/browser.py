@@ -20,18 +20,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.parser import LxmlHtmlParser
 
 from .pages import VideoPage
 
-class YoutubeBrowser(Browser):
+    video_signature_regex = re.compile(r'&t=([^ ,&]*)')
+
+class YoutubeBrowser(BaseBrowser):
     video_signature_regex = re.compile(r'&t=([^ ,&]*)')
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = LxmlHtmlParser()
-        self.PAGES = {r'http://.*\.youtube\.com/watch\?v=(.+)': VideoPage}
-        Browser.__init__(self, *args, **kwargs)
+        self.PAGES = {r'.*youtube\.com/watch\?v=(.+)': VideoPage}
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def get_video_title(self, page_url):
         self.location(page_url)

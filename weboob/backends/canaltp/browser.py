@@ -19,16 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from datetime import datetime, date, time
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.misc import toUnicode
 
-class CanalTP(Browser):
+class CanalTP(BaseBrowser):
     DOMAIN = 'widget.canaltp.fr'
     PROTOCOL = 'http'
     PAGES = {}
 
     def __init__(self):
-        Browser.__init__(self, '')
+        BaseBrowser.__init__(self, '')
 
     def iter_station_search(self, pattern):
         result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/gare.php?txtrech=%s" % unicode(pattern)).read()

@@ -18,11 +18,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.tools.browser import Browser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.backends.cragr import pages
 
 # Browser
-class Cragr(Browser):
+class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = 'Wget/1.11.4'
@@ -35,7 +35,7 @@ class Cragr(Browser):
                       'https://%s/.*\.c.*'       % website:   pages.AccountsList,
                       'https://%s/login/process' % website:   pages.AccountsList,
                      }
-        Browser.__init__(self, *args, **kwargs)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def viewing_html(self):
         """

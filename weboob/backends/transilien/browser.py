@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from datetime import datetime, date, time
 import HTMLParser
 
-from weboob.tools.browser import Browser
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.misc import toUnicode
 
 from .pages.route import RoutePage
@@ -114,7 +114,7 @@ class Parser(HTMLParser.HTMLParser):
             __curseur_horaire += 1
         return __list_route
 
-class Transilien(Browser):
+class Transilien(BaseBrowser):
     DOMAIN = 'www.transilien.com'
     PROTOCOL = 'http'
     PAGES = {'http://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': RoutePage,
@@ -122,7 +122,7 @@ class Transilien(Browser):
             }
 
     def __init__(self):
-        Browser.__init__(self, '', parser=Parser())
+        BaseBrowser.__init__(self, '', parser=Parser())
 
     def iter_station_search(self, pattern):
         pass
