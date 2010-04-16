@@ -82,15 +82,15 @@ class ConsoleApplication(BaseApplication):
             func = getattr(self, matching_commands[0])
 
             _args, varargs, varkw, defaults = getargspec(func)
-            nb_args = len(_args) - 1
+            nb_max_args = nb_min_args = len(_args) - 1
             if defaults:
-                nb_args -= len(defaults)
+                nb_min_args -= len(defaults)
 
-            if len(args) < nb_args or len(args) > nb_args and not varargs:
-                if varargs:
-                    sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_args))
+            if len(args) < nb_min_args or len(args) > nb_max_args and not varargs:
+                if varargs or default:
+                    sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_min_args))
                 else:
-                    sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_args))
+                    sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
                 return
             return func(*args)
         else:
