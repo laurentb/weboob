@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from cStringIO import StringIO
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.tools.parser import ElementTidyParser
+from weboob.tools.parsers.elementtidyparser import ElementTidyParser
 from weboob.backends.bnporc import pages
 
 # Parser

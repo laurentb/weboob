@@ -34,6 +34,10 @@ except ImportError:
 
 from .iparser import IParser
 
+
+__all__ = ['ElementTidyParser']
+
+
 class ElementTidyParser(IParser):
     def parse(self, data, encoding=None):
         TidyHTMLTreeBuilder.ElementTree = ElementTree
@@ -45,7 +49,7 @@ class ElementTidyParser(IParser):
                 elem.tag = elem.tag[elem.tag.find('}')+1:]
         return tree
 
-    def dump(self, element):
+    def tostring(self, element):
         e = ElementTree.Element('body')
         e.text = element.text
         e.tail = element.tail

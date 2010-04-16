@@ -19,12 +19,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import lxml.html
+
 from .iparser import IParser
 
+
+__all__ = ['LxmlHtmlParser']
+
+
 class LxmlHtmlParser(IParser):
+    """
+    Parser using lxml.
+
+    Note that it is not available on every systems.
+    """
+
     def parse(self, data, encoding=None):
         parser = lxml.html.HTMLParser(encoding=encoding)
         return lxml.html.parse(data, parser)
 
-    def dump(self, element):
+    def tostring(self, element):
         return lxml.html.tostring(element, encoding=unicode)

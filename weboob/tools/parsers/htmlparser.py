@@ -18,8 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-__all__ = ['HTMLParser']
-
 from HTMLParser import HTMLParser as _HTMLParser
 import htmlentitydefs
 try:
@@ -28,6 +26,10 @@ except ImportError:
     from xml.etree import ElementTree
 
 from .iparser import IParser
+
+
+__all__ = ['HTMLParser']
+
 
 class HTMLTreeBuilder(_HTMLParser):
     def __init__(self, encoding=None):
@@ -75,7 +77,7 @@ class HTMLParser(IParser):
                 elem.tag = elem.tag[elem.tag.find('}')+1:]
         return tree
 
-    def dump(self, element):
+    def tostring(self, element):
         e = ElementTree.Element('body')
         e.text = element.text
         e.tail = element.tail

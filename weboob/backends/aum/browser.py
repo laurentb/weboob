@@ -22,7 +22,7 @@ import time
 from logging import warning
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parser import Html5libParser
+from weboob.tools.parsers.html5libparser import Html5libParser
 
 from weboob.backends.aum.exceptions import AdopteWait
 

@@ -26,15 +26,15 @@ from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
 from .tools import id2url, id2threadid, id2contenttype
 
-from weboob.tools.parser import StandardParser
+from weboob.tools.parsers.htmlparser import HTMLParser
 
 # Parser
-class DLFParser(StandardParser):
+class DLFParser(HTMLParser):
     def parse(self, data, encoding):
         s = data.read()
         s = s.replace('<<', '<')
         data = StringIO(s)
-        return StandardParser.parse(self, data, encoding)
+        return HTMLParser.parse(self, data, encoding)
 
 # Browser
 class DLFP(BaseBrowser):

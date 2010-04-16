@@ -26,6 +26,10 @@ except ImportError:
 
 from .iparser import IParser
 
+
+__all__ = ['Html5libParser']
+
+
 class Html5libParser(HTMLParser, IParser):
     """
     Parser using html5lib.
@@ -45,6 +49,6 @@ class Html5libParser(HTMLParser, IParser):
     def parse(self, data, encoding):
         return HTMLParser.parse(self, data, encoding=encoding)
 
-    def dump(self, elem):
+    def tostring(self, elem):
         # TODO
         raise NotImplementedError()

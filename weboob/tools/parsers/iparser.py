@@ -19,12 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 class IParser(object):
-    def dump(self, elem):
-        """
-        Get HTML string from an element.
-        """
-        raise NotImplementedError()
-
     def parse(self, data, encoding=None):
         """
         Parse a HTML document with a specific encoding to get a tree.
@@ -32,5 +26,11 @@ class IParser(object):
         @param data  [str] HTML document
         @param encoding  [str] encoding to use
         @return  an object with the structured document
+        """
+        raise NotImplementedError()
+
+    def tostring(self, elem):
+        """
+        Get HTML string from an element.
         """
         raise NotImplementedError()

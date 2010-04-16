@@ -22,14 +22,9 @@ from logging import error
 import re
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parser import LxmlHtmlParser
 
 class YoujizzBrowser(BaseBrowser):
     video_file_regex = re.compile(r'"(http://media[^ ,]+\.flv)"')
-
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = LxmlHtmlParser()
-        Browser.__init__(self, *args, **kwargs)
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
