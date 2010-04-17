@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import re
+
 from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
@@ -44,7 +46,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
     def need_url(func):
         def inner(self, *args, **kwargs):
             url = args[0]
-            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youtube.com' not in url:
+            if (u'youtube.com' not in url) and not re.match('^\w+$', url):
                 return None
             return func(self, *args, **kwargs)
         return inner

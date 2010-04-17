@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz
+Copyright(C) 2010  Christophe Benz, Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -48,6 +48,15 @@ class YoutubeBrowser(BaseBrowser):
 
         assert self.is_on_page(ResultsPage)
         return self.page.iter_videos()
+
+    def get_video(self, _id):
+        if re.match('^\w+$', _id):
+            url = 'http://www.youtube.com/watch?v=%s' % _id
+        else:
+            url = _id
+
+        self.location(url)
+        return self.page.video
 
     def get_video_title(self, page_url):
         self.location(page_url)

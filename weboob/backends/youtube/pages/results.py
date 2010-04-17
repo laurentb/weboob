@@ -24,7 +24,7 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.video import Video
 
 class ResultsPage(BasePage):
-    WATCH_RE = re.compile('/watch?v=(\w+)')
+    WATCH_RE = re.compile('/watch\?v=(\w+)')
     def iter_videos(self):
         for div in self.document.getroot().cssselect("div[class^=video-entry]"):
             a = div.find('a')
