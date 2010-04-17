@@ -34,7 +34,20 @@
        <item>
         <widget class="QLineEdit" name="searchEdit"/>
        </item>
+       <item>
+        <widget class="QComboBox" name="backendEdit"/>
+       </item>
       </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="nsfwCheckBox">
+      <property name="text">
+       <string>Display NSFW videos</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item>
@@ -51,7 +64,7 @@
          <x>0</x>
          <y>0</y>
          <width>763</width>
-         <height>419</height>
+         <height>393</height>
         </rect>
        </property>
        <property name="styleSheet">

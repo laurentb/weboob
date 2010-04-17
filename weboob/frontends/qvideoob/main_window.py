@@ -36,8 +36,21 @@ class MainWindow(QtMainWindow):
         self.weboob = weboob
         self.minivideos = []
 
+        self.ui.backendEdit.addItem('All backends', '')
+        for backend in self.weboob.iter_backends():
+            self.ui.backendEdit.addItem(backend.name, backend.name)
+
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
+        self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
+
+    def nsfwChanged(self, state):
+        for minivideo in self.minivideos:
+            if minivideo.video.nsfw:
+                if state:
+                    minivideo.show()
+                else:
+                    minivideo.hide()
 
     def search(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -45,15 +58,22 @@ class MainWindow(QtMainWindow):
             return
 
         for minivideo in self.minivideos:
-            self.ui.scrollAreaContent.layout.removeWidget(minivideo)
+            self.ui.scrollAreaContent.layout().removeWidget(minivideo)
+            minivideo.hide()
 
         self.minivideos = []
 
+        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+
         for backend in self.weboob.iter_backends():
+            if backend_name and backend.name != backend_name:
+                continue
             for video in backend.iter_search_results(pattern):
                 minivideo = MiniVideo(backend, video)
                 self.ui.scrollAreaContent.layout().addWidget(minivideo)
                 self.minivideos.append(minivideo)
+                if video.nsfw and not self.ui.nsfwCheckBox.isChecked():
+                    minivideo.hide()
 
     def openURL(self):
         url = unicode(self.ui.urlEdit.text())
