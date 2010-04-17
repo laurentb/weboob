@@ -25,7 +25,7 @@ __all__ = ['ICapVideoProvider', 'Video']
 
 
 class Video(object):
-    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0, rating_max=0, preview_url=None):
+    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0, rating_max=0, preview_url=None, nsfw=False):
         self.id = _id
         self.title = title
         self.url = url
@@ -35,6 +35,7 @@ class Video(object):
         self.rating = rating
         self.rating_max = rating_max
         self.preview_url = preview_url
+        self.nsfw = nsfw
 
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):

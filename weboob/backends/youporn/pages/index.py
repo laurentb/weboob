@@ -64,4 +64,5 @@ class IndexPage(PornPage):
                             rating=rating,
                             rating_max=rating_max,
                             duration=duration,
-                            preview_url=preview_url)
+                            preview_url=preview_url,
+                            nsfw=True)

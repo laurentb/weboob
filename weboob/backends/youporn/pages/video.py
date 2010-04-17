@@ -34,7 +34,8 @@ class VideoPage(PornPage):
 
         self.video = Video(self.get_id(),
                            self.get_title(),
-                           self.get_url())
+                           self.get_url(),
+                           nsfw=True)
 
         self.set_details(self.video)
 
