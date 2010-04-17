@@ -29,12 +29,22 @@ class WeboobCfg(ConsoleApplication):
     def main(self, argv):
         return self.process_command(*argv[1:])
 
+    def caps_included(self, modcaps, caps):
+        modcaps = [x.__name__ for x in modcaps]
+        for cap in caps:
+            if not cap in modcaps:
+                return False
+        return True
+
     @ConsoleApplication.command('List modules')
-    def command_modules(self):
+    def command_modules(self, *caps):
         print '  Name            Capabilities          Description                             '
         print '+--------------+----------------------+----------------------------------------+'
         self.weboob.modules_loader.load()
         for name, module in self.weboob.modules_loader.modules.iteritems():
+            if caps and not self.caps_included(module.iter_caps(), caps):
+                continue
+
             first_line = True
             for cap in module.iter_caps():
                 if first_line:
