@@ -31,6 +31,7 @@ class YoupornBrowser(BaseBrowser):
     PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
              'http://[w\.]*youporn\.com/search.*': IndexPage,
              'http://[w\.]*youporn\.com/watch/.+': VideoPage,
+             'http://[w\.]*youporngay\.com:80/watch/.+': VideoPage,
             }
 
     def __init__(self):
