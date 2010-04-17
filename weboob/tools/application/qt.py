@@ -18,11 +18,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .base import BaseApplication
-from .console import ConsoleApplication
-from .prompt import PromptApplication
+import sys
+from PyQt4.QtGui import QMainWindow, QApplication
 
-try:
-    from .qt import QtApplication
-except ImportError:
-    pass
+from weboob import Weboob
+from weboob.scheduler import Scheduler
+
+from .base import BaseApplication
+
+__all__ = ['QtApplication']
+
+class QtScheduler(Scheduler):
+    def __init__(self, app):
+        self.app = app
+
+    def run(self):
+        self.app.exec_()
+
+class QtApplication(QApplication, BaseApplication):
+    def __init__(self):
+        QApplication.__init__(self, sys.argv)
+        BaseApplication.__init__(self)
+
+    def create_weboob(self):
+        return Weboob(self.APPNAME, scheduler=QtScheduler(self))
+
+class QtMainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        QMainWindow.__init__(self, parent)
