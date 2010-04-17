@@ -43,11 +43,11 @@ class YoupornBrowser(BaseBrowser):
         else:
             return str(_id)
 
-    def iter_search_results(self, pattern):
+    def iter_search_results(self, pattern, sortby):
         if not pattern:
             self.home()
         else:
-            self.location('/search?query=%s' % urllib.quote_plus(pattern))
+            self.location('/search/%s?query=%s' % (sortby, urllib.quote_plus(pattern)))
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

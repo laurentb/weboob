@@ -68,7 +68,7 @@ class MainWindow(QtMainWindow):
         for backend in self.weboob.iter_backends():
             if backend_name and backend.name != backend_name:
                 continue
-            for video in backend.iter_search_results(pattern):
+            for video in backend.iter_search_results(pattern, self.ui.sortbyEdit.currentIndex()):
                 minivideo = MiniVideo(backend, video)
                 self.ui.scrollAreaContent.layout().addWidget(minivideo)
                 self.minivideos.append(minivideo)

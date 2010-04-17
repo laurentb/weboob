@@ -41,12 +41,18 @@ class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
-    def iter_search_results(self, pattern=None):
+    (SEARCH_RELEVANCE,
+     SEARCH_RATING,
+     SEARCH_VIEWS,
+     SEARCH_DATE) = range(4)
+
+    def iter_search_results(self, pattern=None, sortby=SEARCH_RELEVANCE):
         """
         Iter results of a search on a pattern. Note that if pattern is None,
         it get the latest videos.
 
         @param pattern  [str] pattern to search on
+        @param sortby  [enum] sort by...
         """
         raise NotImplementedError()
 

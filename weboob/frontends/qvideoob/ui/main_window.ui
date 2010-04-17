@@ -35,6 +35,36 @@
         <widget class="QLineEdit" name="searchEdit"/>
        </item>
        <item>
+        <widget class="QComboBox" name="sortbyEdit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <item>
+          <property name="text">
+           <string>Relevance</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Rating</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Duration</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Date</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <widget class="QComboBox" name="backendEdit"/>
        </item>
       </layout>

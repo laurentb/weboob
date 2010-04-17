@@ -53,8 +53,9 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def iter_search_results(self, pattern=None):
-        return self.browser.iter_search_results(pattern)
+    SORTBY = ['relevance', 'rating', 'views', 'time']
+    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE):
+        return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
 
     @need_url
     def iter_page_urls(self, mozaic_url):
