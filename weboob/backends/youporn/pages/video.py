@@ -78,7 +78,13 @@ class VideoPage(PornPage):
                         duration += int(word[:word.find('sec')])
                 v.duration = duration
             elif name == 'Submitted:':
-                v.author = li.find('i').text
+                author = li.find('i')
+                if author is None:
+                    author = li.find('a')
+                if author is None:
+                    v.author = value
+                else:
+                    v.author = author.text
             elif name == 'Rating:':
                 r = value.split()
                 v.rating = float(r[0])
