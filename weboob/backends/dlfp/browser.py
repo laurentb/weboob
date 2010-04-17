@@ -19,14 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import urllib
-from cStringIO import StringIO
 
 from weboob.tools.browser import BaseBrowser
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
 from .tools import id2url, id2threadid, id2contenttype
-
-from weboob.tools.parsers.htmlparser import HTMLParser
 
 # Browser
 class DLFP(BaseBrowser):

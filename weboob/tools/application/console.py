@@ -91,7 +91,7 @@ class ConsoleApplication(BaseApplication):
                 nb_min_args -= len(defaults)
 
             if len(args) < nb_min_args or len(args) > nb_max_args and not varargs:
-                if varargs or default:
+                if varargs or defaults:
                     sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_min_args))
                 else:
                     sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))

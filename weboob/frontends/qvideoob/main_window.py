@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from PyQt4.QtCore import SIGNAL
 
-from weboob.capabilities.video import ICapVideoProvider
 from weboob.tools.application.qt import QtMainWindow
 
 from weboob.frontends.qvideoob.ui.main_window_ui import Ui_MainWindow
