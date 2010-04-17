@@ -18,22 +18,36 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import urllib
 import re
 
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 
-from .pages import VideoPage
+from .pages import VideoPage, ResultsPage
 
 __all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
+    PAGES = {'.*youtube\.com/watch\?v=(.+)': VideoPage,
+             '.*youtube\.com/results\?.*': ResultsPage,
+            }
     video_signature_regex = re.compile(r'&t=([^ ,&]*)')
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = LxmlHtmlParser()
-        self.PAGES = {r'.*youtube\.com/watch\?v=(.+)': VideoPage}
         BaseBrowser.__init__(self, *args, **kwargs)
+
+    def iter_search_results(self, pattern, sortby):
+        if not pattern:
+            self.home()
+        else:
+            if sortby:
+                sortby = '&search_sort=%s' % sortby
+            self.location('http://www.youtube.com/results?search_type=videos&search_query=%s%s' % (urllib.quote_plus(pattern), sortby))
+
+        assert self.is_on_page(ResultsPage)
+        return self.page.iter_videos()
 
     def get_video_title(self, page_url):
         self.location(page_url)

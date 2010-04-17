@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz
+Copyright(C) 2010  Christophe Benz, Romain Bignon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,26 +32,39 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
     LICENSE = 'GPLv3'
 
     CONFIG = {}
-    browser = None
+    _browser = None
 
-    def need_browser(func):
+    def __getattr__(self, name):
+        if name == 'browser':
+            if not self._browser:
+                self._browser = YoutubeBrowser()
+            return self._browser
+        raise AttributeError, name
+
+    def need_url(func):
         def inner(self, *args, **kwargs):
-            if not self.browser:
-                self.browser = YoutubeBrowser()
             url = args[0]
-            if u'youtube.com' not in url:
+            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youtube.com' not in url:
                 return None
             return func(self, *args, **kwargs)
         return inner
 
-    @need_browser
+    @need_url
+    def get_video(self, _id):
+        return self.browser.get_video(_id)
+
+    SORTBY = ['', 'video_avg_rating', 'video_view_count', 'video_date_uploaded']
+    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE):
+        return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
+
+    @need_url
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
-    @need_browser
+    @need_url
     def get_video_title(self, page_url):
         return self.browser.get_video_title(page_url)
 
-    @need_browser
+    @need_url
     def get_video_url(self, page_url):
         return self.browser.get_video_url(page_url)
