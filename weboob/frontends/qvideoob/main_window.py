@@ -51,7 +51,7 @@ class MainWindow(QtMainWindow):
 
         for backend in self.weboob.iter_backends():
             for video in backend.iter_search_results(pattern):
-                minivideo = MiniVideo(video)
+                minivideo = MiniVideo(backend, video)
                 self.ui.scrollAreaContent.layout().addWidget(minivideo)
                 self.minivideos.append(minivideo)
 

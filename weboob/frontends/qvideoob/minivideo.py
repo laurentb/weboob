@@ -22,15 +22,18 @@ import urllib2
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.frontends.qvideoob.ui.minivideo_ui import Ui_MiniVideo
+from .video import Video
 
 class MiniVideo(QFrame):
-    def __init__(self, video, parent=None):
+    def __init__(self, backend, video, parent=None):
         QFrame.__init__(self, parent)
         self.ui = Ui_MiniVideo()
         self.ui.setupUi(self)
 
+        self.backend = backend
         self.video = video
         self.ui.titleLabel.setText(video.title)
+        self.ui.backendLabel.setText(backend.name)
         self.ui.durationLabel.setText('%d:%02d:%02d' % (video.duration/3600, (video.duration%3600)/60, video.duration%60))
         self.ui.authorLabel.setText(unicode(video.author))
         self.ui.dateLabel.setText(video.date and unicode(video.date) or '')
@@ -43,3 +46,19 @@ class MiniVideo(QFrame):
             data = urllib2.urlopen(video.preview_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
+    def enterEvent(self, event):
+        self.setFrameShadow(self.Sunken)
+        QFrame.enterEvent(self, event)
+
+    def leaveEvent(self, event):
+        self.setFrameShadow(self.Raised)
+        QFrame.leaveEvent(self, event)
+
+    def mousePressEvent(self, event):
+        QFrame.mousePressEvent(self, event)
+
+        video = self.backend.get_video(self.video.id)
+        if video:
+            video_widget = Video(video, self)
+            video_widget.show()
