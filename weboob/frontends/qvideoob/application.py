@@ -24,9 +24,16 @@ from weboob.tools.application import QtApplication
 from .main_window import MainWindow
 
 class QVideoob(QtApplication):
+    APPNAME = 'qvideoob'
+    CONFIG = {'settings': {'nsfw': True,
+                           'sortby': 0,
+                           'backend': ''
+                          }
+             }
     def main(self, argv):
         self.weboob.load_backends(ICapVideoProvider)
+        self.load_config()
 
-        self.main_window = MainWindow(self.weboob)
+        self.main_window = MainWindow(self.config, self.weboob)
         self.main_window.show()
         return self.weboob.loop()

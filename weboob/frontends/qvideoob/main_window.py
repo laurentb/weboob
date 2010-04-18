@@ -28,23 +28,29 @@ from .video import Video
 from .minivideo import MiniVideo
 
 class MainWindow(QtMainWindow):
-    def __init__(self, weboob, parent=None):
+    def __init__(self, config, weboob, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.config = config
         self.weboob = weboob
         self.minivideos = []
 
         self.ui.backendEdit.addItem('All backends', '')
-        for backend in self.weboob.iter_backends():
+        for i, backend in enumerate(self.weboob.iter_backends()):
             self.ui.backendEdit.addItem(backend.name, backend.name)
+            if backend.name == self.config.get('settings', 'backend'):
+                self.ui.backendEdit.setCurrentIndex(i+1)
+        self.ui.sortbyEdit.setCurrentIndex(self.config.get('settings', 'sortby'))
+        self.ui.nsfwCheckBox.setChecked(bool(self.config.get('settings', 'nsfw')))
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
         self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
 
     def nsfwChanged(self, state):
+        self.config.set('settings', 'nsfw', self.ui.nsfwCheckBox.isChecked())
         for minivideo in self.minivideos:
             if minivideo.video.nsfw:
                 if state:
@@ -88,4 +94,8 @@ class MainWindow(QtMainWindow):
 
         self.ui.urlEdit.clear()
 
-
+    def closeEvent(self, ev):
+        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
+        self.config.set('settings', 'sortby', self.ui.sortbyEdit.currentIndex())
+        self.config.save()
+        ev.accept()
