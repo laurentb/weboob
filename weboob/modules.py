@@ -79,7 +79,7 @@ class Module:
     def create_backend(self, weboob, name, config, storage):
         return self.klass(weboob, name, config, storage)
 
-class BackendsConfig:
+class BackendsConfig(object):
     class WrongPermissions(Exception):
         pass
 
@@ -122,7 +122,7 @@ class BackendsConfig:
         with open(self.confpath, 'wb') as f:
             config.write(f)
 
-class ModulesLoader:
+class ModulesLoader(object):
     def __init__(self):
         self.modules = {}
 
