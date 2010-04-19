@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from weboob.capabilities.bank import ICapBank
-from weboob.tools.application import BaseApplication
+from weboob.tools.application import BaseApplication, ConfigError
 
 class MonFric(BaseApplication):
     APPNAME = 'monfric'
@@ -30,7 +30,7 @@ class MonFric(BaseApplication):
         requested_backend = self.config.get('backend')
         requested_account = self.config.get('account')
         if not requested_backend or not requested_account :
-            raise Exception(u'Please provide "backend" and "account" keys in config file "%s"' % self.config.path)
+            raise ConfigError(u'Please provide "backend" and "account" keys in config file "%s".' % self.config.path)
         self.weboob.load_backends(ICapBank)
         for account in self.weboob.backends[requested_backend].iter_accounts():
             if account.label == requested_account:
