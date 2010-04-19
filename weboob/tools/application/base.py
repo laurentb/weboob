@@ -23,9 +23,10 @@ import logging
 from optparse import OptionParser
 
 from weboob import Weboob
+from weboob.tools.config.iconfig import ConfigError
 
 
-__all__ = ['BaseApplication']
+__all__ = ['BaseApplication', 'ConfigError']
 
 
 class BaseApplication(object):
@@ -75,8 +76,10 @@ class BaseApplication(object):
         if klass is None:
             # load Config only here because some applications don't want
             # to depend on yaml and do not use this function
-            from weboob.tools.config.yamlconfig import YamlConfig
-            klass = YamlConfig
+            # from weboob.tools.config.yamlconfig import YamlConfig
+            # klass = YamlConfig
+            from weboob.tools.config.iniconfig import INIConfig
+            klass = INIConfig
 
         if path is None:
             path = os.path.join(self.CONFDIR, self.APPNAME)
@@ -112,3 +115,5 @@ class BaseApplication(object):
             sys.exit(app.main(args))
         except KeyboardInterrupt:
             print 'Program killed by SIGINT'
+        except ConfigError, e:
+            print 'Configuration error: %s' % e.message

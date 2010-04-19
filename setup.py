@@ -39,6 +39,6 @@ setup(
     packages=find_packages(exclude=['ez_setup']),
     scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
     install_requires=[
-                'pyyaml',
+                # 'pyyaml',
     ]
 )
