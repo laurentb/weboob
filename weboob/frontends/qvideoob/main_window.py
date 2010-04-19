@@ -42,7 +42,7 @@ class MainWindow(QtMainWindow):
             self.ui.backendEdit.addItem(backend.name, backend.name)
             if backend.name == self.config.get('settings', 'backend'):
                 self.ui.backendEdit.setCurrentIndex(i+1)
-        self.ui.sortbyEdit.setCurrentIndex(self.config.get('settings', 'sortby'))
+        self.ui.sortbyEdit.setCurrentIndex(int(self.config.get('settings', 'sortby')))
         self.ui.nsfwCheckBox.setChecked(bool(self.config.get('settings', 'nsfw')))
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
