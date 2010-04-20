@@ -33,24 +33,26 @@ __all__ = ['ConsoleApplication']
 class TableFormatter(object):
     @classmethod
     def format(klass, data):
-        formatted = u''
         from prettytable import PrettyTable
-        header = None
+        formatted = u''
+        before = data.get('BEFORE')
+        if before is not None:
+            formatted += u'%s\n' % before
+            del data['BEFORE']
+        header = data.get('HEADER')
+        if header is not None:
+            del data['HEADER']
         for backend_name, result in data.iteritems():
-            if backend_name == 'HEADER':
-                header = result
+            if not result:
                 continue
-            else:
-                if header is None:
-                    header = backend_name
-                else:
-                    header = u'%s (%s)' % (backend_name, header)
-            table = PrettyTable(['', header])
-            table.set_field_align('', 'l')
-            table.set_field_align(header, 'l')
-            for k, v in result:
-                table.add_row([k, unicode(v)])
-            formatted += u'%s\n' % unicode(table)
+            if header is None:
+                header = ['' for e in xrange(len(result[0]))]
+            table = PrettyTable(list(header))
+            for col in header:
+                table.set_field_align(col, 'l')
+            for row in result:
+                table.add_row(row)
+            formatted += u'%s\n%s\n' % (backend_name, unicode(table))
         return unicode(formatted).strip()
 
 
@@ -58,19 +60,30 @@ class TextFormatter(object):
     @classmethod
     def format(klass, data):
         formatted = u''
-        header = None
+        before = data.get('BEFORE')
+        if before is not None:
+            formatted += u'%s\n' % before
+            del data['BEFORE']
+        header = data.get('HEADER')
+        if header is not None:
+            del data['HEADER']
         for backend_name, result in data.iteritems():
-            if backend_name == 'HEADER':
-                header = result
+            if not result:
                 continue
-            else:
-                if header is None:
-                    header = backend_name
+            if header is None:
+                header = ['' for e in xrange(len(result[0]))]
+            formatted += u'%s\n%s\n' % (backend_name, '=' * len(backend_name))
+            for row in result:
+                formatted_cols = []
+                for i, col in enumerate(row):
+                    if header[i]:
+                        formatted_cols.append(u'%s: %s' % (header[i], col))
+                    else:
+                        formatted_cols.append(col)
+                if len(formatted_cols) == 2:
+                    formatted += u'%s: %s\n' % (formatted_cols[0], formatted_cols[1])
                 else:
-                    header = u'%s (%s)' % (backend_name, header)
-            formatted += '%s\n%s\n' % (header, '=' * len(header))
-            for k, v in result:
-                formatted += '%s: %s\n' % (k, unicode(v))
+                    formatted += u'%s\n' % u' '.join(formatted_cols)
         return unicode(formatted).strip()
 
 
@@ -86,11 +99,11 @@ class ConsoleApplication(BaseApplication):
         except BackendsConfig.WrongPermissions, e:
             print >>sys.stderr, 'Error: %s' % e.message
             sys.exit(1)
-        self.output_format = None
+        self.default_output_format = None
 
     def _configure_parser(self, parser):
         parser.add_option('-o', '--output-format', choices=formatters.keys(),
-                          default='table', help='output format %s (default: table)' % formatters.keys())
+                          help='output format %s (default: table)' % formatters.keys())
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
@@ -152,7 +165,14 @@ class ConsoleApplication(BaseApplication):
                 return
             command_result = func(*args)
             if isinstance(command_result, dict):
-                print formatters[self.options.output_format].format(command_result)
+                if self.options.output_format is not None:
+                    output_format = self.options.output_format
+                else:
+                    if self.default_output_format is not None:
+                        output_format = self.default_output_format
+                    else:
+                        output_format = 'table'
+                print formatters[output_format].format(command_result)
                 return 0
             elif isinstance(command_result, int):
                 return command_result
