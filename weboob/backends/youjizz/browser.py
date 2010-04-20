@@ -20,9 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from logging import error
 import re
+import urllib
 
 from weboob.tools.browser import BaseBrowser
 
+from .pages.index import IndexPage
 from .pages.video import VideoPage
 
 
@@ -30,7 +32,15 @@ __all__ = ['YoujizzBrowser']
 
 
 class YoujizzBrowser(BaseBrowser):
-    PAGES = {r'http://.*youjizz\.com/videos/.+\.html': VideoPage}
+    DOMAIN = 'youjizz.com'
+    PROTOCOL = 'http'
+    PAGES = {r'http://.*youjizz\.com/?': IndexPage,
+             r'http://.*youjizz\.com/videos/.+\.html': VideoPage,
+             r'http://.*youjizz\.com/search/.+\.html': IndexPage,
+            }
+
+    def id2url(self, _id):
+        return 'http://www.youjizz.com/videos/%s.html' % _id
 
     def get_video(self, url):
         self.location(url)
@@ -38,3 +48,12 @@ class YoujizzBrowser(BaseBrowser):
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
+
+    def iter_search_results(self, pattern):
+        if not pattern:
+            self.home()
+        else:
+            self.location('/search/%s-1.html' % (urllib.quote_plus(pattern)))
+
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()

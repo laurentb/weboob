@@ -32,22 +32,30 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
     LICENSE = 'GPLv3'
 
     CONFIG = {}
-    browser = None
+    _browser = None
 
-    def need_browser(func):
+    def __getattr__(self, name):
+        if name == 'browser':
+            if not self._browser:
+                self._browser = YoujizzBrowser()
+            return self._browser
+        raise AttributeError, name
+
+    def check_url(func):
         def inner(self, *args, **kwargs):
-            if not self.browser:
-                self.browser = YoujizzBrowser()
             url = args[0]
-            if u'youjizz.com' not in url:
+            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youjizz.com' not in url:
                 return None
             return func(self, *args, **kwargs)
         return inner
 
-    @need_browser
+    @check_url
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    @need_browser
+    @check_url
     def iter_page_urls(self, mozaic_url):
         return self.browser.iter_page_urls(mozaic_url)
+
+    def iter_search_results(self, pattern=None, sortby=None):
+        return self.browser.iter_search_results(pattern)
