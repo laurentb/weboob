@@ -25,15 +25,8 @@ class Videoob(ConsoleApplication):
     APPNAME = 'videoob'
     CONFIG = {}
 
-    def configure_parser(self, parser):
-        parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
-
     def main(self, argv):
-        names = None
-        if self.options.backends:
-            names = self.options.backends.split(',')
-
-        self.weboob.load_modules(ICapVideoProvider, names=names)
+        self.weboob.load_modules(ICapVideoProvider, names=self.enabled_backends)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information')
