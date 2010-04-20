@@ -125,7 +125,7 @@ class Monboob(ConsoleApplication):
             content_type = 'plain'
 
         if mail.get_signature():
-            if (self.config.get('html')) and mail.is_html:
+            if int(self.config.get('html')) and mail.is_html:
                 body += u'<p>-- <br />%s</p>' % mail.get_signature()
             else:
                 body += u'\n\n-- \n'
