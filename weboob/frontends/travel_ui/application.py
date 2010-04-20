@@ -85,11 +85,13 @@ class TransilienUI():
 
         for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
-                liste.append(station)
+                liste.append(station.name.capitalize())
+
+        liste.sort()
 
         for station in liste:
-            self.combo_source.append_text(station.name.capitalize())
-            self.combo_dest.append_text(station.name.capitalize())
+            self.combo_source.append_text(station)
+            self.combo_dest.append_text(station)
 
         picker_button_source = hildon.PickerButton(
             gtk.HILDON_SIZE_AUTO,
