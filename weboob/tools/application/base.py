@@ -103,6 +103,9 @@ class BaseApplication(object):
         """
         pass
 
+    def _configure_parser(self, parser):
+        pass
+
     @classmethod
     def run(klass):
         app = klass()
