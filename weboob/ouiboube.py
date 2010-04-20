@@ -82,9 +82,9 @@ class Weboob(object):
         self.modules_loader.load()
         for name, module in self.modules_loader.modules.iteritems():
             if (caps is None or module.has_caps(caps)) and \
-               (names is None or module.name in names):
+               (names is None or module.get_name() in names):
                 try:
-                    self.backends[module.name] = module.create_backend(self, module.name, {}, storage)
+                    self.backends[module.get_name()] = module.create_backend(self, module.get_name(), {}, storage)
                 except Exception, e:
                     warning('Unable to load "%s" module as backend with no config: %s' % (name, e))
         return self.backends

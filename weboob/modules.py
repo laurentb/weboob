@@ -77,6 +77,7 @@ class Module:
         return False
 
     def create_backend(self, weboob, name, config, storage):
+        debug('Created backend "%s"' % name)
         return self.klass(weboob, name, config, storage)
 
 class BackendsConfig(object):
