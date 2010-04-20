@@ -28,31 +28,31 @@ import weboob
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.application import ConsoleApplication
 
+
+__all__ = ['Boobank']
+
+
 class Boobank(ConsoleApplication):
     APPNAME = 'boobank'
 
     def main(self, argv):
-        self.weboob.load_backends(ICapBank)
-
+        self.weboob.load_backends(ICapBank, names=self.enabled_backends)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
-        accounts = []
+        results = {'HEADER': ('ID', 'label', 'balance', 'coming')}
         for backend in self.weboob.iter_backends():
+            rows = []
             try:
                 for account in backend.iter_accounts():
-                    accounts.append('%17s   %-20s   %11.2f   %11.2f' % (
-                        account.id, account.label, account.balance, account.coming))
+                    row = [account.id, account.label, account.balance, account.coming]
+                    rows.append(row)
             except weboob.tools.browser.BrowserIncorrectPassword:
                 print >>sys.stderr, 'Error: Incorrect password for backend %s' % backend.name
                 return 1
-        if len(accounts):
-            print '               ID   Account                    Balance        Coming  '
-            print '+-----------------+---------------------+--------------+-------------+'
-            print '\n'.join(accounts)
-        else:
-            print 'No accounts found'
+        results[backend.name] = rows
+        return results
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
@@ -78,6 +78,3 @@ class Boobank(ConsoleApplication):
                 print '\n'.join(operations)
             else:
                 print 'No coming operations for ID=%s' % id
-
-if __name__ == '__main__':
-    Boobank.run()

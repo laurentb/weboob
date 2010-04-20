@@ -36,43 +36,44 @@ class Videoob(ConsoleApplication):
             video = backend.get_video(_id)
             if video is None:
                 continue
-            result = []
+            rows = []
+            rows.append(('ID', video.id))
             if video.title:
-                result.append(('Video title', video.title))
+                rows.append(('Video title', video.title))
             if video.duration:
-                result.append(('Duration', '%d:%02d:%02d' % (
+                rows.append(('Duration', '%d:%02d:%02d' % (
                     video.duration / 3600, (video.duration % 3600) / 60, video.duration % 60)))
             if video.url:
-                result.append(('URL', video.url))
+                rows.append(('URL', video.url))
             if video.author:
-                result.append(('Author', video.author))
+                rows.append(('Author', video.author))
             if video.date:
-                result.append(('Date', video.date))
+                rows.append(('Date', video.date))
             if video.rating_max:
-                result.append(('Rating', '%s / %s' % (video.rating, video.rating_max)))
+                rows.append(('Rating', '%s / %s' % (video.rating, video.rating_max)))
             elif video.rating:
-                result.append(('Rating', video.rating))
-            results[backend.name] = result
+                rows.append(('Rating', video.rating))
+            results[backend.name] = rows
         return results
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
         results = {}
         if pattern:
-            results['HEADER'] = u'Search pattern: %s' % pattern
+            results['BEFORE'] = u'Search pattern: %s' % pattern
         else:
-            results['HEADER'] = u'Last videos'
+            results['BEFORE'] = u'Last videos'
         for backend in self.weboob.iter_backends():
-            result = []
             try:
                 iterator = backend.iter_search_results(pattern)
             except NotImplementedError:
                 continue
             else:
+                rows = []
                 for video in iterator:
-                    result.append(('ID', video.id))
-                    result.append(('Title', video.title))
-            results[backend.name] = result
+                    rows.append(('ID', video.id))
+                    rows.append(('Title', video.title))
+            results[backend.name] = rows
         return results
 
     @ConsoleApplication.command('Get video file URL from page URL')
