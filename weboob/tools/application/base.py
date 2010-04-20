@@ -93,6 +93,16 @@ class BaseApplication(object):
         """ Main function """
         raise NotImplementedError()
 
+    def configure_parser(self, parser):
+        """
+        Frontend parser configuration.
+        Overload this method to add custom options for your parser.
+        Options will be available in the BaseApplication.options variable.
+
+        @param parser [OptionParser]  the parser object.
+        """
+        pass
+
     @classmethod
     def run(klass):
         app = klass()
@@ -100,12 +110,13 @@ class BaseApplication(object):
         parser.add_option('-d', '--debug', action='store_true', help='display debug messages') 
         parser.add_option('-q', '--quiet', action='store_true', help='display only error messages') 
         parser.add_option('-v', '--verbose', action='store_true', help='display info messages') 
-        options, args = parser.parse_args(sys.argv)
-        if options.debug:
+        app.configure_parser(parser)
+        app.options, args = parser.parse_args(sys.argv)
+        if app.options.debug:
             level=logging.DEBUG
-        elif options.verbose:
+        elif app.options.verbose:
             level = logging.INFO
-        elif options.quiet:
+        elif app.options.quiet:
             level = logging.ERROR
         else:
             level = logging.WARNING
