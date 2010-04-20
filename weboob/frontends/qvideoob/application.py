@@ -31,7 +31,7 @@ class QVideoob(QtApplication):
                           }
              }
     def main(self, argv):
-        self.weboob.load_backends(ICapVideoProvider)
+        self.weboob.load_modules(ICapVideoProvider, names=self.enabled_backends)
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob)
