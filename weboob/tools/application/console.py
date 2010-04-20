@@ -79,11 +79,8 @@ class TextFormatter(object):
                     if header[i]:
                         formatted_cols.append(u'%s: %s' % (header[i], col))
                     else:
-                        formatted_cols.append(col)
-                if len(formatted_cols) == 2:
-                    formatted += u'%s: %s\n' % (formatted_cols[0], formatted_cols[1])
-                else:
-                    formatted += u'%s\n' % u' '.join(formatted_cols)
+                        formatted_cols.append(unicode(col))
+                formatted += u'%s\n' % u' '.join(formatted_cols)
         return unicode(formatted).strip()
 
 
