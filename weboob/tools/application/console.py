@@ -30,6 +30,55 @@ from .base import BaseApplication
 __all__ = ['ConsoleApplication']
 
 
+class TableFormatter(object):
+    @classmethod
+    def format(klass, data):
+        formatted = u''
+        from prettytable import PrettyTable
+        header = None
+        for backend_name, result in data.iteritems():
+            if backend_name == 'HEADER':
+                header = result
+                continue
+            else:
+                if header is None:
+                    header = backend_name
+                else:
+                    header = u'%s (%s)' % (backend_name, header)
+            table = PrettyTable(['', header])
+            table.set_field_align('', 'l')
+            table.set_field_align(header, 'l')
+            for k, v in result:
+                table.add_row([k, unicode(v)])
+            formatted += unicode(table)
+        return unicode(formatted).strip()
+
+
+class TextFormatter(object):
+    @classmethod
+    def format(klass, data):
+        formatted = u''
+        header = None
+        for backend_name, result in data.iteritems():
+            if backend_name == 'HEADER':
+                header = result
+                continue
+            else:
+                if header is None:
+                    header = backend_name
+                else:
+                    header = u'%s (%s)' % (backend_name, header)
+            formatted += '%s\n%s\n' % (header, '=' * len(header))
+            for k, v in result:
+                formatted += '%s: %s\n' % (k, unicode(v))
+        return unicode(formatted).strip()
+
+
+formatters = dict(text=TextFormatter,
+                  table=TableFormatter,
+                 )
+
+
 class ConsoleApplication(BaseApplication):
     def __init__(self):
         try:
@@ -37,6 +86,11 @@ class ConsoleApplication(BaseApplication):
         except BackendsConfig.WrongPermissions, e:
             print >>sys.stderr, 'Error: %s' % e.message
             sys.exit(1)
+        self.output_format = None
+
+    def _configure_parser(self, parser):
+        parser.add_option('-o', '--output-format', choices=formatters.keys(),
+                          default='table', help='output format %s (default: table)' % formatters.keys())
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
@@ -96,17 +150,23 @@ class ConsoleApplication(BaseApplication):
                 else:
                     sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
                 return
-            return func(*args)
+            command_result = func(*args)
+            if isinstance(command_result, dict):
+                print formatters[self.options.output_format].format(command_result)
+                return 0
+            elif isinstance(command_result, int):
+                return command_result
+            elif command_result is None:
+                return 0
+            else:
+                raise Exception('Should never go here')
         else:
-            sys.stderr.write("Ambiguious command %s: %s.\n" %
-                             (command,
-                              ', '.join([s.replace('command_', '', 1)
-                                                for s in matching_commands])))
-
+            sys.stderr.write("Ambiguious command %s: %s.\n" % (command, ', '.join(
+                [s.replace('command_', '', 1) for s in matching_commands])))
 
     _command_help = []
     def register_command(f, doc_string, register_to=_command_help):
-        def getArguments(func, skip=0):
+        def get_arguments(func, skip=0):
             """
             Get arguments of a function as a string.
             skip is the number of skipped arguments.
@@ -124,8 +184,8 @@ class ConsoleApplication(BaseApplication):
                 args.append("{WTF}" % varkw)
             return " ".join(args)
 
-        command = '%s %s' % (f.func_name.replace('command_', ''),
-                             getArguments(f))
+        command_name = f.func_name.replace('command_', '')
+        command = '%s %s' % (command_name, get_arguments(f))
         register_to.append('%-30s %s' % (command, doc_string))
         return f
 
