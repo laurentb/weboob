@@ -25,10 +25,12 @@ __all__ = ['ICapVideoProvider', 'Video']
 
 
 class Video(object):
-    def __init__(self, _id, title=u'', url=u'', author=u'', duration=0, date=None, rating=0, rating_max=0, preview_url=None, nsfw=False):
+    def __init__(self, _id, title=u'', url=u'', page_url=u'', author=u'', duration=0, date=None,
+            rating=0, rating_max=0, preview_url=None, nsfw=False):
         self.id = _id
         self.title = title
         self.url = url
+        self.page_url = page_url
         self.author = author
         self.duration = duration
         self.date = date

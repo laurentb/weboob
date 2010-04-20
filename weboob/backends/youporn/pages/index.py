@@ -18,8 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .base import PornPage
 from weboob.capabilities.video import Video
+
+from .base import PornPage
+
+
+__all__ = ['IndexPage']
+
 
 class IndexPage(PornPage):
     def iter_videos(self):
@@ -43,14 +48,14 @@ class IndexPage(PornPage):
                 url = a.attrib['href']
                 _id = url[len('/watch/'):]
                 _id = _id[:_id.find('/')]
-                title = a.text
+                title = a.text.strip()
 
                 duration = 0
                 div = li.cssselect('div[class=duration_views]')
                 if div:
                     h2 = div[0].find('h2')
-                    duration = 60 * int(h2.text)
-                    duration += int(h2.find('span').tail)
+                    duration = 60 * int(h2.text.strip())
+                    duration += int(h2.find('span').tail.strip())
 
                 rating = 0
                 rating_max = 0
@@ -59,8 +64,10 @@ class IndexPage(PornPage):
                     p = div[0].find('p')
                     rating = float(p.text.strip())
                     rating_max = float(p.find('span').text.strip()[2:])
+
                 yield Video(int(_id),
-                            title,
+                            title=title,
+                            page_url=self.browser.id2url(_id),
                             rating=rating,
                             rating_max=rating_max,
                             duration=duration,

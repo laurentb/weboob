@@ -18,10 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import logging
 import sys, tty, termios
 import re
 from inspect import getargspec
 from functools import partial
+
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
@@ -79,11 +81,8 @@ class TextFormatter(object):
                     if header[i]:
                         formatted_cols.append(u'%s: %s' % (header[i], col))
                     else:
-                        formatted_cols.append(col)
-                if len(formatted_cols) == 2:
-                    formatted += u'%s: %s\n' % (formatted_cols[0], formatted_cols[1])
-                else:
-                    formatted += u'%s\n' % u' '.join(formatted_cols)
+                        formatted_cols.append(unicode(col))
+                formatted += u'%s\n' % u' '.join(formatted_cols)
         return unicode(formatted).strip()
 
 
@@ -172,7 +171,10 @@ class ConsoleApplication(BaseApplication):
         if defaults:
             nb_min_args -= len(defaults)
 
-        if len(args) < nb_min_args or len(args) > nb_max_args and not varargs:
+        if len(args) > nb_max_args and not varargs:
+            sys.stderr.write("Command '%s' takes at most %d arguments.\n" % (command, nb_max_args))
+            return 1
+        if len(args) < nb_min_args:
             if varargs or defaults:
                 sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_min_args))
             else:
@@ -190,7 +192,10 @@ class ConsoleApplication(BaseApplication):
                     output_format = self.default_output_format
                 else:
                     output_format = 'table'
-            print formatters[output_format].format(command_result)
+            try:
+                print formatters[output_format].format(command_result)
+            except ImportError, e:
+                logging.error(u'Could not use formatter "%s". Error: %s' % (output_format, e.message))
             return 0
         elif isinstance(command_result, int):
             return command_result

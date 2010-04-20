@@ -22,7 +22,6 @@ import urllib
 import re
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 
 from .pages import VideoPage, ResultsPage
 
