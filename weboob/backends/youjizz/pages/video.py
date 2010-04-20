@@ -54,6 +54,5 @@ class VideoPage(BasePage):
         div = self.document.getroot().cssselect('#video_text')[0]
         results['title'] = unicode(div.find('h2').text).strip()
         minutes, seconds = [int(v) for v in [e for e in div.cssselect('strong') if e.text.startswith('Runtime')][0].tail.split(':')]
-        print minutes, seconds
         results['duration'] = minutes * 60 + seconds
         return results
