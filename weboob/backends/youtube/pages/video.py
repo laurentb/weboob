@@ -25,29 +25,28 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.video import Video
 
 class VideoPage(BasePage):
-    URL_REGEXP = re.compile("https?://[w\.]*youtube.com/watch\?v=(\w+)")
+    URL_REGEX = re.compile(r"https?://[w\.]*youtube.com/watch\?v=(\w+)")
+    VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
 
     def on_loaded(self):
         self.video = Video(self.get_id())
         self.video.title = self.get_title()
         self.video.url = self.get_url()
-
         self.set_details(self.video)
 
     def get_id(self):
-        m = self.URL_REGEXP.match(self.url)
+        m = self.URL_REGEX.match(self.url)
         if m:
             return m.group(1)
         warning("Unable to parse ID")
         return 0
 
-    VIDEO_SIGNATURE_RE = re.compile(r'&t=([^ ,&]*)')
     def get_url(self):
         video_signature = None
         for data in self.document.getiterator('script'):
             if not data.text:
                 continue
-            for m in re.finditer(self.VIDEO_SIGNATURE_RE, data.text):
+            for m in re.finditer(self.VIDEO_SIGNATURE_REGEX, data.text):
                 video_signature = m.group(1)
         return 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (self.video.id, video_signature)
 
@@ -57,9 +56,6 @@ class VideoPage(BasePage):
             content = found[0].attrib['content']
             return unicode(content).strip()
         return u''
-
-    DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")
-    MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     def set_details(self, v):
         div = self.document.getroot().cssselect('div[id=watch-description-body]')

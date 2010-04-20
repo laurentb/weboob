@@ -33,10 +33,6 @@ class YoutubeBrowser(BaseBrowser):
              '.*youtube\.com/results\?.*': ResultsPage,
             }
 
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = LxmlHtmlParser()
-        BaseBrowser.__init__(self, *args, **kwargs)
-
     def iter_search_results(self, pattern, sortby):
         if not pattern:
             self.home()
