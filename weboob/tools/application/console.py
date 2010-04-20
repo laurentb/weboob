@@ -50,7 +50,7 @@ class TableFormatter(object):
             table.set_field_align(header, 'l')
             for k, v in result:
                 table.add_row([k, unicode(v)])
-            formatted += unicode(table)
+            formatted += u'%s\n' % unicode(table)
         return unicode(formatted).strip()
 
 
