@@ -18,8 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .base import PornPage
 from weboob.capabilities.video import Video
+
+from .base import PornPage
+
+
+__all__ = ['IndexPage']
+
 
 class IndexPage(PornPage):
     def iter_videos(self):
@@ -61,7 +66,7 @@ class IndexPage(PornPage):
                     rating_max = float(p.find('span').text.strip()[2:])
 
                 yield Video(int(_id),
-                            title,
+                            title=title,
                             rating=rating,
                             rating_max=rating_max,
                             duration=duration,
