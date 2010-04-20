@@ -31,11 +31,11 @@ class Videoob(ConsoleApplication):
         self.load_modules(ICapVideoProvider)
         return self.process_command(*argv[1:])
 
-    @ConsoleApplication.command('Get video information')
-    def command_info(self, _id):
+    @ConsoleApplication.command('Get video information (accept ID or URL)')
+    def command_info(self, id):
         results = {}
         for backend in self.weboob.iter_backends():
-            video = backend.get_video(_id)
+            video = backend.get_video(id)
             if video is None:
                 continue
             rows = []

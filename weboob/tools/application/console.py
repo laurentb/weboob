@@ -104,6 +104,14 @@ class ConsoleApplication(BaseApplication):
         self.default_output_format = None
 
     def _configure_parser(self, parser):
+        parser.format_description = lambda x: parser.description
+
+        if parser.description is None:
+            parser.description = ''
+        parser.description += 'Available commands:\n'
+        for f in self._command_help:
+            parser.description += '   %s\n' % f
+
         parser.add_option('-o', '--output-format', choices=formatters.keys(),
                           help='output format %s (default: table)' % formatters.keys())
 
