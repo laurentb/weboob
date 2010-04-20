@@ -23,6 +23,8 @@ from weboob.tools.application import ConsoleApplication
 
 class WetBoobs(ConsoleApplication):
     APPNAME = 'wetboobs'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
         self.load_modules(ICapWeather)

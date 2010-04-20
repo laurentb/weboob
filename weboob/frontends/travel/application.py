@@ -23,6 +23,8 @@ from weboob.tools.application import ConsoleApplication
 
 class Travel(ConsoleApplication):
     APPNAME = 'travel'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
         self.load_modules(ICapTravel)

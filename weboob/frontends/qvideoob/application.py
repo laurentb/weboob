@@ -25,6 +25,8 @@ from .main_window import MainWindow
 
 class QVideoob(QtApplication):
     APPNAME = 'qvideoob'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CONFIG = {'settings': {'nsfw': True,
                            'sortby': 0,
                            'backend': ''

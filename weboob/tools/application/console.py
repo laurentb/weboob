@@ -87,12 +87,14 @@ class TextFormatter(object):
         return unicode(formatted).strip()
 
 
-formatters = dict(text=TextFormatter,
-                  table=TableFormatter,
-                 )
+formatters = {'text':  TextFormatter,
+              'table': TableFormatter,
+             }
 
 
 class ConsoleApplication(BaseApplication):
+    SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
+
     def __init__(self):
         try:
             BaseApplication.__init__(self)
@@ -149,40 +151,45 @@ class ConsoleApplication(BaseApplication):
 
         if len(matching_commands) == 0:
             sys.stderr.write("No such command: %s.\n" % command)
-        elif len(matching_commands) == 1:
-            func = getattr(self, matching_commands[0])
-
-            _args, varargs, varkw, defaults = getargspec(func)
-            nb_max_args = nb_min_args = len(_args) - 1
-            if defaults:
-                nb_min_args -= len(defaults)
-
-            if len(args) < nb_min_args or len(args) > nb_max_args and not varargs:
-                if varargs or defaults:
-                    sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_min_args))
-                else:
-                    sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
-                return
-            command_result = func(*args)
-            if isinstance(command_result, dict):
-                if self.options.output_format is not None:
-                    output_format = self.options.output_format
-                else:
-                    if self.default_output_format is not None:
-                        output_format = self.default_output_format
-                    else:
-                        output_format = 'table'
-                print formatters[output_format].format(command_result)
-                return 0
-            elif isinstance(command_result, int):
-                return command_result
-            elif command_result is None:
-                return 0
-            else:
-                raise Exception('Should never go here')
-        else:
+            return 1
+        if len(matching_commands) != 1:
             sys.stderr.write("Ambiguious command %s: %s.\n" % (command, ', '.join(
                 [s.replace('command_', '', 1) for s in matching_commands])))
+            return 1
+
+        func = getattr(self, matching_commands[0])
+
+        _args, varargs, varkw, defaults = getargspec(func)
+        nb_max_args = nb_min_args = len(_args) - 1
+        if defaults:
+            nb_min_args -= len(defaults)
+
+        if len(args) < nb_min_args or len(args) > nb_max_args and not varargs:
+            if varargs or defaults:
+                sys.stderr.write("Command '%s' takes at least %d arguments.\n" % (command, nb_min_args))
+            else:
+                sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
+            return 1
+
+        command_result = func(*args)
+
+        # Process result
+        if isinstance(command_result, dict):
+            if self.options.output_format is not None:
+                output_format = self.options.output_format
+            else:
+                if self.default_output_format is not None:
+                    output_format = self.default_output_format
+                else:
+                    output_format = 'table'
+            print formatters[output_format].format(command_result)
+            return 0
+        elif isinstance(command_result, int):
+            return command_result
+        elif command_result is None:
+            return 0
+        else:
+            raise Exception('Should never go here')
 
     _command_help = []
     def register_command(f, doc_string, register_to=_command_help):

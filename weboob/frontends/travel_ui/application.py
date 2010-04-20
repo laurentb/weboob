@@ -156,6 +156,8 @@ class TransilienUI():
 class Travel(BaseApplication):
     "Application Class"
     APPNAME = 'travel'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Julien Hébert'
 
     def main(self, argv):
         "main fonction"

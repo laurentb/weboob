@@ -23,6 +23,8 @@ from weboob.tools.application import ConsoleApplication
 
 class Videoob(ConsoleApplication):
     APPNAME = 'videoob'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     CONFIG = {}
 
     def main(self, argv):

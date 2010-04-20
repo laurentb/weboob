@@ -36,6 +36,12 @@ class BaseApplication(object):
     CONFIG = {}
     # Configuration directory
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
+    # Synopsis
+    SYNOPSIS = 'Usage: %prog [options (-h for help)] ...'
+    # Version
+    VERSION = None
+    # Copyright
+    COPYRIGHT = None
 
     def __init__(self):
         self.weboob = self.create_weboob()
@@ -119,7 +125,13 @@ class BaseApplication(object):
     @classmethod
     def run(klass):
         app = klass()
-        parser = OptionParser('Usage: %prog [options (-h for help)] URL...')
+        version = None
+        if app.VERSION:
+            if app.COPYRIGHT:
+                version = '%s v%s (%s)' % (app.APPNAME, app.VERSION, app.COPYRIGHT)
+            else:
+                version = '%s v%s' % (app.APPNAME, app.VERSION)
+        parser = OptionParser(app.SYNOPSIS, version=version)
         parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
         parser.add_option('-d', '--debug', action='store_true', help='display debug messages')
         parser.add_option('-q', '--quiet', action='store_true', help='display only error messages')

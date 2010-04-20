@@ -34,6 +34,8 @@ __all__ = ['Boobank']
 
 class Boobank(ConsoleApplication):
     APPNAME = 'boobank'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
         self.load_backends(ICapBank, names=self.enabled_backends)

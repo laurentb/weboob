@@ -23,6 +23,8 @@ from weboob.capabilities.dating import ICapDating
 
 class HaveSex(PromptApplication):
     APPNAME = 'havesex'
+    VERSION = '1.0'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     STORAGE_FILENAME = 'dating.storage'
 
     def main(self, argv):
