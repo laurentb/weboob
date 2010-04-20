@@ -26,7 +26,7 @@ class Videoob(ConsoleApplication):
     CONFIG = {}
 
     def main(self, argv):
-        self.weboob.load_modules(ICapVideoProvider, names=self.enabled_backends)
+        self.load_modules(ICapVideoProvider)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information')

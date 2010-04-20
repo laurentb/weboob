@@ -36,7 +36,7 @@ class Boobank(ConsoleApplication):
     APPNAME = 'boobank'
 
     def main(self, argv):
-        self.weboob.load_backends(ICapBank, names=self.enabled_backends)
+        self.load_backends(ICapBank, names=self.enabled_backends)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('List every available accounts')

@@ -27,7 +27,7 @@ class HaveSex(PromptApplication):
 
     def main(self, argv):
         self.load_config()
-        self.weboob.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
+        self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
 
         return self.loop()
 

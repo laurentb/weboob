@@ -25,7 +25,7 @@ class Travel(ConsoleApplication):
     APPNAME = 'travel'
 
     def main(self, argv):
-        self.weboob.load_modules(ICapTravel)
+        self.load_modules(ICapTravel)
 
         return self.process_command(*argv[1:])
 

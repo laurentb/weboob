@@ -106,14 +106,24 @@ class BaseApplication(object):
     def _configure_parser(self, parser):
         pass
 
+    def load_backends(self, caps=None, names=None, *args, **kwargs):
+        if names is None:
+            names = self._enabled_backends
+        self.weboob.load_backends(caps, names, *args, **kwargs)
+
+    def load_modules(self, caps=None, names=None, *args, **kwargs):
+        if names is None:
+            names = self._enabled_backends
+        self.weboob.load_backends(caps, names, *args, **kwargs)
+
     @classmethod
     def run(klass):
         app = klass()
-        parser = OptionParser('Usage: %prog [options (-h for help)] URL...') 
+        parser = OptionParser('Usage: %prog [options (-h for help)] URL...')
         parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
-        parser.add_option('-d', '--debug', action='store_true', help='display debug messages') 
-        parser.add_option('-q', '--quiet', action='store_true', help='display only error messages') 
-        parser.add_option('-v', '--verbose', action='store_true', help='display info messages') 
+        parser.add_option('-d', '--debug', action='store_true', help='display debug messages')
+        parser.add_option('-q', '--quiet', action='store_true', help='display only error messages')
+        parser.add_option('-v', '--verbose', action='store_true', help='display info messages')
         app._configure_parser(parser)
         app.configure_parser(parser)
         app.options, args = parser.parse_args(sys.argv)
@@ -127,7 +137,7 @@ class BaseApplication(object):
             level = logging.WARNING
         log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        app.enabled_backends = app.options.backends.split(',') if app.options.backends else None
+        app._enabled_backends = app.options.backends.split(',') if app.options.backends else None
         try:
             sys.exit(app.main(args))
         except KeyboardInterrupt:

@@ -146,10 +146,10 @@ class TransilienUI():
                 backend.iter_station_search(self.combo_dest.get_current_text()):
                     for departure in \
                     backend.iter_station_departures(station.id, arrival.id):
-                        self.treestore.append(None, 
-                                             [departure.type, 
-                                             departure.time, 
-                                             departure.arrival_station, 
+                        self.treestore.append(None,
+                                             [departure.type,
+                                             departure.time,
+                                             departure.arrival_station,
                                              departure.information])
 
 
@@ -159,6 +159,6 @@ class Travel(BaseApplication):
 
     def main(self, argv):
         "main fonction"
-        self.weboob.load_modules(ICapTravel)
+        self.load_modules(ICapTravel)
         TransilienUI(self.weboob)
         gtk.main()

@@ -25,7 +25,7 @@ class WetBoobs(ConsoleApplication):
     APPNAME = 'wetboobs'
 
     def main(self, argv):
-        self.weboob.load_modules(ICapWeather)
+        self.load_modules(ICapWeather)
 
         return self.process_command(*argv[1:])
 
