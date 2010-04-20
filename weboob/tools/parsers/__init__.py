@@ -38,7 +38,7 @@ def load_elementtidy():
     from .elementtidyparser import ElementTidyParser
     return ElementTidyParser
 
-def load_buildtin():
+def load_builtin():
     from .htmlparser import HTMLParser
     return HTMLParser
 
