@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 
+
+__all__ = ['BackendStorage', 'BaseBackend']
+
+
 class BackendStorage(object):
     def __init__(self, name, storage):
         self.name = name

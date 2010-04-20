@@ -24,7 +24,7 @@ from ConfigParser import SafeConfigParser
 import logging
 import os
 
-from .iconfig import IConfig, ConfigError
+from .iconfig import IConfig
 
 
 __all__ = ['INIConfig']
