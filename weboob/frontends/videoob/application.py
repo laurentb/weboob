@@ -26,24 +26,19 @@ class Videoob(ConsoleApplication):
     CONFIG = {}
 
     def configure_parser(self, parser):
-        parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)') 
+        parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
 
     def main(self, argv):
-        self.weboob.load_modules(ICapVideoProvider)
-        self.enabled_backends = None
+        names = None
         if self.options.backends:
-            self.enabled_backends = self.options.backends.split(',')
-        return self.process_command(*argv[1:])
+            names = self.options.backends.split(',')
 
-    def iter_enabled_backends(self):
-        for backend in self.weboob.iter_backends(ICapVideoProvider):
-            if self.enabled_backends is not None and backend.NAME not in self.enabled_backends:
-                continue
-            yield backend
+        self.weboob.load_modules(ICapVideoProvider, names=names)
+        return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information')
     def command_info(self, _id):
-        for backend in self.iter_enabled_backends():
+        for backend in self.weboob.iter_backends():
             video = backend.get_video(_id)
             if video is None:
                 continue
@@ -68,19 +63,19 @@ class Videoob(ConsoleApplication):
         else:
             print u'| %-76s |' % 'Last videos'
         print u"+------------.-----------------------------------------------------------------'"
-        for backend in self.iter_enabled_backends():
+        for backend in self.weboob.iter_backends():
             try:
                 iterator = backend.iter_search_results(pattern)
             except NotImplementedError:
                 continue
             else:
                 for video in iterator:
-                    print u"| %10d | %-63s |" % (video.id, video.title)
+                    print u"| %10s | %-63s |" % (video.id, video.title)
         print u"'--------------'---------------------------------------------------------------'"
 
     @ConsoleApplication.command('Get video file URL from page URL')
     def command_file_url(self, url):
-        for backend in self.iter_enabled_backends():
+        for backend in self.weboob.iter_backends():
             video = backend.get_video(url)
             if video:
                 print video.url
