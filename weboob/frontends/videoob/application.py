@@ -31,40 +31,49 @@ class Videoob(ConsoleApplication):
 
     @ConsoleApplication.command('Get video information')
     def command_info(self, _id):
+        results = {}
         for backend in self.weboob.iter_backends():
             video = backend.get_video(_id)
             if video is None:
                 continue
-            print u'.------------------------------------------------------------------------------.'
-            print u'| %-76s |' % (u'%s: %s' % (backend.name, video.title))
-            print u"+-----------------.------------------------------------------------------------'"
-            print u"| Duration        | %d:%02d:%02d" % (video.duration/3600, (video.duration%3600)/60, video.duration%60)
-            print u"| URL             | %s" % video.url
-            print u"| Author          | %s" % video.author
-            print u"| Date            | %s" % video.date
+            result = []
+            if video.title:
+                result.append(('Video title', video.title))
+            if video.duration:
+                result.append(('Duration', '%d:%02d:%02d' % (
+                    video.duration / 3600, (video.duration % 3600) / 60, video.duration % 60)))
+            if video.url:
+                result.append(('URL', video.url))
+            if video.author:
+                result.append(('Author', video.author))
+            if video.date:
+                result.append(('Date', video.date))
             if video.rating_max:
-                print u"| Rating          | %s / %s" % (video.rating, video.rating_max)
+                result.append(('Rating', '%s / %s' % (video.rating, video.rating_max)))
             elif video.rating:
-                print u"| Rating          | %s" % video.rating
-            print u"'-----------------'                                                             "
+                result.append(('Rating', video.rating))
+            results[backend.name] = result
+        return results
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
-        print u'.------------------------------------------------------------------------------.'
+        results = {}
         if pattern:
-            print u'| %-76s |' % (u'Search: %s' % pattern)
+            results['HEADER'] = u'Search pattern: %s' % pattern
         else:
-            print u'| %-76s |' % 'Last videos'
-        print u"+------------.-----------------------------------------------------------------'"
+            results['HEADER'] = u'Last videos'
         for backend in self.weboob.iter_backends():
+            result = []
             try:
                 iterator = backend.iter_search_results(pattern)
             except NotImplementedError:
                 continue
             else:
                 for video in iterator:
-                    print u"| %10s | %-63s |" % (video.id, video.title)
-        print u"'--------------'---------------------------------------------------------------'"
+                    result.append(('ID', video.id))
+                    result.append(('Title', video.title))
+            results[backend.name] = result
+        return results
 
     @ConsoleApplication.command('Get video file URL from page URL')
     def command_file_url(self, url):
