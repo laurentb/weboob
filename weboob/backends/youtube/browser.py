@@ -32,7 +32,6 @@ class YoutubeBrowser(BaseBrowser):
     PAGES = {'.*youtube\.com/watch\?v=(.+)': VideoPage,
              '.*youtube\.com/results\?.*': ResultsPage,
             }
-    video_signature_regex = re.compile(r'&t=([^ ,&]*)')
 
     def __init__(self, *args, **kwargs):
         kwargs['parser'] = LxmlHtmlParser()
@@ -57,22 +56,3 @@ class YoutubeBrowser(BaseBrowser):
 
         self.location(url)
         return self.page.video
-
-    def get_video_title(self, page_url):
-        self.location(page_url)
-        return self.page.title
-
-    def get_video_url(self, page_url):
-        def find_video_signature(data):
-            for video_signature in re.finditer(self.video_signature_regex, data):
-                return video_signature.group(1)
-            return None
-        data = self.openurl(page_url).read()
-        video_signature = find_video_signature(data)
-        m = re.match(r'.*youtube\.com/watch\?v=(.+)', page_url)
-        if m:
-            video_id = m.group(1)
-            url = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (video_id, video_signature)
-            return url
-        else:
-            return None

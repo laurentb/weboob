@@ -64,11 +64,3 @@ class ICapVideoProvider(ICap):
         @return  a Video object
         """
         raise NotImplementedError()
-
-    # XXX deprecated
-    def get_video_title(self, page_url):
-        raise NotImplementedError()
-
-    # XXX deprecated
-    def get_video_url(self, page_url):
-        raise NotImplementedError()
