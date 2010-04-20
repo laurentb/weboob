@@ -23,22 +23,18 @@ import re
 
 from weboob.tools.browser import BaseBrowser
 
+from .pages.video import VideoPage
+
+
+__all__ = ['YoujizzBrowser']
+
+
 class YoujizzBrowser(BaseBrowser):
-    video_file_regex = re.compile(r'"(http://media[^ ,]+\.flv)"')
+    PAGES = {r'http://.*youjizz\.com/videos/.+\.html': VideoPage}
+
+    def get_video(self, url):
+        self.location(url)
+        return self.page.video
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
-
-    def get_video_title(self, page_url):
-        raise NotImplementedError()
-
-    def get_video_url(self, page_url):
-        data = self.openurl(page_url).read()
-        video_file_urls = re.findall(self.video_file_regex, data)
-        if len(video_file_urls) == 0:
-            return None
-        else:
-            if len(video_file_urls) > 1:
-                error('Many video file URL found for given URL: %s' % video_file_urls)
-            return video_file_urls[0]
-

@@ -25,6 +25,10 @@ from weboob.tools.browser import BaseBrowser
 from .pages.index import IndexPage
 from .pages.video import VideoPage
 
+
+__all__ = ['YoupornBrowser']
+
+
 class YoupornBrowser(BaseBrowser):
     DOMAIN = 'youporn.com'
     PROTOCOL = 'http'
@@ -56,11 +60,3 @@ class YoupornBrowser(BaseBrowser):
     def get_video(self, _id):
         self.location(self.id2url(_id))
         return self.page.video
-
-    def get_video_title(self, _id):
-        self.location(self.id2url(_id))
-        return self.page.video.title
-
-    def get_video_url(self, _id):
-        self.location(self.id2url(_id))
-        return self.page.video.url
