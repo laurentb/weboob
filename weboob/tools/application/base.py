@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys, os
 import logging
-from optparse import OptionParser
+from optparse import OptionGroup, OptionParser
 
 from weboob import Weboob
 from weboob.tools.config.iconfig import ConfigError
@@ -46,6 +46,19 @@ class BaseApplication(object):
     def __init__(self):
         self.weboob = self.create_weboob()
         self.config = None
+        version = None
+        if self.VERSION:
+            if self.COPYRIGHT:
+                version = '%s v%s (%s)' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
+            else:
+                version = '%s v%s' % (self.APPNAME, self.VERSION)
+        self._parser = OptionParser(self.SYNOPSIS, version=version)
+        self._parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
+        logging_options = OptionGroup(self._parser, 'Logging Options')
+        logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
+        logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
+        logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
+        self._parser.add_option_group(logging_options)
 
     def create_weboob(self):
         return Weboob(self.APPNAME)
@@ -99,19 +112,6 @@ class BaseApplication(object):
         """ Main function """
         raise NotImplementedError()
 
-    def configure_parser(self, parser):
-        """
-        Frontend parser configuration.
-        Overload this method to add custom options for your parser.
-        Options will be available in the BaseApplication.options variable.
-
-        @param parser [OptionParser]  the parser object.
-        """
-        pass
-
-    def _configure_parser(self, parser):
-        pass
-
     def load_backends(self, caps=None, names=None, *args, **kwargs):
         if names is None:
             names = self._enabled_backends
@@ -123,22 +123,9 @@ class BaseApplication(object):
         self.weboob.load_modules(caps, names, *args, **kwargs)
 
     @classmethod
-    def run(klass):
+    def run(klass, args=sys.argv):
         app = klass()
-        version = None
-        if app.VERSION:
-            if app.COPYRIGHT:
-                version = '%s v%s (%s)' % (app.APPNAME, app.VERSION, app.COPYRIGHT)
-            else:
-                version = '%s v%s' % (app.APPNAME, app.VERSION)
-        parser = OptionParser(app.SYNOPSIS, version=version)
-        parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
-        parser.add_option('-d', '--debug', action='store_true', help='display debug messages')
-        parser.add_option('-q', '--quiet', action='store_true', help='display only error messages')
-        parser.add_option('-v', '--verbose', action='store_true', help='display info messages')
-        app._configure_parser(parser)
-        app.configure_parser(parser)
-        app.options, args = parser.parse_args(sys.argv)
+        app.options, args = app._parser.parse_args(args)
         if app.options.debug:
             level=logging.DEBUG
         elif app.options.verbose:

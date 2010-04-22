@@ -102,17 +102,16 @@ class ConsoleApplication(BaseApplication):
             sys.exit(1)
         self.default_output_format = None
 
-    def _configure_parser(self, parser):
-        parser.format_description = lambda x: parser.description
+        self._parser.format_description = lambda x: self._parser.description
 
-        if parser.description is None:
-            parser.description = ''
-        parser.description += 'Available commands:\n'
+        if self._parser.description is None:
+            self._parser.description = ''
+        self._parser.description += 'Available commands:\n'
         for f in self._command_help:
-            parser.description += '   %s\n' % f
+            self._parser.description += '   %s\n' % f
 
-        parser.add_option('-o', '--output-format', choices=formatters.keys(),
-                          help='output format %s (default: table)' % formatters.keys())
+        self._parser.add_option('-o', '--output-format', choices=formatters.keys(),
+                                help='output format %s (default: table)' % formatters.keys())
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
@@ -150,7 +149,11 @@ class ConsoleApplication(BaseApplication):
 
         return line
 
-    def process_command(self, command='help', *args):
+    def process_command(self, command=None, *args):
+        if command is None:
+            self._parser.print_help()
+            return 0
+
         def f(x):
             return x.startswith('command_' + command)
 
@@ -231,12 +234,6 @@ class ConsoleApplication(BaseApplication):
 
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
-
-    @command("display this notice")
-    def command_help(self):
-        sys.stdout.write("Available commands:\n")
-        for f in self._command_help:
-            sys.stdout.write('   %s\n' % f)
 
     register_command = staticmethod(register_command)
     command = staticmethod(command)
