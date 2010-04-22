@@ -240,6 +240,8 @@ class BaseBrowser(mechanize.Browser):
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
 
+        debug('[%s] Opening URL %s' % (self.username, args[0]))
+
         try:
             self._change_location(mechanize.Browser.open(self, *args, **kwargs))
         except BrowserRetry:
