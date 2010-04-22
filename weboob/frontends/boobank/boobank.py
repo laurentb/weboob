@@ -38,7 +38,7 @@ class Boobank(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_backends(ICapBank, names=self.enabled_backends)
+        self.load_backends(ICapBank)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('List every available accounts')
