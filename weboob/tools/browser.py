@@ -240,15 +240,13 @@ class BaseBrowser(mechanize.Browser):
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
 
-        debug('[%s] Opening URL %s' % (self.username, args[0]))
-
         try:
             self._change_location(mechanize.Browser.open(self, *args, **kwargs))
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error(e)
+            error('Error opening URL "%s": %s' % (args[0], e))
             self.page = None
             raise BrowserUnavailable()
         except mechanize.BrowserStateError:
