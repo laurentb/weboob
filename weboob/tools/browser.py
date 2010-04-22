@@ -121,6 +121,10 @@ class BaseBrowser(mechanize.Browser):
 
     # ------ Browser methods ---------------------------------------
 
+    # I'm not a robot, so disable the check of permissions in robots.txt.
+    default_features = copy(mechanize.Browser.default_features)
+    default_features.remove('_robots')
+
     def __init__(self, username=None, password=None, firefox_cookies=None,
                  parser=None, history=NoHistory()):
         """
