@@ -25,3 +25,9 @@ It is useful for development when files often change.
 
 # ./setup.py develop
 Creates /usr/lib/python2.5/site-packages/Weboob.egg-link
+
+bash completion
+---------------
+
+To enable bash completion, just source the tools/weboob_bash_completion
+file from your ~/.bash_completion file (which is sourced by /etc/bash_completion).
