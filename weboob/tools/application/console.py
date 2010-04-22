@@ -149,7 +149,11 @@ class ConsoleApplication(BaseApplication):
 
         return line
 
-    def process_command(self, command='help', *args):
+    def process_command(self, command=None, *args):
+        if command is None:
+            self._parser.print_help()
+            return 0
+
         def f(x):
             return x.startswith('command_' + command)
 
@@ -230,12 +234,6 @@ class ConsoleApplication(BaseApplication):
 
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
-
-    @command("display this notice")
-    def command_help(self):
-        sys.stdout.write("Available commands:\n")
-        for f in self._command_help:
-            sys.stdout.write('   %s\n' % f)
 
     register_command = staticmethod(register_command)
     command = staticmethod(command)
