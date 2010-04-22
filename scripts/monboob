@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from email.mime.text import MIMEText
 from smtplib import SMTP
-from email.Header import Header
+from email.Header import Header, decode_header
 from email.Utils import parseaddr, formataddr
 from email import message_from_file
 import time
@@ -61,6 +61,14 @@ class Monboob(ConsoleApplication):
         if m:
             reply_to = m.group(1)
         title = msg.get('Subject')
+        if title:
+            new_title = u''
+            for part in decode_header(title):
+                if part[1]:
+                    new_title += unicode(part[0], part[1])
+                else:
+                    new_title += unicode(part[0])
+            title = new_title
 
         content = u''
         for part in msg.walk():
