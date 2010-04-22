@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys, os
 import logging
+import optparse
 from optparse import OptionGroup, OptionParser
 
 from weboob import Weboob
@@ -59,20 +60,7 @@ class BaseApplication(object):
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         self._parser.add_option_group(logging_options)
-        self._other_options = OptionGroup(self._parser, 'Other options')
-        self._other_options.add_option('--options', action='callback', callback=self.print_options,
-                                       help='print available options')
-        self._parser.add_option_group(self._other_options)
-
-    def print_options(self, option, opt, value, parser):
-        result = []
-        for o in self._parser._get_all_options():
-            if o._short_opts:
-                result.append(o._short_opts[0])
-            if o._long_opts:
-                result.append(o._long_opts[0])
-        print ' '.join(result)
-        sys.exit(0)
+        self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
     def create_weboob(self):
         return Weboob(self.APPNAME)
@@ -140,6 +128,16 @@ class BaseApplication(object):
     def run(klass, args=sys.argv):
         app = klass()
         app.options, args = app._parser.parse_args(args)
+
+        if app.options.shell_completion:
+            items = set()
+            for option in app._parser.option_list:
+                if not option.help is optparse.SUPPRESS_HELP:
+                    items.update(str(option).split('/'))
+            items.update(app._get_completions())
+            print ' '.join(items)
+            sys.exit(0)
+
         if app.options.debug:
             level=logging.DEBUG
         elif app.options.verbose:

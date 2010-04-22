@@ -1,22 +1,37 @@
-# weboob completion
-# Copyright 2010 Christophe Benz <christophe.benz@gmail.com>
-
+# Weboob completion for Bash
+#
+# vim: filetype=sh expandtab softtabstop=4 shiftwidth=4
+# 
+# Copyright(C) 2010  Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# 
 # This script can be distributed under the same license as the
-# pastescript or bash packages.
+# weboob or bash packages.
 
 have weboobcfg &&
 _weboob()
 {
-    local cur videoob_options commands
+    local cur words
     
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    commands="$(${COMP_WORDS[0]} --commands)"
-    options="$(${COMP_WORDS[0]} --options)"
+    words="$(${COMP_WORDS[0]} --shell-completion)"
 
     case ${COMP_WORDS[1]} in
         *)
-            COMPREPLY=( $( compgen -W "$commands $options" | grep "^$cur" ) )
+            COMPREPLY=( $( compgen -W "$words" | grep "^$cur" ) )
             ;;
     esac
 
@@ -29,5 +44,3 @@ for application in $weboob_applications
 do
     complete -F _weboob $application
 done
-
-# vim: filetype=sh expandtab softtabstop=4 shiftwidth=4

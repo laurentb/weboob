@@ -114,12 +114,9 @@ class ConsoleApplication(BaseApplication):
 
         self._parser.add_option('-o', '--output-format', choices=formatters.keys(),
                                 help='output format %s (default: table)' % formatters.keys())
-        self._other_options.add_option('--commands', action='callback', callback=self.print_commands,
-                                       help='print available commands')
 
-    def print_commands(self, option, opt, value, parser):
-        print ' '.join(name for name, arguments, doc_string in self._commands)
-        sys.exit(0)
+    def _get_completions(self):
+        return set(name for name, arguments, doc_string in self._commands)
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
