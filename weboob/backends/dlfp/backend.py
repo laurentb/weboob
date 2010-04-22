@@ -108,4 +108,4 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
         self.storage.save()
 
     def post_reply(self, thread_id, reply_id, title, message):
-        return self.browser.post(thread_id, reply_id, title, message)
+        return self.browser.post_reply(thread_id, reply_id, title, message)
