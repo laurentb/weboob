@@ -65,7 +65,7 @@ class Videoob(ConsoleApplication):
             results['BEFORE'] = u'Search pattern: %s' % pattern
         else:
             results['BEFORE'] = u'Last videos'
-        results['HEADER'] = ('ID', 'Title', 'Page URL')
+        results['HEADER'] = ('ID', 'Title', 'Duration')
         for backend in self.weboob.iter_backends():
             try:
                 iterator = backend.iter_search_results(pattern)
@@ -74,7 +74,7 @@ class Videoob(ConsoleApplication):
             else:
                 rows = []
                 for video in iterator:
-                    rows.append((video.id, video.title, video.page_url))
+                    rows.append((video.id, video.title, '%d:%02d:%02d' % (video.duration/3600, (video.duration%3600/60), video.duration%60)))
             results[backend.name] = rows
         return results
 
