@@ -19,8 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import ConfigParser
+import os
 import sys
 
+import weboob
 from weboob.tools.application import ConsoleApplication
 
 class WeboobCfg(ConsoleApplication):
@@ -56,6 +58,12 @@ class WeboobCfg(ConsoleApplication):
                     first_line = False
                 else:
                     print '                 %s' % cap.__name__
+
+    @ConsoleApplication.command('List applications')
+    def command_applications(self, *caps):
+        applications_path = os.path.abspath(os.path.join(os.path.dirname(weboob.__file__), '..', 'scripts'))
+        assert os.path.exists(applications_path)
+        print ' '.join(f for f in os.listdir(applications_path) if not f.startswith('.'))
 
     @ConsoleApplication.command('Display a module')
     def command_modinfo(self, name):

@@ -1,0 +1,33 @@
+# weboob completion
+# Copyright 2010 Christophe Benz <christophe.benz@gmail.com>
+
+# This script can be distributed under the same license as the
+# pastescript or bash packages.
+
+have weboobcfg &&
+_weboob()
+{
+    local cur videoob_options commands
+    
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    commands="$(${COMP_WORDS[0]} --commands)"
+    options="$(${COMP_WORDS[0]} --options)"
+
+    case ${COMP_WORDS[1]} in
+        *)
+            COMPREPLY=( $( compgen -W "$commands $options" | grep "^$cur" ) )
+            ;;
+    esac
+
+    return 0
+
+}
+[ "$have" ] || return
+weboob_applications=$(weboobcfg applications)
+for application in $weboob_applications
+do
+    complete -F _weboob $application
+done
+
+# vim: filetype=sh expandtab softtabstop=4 shiftwidth=4

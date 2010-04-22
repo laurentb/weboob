@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Romain Bignon, Julien Hébert
+Copyright(C) 2010  Romain Bignon, Julien Hébert, Christophe Benz
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import sys, tty, termios
 import re
 from inspect import getargspec
 from functools import partial
+from optparse import OptionGroup
 
 from weboob.modules import BackendsConfig
 
@@ -107,11 +108,18 @@ class ConsoleApplication(BaseApplication):
         if self._parser.description is None:
             self._parser.description = ''
         self._parser.description += 'Available commands:\n'
-        for f in self._command_help:
-            self._parser.description += '   %s\n' % f
+        for name, arguments, doc_string in self._commands:
+            command = '%s %s' % (name, arguments)
+            self._parser.description += '   %-30s %s\n' % (command, doc_string)
 
         self._parser.add_option('-o', '--output-format', choices=formatters.keys(),
                                 help='output format %s (default: table)' % formatters.keys())
+        self._other_options.add_option('--commands', action='callback', callback=self.print_commands,
+                                       help='print available commands')
+
+    def print_commands(self, option, opt, value, parser):
+        print ' '.join(name for name, arguments, doc_string in self._commands)
+        sys.exit(0)
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
@@ -207,8 +215,8 @@ class ConsoleApplication(BaseApplication):
         else:
             raise Exception('Should never go here')
 
-    _command_help = []
-    def register_command(f, doc_string, register_to=_command_help):
+    _commands = []
+    def register_command(f, doc_string, register_to=_commands):
         def get_arguments(func, skip=0):
             """
             Get arguments of a function as a string.
@@ -228,8 +236,7 @@ class ConsoleApplication(BaseApplication):
             return " ".join(args)
 
         command_name = f.func_name.replace('command_', '')
-        command = '%s %s' % (command_name, get_arguments(f))
-        register_to.append('%-30s %s' % (command, doc_string))
+        register_to.append((command_name, get_arguments(f), doc_string))
         return f
 
     def command(doc_string, f=register_command):
