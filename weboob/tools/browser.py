@@ -195,7 +195,7 @@ class BaseBrowser(mechanize.Browser):
         try:
             return mechanize.Browser.open(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error(e)
+            error('Error opening URL "%s": %s' % (args and args[0] or 'None', e))
             raise BrowserUnavailable()
         except mechanize.BrowserStateError:
             self.home()
@@ -208,7 +208,7 @@ class BaseBrowser(mechanize.Browser):
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error(e)
+            error('Error submitting FORM: %s' % e)
             self.page = None
             raise BrowserUnavailable()
         except (mechanize.BrowserStateError, BrowserRetry):
@@ -222,7 +222,7 @@ class BaseBrowser(mechanize.Browser):
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error(e)
+            error('Error following link "%s": %s' % (args and args[0] or "None", e))
             self.page = None
             raise BrowserUnavailable()
         except (mechanize.BrowserStateError, BrowserRetry):
@@ -250,7 +250,7 @@ class BaseBrowser(mechanize.Browser):
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error('Error opening URL "%s": %s' % (args[0], e))
+            error('Error changing location to "%s": %s' % (args and args[0] or 'None', e))
             self.page = None
             raise BrowserUnavailable()
         except mechanize.BrowserStateError:
