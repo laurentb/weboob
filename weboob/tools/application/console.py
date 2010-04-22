@@ -102,17 +102,16 @@ class ConsoleApplication(BaseApplication):
             sys.exit(1)
         self.default_output_format = None
 
-    def _configure_parser(self, parser):
-        parser.format_description = lambda x: parser.description
+        self._parser.format_description = lambda x: self._parser.description
 
-        if parser.description is None:
-            parser.description = ''
-        parser.description += 'Available commands:\n'
+        if self._parser.description is None:
+            self._parser.description = ''
+        self._parser.description += 'Available commands:\n'
         for f in self._command_help:
-            parser.description += '   %s\n' % f
+            self._parser.description += '   %s\n' % f
 
-        parser.add_option('-o', '--output-format', choices=formatters.keys(),
-                          help='output format %s (default: table)' % formatters.keys())
+        self._parser.add_option('-o', '--output-format', choices=formatters.keys(),
+                                help='output format %s (default: table)' % formatters.keys())
 
     def ask(self, question, default=None, masked=False, regexp=None):
         """
