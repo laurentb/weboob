@@ -124,6 +124,13 @@ class BaseApplication(object):
             names = self._enabled_backends
         self.weboob.load_modules(caps, names, *args, **kwargs)
 
+    def _get_completions(self):
+        """
+        Overload this method in subclasses if you want to enrich shell completion.
+        @return  a set object
+        """
+        return set()
+
     @classmethod
     def run(klass, args=sys.argv):
         app = klass()
