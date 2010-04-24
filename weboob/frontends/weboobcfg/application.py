@@ -112,7 +112,7 @@ class WeboobCfg(ConsoleApplication):
         try:
             self.weboob.backends_config.add_backend(name, type, params)
         except ConfigParser.DuplicateSectionError, e:
-            print >>sys.stderr, 'Error: %s (filename=%s)' % (e.message, self.weboob.backends_config.confpath)
+            print >>sys.stderr, 'Error: %s (filename=%s)' % (e, self.weboob.backends_config.confpath)
             return 1
 
     @ConsoleApplication.command('List backends')

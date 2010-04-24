@@ -161,4 +161,4 @@ class BaseApplication(object):
         except KeyboardInterrupt:
             print 'Program killed by SIGINT'
         except ConfigError, e:
-            print 'Configuration error: %s' % e.message
+            print 'Configuration error: %s' % e

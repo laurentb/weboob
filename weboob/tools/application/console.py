@@ -99,7 +99,7 @@ class ConsoleApplication(BaseApplication):
         try:
             BaseApplication.__init__(self)
         except BackendsConfig.WrongPermissions, e:
-            print >>sys.stderr, 'Error: %s' % e.message
+            print >>sys.stderr, 'Error: %s' % e
             sys.exit(1)
         self.default_output_format = None
 
@@ -203,7 +203,7 @@ class ConsoleApplication(BaseApplication):
             try:
                 print formatters[output_format].format(command_result)
             except ImportError, e:
-                logging.error(u'Could not use formatter "%s". Error: %s' % (output_format, e.message))
+                logging.error(u'Could not use formatter "%s". Error: %s' % (output_format, e))
             return 0
         elif isinstance(command_result, int):
             return command_result
