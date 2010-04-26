@@ -39,6 +39,9 @@ class Video(object):
         self.preview_url = preview_url
         self.nsfw = nsfw
 
+    @property
+    def formatted_duration(self):
+        return '%d:%02d:%02d' % (self.duration / 3600, (self.duration % 3600 / 60), self.duration % 60)
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
