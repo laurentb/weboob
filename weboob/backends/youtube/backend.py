@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import logging
 import re
 
 from weboob.backend import BaseBackend
@@ -47,7 +48,11 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
         return self.browser.get_video(_id)
 
     def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE, nsfw=False):
-        import gdata.youtube.service
+        try:
+            import gdata.youtube.service
+        except ImportError:
+            logging.warning('Youtube backend search feature requires python-gdata package.')
+            return
         yt_service = gdata.youtube.service.YouTubeService()
         query = gdata.youtube.service.YouTubeVideoQuery()
         query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
