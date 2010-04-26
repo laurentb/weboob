@@ -25,6 +25,7 @@ import re
 import time
 from logging import warning, error, debug
 from copy import copy
+from threading import RLock
 
 from weboob.tools.parsers import get_parser
 
@@ -160,11 +161,18 @@ class BaseBrowser(mechanize.Browser):
         self.last_update = 0.0
         self.username = username
         self.password = password
+        self.lock = RLock()
         if self.password:
             try:
                 self.home()
             except BrowserUnavailable:
                 pass
+
+    def __enter__(self):
+        self.lock.acquire()
+
+    def __exit__(self, t, v, tb):
+        self.lock.release()
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
