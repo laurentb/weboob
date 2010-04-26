@@ -44,7 +44,7 @@ class YoutubeBrowser(BaseBrowser):
         return self.page.iter_videos()
 
     def get_video(self, _id):
-        if re.match('^\w+$', _id):
+        if re.match('^[\w-]+$', _id):
             url = 'http://www.youtube.com/watch?v=%s' % _id
         else:
             url = _id

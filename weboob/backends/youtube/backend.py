@@ -46,7 +46,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
     def need_url(func):
         def inner(self, *args, **kwargs):
             url = args[0]
-            if (u'youtube.com' not in url) and not re.match('^\w+$', url):
+            if (u'youtube.com' not in url) and not re.match('^[\w-]+$', url):
                 return None
             return func(self, *args, **kwargs)
         return inner
