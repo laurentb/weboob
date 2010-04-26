@@ -34,7 +34,7 @@ class ProfilesWalker(object):
         self.view_cron = sched.schedule(randint(10,40), self.view_profile)
 
     def save(self):
-        self.storage.set('profiles_walker', 'viewed', self.visited_profiles)
+        self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
         self.storage.save()
 
     def stop(self):
