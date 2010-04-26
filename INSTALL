@@ -4,6 +4,14 @@ Weboob installation
 Like any setuptools package, Weboob can be installed in normal mode,
 or in development mode.
 
+Debian note
+-----------
+
+When using Debian, it is advised to use Python Debian packages, and not the PyPI ones.
+
+To achieve this, please install the following packages before installing Weboob:
+* python-gdata
+
 normal mode
 -----------
 
