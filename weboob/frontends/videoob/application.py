@@ -70,11 +70,3 @@ class Videoob(ConsoleApplication):
             results[backend.name] = [(video.id, video.title, video.formatted_duration) for video in
                                      backend.iter_search_results(pattern=pattern)]
         return results
-
-    @ConsoleApplication.command('Get video file URL from page URL')
-    def command_file_url(self, url):
-        for backend in self.weboob.iter_backends():
-            video = backend.get_video(url)
-            if video:
-                print video.url
-                break
