@@ -25,23 +25,23 @@ __all__ = ['ICapVideoProvider', 'Video']
 
 
 class Video(object):
-    def __init__(self, _id, title=u'', url=u'', page_url=u'', author=u'', duration=0, date=None,
-            rating=0, rating_max=0, preview_url=None, nsfw=False):
+    def __init__(self, _id, title=None, url=None, author=None, duration=0, date=None,
+            rating=0.0, rating_max=0.0, preview_url=None, nsfw=False):
         self.id = _id
         self.title = title
         self.url = url
-        self.page_url = page_url
         self.author = author
-        self.duration = duration
+        self.duration = int(duration)
         self.date = date
-        self.rating = rating
-        self.rating_max = rating_max
+        self.rating = float(rating)
+        self.rating_max = float(rating_max)
         self.preview_url = preview_url
         self.nsfw = nsfw
 
     @property
     def formatted_duration(self):
         return '%d:%02d:%02d' % (self.duration / 3600, (self.duration % 3600 / 60), self.duration % 60)
+
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

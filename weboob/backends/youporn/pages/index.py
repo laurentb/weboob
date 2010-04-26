@@ -67,7 +67,6 @@ class IndexPage(PornPage):
 
                 yield Video(int(_id),
                             title=title,
-                            page_url=self.browser.id2url(_id),
                             rating=rating,
                             rating_max=rating_max,
                             duration=duration,
