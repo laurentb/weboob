@@ -46,12 +46,12 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE):
+    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE, nsfw=False):
         import gdata.youtube.service
         yt_service = gdata.youtube.service.YouTubeService()
         query = gdata.youtube.service.YouTubeVideoQuery()
         query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
-        query.racy = 'include'
+        query.racy = 'include' if nsfw else 'exclude'
         if pattern:
             query.categories.extend('/%s' % search_term.lower().encode('utf-8') for search_term in pattern.split())
         feed = yt_service.YouTubeQuery(query)
