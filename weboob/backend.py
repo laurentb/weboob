@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import re
+from threading import RLock
 
 
 __all__ = ['BackendStorage', 'BaseBackend']
@@ -75,9 +76,19 @@ class BaseBackend(object):
 
     class ConfigError(Exception): pass
 
+    def __enter__(self):
+        self.lock.acquire()
+
+    def __exit__(self, t, v, tb):
+        self.lock.release()
+
+    def __repr__(self):
+        return u"<Backend '%s'>" % self.name
+
     def __init__(self, weboob, name, config, storage):
         self.weboob = weboob
         self.name = name
+        self.lock = RLock()
         self.config = {}
         for name, field in self.CONFIG.iteritems():
             value = config.get(name, field.default)
