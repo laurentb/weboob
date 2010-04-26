@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage
 from weboob.capabilities.video import Video
 
 class VideoPage(BasePage):
-    URL_REGEX = re.compile(r"https?://[w\.]*youtube.com/watch\?v=(\w+)")
+    URL_REGEX = re.compile(r"https?://[w\.]*youtube.com/watch\?v=(.+)")
     VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
 
     def on_loaded(self):

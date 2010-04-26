@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import re
 
 from weboob.backend import BaseBackend
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideoProvider, Video
 
 from .browser import YoutubeBrowser
 
@@ -43,22 +43,28 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    def need_url(func):
-        def inner(self, *args, **kwargs):
-            url = args[0]
-            if (u'youtube.com' not in url) and not re.match('^\w+$', url):
-                return None
-            return func(self, *args, **kwargs)
-        return inner
-
-    @need_url
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    SORTBY = ['', 'video_avg_rating', 'video_view_count', 'video_date_uploaded']
     def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE):
-        return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
+        import gdata.youtube.service
+        yt_service = gdata.youtube.service.YouTubeService()
+        query = gdata.youtube.service.YouTubeVideoQuery()
+        query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
+        query.racy = 'include'
+        if pattern:
+            query.categories.extend('/%s' % search_term.lower().encode('utf-8') for search_term in pattern.split())
+        feed = yt_service.YouTubeQuery(query)
+        for entry in feed.entry:
+            if entry.media.name:
+                author = entry.media.name.text.decode('utf-8').strip()
+            else:
+                author = None
+            yield Video(entry.id.text.split('/')[-1].decode('utf-8'),
+                        title=entry.media.title.text.decode('utf-8').strip(),
+                        author=author,
+                        duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
+                        preview_url=entry.media.thumbnail[0].url.decode('utf-8').strip())
 
-    @need_url
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
