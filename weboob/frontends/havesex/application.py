@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import sys
 from weboob.tools.application import PromptApplication
 from weboob.capabilities.dating import ICapDating
 
@@ -59,7 +60,19 @@ class HaveSex(PromptApplication):
         print profile.get_profile_text()
         return True
 
-    @PromptApplication.command("start profiles walker")
-    def command_walker(self):
+    def service(self, action, function):
+        sys.stdout.write('%s:' % action)
         for backend in self.weboob.iter_backends():
-            backend.start_profiles_walker()
+            sys.stdout.write(' ' + backend.name)
+            sys.stdout.flush()
+            getattr(backend, function)()
+        sys.stdout.write('.\n')
+
+    @PromptApplication.command("start profiles walker")
+    def command_walker(self, action):
+        if action == 'start':
+            self.service('Starting walker', 'start_profiles_walker')
+        elif action == 'stop':
+            self.service('Stopping walker', 'stop_profiles_walker')
+        else:
+            print >>sys.stderr, 'Syntax: walker (start|stop)'
