@@ -66,22 +66,17 @@ class Videoob(ConsoleApplication):
         else:
             results['BEFORE'] = u'Last videos'
         results['HEADER'] = ('ID', 'Title', 'Duration')
-        for backend in self.weboob.iter_backends():
+        for backend, video in self.weboob.do('iter_search_results', pattern):
+            row = (video.id, video.title, '%d:%02d:%02d' % (video.duration/3600, (video.duration%3600/60), video.duration%60))
             try:
-                iterator = backend.iter_search_results(pattern)
-            except NotImplementedError:
-                continue
-            else:
-                rows = []
-                for video in iterator:
-                    rows.append((video.id, video.title, '%d:%02d:%02d' % (video.duration/3600, (video.duration%3600/60), video.duration%60)))
-            results[backend.name] = rows
+                results[backend.name].append(row)
+            except KeyError:
+                results[backend.name] = [row]
         return results
 
     @ConsoleApplication.command('Get video file URL from page URL')
     def command_file_url(self, url):
-        for backend in self.weboob.iter_backends():
-            video = backend.get_video(url)
+        for backend, video in self.weboob.do('get_video', url):
             if video:
                 print video.url
                 break
