@@ -23,13 +23,13 @@ from PyQt4.QtCore import QTimer, SIGNAL
 from PyQt4.QtGui import QMainWindow, QApplication
 
 from weboob import Weboob
-from weboob.scheduler import Scheduler
+from weboob.scheduler import IScheduler
 
 from .base import BaseApplication
 
 __all__ = ['QtApplication']
 
-class QtScheduler(Scheduler):
+class QtScheduler(IScheduler):
     def __init__(self, app):
         self.app = app
         self.timers = {}

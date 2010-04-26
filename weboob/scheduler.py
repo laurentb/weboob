@@ -18,34 +18,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sched
-import time
-
+from threading import Timer, Event
 
 __all__ = ['Scheduler']
 
-
-class Scheduler(object):
-    def __init__(self):
-        self.scheduler = sched.scheduler(time.time, time.sleep)
-        self.running = False
-
+class IScheduler(object):
     def schedule(self, interval, function, *args):
-        return self.scheduler.enter(interval, 1, function, args)
+        raise NotImplementedError()
 
     def repeat(self, interval, function, *args):
-        return self.scheduler.enter(interval, 1, self._repeated_cb, (interval, function, args))
+        raise NotImplementedError()
 
     def run(self):
-        self.running = True
-        while self.running:
-            self.scheduler.run()
-            if not self.scheduler.queue:
-                self.scheduler.delayfunc(0.001)
+        raise NotImplementedError()
+
+    def want_stop(self):
+        raise NotImplementedError()
+
+class Scheduler(IScheduler):
+    def __init__(self):
+        self.stop_event = Event()
+        self.count = 0
+        self.queue = {}
+
+    def schedule(self, interval, function, *args):
+        self.count += 1
+        timer = Timer(interval, function, args)
+        timer.start()
+        self.queue[self.count] = timer
+        return self.count
+
+    def repeat(self, interval, function, *args):
+        return self.schedule(interval, self._repeated_cb, interval, function, args)
+
+    def run(self):
+        self.stop_event.wait()
         return True
 
     def want_stop(self):
-        self.running = False
+        self.stop_event.set()
 
     def _repeated_cb(self, interval, func, args):
         func(*args)
