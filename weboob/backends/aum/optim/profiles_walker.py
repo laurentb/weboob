@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from __future__ import with_statement
+
 from logging import debug
 from random import randint
 from weboob.tools.browser import BrowserUnavailable
@@ -42,7 +44,8 @@ class ProfilesWalker(object):
         self.event = None
 
     def walk(self):
-        self.profiles_queue = self.profiles_queue.union(self.browser.search_profiles()).difference(self.visited_profiles)
+        with self.browser:
+            self.profiles_queue = self.profiles_queue.union(self.browser.search_profiles()).difference(self.visited_profiles)
         self.save()
 
     def view_profile(self):
@@ -53,7 +56,8 @@ class ProfilesWalker(object):
                 return # empty queue
 
             try:
-                profile = self.browser.get_profile(id)
+                with self.browser:
+                    profile = self.browser.get_profile(id)
                 debug(u'Visited %s (%s)' % (profile.get_name(), id))
 
                 # Get score from the aum_score module

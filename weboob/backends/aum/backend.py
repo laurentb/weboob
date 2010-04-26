@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from __future__ import with_statement
+
 from weboob.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
 from weboob.capabilities.dating import ICapDating
@@ -67,38 +69,41 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
             yield message
 
     def _iter_messages(self, thread, only_new):
-        try:
-            if not only_new or self.browser.nb_new_mails():
-                my_name = self.browser.get_my_name()
-                contacts = self.browser.get_contact_list()
-                contacts.reverse()
+        with self.browser:
+            try:
+                if not only_new or self.browser.nb_new_mails():
+                    my_name = self.browser.get_my_name()
+                    contacts = self.browser.get_contact_list()
+                    contacts.reverse()
 
-                for contact in contacts:
-                    if only_new and not contact.is_new() or thread and int(thread) != contact.get_id():
-                        continue
+                    for contact in contacts:
+                        if only_new and not contact.is_new() or thread and int(thread) != contact.get_id():
+                            continue
 
-                    mails = self.browser.get_thread_mails(contact.get_id())
-                    profile = None
-                    for i in xrange(len(mails)):
-                        mail = mails[i]
-                        if only_new and mail.get_from() == my_name:
-                            break
+                        mails = self.browser.get_thread_mails(contact.get_id())
+                        profile = None
+                        for i in xrange(len(mails)):
+                            mail = mails[i]
+                            if only_new and mail.get_from() == my_name:
+                                break
 
-                        if not profile:
-                            profile = self.browser.get_profile(contact.get_id())
-                        mail.signature += u'\n%s' % profile.get_profile_text()
-                        yield mail
-        except BrowserUnavailable:
-            pass
+                            if not profile:
+                                profile = self.browser.get_profile(contact.get_id())
+                            mail.signature += u'\n%s' % profile.get_profile_text()
+                            yield mail
+            except BrowserUnavailable:
+                pass
 
     def post_reply(self, thread_id, reply_id, title, message):
         for message in self._iter_messages(thread_id, True):
             self.queue_messages.append(message)
-        return self.browser.post(thread_id, message)
+        with self.browser:
+            return self.browser.post(thread_id, message)
 
     def get_profile(self, _id):
         try:
-            return self.browser.get_profile(_id)
+            with self.browser:
+                return self.browser.get_profile(_id)
         except BrowserUnavailable:
             return None
 
