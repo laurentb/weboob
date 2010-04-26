@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import os
 from logging import warning
 
+from weboob.bcall import BackendsCall
 from weboob.modules import ModulesLoader, BackendsConfig
 from weboob.scheduler import Scheduler
 
@@ -93,6 +94,14 @@ class Weboob(object):
         for name, backend in self.backends.iteritems():
             if caps is None or backend.has_caps(caps):
                 yield backend
+
+    def do(self, function, *args, **kwargs):
+        backends = [b for b in self.iter_backends()]
+        return BackendsCall(backends, function, *args, **kwargs)
+
+    def do_caps(self, caps, function, *args, **kwargs):
+        backends = [b for b in self.iter_backends(caps)]
+        return BackendsCall(backends, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)
