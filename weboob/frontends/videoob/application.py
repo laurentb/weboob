@@ -27,6 +27,10 @@ class Videoob(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     CONFIG = {}
 
+    def __init__(self):
+        ConsoleApplication.__init__(self)
+        self._parser.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
+
     def main(self, argv):
         self.load_modules(ICapVideoProvider)
         return self.process_command(*argv[1:])
@@ -68,5 +72,5 @@ class Videoob(ConsoleApplication):
         results['HEADER'] = ('ID', 'Title', 'Duration')
         for backend in self.weboob.iter_backends():
             results[backend.name] = [(video.id, video.title, video.formatted_duration) for video in
-                                     backend.iter_search_results(pattern=pattern)]
+                                     backend.iter_search_results(pattern=pattern, nsfw=self.options.nsfw)]
         return results
