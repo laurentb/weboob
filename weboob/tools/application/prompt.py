@@ -52,6 +52,13 @@ class PromptApplication(ConsoleApplication):
     def create_weboob(self):
         return Weboob(self.APPNAME, scheduler=PromptScheduler(self.prompt, self.read_cb))
 
+    @ConsoleApplication.command("Display this notice")
+    def command_help(self):
+        print 'Available commands:'
+        for name, arguments, doc_string in self._commands:
+            command = '%s %s' % (name, arguments)
+            print '   %-30s %s' % (command, doc_string)
+
     def prompt(self):
         sys.stdout.write('> ')
         sys.stdout.flush()
@@ -61,4 +68,5 @@ class PromptApplication(ConsoleApplication):
 
     def read_cb(self, line):
         line = line.split()
-        self.process_command(*line)
+        if line:
+            self.process_command(*line)
