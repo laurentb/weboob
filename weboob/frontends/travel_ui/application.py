@@ -20,58 +20,87 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
+from logging import debug
 
 import hildon
-
+import conic
 import gtk
+
+
 
 class TransilienUI():
     "hildon interface"
+
+    def connect_event(self, connection, event=None, c=None, d=None):
+        debug("DBUS-DEBUG a: %s,  b:%s, c:%s,d: %s" % (connection, event, c, d))
+        status = event.get_status()
+        if status == conic.STATUS_CONNECTED:
+            self.connected = True
+            if self.touch_selector_entry_filled == False:
+                debug("connected, now fill")
+                self.fill_touch_selector_entry()
+            if self.refresh_in_progress:
+                self.refresh()
+        elif status == conic.STATUS_DISCONNECTED:
+            self.connected = False
+
     def __init__(self, weboob):
+        self.touch_selector_entry_filled = False
+        self.refresh_in_progress = False
+        self.connected = False
         self.weboob = weboob
-        self.main_window = hildon.Window()
-        self.main_window.set_title("Horaires des Prochains Trains")
-        self.main_window.connect("destroy", self.on_main_window_destroy)
+        self.connection = conic.Connection()
+        self.connection.connect("connection-event", self.connect_event)
+        self.connection.set_property("automatic-connection-events", True)
+        self.connection.request_connection(conic.CONNECT_FLAG_NONE)
 
+        main_window = hildon.Window()
+        main_window.set_title("Horaires des Prochains Trains")
+        main_window.connect("destroy", self.on_main_window_destroy)
 
-        refresh_button = hildon.Button(
+        self.refresh_button = hildon.Button(
             gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
             "Actualiser"
             )
-        retour_button = hildon.Button(
+
+        self.refresh_button.set_sensitive(False)
+        self.refresh_button.connect("clicked", self.on_refresh_button_clicked)
+        
+        self.retour_button = hildon.Button(
             gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
             "Retour"
             )
-        refresh_button.connect("clicked", self.on_refresh_button_clicked)
-        retour_button.connect("clicked", self.on_retour_button_clicked)
+
+        self.retour_button.set_sensitive(False)
+        self.retour_button.connect("clicked", self.on_retour_button_clicked)
 
         self.treestore = gtk.TreeStore(str, str, str, str)
-        self.treeview = gtk.TreeView(self.treestore)
+        treeview = gtk.TreeView(self.treestore)
 
 
-        self.treeview.append_column(
+        treeview.append_column(
             gtk.TreeViewColumn(
                 'Train',
                 gtk.CellRendererText(),
                 text=0
             ))
 
-        self.treeview.append_column(
+        treeview.append_column(
             gtk.TreeViewColumn(
                 'Horaire',
                 gtk.CellRendererText(),
                 text=1
             ))
 
-        self.treeview.append_column(
+        treeview.append_column(
             gtk.TreeViewColumn(
                 'Destination',
                 gtk.CellRendererText(),
                 text=2
             ))
-        self.treeview.append_column(
+        treeview.append_column(
             gtk.TreeViewColumn(
                 'Voie',
                 gtk.CellRendererText(),
@@ -81,8 +110,46 @@ class TransilienUI():
         self.combo_source = hildon.TouchSelectorEntry(text=True)
         self.combo_dest = hildon.TouchSelectorEntry(text=True)
 
-        liste = []
+        self.picker_button_source = hildon.PickerButton(
+            gtk.HILDON_SIZE_AUTO,
+            hildon.BUTTON_ARRANGEMENT_VERTICAL)
 
+        self.picker_button_dest = hildon.PickerButton(
+            gtk.HILDON_SIZE_AUTO,
+            hildon.BUTTON_ARRANGEMENT_VERTICAL
+            )
+
+        self.picker_button_source.set_sensitive(False)
+        self.picker_button_dest.set_sensitive(False)
+
+        self.picker_button_source.set_title("Gare de Depart")
+        self.picker_button_dest.set_title("Gare d'arrivee")
+
+        self.picker_button_source.set_selector(self.combo_source)
+        self.picker_button_dest.set_selector(self.combo_dest)
+
+        vertical_box = gtk.VBox()
+        horizontal_box = gtk.HBox()
+        vertical_box.pack_start(horizontal_box)
+        horizontal_box.pack_start(self.picker_button_source)
+        horizontal_box.pack_start(self.picker_button_dest)
+        horizontal_box.pack_start(self.retour_button)
+        vertical_box.pack_start(treeview)
+        vertical_box.pack_start(self.refresh_button)
+
+        main_window.add(vertical_box)
+        main_window.show_all()
+
+        self.picker_button_source.connect("value-changed", 
+                                          self.check_station_input, 
+                                          self.picker_button_source)
+        self.picker_button_dest.connect("value-changed", 
+                                        self.check_station_input, 
+                                        self.picker_button_dest)
+
+    def fill_touch_selector_entry(self):
+        liste = []
+        
         for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station.name.capitalize())
@@ -93,39 +160,19 @@ class TransilienUI():
             self.combo_source.append_text(station)
             self.combo_dest.append_text(station)
 
-        picker_button_source = hildon.PickerButton(
-            gtk.HILDON_SIZE_AUTO,
-            hildon.BUTTON_ARRANGEMENT_VERTICAL)
-
-        picker_button_dest = hildon.PickerButton(
-            gtk.HILDON_SIZE_AUTO,
-            hildon.BUTTON_ARRANGEMENT_VERTICAL
-            )
-
-        picker_button_source.set_title("Gare de Depart")
-        picker_button_dest.set_title("Gare d'arrivee")
-
-        picker_button_source.set_selector(self.combo_source)
-        picker_button_dest.set_selector(self.combo_dest)
-
-        vertical_box = gtk.VBox()
-        horizontal_box = gtk.HBox()
-        vertical_box.pack_start(horizontal_box)
-        horizontal_box.pack_start(picker_button_source)
-        horizontal_box.pack_start(picker_button_dest)
-        horizontal_box.pack_start(retour_button)
-        vertical_box.pack_start(self.treeview)
-        vertical_box.pack_start(refresh_button)
-
-        self.main_window.add(vertical_box)
-        self.main_window.show_all()
+        self.touch_selector_entry_filled = True
+        self.picker_button_source.set_sensitive(True)
 
     def on_main_window_destroy(self, widget):
         "exit application at the window close"
         gtk.main_quit()
 
+    def on_main_window_show(self, param):
+        self.fill_touch_selector_entry()
+
     def on_retour_button_clicked(self, widget):
         "the button is clicked"
+        self.refresh_in_progress = True
         col_source = self.combo_source.get_active(0)
         col_dest = self.combo_dest.get_active(0)
         self.combo_source.set_active(0, col_dest)
@@ -134,7 +181,22 @@ class TransilienUI():
 
     def on_refresh_button_clicked(self, widget):
         "the refresh button is clicked"
-        self.refresh()
+        self.refresh_in_progress = True
+        self.connection.request_connection(conic.CONNECT_FLAG_NONE)
+
+    def check_station_input(self, widget, user_data):
+        if self.combo_source.get_current_text() is None :
+            self.picker_button_dest.set_sensitive(False)
+            self.refresh_button.set_sensitive(False)
+            self.retour_button.set_sensitive(False)
+        else:
+            self.picker_button_dest.set_sensitive(True)
+            if self.combo_dest.get_current_text() is None:
+                self.refresh_button.set_sensitive(False)
+                self.retour_button.set_sensitive(False)
+            else:
+                self.refresh_button.set_sensitive(True)
+                self.retour_button.set_sensitive(True)
 
     def refresh(self):
         "update departures"
@@ -151,6 +213,8 @@ class TransilienUI():
                                              departure.time,
                                              departure.arrival_station,
                                              departure.information])
+
+        self.refresh_in_progress = False
 
 
 class Travel(BaseApplication):
