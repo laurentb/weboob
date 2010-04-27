@@ -75,8 +75,11 @@ class VideoobWeb(BaseApplication):
         c['results'] = {}
         if q:
             for backend in self.weboob.iter_backends():
-                items = [(video.id, video.title, video.formatted_duration) for video in
-                         backend.iter_search_results(pattern=q, nsfw=nsfw)]
+                items = [dict(title=video.title,
+                              page_url=video.page_url,
+                              url=video.url if video.url else '/download?id=%s' % video.id
+                             ) \
+                         for video in backend.iter_search_results(pattern=q, nsfw=nsfw)]
                 if items:
                     c['results'][backend.name] = items
         template = template_lookup.get_template('index.mako')
