@@ -71,17 +71,25 @@ class VideoobWeb(BaseApplication):
         nsfw = req.params.get('nsfw')
         nsfw = False if not nsfw or nsfw == '0' else True
         q = req.params.get('q', u'')
+        merge = req.params.get('merge')
+        merge = False if not merge or merge == '0' else True
+        c['merge'] = merge
         c['form_data'] = dict(q=q)
-        c['results'] = {}
+        c['results'] = [] if merge else {}
         if q:
             for backend in self.weboob.iter_backends():
-                items = [dict(title=video.title,
+                videos = [dict(title=video.title,
                               page_url=video.page_url,
                               url=video.url if video.url else '/download?id=%s' % video.id
                              ) \
                          for video in backend.iter_search_results(pattern=q, nsfw=nsfw)]
-                if items:
-                    c['results'][backend.name] = items
+                if videos:
+                    if merge:
+                        c['results'].extend(videos)
+                    else:
+                        c['results'][backend.name] = videos
+            if merge:
+                c['results'] = sorted(c['results'], key=lambda video: video['title'].lower())
         template = template_lookup.get_template('index.mako')
         buf = StringIO()
         ctx = Context(buf, **c)
