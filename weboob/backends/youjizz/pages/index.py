@@ -42,7 +42,7 @@ class IndexPage(BasePage):
             url = a.attrib['href']
             _id = re.sub(r'/videos/(.+)\.html', r'\1', url)
 
-            preview_url = span.find('.//img').attrib['src']
+            thumbnail_url = span.find('.//img').attrib['src']
 
             title1 = span.cssselect('span#title1')
             if title1 is None:
@@ -60,6 +60,6 @@ class IndexPage(BasePage):
             yield Video(_id,
                         title=title,
                         duration=duration,
-                        preview_url=preview_url,
+                        thumbnail_url=thumbnail_url,
                         nsfw=True,
                         id2url=tools.id2url)

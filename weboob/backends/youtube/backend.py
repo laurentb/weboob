@@ -78,7 +78,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
                         title=entry.media.title.text.decode('utf-8').strip(),
                         author=author,
                         duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
-                        preview_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
+                        thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
                         id2url=tools.id2url)
 
     def iter_page_urls(self, mozaic_url):

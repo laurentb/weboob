@@ -42,8 +42,8 @@ class MiniVideo(QFrame):
         else:
             self.ui.ratingLabel.setText('%s' % video.rating)
 
-        if video.preview_url:
-            data = urllib2.urlopen(video.preview_url).read()
+        if video.thumbnail_url:
+            data = urllib2.urlopen(video.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 

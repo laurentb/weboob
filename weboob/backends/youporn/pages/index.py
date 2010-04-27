@@ -39,7 +39,7 @@ class IndexPage(PornPage):
                 if a is None or a.find('img') is None:
                     continue
 
-                preview_url = a.find('img').attrib['src']
+                thumbnail_url = a.find('img').attrib['src']
 
                 h1 = li.find('h1')
                 a = h1.find('a')
@@ -71,6 +71,6 @@ class IndexPage(PornPage):
                             rating=rating,
                             rating_max=rating_max,
                             duration=duration,
-                            preview_url=preview_url,
+                            thumbnail_url=thumbnail_url,
                             nsfw=True,
                             id2url=tools.id2url)
