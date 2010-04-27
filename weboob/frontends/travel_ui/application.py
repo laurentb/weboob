@@ -76,7 +76,7 @@ class TransilienUI():
         self.retour_button.set_sensitive(False)
         self.retour_button.connect("clicked", self.on_retour_button_clicked)
 
-        self.treestore = gtk.TreeStore(str, str, str, str)
+        self.treestore = gtk.TreeStore(str, str, str, str, str)
         treeview = gtk.TreeView(self.treestore)
 
 
@@ -106,7 +106,15 @@ class TransilienUI():
                 gtk.CellRendererText(),
                 text=3
             ))
+        
+        treeview.append_column(
+            gtk.TreeViewColumn(
+                'Information',
+                gtk.CellRendererText(),
+                text=4
+            ))
 
+    
         self.combo_source = hildon.TouchSelectorEntry(text=True)
         self.combo_dest = hildon.TouchSelectorEntry(text=True)
 
@@ -212,6 +220,7 @@ class TransilienUI():
                                              [departure.type,
                                              departure.time,
                                              departure.arrival_station,
+                                             departure.plateform,
                                              departure.information])
 
         self.refresh_in_progress = False
