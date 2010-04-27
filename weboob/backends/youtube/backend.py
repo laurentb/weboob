@@ -24,7 +24,12 @@ import re
 from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider, Video
 
+from . import tools
 from .browser import YoutubeBrowser
+
+
+__all__ = ['YoutubeBackend']
+
 
 class YoutubeBackend(BaseBackend, ICapVideoProvider):
     NAME = 'youtube'
@@ -43,6 +48,10 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
                 self._browser = YoutubeBrowser()
             return self._browser
         raise AttributeError, name
+
+    @classmethod
+    def id2url(cls, _id):
+        return _id if 'youtube.com' in _id else 'http://www.youtube.com/watch?v=%s' % _id
 
     def get_video(self, _id):
         return self.browser.get_video(_id)
@@ -69,7 +78,8 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
                         title=entry.media.title.text.decode('utf-8').strip(),
                         author=author,
                         duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
-                        preview_url=entry.media.thumbnail[0].url.decode('utf-8').strip())
+                        preview_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
+                        id2url=tools.id2url)
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

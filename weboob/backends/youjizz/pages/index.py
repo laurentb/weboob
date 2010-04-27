@@ -23,6 +23,8 @@ import re
 from weboob.capabilities.video import Video
 from weboob.tools.browser import BasePage
 
+from .. import tools
+
 
 __all__ = ['IndexPage']
 
@@ -59,4 +61,5 @@ class IndexPage(BasePage):
                         title=title,
                         duration=duration,
                         preview_url=preview_url,
-                        nsfw=True)
+                        nsfw=True,
+                        id2url=tools.id2url)

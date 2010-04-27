@@ -37,9 +37,6 @@ class YoujizzBrowser(BaseBrowser):
              r'http://.*youjizz\.com/search/.+\.html': IndexPage,
             }
 
-    def id2url(self, _id):
-        return 'http://www.youjizz.com/videos/%s.html' % _id
-
     def get_video(self, url):
         self.location(url)
         return self.page.video

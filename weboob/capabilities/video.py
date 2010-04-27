@@ -26,7 +26,7 @@ __all__ = ['ICapVideoProvider', 'Video']
 
 class Video(object):
     def __init__(self, _id, title=None, url=None, author=None, duration=0, date=None,
-            rating=0.0, rating_max=0.0, preview_url=None, nsfw=False):
+                 rating=0.0, rating_max=0.0, preview_url=None, nsfw=False, id2url=None):
         self.id = _id
         self.title = title
         self.url = url
@@ -37,10 +37,18 @@ class Video(object):
         self.rating_max = float(rating_max)
         self.preview_url = preview_url
         self.nsfw = nsfw
+        self.id2url = id2url
 
     @property
     def formatted_duration(self):
         return '%d:%02d:%02d' % (self.duration / 3600, (self.duration % 3600 / 60), self.duration % 60)
+
+    @property
+    def page_url(self):
+        if self.id2url:
+            return self.id2url(self.id)
+        else:
+            return None
 
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):

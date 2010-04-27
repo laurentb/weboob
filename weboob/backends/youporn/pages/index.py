@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.capabilities.video import Video
 
+from .. import tools
 from .base import PornPage
 
 
@@ -71,4 +72,5 @@ class IndexPage(PornPage):
                             rating_max=rating_max,
                             duration=duration,
                             preview_url=preview_url,
-                            nsfw=True)
+                            nsfw=True,
+                            id2url=tools.id2url)

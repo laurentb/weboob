@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Copyright(C) 2010  Christophe Benz, Romain Bignon
+Copyright(C) 2010  Christophe Benz
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,19 +18,5 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import urllib
-
-from weboob.tools.browser import BaseBrowser
-
-from . import tools
-from .pages import VideoPage
-
-__all__ = ['YoutubeBrowser']
-
-class YoutubeBrowser(BaseBrowser):
-    PAGES = {'.*youtube\.com/watch\?v=(.+)': VideoPage,
-            }
-
-    def get_video(self, _id):
-        self.location(tools.id2url(_id))
-        return self.page.video
+def id2url(_id):
+    return _id if 'youtube.com' in _id else 'http://www.youtube.com/watch?v=%s' % _id

@@ -22,6 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser
 
+from . import tools
 from .pages.index import IndexPage
 from .pages.video import VideoPage
 
@@ -42,12 +43,6 @@ class YoupornBrowser(BaseBrowser):
         # Disallow arguments
         BaseBrowser.__init__(self)
 
-    def id2url(self, _id):
-        if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
-            return 'http://www.youporn.com/watch/%d' % int(_id)
-        else:
-            return str(_id)
-
     def iter_search_results(self, pattern, sortby):
         if not pattern:
             self.home()
@@ -58,5 +53,5 @@ class YoupornBrowser(BaseBrowser):
         return self.page.iter_videos()
 
     def get_video(self, _id):
-        self.location(self.id2url(_id))
+        self.location(tools.id2url(_id))
         return self.page.video

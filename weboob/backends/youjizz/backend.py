@@ -23,6 +23,10 @@ from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoujizzBrowser
 
+
+__all__ = ['YoujizzBackend']
+
+
 class YoujizzBackend(BaseBackend, ICapVideoProvider):
     NAME = 'youjizz'
     MAINTAINER = 'Roger Philibert'
@@ -40,6 +44,10 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
                 self._browser = YoujizzBrowser()
             return self._browser
         raise AttributeError, name
+
+    @classmethod
+    def id2url(cls, _id):
+        return 'http://www.youjizz.com/videos/%s.html' % _id
 
     def check_url(func):
         def inner(self, *args, **kwargs):

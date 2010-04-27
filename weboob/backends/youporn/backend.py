@@ -23,6 +23,10 @@ from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoupornBrowser
 
+
+__all__ = ['YoupornBackend']
+
+
 class YoupornBackend(BaseBackend, ICapVideoProvider):
     NAME = 'youporn'
     MAINTAINER = 'Romain Bignon'
@@ -40,6 +44,13 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
                 self._browser = YoupornBrowser()
             return self._browser
         raise AttributeError, name
+
+    @classmethod
+    def id2url(cls, _id):
+        if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
+            return 'http://www.youporn.com/watch/%d' % int(_id)
+        else:
+            return str(_id)
 
     def need_url(func):
         def inner(self, *args, **kwargs):
