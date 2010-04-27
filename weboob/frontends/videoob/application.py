@@ -27,6 +27,10 @@ class Videoob(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     CONFIG = {}
 
+    def __init__(self):
+        ConsoleApplication.__init__(self)
+        self._parser.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
+
     def main(self, argv):
         self.load_modules(ICapVideoProvider)
         return self.process_command(*argv[1:])
@@ -67,21 +71,6 @@ class Videoob(ConsoleApplication):
             results['BEFORE'] = u'Last videos'
         results['HEADER'] = ('ID', 'Title', 'Duration')
         for backend in self.weboob.iter_backends():
-            try:
-                iterator = backend.iter_search_results(pattern)
-            except NotImplementedError:
-                continue
-            else:
-                rows = []
-                for video in iterator:
-                    rows.append((video.id, video.title, '%d:%02d:%02d' % (video.duration/3600, (video.duration%3600/60), video.duration%60)))
-            results[backend.name] = rows
+            results[backend.name] = [(video.id, video.title, video.formatted_duration) for video in
+                                     backend.iter_search_results(pattern=pattern, nsfw=self.options.nsfw)]
         return results
-
-    @ConsoleApplication.command('Get video file URL from page URL')
-    def command_file_url(self, url):
-        for backend in self.weboob.iter_backends():
-            video = backend.get_video(url)
-            if video:
-                print video.url
-                break

@@ -57,7 +57,6 @@ class IndexPage(BasePage):
 
             yield Video(_id,
                         title=title,
-                        page_url=self.browser.id2url(_id),
                         duration=duration,
                         preview_url=preview_url,
                         nsfw=True)
