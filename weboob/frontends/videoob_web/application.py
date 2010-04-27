@@ -36,7 +36,7 @@ from weboob.tools.application import BaseApplication
 __all__ = ['VideoobWeb']
 
 
-template_lookup = TemplateLookup(directories=['%s/templates' % os.path.dirname(__file__)],
+template_lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__), 'templates')],
                                  output_encoding='utf-8', encoding_errors='replace')
 
 
@@ -50,13 +50,28 @@ class VideoobWeb(BaseApplication):
         map.connect('index', '/', method='index')
 
         results = map.routematch(environ=req.environ)
-        if not results:
-            return exc.HTTPNotFound()
-        match, route = results
-        req.urlvars = ((), match)
-        kwargs = match.copy()
-        method = kwargs.pop('method')
-        return getattr(self, method)(req, **kwargs)
+        if results:
+            match, route = results
+            req.urlvars = ((), match)
+            kwargs = match.copy()
+            method = kwargs.pop('method')
+            return getattr(self, method)(req, **kwargs)
+        else:
+            public_path = os.path.join(os.path.dirname(__file__), 'public')
+            if not os.path.exists(public_path):
+                return exc.HTTPNotFound()
+            path = req.path
+            if path.startswith('/'):
+                path = path[1:]
+            public_file_path = os.path.join(public_path, path)
+            if os.path.exists(public_file_path):
+                if path.endswith('.css'):
+                    req.response.content_type = 'text/css'
+                elif path.endswith('.js'):
+                    req.response.content_type = 'text/javascript'
+                return open(public_file_path, 'r').read().strip()
+            else:
+                return exc.HTTPNotFound()
 
     def main(self, argv):
         self.load_config()
@@ -79,8 +94,9 @@ class VideoobWeb(BaseApplication):
         if q:
             for backend in self.weboob.iter_backends():
                 videos = [dict(title=video.title,
-                              page_url=video.page_url,
-                              url=video.url if video.url else '/download?id=%s' % video.id
+                               page_url=video.page_url,
+                               url=video.url if video.url else '/download?id=%s' % video.id,
+                               thumbnail_url=video.thumbnail_url,
                              ) \
                          for video in backend.iter_search_results(pattern=q, nsfw=nsfw)]
                 if videos:

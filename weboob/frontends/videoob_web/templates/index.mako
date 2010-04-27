@@ -2,9 +2,19 @@
 
 <%inherit file="base.mako"/>
 
-<%def name="video_link(item)">
-  <a href="${item['page_url']}">${item['title']}</a>
-  ## (<a href="${item['url']}"><em>download</em></a>)
+<%def name="css()" filter="trim">
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+</%def>
+
+<%def name="video_item(item)">
+  <div class="video-item">
+    <a href="${item['page_url']}">
+      <img src="${item['thumbnail_url']}" alt="${item['title']}"/>
+      <br/>
+      ${item['title']}
+    </a>
+    ## (<a href="${item['url']}"><em>download</em></a>)
+  </div>
 </%def>
 
 <%def name="body()">
@@ -18,19 +28,15 @@
 </div>
 <div id="results">
   % if merge:
-    <ul>
-      % for item in results:
-        <li>${video_link(item)}</li>
-      % endfor
-    </ul>
+    % for item in results:
+      ${video_item(item)}
+    % endfor
   % else:
     % for backend, items in sorted(results.iteritems()):
       <h2>${backend}</h2>
-      <ul>
-        % for item in items:
-          <li>${video_link(item)}</li>
-        % endfor
-      </ul>
+      % for item in items:
+        ${video_item(item)}
+      % endfor
     % endfor
   % endif
 </div>

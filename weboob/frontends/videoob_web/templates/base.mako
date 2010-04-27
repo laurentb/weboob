@@ -9,6 +9,7 @@ Videoob Web
     <head>
         <title>${self.title()}</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        ${next.css()}
     </head>
     <body>
       ${next.body()}
