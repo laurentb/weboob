@@ -22,9 +22,9 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser
 
-from . import tools
 from .pages.index import IndexPage
 from .pages.video import VideoPage
+from .video import YoupornVideo
 
 
 __all__ = ['YoupornBrowser']
@@ -53,5 +53,5 @@ class YoupornBrowser(BaseBrowser):
         return self.page.iter_videos()
 
     def get_video(self, _id):
-        self.location(tools.id2url(_id))
+        self.location(YoupornVideo.id2url(_id))
         return self.page.video

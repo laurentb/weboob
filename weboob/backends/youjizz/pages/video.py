@@ -21,8 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from logging import error, warning
 import re
 
-from weboob.capabilities.video import Video
 from weboob.tools.browser import BasePage
+
+from ..video import YoujizzVideo
 
 class VideoPage(BasePage):
     URL_REGEX = re.compile(r'http://.*youjizz\.com/videos/.+-(\d+)\.html')
@@ -30,8 +31,8 @@ class VideoPage(BasePage):
 
     def on_loaded(self):
         details = self.get_details()
-        self.video = Video(_id=self.get_id(), title=details.get('title', u''), url=self.get_url(),
-                duration=details.get('duration', 0), nsfw=True)
+        self.video = YoujizzVideo(_id=self.get_id(), title=details.get('title', u''), url=self.get_url(),
+                                  duration=details.get('duration', 0), nsfw=True)
 
     def get_id(self):
         m = self.URL_REGEX.match(self.url)

@@ -45,10 +45,6 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    @classmethod
-    def id2url(cls, _id):
-        return 'http://www.youjizz.com/videos/%s.html' % _id
-
     def check_url(func):
         def inner(self, *args, **kwargs):
             url = args[0]

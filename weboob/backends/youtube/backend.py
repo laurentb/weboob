@@ -19,13 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import logging
-import re
 
 from weboob.backend import BaseBackend
-from weboob.capabilities.video import ICapVideoProvider, Video
+from weboob.capabilities.video import ICapVideoProvider
 
-from . import tools
 from .browser import YoutubeBrowser
+from .video import YoutubeVideo
 
 
 __all__ = ['YoutubeBackend']
@@ -49,10 +48,6 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    @classmethod
-    def id2url(cls, _id):
-        return _id if 'youtube.com' in _id else 'http://www.youtube.com/watch?v=%s' % _id
-
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
@@ -74,12 +69,11 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
                 author = entry.media.name.text.decode('utf-8').strip()
             else:
                 author = None
-            yield Video(entry.id.text.split('/')[-1].decode('utf-8'),
-                        title=entry.media.title.text.decode('utf-8').strip(),
-                        author=author,
-                        duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
-                        thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
-                        id2url=tools.id2url)
+            yield YoutubeVideo(entry.id.text.split('/')[-1].decode('utf-8'),
+                               title=entry.media.title.text.decode('utf-8').strip(),
+                               author=author,
+                               duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
+                               thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip())
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

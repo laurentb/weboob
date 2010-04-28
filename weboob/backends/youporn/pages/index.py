@@ -18,10 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.capabilities.video import Video
-
-from .. import tools
 from .base import PornPage
+from ..video import YoupornVideo
 
 
 __all__ = ['IndexPage']
@@ -66,11 +64,10 @@ class IndexPage(PornPage):
                     rating = float(p.text.strip())
                     rating_max = float(p.find('span').text.strip()[2:])
 
-                yield Video(int(_id),
-                            title=title,
-                            rating=rating,
-                            rating_max=rating_max,
-                            duration=duration,
-                            thumbnail_url=thumbnail_url,
-                            nsfw=True,
-                            id2url=tools.id2url)
+                yield YoupornVideo(int(_id),
+                                   title=title,
+                                   rating=rating,
+                                   rating_max=rating_max,
+                                   duration=duration,
+                                   thumbnail_url=thumbnail_url,
+                                   nsfw=True)

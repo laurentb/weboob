@@ -23,7 +23,7 @@ import datetime
 from logging import warning
 
 from .base import PornPage
-from weboob.capabilities.video import Video
+from ..video import YoupornVideo
 
 class VideoPage(PornPage):
     URL_REGEXP = re.compile("https?://[w\.]*youporn.com/watch/(\d+)/?.*")
@@ -32,10 +32,10 @@ class VideoPage(PornPage):
         if not PornPage.on_loaded(self):
             return
 
-        self.video = Video(self.get_id(),
-                           self.get_title(),
-                           self.get_url(),
-                           nsfw=True)
+        self.video = YoupornVideo(self.get_id(),
+                                  self.get_title(),
+                                  self.get_url(),
+                                  nsfw=True)
 
         self.set_details(self.video)
 

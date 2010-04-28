@@ -22,14 +22,16 @@ import re
 from logging import warning
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.video import Video
+
+from ..video import YoutubeVideo
+
 
 class VideoPage(BasePage):
     URL_REGEX = re.compile(r"https?://[w\.]*youtube.com/watch\?v=(.+)")
     VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
 
     def on_loaded(self):
-        self.video = Video(self.get_id())
+        self.video = YoutubeVideo(self.get_id())
         self.video.title = self.get_title()
         self.video.url = self.get_url()
         self.set_details(self.video)

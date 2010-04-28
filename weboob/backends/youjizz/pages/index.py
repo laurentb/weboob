@@ -20,10 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 
-from weboob.capabilities.video import Video
 from weboob.tools.browser import BasePage
 
-from .. import tools
+from ..video import YoujizzVideo
 
 
 __all__ = ['IndexPage']
@@ -57,9 +56,8 @@ class IndexPage(BasePage):
                 minutes, seconds = time_span.text.strip().split(':')
                 duration = 60 * int(minutes) + int(seconds)
 
-            yield Video(_id,
-                        title=title,
-                        duration=duration,
-                        thumbnail_url=thumbnail_url,
-                        nsfw=True,
-                        id2url=tools.id2url)
+            yield YoujizzVideo(_id,
+                               title=title,
+                               duration=duration,
+                               thumbnail_url=thumbnail_url,
+                               nsfw=True)

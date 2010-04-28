@@ -21,12 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from .cap import ICap
 
 
-__all__ = ['ICapVideoProvider', 'Video']
+__all__ = ['BaseVideo', 'ICapVideoProvider']
 
 
-class Video(object):
+class BaseVideo(object):
     def __init__(self, _id, title=None, url=None, author=None, duration=0, date=None,
-                 rating=0.0, rating_max=0.0, thumbnail_url=None, nsfw=False, id2url=None):
+                 rating=0.0, rating_max=0.0, thumbnail_url=None, nsfw=False):
         self.id = _id
         self.title = title
         self.url = url
@@ -37,7 +37,11 @@ class Video(object):
         self.rating_max = float(rating_max)
         self.thumbnail_url = thumbnail_url
         self.nsfw = nsfw
-        self.id2url = id2url
+
+    @classmethod
+    def id2url(cls, _id):
+        """Overloaded in child classes provided by backends."""
+        raise NotImplementedError()
 
     @property
     def formatted_duration(self):
@@ -45,10 +49,8 @@ class Video(object):
 
     @property
     def page_url(self):
-        if self.id2url:
-            return self.id2url(self.id)
-        else:
-            return None
+        return self.id2url(self.id)
+
 
 class ICapVideoProvider(ICap):
     def iter_page_urls(self, mozaic_url):

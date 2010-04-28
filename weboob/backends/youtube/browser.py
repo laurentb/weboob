@@ -18,12 +18,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import urllib
-
 from weboob.tools.browser import BaseBrowser
 
-from . import tools
 from .pages import VideoPage
+from .video import YoutubeVideo
 
 __all__ = ['YoutubeBrowser']
 
@@ -32,5 +30,5 @@ class YoutubeBrowser(BaseBrowser):
             }
 
     def get_video(self, _id):
-        self.location(tools.id2url(_id))
+        self.location(YoutubeVideo.id2url(_id))
         return self.page.video

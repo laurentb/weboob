@@ -18,5 +18,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-def id2url(_id):
-    return _id if 'youtube.com' in _id else 'http://www.youtube.com/watch?v=%s' % _id
+from weboob.capabilities.video import BaseVideo
+
+class YoutubeVideo(BaseVideo):
+    @classmethod
+    def id2url(cls, _id):
+        return _id if 'youtube.com' in _id else 'http://www.youtube.com/watch?v=%s' % _id

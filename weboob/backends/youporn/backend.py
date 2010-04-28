@@ -45,13 +45,6 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    @classmethod
-    def id2url(cls, _id):
-        if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
-            return 'http://www.youporn.com/watch/%d' % int(_id)
-        else:
-            return str(_id)
-
     def need_url(func):
         def inner(self, *args, **kwargs):
             url = args[0]

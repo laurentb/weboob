@@ -18,5 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-def id2url(_id):
-    return 'http://www.youjizz.com/videos/%s.html' % _id
+from weboob.capabilities.video import BaseVideo
+
+class YoupornVideo(BaseVideo):
+    @classmethod
+    def id2url(cls, _id):
+        if isinstance(_id, int) or isinstance(_id, (str,unicode)) and _id.isdigit():
+            return 'http://www.youporn.com/watch/%d' % int(_id)
+        else:
+            return str(_id)
