@@ -28,7 +28,7 @@ import gtk
 
 
 
-class TransilienUI():
+class Masstransit():
     "hildon interface"
 
     def connect_event(self, connection, event=None, c=None, d=None):
@@ -228,12 +228,12 @@ class TransilienUI():
 
 class Travel(BaseApplication):
     "Application Class"
-    APPNAME = 'travel'
+    APPNAME = 'masstransit'
     VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2010 Julien Hébert'
 
     def main(self, argv):
         "main fonction"
         self.load_modules(ICapTravel)
-        TransilienUI(self.weboob)
+        Masstransit(self.weboob)
         gtk.main()
