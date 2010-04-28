@@ -20,6 +20,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.capabilities.video import ICapVideoProvider
 from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.results import BaseItem, FieldException, ObjectItem
+
+
+class VideoItem(ObjectItem):
+    def format(self, select=[]):
+        if select:
+            return u'\t'.join(self.get(field) for field in select)
+        else:
+            lines = [
+                u'ID: %s' % self.obj.id,
+                u'title: %s'% self.obj.title,
+                u'duration: %s'% self.obj.formatted_duration,
+                u'URL: %s'% self.obj.url,
+                u'author: %s'% self.obj.author,
+                u'date: %s'% self.obj.date,
+                u'rating_max: %s'% self.obj.rating,
+                u'rating: %s'% self.obj.rating_max,
+            ]
+            return u'\n'.join(lines)
+
+
+class SearchResultItem(BaseItem):
+    def __init__(self, _id, title, duration):
+        self.id = _id
+        self.title = title
+        self.duration = duration
+
+    def get(self, name):
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            raise FieldException(name)
+
+    def format(self, select=[]):
+        if select:
+            return u'\t'.join(unicode(self.get(field)) for field in select)
+        else:
+            return u'%s %s (%s)' % (self.id, self.title, self.duration)
+
 
 class Videoob(ConsoleApplication):
     APPNAME = 'videoob'
@@ -37,44 +76,14 @@ class Videoob(ConsoleApplication):
 
     @ConsoleApplication.command('Get video information (accept ID or URL)')
     def command_info(self, id):
-        results = {}
-        for backend in self.weboob.iter_backends():
-            video = backend.get_video(id)
+        for backend, video in self.weboob.do('get_video', id):
             if video is None:
                 continue
-            rows = []
-            rows.append(('ID', video.id))
-            if video.title:
-                rows.append(('Video title', video.title))
-            if video.duration:
-                rows.append(('Duration', '%d:%02d:%02d' % (
-                    video.duration / 3600, (video.duration % 3600) / 60, video.duration % 60)))
-            if video.url:
-                rows.append(('URL', video.url))
-            if video.author:
-                rows.append(('Author', video.author))
-            if video.date:
-                rows.append(('Date', video.date))
-            if video.rating_max:
-                rows.append(('Rating', '%s / %s' % (video.rating, video.rating_max)))
-            elif video.rating:
-                rows.append(('Rating', video.rating))
-            results[backend.name] = rows
-        return results
+            print self.format(VideoItem(video))
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
-        results = {}
-        if pattern:
-            results['BEFORE'] = u'Search pattern: %s' % pattern
-        else:
-            results['BEFORE'] = u'Last videos'
-        results['HEADER'] = ('ID', 'Title', 'Duration')
-
-        for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
-            row = (video.id, video.title, video.formatted_duration)
-            try:
-                results[backend.name].append(row)
-            except KeyError:
-                results[backend.name] = [row]
-        return results
+        print u'Search pattern: %s' % pattern if pattern else u'Last videos'
+        for backend, video in self.weboob.do(
+            'iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
+            print self.format(SearchResultItem(video.id, title=video.title, duration=video.formatted_duration))

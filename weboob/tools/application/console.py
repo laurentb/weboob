@@ -27,68 +27,10 @@ from functools import partial
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
+from .results import FieldException, ItemGroup
 
 
 __all__ = ['ConsoleApplication']
-
-
-class TableFormatter(object):
-    @classmethod
-    def format(klass, data):
-        from prettytable import PrettyTable
-        formatted = u''
-        before = data.get('BEFORE')
-        if before is not None:
-            formatted += u'%s\n' % before
-            del data['BEFORE']
-        header = data.get('HEADER')
-        if header is not None:
-            del data['HEADER']
-        for backend_name, result in data.iteritems():
-            if not result:
-                continue
-            if header is None:
-                header = ['' for e in xrange(len(result[0]))]
-            table = PrettyTable(list(header))
-            for col in header:
-                table.set_field_align(col, 'l')
-            for row in result:
-                table.add_row(row)
-            formatted += u'%s\n%s\n' % (backend_name, unicode(table))
-        return unicode(formatted).strip()
-
-
-class TextFormatter(object):
-    @classmethod
-    def format(klass, data):
-        formatted = u''
-        before = data.get('BEFORE')
-        if before is not None:
-            formatted += u'%s\n' % before
-            del data['BEFORE']
-        header = data.get('HEADER')
-        if header is not None:
-            del data['HEADER']
-        for backend_name, result in data.iteritems():
-            if not result:
-                continue
-            if header is None:
-                header = ['' for e in xrange(len(result[0]))]
-            formatted += u'%s\n%s\n' % (backend_name, '=' * len(backend_name))
-            for row in result:
-                formatted_cols = []
-                for i, col in enumerate(row):
-                    if header[i]:
-                        formatted_cols.append(u'%s: %s' % (header[i], col))
-                    else:
-                        formatted_cols.append(unicode(col))
-                formatted += u'%s\n' % u' '.join(formatted_cols)
-        return unicode(formatted).strip()
-
-
-formatters = {'text':  TextFormatter,
-              'table': TableFormatter,
-             }
 
 
 class ConsoleApplication(BaseApplication):
@@ -100,7 +42,6 @@ class ConsoleApplication(BaseApplication):
         except BackendsConfig.WrongPermissions, e:
             print >>sys.stderr, 'Error: %s' % e
             sys.exit(1)
-        self.default_output_format = None
 
         self._parser.format_description = lambda x: self._parser.description
 
@@ -111,8 +52,13 @@ class ConsoleApplication(BaseApplication):
             command = '%s %s' % (name, arguments)
             self._parser.description += '   %-30s %s\n' % (command, doc_string)
 
-        self._parser.add_option('-o', '--output-format', choices=formatters.keys(),
-                                help='output format %s (default: table)' % formatters.keys())
+        self._parser.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
+
+    def _handle_app_options(self):
+        if self.options.select:
+            self.selected_fields = self.options.select.split(',')
+        else:
+            self.selected_fields = None
 
     def _get_completions(self):
         return set(name for name, arguments, doc_string in self._commands)
@@ -188,28 +134,25 @@ class ConsoleApplication(BaseApplication):
                 sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
             return 1
 
-        command_result = func(*args)
+        try:
+            command_result = func(*args)
+        except FieldException, e:
+            logging.error(e)
+            return 1
 
         # Process result
-        if isinstance(command_result, dict):
-            if self.options.output_format is not None:
-                output_format = self.options.output_format
-            else:
-                if self.default_output_format is not None:
-                    output_format = self.default_output_format
-                else:
-                    output_format = 'table'
-            try:
-                print formatters[output_format].format(command_result)
-            except ImportError, e:
-                logging.error(u'Could not use formatter "%s". Error: %s' % (output_format, e))
+        if isinstance(command_result, ItemGroup):
+            print command_result.format(select=self.selected_fields)
+            return 0
+        elif isinstance(command_result, (str, unicode)):
+            print command_result
             return 0
         elif isinstance(command_result, int):
             return command_result
         elif command_result is None:
             return 0
         else:
-            raise Exception('Should never go here')
+            raise Exception('command_result type not expected: %s' % type(command_result))
 
     _commands = []
     def register_command(f, doc_string, register_to=_commands):
@@ -237,6 +180,9 @@ class ConsoleApplication(BaseApplication):
 
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
+
+    def format(self, result):
+        return result.format(select=self.selected_fields)
 
     register_command = staticmethod(register_command)
     command = staticmethod(command)

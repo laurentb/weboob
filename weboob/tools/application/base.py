@@ -131,6 +131,12 @@ class BaseApplication(object):
         """
         return set()
 
+    def _handle_app_options(self):
+        """
+        Overload this method in subclasses if you want to handle options defined in subclass constructor.
+        """
+        pass
+
     @classmethod
     def run(klass, args=None):
         if args is None:
@@ -158,6 +164,9 @@ class BaseApplication(object):
         log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         app._enabled_backends = app.options.backends.split(',') if app.options.backends else None
+
+        app._handle_app_options()
+
         try:
             sys.exit(app.main(args))
         except KeyboardInterrupt:

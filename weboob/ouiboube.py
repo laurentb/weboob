@@ -101,7 +101,7 @@ class Weboob(object):
         @param caps  Optional list of capabilities to select backends
         @return  iterator on selected backends.
         """
-        for name, backend in self.backends.iteritems():
+        for name, backend in sorted(self.backends.iteritems()):
             if caps is None or backend.has_caps(caps):
                 with backend:
                     yield backend
