@@ -23,7 +23,6 @@ import sys, tty, termios
 import re
 from inspect import getargspec
 from functools import partial
-from optparse import OptionGroup
 
 from weboob.modules import BackendsConfig
 

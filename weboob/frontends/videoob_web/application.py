@@ -26,7 +26,6 @@ from routes import Mapper
 from StringIO import StringIO
 from webob.dec import wsgify
 from webob import exc
-from webob import Response
 from wsgiref.simple_server import make_server
 
 from weboob.capabilities.video import ICapVideoProvider
