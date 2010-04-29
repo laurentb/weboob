@@ -164,3 +164,4 @@ class BaseApplication(object):
             print 'Program killed by SIGINT'
         except ConfigError, e:
             print 'Configuration error: %s' % e
+            sys.exit(1)

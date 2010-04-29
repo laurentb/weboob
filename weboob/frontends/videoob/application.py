@@ -70,7 +70,11 @@ class Videoob(ConsoleApplication):
         else:
             results['BEFORE'] = u'Last videos'
         results['HEADER'] = ('ID', 'Title', 'Duration')
-        for backend in self.weboob.iter_backends():
-            results[backend.name] = [(video.id, video.title, video.formatted_duration) for video in
-                                     backend.iter_search_results(pattern=pattern, nsfw=self.options.nsfw)]
+
+        for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
+            row = (video.id, video.title, video.formatted_duration)
+            try:
+                results[backend.name].append(row)
+            except KeyError:
+                results[backend.name] = [row]
         return results

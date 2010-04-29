@@ -18,9 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import sched
-import time
-import select
 import sys
 
 from weboob import Weboob
@@ -34,18 +31,18 @@ __all__ = ['PromptApplication']
 
 class PromptScheduler(Scheduler):
     def __init__(self, prompt_cb, read_cb):
-        self.scheduler = sched.scheduler(time.time, self.sleep)
+        Scheduler.__init__(self)
         self.read_cb = read_cb
         self.prompt_cb = prompt_cb
 
-    def sleep(self, d):
-        self.prompt_cb()
+    def run(self):
         try:
-            read, write, excepts = select.select([sys.stdin], [], [], d or None)
-            if read:
+            while not self.stop_event.isSet():
+                self.prompt_cb()
                 line = sys.stdin.readline()
                 if not line:
                     self.want_stop()
+                    sys.stdout.write('\n')
                 else:
                     self.read_cb(line.strip())
         except KeyboardInterrupt:
@@ -54,6 +51,13 @@ class PromptScheduler(Scheduler):
 class PromptApplication(ConsoleApplication):
     def create_weboob(self):
         return Weboob(self.APPNAME, scheduler=PromptScheduler(self.prompt, self.read_cb))
+
+    @ConsoleApplication.command("Display this notice")
+    def command_help(self):
+        print 'Available commands:'
+        for name, arguments, doc_string in self._commands:
+            command = '%s %s' % (name, arguments)
+            print '   %-30s %s' % (command, doc_string)
 
     def prompt(self):
         sys.stdout.write('> ')
@@ -64,4 +68,5 @@ class PromptApplication(ConsoleApplication):
 
     def read_cb(self, line):
         line = line.split()
-        self.process_command(*line)
+        if line:
+            self.process_command(*line)

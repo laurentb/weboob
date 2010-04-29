@@ -18,14 +18,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from __future__ import with_statement
+
 import os
 from logging import warning
 
+from weboob.bcall import BackendsCall, CallErrors
 from weboob.modules import ModulesLoader, BackendsConfig
 from weboob.scheduler import Scheduler
 
 
-__all__ = ['Weboob']
+__all__ = ['Weboob', 'CallErrors']
 
 
 class Weboob(object):
@@ -92,7 +95,16 @@ class Weboob(object):
     def iter_backends(self, caps=None):
         for name, backend in self.backends.iteritems():
             if caps is None or backend.has_caps(caps):
-                yield backend
+                with backend:
+                    yield backend
+
+    def do(self, function, *args, **kwargs):
+        backends = [b for b in self.iter_backends()]
+        return BackendsCall(backends, function, *args, **kwargs)
+
+    def do_caps(self, caps, function, *args, **kwargs):
+        backends = [b for b in self.iter_backends(caps)]
+        return BackendsCall(backends, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)
