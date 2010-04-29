@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from __future__ import with_statement
+
 import sys
 from weboob.tools.application import PromptApplication
 from weboob.capabilities.dating import ICapDating
@@ -53,19 +55,19 @@ class HaveSex(PromptApplication):
         if not backend:
             print 'Invalid ID: %s' % id
             return False
-        profile = backend.get_profile(_id)
-        if not profile:
-            print 'Profile not found'
+        with backend:
+            profile = backend.get_profile(_id)
+            if not profile:
+                print 'Profile not found'
 
-        print profile.get_profile_text()
+            print profile.get_profile_text()
         return True
 
     def service(self, action, function):
         sys.stdout.write('%s:' % action)
-        for backend in self.weboob.iter_backends():
+        for backend, result in self.weboob.do(function):
             sys.stdout.write(' ' + backend.name)
             sys.stdout.flush()
-            getattr(backend, function)()
         sys.stdout.write('.\n')
 
     @PromptApplication.command("start profiles walker")

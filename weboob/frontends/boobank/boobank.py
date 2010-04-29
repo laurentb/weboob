@@ -44,32 +44,45 @@ class Boobank(ConsoleApplication):
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
         results = {'HEADER': ('ID', 'label', 'balance', 'coming')}
-        for backend in self.weboob.iter_backends():
-            rows = []
-            try:
-                for account in backend.iter_accounts():
-                    row = [account.id, account.label, account.balance, account.coming]
-                    rows.append(row)
-            except weboob.tools.browser.BrowserIncorrectPassword:
-                print >>sys.stderr, 'Error: Incorrect password for backend %s' % backend.name
-                return 1
-        results[backend.name] = rows
+        try:
+            for backend, account in self.weboob.do('iter_accounts'):
+                row = [account.id, account.label, account.balance, account.coming]
+                try:
+                    results[backend.name].append(row)
+                except KeyError:
+                    results[backend.name] = [row]
+        except weboob.CallErrors, e:
+            for backend, error in e.errors:
+                if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
+                    print >>sys.stderr, 'Error: Incorrect password for backend %s' % backend.name
+                else:
+                    print >>sys.stderr, 'Error[%s]: %s' % (backend.name, error)
+
         return results
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
         operations = []
         found = 0
-        for backend in self.weboob.iter_backends():
-            try:
-                account = backend.get_account(id)
-            except AccountNotFound:
-                if found == 0:
-                    found = -1
-            else:
+        total = 0.0
+
+        def do(backend):
+            account = backend.get_account(id)
+            return backend.iter_operations(account)
+
+        try:
+            for backend, operation in self.weboob.do(do):
                 found = 1
-                for operation in backend.iter_operations(account):
-                    operations.append('  %8s   %-50s   %11.2f' % (operation.date, operation.label, operation.amount))
+                operations.append('  %8s   %-50s   %11.2f' % (operation.date, operation.label, operation.amount))
+                total += operation.amount
+        except weboob.CallErrors, e:
+            for backend, error in e.errors:
+                if isinstance(error, AccountNotFound):
+                    if not found:
+                        found = -1
+                else:
+                    print >>sys.stderr, 'Error[%s]: %s' % (backend.name, error)
+
         if found < 0:
             print >>sys.stderr, "Error: account %s not found" % id
             return 1
@@ -78,5 +91,8 @@ class Boobank(ConsoleApplication):
                 print '      Date   Label                                                     Amount  '
                 print '+----------+----------------------------------------------------+-------------+'
                 print '\n'.join(operations)
+                print '+----------+----------------------------------------------------+-------------+'
+                print '  %8s   %-50s   %11.2f' % ('', 'Total:', total)
+                print '+----------+----------------------------------------------------+-------------+'
             else:
                 print 'No coming operations for ID=%s' % id
