@@ -138,6 +138,22 @@ class Weboob(object):
         backends = [b for b in self.iter_backends(caps)]
         return BackendsCall(backends, function, *args, **kwargs)
 
+    def do_backends(self, backends, function, *args, **kwargs):
+        if isinstance(backends, (str,unicode)):
+            backends = [backend for backend in self.iter_backends() if backend.name == backends]
+        elif isinstance(backends, (list,tuple)):
+            old_backends = backends
+            backends = []
+            for b in old_backends:
+                if isinstance(b, (str,unicode)):
+                    try:
+                        backends.append(self.backends[self.backends.index(b)])
+                    except ValueError:
+                        pass
+                else:
+                    backends.append(b)
+        return BackendsCall(backends, function, *args, **kwargs)
+
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)
 

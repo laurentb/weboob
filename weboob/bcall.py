@@ -138,6 +138,8 @@ class BackendsCall(object):
                 while self.errors:
                     errback(*self.errors.pop())
 
+        callback(None, None)
+
     def callback_thread(self, callback, errback=None):
         """
         Call this method to create a thread which will callback a
@@ -151,7 +153,9 @@ class BackendsCall(object):
             def errback(backend, error)
 
         """
-        return Thread(target=self._callback_thread_run, args=(callback, errback))
+        thread = Thread(target=self._callback_thread_run, args=(callback, errback))
+        thread.start()
+        return thread
 
     def __iter__(self):
         # Don't know how to factorize with _callback_thread_run
