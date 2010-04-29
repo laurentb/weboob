@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+from weboob import CallErrors
 from weboob.capabilities.weather import ICapWeather, CityNotFound
 from weboob.tools.application import ConsoleApplication
 
@@ -37,10 +38,9 @@ class WetBoobs(ConsoleApplication):
         print '| ID                             | Name                                        |'
         print '+--------------------------------+---------------------------------------------+'
         count = 0
-        for backend in self.weboob.iter_backends():
-            for city in backend.iter_city_search(pattern):
-                print u'| %-31s| %-44s|' % (city.city_id, city.name)
-                count += 1
+        for backend, city in self.weboob.do('iter_city_search', pattern):
+            print u'| %-31s| %-44s|' % (city.city_id, city.name)
+            count += 1
         print "+--------------------------------'---------------------------------------------+"
         print "| %3d cities listed                                                            |" % count
         print "'------------------------------------------------------------------------------'"
@@ -51,14 +51,17 @@ class WetBoobs(ConsoleApplication):
         print '| Temperature | Text                                                           |'
         print '+-------------+----------------------------------------------------------------+'
         found = 0
-        for backend in self.weboob.iter_backends():
-            try:
-                current = backend.get_current(city)
+        try:
+            for backend, current in self.weboob.do('get_current', city):
                 print u'| %-12s| %-63s|' % (u'%d °%s' % (current.temp, current.unit), current.text)
                 found = 1
-            except CityNotFound:
-                if not found:
-                    found = -1
+        except CallErrors, e:
+            for error in e:
+                if isinstance(error, CityNotFound):
+                    if not found:
+                        found = -1
+                else:
+                    raise error
         if found < 0:
             print "|          -- | City not found                                                 |"
         print "+-------------'----------------------------------------------------------------+"
@@ -69,17 +72,20 @@ class WetBoobs(ConsoleApplication):
         print '| Date        |   Min |   Max | Text                                           |'
         print '+-------------+-------+-------+------------------------------------------------+'
         found = 0
-        for backend in self.weboob.iter_backends():
-            try:
-                for f in backend.iter_forecast(city):
-                    found = 1
-                    print u'| %-12s|%6s |%6s | %-47s|' % (f.date,
-                                                         u'%d °%s' % (f.low, f.unit),
-                                                         u'%d °%s' % (f.high, f.unit),
-                                                         f.text)
-            except CityNotFound:
-                if not found:
-                    found = -1
+        try:
+            for backend, f in self.weboob.do('iter_forecast', city):
+                found = 1
+                print u'| %-12s|%6s |%6s | %-47s|' % (f.date,
+                                                     u'%d °%s' % (f.low, f.unit),
+                                                     u'%d °%s' % (f.high, f.unit),
+                                                     f.text)
+        except CallErrors, e:
+            for error in e:
+                if isinstance(error, CityNotFound):
+                    if not found:
+                        found = -1
+                else:
+                    raise error
         if found < 0:
             print "| -- --- ---- |    -- |    -- | City not found                                 |"
         print "+-------------'-------'-------'------------------------------------------------+"
