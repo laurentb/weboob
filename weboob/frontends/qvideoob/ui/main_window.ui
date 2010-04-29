@@ -71,14 +71,60 @@
      </widget>
     </item>
     <item>
-     <widget class="QCheckBox" name="nsfwCheckBox">
-      <property name="text">
-       <string>Display NSFW videos</string>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="spacing">
+       <number>10</number>
       </property>
-      <property name="checked">
-       <bool>true</bool>
+      <property name="topMargin">
+       <number>0</number>
       </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Display:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="sfwCheckBox">
+        <property name="text">
+         <string>SFW</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="nsfwCheckBox">
+        <property name="text">
+         <string>NSFW</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QScrollArea" name="scrollArea">
@@ -94,7 +140,7 @@
          <x>0</x>
          <y>0</y>
          <width>763</width>
-         <height>393</height>
+         <height>391</height>
         </rect>
        </property>
        <property name="styleSheet">

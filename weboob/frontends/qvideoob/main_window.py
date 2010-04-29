@@ -44,20 +44,29 @@ class MainWindow(QtMainWindow):
                 self.ui.backendEdit.setCurrentIndex(i+1)
         self.ui.sortbyEdit.setCurrentIndex(int(self.config.get('settings', 'sortby')))
         self.ui.nsfwCheckBox.setChecked(int(self.config.get('settings', 'nsfw')))
+        self.ui.sfwCheckBox.setChecked(int(self.config.get('settings', 'sfw')))
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
         self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
+        self.connect(self.ui.sfwCheckBox, SIGNAL("stateChanged(int)"), self.sfwChanged)
         self.connect(self, SIGNAL('newData'), self.gotNewData)
 
     def nsfwChanged(self, state):
-        self.config.set('settings', 'nsfw', self.ui.nsfwCheckBox.isChecked())
+        self.config.set('settings', 'nsfw', int(self.ui.nsfwCheckBox.isChecked()))
+        self.updateVideosDisplay()
+
+    def sfwChanged(self, state):
+        self.config.set('settings', 'sfw', int(self.ui.sfwCheckBox.isChecked()))
+        self.updateVideosDisplay()
+
+    def updateVideosDisplay(self):
         for minivideo in self.minivideos:
-            if minivideo.video.nsfw:
-                if state:
-                    minivideo.show()
-                else:
-                    minivideo.hide()
+            if (minivideo.video.nsfw and self.ui.nsfwCheckBox.isChecked() or
+                not minivideo.video.nsfw and self.ui.sfwCheckBox.isChecked()):
+                minivideo.show()
+            else:
+                minivideo.hide()
 
     def search(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -82,9 +91,9 @@ class MainWindow(QtMainWindow):
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
         if backend_name:
-            process = self.weboob.do_backends(backend_name, 'iter_search_results', pattern, self.ui.sortbyEdit.currentIndex())
+            process = self.weboob.do_backends(backend_name, 'iter_search_results', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True)
         else:
-            process = self.weboob.do('iter_search_results', pattern, self.ui.sortbyEdit.currentIndex())
+            process = self.weboob.do('iter_search_results', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True)
         self.blah = process.callback_thread(cb, eb)
 
     def gotNewData(self, backend, video):
@@ -94,7 +103,9 @@ class MainWindow(QtMainWindow):
         minivideo = MiniVideo(backend, video)
         self.ui.scrollAreaContent.layout().addWidget(minivideo)
         self.minivideos.append(minivideo)
-        if video.nsfw and not self.ui.nsfwCheckBox.isChecked():
+        print backend
+        if (video.nsfw and not self.ui.nsfwCheckBox.isChecked() or
+            not video.nsfw and not self.ui.sfwCheckBox.isChecked()):
             minivideo.hide()
 
     def openURL(self):
