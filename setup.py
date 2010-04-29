@@ -38,6 +38,7 @@ setup(
     url='http://www.weboob.org',
     packages=find_packages(exclude=['ez_setup']),
     scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    package_data={'weboob.frontends.videoob_web': ['templates/*.mako']},
     install_requires=[
     ]
 )
