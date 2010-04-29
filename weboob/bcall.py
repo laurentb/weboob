@@ -31,6 +31,9 @@ class CallErrors(Exception):
         Exception.__init__(self, "Several errors have been raised:\n%s" % ('\n'.join(['%s: %s' % (b, e) for b, e in errors])))
         self.errors = copy(errors)
 
+    def __iter__(self):
+        return self.errors.__iter__()
+
 class Result(object):
     def __init__(self, backend, result):
         self.backend = backend
@@ -48,6 +51,11 @@ class Result(object):
 
 class BackendsCall(object):
     def __init__(self, backends, function, *args, **kwargs):
+        """
+        @param backends  list of backends to call
+        @param function  backends' method name, or callable object
+        @param args, kwargs  arguments given to called functions
+        """
         # Store if a backend is finished
         self.backends = {}
         for backend in backends:
@@ -69,9 +77,9 @@ class BackendsCall(object):
         with self.mutex:
             for b in backends:
                 debug('New timer for %s' % b)
-                self.threads.append(Timer(0, self.caller, (b, function, args, kwargs)).start())
+                self.threads.append(Timer(0, self._caller, (b, function, args, kwargs)).start())
 
-    def caller(self, b, function, args, kwargs):
+    def _caller(self, b, function, args, kwargs):
         debug('Hello from timer %s' % b)
         with b:
             try:

@@ -93,16 +93,48 @@ class Weboob(object):
         return self.backends
 
     def iter_backends(self, caps=None):
+        """
+        Iter on each backends.
+
+        Note: each backend is locked when it is returned.
+
+        @param caps  Optional list of capabilities to select backends
+        @return  iterator on selected backends.
+        """
         for name, backend in self.backends.iteritems():
             if caps is None or backend.has_caps(caps):
                 with backend:
                     yield backend
 
     def do(self, function, *args, **kwargs):
+        """
+        Do calls on loaded backends with specified arguments, in separated
+        threads.
+
+        This function has two modes:
+        - If 'function' is a string, it calls the method with this name on
+          each backends with the specified arguments;
+        - If 'function' is a callable, it calls it in a separated thread with
+          the locked backend instance at first arguments, and *args and
+          **kwargs.
+
+        @param function  backend's method name, or callable object
+        @return  an iterator of results
+        """
         backends = [b for b in self.iter_backends()]
         return BackendsCall(backends, function, *args, **kwargs)
 
     def do_caps(self, caps, function, *args, **kwargs):
+        """
+        Do calls on loaded modules with the specified capabilities, in
+        separated threads.
+
+        See also documentation of the 'do' method.
+
+        @param caps  list of caps or cap to select backends
+        @param function  backend's method name, or callable object
+        @return  an iterator of results
+        """
         backends = [b for b in self.iter_backends(caps)]
         return BackendsCall(backends, function, *args, **kwargs)
 
