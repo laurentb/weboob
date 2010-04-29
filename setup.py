@@ -29,7 +29,7 @@ except ImportError:
 import os
 
 setup(
-    name='Weboob',
+    name='weboob',
     version='0.1',
     description='Weboob, web out of the browser',
     author='Romain Bignon',
