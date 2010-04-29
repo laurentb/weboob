@@ -48,6 +48,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
         self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
+        self.connect(self, SIGNAL('newData'), self.gotNewData)
 
     def nsfwChanged(self, state):
         self.config.set('settings', 'nsfw', self.ui.nsfwCheckBox.isChecked())
@@ -68,18 +69,33 @@ class MainWindow(QtMainWindow):
             minivideo.hide()
 
         self.minivideos = []
+        self.ui.searchEdit.setEnabled(False)
+
+        def cb(backend, video):
+            if backend and backend_name and backend.name != backend_name:
+                return
+
+            self.emit(SIGNAL('newData'), backend, video)
+
+        def eb(backend, err):
+            print err
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+        if backend_name:
+            process = self.weboob.do_backends(backend_name, 'iter_search_results', pattern, self.ui.sortbyEdit.currentIndex())
+        else:
+            process = self.weboob.do('iter_search_results', pattern, self.ui.sortbyEdit.currentIndex())
+        self.blah = process.callback_thread(cb, eb)
 
-        for backend in self.weboob.iter_backends():
-            if backend_name and backend.name != backend_name:
-                continue
-            for video in backend.iter_search_results(pattern, self.ui.sortbyEdit.currentIndex()):
-                minivideo = MiniVideo(backend, video)
-                self.ui.scrollAreaContent.layout().addWidget(minivideo)
-                self.minivideos.append(minivideo)
-                if video.nsfw and not self.ui.nsfwCheckBox.isChecked():
-                    minivideo.hide()
+    def gotNewData(self, backend, video):
+        if not backend:
+            self.ui.searchEdit.setEnabled(True)
+            return
+        minivideo = MiniVideo(backend, video)
+        self.ui.scrollAreaContent.layout().addWidget(minivideo)
+        self.minivideos.append(minivideo)
+        if video.nsfw and not self.ui.nsfwCheckBox.isChecked():
+            minivideo.hide()
 
     def openURL(self):
         url = unicode(self.ui.urlEdit.text())
