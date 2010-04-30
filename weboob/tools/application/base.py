@@ -134,7 +134,7 @@ class BaseApplication(object):
     @classmethod
     def run(klass, args=None):
         if args is None:
-            args = [arg.decode(sys.stdin.encoding) for arg in sys.argv]
+            args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
         app.options, args = app._parser.parse_args(args)
 
