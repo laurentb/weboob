@@ -28,7 +28,6 @@ class AccountComing(BasePage):
 
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class', '') == 'hdoc1' or tr.attrib.get('class', '') == 'hdotc1':
-                operation = Operation()
                 tds = tr.findall('td')
                 if len(tds) != 3:
                     continue
@@ -38,10 +37,11 @@ class AccountComing(BasePage):
                 for child in tds[1].getchildren():
                     if child.text: label += child.text
                     if child.tail: label += child.tail
-                label += tds[1].tail
+                if tds[1].tail: label += tds[1].tail
                 label = label.strip()
                 amount = tds[2].text.replace('.','').replace(',','.')
 
+                operation = Operation()
                 operation.setDate(date)
                 operation.setLabel(label)
                 operation.setAmount(float(amount))

@@ -21,16 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from cStringIO import StringIO
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.tools.parsers.elementtidyparser import ElementTidyParser
 from weboob.backends.bnporc import pages
-
-# Parser
-class BNParser(ElementTidyParser):
-    def parse(self, data, encoding):
-        s = data.read()
-        s = s.replace('<?Pub Caret>', '')
-        data = StringIO(s)
-        return ElementTidyParser.parse(self, data, encoding)
 
 # Browser
 class BNPorc(BaseBrowser):
@@ -49,7 +40,6 @@ class BNPorc(BaseBrowser):
     is_logging = False
 
     def __init__(self, *args, **kwargs):
-        kwargs['parser'] = BNParser()
         kwargs['history'] = None # need history
         BaseBrowser.__init__(self, *args, **kwargs)
 
