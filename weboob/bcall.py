@@ -98,12 +98,16 @@ class BackendsCall(object):
 
                     if hasattr(r, '__iter__'):
                         # Loop on iterator
-                        for e in r:
-                            # Lock mutex only in loop in case the iterator is slow
-                            # (for example if backend do some parsing operations)
+                        try:
+                            for e in r:
+                                # Lock mutex only in loop in case the iterator is slow
+                                # (for example if backend do some parsing operations)
+                                with self.mutex:
+                                    self.responses.append((b,e))
+                                    self.response_event.set()
+                        except Exception, e:
                             with self.mutex:
-                                self.responses.append((b,e))
-                                self.response_event.set()
+                                self.errors.append((b, e))
                     else:
                         with self.mutex:
                             self.responses.append((b,r))
