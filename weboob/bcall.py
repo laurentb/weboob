@@ -23,6 +23,7 @@ from __future__ import with_statement
 from logging import debug
 from copy import copy
 from threading import Thread, Event, RLock, Timer
+from .tools.misc import getBacktrace
 
 __all__ = ['BackendsCall', 'CallErrors']
 
@@ -79,6 +80,18 @@ class BackendsCall(object):
                 debug('New timer for %s' % b)
                 self.threads.append(Timer(0, self._caller, (b, function, args, kwargs)).start())
 
+
+    def _store_error(self, b, e):
+        with self.mutex:
+            # TODO save backtrace and/or print it here (with debug)
+            self.errors.append((b, e))
+            debug(getBacktrace(e))
+
+    def _store_result(self, b, r):
+        with self.mutex:
+            self.responses.append((b,r))
+            self.response_event.set()
+
     def _caller(self, b, function, args, kwargs):
         debug('Hello from timer %s' % b)
         with b:
@@ -90,9 +103,7 @@ class BackendsCall(object):
                     else:
                         r = getattr(b, function)(*args, **kwargs)
                 except Exception, e:
-                    with self.mutex:
-                        # TODO save backtrace and/or print it here (with debug)
-                        self.errors.append((b, e))
+                    self._store_error(b, e)
                 else:
                     debug('%s: Got answer! %s' % (b, r))
 
@@ -102,16 +113,11 @@ class BackendsCall(object):
                             for e in r:
                                 # Lock mutex only in loop in case the iterator is slow
                                 # (for example if backend do some parsing operations)
-                                with self.mutex:
-                                    self.responses.append((b,e))
-                                    self.response_event.set()
+                                self._store_result(b, e)
                         except Exception, e:
-                            with self.mutex:
-                                self.errors.append((b, e))
+                            self._store_error(b, e)
                     else:
-                        with self.mutex:
-                            self.responses.append((b,r))
-                            self.response_event.set()
+                        self._store_result(b, r)
             finally:
                 with self.mutex:
                     # This backend is now finished
