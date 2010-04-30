@@ -18,7 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import sys
+import traceback
 from dateutil import tz
+
+
+__all__ = ['toUnicode', 'local2utc', 'html2text', 'getBacktrace']
+
 
 def toUnicode(text):
     r"""
@@ -52,3 +58,19 @@ try:
 except ImportError:
     def html2text(s):
         return s
+
+def getBacktrace(empty="Empty backtrace."):
+    """
+    Try to get backtrace as string.
+    Returns "Error while trying to get backtrace" on failure.
+    """
+    try:
+        info = sys.exc_info()
+        trace = traceback.format_exception(*info)
+        sys.exc_clear()
+        if trace[0] != "None\n":
+            return "".join(trace)
+    except:
+        # No i18n here (imagine if i18n function calls error...)
+        return "Error while trying to get backtrace"
+    return empty
