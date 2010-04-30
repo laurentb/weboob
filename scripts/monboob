@@ -117,7 +117,7 @@ class Monboob(ConsoleApplication):
         if mail.get_reply_id():
             reply_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_reply_id(), domain)
         subject = mail.get_title()
-        sender = u'%s <%s@%s>' % (mail.get_from(), backend.name, domain)
+        sender = u'"%s" <%s@%s>' % (mail.get_from().replace('"', '""'), backend.name, domain)
 
         # assume that get_date() returns an UTC datetime
         date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
