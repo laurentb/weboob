@@ -28,7 +28,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
 for f in selection:
     f = f.replace('.pyc', '.py')
     try:
-        f = os.readlink(f)
+        f = os.path.abspath(os.path.join(os.path.split(f)[0], os.readlink(f)))
     except OSError:
         pass
 
