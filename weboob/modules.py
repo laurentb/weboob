@@ -99,7 +99,7 @@ class BackendsConfig(object):
         config = SafeConfigParser()
         config.read(self.confpath)
         for name in config.sections():
-            params = dict(config.items(name))
+            params = dict(config.items(name, raw=True))
             try:
                 yield name, params.pop('_type'), params
             except KeyError:
