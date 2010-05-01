@@ -142,12 +142,12 @@ class BackendsCall(object):
 
             # Consume responses
             while responses:
-                callback(*responses.pop())
+                callback(*responses.pop(0))
 
         if errback:
             with self.mutex:
                 while self.errors:
-                    errback(*self.errors.pop())
+                    errback(*self.errors.pop(0))
 
         callback(None, None)
 
@@ -182,7 +182,7 @@ class BackendsCall(object):
 
             # Consume responses
             while responses:
-                yield Result(*responses.pop())
+                yield Result(*responses.pop(0))
 
         # Raise errors
         with self.mutex:
