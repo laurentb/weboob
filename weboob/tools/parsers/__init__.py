@@ -59,4 +59,4 @@ def get_parser(preference_order=('lxml', 'html5lib', 'elementtidy', 'builtin')):
         except ImportError:
             logging.debug('%s is not installed.' % kind)
 
-    raise NoParserFound()
+    raise NoParserFound("No parser found (%s)" % ','.join(preference_order))

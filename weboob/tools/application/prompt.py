@@ -49,6 +49,8 @@ class PromptScheduler(Scheduler):
             sys.stdout.write('\n')
 
 class PromptApplication(ConsoleApplication):
+    SYNOPSIS = 'Usage: %prog [options (-h for help)]'
+
     def create_weboob(self):
         return Weboob(self.APPNAME, scheduler=PromptScheduler(self.prompt, self.read_cb))
 
