@@ -142,7 +142,7 @@ class ModulesLoader(object):
 
     def load_module(self, name):
         try:
-            module = Module(name, __import__(name, fromlist=[name]))
+            module = Module(name, __import__(name, fromlist=[str(name)]))
         except ImportError, e:
             warning('Unable to load module "%s": %s' % (name, e))
             return
