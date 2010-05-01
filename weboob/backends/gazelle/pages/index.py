@@ -18,25 +18,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from .cap import ICap
+from weboob.tools.browser import BasePage
 
 
-__all__ = ['ICapTorrent']
+__all__ = ['IndexPage', 'LoginPage']
 
-class Torrent(object):
-    def __init__(self, id, name, date=None, size=0.0, url=u'', seeders=0, leechers=0, files=[]):
-        self.id = id
-        self.name = name
-        self.date = date
-        self.size = size
-        self.ul = url
-        self.seeders = seeders
-        self.leechers = leechers
-        self.files = files
 
-class ICapTorrent(ICap):
-    def iter_torrents(self, pattern):
-        raise NotImplementedError()
+class IndexPage(BasePage):
+    def is_logged(self):
+        return 'id' in self.document.find('body').attrib
 
-    def get_torrent(self, _id):
-        raise NotImplementedError()
+class LoginPage(BasePage):
+    def login(self, login, password):
+        self.browser.select_form(nr=0)
+        self.browser['username'] = login
+        self.browser['password'] = password
+        self.browser.submit()
