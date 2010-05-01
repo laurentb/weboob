@@ -79,7 +79,8 @@ class BackendsCall(object):
             for b in backends:
                 debug('New timer for %s' % b)
                 self.threads.append(Timer(0, self._caller, (b, function, args, kwargs)).start())
-
+            if not backends:
+                self.finish_event.set()
 
     def _store_error(self, b, e):
         with self.mutex:
