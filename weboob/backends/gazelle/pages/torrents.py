@@ -48,9 +48,7 @@ class TorrentsPage(BasePage):
         table = self.document.getroot().cssselect('table.torrent_table')
         if not table:
             table = self.document.getroot().cssselect('table#browse_torrent_table')
-        if not table:
-            warning('No table found')
-        else:
+        if table:
             table = table[0]
             current_group = None
             for tr in table.findall('tr'):
