@@ -66,4 +66,7 @@ class GazelleBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        pass
+        self.location('/torrents.php?torrentid=%s' % id)
+
+        assert self.is_on_page(TorrentsPage)
+        return self.page.get_torrent(id)

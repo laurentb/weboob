@@ -24,15 +24,16 @@ from .cap import ICap
 __all__ = ['ICapTorrent']
 
 class Torrent(object):
-    def __init__(self, id, name, date=None, size=0.0, url=u'', seeders=0, leechers=0, files=[]):
+    def __init__(self, id, name, date=None, size=0.0, url=u'', seeders=0, leechers=0, files=[], description=u''):
         self.id = id
         self.name = name
         self.date = date
         self.size = size
-        self.ul = url
+        self.url = url
         self.seeders = seeders
         self.leechers = leechers
         self.files = files
+        self.description = description
 
 class ICapTorrent(ICap):
     def iter_torrents(self, pattern):

@@ -58,6 +58,10 @@ class Weboorrents(ConsoleApplication):
             rows.append(('ID', torrent.id))
             rows.append(('Name', torrent.name))
             rows.append(('Size', torrent.size))
+            rows.append(('URL', torrent.url))
+            rows.append(('Seeders', torrent.seeders))
+            rows.append(('Leechers', torrent.leechers))
+            rows.append(('Description', torrent.description))
             return {backend.name: rows}
 
     @ConsoleApplication.command('Search torrents')
