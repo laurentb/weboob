@@ -169,4 +169,10 @@ class TorrentsPage(BasePage):
             if title and body:
                 torrent.description += '%s\n\n%s\n' % (title, body)
 
+        div = self.document.getroot().cssselect('div#files_%s' % torrent.id)
+        if div:
+            for tr in div[0].find('table'):
+                if tr.attrib.get('class', None) != 'colhead_dark':
+                    torrent.files.append(tr.find('td').text)
+
         return torrent

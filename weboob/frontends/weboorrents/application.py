@@ -62,6 +62,8 @@ class Weboorrents(ConsoleApplication):
             rows.append(('Seeders', torrent.seeders))
             rows.append(('Leechers', torrent.leechers))
             rows.append(('Description', torrent.description))
+            if torrent.files:
+                rows.append(('Files', '\n'.join(torrent.files)))
             return {backend.name: rows}
 
     @ConsoleApplication.command('Search torrents')
