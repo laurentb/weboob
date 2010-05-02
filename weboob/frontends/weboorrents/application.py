@@ -35,16 +35,23 @@ class Weboorrents(ConsoleApplication):
         self.load_backends(ICapTorrent)
         return self.process_command(*argv[1:])
 
-    @ConsoleApplication.command('Get information about a torrent')
-    def command_info(self, id):
+    def split_id(self, id):
         if not '.' in id:
             print >>sys.stderr, 'ID must be in form <backend>.<ID>'
-            return 1
+            return None, None
 
         backend_name, id = id.split('.', 1)
         backend = self.weboob.backends.get(backend_name, None)
         if not backend:
             print >>sys.stderr, 'Backends "%s" not found' % backend_name
+            return None, None
+
+        return backend, id
+
+    @ConsoleApplication.command('Get information about a torrent')
+    def command_info(self, id):
+        backend, id = self.split_id(id)
+        if not backend:
             return 1
 
         with backend:
@@ -65,6 +72,24 @@ class Weboorrents(ConsoleApplication):
             if torrent.files:
                 rows.append(('Files', '\n'.join(torrent.files)))
             return {backend.name: rows}
+
+    @ConsoleApplication.command('Get the torrent file')
+    def command_getfile(self, id, dest):
+        backend, id = self.split_id(id)
+        if not backend:
+            return 1
+
+        with backend:
+            s = backend.get_torrent_file(id)
+            if not s:
+                print >>sys.stderr, 'Torrent "%s" not found' % id
+                return 1
+
+            if dest == '-':
+                print s
+            else:
+                with open(dest, 'w') as f:
+                    f.write(s)
 
     @ConsoleApplication.command('Search torrents')
     def command_search(self, pattern=None):

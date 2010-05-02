@@ -53,5 +53,12 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     def get_torrent(self, id):
         return self.browser.get_torrent(id)
 
+    def get_torrent_file(self, id):
+        torrent = self.browser.get_torrent(id)
+        if not torrent:
+            return None
+
+        return self.browser.openurl(torrent.url).read()
+
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern)

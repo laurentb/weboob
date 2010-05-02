@@ -41,3 +41,6 @@ class ICapTorrent(ICap):
 
     def get_torrent(self, _id):
         raise NotImplementedError()
+
+    def get_torrent_file(self, _id):
+        raise NotImplementedError()
