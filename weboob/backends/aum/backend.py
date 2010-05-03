@@ -46,17 +46,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
     # Private
     _browser = None
     _profiles_walker = None
-    _queue_messages = None
 
     def __getattr__(self, name):
         if name == 'browser':
             if not self._browser:
                 self._browser = AdopteUnMec(self.config['username'], self.config['password'])
             return self._browser
-        if name == 'queue_messages':
-            if self._queue_messages is None:
-                self._queue_messages = []
-            return self._queue_messages
         raise AttributeError, name
 
     def iter_messages(self, thread=None):
@@ -64,11 +59,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
             yield message
 
     def iter_new_messages(self, thread=None):
-        for message in self.queue_messages:
-            if not thread or message.get_thread_id() == thread:
-                yield message
-        self.queue_messages = []
-
         for message in self._iter_messages(thread, True):
             yield message
 
@@ -101,26 +91,25 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
     def post_reply(self, thread_id, reply_id, title, message):
         # Enqueue current awaiting messages
         for mail in self._iter_messages(thread_id, True):
-            self.queue_messages.append(mail)
+            yield mail
         with self.browser:
             try:
                 self.browser.post(thread_id, message)
             except AdopteCantPostMail, e:
-                mail = Message(thread_id,
+                yield  Message(thread_id,
                                reply_id,
                                'Unable to send mail to %s' % thread_id,
                                'AuM',
                                datetime.now(),
                                content=u'Unable to send message to %s:\n\t%s\n\n---\n%s' (thread_id, unicode(e), message),
                                is_html=False)
-                self.queue_messages.append(mail)
             else:
                 # Enqueue my messages and every next messages.
                 mails = self.browser.get_thread_mails(thread_id)
                 my_name = self.browser.get_my_name()
 
                 for mail in mails:
-                    self.queue_messages.append(mail)
+                    yield mail
 
                     if mail.get_from() == my_name:
                         break

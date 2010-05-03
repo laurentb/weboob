@@ -98,7 +98,8 @@ class Monboob(ConsoleApplication):
             return 1
 
         thread_id, msg_id = id.rsplit('.', 1)
-        backend.post_reply(thread_id, msg_id, title, content)
+        for m in backend.post_reply(thread_id, msg_id, title, content):
+            self.send_email(backend, m)
 
     @ConsoleApplication.command("run daemon")
     def command_run(self):
