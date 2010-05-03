@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.backend import BaseBackend
+from weboob.backend import BaseBackend, BrowserUnavailable
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 
 from .feeds import ArticlesList
@@ -70,14 +70,18 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
             if thread_wanted and thread_wanted != article.id:
                 continue
 
-            thread = self.browser.get_content(article.id)
-
             if not article.id in self.storage.get('seen', what, default={}):
                 seen[article.id] = {'comments': []}
                 new = True
             else:
                 seen[article.id] = self.storage.get('seen', what, article.id, default={})
                 new = False
+
+            try:
+                thread = self.browser.get_content(article.id)
+            except BrowserUnavailable:
+                continue
+
             if not only_new or new:
                 yield Message(thread.id,
                               0,
@@ -104,8 +108,11 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                                   comment.body,
                                   'Score: %d' % comment.score,
                                   is_html=True)
-        self.storage.set('seen', what, seen)
-        self.storage.save()
+        # If there is no articles seen, it's suspicious, probably I can't
+        # fetch the feed.
+        if seen:
+            self.storage.set('seen', what, seen)
+            self.storage.save()
 
     def post_reply(self, thread_id, reply_id, title, message):
         return self.browser.post_reply(thread_id, reply_id, title, message)
