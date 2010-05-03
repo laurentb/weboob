@@ -20,12 +20,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
+from datetime import datetime
+
 from weboob.backend import BaseBackend
-from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
+from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
 
 from .browser import AdopteUnMec
+from .exceptions import AdopteCantPostMail
 from .optim.profiles_walker import ProfilesWalker
 
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
@@ -43,6 +46,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
     # Private
     _browser = None
     _profiles_walker = None
+    _queue_messages = None
 
     def __getattr__(self, name):
         if name == 'browser':
@@ -50,7 +54,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
                 self._browser = AdopteUnMec(self.config['username'], self.config['password'])
             return self._browser
         if name == 'queue_messages':
-            if not hasattr(self, '_queue_messages'):
+            if self._queue_messages is None:
                 self._queue_messages = []
             return self._queue_messages
         raise AttributeError, name
@@ -95,10 +99,31 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
                 pass
 
     def post_reply(self, thread_id, reply_id, title, message):
-        for message in self._iter_messages(thread_id, True):
-            self.queue_messages.append(message)
+        # Enqueue current awaiting messages
+        for mail in self._iter_messages(thread_id, True):
+            self.queue_messages.append(mail)
         with self.browser:
-            return self.browser.post(thread_id, message)
+            try:
+                self.browser.post(thread_id, message)
+            except AdopteCantPostMail, e:
+                mail = Message(thread_id,
+                               reply_id,
+                               'Unable to send mail to %s' % thread_id,
+                               'AuM',
+                               datetime.now(),
+                               content=u'Unable to send message to %s:\n\t%s\n\n---\n%s' (thread_id, unicode(e), message),
+                               is_html=False)
+                self.queue_messages.append(mail)
+            else:
+                # Enqueue my messages and every next messages.
+                mails = self.browser.get_thread_mails(thread_id)
+                my_name = self.browser.get_my_name()
+
+                for mail in mails:
+                    self.queue_messages.append(mail)
+
+                    if mail.get_from() == my_name:
+                        break
 
     def get_profile(self, _id):
         try:
@@ -111,5 +136,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
         self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
 
     def stop_profiles_walker(self):
-        self._profiles_walker.stop()
-        self._profiles_walker = None
+        if self._profiles_walker:
+            self._profiles_walker.stop()
+            self._profiles_walker = None
