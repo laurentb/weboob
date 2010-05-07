@@ -50,6 +50,7 @@ class Account(object):
     def __repr__(self):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
 
+
 class Operation(object):
     def __init__(self):
         self.date = None

@@ -16,15 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['BaseItem', 'FieldException', 'FieldsItem', 'ItemGroup', 'ObjectItem']
+__all__ = ['Results']
 
 
-class FieldException(Exception):
-    def __init__(self, name):
-        Exception.__init__(self, 'Field "%s" does not exist.' % name)
-
-
-class ItemGroup(object):
+class Results(object):
     def __init__(self, name=u'', header=None):
         self.name = name
         self._groups = []
@@ -59,7 +54,7 @@ class ItemGroup(object):
 
     def get_or_create_group(self, name, group_class=None):
         if group_class is None:
-            group_class = ItemGroup
+            group_class = Results
         group = self.get_group(name)
         if group:
             return group
@@ -70,57 +65,3 @@ class ItemGroup(object):
 
     def iter_groups(self):
         return iter(self._groups)
-
-    def format(self, select=[]):
-        formatted = u''
-        if select:
-            formatted += u'\n'.join(item.format(select) for item in self.deep_iter_items())
-        else:
-            if self.header:
-                formatted += '%s\n' % self.header
-            formatted += u'\n'.join(item.format() for item in self.iter_items())
-            formatted += u'\n\n'.join(group.format() for group in self.iter_groups())
-        return formatted
-
-
-class BaseItem(object):
-    def get(self, name):
-        raise NotImplementedError()
-
-    def format(self, select=[]):
-        raise NotImplementedError()
-
-
-class FieldsItem(BaseItem):
-    def __init__(self, fields=[]):
-        self._fields = fields
-
-    def add_field(self, *args, **kwargs):
-        if args:
-            name, value = args
-        elif kwargs:
-            name, value = kwargs.items()[0]
-        self._fields.append((name, value))
-
-    def get(self, name):
-        try:
-            return [value for _name, value in self._fields if name.lower() == _name.lower()][0]
-        except IndexError:
-            raise FieldException(name)
-
-    def format(self, select=[]):
-        if select:
-            return [value for name, value in self._fields if name in select]
-        else:
-            return u'; '.join(u'%s: %s' % (name, value) for name, value in self._fields)
-
-
-class ObjectItem(BaseItem):
-    def __init__(self, obj):
-        self.obj = obj
-
-    def get(self, name):
-        try:
-            return getattr(self.obj, name)
-        except AttributeError:
-            raise FieldException(name)

@@ -20,44 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.capabilities.video import ICapVideoProvider
 from weboob.tools.application import ConsoleApplication
-from weboob.tools.application.results import BaseItem, FieldException, ObjectItem
 
 
-class VideoItem(ObjectItem):
-    def format(self, select=[]):
-        if select:
-            return u'\t'.join(self.get(field) for field in select)
-        else:
-            lines = [
-                u'ID: %s' % self.obj.id,
-                u'title: %s'% self.obj.title,
-                u'duration: %s'% self.obj.formatted_duration,
-                u'URL: %s'% self.obj.url,
-                u'author: %s'% self.obj.author,
-                u'date: %s'% self.obj.date,
-                u'rating_max: %s'% self.obj.rating,
-                u'rating: %s'% self.obj.rating_max,
-            ]
-            return u'\n'.join(lines)
-
-
-class SearchResultItem(BaseItem):
-    def __init__(self, _id, title, duration):
-        self.id = _id
-        self.title = title
-        self.duration = duration
-
-    def get(self, name):
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            raise FieldException(name)
-
-    def format(self, select=[]):
-        if select:
-            return u'\t'.join(unicode(self.get(field)) for field in select)
-        else:
-            return u'%s %s (%s)' % (self.id, self.title, self.duration)
+__all__ = ['Videoob']
 
 
 class Videoob(ConsoleApplication):
@@ -79,11 +44,14 @@ class Videoob(ConsoleApplication):
         for backend, video in self.weboob.do('get_video', id):
             if video is None:
                 continue
-            print self.format(VideoItem(video))
+            s = self.format(video)
+            if s:
+                print s
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
         print u'Search pattern: %s' % pattern if pattern else u'Last videos'
-        for backend, video in self.weboob.do(
-            'iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
-            print self.format(SearchResultItem(video.id, title=video.title, duration=video.formatted_duration))
+        for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
+            s = self.format(video)
+            if s:
+                print s

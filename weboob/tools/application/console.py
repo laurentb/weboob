@@ -27,11 +27,16 @@ from functools import partial
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
-from .results import FieldException, ItemGroup
+from .formatters import SimpleFormatter
+from .results import Results
 
 
 __all__ = ['ConsoleApplication']
 
+
+formatters_classes = dict(
+    simple=SimpleFormatter,
+)
 
 class ConsoleApplication(BaseApplication):
     SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
@@ -52,9 +57,13 @@ class ConsoleApplication(BaseApplication):
             command = '%s %s' % (name, arguments)
             self._parser.description += '   %-30s %s\n' % (command, doc_string)
 
+        self._parser.add_option('-f', '--formatter', default='simple', choices=formatters_classes.keys(),
+                help='select output formatter (%s)' % u','.join(formatters_classes.keys()))
         self._parser.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
 
     def _handle_app_options(self):
+        self._formatter = formatters_classes[self.options.formatter]
+
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
         else:
@@ -134,15 +143,13 @@ class ConsoleApplication(BaseApplication):
                 sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
             return 1
 
-        try:
-            command_result = func(*args)
-        except FieldException, e:
-            logging.error(e)
-            return 1
+        command_result = func(*args)
 
         # Process result
-        if isinstance(command_result, ItemGroup):
-            print command_result.format(select=self.selected_fields)
+        if isinstance(command_result, Results):
+            s = self.format(command_result)
+            if s:
+                print s
             return 0
         elif isinstance(command_result, (str, unicode)):
             print command_result
@@ -185,7 +192,7 @@ class ConsoleApplication(BaseApplication):
         return partial(f, doc_string=doc_string)
 
     def format(self, result):
-        return result.format(select=self.selected_fields)
+        return self._formatter.format(result, selected_fields=self.selected_fields)
 
     register_command = staticmethod(register_command)
     command = staticmethod(command)
