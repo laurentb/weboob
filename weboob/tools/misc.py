@@ -23,7 +23,7 @@ import traceback
 from dateutil import tz
 
 
-__all__ = ['toUnicode', 'local2utc', 'html2text', 'getBacktrace']
+__all__ = ['toUnicode', 'local2utc', 'html2text', 'get_backtrace']
 
 
 def toUnicode(text):
@@ -59,7 +59,7 @@ except ImportError:
     def html2text(s):
         return s
 
-def getBacktrace(empty="Empty backtrace."):
+def get_backtrace(empty="Empty backtrace."):
     """
     Try to get backtrace as string.
     Returns "Error while trying to get backtrace" on failure.

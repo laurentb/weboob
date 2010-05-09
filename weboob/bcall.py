@@ -23,13 +23,13 @@ from __future__ import with_statement
 from logging import debug
 from copy import copy
 from threading import Thread, Event, RLock, Timer
-from .tools.misc import getBacktrace
+from .tools.misc import get_backtrace
 
 __all__ = ['BackendsCall', 'CallErrors']
 
 class CallErrors(Exception):
     def __init__(self, errors):
-        Exception.__init__(self, "Several errors have been raised:\n%s" % ('\n'.join(['%s: %s' % (b, e) for b, e in errors])))
+        Exception.__init__(self, u"Several errors have been raised:\n%s" % (u'\n'.join((u'%s: %s' % (b, e)) for b, e in errors)))
         self.errors = copy(errors)
 
     def __iter__(self):
@@ -86,7 +86,7 @@ class BackendsCall(object):
         with self.mutex:
             # TODO save backtrace and/or print it here (with debug)
             self.errors.append((b, e))
-            debug(getBacktrace(e))
+            debug(get_backtrace(e))
 
     def _store_result(self, b, r):
         with self.mutex:
