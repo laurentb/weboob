@@ -22,6 +22,7 @@ from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage, LoginPage
 from .pages.torrents import TorrentsPage
+import urllib
 
 
 __all__ = ['GazelleBrowser']
@@ -60,7 +61,7 @@ class GazelleBrowser(BaseBrowser):
         return self.location('%s://%s/login.php' % (self.PROTOCOL, self.DOMAIN))
 
     def iter_torrents(self, pattern):
-        self.location('/torrents.php?searchstr=%s' % pattern)
+        self.location('/torrents.php?searchstr=%s' % urllib.quote_plus(pattern))
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
