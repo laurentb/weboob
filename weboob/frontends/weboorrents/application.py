@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from __future__ import with_statement
 
 import logging
-import sys
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.application import ConsoleApplication

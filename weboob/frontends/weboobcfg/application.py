@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 import ConfigParser
 import logging
 import os
-import sys
 
 import weboob
 from weboob.tools.application import ConsoleApplication
