@@ -20,15 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
-from logging import debug
 
-import hildon
 import conic
 import gtk
+import hildon
+from logging import debug
 
 
+__all__ = ['Masstransit']
 
-class Masstransit():
+
+class MasstransitHildon():
     "hildon interface"
 
     def connect_event(self, connection, event=None, c=None, d=None):
@@ -226,7 +228,7 @@ class Masstransit():
         self.refresh_in_progress = False
 
 
-class Travel(BaseApplication):
+class Masstransit(BaseApplication):
     "Application Class"
     APPNAME = 'masstransit'
     VERSION = '1.0'
@@ -235,5 +237,5 @@ class Travel(BaseApplication):
     def main(self, argv):
         "main fonction"
         self.load_modules(ICapTravel)
-        Masstransit(self.weboob)
+        MasstransitHildon(self.weboob)
         gtk.main()
