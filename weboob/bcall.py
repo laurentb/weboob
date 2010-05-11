@@ -131,7 +131,7 @@ class BackendsCall(object):
 
     def _callback_thread_run(self, callback, errback):
         responses = []
-        while not self.finish_event.isSet():
+        while not self.finish_event.isSet() or self.response_event.isSet():
             self.response_event.wait()
             with self.mutex:
                 responses = self.responses
@@ -171,7 +171,7 @@ class BackendsCall(object):
     def __iter__(self):
         # Don't know how to factorize with _callback_thread_run
         responses = []
-        while not self.finish_event.isSet():
+        while not self.finish_event.isSet() or self.response_event.isSet():
             self.response_event.wait()
             with self.mutex:
                 responses = self.responses
