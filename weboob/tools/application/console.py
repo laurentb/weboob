@@ -152,7 +152,10 @@ class ConsoleApplication(BaseApplication):
         elif command_result is None:
             return 0
         else:
-            raise Exception('command_result type not expected: %s' % type(command_result))
+            try:
+                print unicode(command_result)
+            except ValueError:
+                raise Exception('command_result type not expected: %s' % type(command_result))
 
     _commands = []
     def register_command(f, doc_string, register_to=_commands):
