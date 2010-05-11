@@ -129,7 +129,7 @@ class BaseBrowser(mechanize.Browser):
     default_features.remove('_robots')
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
-                 parser=None, history=NoHistory()):
+                 parser=None, history=NoHistory(), proxy=None):
         """
         Constructor of Browser.
 
@@ -145,6 +145,10 @@ class BaseBrowser(mechanize.Browser):
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
             ]
+
+        # Use a proxy
+        if proxy:
+            self.set_proxies({"http": proxy})
 
         # Share cookies with firefox
         if firefox_cookies and HAVE_COOKIES:
