@@ -19,11 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import ConfigParser
+import logging
 import os
 import sys
 
 import weboob
 from weboob.tools.application import ConsoleApplication
+
+
+__all__ = ['WeboobCfg']
+
 
 class WeboobCfg(ConsoleApplication):
     APPNAME = 'weboobcfg'
@@ -70,7 +75,7 @@ class WeboobCfg(ConsoleApplication):
         try:
             module = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
-            print >>sys.stderr, 'No such module: %s' % name
+            logging.error('No such module: %s' % name)
             return 1
 
         print '.------------------------------------------------------------------------------.'
@@ -105,14 +110,14 @@ class WeboobCfg(ConsoleApplication):
             try:
                 key, value = param.split('=', 1)
             except ValueError:
-                print >>sys.stderr, "Parameters have to be in form 'key=value'"
+                logging.error("Parameters have to be in form 'key=value'")
                 return 1
 
             params[key] = value
         try:
             self.weboob.backends_config.add_backend(name, type, params)
         except ConfigParser.DuplicateSectionError, e:
-            print >>sys.stderr, 'Error: %s (filename=%s)' % (e, self.weboob.backends_config.confpath)
+            logging.error('Error: %s (filename=%s)' % (e, self.weboob.backends_config.confpath))
             return 1
 
     @ConsoleApplication.command('List backends')
@@ -129,5 +134,5 @@ class WeboobCfg(ConsoleApplication):
         try:
             self.weboob.backends_config.remove_backend(name)
         except ConfigParser.NoSectionError:
-            print >>sys.stderr, "Backend '%s' does not exist" % name
+            logging.error("Backend '%s' does not exist" % name)
             return 1

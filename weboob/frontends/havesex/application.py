@@ -20,9 +20,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
+import logging
 import sys
+
 from weboob.tools.application import PromptApplication
 from weboob.capabilities.dating import ICapDating
+
+
+__all__ = ['HaveSex']
+
 
 class HaveSex(PromptApplication):
     APPNAME = 'havesex'
@@ -77,4 +83,4 @@ class HaveSex(PromptApplication):
         elif action == 'stop':
             self.service('Stopping walker', 'stop_profiles_walker')
         else:
-            print >>sys.stderr, 'Syntax: walker (start|stop)'
+            logging.error(u'Syntax: walker (start|stop)')
