@@ -3,7 +3,7 @@
 # vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 """
-Copyright(C) 2009-2010  Romain Bignon
+Copyright(C) 2009-2010  Romain Bignon, Christophe Benz
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
+import logging
 import sys
 
 import weboob
@@ -43,27 +44,18 @@ class Boobank(ConsoleApplication):
 
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
-        results = {'HEADER': ('ID', 'label', 'balance', 'coming')}
         try:
             for backend, account in self.weboob.do('iter_accounts'):
-                row = [account.id, account.label, account.balance, account.coming]
-                try:
-                    results[backend.name].append(row)
-                except KeyError:
-                    results[backend.name] = [row]
+                print self.format(account)
         except weboob.CallErrors, e:
             for backend, error in e.errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
-                    print >>sys.stderr, 'Error: Incorrect password for backend %s' % backend.name
+                    logging.error(u'Error: Incorrect password for backend %s' % backend.name)
                 else:
-                    print >>sys.stderr, 'Error[%s]: %s' % (backend.name, error)
-
-        return results
+                    logging.error(u'Error[%s]: %s' % (backend.name, error))
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
-        operations = []
-        found = 0
         total = 0.0
 
         def do(backend):
@@ -72,27 +64,11 @@ class Boobank(ConsoleApplication):
 
         try:
             for backend, operation in self.weboob.do(do):
-                found = 1
-                operations.append('  %8s   %-50s   %11.2f' % (operation.date, operation.label, operation.amount))
+                print self.format(operation)
                 total += operation.amount
         except weboob.CallErrors, e:
             for backend, error in e.errors:
                 if isinstance(error, AccountNotFound):
-                    if not found:
-                        found = -1
+                    logging.error(u'Error: account %s not found' % id)
                 else:
-                    print >>sys.stderr, 'Error[%s]: %s' % (backend.name, error)
-
-        if found < 0:
-            print >>sys.stderr, "Error: account %s not found" % id
-            return 1
-        else:
-            if operations:
-                print '      Date   Label                                                     Amount  '
-                print '+----------+----------------------------------------------------+-------------+'
-                print '\n'.join(operations)
-                print '+----------+----------------------------------------------------+-------------+'
-                print '  %8s   %-50s   %11.2f' % ('', 'Total:', total)
-                print '+----------+----------------------------------------------------+-------------+'
-            else:
-                print 'No coming operations for ID=%s' % id
+                    logging.error(u'Error[%s]: %s' % (backend.name, error))

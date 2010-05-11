@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import ConsoleApplication
 
+
+__all__ = ['Travel']
+
+
 class Travel(ConsoleApplication):
     APPNAME = 'travel'
     VERSION = '1.0'
@@ -33,34 +37,10 @@ class Travel(ConsoleApplication):
 
     @ConsoleApplication.command('Search stations')
     def command_stations(self, pattern):
-        print ".--------------------------------.---------------------------------------------."
-        print '| ID                             | Name                                        |'
-        print '+--------------------------------+---------------------------------------------+'
-        count = 0
-        for backend in self.weboob.iter_backends():
-            for station in backend.iter_station_search(pattern):
-                print '| %-31s| %-44s|' % (station.id, station.name)
-                count += 1
-        print "+--------------------------------'---------------------------------------------+"
-        print "| %3d stations listed                                                          |" % count
-        print "'------------------------------------------------------------------------------'"
+        for backend, station in self.weboob.do('iter_station_search', pattern):
+            print self.format(station)
 
     @ConsoleApplication.command('List all departures on a special station')
     def command_departures(self, station, arrival=None):
-        print ".-----.-----------.-------.-----------------------.-------.--------------------.------------"
-        print "| ID  | Type      | Time  | Arrival               | Late  | Info               | Plateform |"
-        print "+-----+-----------+-------+-----------------------+-------+--------------------+-----------+"
-        count = 0
-        for backend in self.weboob.iter_backends():
-            for departure in backend.iter_station_departures(station, arrival):
-                print u"|%4d | %-10s|%6s | %-22s|%6s | %-19s| %-10s|" % (departure.id,
-                                                                   departure.type,
-                                                                   departure.time.strftime("%H:%M"),
-                                                                   departure.arrival_station,
-                                                                   departure.late and departure.late.strftime("%H:%M") or '',
-                                                                   departure.information,
-                                                                   departure.plateform)
-                count += 1
-        print "+-----'-----------'-------'-----------------------'-------'--------------------'-----------+"
-        print "| %3d departures listed                                                                    |" % count
-        print "'------------------------------------------------------------------------------------------'"
+        for backend, departure in self.weboob.do('iter_station_departures', station, arrival):
+            print self.format(departure)

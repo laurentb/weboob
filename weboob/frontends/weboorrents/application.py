@@ -20,10 +20,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
+import logging
 import sys
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.application import ConsoleApplication
+
+
+__all__ = ['Weboorrents']
+
 
 class Weboorrents(ConsoleApplication):
     APPNAME = 'weboorrents'
@@ -37,13 +42,13 @@ class Weboorrents(ConsoleApplication):
 
     def split_id(self, id):
         if not '.' in id:
-            print >>sys.stderr, 'ID must be in form <backend>.<ID>'
+            logging.error('ID must be in form <backend>.<ID>')
             return None, None
 
         backend_name, id = id.split('.', 1)
         backend = self.weboob.backends.get(backend_name, None)
         if not backend:
-            print >>sys.stderr, 'Backends "%s" not found' % backend_name
+            logging.error('Backends "%s" not found' % backend_name)
             return None, None
 
         return backend, id
@@ -53,25 +58,12 @@ class Weboorrents(ConsoleApplication):
         backend, id = self.split_id(id)
         if not backend:
             return 1
-
         with backend:
             torrent = backend.get_torrent(id)
-
             if not torrent:
-                print >>sys.stderr, 'Torrent "%s" not found' % id
+                logging.error('Torrent "%s" not found' % id)
                 return 1
-
-            rows = []
-            rows.append(('ID', torrent.id))
-            rows.append(('Name', torrent.name))
-            rows.append(('Size', torrent.size))
-            rows.append(('URL', torrent.url))
-            rows.append(('Seeders', torrent.seeders))
-            rows.append(('Leechers', torrent.leechers))
-            rows.append(('Description', torrent.description))
-            if torrent.files:
-                rows.append(('Files', '\n'.join(torrent.files)))
-            return {backend.name: rows}
+            print self.format(torrent)
 
     @ConsoleApplication.command('Get the torrent file')
     def command_getfile(self, id, dest):
@@ -82,7 +74,7 @@ class Weboorrents(ConsoleApplication):
         with backend:
             s = backend.get_torrent_file(id)
             if not s:
-                print >>sys.stderr, 'Torrent "%s" not found' % id
+                logging.error('Torrent "%s" not found' % id)
                 return 1
 
             if dest == '-':
@@ -93,17 +85,6 @@ class Weboorrents(ConsoleApplication):
 
     @ConsoleApplication.command('Search torrents')
     def command_search(self, pattern=None):
-        results = {}
-        if pattern:
-            results['BEFORE'] = u'Search pattern: %s' % pattern
-        else:
-            results['BEFORE'] = u'Last videos'
-        results['HEADER'] = ('ID', 'Name', 'Size')
-
+        print u'Search pattern: %s' % pattern if pattern else u'Last torrents'
         for backend, torrent in self.weboob.do('iter_torrents', pattern=pattern):
-            row = ('%s.%s' % (backend.name,torrent.id), torrent.name, torrent.size)
-            try:
-                results[backend.name].append(row)
-            except KeyError:
-                results[backend.name] = [row]
-        return results
+            print self.format(torrent)

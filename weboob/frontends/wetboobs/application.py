@@ -34,58 +34,29 @@ class WetBoobs(ConsoleApplication):
 
     @ConsoleApplication.command('search cities')
     def command_search(self, pattern):
-        print ".--------------------------------.---------------------------------------------."
-        print '| ID                             | Name                                        |'
-        print '+--------------------------------+---------------------------------------------+'
-        count = 0
         for backend, city in self.weboob.do('iter_city_search', pattern):
-            print u'| %-31s| %-44s|' % (city.city_id, city.name)
-            count += 1
-        print "+--------------------------------'---------------------------------------------+"
-        print "| %3d cities listed                                                            |" % count
-        print "'------------------------------------------------------------------------------'"
+            print self.format(city)
 
     @ConsoleApplication.command('get current weather')
     def command_current(self, city):
-        print ".-------------.----------------------------------------------------------------."
-        print '| Temperature | Text                                                           |'
-        print '+-------------+----------------------------------------------------------------+'
-        found = 0
         try:
             for backend, current in self.weboob.do('get_current', city):
-                print u'| %-12s| %-63s|' % (u'%d °%s' % (current.temp, current.unit), current.text)
-                found = 1
+                print self.format(current)
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):
-                    if not found:
-                        found = -1
+                    logging.error('City "%s" not found' % city)
                 else:
                     raise error
-        if found < 0:
-            print "|          -- | City not found                                                 |"
-        print "+-------------'----------------------------------------------------------------+"
 
     @ConsoleApplication.command('get forecasts')
     def command_forecasts(self, city):
-        print ".-------------.------.------.--------------------------------------------------."
-        print '| Date        |   Min |   Max | Text                                           |'
-        print '+-------------+-------+-------+------------------------------------------------+'
-        found = 0
         try:
-            for backend, f in self.weboob.do('iter_forecast', city):
-                found = 1
-                print u'| %-12s|%6s |%6s | %-47s|' % (f.date,
-                                                     u'%d °%s' % (f.low, f.unit),
-                                                     u'%d °%s' % (f.high, f.unit),
-                                                     f.text)
+            for backend, forecast in self.weboob.do('iter_forecast', city):
+                print self.format(forecast)
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):
-                    if not found:
-                        found = -1
+                    logging.error('City "%s" not found' % city)
                 else:
                     raise error
-        if found < 0:
-            print "| -- --- ---- |    -- |    -- | City not found                                 |"
-        print "+-------------'-------'-------'------------------------------------------------+"
