@@ -18,8 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import urllib
-
 from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage
@@ -47,7 +45,7 @@ class YoupornBrowser(BaseBrowser):
         if not pattern:
             self.home()
         else:
-            self.location('/search/%s?query=%s' % (sortby, urllib.quote_plus(pattern)))
+            self.location(self.buildurl('/search/%s' % sortby, query=pattern))
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import mechanize
+import urllib
 import urllib2
 import ClientForm
 import re
@@ -304,6 +305,27 @@ class BaseBrowser(mechanize.Browser):
 
         if self._cookie:
             self._cookie.save()
+
+    def buildurl(self, base, *args, **kwargs):
+        """
+        Build an URL and escape arguments.
+        You can give a serie of tuples in *args (and the order is keept), or
+        a dict in **kwargs (but the order is lost).
+
+        Example:
+        >>> buildurl('/blah.php', ('a', '&'), ('c', '=')
+        '/blah.php?a=%26&b=%3D'
+        >>> buildurl('/blah.php', a='&', 'c'='=')
+        '/blah.php?b=%3D&a=%26'
+
+        """
+
+        if not args:
+            args = kwargs
+        if not args:
+            return base
+        else:
+            return '%s?%s' % (base, urllib.urlencode(args))
 
     def str(self, s):
         if isinstance(s, unicode):
