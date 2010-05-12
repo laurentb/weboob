@@ -22,17 +22,17 @@ import urllib
 from cStringIO import StringIO
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parsers.elementtidyparser import ElementTidyParser
+from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
 
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage
 from .tools import id2url, id2threadid, id2contenttype
 
-class Parser(ElementTidyParser):
+class Parser(LxmlHtmlParser):
     def parse(self, data, encoding=None):
         # Want to kill templeet coders
         data = StringIO(data.read().replace('<<', '<'))
-        return ElementTidyParser.parse(self, data, encoding)
+        return LxmlHtmlParser.parse(self, data, encoding)
 
 # Browser
 class DLFP(BaseBrowser):
@@ -92,7 +92,8 @@ class DLFP(BaseBrowser):
 
         request = self.request_class(url, data, {'Referer': url})
         result = self.openurl(request).read()
-        return result.find('<div class="commentsreplythanks">') >= 0
+        # No message to send
+        return ()
 
     def login(self):
         self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
