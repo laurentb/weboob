@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
+import logging
 import sys, tty, termios
 import re
 from inspect import getargspec
@@ -44,7 +45,7 @@ class ConsoleApplication(BaseApplication):
         try:
             BaseApplication.__init__(self)
         except BackendsConfig.WrongPermissions, e:
-            print >>sys.stderr, 'Error: %s' % e
+            logging.error(u'Error: %s' % e)
             sys.exit(1)
 
         self._parser.format_description = lambda x: self._parser.description
