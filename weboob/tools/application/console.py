@@ -24,6 +24,7 @@ import re
 from inspect import getargspec
 from functools import partial
 
+import weboob
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
@@ -143,7 +144,11 @@ class ConsoleApplication(BaseApplication):
                 sys.stderr.write("Command '%s' takes %d arguments.\n" % (command, nb_min_args))
             return 1
 
-        command_result = func(*args)
+        try:
+            command_result = func(*args)
+        except weboob.CallErrors, errors:
+            logging.error(errors)
+            return 1
 
         # Process result
         if isinstance(command_result, Results):
