@@ -1,28 +1,31 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from __future__ import with_statement
 
-from logging import debug
+from logging import info
 from random import randint
+
 from weboob.tools.browser import BrowserUnavailable
+
+
+__all__ = ['ProfilesWalker']
+
 
 class ProfilesWalker(object):
     def __init__(self, sched, storage, browser):
@@ -31,8 +34,9 @@ class ProfilesWalker(object):
         self.browser = browser
 
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
+        info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
         self.profiles_queue = set()
-        self.walk_cron = sched.repeat(60, self.walk)
+        self.walk_cron = sched.repeat(60, self.enqueue_profiles)
         self.view_cron = sched.schedule(randint(10,40), self.view_profile)
 
     def save(self):
@@ -43,9 +47,11 @@ class ProfilesWalker(object):
         self.event.cancel(self.event)
         self.event = None
 
-    def walk(self):
+    def enqueue_profiles(self):
         with self.browser:
-            self.profiles_queue = self.profiles_queue.union(self.browser.search_profiles()).difference(self.visited_profiles)
+            profiles_to_visit = self.browser.search_profiles().difference(self.visited_profiles)
+            info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
+            self.profiles_queue.update(profiles_to_visit)
         self.save()
 
     def view_profile(self):
@@ -58,10 +64,10 @@ class ProfilesWalker(object):
             try:
                 with self.browser:
                     profile = self.browser.get_profile(id)
-                debug(u'Visited %s (%s)' % (profile.get_name(), id))
+                info(u'Visited profile %s (%s)' % (profile.get_name(), id))
 
                 # Get score from the aum_score module
-                # d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)
+                #d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)
                 # d.addCallback(self.score_cb, profile.getID())
                 # deferredlist.append(d)
 
