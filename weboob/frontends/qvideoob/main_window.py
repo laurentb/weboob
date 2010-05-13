@@ -86,8 +86,9 @@ class MainWindow(QtMainWindow):
 
             self.emit(SIGNAL('newData'), backend, video)
 
-        def eb(backend, err):
+        def eb(backend, err, backtrace):
             print err
+            print backtrace
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
         if backend_name:
