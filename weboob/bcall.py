@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
@@ -29,7 +26,8 @@ __all__ = ['BackendsCall', 'CallErrors']
 
 class CallErrors(Exception):
     def __init__(self, errors):
-        Exception.__init__(self, u"Several errors have been raised:\n%s" % (u'\n'.join((u'%s: %s' % (b, e)) for b, e in errors)))
+        Exception.__init__(self, u'These errors have been raised in backend threads:\n%s' % (
+            u'\n'.join((u' * %s: %s\n%s' % (backend, error, backtrace)) for backend, error, backtrace in errors)))
         self.errors = copy(errors)
 
     def __iter__(self):
@@ -76,53 +74,53 @@ class BackendsCall(object):
 
         # Create jobs for each backend
         with self.mutex:
-            for b in backends:
-                debug('New timer for %s' % b)
-                self.threads.append(Timer(0, self._caller, (b, function, args, kwargs)).start())
+            for backend in backends:
+                debug('Creating a new thread for %s' % backend)
+                self.threads.append(Timer(0, self._caller, (backend, function, args, kwargs)).start())
             if not backends:
                 self.finish_event.set()
 
-    def _store_error(self, b, e):
+    def _store_error(self, backend, error):
         with self.mutex:
-            # TODO save backtrace and/or print it here (with debug)
-            self.errors.append((b, e))
-            debug(get_backtrace(e))
+            backtrace = get_backtrace(error)
+            self.errors.append((backend, error, backtrace))
 
-    def _store_result(self, b, r):
+    def _store_result(self, backend, result):
         with self.mutex:
-            self.responses.append((b,r))
+            self.responses.append((backend, result))
             self.response_event.set()
 
-    def _caller(self, b, function, args, kwargs):
-        debug('Hello from timer %s' % b)
-        with b:
+    def _caller(self, backend, function, args, kwargs):
+        debug('%s: Thread created successfully' % backend)
+        with backend:
             try:
                 # Call method on backend
                 try:
+                    debug('%s: Calling function %s' % (backend, function))
                     if callable(function):
-                        r = function(b, *args, **kwargs)
+                        result = function(backend, *args, **kwargs)
                     else:
-                        r = getattr(b, function)(*args, **kwargs)
-                except Exception, e:
-                    self._store_error(b, e)
+                        result = getattr(backend, function)(*args, **kwargs)
+                except Exception, error:
+                    self._store_error(backend, error)
                 else:
-                    debug('%s: Got answer! %s' % (b, r))
+                    debug('%s: Called function %s returned: "%s"' % (backend, function, result))
 
-                    if hasattr(r, '__iter__'):
+                    if hasattr(result, '__iter__'):
                         # Loop on iterator
                         try:
-                            for e in r:
+                            for subresult in result:
                                 # Lock mutex only in loop in case the iterator is slow
                                 # (for example if backend do some parsing operations)
-                                self._store_result(b, e)
-                        except Exception, e:
-                            self._store_error(b, e)
+                                self._store_result(backend, subresult)
+                        except Exception, error:
+                            self._store_error(backend, error)
                     else:
-                        self._store_result(b, r)
+                        self._store_result(backend, result)
             finally:
                 with self.mutex:
                     # This backend is now finished
-                    self.backends[b.name] = True
+                    self.backends[backend.name] = True
                     for finished in self.backends.itervalues():
                         if not finished:
                             return
