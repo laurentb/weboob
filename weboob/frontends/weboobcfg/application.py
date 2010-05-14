@@ -56,9 +56,7 @@ class WeboobCfg(ConsoleApplication):
             first_line = True
             for cap in module.iter_caps():
                 if first_line:
-                    print '  %-14s %-21s %s' % (name,
-                                                cap.__name__,
-                                                module.get_description())
+                    print '  %-14s %-21s %s' % (name, cap.__name__, module.get_description())
                     first_line = False
                 else:
                     print '                 %s' % cap.__name__
@@ -100,9 +98,11 @@ class WeboobCfg(ConsoleApplication):
 
 
     @ConsoleApplication.command('Add a backend')
-    def command_add(self, type, name=None, *options):
-        if not name:
-            return self.command_modinfo(type)
+    def command_add(self, name, *options):
+        self.weboob.modules_loader.load()
+        if name not in [module_name for module_name, module in self.weboob.modules_loader.modules.iteritems()]:
+            logging.error(u'Backend "%s" does not exist.' % name)
+            return 1
 
         params = {}
         for param in options:
@@ -114,24 +114,34 @@ class WeboobCfg(ConsoleApplication):
 
             params[key] = value
         try:
-            self.weboob.backends_config.add_backend(name, type, params)
+            self.weboob.backends_config.add_backend(name, name, params)
+            print u'Backend "%s" successfully added' % name
         except ConfigParser.DuplicateSectionError, e:
-            logging.error('Error: %s (filename=%s)' % (e, self.weboob.backends_config.confpath))
-            return 1
+            print u'Backend "%s" is already configured in file %s' % (name, self.weboob.backends_config.confpath)
+            response = raw_input(u'Add new instance of "%s" backend ? [yN] ' % name)
+            if response.lower() == 'y':
+                while True:
+                    new_name = raw_input(u'Please give new instance name (could be "%s_1"): ' % name)
+                    if not new_name:
+                        continue
+                    try:
+                        self.weboob.backends_config.add_backend(new_name, name, params)
+                        print u'Backend "%s" successfully added under instance name "%s"' % (name, instance_name)
+                        break
+                    except ConfigParser.DuplicateSectionError, e:
+                        print u'Instance "%s" is already configured for backend "%s".' % (new_name, name)
 
     @ConsoleApplication.command('List backends')
     def command_list(self):
-        print '  Name           Type           Params                                          '
-        print '+--------------+--------------+------------------------------------------------+'
-        for name, _type, params in self.weboob.backends_config.iter_backends():
-            print '  %-14s %-14s %-47s' % (name,
-                                           _type,
-                                           ', '.join(['%s=%s' % (key, value) for key, value in params.iteritems()]))
+        print '  Instance Name   Name           Params                                          '
+        print '+---------------+--------------+------------------------------------------------+'
+        for instance_name, name, params in self.weboob.backends_config.iter_backends():
+            print '  %-15s %-14s %-47s' % (instance_name, name, ', '.join('%s=%s' % (key, value) for key, value in params.iteritems()))
 
     @ConsoleApplication.command('Remove a backend')
-    def command_remove(self, name):
+    def command_remove(self, instance_name):
         try:
-            self.weboob.backends_config.remove_backend(name)
+            self.weboob.backends_config.remove_backend(instance_name)
         except ConfigParser.NoSectionError:
-            logging.error("Backend '%s' does not exist" % name)
+            logging.error("Backend '%s' does not exist" % instance_name)
             return 1
