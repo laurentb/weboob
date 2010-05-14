@@ -107,6 +107,8 @@ class BackendsConfig(object):
                 continue
 
     def add_backend(self, name, _type, params):
+        if not name:
+            raise ValueError(u'Please give a name to the backend.')
         config = SafeConfigParser()
         config.read(self.confpath)
         config.add_section(name)
