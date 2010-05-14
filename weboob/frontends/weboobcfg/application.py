@@ -105,6 +105,11 @@ class WeboobCfg(ConsoleApplication):
             return 1
 
         params = {}
+        # set default configuration with empty values
+        module = self.weboob.modules_loader.get_or_load_module(name)
+        for key, field in module.get_config().iteritems():
+            params[key] = u''
+
         for param in options:
             try:
                 key, value = param.split('=', 1)
@@ -115,7 +120,7 @@ class WeboobCfg(ConsoleApplication):
             params[key] = value
         try:
             self.weboob.backends_config.add_backend(name, name, params)
-            print u'Backend "%s" successfully added' % name
+            print u'Backend "%s" successfully added to file %s. Please check configuration parameters values.' % (name, self.weboob.backends_config.confpath)
         except ConfigParser.DuplicateSectionError, e:
             print u'Backend "%s" is already configured in file %s' % (name, self.weboob.backends_config.confpath)
             response = raw_input(u'Add new instance of "%s" backend ? [yN] ' % name)
@@ -126,7 +131,8 @@ class WeboobCfg(ConsoleApplication):
                         continue
                     try:
                         self.weboob.backends_config.add_backend(new_name, name, params)
-                        print u'Backend "%s" successfully added under instance name "%s"' % (name, instance_name)
+                        print u'Backend "%s" successfully added under instance name "%s" to file %s. Please check configuration parameters values.' % (
+                                name, new_name, self.weboob.backends_config.confpath)
                         break
                     except ConfigParser.DuplicateSectionError, e:
                         print u'Instance "%s" is already configured for backend "%s".' % (new_name, name)
