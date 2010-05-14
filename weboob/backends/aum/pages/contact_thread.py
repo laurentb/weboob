@@ -134,6 +134,9 @@ class MailParser(Message):
         self.parse_profile_link()
         self.parse_from()
 
+    def set_reply_id(self, date):
+        self.reply_id = date
+
     def parse_date(self, date_str):
         # To match regexp, we have to remove any return chars in string
         # before the status ('nouveau', 'lu', etc)
@@ -307,7 +310,7 @@ class ContactThreadPage(PageBase):
             mail = MailParser(self.id, self.name, tag)
 
             if self.items:
-                self.items[-1].reply_date = mail.get_date_int()
+                self.items[-1].set_reply_id(mail.get_date_int())
             self.items += [mail]
 
     def get_id(self):
