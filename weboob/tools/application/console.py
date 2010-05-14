@@ -213,5 +213,5 @@ class ConsoleApplication(BaseApplication):
                     caps = (caps,)
                 caps = iter(cap.__name__ for cap in caps)
             weboobcfg.command_modules(*caps)
-            logging.error(u'You can configure a backends using the "weboobcfg add" command:\nweboobcfg add <name> [instance_name] [options..]')
+            logging.error(u'You can configure a backends using the "weboobcfg add" command:\nweboobcfg add <name> [options..]')
             sys.exit(0)
