@@ -62,11 +62,12 @@ class Weboob(object):
         self.backends_config = BackendsConfig(backends_filename)
 
     def load_backends(self, caps=None, names=None, storage=None):
+        loaded_backends = {}
         for name, _type, params in self.backends_config.iter_backends():
             try:
                 module = self.modules_loader.get_or_load_module(_type)
             except KeyError:
-                warning('Unable to find module "%s" for backend "%s"' % (_type, name))
+                warning(u'Unable to find module "%s" for backend "%s"' % (_type, name))
                 continue
 
             # Check conditions
@@ -76,21 +77,25 @@ class Weboob(object):
 
             try:
                 self.backends[name] = module.create_backend(self, name, params, storage)
+                loaded_backends[name] = self.backends[name]
             except Exception, e:
-                warning('Unable to load "%s" backend: %s. filename=%s' % (name, e, self.backends_config.confpath))
+                warning(u'Unable to load "%s" backend: %s. filename=%s' % (name, e, self.backends_config.confpath))
 
-        return self.backends
+        return loaded_backends
 
     def load_modules(self, caps=None, names=None, storage=None):
+        loaded_backends = {}
         self.modules_loader.load()
         for name, module in self.modules_loader.modules.iteritems():
             if (caps is None or module.has_caps(caps)) and \
                (names is None or module.get_name() in names):
                 try:
-                    self.backends[module.get_name()] = module.create_backend(self, module.get_name(), {}, storage)
+                    name = module.get_name()
+                    self.backends[name] = module.create_backend(self, name, {}, storage)
+                    loaded_backends[name] = self.backends[name]
                 except Exception, e:
-                    warning('Unable to load "%s" module as backend with no config: %s' % (name, e))
-        return self.backends
+                    warning(u'Unable to load "%s" module as backend with no config: %s' % (name, e))
+        return loaded_backends
 
     def iter_backends(self, caps=None):
         """

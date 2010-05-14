@@ -117,12 +117,12 @@ class BaseApplication(object):
     def load_backends(self, caps=None, names=None, *args, **kwargs):
         if names is None:
             names = self._enabled_backends
-        self.weboob.load_backends(caps, names, *args, **kwargs)
+        return self.weboob.load_backends(caps, names, *args, **kwargs)
 
     def load_modules(self, caps=None, names=None, *args, **kwargs):
         if names is None:
             names = self._enabled_backends
-        self.weboob.load_modules(caps, names, *args, **kwargs)
+        return self.weboob.load_modules(caps, names, *args, **kwargs)
 
     def _get_completions(self):
         """
