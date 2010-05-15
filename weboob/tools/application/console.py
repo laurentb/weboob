@@ -154,9 +154,7 @@ class ConsoleApplication(BaseApplication):
 
         # Process result
         if isinstance(command_result, Results):
-            s = self.format(command_result)
-            if s:
-                print s
+            self.format(command_result)
             return 0
         elif isinstance(command_result, (str, unicode)):
             print command_result

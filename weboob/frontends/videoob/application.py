@@ -44,14 +44,10 @@ class Videoob(ConsoleApplication):
         for backend, video in self.weboob.do('get_video', id):
             if video is None:
                 continue
-            s = self.format(video)
-            if s:
-                print s
+            self.format(video)
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
         print u'Search pattern: %s' % pattern if pattern else u'Last videos'
         for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
-            s = self.format(video)
-            if s:
-                print s
+            self.format(video)

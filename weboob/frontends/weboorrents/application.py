@@ -62,7 +62,7 @@ class Weboorrents(ConsoleApplication):
             if not torrent:
                 logging.error('Torrent "%s" not found' % id)
                 return 1
-            print self.format(torrent)
+            self.format(torrent)
 
     @ConsoleApplication.command('Get the torrent file')
     def command_getfile(self, id, dest):
@@ -86,4 +86,4 @@ class Weboorrents(ConsoleApplication):
     def command_search(self, pattern=None):
         print u'Search pattern: %s' % pattern if pattern else u'Last torrents'
         for backend, torrent in self.weboob.do('iter_torrents', pattern=pattern):
-            print self.format(torrent)
+            self.format(torrent)

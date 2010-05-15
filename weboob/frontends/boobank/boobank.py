@@ -42,7 +42,7 @@ class Boobank(ConsoleApplication):
     def command_list(self):
         try:
             for backend, account in self.weboob.do('iter_accounts'):
-                print self.format(account)
+                self.format(account)
         except weboob.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
@@ -60,7 +60,7 @@ class Boobank(ConsoleApplication):
 
         try:
             for backend, operation in self.weboob.do(do):
-                print self.format(operation)
+                self.format(operation)
                 total += operation.amount
         except weboob.CallErrors, errors:
             for backend, error, backtrace in errors:
