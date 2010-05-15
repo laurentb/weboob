@@ -23,6 +23,7 @@ from __future__ import with_statement
 from datetime import datetime
 
 from weboob.backend import BaseBackend
+from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
@@ -31,7 +32,11 @@ from .browser import AdopteUnMec
 from .exceptions import AdopteCantPostMail
 from .optim.profiles_walker import ProfilesWalker
 
-class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
+
+__all__ = ['AuMBackend']
+
+
+class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapChat):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -128,3 +133,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating):
         if self._profiles_walker:
             self._profiles_walker.stop()
             self._profiles_walker = None
+
+    def iter_chat_contacts(self, online=True, offline=True):
+        return self.browser.iter_chat_contacts(online=online, offline=offline)
+
+    def send_chat_message(self, _id, message):
+        return self.browser.send_chat_message(_id, message)

@@ -362,3 +362,8 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ClientForm.ControlNotFoundError:
             return
+
+    def post_request(self, url, data, headers):
+        headers['User-Agent'] = self.USER_AGENT
+        req = urllib2.Request(url, urllib.urlencode(data), headers)
+        return urllib2.urlopen(req)

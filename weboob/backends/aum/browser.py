@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2008-2010  Romain Bignon
+# Copyright(C) 2008-2010  Romain Bignon, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 import time
 from logging import warning
+import random
+import simplejson
 
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.parsers.html5libparser import Html5libParser
@@ -35,6 +35,12 @@ from weboob.backends.aum.pages.search import SearchPage
 from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, RegisterWaitPage, RegisterConfirmPage, ShopPage
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
+
+from weboob.capabilities.chat import Contact
+
+
+__all__ = ['AdopteUnMec']
+
 
 class AdopteUnMec(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
@@ -262,3 +268,29 @@ class AdopteUnMec(BaseBrowser):
         r = result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0
         print 'isSlutOnline(%s) = %s' % (id, r)
         return r
+
+    def iter_chat_contacts(self, online=True, offline=True):
+        json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
+        if json['error']:
+            raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
+        for contact in json['contacts']:
+            if online and contact['cat'] == 1 or offline and contact['cat'] == 3:
+                if contact['cat'] == 1:
+                    online = True
+                elif contact['cat'] == 3:
+                    online = False
+                else:
+                    raise ChatException(u'Unknown online status: contact=%s' % contact)
+                yield Contact(_id=contact['id'], pseudo=contact['pseudo'], online=online, avatar_url=contact['cover'], age=contact['birthday'])
+
+    def send_chat_message(self, _id, message):
+        url = 'http://www.adopteunmec.com/1.1_cht_send.php?anticache=%f' % random.random()
+        data = dict(id=_id, message=message)
+        headers = {
+                'Content-type': 'application/x-www-form-urlencoded',
+                'Accept': 'text/plain',
+                'Referer': 'http://www.adopteunmec.com/chat.php',
+                'Origin': 'http://www.adopteunmec.com',
+                }
+        print url, data, headers
+        return self.post_request(url, data, headers)
