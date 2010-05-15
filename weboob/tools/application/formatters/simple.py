@@ -16,12 +16,15 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from ..results import WhereCondition, WhereConditionException
+
+
 __all__ = ['SimpleFormatter']
 
 
 class SimpleFormatter(object):
     @classmethod
-    def format(cls, obj, selected_fields=None):
+    def format(cls, obj, selected_fields=None, where_condition=None):
         def iter_fields(obj):
             import types
             for attribute_name in dir(obj):
@@ -38,7 +41,16 @@ class SimpleFormatter(object):
 
         d = dict((k, v) for k, v in fields_iterator)
 
+        if where_condition is not None:
+            if not where_condition.is_valid(d):
+                d = None
+
+        if not d:
+            return None
+
         if selected_fields is None:
-            return u'\n'.join(u'%s: %s' % (k, unicode(d[k])) for k in sorted(d)) + u'\n'
+            result = u'\n'.join(u'%s: %s' % (k, unicode(d[k])) for k in sorted(d)) + u'\n'
         else:
-            return u'\t'.join(unicode(d[k]) for k in selected_fields if d[k] is not None)
+            result = u'\t'.join(unicode(d[k]) for k in selected_fields if d[k] is not None)
+
+        return result

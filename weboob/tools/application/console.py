@@ -28,16 +28,12 @@ import weboob
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
-from .formatters import SimpleFormatter
-from .results import Results
+from .formatters import formatters_classes, SimpleFormatter
+from .results import Results, WhereCondition, WhereConditionException
 
 
 __all__ = ['ConsoleApplication']
 
-
-formatters_classes = dict(
-    simple=SimpleFormatter,
-)
 
 class ConsoleApplication(BaseApplication):
     SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
@@ -61,6 +57,7 @@ class ConsoleApplication(BaseApplication):
         self._parser.add_option('-f', '--formatter', default='simple', choices=formatters_classes.keys(),
                 help='select output formatter (%s)' % u','.join(formatters_classes.keys()))
         self._parser.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
+        self._parser.add_option('-w', '--where', help='filter results to display with boolean condition')
 
     def _handle_app_options(self):
         self._formatter = formatters_classes[self.options.formatter]
@@ -69,6 +66,11 @@ class ConsoleApplication(BaseApplication):
             self.selected_fields = self.options.select.split(',')
         else:
             self.selected_fields = None
+
+        if self.options.where:
+            self.where_condition = WhereCondition(self.options.where)
+        else:
+            self.where_condition = None
 
     def _get_completions(self):
         return set(name for name, arguments, doc_string in self._commands)
@@ -197,7 +199,12 @@ class ConsoleApplication(BaseApplication):
         return partial(f, doc_string=doc_string)
 
     def format(self, result):
-        return self._formatter.format(result, selected_fields=self.selected_fields)
+        try:
+            result = self._formatter.format(result, selected_fields=self.selected_fields, where_condition=self.where_condition)
+            if result is not None:
+                print result
+        except WhereConditionException, e:
+            logging.error(e)
 
     register_command = staticmethod(register_command)
     command = staticmethod(command)

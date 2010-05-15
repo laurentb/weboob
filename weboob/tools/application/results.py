@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['Results']
+__all__ = ['Results', 'WhereCondition', 'WhereConditionException']
 
 
 class Results(object):
@@ -65,3 +65,47 @@ class Results(object):
 
     def iter_groups(self):
         return iter(self._groups)
+
+
+class WhereCondition(object):
+    def __init__(self, where_condition_str):
+        where_condition_str.replace('OR', 'or')
+        where_condition_str.replace('AND', 'and')
+        where_condition_str.replace('NOT', 'not')
+        or_list = []
+        for _or in where_condition_str.split('or'):
+            and_dict = {}
+            for _and in _or.split('and'):
+                if '!=' in _and:
+                    k, v = _and.split('!=')
+                    k += '!'
+                elif '=' in _and:
+                    k, v = _and.split('=')
+                else:
+                    raise WhereConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                and_dict[k] = v
+            or_list.append(and_dict)
+        self.where_condition = or_list
+
+    def is_valid(self, d):
+        for _or in self.where_condition:
+            for k, v in _or.iteritems():
+                if k.endswith('!'):
+                    k = k[:-1]
+                    different = True
+                else:
+                    different = False
+                if k in d:
+                    if different:
+                        if d[k] == v:
+                            return False
+                    else:
+                        if d[k] != v:
+                            return False
+                else:
+                    raise WhereConditionException(u'Field "%s" is not valid.' % k)
+        return True
+
+
+class WhereConditionException(Exception):
+    pass
