@@ -65,32 +65,20 @@ class DLFP(BaseBrowser):
             return False
 
         # Define every data fields
-        d = {'news_id': thread_id,
-             'com_parent': reply_id,
-             'timestamp': '',
-             'res_type': content_type,
-             'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
-             'subject': title,
-             'body': message,
-             'format': 3,
-             'submit': 'Envoyer',
-        }
-
-        data = ''
-        for key, value in d.iteritems():
-            if data:
-                data += '&'
-            data += key
-            data += '='
-            if isinstance(value, unicode):
-                value = value.encode('utf-8')
-            else:
-                value = str(value)
-            data += urllib.quote_plus(value)
+        data = {'news_id': thread_id,
+                'com_parent': reply_id,
+                'timestamp': '',
+                'res_type': content_type,
+                'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
+                'subject': title,
+                'body': message,
+                'format': 3,
+                'submit': 'Envoyer',
+                }
 
         url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL, self.DOMAIN, thread_id, reply_id, content_type)
 
-        request = self.request_class(url, data, {'Referer': url})
+        request = self.request_class(url, urllib.urlencode(data), {'Referer': url})
         result = self.openurl(request).read()
         # No message to send
         return ()
