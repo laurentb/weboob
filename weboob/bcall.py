@@ -24,6 +24,7 @@ from .tools.misc import get_backtrace
 
 __all__ = ['BackendsCall', 'CallErrors']
 
+
 class CallErrors(Exception):
     def __init__(self, errors):
         Exception.__init__(self, u'These errors have been raised in backend threads:\n%s' % (
@@ -33,20 +34,6 @@ class CallErrors(Exception):
     def __iter__(self):
         return self.errors.__iter__()
 
-class Result(object):
-    def __init__(self, backend, result):
-        self.backend = backend
-        self.result = result
-
-    def __iter__(self):
-        """
-        To allow unpack.
-
-        For example:
-        >>> for backend, result in self.weboob.do(blabla)
-        """
-        yield self.backend
-        yield self.result
 
 class BackendsCall(object):
     def __init__(self, backends, function, *args, **kwargs):
@@ -180,7 +167,7 @@ class BackendsCall(object):
 
             # Consume responses
             while responses:
-                yield Result(*responses.pop(0))
+                yield responses.pop(0)
 
         # Raise errors
         with self.mutex:
