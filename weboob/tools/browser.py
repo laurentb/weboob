@@ -24,11 +24,12 @@ import urllib2
 import ClientForm
 import re
 import time
-from logging import warning, error, debug
+from logging import warning, debug
 from copy import copy
 from threading import RLock
 
 from weboob.tools.parsers import get_parser
+from weboob.tools.decorators import retry
 
 # Try to load cookies
 try:
@@ -197,19 +198,21 @@ class BaseBrowser(mechanize.Browser):
         return inner
 
     @check_location
+    @retry(BrowserUnavailable, tries=3)
     def openurl(self, *args, **kwargs):
         """
         Open an URL but do not create a Page object.
         """
+        debug('Opening URL "%s", %s' % (args, kwargs))
         try:
             return mechanize.Browser.open(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error('Error opening URL "%s": %s' % (args and args[0] or 'None', e))
-            raise BrowserUnavailable()
+            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
 
+    @retry(BrowserUnavailable, tries=3)
     def submit(self, *args, **kwargs):
         """
         Submit the selected form.
@@ -217,28 +220,28 @@ class BaseBrowser(mechanize.Browser):
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error('Error submitting FORM: %s' % e)
             self.page = None
-            raise BrowserUnavailable()
-        except (mechanize.BrowserStateError, BrowserRetry):
+            raise BrowserUnavailable(e)
+        except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
-            raise BrowserUnavailable()
+            raise BrowserUnavailable(e)
 
     def is_on_page(self, pageCls):
         return isinstance(self.page, pageCls)
 
+    @retry(BrowserUnavailable, tries=3)
     def follow_link(self, *args, **kwargs):
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error('Error following link "%s": %s' % (args and args[0] or "None", e))
             self.page = None
-            raise BrowserUnavailable()
-        except (mechanize.BrowserStateError, BrowserRetry):
+            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
+        except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
-            raise BrowserUnavailable()
+            raise BrowserUnavailable(e)
 
     @check_location
+    @retry(BrowserUnavailable, tries=3)
     def location(self, *args, **kwargs):
         """
         Change location of browser on an URL.
@@ -259,9 +262,8 @@ class BaseBrowser(mechanize.Browser):
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            error('Error changing location to "%s": %s' % (args and args[0] or 'None', e))
             self.page = None
-            raise BrowserUnavailable()
+            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
