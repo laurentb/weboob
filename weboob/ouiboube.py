@@ -126,7 +126,7 @@ class Weboob(object):
         @param function  backend's method name, or callable object
         @return  an iterator of results
         """
-        backends = [b for b in self.iter_backends()]
+        backends = list(self.iter_backends())
         return BackendsCall(backends, function, *args, **kwargs)
 
     def do_caps(self, caps, function, *args, **kwargs):
@@ -140,7 +140,7 @@ class Weboob(object):
         @param function  backend's method name, or callable object
         @return  an iterator of results
         """
-        backends = [b for b in self.iter_backends(caps)]
+        backends = list(self.iter_backends(caps))
         return BackendsCall(backends, function, *args, **kwargs)
 
     def do_backends(self, backends, function, *args, **kwargs):
