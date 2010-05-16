@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
+
 from .cap import ICap
 
 
@@ -26,7 +28,7 @@ class ChatException(Exception):
     pass
 
 
-class Contact(object):
+class ChatContact(object):
     def __init__(self, _id, pseudo, online, name=None, avatar_url=None, age=None):
         self.id = _id
         self.pseudo = pseudo
@@ -34,6 +36,14 @@ class Contact(object):
         self.name = name
         self.avatar_url = avatar_url
         self.age = age
+
+
+class ChatMessage(object):
+     def __init__(self, id_from, id_to, message, date=None):
+        self.id_from = id_from
+        self.id_to = id_to
+        self.message = message
+        self.date = datetime.datetime.utcnow() if date is None else date
 
 
 class ICapChat(ICap):

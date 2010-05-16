@@ -48,6 +48,11 @@ class Chatoob(ConsoleApplication):
         for backend, contact in self.weboob.do('iter_chat_contacts', online=True, offline=False):
             self.format(contact)
 
+    @ConsoleApplication.command('get messages')
+    def command_messages(self):
+        for backend, message in self.weboob.do('iter_chat_messages'):
+            self.format(message)
+
     @ConsoleApplication.command('send message to contact')
     def command_send(self, _id, message):
         for backend, result in self.weboob.do('send_chat_message', _id, message):

@@ -38,7 +38,7 @@ from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, Er
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
-from weboob.capabilities.chat import Contact
+from weboob.capabilities.chat import ChatContact, ChatMessage
 
 
 __all__ = ['AdopteUnMec']
@@ -271,11 +271,22 @@ class AdopteUnMec(BaseBrowser):
         print 'isSlutOnline(%s) = %s' % (id, r)
         return r
 
-    def iter_chat_contacts(self, online=True, offline=True):
+    def _get_chat_infos(self):
         json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
         if json['error']:
             raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
-        for contact in json['contacts']:
+        return json
+
+    def iter_chat_contacts(self, online=True, offline=True):
+        def iter_dedupe(contacts):
+            yielded_ids = set()
+            for contact in contacts:
+                if contact['id'] not in yielded_ids:
+                    yield contact
+                yielded_ids.add(contact['id'])
+
+        json = self._get_chat_infos()
+        for contact in iter_dedupe(json['contacts']):
             if online and contact['cat'] == 1 or offline and contact['cat'] == 3:
                 if contact['cat'] == 1:
                     online = True
@@ -283,7 +294,13 @@ class AdopteUnMec(BaseBrowser):
                     online = False
                 else:
                     raise ChatException(u'Unknown online status: contact=%s' % contact)
-                yield Contact(_id=contact['id'], pseudo=contact['pseudo'], online=online, avatar_url=contact['cover'], age=contact['birthday'])
+                yield ChatContact(_id=contact['id'], pseudo=contact['pseudo'], online=online, avatar_url=contact['cover'], age=contact['birthday'])
+
+    def iter_chat_messages(self, _id=None):
+        json = self._get_chat_infos()
+        if json['messages'] is not None:
+            for message in json['messages']:
+                yield ChatMessage(id_from=message['id_from'], id_to=message['id_to'], message=message['message'], date=message['date'])
 
     def send_chat_message(self, _id, message):
         url = 'http://www.adopteunmec.com/1.1_cht_send.php?anticache=%f' % random.random()

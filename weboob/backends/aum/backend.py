@@ -137,6 +137,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     def iter_chat_contacts(self, online=True, offline=True):
         return self.browser.iter_chat_contacts(online=online, offline=offline)
 
+    def iter_chat_messages(self, _id=None):
+        return self.browser.iter_chat_messages(_id)
+
     def send_chat_message(self, _id, message):
         return self.browser.send_chat_message(_id, message)
 
