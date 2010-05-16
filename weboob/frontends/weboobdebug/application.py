@@ -38,8 +38,8 @@ class WeboobDebug(ConsoleApplication):
             return 1
         browser = backend.browser
         from IPython.Shell import IPShellEmbed
-        shell = IPShellEmbed()
-        locs = dict(backend=backend, browser=browser)
+        shell = IPShellEmbed(argv=[])
+        locs = dict(backend=backend, browser=browser, frontend=self, weboob=self.weboob)
         banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables: %s' % (backend_name, locs)
         shell.set_banner(shell.IP.BANNER + '\n\n' + banner)
         shell(local_ns=locs, global_ns={})
