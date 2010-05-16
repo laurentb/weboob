@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
 import time
 from logging import warning
 import random
 import simplejson
+import urllib
 
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.parsers.html5libparser import Html5libParser
@@ -292,5 +294,10 @@ class AdopteUnMec(BaseBrowser):
                 'Referer': 'http://www.adopteunmec.com/chat.php',
                 'Origin': 'http://www.adopteunmec.com',
                 }
-        print url, data, headers
-        return self.post_request(url, data, headers)
+        request = self.request_class(url, urllib.urlencode(data), headers)
+        response = self.openurl(request).read()
+        try:
+            datetime.datetime.strptime(response,  '%Y-%m-%d %H:%M:%S') 
+            return True
+        except ValueError:
+            return False

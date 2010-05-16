@@ -139,3 +139,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     def send_chat_message(self, _id, message):
         return self.browser.send_chat_message(_id, message)
+
+    #def start_chat_polling(self):
+        #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
