@@ -187,7 +187,7 @@ class BaseBrowser(mechanize.Browser):
     def keepalive(self):
         self.home()
 
-    def change_location(func):
+    def check_location(func):
         def inner(self, *args, **kwargs):
             if args and isinstance(args[0], (str,unicode)) and args[0][0] == '/' and \
                (not self.request or self.request.host != self.DOMAIN):
@@ -196,7 +196,7 @@ class BaseBrowser(mechanize.Browser):
             return func(self, *args, **kwargs)
         return inner
 
-    @change_location
+    @check_location
     def openurl(self, *args, **kwargs):
         """
         Open an URL but do not create a Page object.
@@ -238,7 +238,7 @@ class BaseBrowser(mechanize.Browser):
             self.home()
             raise BrowserUnavailable()
 
-    @change_location
+    @check_location
     def location(self, *args, **kwargs):
         """
         Change location of browser on an URL.
@@ -362,8 +362,3 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ClientForm.ControlNotFoundError:
             return
-
-    def post_request(self, url, data, headers):
-        headers['User-Agent'] = self.USER_AGENT
-        req = urllib2.Request(url, urllib.urlencode(data), headers)
-        return urllib2.urlopen(req)
