@@ -19,10 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 from datetime import datetime
+from logging import warning
 
 from weboob.tools.misc import local2utc
-
 from weboob.backends.dlfp.tools import url2id
+
 from .index import DLFPPage
 
 class Comment(object):
@@ -41,7 +42,10 @@ class Comment(object):
             if sub.tag == 'a':
                 self.id = sub.attrib['name']
             elif sub.tag == 'h1':
-                self.title = sub.find('b').text
+                try:
+                    self.title = sub.find('b').text
+                except UnicodeError:
+                    warning('Bad encoded title, but DLFP sucks')
             elif sub.tag == 'div' and sub.attrib.get('class', '').startswith('comment'):
                 self.author = sub.find('a').text
                 self.date = self.parse_date(sub.find('i').tail)
