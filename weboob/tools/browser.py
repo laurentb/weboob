@@ -208,11 +208,10 @@ class BaseBrowser(mechanize.Browser):
             return mechanize.Browser.open(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
-        except mechanize.BrowserStateError:
+        except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
 
-    @retry(BrowserUnavailable, tries=3)
     def submit(self, *args, **kwargs):
         """
         Submit the selected form.
@@ -229,7 +228,6 @@ class BaseBrowser(mechanize.Browser):
     def is_on_page(self, pageCls):
         return isinstance(self.page, pageCls)
 
-    @retry(BrowserUnavailable, tries=3)
     def follow_link(self, *args, **kwargs):
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
