@@ -38,7 +38,7 @@ from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, Er
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
-from weboob.capabilities.chat import ChatContact, ChatMessage
+from weboob.capabilities.chat import ChatContact, ChatException, ChatMessage
 
 
 __all__ = ['AdopteUnMec']

@@ -28,7 +28,7 @@ import weboob
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
-from .formatters import formatters_classes, SimpleFormatter
+from .formatters import formatters_classes
 from .results import Results, WhereCondition, WhereConditionException
 
 

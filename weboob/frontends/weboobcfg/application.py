@@ -134,7 +134,7 @@ class WeboobCfg(ConsoleApplication):
                         print u'Backend "%s" successfully added under instance name "%s" to file %s. Please check configuration parameters values.' % (
                                 name, new_name, self.weboob.backends_config.confpath)
                         break
-                    except ConfigParser.DuplicateSectionError, e:
+                    except ConfigParser.DuplicateSectionError:
                         print u'Instance "%s" is already configured for backend "%s".' % (new_name, name)
 
     @ConsoleApplication.command('List backends')
