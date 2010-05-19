@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import ConfigParser
 import logging
 import os
+import subprocess
 
 import weboob
 from weboob.tools.application import ConsoleApplication
@@ -97,7 +95,7 @@ class WeboobCfg(ConsoleApplication):
         print "'-----------------'                                                             "
 
 
-    @ConsoleApplication.command('Add a backend')
+    @ConsoleApplication.command('Add a configured backend')
     def command_add(self, name, *options):
         self.weboob.modules_loader.load()
         if name not in [module_name for module_name, module in self.weboob.modules_loader.modules.iteritems()]:
@@ -105,24 +103,28 @@ class WeboobCfg(ConsoleApplication):
             return 1
 
         params = {}
-        # set default configuration with empty values
-        module = self.weboob.modules_loader.get_or_load_module(name)
-        for key, field in module.get_config().iteritems():
-            params[key] = u''
-
-        for param in options:
+        # set backend params from command-line arguments
+        for option in options:
             try:
-                key, value = param.split('=', 1)
+                key, value = option.split('=', 1)
             except ValueError:
-                logging.error("Parameters have to be in form 'key=value'")
+                logging.error(u'Parameters have to be formatted "key=value"')
                 return 1
-
             params[key] = value
+        # ask for params non-specified on command-line arguments
+        module = self.weboob.modules_loader.get_or_load_module(name)
+        for key, value in module.get_config().iteritems():
+            if key not in params:
+                masked = key == 'password'
+                params[key] = self.ask(key, default=u'', masked=masked)
+
         try:
             self.weboob.backends_config.add_backend(name, name, params)
-            print u'Backend "%s" successfully added to file %s. Please check configuration parameters values.' % (name, self.weboob.backends_config.confpath)
-        except ConfigParser.DuplicateSectionError, e:
-            print u'Backend "%s" is already configured in file %s' % (name, self.weboob.backends_config.confpath)
+            print u'Backend "%s" successfully added to file "%s".\n'\
+                    'Please check configuration parameters values with "weboobcfg edit".' % (
+                        name, self.weboob.backends_config.confpath)
+        except ConfigParser.DuplicateSectionError:
+            print u'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             response = raw_input(u'Add new instance of "%s" backend ? [yN] ' % name)
             if response.lower() == 'y':
                 while True:
@@ -131,8 +133,9 @@ class WeboobCfg(ConsoleApplication):
                         continue
                     try:
                         self.weboob.backends_config.add_backend(new_name, name, params)
-                        print u'Backend "%s" successfully added under instance name "%s" to file %s. Please check configuration parameters values.' % (
-                                name, new_name, self.weboob.backends_config.confpath)
+                        print u'Backend "%s" successfully added to file "%s".\n'\
+                                'Please check configuration parameters values with "weboobcfg edit".' % (
+                                    name, self.weboob.backends_config.confpath)
                         break
                     except ConfigParser.DuplicateSectionError:
                         print u'Instance "%s" is already configured for backend "%s".' % (new_name, name)
@@ -151,3 +154,7 @@ class WeboobCfg(ConsoleApplication):
         except ConfigParser.NoSectionError:
             logging.error("Backend '%s' does not exist" % instance_name)
             return 1
+
+    @ConsoleApplication.command('Edit configuration file')
+    def command_edit(self):
+        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
