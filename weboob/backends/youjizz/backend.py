@@ -1,27 +1,26 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Roger Philibert
+# Copyright(C) 2010  Roger Philibert
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
-
-from weboob.backend import BaseBackend
+from weboob.backend import check_domain, id2url, BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoujizzBrowser
+from .video import YoujizzVideo
 
 
 __all__ = ['YoujizzBackend']
@@ -37,6 +36,7 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
 
     CONFIG = {}
     _browser = None
+    domain = u'youjizz.com'
 
     def __getattr__(self, name):
         if name == 'browser':
@@ -45,19 +45,11 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    def check_url(func):
-        def inner(self, *args, **kwargs):
-            url = args[0]
-            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youjizz.com' not in url:
-                return None
-            return func(self, *args, **kwargs)
-        return inner
-
-    @check_url
+    @id2url(domain, YoujizzVideo.id2url)
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    @check_url
+    @check_domain(domain)
     def iter_page_urls(self, mozaic_url):
         return self.browser.iter_page_urls(mozaic_url)
 

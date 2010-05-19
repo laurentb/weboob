@@ -64,7 +64,7 @@ class IndexPage(PornPage):
                     rating = float(p.text.strip())
                     rating_max = float(p.find('span').text.strip()[2:])
 
-                yield YoupornVideo(int(_id),
+                yield YoupornVideo('youporn:%d' % int(_id),
                                    title=title,
                                    rating=rating,
                                    rating_max=rating_max,

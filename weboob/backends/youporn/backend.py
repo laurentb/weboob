@@ -1,27 +1,26 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Romain Bignon
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
-
-from weboob.backend import BaseBackend
+from weboob.backend import check_domain, id2url, BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoupornBrowser
+from .video import YoupornVideo
 
 
 __all__ = ['YoupornBackend']
@@ -37,6 +36,7 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
 
     CONFIG = {}
     _browser = None
+    domain = u'youporn.com'
 
     def __getattr__(self, name):
         if name == 'browser':
@@ -45,15 +45,7 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
             return self._browser
         raise AttributeError, name
 
-    def need_url(func):
-        def inner(self, *args, **kwargs):
-            url = args[0]
-            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youporn.com' not in url:
-                return None
-            return func(self, *args, **kwargs)
-        return inner
-
-    @need_url
+    @id2url(domain, YoupornVideo.id2url)
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
@@ -63,6 +55,6 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
             return iter(set())
         return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
 
-    @need_url
+    @check_domain(domain)
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

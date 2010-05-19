@@ -50,6 +50,6 @@ class YoupornBrowser(BaseBrowser):
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
 
-    def get_video(self, _id):
-        self.location(YoupornVideo.id2url(_id))
+    def get_video(self, url):
+        self.location(url)
         return self.page.video

@@ -49,7 +49,7 @@ class BaseVideo(object):
 
     @property
     def page_url(self):
-        return self.id2url(self.id)
+        return self.id2url(self.id.split(':')[1])
 
 
 class ICapVideoProvider(ICap):
