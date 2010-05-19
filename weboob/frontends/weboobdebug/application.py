@@ -32,7 +32,7 @@ class WeboobDebug(ConsoleApplication):
     @ConsoleApplication.command('Debug backend')
     def command_shell(self, backend_name):
         try:
-            backend = self.weboob.load_backends(names=[backend_name])[backend_name]
+            backend = self.weboob.load_modules(names=[backend_name])[backend_name]
         except KeyError:
             logging.error(u'Unable to load backend "%s"' % backend_name)
             return 1
