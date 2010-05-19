@@ -30,6 +30,10 @@ def load_lxml():
     from .lxmlparser import LxmlHtmlParser
     return LxmlHtmlParser
 
+def load_lxmlsoup():
+    from .lxmlsoupparser import LxmlSoupParser
+    return LxmlSoupParser
+
 def load_html5lib():
     from .html5libparser import Html5libParser
     return Html5libParser
@@ -42,7 +46,7 @@ def load_builtin():
     from .htmlparser import HTMLParser
     return HTMLParser
 
-def get_parser(preference_order=('lxml', 'html5lib', 'elementtidy', 'builtin')):
+def get_parser(preference_order=('lxml', 'lxmlsoup', 'html5lib', 'elementtidy', 'builtin')):
     """
     Get a parser from a preference order list.
     This allows Weboob to run on systems without lxml, which is the default parser.
