@@ -1,28 +1,26 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon, Julien Hébert, Christophe Benz
+# Copyright(C) 2010  Romain Bignon, Julien Hébert, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
-
-import logging
-import sys, tty, termios
-import re
-from inspect import getargspec
 from functools import partial
+import getpass
+from inspect import getargspec
+import logging
+import re
+import sys
 
 import weboob
 from weboob.modules import BackendsConfig
@@ -86,28 +84,17 @@ class ConsoleApplication(BaseApplication):
         @return  entered text by user (str)
         """
 
+        if default is not None:
+            question = u'%s [%s]' % (question, default)
+        hidden_msg = u'(input chars are hidden) ' if masked else ''
+        question = u'%s%s: ' % (hidden_msg, question)
+
         correct = False
-
-        if not default is None:
-            question = '%s [%s]' % (question, default)
-
         while not correct:
-            sys.stdout.write('%s: ' % (question))
-
-            if masked:
-                attr = termios.tcgetattr(sys.stdin)
-                tty.setcbreak(sys.stdin)
-
-            line = sys.stdin.readline().split('\n')[0]
-
-            if not line and not default is None:
+            line = getpass.getpass(question) if masked else raw_input(question)
+            if not line and default is not None:
                 line = default
-
-            if masked:
-                termios.tcsetattr(sys.stdin, termios.TCSAFLUSH, attr)
-                sys.stdout.write('\n')
-
-            correct = not regexp or re.match(regexp, str(line))
+            correct = not regexp or re.match(regexp, unicode(line))
 
         return line
 
