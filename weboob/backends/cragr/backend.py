@@ -35,22 +35,15 @@ class CragrBackend(BaseBackend, ICapBank):
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
               'website':  BaseBackend.ConfigField(description='What website to use', default='m.lefil.com'),
              }
-    browser = None
+    BROWSER = Cragr
 
-    def need_browser(func):
-        def inner(self, *args, **kwargs):
-            if not self.browser:
-                self.browser = Cragr(self.config['website'], self.config['login'], self.config['password'])
+    def default_browser(self):
+        return self.build_browser(self.config['website'], self.config['login'], self.config['password'])
 
-            return func(self, *args, **kwargs)
-        return inner
-
-    @need_browser
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
             yield account
 
-    @need_browser
     def get_account(self, _id):
         try:
             _id = long(_id)
@@ -63,7 +56,6 @@ class CragrBackend(BaseBackend, ICapBank):
             else:
                 raise AccountNotFound()
 
-    @need_browser
     def iter_operations(self, account):
         """ Not supported yet """
         return iter([])

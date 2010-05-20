@@ -34,22 +34,15 @@ class BNPorcBackend(BaseBackend, ICapBank):
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
              }
-    browser = None
+    BROWSER = BNPorc
 
-    def need_browser(func):
-        def inner(self, *args, **kwargs):
-            if not self.browser:
-                self.browser = BNPorc(self.config['login'], self.config['password'])
+    def default_browser(self):
+        return self.build_browser(self.config['login'], self.config['password'])
 
-            return func(self, *args, **kwargs)
-        return inner
-
-    @need_browser
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
             yield account
 
-    @need_browser
     def get_account(self, _id):
         try:
             _id = long(_id)
@@ -62,7 +55,6 @@ class BNPorcBackend(BaseBackend, ICapBank):
             else:
                 raise AccountNotFound()
 
-    @need_browser
     def iter_operations(self, account):
         for coming in self.browser.get_coming_operations(account):
             yield coming

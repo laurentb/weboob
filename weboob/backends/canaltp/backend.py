@@ -30,15 +30,14 @@ class CanalTPBackend(BaseBackend, ICapTravel):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
     DESCRIPTION = "French trains"
+    BROWSER = CanalTP
 
     def iter_station_search(self, pattern):
-        canaltp = CanalTP()
-        for _id, name in canaltp.iter_station_search(pattern):
+        for _id, name in self.browser.iter_station_search(pattern):
             yield Station(_id, name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
-        canaltp = CanalTP()
-        for i, d in enumerate(canaltp.iter_station_departures(station_id, arrival_id)):
+        for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
             departure = Departure(i, d['type'], d['time'])
             departure.departure_station = d['departure']
             departure.arrival_station = d['arrival']

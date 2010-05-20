@@ -40,15 +40,11 @@ class GazelleBackend(BaseBackend, ICapTorrent):
               'protocol':      BaseBackend.ConfigField(description='Protocol to use ("http" or "https")'),
               'domain':        BaseBackend.ConfigField(description='Domain (example "ssl.what.cd")'),
              }
-    _browser = None
+    BROWSER = GazelleBrowser
 
-    def __getattr__(self, name):
-        if name == 'browser':
-            if not self._browser:
-                self._browser = GazelleBrowser(self.config['protocol'], self.config['domain'],
-                                               self.config['username'], self.config['password'])
-            return self._browser
-        raise AttributeError, name
+    def default_browser(self):
+        return self.build_browser(self.config['protocol'], self.config['domain'],
+                                  self.config['username'], self.config['password'])
 
     def get_torrent(self, id):
         return self.browser.get_torrent(id)

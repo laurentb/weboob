@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import re
+import os
 from threading import RLock
 
 
@@ -66,6 +67,8 @@ class BaseBackend(object):
     CONFIG = {}
     # Storage
     STORAGE = {}
+    # Browser class
+    BROWSER = None
 
     class ConfigField(object):
         def __init__(self, default=None, is_masked=False, regexp=None, description=None):
@@ -89,6 +92,11 @@ class BaseBackend(object):
         self.weboob = weboob
         self.name = name
         self.lock = RLock()
+
+        # Private fields (which start with '_')
+        self._private_config = dict([(key, value) for key, value in config.iteritems() if key.startswith('_')])
+
+        # Configuration of backend
         self.config = {}
         for name, field in self.CONFIG.iteritems():
             value = config.get(name, field.default)
@@ -109,6 +117,40 @@ class BaseBackend(object):
             self.config[name] = value
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
+
+    @property
+    def browser(self):
+        """
+        Attribute 'browser'. The browser is created at the first call
+        of this attribute, to avoid useless pages access.
+
+        Note that the 'default_browser' method is called to create it.
+        """
+        if not hasattr(self, '_browser'):
+            self._browser = self.default_browser()
+        return self._browser
+
+    def default_browser(self):
+        """
+        Method to overload to build the default browser in
+        attribute 'browser'.
+        """
+        return self.build_browser()
+
+    def build_browser(self, *args, **kwargs):
+        """
+        Build a browser from the BROWSER class attribute and the
+        given arguments.
+        """
+        if not self.BROWSER:
+            return None
+
+        if '_proxy' in self._private_config:
+            kwargs['proxy'] = self._private_config['_proxy']
+        elif 'HTTP_PROXY' in os.environ:
+            kwargs['proxy'] = os.environ['HTTP_PROXY']
+
+        return self.BROWSER(*args, **kwargs)
 
     def has_caps(self, *caps):
         for c in caps:

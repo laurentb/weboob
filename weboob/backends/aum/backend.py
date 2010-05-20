@@ -47,17 +47,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
              }
     STORAGE = {'profiles_walker': {'viewed': []} }
+    BROWSER = AdopteUnMec
+
+    def default_browser(self):
+        return self.build_browser(self.config['username'], self.config['password'])
 
     # Private
-    _browser = None
     _profiles_walker = None
-
-    def __getattr__(self, name):
-        if name == 'browser':
-            if not self._browser:
-                self._browser = AdopteUnMec(self.config['username'], self.config['password'])
-            return self._browser
-        raise AttributeError, name
 
     def iter_messages(self, thread=None):
         for message in self._iter_messages(thread, False):

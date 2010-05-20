@@ -39,14 +39,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
               'get_telegrams': BaseBackend.ConfigField(default=False, description='Get telegrams'),
              }
     STORAGE = {'seen': {}}
-    _browser = None
+    BROWSER = DLFP
 
-    def __getattr__(self, name):
-        if name == 'browser':
-            if not self._browser:
-                self._browser = DLFP(self.config['username'], self.config['password'])
-            return self._browser
-        raise AttributeError, name
+    def default_browser(self):
+        return self.build_browser(self.config['username'], self.config['password'])
 
     def iter_messages(self, thread=None):
         return self._iter_messages(thread, False)

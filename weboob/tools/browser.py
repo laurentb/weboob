@@ -148,7 +148,12 @@ class BaseBrowser(mechanize.Browser):
 
         # Use a proxy
         if proxy:
-            self.set_proxies({"http": proxy})
+            proto = 'http'
+            if proxy.find('://') >= 0:
+                proto, domain = proxy.split('://', 1)
+            else:
+                domain = proxy
+            self.set_proxies({proto: domain})
 
         # Share cookies with firefox
         if firefox_cookies and HAVE_COOKIES:

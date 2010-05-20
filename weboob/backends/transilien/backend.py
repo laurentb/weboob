@@ -31,6 +31,7 @@ class TransilienBackend(BaseBackend, ICapTravel):
     VERSION = '1.0'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Transports in Paris"
+    BROWSER = Transilien
 
     def iter_station_search(self, pattern):
         pattern = pattern.lower()
@@ -39,8 +40,7 @@ class TransilienBackend(BaseBackend, ICapTravel):
                 yield Station(_id, name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
-        transilien = Transilien()
-        for i, d in enumerate(transilien.iter_station_departures(station_id, arrival_id)):
+        for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
             departure = Departure(i, d['type'], d['time'])
             departure.departure_station = d['departure']
             departure.arrival_station = d['arrival']
