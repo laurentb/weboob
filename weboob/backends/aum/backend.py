@@ -106,7 +106,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     def post_reply(self, thread_id, reply_id, title, message):
         with self.browser:
-            self.browser.post(thread_id, message)
+            self.browser.post_mail(thread_id, message)
 
     def get_profile(self, _id):
         try:
