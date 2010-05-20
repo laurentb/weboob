@@ -51,11 +51,27 @@ class Scheduler(IScheduler):
         return self.count
 
     def repeat(self, interval, function, *args):
+        if self.stop_event.isSet():
+            return
+
         function(*args)
         return self.schedule(interval, self._repeated_cb, interval, function, args)
 
+    def _wait_to_stop(self):
+        self.want_stop()
+        for e in self.queue.itervalues():
+            e.cancel()
+            e.join()
+
     def run(self):
-        self.stop_event.wait()
+        try:
+            while 1:
+                self.stop_event.wait(0.1)
+        except KeyboardInterrupt:
+            self._wait_to_stop()
+            raise
+        else:
+            self._wait_to_stop()
         return True
 
     def want_stop(self):
