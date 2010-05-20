@@ -27,7 +27,6 @@ from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
 
 from .browser import AdopteUnMec
-from .exceptions import AdopteCantPostMail
 from .optim.profiles_walker import ProfilesWalker
 
 
@@ -101,6 +100,22 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                     slut['msgstatus'] = contact.get_status()
                     self.storage.set('sluts', contact.get_id(), slut)
                     self.storage.save()
+
+                # Send mail when someone added me in her basket.
+                # XXX possibly race condition if a slut adds me in her basket
+                #     between the aum.nbNewBaskets() and aum.getBaskets().
+                new_baskets = self.browser.nb_new_baskets()
+                if new_baskets:
+                    ids = self.browser.get_baskets()
+                    while new_baskets > 0:
+                        new_baskets -= 1
+                        profile = self.browser.get_profile(ids[new_baskets])
+
+                        yield Message(profile.get_id(), 1,
+                                      title='Basket of %s' % profile.get_name(),
+                                      sender=profile.get_name(),
+                                      content='You are taken in her basket!',
+                                      signature=profile.get_profile_text())
             except BrowserUnavailable:
                 pass
 
