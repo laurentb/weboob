@@ -1,1 +1,1 @@
-from .application import QVideoob
+from .qvideoob import QVideoob
