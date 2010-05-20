@@ -1,18 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 # Copyright(C) 2009-2010  Romain Bignon, Christophe Benz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3 of the License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -27,7 +25,7 @@ import time
 import re
 import sys
 
-from weboob.capabilities.messages import ICapMessages, ICapMessagesReply
+from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
 from weboob.tools.misc import html2text
 
@@ -100,8 +98,15 @@ class Monboob(ConsoleApplication):
             return 1
 
         thread_id, msg_id = id.rsplit('.', 1)
-        for m in backend.post_reply(thread_id, msg_id, title, content):
-            self.send_email(backend, m)
+        try:
+            backend.post_reply(thread_id, msg_id, title, content)
+        except Exception, e:
+            self.send_email(backend, Message(thread_id,
+                                             0,
+                                             title='Unable to send message',
+                                             sender='Monboob',
+                                             reply_id=msg_id,
+                                             content='Unable to send message to %s:\n\n\t%s' % (thread_id, e)))
 
     @ConsoleApplication.command("run daemon")
     def command_run(self):
