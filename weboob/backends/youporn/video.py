@@ -29,4 +29,7 @@ class YoupornVideo(BaseVideo):
 
     @classmethod
     def id2url(cls, _id):
-        return 'http://www.youporn.com/watch/%d' % int(_id)
+        if _id.isdigit():
+            return 'http://www.youporn.com/watch/%d' % int(_id)
+        else:
+            return None
