@@ -43,6 +43,9 @@ class Scheduler(IScheduler):
         self.queue = {}
 
     def schedule(self, interval, function, *args):
+        if self.stop_event.isSet():
+            return
+
         self.count += 1
         logging.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
         timer = Timer(interval, function, args)
@@ -51,11 +54,10 @@ class Scheduler(IScheduler):
         return self.count
 
     def repeat(self, interval, function, *args):
-        if self.stop_event.isSet():
-            return
+        return self._repeat(True, interval, function, *args)
 
-        function(*args)
-        return self.schedule(interval, self._repeated_cb, interval, function, args)
+    def _repeat(self, first, interval, function, *args):
+        return self.schedule(0 if first else interval, self._repeated_cb, interval, function, args)
 
     def _wait_to_stop(self):
         self.want_stop()
@@ -78,4 +80,5 @@ class Scheduler(IScheduler):
         self.stop_event.set()
 
     def _repeated_cb(self, interval, function, args):
-        self.repeat(interval, function, *args)
+        function(*args)
+        self._repeat(False, interval, function, *args)
