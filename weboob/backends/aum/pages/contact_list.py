@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2008  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2008-2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 from datetime import datetime, timedelta
+from dateutil import tz
+from logging import warning
 
 from weboob.backends.aum.pages.base import PageBase
 
@@ -101,7 +100,7 @@ class ContactItem:
                 warning('Unable to parse lastmsg ("%s" is not a valid unit)' % m.group(2))
                 return None
             else:
-                return datetime.now() - timedelta(seconds=i)
+                return datetime.now(tz=tz.tzutc()) - timedelta(seconds=i)
         else:
             warning('Unable to parse lastmsg [%s]' % s)
             return None

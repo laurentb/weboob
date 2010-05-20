@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
 from datetime import datetime
+from dateutil import tz
 
 from weboob.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
@@ -46,7 +44,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
              }
-    STORAGE = {'profiles_walker': {'viewed': []} }
+    STORAGE = {'profiles_walker': {'viewed': []},
+               'sluts': {},
+              }
     BROWSER = AdopteUnMec
 
     def default_browser(self):
@@ -66,54 +66,47 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     def _iter_messages(self, thread, only_new):
         with self.browser:
             try:
-                if not only_new or self.browser.nb_new_mails():
-                    my_name = self.browser.get_my_name()
-                    contacts = self.browser.get_contact_list()
-                    contacts.reverse()
+                profiles = {}
 
-                    for contact in contacts:
-                        if only_new and not contact.is_new() or thread and int(thread) != contact.get_id():
+                contacts = self.browser.get_contact_list()
+                for contact in contacts:
+                    if not contact.get_id() in self.storage.get('sluts'):
+                        slut = {'lastmsg': datetime(1970,1,1),
+                                'msgstatus': ''}
+                    else:
+                        slut = self.storage.get('sluts', contact.get_id())
+
+                    last_msg = slut['lastmsg'].replace(tzinfo=tz.tzutc())
+                    new_lastmsg = last_msg
+
+                    if only_new and contact.get_lastmsg_date() < last_msg and contact.get_status() == slut['msgstatus'] or \
+                       not thread is None and int(thread) != contact.get_id():
+                        continue
+
+                    mails = self.browser.get_thread_mails(contact.get_id())
+                    for mail in mails:
+                        if only_new and mail.get_date() <= last_msg:
                             continue
 
-                        mails = self.browser.get_thread_mails(contact.get_id())
-                        profile = None
-                        for i in xrange(len(mails)):
-                            mail = mails[i]
-                            if only_new and mail.get_from() == my_name:
-                                break
+                        if not mail.profile_link in profiles:
+                            profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
+                        mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
-                            if not profile:
-                                profile = self.browser.get_profile(contact.get_id())
-                            mail.signature += u'\n%s' % profile.get_profile_text()
-                            yield mail
+                        if new_lastmsg < mail.get_date():
+                            new_lastmsg = mail.get_date()
+
+                        yield mail
+
+                    slut['lastmsg'] = new_lastmsg
+                    slut['msgstatus'] = contact.get_status()
+                    self.storage.set('sluts', contact.get_id(), slut)
+                    self.storage.save()
             except BrowserUnavailable:
                 pass
 
     def post_reply(self, thread_id, reply_id, title, message):
-        # Enqueue current awaiting messages
-        for mail in self._iter_messages(thread_id, True):
-            yield mail
         with self.browser:
-            try:
-                self.browser.post(thread_id, message)
-            except AdopteCantPostMail, e:
-                yield  Message(thread_id,
-                               reply_id,
-                               'Unable to send mail to %s' % thread_id,
-                               'AuM',
-                               datetime.now(),
-                               content=u'Unable to send message to %s:\n\t%s\n\n---\n%s' (thread_id, unicode(e), message),
-                               is_html=False)
-            else:
-                # Enqueue my messages and every next messages.
-                mails = self.browser.get_thread_mails(thread_id)
-                my_name = self.browser.get_my_name()
-
-                for mail in mails:
-                    yield mail
-
-                    if mail.get_from() == my_name:
-                        break
+            self.browser.post(thread_id, message)
 
     def get_profile(self, _id):
         try:
