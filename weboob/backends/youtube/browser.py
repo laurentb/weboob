@@ -17,17 +17,21 @@
 
 
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser.decorators import check_domain, id2url
 
 from .pages import VideoPage
+from .video import YoutubeVideo
 
 
 __all__ = ['YoutubeBrowser']
 
 
 class YoutubeBrowser(BaseBrowser):
+    DOMAIN = u'youtube.com'
     PAGES = {'.*youtube\.com/watch\?v=(.+)': VideoPage,
             }
 
+    @id2url(YoutubeVideo.id2url)
     def get_video(self, url):
         self.location(url)
         return self.page.video

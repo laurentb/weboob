@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from .cap import ICap
 
@@ -49,7 +47,11 @@ class BaseVideo(object):
 
     @property
     def page_url(self):
-        return self.id2url(self.id.split(':')[1])
+        return self.id2url(self.provider_id)
+
+    @property
+    def provider_id(self):
+        return self.id.split('@')[0]
 
 
 class ICapVideoProvider(ICap):

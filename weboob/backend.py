@@ -157,36 +157,3 @@ class BaseBackend(object):
             if isinstance(self, c):
                 return True
         return False
-
-
-def check_domain(domain):
-    def wrapper(func):
-        def inner(self, *args, **kwargs):
-            url = args[0]
-            if isinstance(url, (str,unicode)) and not url.isdigit() and u'youjizz.com' not in url:
-                return None
-            return func(self, *args, **kwargs)
-        return inner
-    return wrapper
-
-
-def id2url(domain, id2url):
-    def wrapper(func):
-        def inner(self, *args, **kwargs):
-            arg = unicode(args[0])
-            if arg.startswith('http://'):
-                if domain in arg:
-                    url = arg
-                else:
-                    return None
-            else:
-                provider, _id = arg.split(':')
-                if provider == self.name:
-                    url = id2url(_id)
-                else:
-                    return None
-            new_args = [url]
-            new_args.extend(args[1:])
-            return func(self, *new_args, **kwargs)
-        return inner
-    return wrapper

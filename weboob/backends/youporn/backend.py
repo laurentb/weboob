@@ -16,11 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.backend import check_domain, id2url, BaseBackend
+from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoupornBrowser
-from .video import YoupornVideo
 
 
 __all__ = ['YoupornBackend']
@@ -38,7 +37,6 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
     BROWSER = YoupornBrowser
     domain = u'youporn.com'
 
-    @id2url(domain, YoupornVideo.id2url)
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
@@ -48,6 +46,5 @@ class YoupornBackend(BaseBackend, ICapVideoProvider):
             return iter(set())
         return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
 
-    @check_domain(domain)
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

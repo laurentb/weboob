@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.backend import check_domain, id2url, BaseBackend
+from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoujizzBrowser
@@ -36,13 +36,10 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
 
     CONFIG = {}
     BROWSER = YoujizzBrowser
-    domain = u'youjizz.com'
 
-    @id2url(domain, YoujizzVideo.id2url)
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    @check_domain(domain)
     def iter_page_urls(self, mozaic_url):
         return self.browser.iter_page_urls(mozaic_url)
 

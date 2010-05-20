@@ -21,6 +21,7 @@ import urllib
 from logging import warning
 
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser.decorators import check_domain, id2url
 
 from .pages.index import IndexPage
 from .video import YoujizzVideo
@@ -36,6 +37,7 @@ class YoujizzBrowser(BaseBrowser):
              r'http://.*youjizz\.com/search/.+\.html': IndexPage,
             }
 
+    @id2url(YoujizzVideo.id2url)
     def get_video(self, url):
         data = self.openurl(url).read()
         def _get_url():
@@ -56,8 +58,9 @@ class YoujizzBrowser(BaseBrowser):
             duration = minutes * 60 + seconds
         else:
             duration = 0
-        return YoujizzVideo(_id=u'youjizz:%s' % _id, title=title, url=_get_url(), duration=duration, nsfw=True)
+        return YoujizzVideo(_id=_id, title=title, url=_get_url(), duration=duration, nsfw=True)
 
+    @check_domain
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 

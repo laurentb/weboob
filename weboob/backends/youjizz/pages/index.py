@@ -54,7 +54,7 @@ class IndexPage(BasePage):
                 minutes, seconds = time_span.text.strip().split(':')
                 duration = 60 * int(minutes) + int(seconds)
 
-            yield YoujizzVideo(u'youjizz:%s' % _id,
+            yield YoujizzVideo(_id,
                                title=title,
                                duration=duration,
                                thumbnail_url=thumbnail_url,

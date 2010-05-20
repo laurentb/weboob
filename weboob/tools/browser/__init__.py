@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Roger Philibert
+# Copyright(C) 2010  Christophe Benz
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,17 +16,4 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.capabilities.video import BaseVideo
-
-
-__all__ = ['YoujizzVideo']
-
-
-class YoujizzVideo(BaseVideo):
-    def __init__(self, *args, **kwargs):
-        BaseVideo.__init__(self, *args, **kwargs)
-        self.id = u'%s@youjizz.com' % self.id
-
-    @classmethod
-    def id2url(cls, _id):
-        return 'http://www.youjizz.com/videos/%s.html' % _id
+from weboob.tools.browser.browser import *

@@ -18,7 +18,7 @@
 
 import logging
 
-from weboob.backend import check_domain, id2url, BaseBackend
+from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideoProvider
 
 from .browser import YoutubeBrowser
@@ -38,9 +38,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
 
     CONFIG = {}
     BROWSER = YoutubeBrowser
-    domain = u'youtube.com'
 
-    @id2url(domain, YoutubeVideo.id2url)
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
@@ -48,7 +46,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
         try:
             import gdata.youtube.service
         except ImportError:
-            logging.warning('Youtube backend search feature requires python-gdata package.')
+            logging.error('Youtube backend search feature requires python-gdata package.')
             return
         yt_service = gdata.youtube.service.YouTubeService()
         query = gdata.youtube.service.YouTubeVideoQuery()
@@ -62,12 +60,11 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
                 author = entry.media.name.text.decode('utf-8').strip()
             else:
                 author = None
-            yield YoutubeVideo(u'youtube:%s' % entry.id.text.split('/')[-1].decode('utf-8'),
+            yield YoutubeVideo(entry.id.text.split('/')[-1].decode('utf-8'),
                                title=entry.media.title.text.decode('utf-8').strip(),
                                author=author,
                                duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
                                thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip())
 
-    @check_domain(domain)
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
