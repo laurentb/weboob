@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
 import re
+from datetime import datetime, timedelta
 
 from weboob.backends.aum.pages.base import PageBase
 
@@ -51,7 +52,6 @@ class ContactItem:
         self.tr = tr
 
     def __get_element(self, id):
-
         return self.tr.getElementsByTagName('td')[self.fields.index(id)]
 
     def get_name(self):
@@ -66,7 +66,6 @@ class ContactItem:
         return name
 
     def get_status(self):
-
         tag = self.__get_element('status')
 
         return tag.firstChild.data
@@ -79,8 +78,33 @@ class ContactItem:
 
     def get_resume(self):
         tag = self.__get_element('resume')
+        return tag.getElementsByTagName('b')[0].firstChild.data.strip()
 
-        return tag.getElementsByTagName('b')[0].firstChild.data.split('\n')[0]
+    LASTMSG_RE = re.compile('il y a (\d+) (\w+)')
+    def get_lastmsg_date(self):
+        tag = self.__get_element('resume')
+        s = tag.childNodes[3].data
+        m = self.LASTMSG_RE.match(s)
+        if m:
+            d = {'secondes': 1,
+                 'seconde': 1,
+                 'minutes': 60,
+                 'minute': 60,
+                 'heures': 3600,
+                 'heure': 3600,
+                 'jours': 24*3600,
+                 'jour': 24*3600,
+                }
+            try:
+                i = int(m.group(1)) * d[m.group(2)]
+            except KeyError:
+                warning('Unable to parse lastmsg ("%s" is not a valid unit)' % m.group(2))
+                return None
+            else:
+                return datetime.now() - timedelta(seconds=i)
+        else:
+            warning('Unable to parse lastmsg [%s]' % s)
+            return None
 
     def get_id(self):
         tag = self.__get_element('thread_link')
