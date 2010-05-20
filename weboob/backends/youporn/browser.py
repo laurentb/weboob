@@ -22,7 +22,6 @@ from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
-from .video import YoupornVideo
 
 
 __all__ = ['YoupornBrowser']
