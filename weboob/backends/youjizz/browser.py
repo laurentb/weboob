@@ -20,7 +20,7 @@ import re
 import urllib
 from logging import warning
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.browser.decorators import check_domain, id2url
 
 from .pages.index import IndexPage
@@ -39,7 +39,10 @@ class YoujizzBrowser(BaseBrowser):
 
     @id2url(YoujizzVideo.id2url)
     def get_video(self, url):
-        data = self.openurl(url).read()
+        try:
+            data = self.openurl(url).read()
+        except BrowserUnavailable:
+            return None
         def _get_url():
             video_file_urls = re.findall(r'"(http://media[^ ,]+\.flv)"', data)
             if len(video_file_urls) == 0:
