@@ -17,8 +17,9 @@
 
 from __future__ import with_statement
 
-from logging import debug
 from copy import copy
+import logging
+from logging import debug
 from threading import Thread, Event, RLock, Timer
 from .tools.misc import get_backtrace
 
@@ -28,7 +29,9 @@ __all__ = ['BackendsCall', 'CallErrors']
 class CallErrors(Exception):
     def __init__(self, errors):
         Exception.__init__(self, u'These errors have been raised in backend threads:\n%s' % (
-            u'\n'.join((u' * %s: %s\n%s' % (backend, error, backtrace)) for backend, error, backtrace in errors)))
+            u'\n'.join((u' * %s: %s%s' % (backend, error, backtrace + '\n'
+                                          if logging.root.level == logging.DEBUG else ''))
+                       for backend, error, backtrace in self.errors)))
         self.errors = copy(errors)
 
     def __iter__(self):
