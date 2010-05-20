@@ -176,7 +176,7 @@ class MailParser(Message):
 
                 if m:
                     self.profile_link = m.group(1)
-                    self.signature = u'Profile link: %s' % self.profile_link
+                    self.signature = u'Profile: http://www.adopteunmec.com%s' % self.profile_link
                     return
 
         warning('Unable to find the profile URL in the message %s@%s' % (self.get_from(), self.get_id()))
