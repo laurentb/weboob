@@ -44,16 +44,13 @@ class BaseApplication(object):
     # Copyright
     COPYRIGHT = None
 
-    def __init__(self):
+    def __init__(self, option_parser=None):
         self.weboob = self.create_weboob()
         self.config = None
-        version = None
-        if self.VERSION:
-            if self.COPYRIGHT:
-                version = '%s v%s (%s)' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
-            else:
-                version = '%s v%s' % (self.APPNAME, self.VERSION)
-        self._parser = OptionParser(self.SYNOPSIS, version=version)
+        if option_parser is None:
+            self._parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
+        else:
+            self._parser = option_parser
         self._parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
         logging_options = OptionGroup(self._parser, 'Logging Options')
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
@@ -130,6 +127,15 @@ class BaseApplication(object):
         @return  a set object
         """
         return set()
+
+    def _get_optparse_version(self):
+        version = None
+        if self.VERSION:
+            if self.COPYRIGHT:
+                version = '%s v%s (%s)' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
+            else:
+                version = '%s v%s' % (self.APPNAME, self.VERSION)
+        return version
 
     def _handle_app_options(self):
         """

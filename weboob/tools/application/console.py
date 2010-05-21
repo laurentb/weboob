@@ -19,6 +19,7 @@ from functools import partial
 import getpass
 from inspect import getargspec
 import logging
+from optparse import OptionGroup, OptionParser
 import re
 import sys
 
@@ -26,8 +27,8 @@ import weboob
 from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
-from .formatters import formatters_classes
-from .results import Results, WhereCondition, WhereConditionException
+from .formatters import formatters
+from .results import Results, ResultsCondition, ResultsConditionException
 
 
 __all__ = ['ConsoleApplication']
@@ -37,8 +38,13 @@ class ConsoleApplication(BaseApplication):
     SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
 
     def __init__(self):
+        option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
+        app_options = OptionGroup(option_parser, '%s Options' % self.APPNAME.capitalize())
+        self.add_application_options(app_options)
+        option_parser.add_option_group(app_options)
+
         try:
-            BaseApplication.__init__(self)
+            BaseApplication.__init__(self, option_parser=option_parser)
         except BackendsConfig.WrongPermissions, e:
             logging.error(u'Error: %s' % e)
             sys.exit(1)
@@ -52,11 +58,15 @@ class ConsoleApplication(BaseApplication):
             command = '%s %s' % (name, arguments)
             self._parser.description += '   %-30s %s\n' % (command, doc_string)
 
-        self._parser.add_option('-f', '--formatter', default='simple', choices=formatters_classes.keys(),
-                help='select output formatter (%s)' % u','.join(formatters_classes.keys()))
-        self._parser.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
-        self._parser.add_option('-w', '--where', help='filter results to display with boolean condition')
+        results_options = OptionGroup(self._parser, 'Results Options')
+        results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
+        results_options.add_option('-f', '--formatter', default='multiline', choices=formatters.keys(),
+                                   help='select output formatter (%s)' % u','.join(formatters.keys()))
+        results_options.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
+        self._parser.add_option_group(results_options)
 
+    def add_application_options(self, group):
+        pass
     def _handle_app_options(self):
         self._formatter = formatters_classes[self.options.formatter]
 
