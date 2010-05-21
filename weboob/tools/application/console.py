@@ -73,7 +73,10 @@ class ConsoleApplication(BaseApplication):
 
         if self.options.select:
             self._formatter.display_keys = False
-            self.selected_fields = self.options.select.split(',')
+            if self.options.select == '*':
+                self.selected_fields = None
+            else:
+                self.selected_fields = self.options.select.split(',')
         else:
             self.selected_fields = None
 
