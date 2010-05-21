@@ -15,14 +15,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from .multiline import MultilineFormatter
-from .simple import SimpleFormatter
+
+from .iformatter import IFormatter
 
 
-__all__ = ['formatters']
+__all__ = ['MultilineFormatter']
 
 
-formatters = dict(
-    multiline=MultilineFormatter(),
-    simple=SimpleFormatter(),
-)
+class MultilineFormatter(IFormatter):
+    def __init__(self, key_value_separator=u': ', after_item=u'\n', display_keys=True):
+        self.key_value_separator = key_value_separator
+        self.after_item = after_item
+        self.display_keys = display_keys
+
+    def format_dict(self, item, selected_fields):
+        result_str = u'\n'.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''),
+                                           unicode(item[k])) for k in selected_fields) + self.after_item
+        return result_str

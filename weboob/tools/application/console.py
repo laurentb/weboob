@@ -67,18 +67,20 @@ class ConsoleApplication(BaseApplication):
 
     def add_application_options(self, group):
         pass
+
     def _handle_app_options(self):
-        self._formatter = formatters_classes[self.options.formatter]
+        self._formatter = formatters[self.options.formatter]
 
         if self.options.select:
+            self._formatter.display_keys = False
             self.selected_fields = self.options.select.split(',')
         else:
             self.selected_fields = None
 
-        if self.options.where:
-            self.where_condition = WhereCondition(self.options.where)
+        if self.options.condition:
+            self.condition = ResultsCondition(self.options.condition)
         else:
-            self.where_condition = None
+            self.condition = None
 
     def _get_completions(self):
         return set(name for name, arguments, doc_string in self._commands)
@@ -195,10 +197,10 @@ class ConsoleApplication(BaseApplication):
 
     def format(self, result):
         try:
-            result = self._formatter.format(result, selected_fields=self.selected_fields, where_condition=self.where_condition)
+            result = self._formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
             if result is not None:
                 print result
-        except WhereConditionException, e:
+        except ResultsConditionException, e:
             logging.error(e)
 
     register_command = staticmethod(register_command)

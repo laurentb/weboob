@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['Results', 'WhereCondition', 'WhereConditionException']
+__all__ = ['Results', 'ResultsCondition', 'ResultsConditionException']
 
 
 class Results(object):
@@ -67,13 +67,13 @@ class Results(object):
         return iter(self._groups)
 
 
-class WhereCondition(object):
-    def __init__(self, where_condition_str):
-        where_condition_str.replace('OR', 'or')
-        where_condition_str.replace('AND', 'and')
-        where_condition_str.replace('NOT', 'not')
+class ResultsCondition(object):
+    def __init__(self, condition_str):
+        condition_str.replace('OR', 'or')
+        condition_str.replace('AND', 'and')
+        condition_str.replace('NOT', 'not')
         or_list = []
-        for _or in where_condition_str.split('or'):
+        for _or in condition_str.split('or'):
             and_dict = {}
             for _and in _or.split('and'):
                 if '!=' in _and:
@@ -82,13 +82,13 @@ class WhereCondition(object):
                 elif '=' in _and:
                     k, v = _and.split('=')
                 else:
-                    raise WhereConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                    raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
                 and_dict[k] = v
             or_list.append(and_dict)
-        self.where_condition = or_list
+        self.condition = or_list
 
     def is_valid(self, d):
-        for _or in self.where_condition:
+        for _or in self.condition:
             for k, v in _or.iteritems():
                 if k.endswith('!'):
                     k = k[:-1]
@@ -103,9 +103,9 @@ class WhereCondition(object):
                         if d[k] != v:
                             return False
                 else:
-                    raise WhereConditionException(u'Field "%s" is not valid.' % k)
+                    raise ResultsConditionException(u'Field "%s" is not valid.' % k)
         return True
 
 
-class WhereConditionException(Exception):
+class ResultsConditionException(Exception):
     pass

@@ -16,38 +16,19 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from .iformatter import IFormatter
+
+
 __all__ = ['SimpleFormatter']
 
 
-class SimpleFormatter(object):
-    @classmethod
-    def format(cls, obj, selected_fields=None, where_condition=None):
-        def iter_fields(obj):
-            import types
-            for attribute_name in dir(obj):
-                if attribute_name.startswith('_'):
-                    continue
-                attribute = getattr(obj, attribute_name)
-                if not isinstance(attribute, types.MethodType):
-                    yield attribute_name, attribute
+class SimpleFormatter(IFormatter):
+    def __init__(self, field_separator=u'\t', key_value_separator=u'=', display_keys=True):
+        self.field_separator = field_separator
+        self.key_value_separator = key_value_separator
+        self.display_keys = display_keys
 
-        if hasattr(obj, 'iter_fields'):
-            fields_iterator = obj.iter_fields()
-        else:
-            fields_iterator = iter_fields(obj)
-
-        d = dict((k, v) for k, v in fields_iterator)
-
-        if where_condition is not None:
-            if not where_condition.is_valid(d):
-                d = None
-
-        if not d:
-            return None
-
-        if selected_fields is None:
-            result = u'\n'.join(u'%s: %s' % (k, unicode(d[k])) for k in sorted(d)) + u'\n'
-        else:
-            result = u'\t'.join(unicode(d[k]) for k in selected_fields if d[k] is not None)
-
-        return result
+    def format_dict(self, item, selected_fields):
+        result_str = self.field_separator.join(u'%s%s' % ((u'%s%s' % (
+            k, self.key_value_separator) if self.display_keys else ''), unicode(item[k])) for k in selected_fields)
+        return result_str
