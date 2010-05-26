@@ -27,8 +27,8 @@ class QVideoob(QtApplication):
     APPNAME = 'qvideoob'
     VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-    CONFIG = {'settings': {'nsfw': True,
-                           'sfw': True,
+    CONFIG = {'settings': {'nsfw': 1,
+                           'sfw': 1,
                            'sortby': 0,
                            'backend': ''
                           }
