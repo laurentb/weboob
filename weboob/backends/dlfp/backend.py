@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
@@ -87,7 +84,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                               article.datetime,
                               content=''.join([thread.body, thread.part2]),
                               signature='URL: %s' % article.url,
-                              is_html=True)
+                              is_html=True
+                              is_new=new)
 
             for comment in thread.iter_all_comments():
                 if not comment.id in seen[article.id]['comments']:
@@ -104,7 +102,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                                   comment.reply_id,
                                   comment.body,
                                   'Score: %d' % comment.score,
-                                  is_html=True)
+                                  is_html=True,
+                                  is_new=new)
         # If there is no articles seen, it's suspicious, probably I can't
         # fetch the feed.
         if seen:

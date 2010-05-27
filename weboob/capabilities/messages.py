@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import datetime
 import time
@@ -24,7 +21,7 @@ import time
 from .cap import ICap
 
 class Message:
-    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u'', is_html=False):
+    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u'', is_html=False, is_new=False):
         self.thread_id = unicode(thread_id)
         self.id = unicode(_id)
         self.reply_id = unicode(reply_id)
@@ -32,11 +29,11 @@ class Message:
         self.sender = unicode(sender)
         self.signature = unicode(signature)
 
-        self.new = False
         self.content = content
         if date is None:
             date = datetime.datetime.utcnow()
         self.date = date
+        self.is_new = is_new
         self.is_html = is_html
 
     def get_date_int(self):
@@ -71,9 +68,6 @@ class Message:
 
     def get_signature(self):
         return self.signature
-
-    def is_new(self):
-        return self.new
 
     def __eq__(self, msg):
         return self.id == msg.id and self.thread_id == msg.thread_id
