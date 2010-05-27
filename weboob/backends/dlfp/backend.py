@@ -84,7 +84,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                               article.datetime,
                               content=''.join([thread.body, thread.part2]),
                               signature='URL: %s' % article.url,
-                              is_html=True
+                              is_html=True,
                               is_new=new)
 
             for comment in thread.iter_all_comments():
