@@ -62,6 +62,8 @@ class QtScheduler(IScheduler):
 class QtApplication(QApplication, BaseApplication):
     def __init__(self):
         QApplication.__init__(self, sys.argv)
+        self.setApplicationName(self.APPNAME)
+
         BaseApplication.__init__(self)
 
     def create_weboob(self):
