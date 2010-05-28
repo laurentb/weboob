@@ -70,8 +70,8 @@ class DLFP(BaseBrowser):
                 'timestamp': '',
                 'res_type': content_type,
                 'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
-                'subject': title,
-                'body': message,
+                'subject': unicode(title).encode('utf-8'),
+                'body': unicode(message).encode('utf-8'),
                 'format': 3,
                 'submit': 'Envoyer',
                 }
