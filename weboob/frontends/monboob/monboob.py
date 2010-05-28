@@ -24,10 +24,11 @@ from email import message_from_file
 import time
 import re
 import sys
+import logging
 
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
-from weboob.tools.misc import html2text
+from weboob.tools.misc import html2text, get_backtrace
 
 
 __all__ = ['Monboob']
@@ -101,12 +102,16 @@ class Monboob(ConsoleApplication):
         try:
             backend.post_reply(thread_id, msg_id, title, content)
         except Exception, e:
+            content = u'Unable to send message to %s:\n' % thread_id
+            content += '\n\t%s\n' % e
+            if logging.root.level == logging.DEBUG:
+                content += '\n%s\n' % get_backtrace(e)
             self.send_email(backend, Message(thread_id,
                                              0,
                                              title='Unable to send message',
                                              sender='Monboob',
                                              reply_id=msg_id,
-                                             content='Unable to send message to %s:\n\n\t%s' % (thread_id, e)))
+                                             content=content))
 
     @ConsoleApplication.command("run daemon")
     def command_run(self):
