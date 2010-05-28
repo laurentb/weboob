@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideo
 from weboob.tools.application import QtApplication
 
 from .main_window import MainWindow
@@ -34,7 +34,7 @@ class QVideoob(QtApplication):
                           }
              }
     def main(self, argv):
-        self.load_modules(ICapVideoProvider)
+        self.load_modules(ICapVideo)
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob)

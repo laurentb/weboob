@@ -19,7 +19,7 @@
 import logging
 
 from weboob.backend import BaseBackend
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideo
 
 from .browser import YoutubeBrowser
 from .video import YoutubeVideo
@@ -28,7 +28,7 @@ from .video import YoutubeVideo
 __all__ = ['YoutubeBackend']
 
 
-class YoutubeBackend(BaseBackend, ICapVideoProvider):
+class YoutubeBackend(BaseBackend, ICapVideo):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -42,7 +42,7 @@ class YoutubeBackend(BaseBackend, ICapVideoProvider):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE, nsfw=False):
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         try:
             import gdata.youtube.service
         except ImportError:

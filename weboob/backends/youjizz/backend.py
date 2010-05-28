@@ -17,7 +17,7 @@
 
 
 from weboob.backend import BaseBackend
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideo
 
 from .browser import YoujizzBrowser
 from .video import YoujizzVideo
@@ -26,7 +26,7 @@ from .video import YoujizzVideo
 __all__ = ['YoujizzBackend']
 
 
-class YoujizzBackend(BaseBackend, ICapVideoProvider):
+class YoujizzBackend(BaseBackend, ICapVideo):
     NAME = 'youjizz'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -43,7 +43,7 @@ class YoujizzBackend(BaseBackend, ICapVideoProvider):
     def iter_page_urls(self, mozaic_url):
         return self.browser.iter_page_urls(mozaic_url)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideoProvider.SEARCH_RELEVANCE, nsfw=False):
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return iter(set())
         return self.browser.iter_search_results(pattern)

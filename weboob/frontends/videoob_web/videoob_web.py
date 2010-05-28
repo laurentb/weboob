@@ -28,7 +28,7 @@ from webob.dec import wsgify
 from webob import exc
 from wsgiref.simple_server import make_server
 
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideo
 from weboob.tools.application import BaseApplication
 
 
@@ -74,7 +74,7 @@ class VideoobWeb(BaseApplication):
 
     def main(self, argv):
         self.load_config()
-        self.weboob.load_modules(ICapVideoProvider)
+        self.weboob.load_modules(ICapVideo)
         print 'Web server created. Listening on http://%s:%s' % (
             self.config.get('host'), int(self.config.get('port')))
         srv = make_server(self.config.get('host'), int(self.config.get('port')), self.make_app)

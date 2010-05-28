@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-from weboob.capabilities.video import ICapVideoProvider
+from weboob.capabilities.video import ICapVideo
 from weboob.tools.application import ConsoleApplication
 
 
@@ -35,7 +35,7 @@ class Videoob(ConsoleApplication):
         group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
 
     def main(self, argv):
-        self.load_modules(ICapVideoProvider)
+        self.load_modules(ICapVideo)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information (accept ID or URL)')

@@ -19,7 +19,7 @@
 from .cap import ICap
 
 
-__all__ = ['BaseVideo', 'ICapVideoProvider']
+__all__ = ['BaseVideo', 'ICapVideo']
 
 
 class BaseVideo(object):
@@ -54,7 +54,7 @@ class BaseVideo(object):
         return self.id.split('@')[0]
 
 
-class ICapVideoProvider(ICap):
+class ICapVideo(ICap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
