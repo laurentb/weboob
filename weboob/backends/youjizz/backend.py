@@ -20,7 +20,6 @@ from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideo
 
 from .browser import YoujizzBrowser
-from .video import YoujizzVideo
 
 
 __all__ = ['YoujizzBackend']

@@ -17,7 +17,7 @@
 
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import check_domain, id2url
+from weboob.tools.browser.decorators import id2url
 
 from .pages import VideoPage
 from .video import YoutubeVideo
