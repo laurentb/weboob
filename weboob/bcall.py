@@ -28,7 +28,8 @@ __all__ = ['BackendsCall', 'CallErrors']
 
 class CallErrors(Exception):
     def __init__(self, errors):
-        Exception.__init__(self, u'These errors have been raised in backend threads:\n%s' % (
+        Exception.__init__(self, u'These errors have been raised in backend threads '\
+                           '(use --debug option to print backtraces):\n%s' % (
             u'\n'.join((u' * %s: %s%s' % (backend, error, backtrace + '\n'
                                           if logging.root.level == logging.DEBUG else ''))
                        for backend, error, backtrace in errors)))
