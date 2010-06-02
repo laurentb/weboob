@@ -157,15 +157,17 @@ class ConsoleApplication(BaseApplication):
         self.formatter.flush()
 
         # Process result if value is returned by command
-        if isinstance(command_result, (str, unicode)):
+        if isinstance(command_result, str):
             print command_result
+        elif isinstance(command_result, unicode):
+            print command_result.encode('utf-8')
         elif isinstance(command_result, int):
             return command_result
         elif command_result is None:
             return 0
         else:
             try:
-                print unicode(command_result)
+                print unicode(command_result).encode('utf-8')
             except ValueError:
                 raise Exception(u'Command result type not expected: %s' % type(command_result))
 

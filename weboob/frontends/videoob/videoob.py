@@ -47,6 +47,6 @@ class Videoob(ConsoleApplication):
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
-        print u'Search pattern: %s' % pattern if pattern else u'Last videos'
+        print (u'Search pattern: %s' % pattern if pattern else u'Last videos').encode('utf-8')
         for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
             self.format(video)
