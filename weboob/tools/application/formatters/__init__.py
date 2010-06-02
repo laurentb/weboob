@@ -17,7 +17,6 @@
 
 from .multiline import MultilineFormatter
 from .simple import SimpleFormatter
-from .table import TableFormatter
 
 
 __all__ = ['formatters']
@@ -26,6 +25,13 @@ __all__ = ['formatters']
 formatters = dict(
     multiline=MultilineFormatter(),
     simple=SimpleFormatter(),
-    table=TableFormatter(),
-    htmltable=TableFormatter(result_funcname='get_html_string'),
 )
+
+try:
+    from .table import TableFormatter
+    formatters.update(dict(
+        table=TableFormatter(),
+        htmltable=TableFormatter(result_funcname='get_html_string'),
+        ))
+except ImportError:
+    pass
