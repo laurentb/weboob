@@ -23,12 +23,15 @@ __all__ = ['MultilineFormatter']
 
 
 class MultilineFormatter(IFormatter):
-    def __init__(self, key_value_separator=u': ', after_item=u'\n', display_keys=True):
+    def __init__(self, key_value_separator=u': ', after_item=u'\n'):
         self.key_value_separator = key_value_separator
         self.after_item = after_item
-        self.display_keys = display_keys
 
-    def format_dict(self, item, selected_fields):
-        result_str = u'\n'.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''),
-                                           unicode(item[k])) for k in selected_fields) + self.after_item
-        return result_str
+    def after_format(self, formatted):
+        print formatted.encode('utf-8')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        return u'\n'.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems()) + self.after_item

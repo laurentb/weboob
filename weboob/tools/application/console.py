@@ -154,22 +154,20 @@ class ConsoleApplication(BaseApplication):
             logging.error(errors)
             return 1
 
-        # Process result
-        if isinstance(command_result, Results):
-            self.format(command_result)
-            return 0
-        elif isinstance(command_result, (str, unicode)):
+        self._formatter.flush()
+
+        # Process result if value is returned by command
+        if isinstance(command_result, (str, unicode)):
             print command_result
-            return 0
         elif isinstance(command_result, int):
             return command_result
-        elif command_result is None:
-            return 0
         else:
             try:
                 print unicode(command_result)
             except ValueError:
-                raise Exception('command_result type not expected: %s' % type(command_result))
+                raise Exception(u'Command result type not expected: %s' % type(command_result))
+
+        return 0
 
     _commands = []
     def register_command(f, doc_string, register_to=_commands):
@@ -200,9 +198,7 @@ class ConsoleApplication(BaseApplication):
 
     def format(self, result):
         try:
-            result = self._formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
-            if result is not None:
-                print result
+            self._formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
         except ResultsConditionException, e:
             logging.error(e)
 

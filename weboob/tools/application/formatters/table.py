@@ -16,23 +16,34 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from prettytable import PrettyTable
+
 from .iformatter import IFormatter
 
 
-__all__ = ['SimpleFormatter']
+__all__ = ['TableFormatter']
 
 
-class SimpleFormatter(IFormatter):
-    def __init__(self, field_separator=u'\t', key_value_separator=u'='):
-        IFormatter.__init__(self)
-        self.field_separator = field_separator
-        self.key_value_separator = key_value_separator
+class TableFormatter(IFormatter):
+    column_headers = None
+    queue = []
+
+    def __init__(self, result_funcname='get_string'):
+        self.result_funcname = result_funcname
 
     def after_format(self, formatted):
-        print formatted.encode('utf-8')
+        if self.column_headers is None:
+            self.column_headers = formatted.keys()
+        self.queue.append(formatted.values())
 
     def flush(self):
-        pass
+        table = PrettyTable(self.column_headers)
+        for column_header in self.column_headers:
+            table.set_field_align(column_header, 'l')
+        for line in self.queue:
+            table.add_row(line)
+        print getattr(table, self.result_funcname)().encode('utf-8')
 
     def format_dict(self, item):
-        return self.field_separator.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems())
+        # format is done in self.flush() by prettytable
+        return item

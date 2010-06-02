@@ -23,7 +23,16 @@ __all__ = ['IFormatter']
 
 
 class IFormatter(object):
-    def format(self, obj, selected_fields=None, condition=None):
+    def __init__(self, display_keys=True):
+        self.display_keys = display_keys
+
+    def after_format(self, formatted):
+        raise NotImplementedError()
+
+    def flush(self):
+        raise NotImplementedError()
+
+    def format(self, obj, selected_fields=None, condition=None, return_only=False):
         """
         Format an object to be human-readable.
         An object has fields which can be selected, and the objects
@@ -32,23 +41,25 @@ class IFormatter(object):
         call it. It can be used to specify the fields order.
 
         @param obj  [object] object to format
-        @param selected_fields  [list] fields to display
+        @param selected_fields  [list] fields to display. If None, all fields are selected.
         @param condition  [Condition] condition to objects to display 
         @return  a string of the formatted object
         """
         item = self.to_dict(obj, condition)
-        if selected_fields is None:
-            selected_fields = sorted(item)
-        return self.format_dict(item=item, selected_fields=selected_fields)
+        if selected_fields is not None:
+            item = dict((k, v) for k, v in item.iteritems() if k in selected_fields)
+        formatted = self.format_dict(item=item)
+        if not return_only and formatted:
+            self.after_format(formatted)
+        return formatted
 
-    def format_dict(self, item, selected_fields):
+    def format_dict(self, item):
         """
-        Format an dict to be human-readable.
+        Format an dict to be human-readable. The dict is already simplified if user provides selected fields.
         Called by format().
         This method has to be overridden in child classes.
 
         @param item  [dict] item to format
-        @param selected_fields  [list] fields to display
         @return  a string of the formatted dict
         """
         raise NotImplementedError()
