@@ -77,6 +77,7 @@ class BackendsCall(object):
 
     def _store_result(self, backend, result):
         with self.mutex:
+            result.id = unicode(result.id) + '@' + backend.name
             self.responses.append((backend, result))
             self.response_event.set()
 

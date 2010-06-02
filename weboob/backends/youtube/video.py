@@ -23,10 +23,6 @@ __all__ = ['YoutubeVideo']
 
 
 class YoutubeVideo(BaseVideo):
-    def __init__(self, *args, **kwargs):
-        BaseVideo.__init__(self, *args, **kwargs)
-        self.id = u'%s@youtube.com' % self.id
-
     @classmethod
     def id2url(cls, _id):
         return 'http://www.youtube.com/watch?v=%s' % _id

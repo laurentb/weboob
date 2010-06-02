@@ -23,10 +23,6 @@ __all__ = ['YoujizzVideo']
 
 
 class YoujizzVideo(BaseVideo):
-    def __init__(self, *args, **kwargs):
-        BaseVideo.__init__(self, *args, **kwargs)
-        self.id = u'%s@youjizz.com' % self.id
-
     @classmethod
     def id2url(cls, _id):
         return 'http://www.youjizz.com/videos/%s.html' % _id
