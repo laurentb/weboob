@@ -69,10 +69,10 @@ class ConsoleApplication(BaseApplication):
         pass
 
     def _handle_app_options(self):
-        self._formatter = formatters[self.options.formatter]
+        self.formatter = formatters[self.options.formatter]
 
         if self.options.select:
-            self._formatter.display_keys = False
+            self.formatter.display_keys = False
             if self.options.select == '*':
                 self.selected_fields = None
             else:
@@ -154,7 +154,7 @@ class ConsoleApplication(BaseApplication):
             logging.error(errors)
             return 1
 
-        self._formatter.flush()
+        self.formatter.flush()
 
         # Process result if value is returned by command
         if isinstance(command_result, (str, unicode)):
@@ -200,7 +200,7 @@ class ConsoleApplication(BaseApplication):
 
     def format(self, result):
         try:
-            self._formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
+            self.formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
         except ResultsConditionException, e:
             logging.error(e)
 
