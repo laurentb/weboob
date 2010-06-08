@@ -19,6 +19,7 @@ import ConfigParser
 import logging
 import os
 import subprocess
+import re
 
 import weboob
 from weboob.tools.application import ConsoleApplication
@@ -61,9 +62,16 @@ class WeboobCfg(ConsoleApplication):
 
     @ConsoleApplication.command('List applications')
     def command_applications(self, *caps):
-        applications_path = os.path.abspath(os.path.join(os.path.dirname(weboob.__file__), '..', 'scripts'))
-        assert os.path.exists(applications_path)
-        print ' '.join(f for f in os.listdir(applications_path) if not f.startswith('.'))
+        import weboob.frontends
+        path = weboob.frontends.__path__[0]
+        frontends = []
+        regexp = re.compile('^%s/([\w\d_]+)$' % path)
+        for root, dirs, files in os.walk(path):
+            m = regexp.match(root)
+            if m and '__init__.py' in files:
+                frontends.append(m.group(1))
+
+        print ' '.join(frontends)
 
     @ConsoleApplication.command('Display a module')
     def command_modinfo(self, name):
