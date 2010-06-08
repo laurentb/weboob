@@ -234,7 +234,7 @@ class ContactThreadPage(PageBase):
         try:
             self.browser.select_form(name="sendMsg")
             if isinstance(content, unicode):
-                content = content.encode('iso-8859-15', 'replace')
+                content = content.encode('utf-8', 'replace')
             self.browser['message'] = content
 
             self.browser.submit()  # submit current form
