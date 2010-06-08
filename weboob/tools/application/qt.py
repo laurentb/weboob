@@ -67,7 +67,7 @@ class QtApplication(QApplication, BaseApplication):
         BaseApplication.__init__(self)
 
     def create_weboob(self):
-        return Weboob(self.APPNAME, scheduler=QtScheduler(self))
+        return Weboob(scheduler=QtScheduler(self))
 
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):

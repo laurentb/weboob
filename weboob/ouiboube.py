@@ -35,8 +35,7 @@ class Weboob(object):
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, app_name, workdir=WORKDIR, backends_filename=None, scheduler=None):
-        self.app_name = app_name
+    def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None):
         self.workdir = workdir
         self.backends = {}
 

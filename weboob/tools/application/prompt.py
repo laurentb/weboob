@@ -52,7 +52,7 @@ class PromptApplication(ConsoleApplication):
     SYNOPSIS = 'Usage: %prog [options (-h for help)]'
 
     def create_weboob(self):
-        return Weboob(self.APPNAME, scheduler=PromptScheduler(self.prompt, self.read_cb))
+        return Weboob(scheduler=PromptScheduler(self.prompt, self.read_cb))
 
     @ConsoleApplication.command("Display this notice")
     def command_help(self):

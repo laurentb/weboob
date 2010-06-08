@@ -60,7 +60,7 @@ class BaseApplication(object):
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
     def create_weboob(self):
-        return Weboob(self.APPNAME)
+        return Weboob()
 
     def create_storage(self, path=None, klass=None):
         """
