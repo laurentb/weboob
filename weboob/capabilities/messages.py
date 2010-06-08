@@ -73,8 +73,8 @@ class Message:
         return self.id == msg.id and self.thread_id == msg.thread_id
 
     def __repr__(self):
-        result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
-            self.id, self.title, self.date, self.sender)
+        result = '<Message id="%s.%s" title="%s" date="%s" from="%s">' % (
+            self.thread_id, self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
 class ICapMessages(ICap):
