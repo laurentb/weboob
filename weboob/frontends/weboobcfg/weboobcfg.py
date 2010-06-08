@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010  Romain Bignon, Christophe Benz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3 of the License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -113,10 +113,21 @@ class WeboobCfg(ConsoleApplication):
             params[key] = value
         # ask for params non-specified on command-line arguments
         module = self.weboob.modules_loader.get_or_load_module(name)
+        asked_config = False
         for key, value in module.get_config().iteritems():
+            if not asked_config:
+                asked_config = True
+                print u'Configuration of backend'
+                print u'------------------------'
             if key not in params:
-                masked = key == 'password'
-                params[key] = self.ask(key, default=u'', masked=masked)
+                params[key] = self.ask(' [%s] %s' % (key, value.description),
+                                       default=value.default,
+                                       masked=value.is_masked,
+                                       regexp=value.regexp)
+            else:
+                print u' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
+        if asked_config:
+            print u'------------------------'
 
         try:
             self.weboob.backends_config.add_backend(name, name, params)
@@ -125,7 +136,7 @@ class WeboobCfg(ConsoleApplication):
                         name, self.weboob.backends_config.confpath)
         except ConfigParser.DuplicateSectionError:
             print u'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
-            response = raw_input(u'Add new instance of "%s" backend ? [yN] ' % name)
+            response = raw_input(u'Add new instance of "%s" backend? [yN] ' % name)
             if response.lower() == 'y':
                 while True:
                     new_name = raw_input(u'Please give new instance name (could be "%s_1"): ' % name)
@@ -138,7 +149,7 @@ class WeboobCfg(ConsoleApplication):
                                     name, self.weboob.backends_config.confpath)
                         break
                     except ConfigParser.DuplicateSectionError:
-                        print u'Instance "%s" is already configured for backend "%s".' % (new_name, name)
+                        print u'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
     @ConsoleApplication.command('List backends')
     def command_list(self):
