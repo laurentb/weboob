@@ -42,17 +42,11 @@ class Monboob(ConsoleApplication):
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
-              'backends':  '',
               'html':      0}
 
     def main(self, argv):
         self.load_config()
-
-        names = None
-        if self.config.get('backends'):
-            names = self.config.get('backends').split()
-
-        self.load_backends(ICapMessages, names=names, storage=self.create_storage())
+        self.load_backends(ICapMessages, storage=self.create_storage())
 
         return self.process_command(*argv[1:])
 
