@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import with_statement
+
 from weboob.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
@@ -72,7 +74,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                 new = False
 
             try:
-                thread = self.browser.get_content(article.id)
+                with self.browser:
+                    thread = self.browser.get_content(article.id)
             except BrowserUnavailable:
                 continue
 
@@ -111,4 +114,5 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
             self.storage.save()
 
     def post_reply(self, thread_id, reply_id, title, message):
-        return self.browser.post_reply(thread_id, reply_id, title, message)
+        with self.browser:
+            return self.browser.post_reply(thread_id, reply_id, title, message)

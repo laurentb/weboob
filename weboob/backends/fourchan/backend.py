@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import with_statement
+
 from logging import warning
 
 from weboob.backend import BaseBackend
@@ -60,7 +62,9 @@ class FourChanBackend(BaseBackend, ICapMessages):
             for message in self._iter_thread_messages(board, thread_wanted, only_new):
                 yield message
         else:
-            for thread in self.browser.get_threads(board):
+            with self.browser:
+                threads = self.browser.get_threads(board)
+            for thread in threads:
                 for message in self._iter_thread_messages(board, thread.id, only_new):
                     yield message
 
