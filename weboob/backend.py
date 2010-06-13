@@ -69,6 +69,8 @@ class BaseBackend(object):
     STORAGE = {}
     # Browser class
     BROWSER = None
+    # Test class
+    TEST = None
 
     class ConfigField(object):
         def __init__(self, default=None, is_masked=False, regexp=None, description=None):
@@ -157,3 +159,8 @@ class BaseBackend(object):
             if isinstance(self, c):
                 return True
         return False
+
+    def get_test(self):
+        if not self.TEST:
+            return None
+        return self.TEST(self)
