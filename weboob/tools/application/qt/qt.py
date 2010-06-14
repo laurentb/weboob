@@ -22,7 +22,7 @@ from PyQt4.QtGui import QMainWindow, QApplication
 from weboob import Weboob
 from weboob.scheduler import IScheduler
 
-from .base import BaseApplication
+from ..base import BaseApplication
 
 __all__ = ['QtApplication']
 
