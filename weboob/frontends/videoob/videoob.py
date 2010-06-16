@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Christophe Benz, Romain Bignon
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
+# Copyright(C) 2010  Christophe Benz, Romain Bignon
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.application import ConsoleApplication
@@ -39,8 +38,11 @@ class Videoob(ConsoleApplication):
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information (accept ID or URL)')
-    def command_info(self, id):
-        for backend, video in self.weboob.do('get_video', id):
+    def command_info(self, _id):
+        _id, backend_name = self.split_id(_id)
+        for backend, video in self.weboob.do('get_video', _id):
+            if backend_name is not None and backend_name != backend.name:
+                continue
             if video is None:
                 continue
             self.format(video)
@@ -49,4 +51,5 @@ class Videoob(ConsoleApplication):
     def command_search(self, pattern=None):
         print (u'Search pattern: %s' % pattern if pattern else u'Last videos').encode('utf-8')
         for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
+            video.id = u'%s@%s' % (video.id, backend.name)
             self.format(video)

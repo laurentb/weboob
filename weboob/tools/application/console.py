@@ -222,3 +222,10 @@ class ConsoleApplication(BaseApplication):
             weboobcfg.command_modules(*caps)
             logging.error(u'You can configure a backends using the "weboobcfg add" command:\nweboobcfg add <name> [options..]')
             sys.exit(0)
+
+    def split_id(self, _id):
+        try:
+            _id, backend_name = _id.split('@')
+        except ValueError:
+            backend_name = None
+        return _id, backend_name
