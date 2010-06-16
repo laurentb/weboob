@@ -229,3 +229,6 @@ class ConsoleApplication(BaseApplication):
         except ValueError:
             backend_name = None
         return _id, backend_name
+
+    def join_id(self, provider_id, backend_name):
+        return u'%s@%s' % (provider_id, backend_name)

@@ -51,5 +51,5 @@ class Videoob(ConsoleApplication):
     def command_search(self, pattern=None):
         print (u'Search pattern: %s' % pattern if pattern else u'Last videos').encode('utf-8')
         for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
-            video.id = u'%s@%s' % (video.id, backend.name)
+            video.id = self.join_id(video.provider_id, backend.name)
             self.format(video)
