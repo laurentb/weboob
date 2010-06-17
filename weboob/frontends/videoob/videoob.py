@@ -34,21 +34,21 @@ class Videoob(ConsoleApplication):
         group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
 
     def main(self, argv):
-        self.load_modules(ICapVideo)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information (accept ID or URL)')
     def command_info(self, _id):
-        _id, backend_name = self.split_id(_id)
+        _id, backend_name = self.parse_id(_id)
+        names = (backend_name,) if backend_name is not None else None
+        self.load_modules(ICapVideo, names=names)
         for backend, video in self.weboob.do('get_video', _id):
-            if backend_name is not None and backend_name != backend.name:
-                continue
             if video is None:
                 continue
             self.format(video, backend.name)
 
     @ConsoleApplication.command('Search videos')
     def command_search(self, pattern=None):
+        self.load_modules(ICapVideo)
         print (u'Search pattern: %s' % pattern if pattern else u'Last videos').encode('utf-8')
         for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
             self.format(video, backend.name)
