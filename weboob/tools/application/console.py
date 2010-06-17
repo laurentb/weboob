@@ -200,9 +200,9 @@ class ConsoleApplication(BaseApplication):
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
 
-    def format(self, result):
+    def format(self, result, backend_name):
         try:
-            self.formatter.format(result, selected_fields=self.selected_fields, condition=self.condition)
+            self.formatter.format(result, backend_name, selected_fields=self.selected_fields, condition=self.condition)
         except ResultsConditionException, e:
             logging.error(e)
 
@@ -229,6 +229,3 @@ class ConsoleApplication(BaseApplication):
         except ValueError:
             backend_name = None
         return _id, backend_name
-
-    def join_id(self, provider_id, backend_name):
-        return u'%s@%s' % (provider_id, backend_name)

@@ -32,7 +32,7 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, selected_fields=None, condition=None, return_only=False):
+    def format(self, obj, backend_name, selected_fields=None, condition=None, return_only=False):
         """
         Format an object to be human-readable.
         An object has fields which can be selected, and the objects
@@ -45,9 +45,9 @@ class IFormatter(object):
         @param condition  [Condition] condition to objects to display 
         @return  a string of the formatted object
         """
-        item = self.to_dict(obj, condition)
-        if selected_fields is not None:
-            item = dict((k, v) for k, v in item.iteritems() if k in selected_fields)
+        item = self.to_dict(obj, backend_name, condition, selected_fields)
+        if item is None:
+            return None
         formatted = self.format_dict(item=item)
         if not return_only and formatted:
             self.after_format(formatted)
@@ -72,10 +72,23 @@ class IFormatter(object):
             if not isinstance(attribute, types.MethodType):
                 yield attribute_name, attribute
 
-    def to_dict(self, obj, condition=None):
+    def to_dict(self, obj, backend_name, condition=None, selected_fields=None):
+        def iter_select_and_decorate(d):
+            if hasattr(obj, '__id__'):
+                id_attr = getattr(obj, '__id__')
+                if not isinstance(id_attr, (set, list, tuple)):
+                    id_attr = (id_attr,)
+                id_fields = id_attr
+            else:
+                id_fields = ('id',)
+            for k, v in d:
+                if selected_fields is not None and k not in selected_fields:
+                    continue
+                if k in id_fields:
+                    v += u'@%s' % backend_name
+                yield k, v
         fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else self.iter_fields(obj)
-        d = dict((k, v) for k, v in fields_iterator)
-        if condition is not None:
-            if not condition.is_valid(d):
-                d = None
+        d = dict((k, v) for k, v in iter_select_and_decorate(fields_iterator))
+        if condition is not None and not condition.is_valid(d):
+            d = None
         return d

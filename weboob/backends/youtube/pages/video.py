@@ -51,7 +51,7 @@ class VideoPage(BasePage):
                 continue
             for m in re.finditer(self.VIDEO_SIGNATURE_REGEX, data.text):
                 video_signature = m.group(1)
-        return 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (self.video.provider_id, video_signature)
+        return 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (self.video.id, video_signature)
 
     def get_title(self):
         found = self.document.getroot().cssselect('meta[name=title]')
