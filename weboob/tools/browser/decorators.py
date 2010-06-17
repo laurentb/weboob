@@ -39,18 +39,9 @@ def id2url(id2url):
                 else:
                     return None
             else:
-                if '@' in arg:
-                    _id, provider = arg.split('@')
-                    if provider == self.DOMAIN:
-                        url = id2url(_id)
-                        if url is None:
-                            return None
-                    else:
-                        return None
-                else:
-                    url = id2url(arg)
-                    if url is None:
-                        return None
+                url = id2url(arg)
+                if url is None:
+                    return None
             new_args = [url]
             new_args.extend(args[1:])
             return func(self, *new_args, **kwargs)
