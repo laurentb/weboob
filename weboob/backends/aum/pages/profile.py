@@ -330,24 +330,26 @@ class ProfilePage(PageBase, Profile):
             value1 = ''
             value2 = ''
             # Check for first column
-            if len(tds[0].childNodes) > 2:
-                b = tds[0].childNodes[2]
-                if hasattr(b, 'tagName') and b.tagName == 'b':
+            if len(tds[0].childNodes) > 0:
+                b = len(tds[0].childNodes) > 2 and tds[0].childNodes[2]
+                if b and hasattr(b, 'tagName') and b.tagName == 'b':
                     for child in b.childNodes:
                         label1 += child.data
                 else:
-                    for child in tds[0].childNodes[2:]:
-                        value1 += child.data
+                    for child in tds[0].childNodes:
+                        if child.data != u'\xa0': # strip nbsp
+                            value1 += child.data
+                    value2 = value2.strip()
 
             # Check for second column
-            if len(tds[1].childNodes) > 2:
-                b = tds[1].childNodes[2]
-                if hasattr(b, 'tagName') and b.tagName == 'b':
+            if len(tds[1].childNodes) > 0:
+                b = tds[1].childNodes[0]
+                if b and hasattr(b, 'tagName') and b.tagName == 'b':
                     for child in b.firstChild.childNodes:
                         label2 += child.data
                 else:
-                    for child in tds[1].childNodes[2:]:
-                        if hasattr(child, 'data'):
+                    for child in tds[1].childNodes:
+                        if hasattr(child, 'data') and child.data != u'\xa0': # strip nbsp
                             value2 += child.data
 
             if label1 and value2:
