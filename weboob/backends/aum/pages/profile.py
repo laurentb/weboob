@@ -159,8 +159,8 @@ class ProfilePage(PageBase, Profile):
                                     'top':           [],
                                     'bottom':        [],
                                     'interval':      '',
+                                    'favorite':      [],
                                     'practices':     [],
-                                    'favorite':      '',
                                     'toys':          [],
                                    },
                    'personality':  {'snap':          '',
@@ -203,9 +203,15 @@ class ProfilePage(PageBase, Profile):
                                     '... en bas ':          FieldList('bottom'),
                                     u'Fréquence idéale des rapports sexuels ':
                                                             FieldString('interval'),
+                                   u'Position favorite ':   FieldList('favorite'),
                                     'Pratiques sexuelles ': FieldList('practices'),
                                    u'Accessoires préférés ':FieldList('toys'),
-                                   u'Position favorite ':   FieldString('favorite'),
+                                   u'Ce qui se cache en dessous ':
+                                                            FieldList('underwear'),
+                                   u"Ce qui m'\xe9moustille ":
+                                                            FieldList('favorite'),
+                                   u"Au lit j'aime ":       FieldList('practices'),
+                                   u'Mes accessoires ':     FieldList('toys'),
                                    },
                    'personality':  {u'Ça la fait craquer ': FieldString('snap'),
                                     u'Ça l\'excite ':       FieldString('exciting'),
