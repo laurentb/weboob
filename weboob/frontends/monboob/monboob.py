@@ -50,17 +50,26 @@ class Monboob(ConsoleApplication):
 
         return self.process_command(*argv[1:])
 
+    def get_email_address_ident(self, msg, header):
+        s = msg.get(header)
+        m = re.match('.*<(.*)@(.*)>', s)
+        if m:
+            return m.group(1)
+        else:
+            try:
+                return s.split('@')[0]
+            except IndexError:
+                return s
+
     @ConsoleApplication.command("pipe with a mail to post message")
     def command_post(self):
         msg = message_from_file(sys.stdin)
-        reply_to = msg.get('In-Reply-To')
+        to = self.get_email_address_ident(msg, 'To')
+        reply_to = self.get_email_address_ident(msg, 'In-Reply-To')
         if not reply_to:
             print >>sys.stderr, 'This is not a reply (no Reply-To field)'
             return 1
 
-        m = re.match('<(.*)@(.*)>', reply_to)
-        if m:
-            reply_to = m.group(1)
         title = msg.get('Subject')
         if title:
             new_title = u''
@@ -88,6 +97,11 @@ class Monboob(ConsoleApplication):
         content = content.split(u'\n-- \n')[0]
 
         bname, id = reply_to.split('.', 1)
+
+        # Default use the To header field to know the backend to use.
+        if to and bname != to:
+            bname = to
+
         try:
             backend = self.weboob.backends[bname]
         except KeyError:
