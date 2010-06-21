@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010  Romain Bignon
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3 of the License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -105,17 +105,34 @@ class BackendsConfig(object):
                 warning('Missing field "_type" for backend "%s"', name)
                 continue
 
-    def add_backend(self, name, _type, params):
+    def add_backend(self, name, _type, params, edit=False):
         if not name:
             raise ValueError(u'Please give a name to the backend.')
         config = SafeConfigParser()
         config.read(self.confpath)
-        config.add_section(name)
+        if not edit:
+            config.add_section(name)
         config.set(name, '_type', _type)
         for key, value in params.iteritems():
             config.set(name, key, value)
         with open(self.confpath, 'wb') as f:
             config.write(f)
+
+    def edit_backend(self, name, _type, params):
+        return self.add_backend(name, _type, params, True)
+
+    def get_backend(self, name):
+        config = SafeConfigParser()
+        config.read(self.confpath)
+        if not config.has_section(name):
+            raise KeyError(u'Backend "%s" not found' % name)
+
+        items = dict(config.items(name, raw=True))
+        try:
+            return items.pop('_type'), items
+        except KeyError:
+            warning('Missing field "_type" for backend "%s"', name)
+            raise KeyError(u'Backend "%s" not found' % name)
 
     def remove_backend(self, name):
         config = SafeConfigParser()
