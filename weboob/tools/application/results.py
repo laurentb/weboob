@@ -73,18 +73,21 @@ class ResultsCondition(object):
         condition_str.replace('AND', 'and')
         condition_str.replace('NOT', 'not')
         or_list = []
-        for _or in condition_str.split('or'):
-            and_dict = {}
-            for _and in _or.split('and'):
-                if '!=' in _and:
-                    k, v = _and.split('!=')
-                    k += '!'
-                elif '=' in _and:
-                    k, v = _and.split('=')
-                else:
-                    raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
-                and_dict[k] = v
-            or_list.append(and_dict)
+        try:
+            for _or in condition_str.split('or'):
+                and_dict = {}
+                for _and in _or.split('and'):
+                    if '!=' in _and:
+                        k, v = _and.split('!=')
+                        k += '!'
+                    elif '=' in _and:
+                        k, v = _and.split('=')
+                    else:
+                        raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                    and_dict[k] = v
+                or_list.append(and_dict)
+        except:
+            raise ResultsConditionException(u'Could not parse condition expression "%s"' % condition_str)
         self.condition = or_list
 
     def is_valid(self, d):
