@@ -85,7 +85,7 @@ class IFormatter(object):
                 if selected_fields is not None and k not in selected_fields:
                     continue
                 if k in id_fields:
-                    v += u'@%s' % backend_name
+                    v = u'%s@%s' % (unicode(v), backend_name)
                 yield k, v
         fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else self.iter_fields(obj)
         d = dict((k, v) for k, v in iter_select_and_decorate(fields_iterator))
