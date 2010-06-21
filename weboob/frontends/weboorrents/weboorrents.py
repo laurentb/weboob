@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
@@ -62,7 +59,7 @@ class Weboorrents(ConsoleApplication):
             if not torrent:
                 logging.error('Torrent "%s" not found' % id)
                 return 1
-            self.format(torrent)
+            self.format(torrent, backend.name)
 
     @ConsoleApplication.command('Get the torrent file')
     def command_getfile(self, id, dest):
@@ -86,4 +83,4 @@ class Weboorrents(ConsoleApplication):
     def command_search(self, pattern=None):
         print u'Search pattern: %s' % pattern if pattern else u'Last torrents'
         for backend, torrent in self.weboob.do('iter_torrents', pattern=pattern):
-            self.format(torrent)
+            self.format(torrent, backend.name)
