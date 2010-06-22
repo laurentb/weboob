@@ -25,7 +25,7 @@ __all__ = ['BaseVideo', 'ICapVideo']
 class BaseVideo(object):
     def __init__(self, _id, title=None, url=None, author=None, duration=0, date=None,
                  rating=0.0, rating_max=0.0, thumbnail_url=None, nsfw=False):
-        self.id = _id
+        self.id = unicode(_id)
         self.title = title
         self.url = url
         self.author = author
