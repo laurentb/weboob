@@ -37,6 +37,8 @@ class TableFormatter(IFormatter):
         self.queue.append(formatted.values())
 
     def flush(self):
+        if self.column_headers is None:
+            return None
         table = PrettyTable(self.column_headers)
         for column_header in self.column_headers:
             table.set_field_align(column_header, 'l')
