@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2008-2010  Romain Bignon, Christophe Benz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3 of the License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -26,7 +26,7 @@ except ImportError:
     import simplejson
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.parsers.html5libparser import Html5libParser
 
 from weboob.backends.aum.exceptions import AdopteWait
@@ -275,7 +275,11 @@ class AdopteUnMec(BaseBrowser):
         return r
 
     def _get_chat_infos(self):
-        json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
+        try:
+            json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
+        except simplejson.JSONDecodeError:
+            raise BrowserUnavailable()
+
         if json['error']:
             raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
         return json
@@ -317,7 +321,7 @@ class AdopteUnMec(BaseBrowser):
         request = self.request_class(url, urllib.urlencode(data), headers)
         response = self.openurl(request).read()
         try:
-            datetime.datetime.strptime(response,  '%Y-%m-%d %H:%M:%S') 
+            datetime.datetime.strptime(response,  '%Y-%m-%d %H:%M:%S')
             return True
         except ValueError:
             return False

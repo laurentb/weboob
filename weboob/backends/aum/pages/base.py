@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2008-2010  Romain Bignon
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
+# Copyright(C) 2008-2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
 from logging import error, warning
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 
 class PageBase(BasePage):
+    def __init__(self, *args, **kwargs):
+        BasePage.__init__(self, *args, **kwargs)
+
+        # Check the 'oops' error message when adopteunmec guys are gay.
+        b = self.document.getElementsByTagName('body')[0]
+        for div in b.getElementsByTagName('div'):
+            if div.getAttribute('id') == 'oops':
+                raise BrowserUnavailable()
+
     def open_contact_list_page(self):
         self.browser.follow_link(url_regex=r"/mails.php$")
 
