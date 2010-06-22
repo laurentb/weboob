@@ -30,8 +30,8 @@ class AccountsList(CragrBasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag == 'br':
                 account = Account()
-                account.setLabel(div.find('a').text.strip())
-                account.setID(long(div.findall('br')[1].tail.strip()))
+                account.label = div.find('a').text.strip()
+                account.id = div.findall('br')[1].tail.strip()
                 s = div.find('div').find('span').find('b').text
                 balance = u''
                 for c in s:
@@ -39,6 +39,6 @@ class AccountsList(CragrBasePage):
                         balance += c
                     if c == ',':
                         balance += '.'
-                account.setBalance(float(balance))
+                account.balance = float(balance)
                 l.append(account)
         return l

@@ -37,11 +37,11 @@ class AccountsList(BasePage):
                 for td in tr.getiterator('td'):
                     if td.attrib.get('headers', '').startswith('Numero_'):
                         id = td.text
-                        account.setID(long(''.join(id.split(' '))))
+                        account.id = ''.join(id.split(' '))
                     elif td.attrib.get('headers', '').startswith('Libelle_'):
                         a = td.findall('a')
                         label = unicode(a[0].text)
-                        account.setLabel(label)
+                        account.label = label
                         m = self.LINKID_REGEXP.match(a[0].attrib.get('href', ''))
                         if m:
                             account.setLinkID(m.group(1))
@@ -49,7 +49,7 @@ class AccountsList(BasePage):
                         a = td.findall('a')
                         balance = a[0].text
                         balance = balance.replace('.','').replace(',','.')
-                        account.setBalance(float(balance))
+                   account.balance = float(balance)
                     elif td.attrib.get('headers', '').startswith('Avenir'):
                         a = td.findall('a')
                         coming = a[0].text

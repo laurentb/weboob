@@ -1,51 +1,49 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Romain Bignon
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from .cap import ICap
 
-class AccountNotFound(Exception): pass
+class AccountNotFound(Exception):
+    pass
 
 class Account(object):
     def __init__(self):
         self.id = 0
         self.label = ''
-        self.balance = 0.0
-        self.coming = 0.0
+        self._balance = 0.0
+        self._coming = 0.0
         self.link_id = ''
 
-    def setID(self, id):
-        assert isinstance(id, (int,long))
-        self.id = id
+    @property
+    def balance(self):
+        return self._balance
 
-    def setLabel(self, label): self.label = label
+    @balance.setter
+    def balance(self, value):
+        self._balance = float(value)
 
-    def setBalance(self, balance):
-        assert isinstance(balance, float)
-        self.balance = balance
+    @property
+    def coming(self):
+        return self._coming
 
-    def setComing(self, coming):
-        assert isinstance(coming, float)
-        self.coming = coming
-
-    def setLinkID(self, link):
-        self.link_id = link
+    @coming.setter
+    def coming(self, value):
+        self._coming = float(value)
 
     def __repr__(self):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
@@ -54,22 +52,27 @@ class Account(object):
 class Operation(object):
     def __init__(self):
         self.date = None
-        self.label = u''
-        self.amount = 0.0
+        self._label = u''
+        self._amount = 0.0
 
     def __repr__(self):
         return "<Operation date='%s' label='%s' amount=%s>" % (self.date, self.label, self.amount)
 
-    def setDate(self, date):
-        #assert isinstance(date, datetime.datetime)
-        self.date = date
+    @property
+    def label(self):
+        return self._label
 
-    def setLabel(self, label):
-        self.label = str(label)
+    @label.setter
+    def label(self, value):
+        self._label = str(value)
 
-    def setAmount(self, amount):
-        assert isinstance(amount, float)
-        self.amount = amount
+    @property
+    def amount(self):
+        return self._amount
+
+    @amount.setter
+    def amount(self, value):
+        self._amount = float(value)
 
 
 class ICapBank(ICap):
