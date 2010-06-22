@@ -71,7 +71,7 @@ class Captcha:
 
                         yy += 1
 
-                    self.map[tile.getNum()] = tile
+                    self.map[tile.get_num()] = tile
 
                 x += 26
                 tx += 1
@@ -107,7 +107,7 @@ class Tile:
                 s += '%02d' % pxl
         return hashlib.md5(s).hexdigest()
 
-    def getNum(self):
+    def get_num(self):
         sum = self.checksum()
         try:
             return self.hash[sum]
