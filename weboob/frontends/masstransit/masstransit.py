@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Julien Hébert
+# Copyright(C) 2010  Julien Hébert
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application import BaseApplication
@@ -68,7 +66,7 @@ class MasstransitHildon():
 
         self.refresh_button.set_sensitive(False)
         self.refresh_button.connect("clicked", self.on_refresh_button_clicked)
-        
+       
         self.retour_button = hildon.Button(
             gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
             hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
@@ -108,7 +106,7 @@ class MasstransitHildon():
                 gtk.CellRendererText(),
                 text=3
             ))
-        
+       
         treeview.append_column(
             gtk.TreeViewColumn(
                 'Information',
@@ -116,7 +114,7 @@ class MasstransitHildon():
                 text=4
             ))
 
-    
+   
         self.combo_source = hildon.TouchSelectorEntry(text=True)
         self.combo_dest = hildon.TouchSelectorEntry(text=True)
 
@@ -150,16 +148,16 @@ class MasstransitHildon():
         main_window.add(vertical_box)
         main_window.show_all()
 
-        self.picker_button_source.connect("value-changed", 
-                                          self.check_station_input, 
+        self.picker_button_source.connect("value-changed",
+                                          self.check_station_input,
                                           self.picker_button_source)
-        self.picker_button_dest.connect("value-changed", 
-                                        self.check_station_input, 
+        self.picker_button_dest.connect("value-changed",
+                                        self.check_station_input,
                                         self.picker_button_dest)
 
     def fill_touch_selector_entry(self):
         liste = []
-        
+       
         for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station.name.capitalize())

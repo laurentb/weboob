@@ -15,13 +15,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 import datetime
 import time
 
 from .cap import ICap
 
+
+__all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']
+
+
 class Message:
-    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'', content=u'', signature=u'', is_html=False, is_new=False):
+    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'',
+                 content=u'', signature=u'', is_html=False, is_new=False):
         self.thread_id = unicode(thread_id)
         self.id = unicode(_id)
         self.reply_id = unicode(reply_id)

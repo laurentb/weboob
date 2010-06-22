@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright(C) 2010  Romain Bignon, Julien Hebert
+# Copyright(C) 2010  Romain Bignon, Julien Hebert
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 3 of the License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""
 
 from datetime import time
 
 from .cap import ICap
+
+
+__all__ = ['Departure', 'ICapTravel', 'Station']
+
 
 class ICapTravel(ICap):
     def iter_station_search(self, pattern):
@@ -42,6 +44,7 @@ class ICapTravel(ICap):
         """
         raise NotImplementedError()
 
+
 class Station(object):
     def __init__(self, _id, name):
         self.id = _id
@@ -49,6 +52,7 @@ class Station(object):
 
     def __repr__(self):
         return "<Station id='%s' name='%s'>" % (self.id, self.name)
+
 
 class Departure(object):
     def __init__(self, _id, _type, _time):
@@ -62,8 +66,5 @@ class Departure(object):
         self.plateform = u''
 
     def __repr__(self):
-        return "<Departure id='%s' type='%s' time='%s' departure='%s' arrival='%s'>" % (self.id,
-                                                                                        self.type,
-                                                                                        self.time.strftime('%H:%M'),
-                                                                                        self.departure_station,
-                                                                                        self.arrival_station)
+        return "<Departure id='%s' type='%s' time='%s' departure='%s' arrival='%s'>" % (
+            self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
