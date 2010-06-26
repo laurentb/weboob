@@ -15,8 +15,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+try:
+    from mechanize import ControlNotFoundError
+except ImportError:
+    from ClientForm import ControlNotFoundError
 
-import ClientForm
 from mechanize import FormNotFoundError
 from weboob.tools.browser import BasePage
 
@@ -30,5 +33,5 @@ class PornPage(BasePage):
             self.browser.select_form(nr=0)
             self.browser.submit(name='user_choice')
             return False
-        except (ClientForm.ControlNotFoundError,FormNotFoundError):
+        except (ControlNotFoundError,FormNotFoundError):
             return True

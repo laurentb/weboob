@@ -16,7 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import ClientForm
+try:
+    from mechanize import ControlNotFoundError
+except ImportError:
+    from ClientForm import ControlNotFoundError
 
 from .base import CragrBasePage
 
@@ -33,7 +36,7 @@ class LoginPage(CragrBasePage):
         try:
             self.browser['numero'] = login
             self.browser['code'] = password
-        except ClientForm.ControlNotFoundError:
+        except ControlNotFoundError:
             try:
                 self.browser['userLogin'] = login
                 self.browser['userPassword'] = password

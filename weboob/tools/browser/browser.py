@@ -19,7 +19,10 @@
 import mechanize
 import urllib
 import urllib2
-import ClientForm
+try:
+    from mechanize import ControlNotFoundError
+except ImportError:
+    from ClientForm import ControlNotFoundError
 import re
 import time
 from logging import warning, debug
@@ -174,6 +177,7 @@ class BaseBrowser(mechanize.Browser):
         if self.password:
             try:
                 self.home()
+            # Do not abort the build of browser when the website is down.
             except BrowserUnavailable:
                 pass
 
@@ -367,5 +371,5 @@ class BaseBrowser(mechanize.Browser):
                     else:
                         value = self.str(args[label])
                 self[field] = value
-        except ClientForm.ControlNotFoundError:
+        except ControlNotFoundError:
             return
