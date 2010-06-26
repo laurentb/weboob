@@ -20,6 +20,7 @@ try:
     from mechanize import ControlNotFoundError
 except ImportError:
     from ClientForm import ControlNotFoundError
+import ClientForm
 
 from .base import CragrBasePage
 
@@ -40,10 +41,14 @@ class LoginPage(CragrBasePage):
             try:
                 self.browser['userLogin'] = login
                 self.browser['userPassword'] = password
-            except ClientForm.ControlNotFoundError:
+            except ControlNotFoundError:
+                self.browser.controls.append(ClientForm.TextControl('text', 'numero', {'value': ''}))
+                self.browser.controls.append(ClientForm.TextControl('text', 'code', {'value': ''}))
                 self.browser.controls.append(ClientForm.TextControl('text', 'userLogin', {'value': ''}))
                 self.browser.controls.append(ClientForm.TextControl('text', 'userPassword', {'value': ''}))
                 self.browser.set_all_readonly(False)
+                self.browser['numero'] = login
+                self.browser['code'] = password
                 self.browser['userLogin'] = login
                 self.browser['userPassword'] = password
 
