@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from copy import deepcopy
 from logging import error
 
 class IStorage:
@@ -42,7 +43,7 @@ else:
 
         def load(self, backend, default={}):
             d = self.config.values.get(backend, {})
-            self.config.values[backend] = default.copy()
+            self.config.values[backend] = deepcopy(default)
             self.config.values[backend].update(d)
 
         def save(self, backend):
