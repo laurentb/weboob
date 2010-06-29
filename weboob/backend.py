@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from copy import deepcopy
 import re
 import os
 from threading import RLock
@@ -116,7 +117,7 @@ class BaseBackend(object):
                     value = float(value)
             self.config[name] = value
         self.storage = BackendStorage(self.name, storage)
-        self.storage.load(self.STORAGE)
+        self.storage.load(deepcopy(self.STORAGE))
 
     @property
     def browser(self):
