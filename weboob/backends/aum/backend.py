@@ -19,6 +19,7 @@ from __future__ import with_statement
 
 from datetime import datetime
 from dateutil import tz
+from time import sleep
 
 from weboob.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
@@ -27,6 +28,7 @@ from weboob.capabilities.dating import ICapDating
 from weboob.tools.browser import BrowserUnavailable
 
 from .browser import AdopteUnMec
+from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
 
 
@@ -120,8 +122,15 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                 pass
 
     def post_reply(self, thread_id, reply_id, title, message):
-        with self.browser:
-            self.browser.post_mail(thread_id, message)
+        while 1:
+            try:
+                with self.browser:
+                    self.browser.post_mail(thread_id, message)
+            except AdopteWait:
+                # If we are on a waiting state, retry every 30 minutes until it is posted.
+                sleep(60*30)
+            else:
+                return
 
     def get_profile(self, _id):
         try:
