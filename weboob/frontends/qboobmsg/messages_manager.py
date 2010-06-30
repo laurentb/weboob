@@ -46,6 +46,7 @@ class MessagesManager(QWidget):
 
         self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self._backendChanged)
         self.connect(self.ui.messagesTree, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self._messageSelected)
+        self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self, SIGNAL('gotMessage'), self._gotMessage)
 
         self.refresh()
@@ -62,6 +63,7 @@ class MessagesManager(QWidget):
         self.refresh()
 
     def refresh(self):
+        print self.ui.messagesTree.topLevelItemCount()
         if self.ui.messagesTree.topLevelItemCount() > 0:
             command = 'iter_new_messages'
         else:

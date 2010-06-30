@@ -37,7 +37,11 @@ class MainWindow(QtMainWindow):
         self.setCentralWidget(self.manager)
 
         self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
+        self.connect(self.ui.actionRefresh, SIGNAL("triggered()"), self.refresh)
 
     def modulesConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapMessages,), self)
         bckndcfg.show()
+
+    def refresh(self):
+        self.centralWidget().refresh()

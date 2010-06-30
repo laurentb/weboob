@@ -30,6 +30,7 @@
      <string>File</string>
     </property>
     <addaction name="actionModules"/>
+    <addaction name="actionRefresh"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -47,6 +48,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionModules"/>
+   <addaction name="actionRefresh"/>
   </widget>
   <action name="actionModules">
    <property name="text">
@@ -59,6 +61,11 @@
    </property>
    <property name="toolTip">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
  </widget>
