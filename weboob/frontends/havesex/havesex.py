@@ -45,8 +45,6 @@ class HaveSex(PromptApplication):
 
         return self.loop()
 
-        return self.weboob.backends.get(bname, None), id
-
     @PromptApplication.command("exit program")
     def command_exit(self):
         print 'Returning in real-life...'

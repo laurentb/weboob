@@ -28,7 +28,7 @@ from weboob.modules import BackendsConfig
 
 from .base import BaseApplication
 from .formatters import formatters
-from .results import Results, ResultsCondition, ResultsConditionException
+from .results import ResultsCondition, ResultsConditionException
 
 
 __all__ = ['ConsoleApplication']
