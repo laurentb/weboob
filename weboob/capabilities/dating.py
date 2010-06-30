@@ -67,6 +67,7 @@ class ICapDating(ICap):
         raise NotImplementedError()
 
     def get_optim(self, optim):
+        optim = optim.upper()
         if not hasattr(self, 'OPTIM_%s' % optim):
             raise OptimizationNotFound()
 
