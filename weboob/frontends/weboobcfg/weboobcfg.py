@@ -21,7 +21,6 @@ import os
 import subprocess
 import re
 
-import weboob
 from weboob.tools.application import ConsoleApplication
 
 

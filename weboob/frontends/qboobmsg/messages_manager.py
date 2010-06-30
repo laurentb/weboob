@@ -58,9 +58,15 @@ class MessagesManager(QWidget):
 
         self.backend = selection[0].data(Qt.UserRole).toPyObject()
 
+        self.ui.messagesTree.clear()
         self.refresh()
 
     def refresh(self):
+        if self.ui.messagesTree.topLevelItemCount() > 0:
+            command = 'iter_new_messages'
+        else:
+            command = 'iter_messages'
+
         self.ui.backendsList.setEnabled(False)
 
         def cb(backend, message):
@@ -71,9 +77,9 @@ class MessagesManager(QWidget):
             print backtrace
 
         if self.backend:
-            process = self.weboob.do_backends(self.backend.name, 'iter_messages')
+            process = self.weboob.do_backends(self.backend.name, command)
         else:
-            process = self.weboob.do_caps(ICapMessages, 'iter_messages')
+            process = self.weboob.do_caps(ICapMessages, command)
         self.process = process.callback_thread(cb, eb)
 
     def _gotMessage(self, backend, message):
