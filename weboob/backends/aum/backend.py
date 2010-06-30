@@ -30,6 +30,7 @@ from weboob.tools.browser import BrowserUnavailable
 from .browser import AdopteUnMec
 from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
+from .optim.visibility import Visibility
 
 
 __all__ = ['AuMBackend']
@@ -139,13 +140,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
         except BrowserUnavailable:
             return None
 
-    def start_profiles_walker(self):
-        self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
-
-    def stop_profiles_walker(self):
-        if self._profiles_walker:
-            self._profiles_walker.stop()
-            self._profiles_walker = None
+    def init_optimizations(self):
+        self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
+        self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
 
     def iter_chat_contacts(self, online=True, offline=True):
         return self.browser.iter_chat_contacts(online=online, offline=offline)

@@ -148,6 +148,7 @@ class BaseBrowser(mechanize.Browser):
             ]
 
         # Use a proxy
+        self.proxy = proxy
         if proxy:
             proto = 'http'
             if proxy.find('://') >= 0:

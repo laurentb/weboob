@@ -22,12 +22,13 @@ from logging import info
 from random import randint
 
 from weboob.tools.browser import BrowserUnavailable
+from weboob.capabilities.dating import Optimization
 
 
 __all__ = ['ProfilesWalker']
 
 
-class ProfilesWalker(object):
+class ProfilesWalker(Optimization):
     def __init__(self, sched, storage, browser):
         self.sched = sched
         self.storage = storage
@@ -36,16 +37,21 @@ class ProfilesWalker(object):
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
         info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
         self.profiles_queue = set()
-        self.walk_cron = sched.repeat(60, self.enqueue_profiles)
-        self.view_cron = sched.schedule(randint(10,40), self.view_profile)
 
     def save(self):
         self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
         self.storage.save()
 
+    def start(self):
+        self.walk_cron = self.sched.repeat(60, self.enqueue_profiles)
+        self.view_cron = self.sched.schedule(randint(10,40), self.view_profile)
+        return True
+
     def stop(self):
-        self.event.cancel(self.event)
-        self.event = None
+        # TODO
+        # self.event.cancel(self.event)
+        # self.event = None
+        return False
 
     def enqueue_profiles(self):
         try:

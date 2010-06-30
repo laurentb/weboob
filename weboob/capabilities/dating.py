@@ -47,10 +47,41 @@ class Profile(object):
 
         return body
 
+class OptimizationNotFound(Exception): pass
+
+class Optimization(object):
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(self):
+        raise NotImplementedError()
 
 class ICapDating(ICap):
     def get_profile(self, _id):
         raise NotImplementedError()
 
-    def start_profile_walker(self):
+    OPTIM_PROFILE_WALKER = None
+    OPTIM_VISIBILITY = None
+
+    def init_optimizations(self):
         raise NotImplementedError()
+
+    def get_optim(self, optim):
+        if not hasattr(self, 'OPTIM_%s' % optim):
+            raise OptimizationNotFound()
+
+        return getattr(self, 'OPTIM_%s' % optim)
+
+    def start_optimization(self, optim):
+        optim = self.get_optim(optim)
+        if not optim:
+            return False
+
+        return optim.start()
+
+    def stop_optimization(self, optim):
+        optim = self.get_optim(optim)
+        if not optim:
+            return False
+
+        return optim.stop()

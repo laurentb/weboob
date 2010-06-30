@@ -18,11 +18,11 @@
 
 from __future__ import with_statement
 
-import logging
 import sys
 
+import weboob
 from weboob.tools.application import PromptApplication
-from weboob.capabilities.dating import ICapDating
+from weboob.capabilities.dating import ICapDating, OptimizationNotFound
 
 
 __all__ = ['HaveSex']
@@ -37,6 +37,8 @@ class HaveSex(PromptApplication):
     def main(self, argv):
         self.load_config()
         self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
+
+        self.weboob.do('init_optimizations')
 
         return self.loop()
 
@@ -67,18 +69,27 @@ class HaveSex(PromptApplication):
             print profile.get_profile_text()
         return True
 
-    def service(self, action, function):
+    def service(self, action, function, *params):
         sys.stdout.write('%s:' % action)
-        for backend, result in self.weboob.do(function):
-            sys.stdout.write(' ' + backend.name)
-            sys.stdout.flush()
+        for backend, result in self.weboob.do(function, *params):
+            if result:
+                sys.stdout.write(' ' + backend.name)
+                sys.stdout.flush()
         sys.stdout.write('.\n')
 
-    @PromptApplication.command("start profiles walker")
-    def command_walker(self, action):
-        if action == 'start':
-            self.service('Starting walker', 'start_profiles_walker')
-        elif action == 'stop':
-            self.service('Stopping walker', 'stop_profiles_walker')
-        else:
-            logging.error(u'Syntax: walker (start|stop)')
+    def optims(self, action, function, optims):
+        for optim in optims:
+            try:
+                self.service('Starting %s' % optim, 'start_optimization', optim)
+            except weboob.CallErrors, errors:
+                for backend, error, backtrace in errors:
+                    if isinstance(error, OptimizationNotFound):
+                        print 'Optimization "%s" not found' % optim
+
+    @PromptApplication.command("start optimizations")
+    def command_start(self, *optims):
+        self.optims('Starting', 'start_optimization', optims)
+
+    @PromptApplication.command("stop optimizations")
+    def command_stop(self, *optims):
+        self.optims('Stopping', 'stop_optimization', optims)
