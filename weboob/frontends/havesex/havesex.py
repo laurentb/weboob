@@ -33,12 +33,15 @@ class HaveSex(PromptApplication):
     VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     STORAGE_FILENAME = 'dating.storage'
+    CONFIG = {'optimizations': ''}
 
     def main(self, argv):
         self.load_config()
         self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
 
         self.weboob.do('init_optimizations')
+
+        self.optims('Starting', 'start_optimization', self.config.get('optimizations').split(' '))
 
         return self.loop()
 
