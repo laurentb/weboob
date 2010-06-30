@@ -157,6 +157,13 @@ class BackendsCall(object):
         thread.start()
         return thread
 
+    def wait(self):
+        self.finish_event.wait()
+
+        with self.mutex:
+            if self.errors:
+                raise CallErrors(self.errors)
+
     def __iter__(self):
         # Don't know how to factorize with _callback_thread_run
         responses = []
