@@ -104,7 +104,7 @@ class BaseBackend(object):
             if value is None:
                 raise BaseBackend.ConfigError('Missing parameter "%s" (%s)' % (name, field.description))
 
-            if field.regexp and re.match(field.regexp, str(value)):
+            if field.regexp and not re.match(field.regexp, str(value)):
                 raise BaseBackend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
 
             if not field.default is None:
