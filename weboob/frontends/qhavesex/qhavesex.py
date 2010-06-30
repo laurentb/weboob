@@ -25,9 +25,10 @@ class QHaveSex(QtApplication):
     APPNAME = 'qhavesex'
     VERSION = '1.0'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    STORAGE_FILENAME = 'dating.storage'
 
     def main(self, argv):
-        self.load_backends(ICapDating)
+        self.load_backends(ICapDating, storage=self.create_storage())
 
         self.main_window = MainWindow(self.config, self.weboob)
         self.main_window.show()

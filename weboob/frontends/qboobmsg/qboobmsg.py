@@ -27,7 +27,7 @@ class QBoobMsg(QtApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_backends(ICapMessages)
+        self.load_backends(ICapMessages, storage=self.create_storage())
 
         self.main_window = MainWindow(self.config, self.weboob)
         self.main_window.show()
