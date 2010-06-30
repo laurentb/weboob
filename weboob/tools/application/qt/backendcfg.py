@@ -54,6 +54,9 @@ class BackendCfg(QDialog):
     def loadBackendsList(self):
         self.ui.backendsList.clearContents()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
+            if self.caps and not self.weboob.modules_loader.modules[name].has_caps(*self.caps):
+                continue
+
             self.ui.backendsList.insertRow(0)
             self.ui.backendsList.setItem(0, 0, QTableWidgetItem(instance_name))
             self.ui.backendsList.setItem(0, 1, QTableWidgetItem(name))
