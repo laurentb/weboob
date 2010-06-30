@@ -45,12 +45,6 @@ class HaveSex(PromptApplication):
 
         return self.loop()
 
-    def split_id(self, id):
-        try:
-            bname, id = id.split('.', 1)
-        except ValueError:
-            return None, None
-
         return self.weboob.backends.get(bname, None), id
 
     @PromptApplication.command("exit program")
@@ -60,16 +54,17 @@ class HaveSex(PromptApplication):
 
     @PromptApplication.command("show a profile")
     def command_profile(self, id):
-        backend, _id = self.split_id(id)
-        if not backend:
-            print 'Invalid ID: %s' % id
-            return False
-        with backend:
-            profile = backend.get_profile(_id)
-            if not profile:
-                print 'Profile not found'
+        _id, backend_name = self.parse_id(id)
 
-            print profile.get_profile_text()
+        found = 0
+        for backend, profile in self.weboob.do_backends(backend_name, 'get_profile', _id):
+            if profile:
+                print profile.get_profile_text()
+                found = 1
+
+        if not found:
+            print >>sys.stderr, 'Profile not found'
+
         return True
 
     def service(self, action, function, *params):
