@@ -81,10 +81,26 @@ class MessagesManager(QWidget):
             self.ui.backendsList.setEnabled(True)
             return
 
-        item = QTreeWidgetItem(self.ui.messagesTree, [time.strftime('%Y-%m-%d %H:%M:%S', message.get_date().timetuple()),
+        item = QTreeWidgetItem(None, [time.strftime('%Y-%m-%d %H:%M:%S', message.get_date().timetuple()),
                                                       message.sender, message.title])
         item.setData(0, Qt.UserRole, message)
-        self.ui.messagesTree.addTopLevelItem(item)
+
+        if not self._insertMessage(self.ui.messagesTree.invisibleRootItem(), item):
+            self.ui.messagesTree.addTopLevelItem(item)
+
+    def _insertMessage(self, top, item):
+        top_message = top.data(0, Qt.UserRole).toPyObject()
+        item_message = item.data(0, Qt.UserRole).toPyObject()
+
+        if top_message and top_message.thread_id == item_message.thread_id and top_message.id == item_message.reply_id:
+            top.addChild(item)
+            return True
+        else:
+            for i in xrange(top.childCount()):
+                sub = top.child(i)
+                if self._insertMessage(sub, item):
+                    return True
+        return False
 
     def _messageSelected(self, item, column):
         message = item.data(0, Qt.UserRole).toPyObject()

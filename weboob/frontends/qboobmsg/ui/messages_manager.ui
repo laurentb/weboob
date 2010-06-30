@@ -32,6 +32,15 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTreeWidget" name="messagesTree">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="animated">
+        <bool>true</bool>
+       </property>
+       <property name="headerHidden">
+        <bool>false</bool>
+       </property>
        <attribute name="headerDefaultSectionSize">
         <number>100</number>
        </attribute>
