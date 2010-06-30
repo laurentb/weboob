@@ -145,7 +145,9 @@ class Weboob(object):
         return BackendsCall(backends, function, *args, **kwargs)
 
     def do_backends(self, backends, function, *args, **kwargs):
-        if isinstance(backends, (str,unicode)):
+        if backends is None:
+            backends = list(self.iter_backends())
+        elif isinstance(backends, (str,unicode)):
             backends = [backend for backend in self.iter_backends() if backend.name == backends]
         elif isinstance(backends, (list,tuple)):
             old_backends = backends
