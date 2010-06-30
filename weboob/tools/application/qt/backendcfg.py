@@ -225,16 +225,3 @@ class BackendCfg(QDialog):
 
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
-
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    from weboob import Weboob
-    import sys
-
-    app = QApplication(sys.argv)
-    weboob = Weboob()
-    weboob.load_backends()
-
-    dlg = BackendCfg(weboob)
-    dlg.show()
-    app.exec_()
