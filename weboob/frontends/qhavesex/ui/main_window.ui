@@ -18,28 +18,8 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>-1</number>
       </property>
-      <widget class="QWidget" name="statusTab">
-       <attribute name="title">
-        <string>Status</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="messagesTab">
-       <attribute name="title">
-        <string>Messages</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="contactsTab">
-       <attribute name="title">
-        <string>Contacts</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="calendarTab">
-       <attribute name="title">
-        <string>Calendar</string>
-       </attribute>
-      </widget>
      </widget>
     </item>
    </layout>

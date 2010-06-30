@@ -15,11 +15,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from PyQt4.QtGui import QWidget
 from PyQt4.QtCore import SIGNAL
 
 from weboob.tools.application.qt import QtMainWindow
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.dating import ICapDating
+
+from weboob.frontends.qboobmsg.messages_manager import MessagesManager
 
 from .ui.main_window_ui import Ui_MainWindow
 
@@ -31,6 +34,11 @@ class MainWindow(QtMainWindow):
 
         self.config = config
         self.weboob = weboob
+
+        self.ui.tabWidget.addTab(QWidget(), self.tr('Status'))
+        self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
+        self.ui.tabWidget.addTab(QWidget(), self.tr('Contacts'))
+        self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
 
         self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
 
