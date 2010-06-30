@@ -27,8 +27,10 @@ __all__ = ['TableFormatter']
 class TableFormatter(IFormatter):
     column_headers = None
     queue = []
+    header = None
 
-    def __init__(self, result_funcname='get_string'):
+    def __init__(self, display_keys=True, return_only=False, result_funcname='get_string'):
+        IFormatter.__init__(self, display_keys, return_only)
         self.result_funcname = result_funcname
 
     def after_format(self, formatted):
@@ -39,13 +41,27 @@ class TableFormatter(IFormatter):
     def flush(self):
         if self.column_headers is None:
             return None
+        s = ''
+        if self.header:
+            if self.result_funcname == 'get_string':
+                s += self.header
+            elif self.result_funcname == 'get_html_string':
+                s+= '<p>%s</p>' % self.header
+            s += "\n"
         table = PrettyTable(self.column_headers)
         for column_header in self.column_headers:
             table.set_field_align(column_header, 'l')
         for line in self.queue:
             table.add_row(line)
-        print getattr(table, self.result_funcname)().encode('utf-8')
+        s += getattr(table, self.result_funcname)()
+        if self.return_only:
+            return s
+        else:
+            print s.encode('utf-8')
 
     def format_dict(self, item):
         # format is done in self.flush() by prettytable
         return item
+
+    def set_header(self, string):
+        self.header = string

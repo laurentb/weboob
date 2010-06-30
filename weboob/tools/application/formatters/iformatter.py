@@ -23,8 +23,9 @@ __all__ = ['IFormatter']
 
 
 class IFormatter(object):
-    def __init__(self, display_keys=True):
+    def __init__(self, display_keys=True, return_only=False):
         self.display_keys = display_keys
+        self.return_only = return_only
 
     def after_format(self, formatted):
         raise NotImplementedError()
@@ -32,7 +33,7 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, backend_name, selected_fields=None, condition=None, return_only=False):
+    def format(self, obj, backend_name, selected_fields=None, condition=None):
         """
         Format an object to be human-readable.
         An object has fields which can be selected, and the objects
@@ -49,7 +50,7 @@ class IFormatter(object):
         if item is None:
             return None
         formatted = self.format_dict(item=item)
-        if not return_only and formatted:
+        if formatted:
             self.after_format(formatted)
         return formatted
 
@@ -71,6 +72,9 @@ class IFormatter(object):
             attribute = getattr(obj, attribute_name)
             if not isinstance(attribute, types.MethodType):
                 yield attribute_name, attribute
+
+    def set_header(self, string):
+        raise NotImplementedError()
 
     def to_dict(self, obj, backend_name, condition=None, selected_fields=None):
         def iter_select_and_decorate(d):

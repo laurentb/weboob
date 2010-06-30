@@ -200,6 +200,9 @@ class ConsoleApplication(BaseApplication):
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
 
+    def set_header(self, string):
+        self.formatter.set_header(string)
+
     def format(self, result, backend_name):
         try:
             self.formatter.format(result, backend_name, selected_fields=self.selected_fields, condition=self.condition)

@@ -25,7 +25,7 @@ __all__ = ['formatters']
 formatters = dict(
     multiline=MultilineFormatter(),
     simple=SimpleFormatter(),
-)
+    )
 
 try:
     from .table import TableFormatter
@@ -33,5 +33,12 @@ try:
         table=TableFormatter(),
         htmltable=TableFormatter(result_funcname='get_html_string'),
         ))
+    try:
+        from .webkitgtk import WebkitGtkFormatter
+        formatters.update(dict(
+            webkit=WebkitGtkFormatter(),
+            ))
+    except ImportError:
+        pass
 except ImportError:
     pass

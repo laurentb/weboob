@@ -36,3 +36,6 @@ class MultilineFormatter(IFormatter):
 
     def format_dict(self, item):
         return u'\n'.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems()) + self.after_item
+
+    def set_header(self, string):
+        print string.encode('utf-8')
