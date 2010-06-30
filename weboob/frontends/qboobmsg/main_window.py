@@ -22,6 +22,7 @@ from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.messages import ICapMessages
 
 from .ui.main_window_ui import Ui_MainWindow
+from .messages_manager import MessagesManager
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
@@ -31,6 +32,9 @@ class MainWindow(QtMainWindow):
 
         self.config = config
         self.weboob = weboob
+        self.manager = MessagesManager(weboob, self)
+
+        self.setCentralWidget(self.manager)
 
         self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
 
