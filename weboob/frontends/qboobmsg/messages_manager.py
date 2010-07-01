@@ -63,7 +63,6 @@ class MessagesManager(QWidget):
         self.refresh()
 
     def refresh(self):
-        print self.ui.messagesTree.topLevelItemCount()
         if self.ui.messagesTree.topLevelItemCount() > 0:
             command = 'iter_new_messages'
         else:
@@ -93,17 +92,37 @@ class MessagesManager(QWidget):
                                                       message.sender, message.title])
         item.setData(0, Qt.UserRole, message)
 
-        if not self._insertMessage(self.ui.messagesTree.invisibleRootItem(), item):
+        root = self.ui.messagesTree.invisibleRootItem()
+
+        # try to find a message which would be my parent.
+        # if no one is found, insert it on top level.
+        if not self._insertMessage(root, item):
             self.ui.messagesTree.addTopLevelItem(item)
+
+        # Check orphaned items which are child of this new one to put
+        # in.
+        to_remove = []
+        for i in xrange(root.childCount()):
+            sub = root.child(i)
+            sub_message = sub.data(0, Qt.UserRole).toPyObject()
+            if sub_message.thread_id == message.thread_id and sub_message.reply_id == message.id:
+                # do not remove it now because childCount() would change.
+                to_remove.append(sub)
+
+        for sub in to_remove:
+            root.removeChild(sub)
+            item.addChild(sub)
 
     def _insertMessage(self, top, item):
         top_message = top.data(0, Qt.UserRole).toPyObject()
         item_message = item.data(0, Qt.UserRole).toPyObject()
 
         if top_message and top_message.thread_id == item_message.thread_id and top_message.id == item_message.reply_id:
+            # it's my parent
             top.addChild(item)
             return True
         else:
+            # check the children
             for i in xrange(top.childCount()):
                 sub = top.child(i)
                 if self._insertMessage(sub, item):
