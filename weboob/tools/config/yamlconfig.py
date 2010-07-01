@@ -18,7 +18,6 @@
 
 from __future__ import with_statement
 
-import sys
 import os
 import tempfile
 import logging
@@ -50,14 +49,11 @@ class YamlConfig(IConfig):
             self.values = {}
 
     def save(self):
-        if sys.version_info[:2] <= (2, 5):
-            with open(self.path, 'w') as f:
-                yaml.dump(self.values, f)
-        else:
-            # write in a temporary file to avoid corruption problems
-            with tempfile.NamedTemporaryFile(delete=False) as f:
-                yaml.dump(self.values, f)
-            os.rename(f.name, self.path)
+        # write in a temporary file to avoid corruption problems
+        fd, path = tempfile.mkstemp(dir=os.path.dirname(self.path))
+        with os.fdopen(fd, 'w') as f:
+            yaml.dump(self.values, f)
+        os.rename(path, self.path)
 
     def get(self, *args, **kwargs):
         default = None
