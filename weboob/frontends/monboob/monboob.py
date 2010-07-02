@@ -19,7 +19,7 @@
 from email.mime.text import MIMEText
 from smtplib import SMTP
 from email.Header import Header, decode_header
-from email.Utils import parseaddr, formataddr
+from email.Utils import parseaddr, formataddr, formatdate
 from email import message_from_file
 import time
 import re
@@ -28,7 +28,7 @@ import logging
 
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
-from weboob.tools.misc import html2text, get_backtrace
+from weboob.tools.misc import html2text, get_backtrace, utc2local
 
 
 __all__ = ['Monboob']
@@ -147,7 +147,7 @@ class Monboob(ConsoleApplication):
         sender = u'"%s" <%s@%s>' % (mail.get_from().replace('"', '""'), backend.name, domain)
 
         # assume that get_date() returns an UTC datetime
-        date = time.strftime('%a, %d %b %Y %H:%M:%S +0000', mail.get_date().timetuple())
+        date = formatdate(time.mktime(utc2local(mail.get_date()).timetuple()), localtime=True)
         msg_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_id(), domain)
 
         if int(self.config.get('html')) and mail.is_html:
