@@ -20,18 +20,54 @@ from email.mime.text import MIMEText
 from smtplib import SMTP
 from email.Header import Header, decode_header
 from email.Utils import parseaddr, formataddr, formatdate
-from email import message_from_file
+from email import message_from_file, message_from_string
+from smtpd import SMTPServer
 import time
 import re
 import sys
 import logging
+import asyncore
 
+from weboob import Weboob
+from weboob.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local
 
 
 __all__ = ['Monboob']
+
+class FakeSMTPD(SMTPServer):
+    def __init__(self, app, bindaddr, port):
+        SMTPServer.__init__(self, (bindaddr, port), None)
+        self.app = app
+
+    def process_message(self, peer, mailfrom, rcpttos, data):
+        msg = message_from_string(data)
+        self.app.process_incoming_mail(msg)
+
+class MonboobScheduler(Scheduler):
+    def __init__(self, app):
+        Scheduler.__init__(self)
+        self.app = app
+
+    def run(self):
+        if self.app.options.smtpd:
+            FakeSMTPD(self.app, '127.0.0.1', int(self.app.options.smtpd))
+
+        # XXX Fuck, we shouldn't copy this piece of code from
+        # weboob.scheduler.Scheduler.run().
+        try:
+            while 1:
+                self.stop_event.wait(0.1)
+                if self.app.options.smtpd:
+                    asyncore.loop(timeout=0.1, count=1)
+        except KeyboardInterrupt:
+            self._wait_to_stop()
+            raise
+        else:
+            self._wait_to_stop()
+        return True
 
 
 class Monboob(ConsoleApplication):
@@ -43,6 +79,14 @@ class Monboob(ConsoleApplication):
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
               'html':      0}
+
+    def __init__(self, *args, **kwargs):
+        ConsoleApplication.__init__(self, *args, **kwargs)
+
+        self._parser.add_option('-S', '--smtpd', help='run a fake smtpd server and set the port')
+
+    def create_weboob(self):
+        return Weboob(scheduler=MonboobScheduler(self))
 
     def main(self, argv):
         self.load_config()
@@ -64,6 +108,9 @@ class Monboob(ConsoleApplication):
     @ConsoleApplication.command("pipe with a mail to post message")
     def command_post(self):
         msg = message_from_file(sys.stdin)
+        return self.process_incoming_mail(msg)
+
+    def process_incoming_mail(self, msg):
         to = self.get_email_address_ident(msg, 'To')
         reply_to = self.get_email_address_ident(msg, 'In-Reply-To')
         if not reply_to:
