@@ -48,6 +48,11 @@ def local2utc(d):
     d = d.astimezone(tz.tzutc())
     return d
 
+def utc2local(d):
+    d = d.replace(tzinfo=tz.tzutc())
+    d = d.astimezone(tz.tzlocal())
+    return d
+
 try:
     import html2text as h2t
     h2t.UNICODE_SNOB = 1
