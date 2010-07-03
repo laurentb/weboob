@@ -65,7 +65,7 @@ class AdopteUnMec(BaseBrowser):
              'http://www.adopteunmec.com/shop2c.php': ShopPage,
              'http://www.adopteunmec.com/mails.php': ContactListPage,
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
-             'http://www.adopteunmec.com/thread.php\?id=([0-9]+)': ContactThreadPage,
+             'http://www.adopteunmec.com/thread.php\?id=([0-9]+)(&see=all)?': ContactThreadPage,
              'http://www.adopteunmec.com/edit.php\?type=1': EditPhotoPage,
              'http://s\d+.adopteunmec.com/upload\d.php\?.*': EditPhotoCbPage,
              'http://www.adopteunmec.com/edit.php\?type=2': EditAnnouncePage,

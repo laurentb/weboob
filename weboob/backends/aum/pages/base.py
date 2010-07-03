@@ -33,8 +33,11 @@ class PageBase(BasePage):
     def open_contact_list_page(self):
         self.browser.follow_link(url_regex=r"/mails.php$")
 
-    def open_thread_page(self, id):
-        self.browser.location('/thread.php?id=%d' % int(id))
+    def open_thread_page(self, id, all_messages=False):
+        if all_messages:
+            self.browser.location('/thread.php?id=%d&see=all' % int(id))
+        else:
+            self.browser.location('/thread.php?id=%d' % int(id))
 
     def score(self):
         """
