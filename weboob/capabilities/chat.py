@@ -28,16 +28,6 @@ class ChatException(Exception):
     pass
 
 
-class ChatContact(object):
-    def __init__(self, _id, pseudo, online, name=None, avatar_url=None, age=None):
-        self.id = _id
-        self.pseudo = pseudo
-        self.online = online
-        self.name = name
-        self.avatar_url = avatar_url
-        self.age = age
-
-
 class ChatMessage(object):
      def __init__(self, id_from, id_to, message, date=None):
         self.id_from = id_from
@@ -47,7 +37,7 @@ class ChatMessage(object):
 
 
 class ICapChat(ICap):
-    def iter_chat_contacts(self, online=True, offline=True):
+    def iter_chat_messages(self, _id=None):
         raise NotImplementedError()
 
     def send_chat_message(self, _id, message):
