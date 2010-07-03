@@ -20,6 +20,7 @@ import logging
 
 from weboob.tools.application import ConsoleApplication
 from weboob.capabilities.chat import ICapChat
+from weboob.capabilities.contact import ICapContact, Contact
 
 
 __all__ = ['Chatoob']
@@ -45,7 +46,7 @@ class Chatoob(ConsoleApplication):
 
     @ConsoleApplication.command('list online contacts')
     def command_list(self):
-        for backend, contact in self.weboob.do('iter_chat_contacts', online=True, offline=False):
+        for backend, contact in self.weboob.do_caps(ICapContact, 'iter_contacts', status=Contact.STATUS_ONLINE):
             self.format(contact, backend.name)
 
     @ConsoleApplication.command('get messages')
