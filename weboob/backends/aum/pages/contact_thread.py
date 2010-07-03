@@ -281,10 +281,10 @@ class ContactThreadPage(PageBase):
         self.name = ''
         big_list = self.document.getElementsByTagName('big')
         for big in big_list:
-            child = big.firstChild
-            if hasattr(child, 'tagName') and child.tagName == u'b':
-                self.name = child.firstChild.data
-                break
+            for child in big.childNodes:
+                if hasattr(child, 'tagName') and child.tagName == u'b':
+                    self.name = child.childNodes[1].data.strip()
+                    break
 
         tables = self.document.getElementsByTagName('table')
         table = None
