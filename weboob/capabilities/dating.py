@@ -56,8 +56,24 @@ class Optimization(object):
     def stop(self):
         raise NotImplementedError()
 
+class StatusField(object):
+    FIELD_TEXT    = 0x001     # the value is a long text
+    FIELD_HTML    = 0x002     # the value is HTML formated
+
+    def __init__(self, key, label, value, flags=0):
+        self.key = key
+        self.label = label
+        self.value = value
+        self.flags = flags
+
 class ICapDating(ICap):
     def get_profile(self, _id):
+        raise NotImplementedError()
+
+    def get_status(self):
+        """
+        Get a list of fields
+        """
         raise NotImplementedError()
 
     OPTIM_PROFILE_WALKER = None
