@@ -21,6 +21,7 @@ from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.capabilities.messages import ICapMessages
+from weboob.tools.application.qt import QtDo
 
 from .ui.messages_manager_ui import Ui_MessagesManager
 
@@ -70,18 +71,12 @@ class MessagesManager(QWidget):
 
         self.ui.backendsList.setEnabled(False)
 
-        def cb(backend, message):
-            self.emit(SIGNAL('gotMessage'), backend, message)
-
-        def eb(backend, err, backtrace):
-            print err
-            print backtrace
+        self.process = QtDo(self.weboob, self._gotMessage)
 
         if self.backend:
-            process = self.weboob.do_backends(self.backend.name, command)
+            self.process.do_backends(self.backend.name, command)
         else:
-            process = self.weboob.do_caps(ICapMessages, command)
-        self.process = process.callback_thread(cb, eb)
+            self.process.do_caps(ICapMessages, command)
 
     def _gotMessage(self, backend, message):
         if message is None:
