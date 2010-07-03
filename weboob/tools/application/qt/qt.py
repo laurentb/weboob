@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys
-from PyQt4.QtCore import QTimer, SIGNAL
+from PyQt4.QtCore import QTimer, SIGNAL, QObject
 from PyQt4.QtGui import QMainWindow, QApplication
 
 from weboob import Weboob
@@ -24,7 +24,7 @@ from weboob.scheduler import IScheduler
 
 from ..base import BaseApplication
 
-__all__ = ['QtApplication']
+__all__ = ['QtApplication', 'QtMainWindow', 'QtBCallCb']
 
 class QtScheduler(IScheduler):
     def __init__(self, app):
@@ -69,3 +69,30 @@ class QtApplication(QApplication, BaseApplication):
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
+
+class QtBCallCb(QObject):
+    def __init__(self, process, cb, eb=None):
+        QObject.__init__(self)
+
+        if not eb:
+            eb = self.default_eb
+
+        self.process = process
+        self.cb = cb
+        self.eb = eb
+
+        self.connect(self, SIGNAL('cb'), self.cb)
+        self.connect(self, SIGNAL('eb'), self.eb)
+
+        self.process.callback_thread(self.thread_cb, self.thread_eb)
+
+    def default_eb(self, backend, error, backtrace):
+        # TODO display a messagebox
+        print error
+        print backtrace
+
+    def thread_cb(self, backend, data):
+        self.emit(SIGNAL('cb'), backend, data)
+
+    def thread_eb(self, backend, error, backtrace):
+        self.emit(SIGNAL('eb'), backend, error, backtrace)
