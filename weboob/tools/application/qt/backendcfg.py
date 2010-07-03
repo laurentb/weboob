@@ -15,8 +15,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from PyQt4.QtGui import QDialog, QTableWidgetItem, QLabel, QLineEdit, QCheckBox, QMessageBox
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QLineEdit, QCheckBox, \
+                        QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
+                        QListWidgetItem, QTextDocument
+from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
 import re
 from logging import warning
@@ -35,15 +37,22 @@ class BackendCfg(QDialog):
 
         self.weboob.modules_loader.load()
 
+        self.ui.backendsList.header().setResizeMode(QHeaderView.ResizeToContents)
         self.ui.configFrame.hide()
 
         for name, module in self.weboob.modules_loader.modules.iteritems():
             if not self.caps or module.has_caps(*self.caps):
-                self.ui.modulesList.addItem(name.capitalize())
+                item = QListWidgetItem(name.capitalize())
+
+                if module.get_icon_path():
+                    img = QImage(module.get_icon_path())
+                    item.setIcon(QIcon(QPixmap.fromImage(img)))
+
+                self.ui.modulesList.addItem(item)
 
         self.loadBackendsList()
 
-        self.connect(self.ui.backendsList, SIGNAL('cellClicked(int, int)'), self.backendClicked)
+        self.connect(self.ui.backendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self.backendClicked)
         self.connect(self.ui.modulesList, SIGNAL('itemSelectionChanged()'), self.modulesSelectionChanged)
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
@@ -52,20 +61,25 @@ class BackendCfg(QDialog):
         self.connect(self.ui.configButtonBox, SIGNAL('rejected()'), self.rejectBackend)
 
     def loadBackendsList(self):
-        self.ui.backendsList.clearContents()
+        self.ui.backendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            if self.caps and not self.weboob.modules_loader.modules[name].has_caps(*self.caps):
+            module = self.weboob.modules_loader.modules[name]
+            if self.caps and not module.has_caps(*self.caps):
                 continue
 
-            self.ui.backendsList.insertRow(0)
-            self.ui.backendsList.setItem(0, 0, QTableWidgetItem(instance_name))
-            self.ui.backendsList.setItem(0, 1, QTableWidgetItem(name))
+            item = QTreeWidgetItem(None, [instance_name, name])
+
+            if module.get_icon_path():
+                img = QImage(module.get_icon_path())
+                item.setIcon(0, QIcon(QPixmap.fromImage(img)))
+
+            self.ui.backendsList.addTopLevelItem(item)
 
     def closeEvent(self, event):
         event.accept()
 
-    def backendClicked(self, row, col):
-        bname = unicode(self.ui.backendsList.item(row, 0).text())
+    def backendClicked(self, item, col):
+        bname = unicode(item.text(0))
 
         self.editBackend(bname)
 
@@ -77,7 +91,7 @@ class BackendCfg(QDialog):
         if not item:
             return
 
-        bname = unicode(self.ui.backendsList.item(item.row(), 0).text())
+        bname = unicode(item.text(0))
         reply = QMessageBox.question(self, self.tr('Remove a backend'),
                                      unicode(self.tr("Are you sure you want to remove the backend '%s'?")) % bname,
                                      QMessageBox.Yes|QMessageBox.No)
@@ -197,14 +211,20 @@ class BackendCfg(QDialog):
             return
 
         module = self.weboob.modules_loader.modules[unicode(selection[0].text()).lower()]
+
+        if module.get_icon_path():
+            img = QImage(module.get_icon_path())
+            self.ui.moduleInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'), QVariant(img))
+
         self.ui.moduleInfo.setText(unicode(self.tr(
-                                   '<h1>Module %s</h1>'
+                                   '<h1>%s Module %s</h1>'
                                    '<b>Version</b>: %s<br />'
                                    '<b>Maintainer</b>: %s<br />'
                                    '<b>License</b>: %s<br />'
                                    '<b>Description</b>: %s<br />'
                                    '<b>Capabilities</b>: %s<br />'))
-                                   % (module.get_name().capitalize(),
+                                   % ('<img src="mydata://logo.png" />' if module.get_icon_path() else '',
+                                      module.get_name().capitalize(),
                                       module.get_version(),
                                       module.get_maintainer().replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
                                       module.get_license(),

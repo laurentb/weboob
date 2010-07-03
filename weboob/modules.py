@@ -64,6 +64,9 @@ class Module:
     def get_config(self):
         return self.klass.CONFIG
 
+    def get_icon_path(self):
+        return self.klass.ICON
+
     def iter_caps(self):
         for cap in self.klass.__bases__:
             if issubclass(cap, ICap) and cap != ICap:
