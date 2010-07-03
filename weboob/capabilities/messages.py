@@ -25,7 +25,7 @@ from .cap import ICap
 __all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']
 
 
-class Message:
+class Message(object):
     def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'',
                  content=u'', signature=u'', is_html=False, is_new=False):
         self.thread_id = unicode(thread_id)
