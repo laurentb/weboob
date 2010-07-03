@@ -180,8 +180,9 @@ class AdopteUnMec(BaseBrowser):
         return self.page.nb_new_visites()
 
     @pageaccess
-    def nb_available_charms(self):
-        self.home()
+    def nb_available_charms(self, reload=False):
+        if reload or not self.is_on_page(HomePage):
+            self.home()
         return self.page.nb_available_charms()
 
     @pageaccess

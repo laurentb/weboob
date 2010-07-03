@@ -24,7 +24,7 @@ from time import sleep
 from weboob.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
-from weboob.capabilities.dating import ICapDating
+from weboob.capabilities.dating import ICapDating, StatusField
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.tools.browser import BrowserUnavailable
 
@@ -57,6 +57,14 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     # Private
     _profiles_walker = None
+
+    def get_status(self):
+        with self.browser:
+            return (
+                    StatusField('myname', 'My name', self.browser.get_my_name()),
+                    StatusField('score', 'Score', self.browser.score()),
+                    StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
+                   )
 
     def iter_messages(self, thread=None):
         for message in self._iter_messages(thread, False):
@@ -146,13 +154,16 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
         self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
 
     def iter_contacts(self, status=Contact.STATUS_ALL):
-        return self.browser.iter_contacts(status)
+        with self.browser:
+            return self.browser.iter_contacts(status)
 
     def iter_chat_messages(self, _id=None):
-        return self.browser.iter_chat_messages(_id)
+        with self.browser:
+            return self.browser.iter_chat_messages(_id)
 
     def send_chat_message(self, _id, message):
-        return self.browser.send_chat_message(_id, message)
+        with self.browser:
+            return self.browser.send_chat_message(_id, message)
 
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)

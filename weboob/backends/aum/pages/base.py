@@ -54,7 +54,7 @@ class PageBase(BasePage):
             if tag.getAttribute('width') == '220':
                 # <table><tbody(implicit)><td>
                 child = tag.childNodes[1].childNodes[0].childNodes[3]
-                return child.childNodes[0].childNodes[0].data
+                return int(child.childNodes[0].childNodes[0].data.replace(' ', ''))
 
         error("Error: I can't find the score :(")
         return '0'
