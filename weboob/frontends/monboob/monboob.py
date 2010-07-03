@@ -53,7 +53,12 @@ class MonboobScheduler(Scheduler):
 
     def run(self):
         if self.app.options.smtpd:
-            FakeSMTPD(self.app, '127.0.0.1', int(self.app.options.smtpd))
+            if ':' in self.app.options.smtpd:
+                host, port = self.app.options.smtpd.split(':', 1)
+            else:
+                host = '127.0.0.1'
+                port = self.app.options.smtpd
+            FakeSMTPD(self.app, host, int(port))
 
         # XXX Fuck, we shouldn't copy this piece of code from
         # weboob.scheduler.Scheduler.run().
