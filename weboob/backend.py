@@ -60,6 +60,8 @@ class BaseBackend(object):
     DESCRIPTION = '<unspecified>'
     # License of this module.
     LICENSE = '<unspecified>'
+    # Icon file path
+    ICON = ''
     # Configuration required for this module.  # Values must be ConfigField
     # objects.
     CONFIG = {}
