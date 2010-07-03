@@ -31,21 +31,21 @@ class BackendStorage(object):
 
     def set(self, *args):
         if self.storage:
-            return self.storage.set(self.name, *args)
+            return self.storage.set('backends', self.name, *args)
 
     def get(self, *args, **kwargs):
         if self.storage:
-            return self.storage.get(self.name, *args, **kwargs)
+            return self.storage.get('backends', self.name, *args, **kwargs)
         else:
             return kwargs.get('default', None)
 
     def load(self, default):
         if self.storage:
-            return self.storage.load(self.name, default)
+            return self.storage.load('backends', self.name, default)
 
     def save(self):
         if self.storage:
-            return self.storage.save(self.name)
+            return self.storage.save('backends', self.name)
 
 class BaseBackend(object):
     # Module name.

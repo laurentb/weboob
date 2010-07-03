@@ -27,12 +27,36 @@ from weboob.tools.config.iconfig import ConfigError
 
 __all__ = ['BaseApplication', 'ConfigError']
 
+class FrontendStorage(object):
+    def __init__(self, name, storage):
+        self.name = name
+        self.storage = storage
+
+    def set(self, *args):
+        if self.storage:
+            return self.storage.set('frontends', self.name, *args)
+
+    def get(self, *args, **kwargs):
+        if self.storage:
+            return self.storage.get('frontends', self.name, *args, **kwargs)
+        else:
+            return kwargs.get('default', None)
+
+    def load(self, default):
+        if self.storage:
+            return self.storage.load('frontends', self.name, default)
+
+    def save(self):
+        if self.storage:
+            return self.storage.save('frontends', self.name)
 
 class BaseApplication(object):
     # Application name
     APPNAME = ''
     # Default configuration
     CONFIG = {}
+    # Default storage
+    STORAGE = {}
     # Configuration directory
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     # Synopsis
@@ -79,7 +103,10 @@ class BaseApplication(object):
         elif not path.startswith('/'):
             path = os.path.join(self.CONFDIR, path)
 
-        return klass(path)
+        storage = klass(path)
+        self.storage = FrontendStorage(self.APPNAME, storage)
+        self.storage.load(self.STORAGE)
+        return storage
 
     def load_config(self, path=None, klass=None):
         """

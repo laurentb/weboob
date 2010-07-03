@@ -19,16 +19,16 @@ from copy import deepcopy
 from logging import error
 
 class IStorage:
-    def load(self, backend, default={}):
+    def load(self, what, name, default={}):
         raise NotImplementedError()
 
-    def save(self, backend):
+    def save(self, what, name):
         raise NotImplementedError()
 
-    def set(self, backend, *args):
+    def set(self, what, name, *args):
         raise NotImplementedError()
 
-    def get(self, backend, *args, **kwargs):
+    def get(self, what, name, *args, **kwargs):
         raise NotImplementedError()
 
 try:
@@ -41,16 +41,21 @@ else:
             self.config = YamlConfig(path)
             self.config.load()
 
-        def load(self, backend, default={}):
-            d = self.config.values.get(backend, {})
-            self.config.values[backend] = deepcopy(default)
-            self.config.values[backend].update(d)
+        def load(self, what, name, default={}):
+            d = {}
+            if not what in self.config.values:
+                self.config.values[what] = {}
+            else:
+                d = self.config.values[what].get(name, {})
 
-        def save(self, backend):
+            self.config.values[what][name] = deepcopy(default)
+            self.config.values[what][name].update(d)
+
+        def save(self, what, name):
             self.config.save()
 
-        def set(self, backend, *args):
-            self.config.set(backend, *args)
+        def set(self, what, name, *args):
+            self.config.set(what, name, *args)
 
-        def get(self, backend, *args, **kwargs):
-            return self.config.get(backend, *args, **kwargs)
+        def get(self, what, name, *args, **kwargs):
+            return self.config.get(what, name, *args, **kwargs)
