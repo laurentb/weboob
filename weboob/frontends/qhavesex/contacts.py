@@ -68,6 +68,7 @@ class ContactsWidget(QWidget):
         self.connect(self.ui.groupBox, SIGNAL('currentIndexChanged(int)'), self.groupChanged)
         self.connect(self.ui.contactList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.contactChanged)
 
+    def load(self):
         self.ui.groupBox.setCurrentIndex(1)
 
     def groupChanged(self, i):

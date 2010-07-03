@@ -50,6 +50,7 @@ class MessagesManager(QWidget):
         self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self, SIGNAL('gotMessage'), self._gotMessage)
 
+    def load(self):
         self.refresh()
 
     def _backendChanged(self):

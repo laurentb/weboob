@@ -25,6 +25,7 @@ from weboob.capabilities.dating import ICapDating
 from weboob.frontends.qboobmsg.messages_manager import MessagesManager
 
 from .ui.main_window_ui import Ui_MainWindow
+from .status import AccountsStatus
 from .contacts import ContactsWidget
 
 class MainWindow(QtMainWindow):
@@ -36,13 +37,23 @@ class MainWindow(QtMainWindow):
         self.config = config
         self.weboob = weboob
 
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Status'))
+        self.loaded_tabs = {}
+
+        self.ui.tabWidget.addTab(AccountsStatus(self.weboob), self.tr('Status'))
         self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
         self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
 
         self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
+        self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
 
     def modulesConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapDating,), self)
         bckndcfg.show()
+
+    def tabChanged(self, i):
+        widget = self.ui.tabWidget.currentWidget()
+
+        if hasattr(widget, 'load') and not i in self.loaded_tabs:
+            widget.load()
+            self.loaded_tabs[i] = True
