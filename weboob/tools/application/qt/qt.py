@@ -24,7 +24,7 @@ from weboob.scheduler import IScheduler
 
 from ..base import BaseApplication
 
-__all__ = ['QtApplication', 'QtMainWindow', 'QtBCallCb']
+__all__ = ['QtApplication', 'QtMainWindow', 'QtDo']
 
 class QtScheduler(IScheduler):
     def __init__(self, app):
@@ -70,21 +70,38 @@ class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
 
-class QtBCallCb(QObject):
-    def __init__(self, process, cb, eb=None):
+class QtDo(QObject):
+    def __init__(self, weboob, cb, eb=None):
         QObject.__init__(self)
 
         if not eb:
             eb = self.default_eb
 
-        self.process = process
+        self.weboob = weboob
+        self.process = None
         self.cb = cb
         self.eb = eb
 
         self.connect(self, SIGNAL('cb'), self.cb)
         self.connect(self, SIGNAL('eb'), self.eb)
 
-        self.process.callback_thread(self.thread_cb, self.thread_eb)
+    def run_thread(func):
+        def inner(self, *args, **kwargs):
+            self.process = func(self, *args, **kwargs)
+            self.process.callback_thread(self.thread_cb, self.thread_eb)
+        return inner
+
+    @run_thread
+    def do(self, *args, **kwargs):
+        return self.weboob.do(*args, **kwargs)
+
+    @run_thread
+    def do_caps(self, *args, **kwargs):
+        return self.weboob.do_caps(*args, **kwargs)
+
+    @run_thread
+    def do_backends(self, *args, **kwargs):
+        return self.weboob.do_backends(*args, **kwargs)
 
     def default_eb(self, backend, error, backtrace):
         # TODO display a messagebox
