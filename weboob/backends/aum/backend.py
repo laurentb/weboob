@@ -19,6 +19,7 @@ from __future__ import with_statement
 
 from datetime import datetime
 from dateutil import tz
+import os
 from time import sleep
 
 from weboob.backend import BaseBackend
@@ -43,7 +44,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
-    DESCRIPTION = "French dating website"
+    DESCRIPTION = u"“Adopte un mec” french dating website"
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
              }

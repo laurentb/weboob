@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
 
 from weboob.backend import BaseBackend
 from weboob.capabilities.bank import ICapBank, AccountNotFound
@@ -27,6 +28,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     EMAIL = 'romain@peerfuse.org'
     VERSION = '1.0'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     DESCRIPTION = 'BNP Paribas french bank\' website'
 
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
