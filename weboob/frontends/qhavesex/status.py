@@ -17,7 +17,7 @@
 
 from __future__ import with_statement
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QFrame, QLabel
+from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
 from PyQt4.QtCore import SIGNAL, QTimer
 
 from weboob.capabilities.dating import StatusField
@@ -32,10 +32,24 @@ class Account(QFrame):
         self.backend = backend
         self.setLayout(QVBoxLayout())
 
+        head = QHBoxLayout()
+        headw = QWidget()
+        headw.setLayout(head)
+
         self.title = QLabel(u'<h1>%s — %s</h1>' % (backend.name, backend.DESCRIPTION))
+
+        if backend.ICON:
+            self.icon = QLabel()
+            img = QImage(backend.ICON)
+            self.icon.setPixmap(QPixmap.fromImage(img))
+            head.addWidget(self.icon)
+
+        head.addWidget(self.title)
+        head.addStretch()
+
         self.body = QLabel()
 
-        self.layout().addWidget(self.title)
+        self.layout().addWidget(headw)
         self.layout().addWidget(self.body)
 
         self.timer = QTimer()
