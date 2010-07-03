@@ -25,6 +25,7 @@ from weboob.capabilities.dating import ICapDating
 from weboob.frontends.qboobmsg.messages_manager import MessagesManager
 
 from .ui.main_window_ui import Ui_MainWindow
+from .contacts import ContactsWidget
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
@@ -37,7 +38,7 @@ class MainWindow(QtMainWindow):
 
         self.ui.tabWidget.addTab(QWidget(), self.tr('Status'))
         self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Contacts'))
+        self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
 
         self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
