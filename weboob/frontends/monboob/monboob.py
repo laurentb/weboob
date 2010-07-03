@@ -80,10 +80,8 @@ class Monboob(ConsoleApplication):
               'smtp':      'localhost',
               'html':      0}
 
-    def __init__(self, *args, **kwargs):
-        ConsoleApplication.__init__(self, *args, **kwargs)
-
-        self._parser.add_option('-S', '--smtpd', help='run a fake smtpd server and set the port')
+    def add_application_options(self, group):
+        group.add_option('-S', '--smtpd', help='run a fake smtpd server and set the port')
 
     def create_weboob(self):
         return Weboob(scheduler=MonboobScheduler(self))
