@@ -35,7 +35,6 @@ class YoupornBackend(BaseBackend, ICapVideo):
 
     CONFIG = {}
     BROWSER = YoupornBrowser
-    domain = u'youporn.com'
 
     def get_video(self, _id):
         return self.browser.get_video(_id)
