@@ -25,6 +25,7 @@ from weboob.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.dating import ICapDating
+from weboob.capabilities.contact import ICapContact, Contact
 from weboob.tools.browser import BrowserUnavailable
 
 from .browser import AdopteUnMec
@@ -36,7 +37,7 @@ from .optim.visibility import Visibility
 __all__ = ['AuMBackend']
 
 
-class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapChat):
+class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapChat, ICapContact):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -70,7 +71,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
             try:
                 profiles = {}
 
-                contacts = self.browser.get_contact_list()
+                contacts = self.browser.get_threads_list()
                 for contact in contacts:
                     if not contact.get_id() in self.storage.get('sluts'):
                         slut = {'lastmsg': datetime(1970,1,1),
@@ -144,8 +145,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
         self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
         self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
 
-    def iter_chat_contacts(self, online=True, offline=True):
-        return self.browser.iter_chat_contacts(online=online, offline=offline)
+    def iter_contacts(self, status=Contact.STATUS_ALL):
+        return self.browser.iter_contacts(status)
 
     def iter_chat_messages(self, _id=None):
         return self.browser.iter_chat_messages(_id)

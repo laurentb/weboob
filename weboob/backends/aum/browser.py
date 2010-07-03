@@ -41,7 +41,8 @@ from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, Er
 from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
-from weboob.capabilities.chat import ChatContact, ChatException, ChatMessage
+from weboob.capabilities.chat import ChatException, ChatMessage
+from weboob.capabilities.contact import Contact
 
 
 __all__ = ['AdopteUnMec']
@@ -194,7 +195,7 @@ class AdopteUnMec(BaseBrowser):
         self.openurl('/mails.php?type=3')
 
     @pageaccess
-    def get_contact_list(self):
+    def get_threads_list(self):
         if not self.is_on_page(ContactListPage):
             self.location('/mails.php')
 
@@ -284,7 +285,7 @@ class AdopteUnMec(BaseBrowser):
             raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
         return json
 
-    def iter_chat_contacts(self, online=True, offline=True):
+    def iter_contacts(self, status=Contact.STATUS_ALL):
         def iter_dedupe(contacts):
             yielded_ids = set()
             for contact in contacts:
@@ -294,14 +295,16 @@ class AdopteUnMec(BaseBrowser):
 
         json = self._get_chat_infos()
         for contact in iter_dedupe(json['contacts']):
-            if online and contact['cat'] == 1 or offline and contact['cat'] == 3:
+            if status & Contact.STATUS_ONLINE and contact['cat'] == 1 or \
+               status & Contact.STATUS_OFFLINE and contact['cat'] == 3:
                 if contact['cat'] == 1:
-                    online = True
+                    s = Contact.STATUS_ONLINE
                 elif contact['cat'] == 3:
-                    online = False
+                    s = Contact.STATUS_OFFLINE
                 else:
                     raise ChatException(u'Unknown online status: contact=%s' % contact)
-                yield ChatContact(_id=contact['id'], pseudo=contact['pseudo'], online=online, avatar_url=contact['cover'], age=contact['birthday'])
+                # TODO age in contact['birthday']
+                yield Contact(id=contact['id'], name=contact['pseudo'], status=s, thumbnail_url=contact['cover'])
 
     def iter_chat_messages(self, _id=None):
         json = self._get_chat_infos()
