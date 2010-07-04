@@ -24,6 +24,7 @@ import sys
 
 from weboob.bcall import BackendsCall, CallErrors
 from weboob.modules import ModulesLoader, BackendsConfig
+from weboob.backend import BaseBackend
 from weboob.scheduler import Scheduler
 
 if sys.version_info[:2] <= (2, 5):
@@ -147,6 +148,8 @@ class Weboob(object):
     def do_backends(self, backends, function, *args, **kwargs):
         if backends is None:
             backends = list(self.iter_backends())
+        elif isinstance(backends, BaseBackend):
+            backends = [backends]
         elif isinstance(backends, (str,unicode)):
             backends = [backend for backend in self.iter_backends() if backend.name == backends]
         elif isinstance(backends, (list,tuple)):

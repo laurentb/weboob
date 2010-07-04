@@ -17,7 +17,8 @@
 
 import urllib2
 import time
-from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, QFrame
+import logging
+from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, QFrame, QMessageBox
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo
@@ -55,9 +56,18 @@ class ContactThread(QWidget):
         self.contact = contact
         self.messages = []
 
+        self.connect(self.ui.sendButton, SIGNAL('clicked()'), self.postReply)
+
+        self.refreshMessages()
+
+    def refreshMessages(self):
+        if self.ui.scrollAreaContent.layout().count() > 0:
+            command = 'iter_new_messages'
+        else:
+            command = 'iter_messages'
+
         self.process = QtDo(self.weboob, self.gotMessage)
-        self.process.do('iter_messages', thread=self.contact.id)
-        print self.contact.id
+        self.process.do_backends(self.contact.backend, command, thread=self.contact.id)
 
     def gotMessage(self, backend, message):
         if not message:
@@ -75,6 +85,27 @@ class ContactThread(QWidget):
 
         self.ui.scrollAreaContent.layout().addWidget(widget)
         self.messages.append(widget)
+
+    def postReply(self):
+        text = unicode(self.ui.textEdit.toPlainText())
+        self.ui.textEdit.setEnabled(False)
+        self.ui.sendButton.setEnabled(False)
+        self.process = QtDo(self.weboob, self.replyPosted, self.replyNotPosted)
+        self.process.do_backends(self.contact.backend, 'post_reply', self.contact.id, 0, '', text)
+
+    def replyPosted(self, backend, ignored):
+        self.ui.textEdit.clear()
+        self.ui.textEdit.setEnabled(True)
+        self.ui.sendButton.setEnabled(True)
+        self.refreshMessages()
+
+    def replyNotPosted(self, backend, error, backtrace):
+        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % backtrace
+        QMessageBox.critical(self, self.tr('Error while posting reply'),
+                             content, QMessageBox.Ok)
+
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
