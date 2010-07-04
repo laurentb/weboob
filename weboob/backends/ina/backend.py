@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,31 +19,22 @@
 from weboob.backend import BaseBackend
 from weboob.capabilities.video import ICapVideo
 
-from .browser import YoupornBrowser
+from .browser import InaBrowser
 
 
-__all__ = ['YoupornBackend']
+__all__ = ['InaBackend']
 
 
-class YoupornBackend(BaseBackend, ICapVideo):
-    NAME = 'youporn'
-    MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+class InaBackend(BaseBackend, ICapVideo):
+    NAME = 'ina'
+    MAINTAINER = 'Christophe Benz'
+    EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.1'
-    DESCRIPTION = 'Youporn videos website'
+    DESCRIPTION = 'INA french video archives'
     LICENSE = 'GPLv3'
 
     CONFIG = {}
-    BROWSER = YoupornBrowser
+    BROWSER = InaBrowser
 
     def get_video(self, _id):
         return self.browser.get_video(_id)
-
-    SORTBY = ['relevance', 'rating', 'views', 'time']
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
-        if not nsfw:
-            return iter(set())
-        return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
-
-    def iter_page_urls(self, mozaic_url):
-        raise NotImplementedError()
