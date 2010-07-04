@@ -34,7 +34,22 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QComboBox" name="groupBox"/>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QComboBox" name="groupBox"/>
+         </item>
+         <item>
+          <widget class="QToolButton" name="refreshButton">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</normaloff>../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QListWidget" name="contactList">
