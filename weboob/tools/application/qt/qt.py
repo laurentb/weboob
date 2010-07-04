@@ -82,8 +82,8 @@ class QtDo(QObject):
         self.cb = cb
         self.eb = eb
 
-        self.connect(self, SIGNAL('cb'), self.cb)
-        self.connect(self, SIGNAL('eb'), self.eb)
+        self.connect(self, SIGNAL('cb'), self.local_cb)
+        self.connect(self, SIGNAL('eb'), self.local_eb)
 
     def run_thread(func):
         def inner(self, *args, **kwargs):
@@ -107,6 +107,17 @@ class QtDo(QObject):
         # TODO display a messagebox
         print error
         print backtrace
+
+    def local_cb(self, backend, data):
+        self.cb(backend, data)
+        if not backend:
+            self.disconnect(self, SIGNAL('cb'), self.local_cb)
+            self.disconnect(self, SIGNAL('eb'), self.local_eb)
+
+    def local_eb(self, backend, error, backtrace):
+        self.eb(backend, error, backtrace)
+        self.disconnect(self, SIGNAL('cb'), self.local_cb)
+        self.disconnect(self, SIGNAL('eb'), self.local_eb)
 
     def thread_cb(self, backend, data):
         self.emit(SIGNAL('cb'), backend, data)
