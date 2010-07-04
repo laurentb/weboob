@@ -76,62 +76,80 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
         for message in self._iter_messages(thread, True):
             yield message
 
+    def _get_slut(self, id):
+        if not id in self.storage.get('sluts'):
+            slut = {'lastmsg': datetime(1970,1,1),
+                    'msgstatus': ''}
+        else:
+            slut = self.storage.get('sluts', id)
+
+        slut['lastmsg'] = slut['lastmsg'].replace(tzinfo=tz.tzutc())
+        return slut
+
     def _iter_messages(self, thread, only_new):
         with self.browser:
             try:
                 profiles = {}
 
-                contacts = self.browser.get_threads_list()
-                for contact in contacts:
-                    if not contact.get_id() in self.storage.get('sluts'):
-                        slut = {'lastmsg': datetime(1970,1,1),
-                                'msgstatus': ''}
-                    else:
-                        slut = self.storage.get('sluts', contact.get_id())
-
-                    last_msg = slut['lastmsg'].replace(tzinfo=tz.tzutc())
-                    new_lastmsg = last_msg
-
-                    if only_new and contact.get_lastmsg_date() < last_msg and contact.get_status() == slut['msgstatus'] or \
-                       not thread is None and int(thread) != contact.get_id():
-                        continue
-
-                    mails = self.browser.get_thread_mails(contact.get_id())
-                    for mail in mails:
-                        if only_new and mail.get_date() <= last_msg:
-                            continue
-
-                        if not mail.profile_link in profiles:
-                            profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
-                        mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
-
-                        if new_lastmsg < mail.get_date():
-                            new_lastmsg = mail.get_date()
-
+                if thread:
+                    slut = self._get_slut(int(thread))
+                    for mail in self._iter_thread_messages(thread, only_new, slut['lastmsg'], {}):
+                        if slut['lastmsg'] < mail.get_date():
+                            slut['lastmsg'] = mail.get_date()
                         yield mail
 
-                    slut['lastmsg'] = new_lastmsg
-                    slut['msgstatus'] = contact.get_status()
-                    self.storage.set('sluts', contact.get_id(), slut)
+                    self.storage.set('sluts', int(thread), slut)
                     self.storage.save()
+                else:
+                    contacts = self.browser.get_threads_list()
+                    for contact in contacts:
+                        slut = self._get_slut(contact.get_id())
+                        last_msg = slut['lastmsg']
 
-                # Send mail when someone added me in her basket.
-                # XXX possibly race condition if a slut adds me in her basket
-                #     between the aum.nbNewBaskets() and aum.getBaskets().
-                new_baskets = self.browser.nb_new_baskets()
-                if new_baskets:
-                    ids = self.browser.get_baskets()
-                    while new_baskets > 0:
-                        new_baskets -= 1
-                        profile = self.browser.get_profile(ids[new_baskets])
+                        if only_new and contact.get_lastmsg_date() < last_msg and contact.get_status() == slut['msgstatus'] or \
+                           not thread is None and int(thread) != contact.get_id():
+                            continue
 
-                        yield Message(profile.get_id(), 1,
-                                      title='Basket of %s' % profile.get_name(),
-                                      sender=profile.get_name(),
-                                      content='You are taken in her basket!',
-                                      signature=profile.get_profile_text())
+                        for mail in self._iter_thread_messages(contact.get_id(), only_new, last_msg, profiles):
+                            if last_msg < mail.get_date():
+                                last_msg = mail.get_date()
+
+                            yield mail
+
+                        slut['lastmsg'] = last_msg
+                        slut['msgstatus'] = contact.get_status()
+                        self.storage.set('sluts', contact.get_id(), slut)
+                        self.storage.save()
+
+                    # Send mail when someone added me in her basket.
+                    # XXX possibly race condition if a slut adds me in her basket
+                    #     between the aum.nbNewBaskets() and aum.getBaskets().
+                    new_baskets = self.browser.nb_new_baskets()
+                    if new_baskets:
+                        ids = self.browser.get_baskets()
+                        while new_baskets > 0:
+                            new_baskets -= 1
+                            profile = self.browser.get_profile(ids[new_baskets])
+
+                            yield Message(profile.get_id(), 1,
+                                          title='Basket of %s' % profile.get_name(),
+                                          sender=profile.get_name(),
+                                          content='You are taken in her basket!',
+                                          signature=profile.get_profile_text())
             except BrowserUnavailable:
                 pass
+
+    def _iter_thread_messages(self, id, only_new, last_msg, profiles):
+        mails = self.browser.get_thread_mails(id)
+        for mail in mails:
+            if only_new and mail.get_date() <= last_msg:
+                continue
+
+            if not mail.profile_link in profiles:
+                profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
+            mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
+
+            yield mail
 
     def post_reply(self, thread_id, reply_id, title, message):
         while 1:
