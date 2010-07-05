@@ -20,6 +20,7 @@ from __future__ import with_statement
 from datetime import datetime
 from dateutil import tz
 import os
+from logging import warning
 from time import sleep
 
 from weboob.backend import BaseBackend
@@ -175,7 +176,22 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     def iter_contacts(self, status=Contact.STATUS_ALL):
         with self.browser:
-            return self.browser.iter_contacts(status)
+            for contact in self.browser.iter_contacts():
+                if contact['cat'] == 1:
+                    s = Contact.STATUS_ONLINE
+                elif contact['cat'] == 3:
+                    s = Contact.STATUS_OFFLINE
+                else:
+                    warning('Unknown AuM contact status: %s' % contact['cat'])
+
+                if not status & s:
+                    continue
+
+                # TODO age in contact['birthday']
+                contact = Contact(contact['id'], contact['pseudo'], s)
+                contact.status_msg = u'%s old' % contact['birthday']
+                contact.thumbnail_url = contact['cover']
+                yield contact
 
     def iter_chat_messages(self, _id=None):
         with self.browser:

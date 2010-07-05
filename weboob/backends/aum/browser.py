@@ -42,7 +42,6 @@ from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditA
 from weboob.backends.aum.pages.wait import WaitPage
 
 from weboob.capabilities.chat import ChatException, ChatMessage
-from weboob.capabilities.contact import Contact
 
 
 __all__ = ['AdopteUnMec']
@@ -286,7 +285,7 @@ class AdopteUnMec(BaseBrowser):
             raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
         return json
 
-    def iter_contacts(self, status=Contact.STATUS_ALL):
+    def iter_contacts(self):
         def iter_dedupe(contacts):
             yielded_ids = set()
             for contact in contacts:
@@ -295,17 +294,7 @@ class AdopteUnMec(BaseBrowser):
                 yielded_ids.add(contact['id'])
 
         json = self._get_chat_infos()
-        for contact in iter_dedupe(json['contacts']):
-            if status & Contact.STATUS_ONLINE and contact['cat'] == 1 or \
-               status & Contact.STATUS_OFFLINE and contact['cat'] == 3:
-                if contact['cat'] == 1:
-                    s = Contact.STATUS_ONLINE
-                elif contact['cat'] == 3:
-                    s = Contact.STATUS_OFFLINE
-                else:
-                    raise ChatException(u'Unknown online status: contact=%s' % contact)
-                # TODO age in contact['birthday']
-                yield Contact(id=contact['id'], name=contact['pseudo'], status=s, thumbnail_url=contact['cover'])
+        return iter_dedupe(json['contacts'])
 
     def iter_chat_messages(self, _id=None):
         json = self._get_chat_infos()
