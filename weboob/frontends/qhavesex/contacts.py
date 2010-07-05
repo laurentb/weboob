@@ -21,7 +21,7 @@ import logging
 from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, QFrame, QMessageBox
 from PyQt4.QtCore import SIGNAL, Qt
 
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages
@@ -141,6 +141,7 @@ class ContactsWidget(QWidget):
 
         self.weboob = weboob
         self.contact = None
+        self.ui.contactList.setItemDelegate(HTMLDelegate())
 
         self.ui.groupBox.addItem('All', MetaGroup(self.weboob, 'all', self.tr('All')))
         self.ui.groupBox.addItem('Onlines', MetaGroup(self.weboob, 'online', self.tr('Online')))
@@ -172,11 +173,13 @@ class ContactsWidget(QWidget):
         status = ''
         if contact.status == Contact.STATUS_ONLINE:
             status = 'Online'
+            status_color = 0x00aa00
         elif contact.status == Contact.STATUS_OFFLINE:
             status = 'Offline'
+            status_color = 0xff0000
 
         item = QListWidgetItem()
-        item.setText('%s\n> %s\n(%s)' % (contact.name, status, contact.backend.name))
+        item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend.name))
         item.setIcon(QIcon(QPixmap.fromImage(img)))
         item.setData(Qt.UserRole, contact)
 
