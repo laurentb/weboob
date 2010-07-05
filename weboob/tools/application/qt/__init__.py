@@ -1,1 +1,1 @@
-from .qt import QtApplication, QtMainWindow, QtDo
+from .qt import QtApplication, QtMainWindow, QtDo, HTMLDelegate

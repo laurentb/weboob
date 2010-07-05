@@ -16,15 +16,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys
-from PyQt4.QtCore import QTimer, SIGNAL, QObject
-from PyQt4.QtGui import QMainWindow, QApplication
+from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize
+from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
+                        QStyleOptionViewItemV4, QTextDocument, QStyle, \
+                        QAbstractTextDocumentLayout, QPalette
 
 from weboob import Weboob
 from weboob.scheduler import IScheduler
 
 from ..base import BaseApplication
 
-__all__ = ['QtApplication', 'QtMainWindow', 'QtDo']
+__all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 
 class QtScheduler(IScheduler):
     def __init__(self, app):
@@ -124,3 +126,40 @@ class QtDo(QObject):
 
     def thread_eb(self, backend, error, backtrace):
         self.emit(SIGNAL('eb'), backend, error, backtrace)
+
+class HTMLDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        optionV4 = QStyleOptionViewItemV4(option)
+        self.initStyleOption(optionV4, index)
+
+        style = optionV4.widget.style() if optionV4.widget else QApplication.style()
+
+        doc = QTextDocument()
+        doc.setHtml(optionV4.text)
+
+        # painting item without text
+        optionV4.text = QString()
+        style.drawControl(QStyle.CE_ItemViewItem, optionV4, painter)
+
+        ctx = QAbstractTextDocumentLayout.PaintContext()
+
+        # Hilight text if item is selected
+        if optionV4.state & QStyle.State_Selected:
+            ctx.palette.setColor(QPalette.Text, optionV4.palette.color(QPalette.Active, QPalette.HighlightedText))
+
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, optionV4)
+        painter.save()
+        painter.translate(textRect.topLeft())
+        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        doc.documentLayout().draw(painter, ctx)
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        optionV4 = QStyleOptionViewItemV4(option)
+        self.initStyleOption(optionV4, index)
+
+        doc = QTextDocument()
+        doc.setHtml(optionV4.text)
+        doc.setTextWidth(optionV4.rect.width())
+
+        return QSize(doc.idealWidth(), max(doc.size().height(), optionV4.decorationSize.height()))
