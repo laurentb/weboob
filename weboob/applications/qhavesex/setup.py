@@ -33,18 +33,17 @@ setup(
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://weboob.org/QHaveSex',
-    namespace_packages = ['weboob', 'weboob.frontends'],
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.frontends',
-        'weboob.frontends.qhavesex',
-        'weboob.frontends.qhavesex.ui',
+        'weboob.applications',
+        'weboob.applications.qhavesex',
+        'weboob.applications.qhavesex.ui',
         ],
     scripts=[
         'scripts/qhavesex',
         ],
     install_requires=[
-        'weboob-core-qt',
         'weboob-dating-backends',
         ],
 )

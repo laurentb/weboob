@@ -19,7 +19,7 @@
 import urllib2
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
-from weboob.frontends.qvideoob.ui.minivideo_ui import Ui_MiniVideo
+from weboob.applications.qvideoob.ui.minivideo_ui import Ui_MiniVideo
 from .video import Video
 
 class MiniVideo(QFrame):

@@ -20,7 +20,7 @@ from PyQt4.QtCore import SIGNAL
 
 from weboob.tools.application.qt import QtMainWindow, QtDo
 
-from weboob.frontends.qvideoob.ui.main_window_ui import Ui_MainWindow
+from weboob.applications.qvideoob.ui.main_window_ui import Ui_MainWindow
 
 from .video import Video
 from .minivideo import MiniVideo

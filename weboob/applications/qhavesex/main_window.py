@@ -22,7 +22,7 @@ from weboob.tools.application.qt import QtMainWindow
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.dating import ICapDating
 
-from weboob.frontends.qboobmsg.messages_manager import MessagesManager
+from weboob.applications.qboobmsg.messages_manager import MessagesManager
 
 from .ui.main_window_ui import Ui_MainWindow
 from .status import AccountsStatus

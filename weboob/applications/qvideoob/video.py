@@ -20,7 +20,7 @@ from PyQt4.QtCore  import QUrl
 from PyQt4.QtGui import QDialog
 from PyQt4.phonon import Phonon
 
-from weboob.frontends.qvideoob.ui.video_ui import Ui_Video
+from weboob.applications.qvideoob.ui.video_ui import Ui_Video
 
 class Video(QDialog):
     def __init__(self, video, parent=None):

@@ -30,11 +30,11 @@ setup(
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://weboob.org/Wetboobs',
-    namespace_packages = ['weboob', 'weboob.frontends'],
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.frontends',
-        'weboob.frontends.wetboobs',
+        'weboob.applications',
+        'weboob.applications.wetboobs',
         ],
     scripts=[
         'scripts/wetboobs',

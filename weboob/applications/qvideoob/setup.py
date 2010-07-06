@@ -33,18 +33,17 @@ setup(
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://weboob.org/QVideoob',
-    namespace_packages = ['weboob', 'weboob.frontends'],
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.frontends',
-        'weboob.frontends.qvideoob',
-        'weboob.frontends.qvideoob.ui',
+        'weboob.applications',
+        'weboob.applications.qvideoob',
+        'weboob.applications.qvideoob.ui',
         ],
     scripts=[
         'scripts/qvideoob',
         ],
     install_requires=[
-        'weboob-core-qt',
         'weboob-video-backends',
         ],
 )

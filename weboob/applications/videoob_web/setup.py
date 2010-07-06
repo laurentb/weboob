@@ -31,13 +31,13 @@ setup(
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://weboob.org/VideoobWeb',
-    namespace_packages = ['weboob', 'weboob.frontends'],
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.frontends',
-        'weboob.frontends.videoob_web',
-        'weboob.frontends.videoob_web.public',
-        'weboob.frontends.videoob_web.templates',
+        'weboob.applications',
+        'weboob.applications.videoob_web',
+        'weboob.applications.videoob_web.public',
+        'weboob.applications.videoob_web.templates',
         ],
     scripts=[
         'scripts/videoob-web-server',
