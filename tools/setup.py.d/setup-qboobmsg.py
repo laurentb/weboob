@@ -22,7 +22,7 @@ from setuptools import setup
 import os
 
 
-os.system('make -C %s/ui' % os.path.dirname(__file__))
+os.system('make -C weboob/applications/qboobmsg/ui')
 
 setup(
     name='weboob-qboobmsg',
