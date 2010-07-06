@@ -61,16 +61,15 @@ class WeboobCfg(ConsoleApplication):
 
     @ConsoleApplication.command('List applications')
     def command_applications(self, *caps):
+        applications = set()
         import weboob.applications
-        path = weboob.applications.__path__[0]
-        applications = []
-        regexp = re.compile('^%s/([\w\d_]+)$' % path)
-        for root, dirs, files in os.walk(path):
-            m = regexp.match(root)
-            if m and '__init__.py' in files:
-                applications.append(m.group(1))
-
-        print ' '.join(applications)
+        for path in weboob.applications.__path__:
+            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            for root, dirs, files in os.walk(path):
+                m = regexp.match(root)
+                if m and '__init__.py' in files:
+                    applications.add(m.group(1))
+        print ' '.join(sorted(applications)).encode('utf-8')
 
     @ConsoleApplication.command('Display a module')
     def command_modinfo(self, name):
