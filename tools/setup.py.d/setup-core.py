@@ -41,9 +41,13 @@ setup(
         'Topic :: Internet',
         ],
     # keywords='',
-    namespace_packages = ['weboob'],
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
+        'weboob.applications',
+        'weboob.applications.weboobcfg',
+        'weboob.applications.weboobdebug',
+        'weboob.applications.weboobtests',
         'weboob.capabilities',
         'weboob.core',
         'weboob.tools',
@@ -55,6 +59,7 @@ setup(
         'weboob.tools.parsers',
         ],
     scripts=[
+        'scripts/qweboobcfg',
         'scripts/weboobcfg',
         'scripts/weboob-debug',
         'scripts/weboob-tests',
