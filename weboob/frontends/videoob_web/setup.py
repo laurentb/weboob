@@ -36,6 +36,8 @@ setup(
         'weboob',
         'weboob.frontends',
         'weboob.frontends.videoob_web',
+        'weboob.frontends.videoob_web.public',
+        'weboob.frontends.videoob_web.templates',
         ],
     scripts=[
         'scripts/videoob-web-server',

@@ -22,6 +22,8 @@ from setuptools import setup
 import os
 
 
+os.system('make -C %s/ui' % os.path.dirname(__file__))
+
 setup(
     name='weboob-qboobmsg',
     version='0.1',
@@ -35,11 +37,13 @@ setup(
         'weboob',
         'weboob.frontends',
         'weboob.frontends.qboobmsg',
+        'weboob.frontends.qboobmsg.ui',
         ],
     scripts=[
         'scripts/qboobmsg',
         ],
     install_requires=[
+        'weboob-core-qt',
         'weboob-messages-backends',
         ],
 )

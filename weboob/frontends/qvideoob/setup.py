@@ -22,6 +22,8 @@ from setuptools import setup
 import os
 
 
+os.system('make -C %s/ui' % os.path.dirname(__file__))
+
 setup(
     name='weboob-qvideoob',
     version='0.1',
@@ -36,11 +38,13 @@ setup(
         'weboob',
         'weboob.frontends',
         'weboob.frontends.qvideoob',
+        'weboob.frontends.qvideoob.ui',
         ],
     scripts=[
         'scripts/qvideoob',
         ],
     install_requires=[
+        'weboob-core-qt',
         'weboob-video-backends',
         ],
 )
