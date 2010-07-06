@@ -1,30 +1,29 @@
 Weboob installation
 ===================
 
-Like any setuptools package, Weboob can be installed in normal mode,
-or in development mode.
+Like any Python package using setuptools, Weboob can be installed in normal or
+development mode.
 
-Debian note
------------
+Weboob is distributed with many packages. There is one package for the core
+library, many packages for backends (grouped by capabilities), and one package
+for each application.
 
-When using Debian, it is advised to use Python Debian packages, and not the PyPI ones.
 
-To achieve this, please install the following packages before installing Weboob:
-* python-gdata
+Eggs install
+------------
 
-normal mode
------------
+Call the helper script which will build the packages and install them all:
 
-Install:
-# ./setup.py install --record installed_files.txt
+# ./tools/create_all_packages.sh install
 
-The files are simply copied in /usr/lib/python2.5/site-packages/Weboob-x.y-py2.5.egg
-The --record flag is used to remember which files were copied.
+To uninstall:
+* remove the Weboob eggs:
+# rm -rf /usr/lib/python2.5/site-packages/weboob_*.egg
+* remove the weboob lines in
+/usr/lib/python2.5/site-packages/easy-install.pth
 
-Uninstall:
-# cat installed_files.txt | xargs rm -rf
 
-development mode
+Development mode
 ----------------
 
 The development mode doesn't copy files, but it creates an egg-link
@@ -32,9 +31,23 @@ which points to the development directory.
 It is useful for development when files often change.
 
 # ./setup.py develop
-Creates /usr/lib/python2.5/site-packages/Weboob.egg-link
+Creates /usr/lib/python2.5/site-packages/weboob_dev.egg-link
 
-bash completion
+To uninstall, remove this egg-link and remove the weboob_dev line in
+/usr/lib/python2.5/site-packages/easy-install.pth
+
+
+Debian note
+-----------
+
+When using Debian, it is advised to install Python Debian packages, and not the
+PyPI ones (when they are available).
+
+To achieve this, please install the following packages before installing Weboob:
+* python-gdata
+
+
+Bash completion
 ---------------
 
 To enable bash completion, just source the tools/weboob_bash_completion
