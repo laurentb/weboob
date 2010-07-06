@@ -14,7 +14,7 @@ Eggs install
 
 Call the helper script which will build the packages and install them all:
 
-# ./tools/create_all_packages.sh install
+# ./tools/all_packages.sh install
 
 To uninstall:
 * remove the Weboob eggs:
