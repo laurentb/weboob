@@ -61,9 +61,4 @@ class VideoPage(BasePage):
         return u''
 
     def set_details(self, v):
-        div = self.document.getroot().cssselect('div[id=watch-description-body]')
-        if not div:
-            return
-
-        div = div[0]
-        v.author = div.find('a').find('strong').text
+        v.author = self.document.getroot().cssselect('a.watch-description-username strong')[0].text
