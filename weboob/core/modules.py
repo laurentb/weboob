@@ -153,13 +153,13 @@ class ModulesLoader(object):
         return self.modules[name]
 
     def load(self):
-            import weboob.backends
-            for path in weboob.backends.__path__:
-                regexp = re.compile('^%s/([\w\d_]+)$' % path)
-                for root, dirs, files in os.walk(path):
-                    m = regexp.match(root)
-                    if m and '__init__.py' in files:
-                        self.load_module('weboob.backends.%s' % m.group(1))
+        import weboob.backends
+        for path in weboob.backends.__path__:
+            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            for root, dirs, files in os.walk(path):
+                m = regexp.match(root)
+                if m and '__init__.py' in files:
+                    self.load_module('weboob.backends.%s' % m.group(1))
 
     def load_module(self, name):
         try:
