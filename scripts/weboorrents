@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.frontends.weboorrents import Weboorrents
+from weboob.applications.weboorrents import Weboorrents
 
 
 if __name__ == '__main__':

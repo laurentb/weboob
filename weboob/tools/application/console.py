@@ -216,7 +216,7 @@ class ConsoleApplication(BaseApplication):
         loaded_backends = BaseApplication.load_backends(self, caps, names, *args, **kwargs)
         if not loaded_backends:
             logging.error(u'Cannot start application: no configured backend was found.\nHere is a list of all available backends:')
-            from weboob.frontends.weboobcfg import WeboobCfg
+            from weboob.applications.weboobcfg import WeboobCfg
             weboobcfg = WeboobCfg()
             if caps is not None:
                 if not isinstance(caps, (list, tuple, set)):

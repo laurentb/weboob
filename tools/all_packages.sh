@@ -5,17 +5,17 @@ COMMAND="$1"
 SETUP_PY_LIST="
 weboob/setup.py
 weboob/backends/setup.py
-weboob/frontends/boobank/setup.py
-weboob/frontends/masstransit/setup.py
-weboob/frontends/monboob/setup.py
-weboob/frontends/qboobmsg/setup.py
-weboob/frontends/qhavesex/setup.py
-weboob/frontends/qvideoob/setup.py
-weboob/frontends/travel/setup.py
-weboob/frontends/videoob/setup.py
-weboob/frontends/videoob_web/setup.py
-weboob/frontends/weboorrents/setup.py
-weboob/frontends/wetboobs/setup.py
+weboob/applications/boobank/setup.py
+weboob/applications/masstransit/setup.py
+weboob/applications/monboob/setup.py
+weboob/applications/qboobmsg/setup.py
+weboob/applications/qhavesex/setup.py
+weboob/applications/qvideoob/setup.py
+weboob/applications/travel/setup.py
+weboob/applications/videoob/setup.py
+weboob/applications/videoob_web/setup.py
+weboob/applications/weboorrents/setup.py
+weboob/applications/wetboobs/setup.py
 "
 
 
