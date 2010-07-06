@@ -38,7 +38,7 @@ class Travel(ConsoleApplication):
         for backend, station in self.weboob.do('iter_station_search', pattern):
             self.format(station, backend.name)
 
-    @ConsoleApplication.command('List all departures on a special station')
+    @ConsoleApplication.command('List all departures for a given station')
     def command_departures(self, station, arrival=None):
         for backend, departure in self.weboob.do('iter_station_departures', station, arrival):
             self.format(departure, backend.name)
