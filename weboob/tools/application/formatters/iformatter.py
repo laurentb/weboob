@@ -33,7 +33,7 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, backend_name, selected_fields=None, condition=None):
+    def format(self, obj, backend_name=None, selected_fields=None, condition=None):
         """
         Format an object to be human-readable.
         An object has fields which can be selected, and the objects
@@ -46,7 +46,10 @@ class IFormatter(object):
         @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """
-        item = self.to_dict(obj, backend_name, condition, selected_fields)
+        if isinstance(obj, dict):
+            item = obj
+        else:
+            item = self.to_dict(obj, backend_name, condition, selected_fields)
         if item is None:
             return None
         formatted = self.format_dict(item=item)
@@ -76,7 +79,7 @@ class IFormatter(object):
     def set_header(self, string):
         raise NotImplementedError()
 
-    def to_dict(self, obj, backend_name, condition=None, selected_fields=None):
+    def to_dict(self, obj, backend_name=None, condition=None, selected_fields=None):
         def iter_select_and_decorate(d):
             if hasattr(obj, '__id__'):
                 id_attr = getattr(obj, '__id__')
@@ -88,7 +91,7 @@ class IFormatter(object):
             for k, v in d:
                 if selected_fields is not None and k not in selected_fields:
                     continue
-                if k in id_fields:
+                if k in id_fields and backend_name is not None:
                     v = u'%s@%s' % (unicode(v), backend_name)
                 yield k, v
         fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else self.iter_fields(obj)
