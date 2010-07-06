@@ -17,21 +17,48 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import os
 
 
 setup(
-    name='weboob-dev',
-    version='dev',
+    name='weboob-core',
+    version='0.1',
     description='Weboob, Web Out Of Browsers - core library',
+    # long_description=read('README'),
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://www.weboob.org',
-    packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Topic :: Internet',
+        ],
+    # keywords='',
+    namespace_packages = ['weboob'],
+    packages=[
+        'weboob',
+        'weboob.capabilities',
+        'weboob.core',
+        'weboob.tools',
+        'weboob.tools.application',
+        'weboob.tools.application.formatters',
+        'weboob.tools.application.qt',
+        'weboob.tools.browser',
+        'weboob.tools.config',
+        'weboob.tools.parsers',
+        ],
+    scripts=[
+        'scripts/weboobcfg',
+        'scripts/weboob-debug',
+        'scripts/weboob-tests',
+        ],
     install_requires=[
         ],
 )

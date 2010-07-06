@@ -17,21 +17,30 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import os
 
 
 setup(
-    name='weboob-dev',
-    version='dev',
-    description='Weboob, Web Out Of Browsers - core library',
-    author='Romain Bignon',
+    name='weboob-videoob',
+    version='0.1',
+    description='Videoob, the Weboob video swiss-knife',
+    long_description='Search for videos on many websites, and get info about them',
+    author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://www.weboob.org',
-    packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    url='http://weboob.org/Videoob',
+    namespace_packages = ['weboob', 'weboob.frontends'],
+    packages=[
+        'weboob',
+        'weboob.frontends',
+        'weboob.frontends.videoob',
+        ],
+    scripts=[
+        'scripts/videoob',
+        ],
     install_requires=[
+        'weboob-video-backends',
         ],
 )

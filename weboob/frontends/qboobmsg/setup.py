@@ -17,21 +17,29 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import os
 
 
 setup(
-    name='weboob-dev',
-    version='dev',
-    description='Weboob, Web Out Of Browsers - core library',
+    name='weboob-qboobmsg',
+    version='0.1',
+    description='QBoobMsg, the Weboob e-mail swiss-knife, Qt version',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://www.weboob.org',
-    packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    url='http://weboob.org/QBoobMsg',
+    namespace_packages = ['weboob', 'weboob.frontends'],
+    packages=[
+        'weboob',
+        'weboob.frontends',
+        'weboob.frontends.qboobmsg',
+        ],
+    scripts=[
+        'scripts/qboobmsg',
+        ],
     install_requires=[
+        'weboob-messages-backends',
         ],
 )

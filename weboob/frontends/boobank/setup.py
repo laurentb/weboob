@@ -17,21 +17,30 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import os
 
 
 setup(
-    name='weboob-dev',
-    version='dev',
-    description='Weboob, Web Out Of Browsers - core library',
-    author='Romain Bignon',
+    name='weboob-boobank',
+    version='0.1',
+    description='Boobank, the Weboob bank-accounts swiss-knife',
+    long_description='List your bank accounts and get info about them',
+    author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://www.weboob.org',
-    packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    url='http://weboob.org/Boobank',
+    namespace_packages = ['weboob', 'weboob.frontends'],
+    packages=[
+        'weboob',
+        'weboob.frontends',
+        'weboob.frontends.boobank',
+        ],
+    scripts=[
+        'scripts/boobank',
+        ],
     install_requires=[
+        'weboob-bank-backends',
         ],
 )

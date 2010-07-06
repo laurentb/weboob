@@ -17,21 +17,30 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import os
 
 
 setup(
-    name='weboob-dev',
-    version='dev',
-    description='Weboob, Web Out Of Browsers - core library',
+    name='weboob-qhavesex',
+    version='0.1',
+    description='QHaveSex, the Weboob sexual life swiss-knife, Qt version',
+    long_description='Optimize your probabilities to have sex on dating websites',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://www.weboob.org',
-    packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    url='http://weboob.org/QHaveSex',
+    namespace_packages = ['weboob', 'weboob.frontends'],
+    packages=[
+        'weboob',
+        'weboob.frontends',
+        'weboob.frontends.qhavesex',
+        ],
+    scripts=[
+        'scripts/qhavesex',
+        ],
     install_requires=[
+        'weboob-dating-backends',
         ],
 )
