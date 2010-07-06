@@ -28,7 +28,7 @@ __all__ = ['Chatoob']
 
 class Chatoob(ConsoleApplication):
     APPNAME = 'chatoob'
-    VERSION = '1.0'
+    VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
 
     def main(self, argv):

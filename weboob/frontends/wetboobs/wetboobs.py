@@ -27,7 +27,7 @@ __all__ = ['WetBoobs']
 
 class WetBoobs(ConsoleApplication):
     APPNAME = 'wetboobs'
-    VERSION = '1.0'
+    VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):

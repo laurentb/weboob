@@ -43,7 +43,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '1.0'
+    VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"“Adopte un mec” french dating website"
     ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')

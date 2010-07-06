@@ -25,7 +25,7 @@ class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '1.0'
+    VERSION = '0.1'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
 

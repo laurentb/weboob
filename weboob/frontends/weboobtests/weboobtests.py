@@ -24,7 +24,7 @@ __all__ = ['WeboobTests']
 
 class WeboobTests(ConsoleApplication):
     APPNAME = 'weboobtests'
-    VERSION = '1.0'
+    VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):

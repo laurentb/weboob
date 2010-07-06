@@ -26,7 +26,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '1.0'
+    VERSION = '0.1'
     LICENSE = 'GPLv3'
     ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     DESCRIPTION = 'BNP Paribas french bank\' website'

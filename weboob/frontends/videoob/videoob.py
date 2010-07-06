@@ -26,7 +26,7 @@ __all__ = ['Videoob']
 
 class Videoob(ConsoleApplication):
     APPNAME = 'videoob'
-    VERSION = '1.0'
+    VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     CONFIG = {}
 
