@@ -16,8 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.core.backend import BaseBackend
+from logging import debug
+
 from weboob.capabilities.video import ICapVideo
+from weboob.core.backend import BaseBackend
 
 from .browser import InaBrowser
 
@@ -38,3 +40,7 @@ class InaBackend(BaseBackend, ICapVideo):
 
     def get_video(self, _id):
         return self.browser.get_video(_id)
+
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+        debug(u'backend ina: iter_search_results is not implemented')
+        return []
