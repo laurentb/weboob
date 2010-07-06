@@ -18,8 +18,20 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.applications.qweboobcfg import QWeboobCfg
+from weboob.tools.application.qt import QtApplication
+
+from .backendcfg import BackendCfg
 
 
-if __name__ == '__main__':
-    QWeboobCfg.run()
+class QWeboobCfg(QtApplication):
+    APPNAME = 'qweboobcfg'
+    VERSION = '0.1'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+
+    def main(self, argv):
+        self.load_backends()
+
+        self.dlg = BackendCfg(self.weboob)
+        self.dlg.show()
+
+        return self.weboob.loop()
