@@ -10,4 +10,3 @@ all: $(UI_PY_FILES)
 clean:
 	rm -f *.pyc
 	rm -f $(UI_PY_FILES)
-

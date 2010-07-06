@@ -21,10 +21,10 @@ from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette
 
-from weboob.core.engine import Weboob
-from weboob.core.scheduler import IScheduler
+from weboob import Weboob
+from weboob.scheduler import IScheduler
 
-from .base import BaseApplication
+from ..base import BaseApplication
 
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 

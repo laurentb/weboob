@@ -18,9 +18,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.tools.application.qt import QtApplication
-
-from .backendcfg import BackendCfg
+from weboob.tools.application.qt import BackendCfg, QtApplication
 
 
 class QWeboobCfg(QtApplication):

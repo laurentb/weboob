@@ -23,7 +23,7 @@ from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 import re
 from logging import warning
 
-from .ui.backendcfg_ui import Ui_BackendCfg
+from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
