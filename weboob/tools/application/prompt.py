@@ -18,8 +18,8 @@
 
 import sys
 
-from weboob import Weboob
-from weboob.scheduler import Scheduler
+from weboob.core.engine import Weboob
+from weboob.core.scheduler import Scheduler
 
 from .console import ConsoleApplication
 

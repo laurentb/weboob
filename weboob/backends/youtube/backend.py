@@ -18,7 +18,7 @@
 
 import logging
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.video import ICapVideo
 
 from .browser import YoutubeBrowser

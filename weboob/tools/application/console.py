@@ -23,8 +23,8 @@ from optparse import OptionGroup, OptionParser
 import re
 import sys
 
-import weboob
-from weboob.modules import BackendsConfig
+from weboob.core.bcall import CallErrors
+from weboob.core.modules import BackendsConfig
 
 from .base import BaseApplication
 from .formatters import formatters
@@ -150,7 +150,7 @@ class ConsoleApplication(BaseApplication):
 
         try:
             command_result = func(*args)
-        except weboob.CallErrors, errors:
+        except CallErrors, errors:
             logging.error(errors)
             return 1
 

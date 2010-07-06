@@ -17,7 +17,7 @@
 
 import os
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 
 from .browser import BNPorc

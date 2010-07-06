@@ -23,7 +23,7 @@ import os
 from logging import warning
 from time import sleep
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.dating import ICapDating, StatusField

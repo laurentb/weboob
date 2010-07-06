@@ -22,16 +22,16 @@ from logging import warning
 import os
 import sys
 
-from weboob.bcall import BackendsCall, CallErrors
-from weboob.modules import ModulesLoader, BackendsConfig
-from weboob.backend import BaseBackend
-from weboob.scheduler import Scheduler
+from weboob.core.bcall import BackendsCall
+from weboob.core.modules import ModulesLoader, BackendsConfig
+from weboob.core.backend import BaseBackend
+from weboob.core.scheduler import Scheduler
 
 if sys.version_info[:2] <= (2, 5):
     import weboob.tools.property
 
 
-__all__ = ['Weboob', 'CallErrors']
+__all__ = ['Weboob']
 
 
 class Weboob(object):

@@ -28,8 +28,8 @@ import sys
 import logging
 import asyncore
 
-from weboob import Weboob
-from weboob.scheduler import Scheduler
+from weboob.core.engine import Weboob
+from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local

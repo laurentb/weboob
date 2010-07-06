@@ -16,25 +16,4 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.core.backend import BaseBackend
-from weboob.capabilities.video import ICapVideo
-
-from .browser import InaBrowser
-
-
-__all__ = ['InaBackend']
-
-
-class InaBackend(BaseBackend, ICapVideo):
-    NAME = 'ina'
-    MAINTAINER = 'Christophe Benz'
-    EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.1'
-    DESCRIPTION = 'INA french video archives'
-    LICENSE = 'GPLv3'
-
-    CONFIG = {}
-    BROWSER = InaBrowser
-
-    def get_video(self, _id):
-        return self.browser.get_video(_id)
+from .bcall import CallErrors

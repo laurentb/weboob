@@ -25,15 +25,14 @@ import os
 import re
 import stat
 
-import weboob.backends
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.cap import ICap
 
 
 __all__ = ['Module']
 
 
-class Module:
+class Module(object):
     def __init__(self, name, module):
         self.name = name
         self.module = module
@@ -154,12 +153,13 @@ class ModulesLoader(object):
         return self.modules[name]
 
     def load(self):
-        path = weboob.backends.__path__[0]
-        regexp = re.compile('^%s/([\w\d_]+)$' % path)
-        for root, dirs, files in os.walk(path):
-            m = regexp.match(root)
-            if m and '__init__.py' in files:
-                self.load_module('weboob.backends.%s' % m.group(1))
+            import weboob.backends
+            for path in weboob.backends.__path__:
+                regexp = re.compile('^%s/([\w\d_]+)$' % path)
+                for root, dirs, files in os.walk(path):
+                    m = regexp.match(root)
+                    if m and '__init__.py' in files:
+                        self.load_module('weboob.backends.%s' % m.group(1))
 
     def load_module(self, name):
         try:
@@ -172,8 +172,8 @@ class ModulesLoader(object):
             else:
                 error(msg)
                 return
-        if name in self.modules:
-            warning('Module "%s" is already loaded (%s)' % self.modules[name].module)
+        if module.get_name() in self.modules:
+            warning('Module "%s" is already loaded (%s)' % (self.modules[module.get_name()].module, name))
             return
         self.modules[module.get_name()] = module
-        debug('Loaded module "%s" (%s)' % (name, module.module.__name__))
+        debug('Loaded module "%s" from %s' % (name, module.module.__path__))

@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 
 from .browser import Cragr

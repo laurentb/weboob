@@ -15,13 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from __future__ import with_statement
 
 from copy import copy
 import logging
 from logging import debug
 from threading import Thread, Event, RLock, Timer
-from .tools.misc import get_backtrace
+from weboob.tools.misc import get_backtrace
+
 
 __all__ = ['BackendsCall', 'CallErrors']
 

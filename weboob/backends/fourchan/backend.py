@@ -19,7 +19,7 @@ from __future__ import with_statement
 
 from logging import warning
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, Message
 
 from .browser import FourChan
@@ -28,7 +28,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '1.0'
+    VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
 

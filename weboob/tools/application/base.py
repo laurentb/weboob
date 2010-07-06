@@ -21,7 +21,7 @@ import logging
 import optparse
 from optparse import OptionGroup, OptionParser
 
-from weboob import Weboob
+from weboob.core.engine import Weboob
 from weboob.tools.config.iconfig import ConfigError
 
 

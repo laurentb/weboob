@@ -17,7 +17,7 @@
 
 from __future__ import with_statement
 
-from weboob.backend import BaseBackend
+from weboob.core.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 
@@ -28,7 +28,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '1.0'
+    VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
 
