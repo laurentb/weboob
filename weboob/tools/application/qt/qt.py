@@ -21,7 +21,7 @@ from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette
 
-from weboob import Weboob
+from weboob.core.ouiboube import Weboob
 from weboob.scheduler import IScheduler
 
 from ..base import BaseApplication
