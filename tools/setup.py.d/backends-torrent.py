@@ -27,7 +27,7 @@ setup(
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapTorrent',
+    url='http://www.weboob.org/ICapTorrent',
     namespace_packages = ['weboob.backends'],
     packages=[
         'weboob',

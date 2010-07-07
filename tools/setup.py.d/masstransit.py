@@ -28,7 +28,7 @@ setup(
     author='Julien Hébert',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/Masstransit',
+    url='http://www.weboob.org/Masstransit',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',

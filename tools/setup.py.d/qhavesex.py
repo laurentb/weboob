@@ -32,7 +32,7 @@ setup(
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/QHaveSex',
+    url='http://www.weboob.org/QHaveSex',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',

@@ -27,7 +27,7 @@ setup(
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/Monboob',
+    url='http://www.weboob.org/Monboob',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',

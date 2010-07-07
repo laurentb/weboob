@@ -27,7 +27,7 @@ setup(
     author='Romain Bignon, Roger Philibert',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapVideo',
+    url='http://www.weboob.org/ICapVideo',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',

@@ -27,7 +27,7 @@ setup(
     author='Laurent Bachelier',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapBank',
+    url='http://www.weboob.org/ICapBank',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',

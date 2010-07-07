@@ -28,7 +28,7 @@ setup(
     author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/Boobank',
+    url='http://www.weboob.org/Boobank',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',

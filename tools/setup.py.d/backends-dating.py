@@ -27,7 +27,7 @@ setup(
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapDating',
+    url='http://www.weboob.org/ICapDating',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',

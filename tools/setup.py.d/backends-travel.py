@@ -27,7 +27,7 @@ setup(
     author='Romain Bignon, Julien Hébert',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapTravel',
+    url='http://www.weboob.org/ICapTravel',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',

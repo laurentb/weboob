@@ -28,7 +28,7 @@ setup(
     author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/Videoob',
+    url='http://www.weboob.org/Videoob',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
