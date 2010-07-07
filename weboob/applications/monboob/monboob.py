@@ -28,7 +28,7 @@ import sys
 import logging
 import asyncore
 
-from weboob.core.engine import Weboob
+from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.tools.application import ConsoleApplication
