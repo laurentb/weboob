@@ -188,10 +188,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                     continue
 
                 # TODO age in contact['birthday']
-                contact = Contact(contact['id'], contact['pseudo'], s)
-                contact.status_msg = u'%s old' % contact['birthday']
-                contact.thumbnail_url = contact['cover']
-                yield contact
+                c = Contact(contact['id'], contact['pseudo'], s)
+                c.status_msg = u'%s old' % contact['birthday']
+                c.thumbnail_url = contact['cover']
+                yield c
 
     def iter_chat_messages(self, _id=None):
         with self.browser:
