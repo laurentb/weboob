@@ -21,7 +21,7 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-bank-backends',
+    name='weboob-backends-bank',
     version='0.1',
     description='Weboob backends implementing bank capability',
     author='Laurent Bachelier',

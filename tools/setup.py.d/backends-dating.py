@@ -21,21 +21,21 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-video-backends-nsfw',
+    name='weboob-backends-dating',
     version='0.1',
-    description='Weboob backends implementing video capability - non-suitable for work',
-    author='Romain Bignon, Roger Philibert',
+    description='Weboob backends implementing dating capability',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapVideo',
+    url='http://weboob.org/ICapDating',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.youjizz',
-        'weboob.backends.youjizz.pages',
-        'weboob.backends.youporn',
-        'weboob.backends.youporn.pages',
+        'weboob.backends.aum',
+        'weboob.backends.aum.data',
+        'weboob.backends.aum.optim',
+        'weboob.backends.aum.pages',
         ],
     install_requires=[
         'weboob-core',

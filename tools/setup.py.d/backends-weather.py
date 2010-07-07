@@ -21,21 +21,18 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-dating-backends',
+    name='weboob-backends-weather',
     version='0.1',
-    description='Weboob backends implementing dating capability',
+    description='Weboob backends implementing weather capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapDating',
+    url='http://weboob.org/ICapWeather',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.aum',
-        'weboob.backends.aum.data',
-        'weboob.backends.aum.optim',
-        'weboob.backends.aum.pages',
+        'weboob.backends.yweather',
         ],
     install_requires=[
         'weboob-core',

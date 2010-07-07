@@ -63,5 +63,6 @@ setup(
         'scripts/weboob-tests',
         ],
     install_requires=[
+        'dateutil',
         ],
 )

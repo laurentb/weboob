@@ -21,18 +21,21 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-weather-backends',
+    name='weboob-backends-video',
     version='0.1',
-    description='Weboob backends implementing weather capability',
-    author='Romain Bignon',
+    description='Weboob backends implementing video capability',
+    author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapWeather',
+    url='http://weboob.org/ICapVideo',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.yweather',
+        'weboob.backends.ina',
+        'weboob.backends.ina.pages',
+        'weboob.backends.youtube',
+        'weboob.backends.youtube.pages',
         ],
     install_requires=[
         'weboob-core',

@@ -21,21 +21,20 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-video-backends',
+    name='weboob-backends-travel',
     version='0.1',
-    description='Weboob backends implementing video capability',
-    author='Christophe Benz, Romain Bignon',
+    description='Weboob backends implementing travel capability',
+    author='Romain Bignon, Julien Hébert',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/ICapVideo',
+    url='http://weboob.org/ICapTravel',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.ina',
-        'weboob.backends.ina.pages',
-        'weboob.backends.youtube',
-        'weboob.backends.youtube.pages',
+        'weboob.backends.canaltp',
+        'weboob.backends.transilien',
+        'weboob.backends.transilien.pages',
         ],
     install_requires=[
         'weboob-core',
