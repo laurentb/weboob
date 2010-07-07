@@ -33,6 +33,9 @@ It is useful for development when files often change.
 # ./setup.py develop
 Creates /usr/lib/python2.5/site-packages/weboob_dev.egg-link
 
+Scripts are not copied to /usr/bin, so you must launch them with:
+$ ./scripts/videoob (for example)
+
 To uninstall, remove this egg-link and remove the weboob_dev line in
 /usr/lib/python2.5/site-packages/easy-install.pth
 
