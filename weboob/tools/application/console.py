@@ -27,7 +27,7 @@ from weboob.core.bcall import CallErrors
 from weboob.core.modules import BackendsConfig
 
 from .base import BaseApplication
-from .formatters import formatters
+from .formatters.instances import formatters
 from .results import ResultsCondition, ResultsConditionException
 
 

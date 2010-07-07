@@ -19,53 +19,36 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/tools/application/qt')
 
 setup(
-    name='weboob-core',
+    name='weboob-core-qt',
     version='0.1',
-    description='Weboob, Web Out Of Browsers - core library',
-    # long_description=read('README'),
+    description='Weboob, Web Out Of Browsers - core library, Qt configuration GUI',
+    long_description='Configure backends using a Qt GUI.',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
     url='http://www.weboob.org',
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Natural Language :: English',
-        'Programming Language :: Python',
-        'Topic :: Internet',
-        ],
-    # keywords='',
     namespace_packages = [
-	'weboob',
-	'weboob.applications',
-        'weboob.tools',
-        'weboob.tools.application',
-	],
-    packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.weboobcfg',
-        'weboob.applications.weboobdebug',
-        'weboob.applications.weboobtests',
-        'weboob.capabilities',
-        'weboob.core',
         'weboob.tools',
         'weboob.tools.application',
-        'weboob.tools.application.formatters',
-        'weboob.tools.browser',
-        'weboob.tools.config',
-        'weboob.tools.parsers',
+        ],
+    packages=[
+        'weboob',
+        'weboob.applications.qweboobcfg',
+        'weboob.tools.application.qt',
         ],
     scripts=[
-        'scripts/weboobcfg',
-        'scripts/weboob-debug',
-        'scripts/weboob-tests',
+        'scripts/qweboobcfg',
         ],
     install_requires=[
-        'python-dateutil',
+        'weboob-core',
+	'PyQt',
         ],
 )

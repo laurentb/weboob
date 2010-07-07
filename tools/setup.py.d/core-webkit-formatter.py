@@ -19,31 +19,35 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/applications/qweboobcfg/ui')
 
 setup(
-    name='weboob-qweboobcfg',
+    name='weboob-core-webkit',
     version='0.1',
-    description='QWeboobCfg, the Weboob GUI configuration tool',
-    long_description='Configure backends',
-    author='Romain Bignon',
+    description='Weboob, Web Out Of Browsers - core library, WebKit formatter',
+    author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
-    url='http://weboob.org/QWeboobCfg',
-    namespace_packages = ['weboob', 'weboob.applications'],
-    packages=[
-        'weboob',
-        'weboob.applications',
-        'weboob.applications.qweboobcfg',
-        'weboob.applications.qweboobcfg.ui',
+    url='http://www.weboob.org',
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Topic :: Internet',
         ],
-    scripts=[
-        'scripts/qweboobcfg',
+    namespace_packages = [
+	'weboob',
+        'weboob.tools',
+        'weboob.tools.application',
+        'weboob.tools.application.formatters',
+	],
+    packages=[
+        'weboob.tools.application.formatters.webkit',
         ],
     install_requires=[
-        'weboob-core',
+	'weboob-core',
+	# webkit dependency, is not an egg?
         ],
 )
