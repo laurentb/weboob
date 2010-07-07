@@ -163,10 +163,34 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
             else:
                 return
 
-    def get_profile(self, _id):
+    def get_contact(self, _id):
         try:
             with self.browser:
-                return self.browser.get_profile(_id)
+                profile = self.browser.get_profide(_id)
+
+                if profile.is_online():
+                    s = Contact.STATUS_ONLINE
+                else:
+                    s = Contact.STATUS_OFFLINE
+                contact = Contact(_id, profile.get_name(), s)
+                contact.status_msg = u'%s old' % profile.table['details']['old']
+                contact.summary = profile.description
+                contact.avatar = None
+                contact.photos = profile.photos
+                #body += u'\nStats:'
+                #for label, value in self.get_stats().iteritems():
+                #    body += u'\n\t\t%-15s %s' % (label + ':', value)
+                #body += u'\n\nInformations:'
+                #for section, d in self.get_table().iteritems():
+                #    body += u'\n\t%s\n' % section
+                #    for key, value in d.items():
+                #        key = '%s:' % key
+                #        if isinstance(value, list):
+                #            body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
+                #        elif isinstance(value, float):
+                #            body += u'\t\t%-15s %.2f\n' % (key, value)
+                #        else:
+                #            body += u'\t\t%-15s %s\n' % (key, unicode(value))
         except BrowserUnavailable:
             return None
 
@@ -174,17 +198,20 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
         self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
         self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
 
-    def iter_contacts(self, status=Contact.STATUS_ALL):
+    def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
             for contact in self.browser.iter_contacts():
+                s = 0
                 if contact['cat'] == 1:
                     s = Contact.STATUS_ONLINE
                 elif contact['cat'] == 3:
                     s = Contact.STATUS_OFFLINE
+                elif contact['cat'] == 2:
+                    s = Contact.STATUS_AWAY
                 else:
                     warning('Unknown AuM contact status: %s' % contact['cat'])
 
-                if not status & s:
+                if not status & s or ids and contact['id'] in ids:
                     continue
 
                 # TODO age in contact['birthday']

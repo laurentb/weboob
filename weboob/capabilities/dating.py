@@ -22,31 +22,6 @@ from .cap import ICap
 __all__ = ['ICapDating', 'Profile']
 
 
-class Profile(object):
-    def get_profile_text(self):
-        body = u'Status: %s' % unicode(self.status)
-        if self.photos:
-            body += u'\nPhotos:'
-            for photo in self.photos:
-                body += u'\n\t\t%s' % unicode(photo)
-        body += u'\nStats:'
-        for label, value in self.get_stats().iteritems():
-            body += u'\n\t\t%-15s %s' % (label + ':', value)
-        body += u'\n\nInformations:'
-        for section, d in self.get_table().iteritems():
-            body += u'\n\t%s\n' % section
-            for key, value in d.items():
-                key = '%s:' % key
-                if isinstance(value, list):
-                    body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
-                elif isinstance(value, float):
-                    body += u'\t\t%-15s %.2f\n' % (key, value)
-                else:
-                    body += u'\t\t%-15s %s\n' % (key, unicode(value))
-        body += u'\n\nDescription:\n%s' % unicode(self.get_description())
-
-        return body
-
 class OptimizationNotFound(Exception): pass
 
 class Optimization(object):
@@ -67,9 +42,6 @@ class StatusField(object):
         self.flags = flags
 
 class ICapDating(ICap):
-    def get_profile(self, _id):
-        raise NotImplementedError()
-
     def get_status(self):
         """
         Get a list of fields

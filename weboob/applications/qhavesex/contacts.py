@@ -119,7 +119,7 @@ class IGroup(object):
 class MetaGroup(IGroup):
     def iter_contacts(self, cb):
         if self.id == 'online':
-            status = Contact.STATUS_ONLINE
+            status = Contact.STATUS_ONLINE|Contact.STATUS_AWAY
         elif self.id == 'offline':
             status = Contact.STATUS_OFFLINE
         else:
@@ -172,11 +172,20 @@ class ContactsWidget(QWidget):
 
         status = ''
         if contact.status == Contact.STATUS_ONLINE:
-            status = 'Online'
+            status = u'Online'
             status_color = 0x00aa00
         elif contact.status == Contact.STATUS_OFFLINE:
-            status = 'Offline'
+            status = u'Offline'
             status_color = 0xff0000
+        elif contact.status == Contact.STATUS_AWAY:
+            status = u'Away'
+            status_color = 0xffad16
+        else:
+            status = u'Unknown'
+            status_color = 0xaaaaaa
+
+        if contact.status_msg:
+            status += u' — %s' % contact.status_msg
 
         item = QListWidgetItem()
         item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend.name))

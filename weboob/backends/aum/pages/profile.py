@@ -17,7 +17,6 @@
 
 
 from weboob.backends.aum.pages.base import PageBase
-from weboob.capabilities.dating import Profile
 
 from copy import deepcopy
 from logging import warning
@@ -124,7 +123,7 @@ class FieldParticularSignes(FieldBase):
             elif s.find('rousseur') >= 0:
                 d['freckle'] = True
 
-class ProfilePage(PageBase, Profile):
+class ProfilePage(PageBase):
     empty_table = {'details':      {'old':           0,
                                     'birthday':      (0,0,0),
                                     'zipcode':       0,
@@ -397,3 +396,27 @@ class ProfilePage(PageBase, Profile):
 
     def get_stats(self):
         return self.stats
+
+    def get_profile_text(self):
+        body = u'Status: %s' % unicode(self.status)
+        if self.photos:
+            body += u'\nPhotos:'
+            for photo in self.photos:
+                body += u'\n\t\t%s' % unicode(photo)
+        body += u'\nStats:'
+        for label, value in self.get_stats().iteritems():
+            body += u'\n\t\t%-15s %s' % (label + ':', value)
+        body += u'\n\nInformations:'
+        for section, d in self.get_table().iteritems():
+            body += u'\n\t%s\n' % section
+            for key, value in d.items():
+                key = '%s:' % key
+                if isinstance(value, list):
+                    body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
+                elif isinstance(value, float):
+                    body += u'\t\t%-15s %.2f\n' % (key, value)
+                else:
+                    body += u'\t\t%-15s %s\n' % (key, unicode(value))
+        body += u'\n\nDescription:\n%s' % unicode(self.get_description())
+
+        return body

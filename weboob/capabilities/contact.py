@@ -21,6 +21,15 @@ from .cap import ICap
 
 __all__ = ['ICapContact', 'Contact']
 
+class ProfileNode(object):
+    HEAD = 0x01
+
+    def __init__(self, name, label, value, sufix=None, flags=None):
+        self.name = name
+        self.label = label
+        self.value = value
+        self.sufix = sufix
+        self.flags = flags
 
 class Contact(object):
     STATUS_ONLINE =  0x001
@@ -28,24 +37,52 @@ class Contact(object):
     STATUS_AWAY =    0x004
     STATUS_ALL =     0xfff
 
-    def __init__(self, id, name, status, photo_url=None, thumbnail_url=None):
+    def __init__(self, id, name, status):
         self.id = id
         self.name = name
         self.status = status
-        self.photo_url = photo_url
-        self.thumbnail_url = thumbnail_url
+        self.status_msg = u''
+        self.summary = u''
+        self.avatar = None
+        self.photos = []
+        self.profile = None
 
     def iter_fields(self):
         return {'id': self.id,
                 'name': self.name,
                 'status': self.status,
-                'photo_url': self.photo_url,
-                'thumbnail_url': self.thumbnail_url,
+                'status_msg': self.status_msg,
+                'summary': self.summary,
+                'avatar': self.avatar,
+                'photos': self.photos,
+                'profile': self.profile,
                }.iteritems()
 
 class ICapContact(ICap):
-    def iter_contacts(self, status=Contact.STATUS_ALL):
+    def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
+        """
+        Iter contacts
+
+        @param status  get only contacts with the specified status
+        @param ids  if set, get the specified contacts
+        @return  iterator over the contacts found
+        """
         raise NotImplementedError()
 
     def get_contact(self, id):
-        raise NotImplementedError()
+        """
+        Get a contact from his id.
+
+        The default implementation only calls iter_contacts()
+        with the proper values, but it might be overloaded
+        by backends.
+
+        @param id  the ID requested
+        @return  the Contact object, or None if not found
+        """
+
+        l = self.iter_contacts(ids=[id])
+        try:
+            return l[0]
+        except IndexError:
+            return None
