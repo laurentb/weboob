@@ -22,6 +22,11 @@ from setuptools import find_packages, setup
 import os
 
 
+os.system('make -C weboob/applications/qboobmsg/ui')
+os.system('make -C weboob/applications/qhavesex/ui')
+os.system('make -C weboob/applications/qvideoob/ui')
+os.system('make -C weboob/applications/qweboobcfg/ui')
+
 setup(
     name='weboob-dev',
     version='dev',
