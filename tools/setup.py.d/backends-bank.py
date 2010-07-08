@@ -40,5 +40,7 @@ setup(
         ],
     install_requires=[
         'weboob-core',
+	# bnporc requires Image module
+	#'PIL',
         ],
 )

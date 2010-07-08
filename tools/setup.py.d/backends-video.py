@@ -39,5 +39,6 @@ setup(
         ],
     install_requires=[
         'weboob-core',
+	# gdata, no egg?
         ],
 )

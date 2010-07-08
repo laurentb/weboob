@@ -45,5 +45,6 @@ setup(
         ],
     install_requires=[
         'weboob-backends-dating',
+	#'yaml',
         ],
 )

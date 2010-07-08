@@ -44,11 +44,15 @@ setup(
         'weboob.applications.qweboobcfg',
         'weboob.tools.application.qt',
         ],
+    data_files=[
+	('weboob/tools', ['weboob/tools/__init__.py']),
+	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
+        ],
     scripts=[
         'scripts/qweboobcfg',
         ],
     install_requires=[
         'weboob-core',
-	'PyQt',
+	#'PyQt',
         ],
 )

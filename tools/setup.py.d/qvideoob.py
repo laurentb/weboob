@@ -45,5 +45,6 @@ setup(
         ],
     install_requires=[
         'weboob-backends-video',
+	# python-qt4-phonon
         ],
 )

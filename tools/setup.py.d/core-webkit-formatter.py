@@ -21,7 +21,7 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-core-webkit',
+    name='weboob-core-webkit-formatter',
     version='0.1',
     description='Weboob, Web Out Of Browsers - core library, WebKit formatter',
     author='Christophe Benz',
@@ -44,7 +44,13 @@ setup(
         'weboob.tools.application.formatters',
 	],
     packages=[
+	'weboob',
         'weboob.tools.application.formatters.webkit',
+        ],
+    data_files=[
+	('weboob/tools', ['weboob/tools/__init__.py']),
+	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
+	('weboob/tools/application/formatters', ['weboob/tools/application/formatters/__init__.py']),
         ],
     install_requires=[
 	'weboob-core',
