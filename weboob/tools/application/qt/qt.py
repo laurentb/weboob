@@ -22,7 +22,7 @@ from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QAbstractTextDocumentLayout, QPalette
 
 from weboob.core.ouiboube import Weboob
-from weboob.scheduler import IScheduler
+from weboob.core.scheduler import IScheduler
 
 from ..base import BaseApplication
 

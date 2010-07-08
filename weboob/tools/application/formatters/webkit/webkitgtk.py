@@ -21,8 +21,8 @@ import os
 import gtk
 import webkit
 
-from ..javascript import get_javascript
-from .table import TableFormatter
+from weboob.tools.application.javascript import get_javascript
+from ..table import TableFormatter
 
 
 __all__ = ['WebkitGtkFormatter']
