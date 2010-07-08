@@ -18,7 +18,7 @@
 
 import logging
 
-from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.console import ConsoleApplication
 
 
 class WeboobDebug(ConsoleApplication):

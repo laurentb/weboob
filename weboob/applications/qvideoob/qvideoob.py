@@ -17,7 +17,7 @@
 
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.application import QtApplication
+from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
 

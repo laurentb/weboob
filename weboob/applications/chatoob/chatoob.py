@@ -18,7 +18,7 @@
 
 import logging
 
-from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.console import ConsoleApplication
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.contact import ICapContact, Contact
 

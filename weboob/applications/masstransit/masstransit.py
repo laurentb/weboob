@@ -17,7 +17,7 @@
 
 
 from weboob.capabilities.travel import ICapTravel
-from weboob.tools.application import BaseApplication
+from weboob.tools.application.base import BaseApplication
 
 import conic
 import gtk

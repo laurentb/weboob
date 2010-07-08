@@ -17,7 +17,7 @@
 
 from nose import run
 
-from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.console import ConsoleApplication
 
 __all__ = ['WeboobTests']
 

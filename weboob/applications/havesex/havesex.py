@@ -21,7 +21,7 @@ from __future__ import with_statement
 import sys
 
 import weboob
-from weboob.tools.application import PromptApplication
+from weboob.tools.application.prompt import PromptApplication
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound
 
 

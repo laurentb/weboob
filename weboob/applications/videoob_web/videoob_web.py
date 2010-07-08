@@ -27,7 +27,7 @@ from webob import exc
 from wsgiref.simple_server import make_server
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.application import BaseApplication
+from weboob.tools.application.base import BaseApplication
 
 
 __all__ = ['VideoobWeb']

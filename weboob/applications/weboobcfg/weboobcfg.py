@@ -21,7 +21,7 @@ import os
 import subprocess
 import re
 
-from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.console import ConsoleApplication
 
 
 __all__ = ['WeboobCfg']

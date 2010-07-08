@@ -31,7 +31,7 @@ import asyncore
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
-from weboob.tools.application import ConsoleApplication
+from weboob.tools.application.console import ConsoleApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local
 
 
