@@ -38,6 +38,6 @@ setup(
         'scripts/monboob',
         ],
     install_requires=[
-        'weboob-messages-backends',
+        'weboob-backends-messages',
         ],
 )

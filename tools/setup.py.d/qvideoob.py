@@ -44,6 +44,6 @@ setup(
         'scripts/qvideoob',
         ],
     install_requires=[
-        'weboob-video-backends',
+        'weboob-backends-video',
         ],
 )

@@ -41,6 +41,6 @@ setup(
         'scripts/videoob-web-server',
         ],
     install_requires=[
-        'weboob-video-backends',
+        'weboob-backends-video',
         ],
 )

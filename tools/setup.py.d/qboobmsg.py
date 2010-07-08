@@ -43,6 +43,6 @@ setup(
         'scripts/qboobmsg',
         ],
     install_requires=[
-        'weboob-messages-backends',
+        'weboob-backends-messages',
         ],
 )

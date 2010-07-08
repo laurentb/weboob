@@ -39,6 +39,6 @@ setup(
         'scripts/boobank',
         ],
     install_requires=[
-        'weboob-bank-backends',
+        'weboob-backends-bank',
         ],
 )

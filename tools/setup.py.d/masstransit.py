@@ -39,6 +39,6 @@ setup(
         'scripts/masstransit',
         ],
     install_requires=[
-        'weboob-travel-backends',
+        'weboob-backends-travel',
         ],
 )

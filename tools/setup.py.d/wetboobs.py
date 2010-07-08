@@ -38,6 +38,6 @@ setup(
         'scripts/wetboobs',
         ],
     install_requires=[
-        'weboob-weather-backends',
+        'weboob-backends-weather',
         ],
 )

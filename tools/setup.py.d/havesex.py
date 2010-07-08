@@ -39,6 +39,6 @@ setup(
         'scripts/havesex',
         ],
     install_requires=[
-        'weboob-dating-backends',
+        'weboob-backends-dating',
         ],
 )

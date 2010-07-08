@@ -39,6 +39,6 @@ setup(
         'scripts/weboorrents',
         ],
     install_requires=[
-        'weboob-torrent-backends',
+        'weboob-backends-torrent',
         ],
 )

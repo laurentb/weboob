@@ -39,6 +39,6 @@ setup(
         'scripts/travel',
         ],
     install_requires=[
-        'weboob-travel-backends',
+        'weboob-backends-travel',
         ],
 )
