@@ -29,6 +29,7 @@ from weboob.capabilities.messages import ICapMessages
 from .ui.contacts_ui import Ui_Contacts
 from .ui.contact_thread_ui import Ui_ContactThread
 from .ui.thread_message_ui import Ui_ThreadMessage
+from .ui.profile_ui import Ui_Profile
 
 class ThreadMessage(QFrame):
     def __init__(self, message, parent=None):
@@ -106,6 +107,16 @@ class ContactThread(QWidget):
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
 
+class ContactProfile(QWidget):
+    def __init__(self, weboob, contact, parent=None):
+        QWidget.__init__(self, parent)
+        self.ui = Ui_Profile()
+        self.ui.setupUi(self)
+
+        self.weboob = weboob
+        self.contact = contact
+
+        self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
@@ -203,7 +214,7 @@ class ContactsWidget(QWidget):
 
         self.contact = current.data(Qt.UserRole).toPyObject()
 
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Profile'))
+        self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
         if self.contact.backend.has_caps(ICapMessages):
             self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact), self.tr('Messages'))
         if self.contact.backend.has_caps(ICapChat):
