@@ -27,7 +27,7 @@ from weboob.core.backend import BaseBackend
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 from weboob.capabilities.dating import ICapDating, StatusField
-from weboob.capabilities.contact import ICapContact, Contact
+from weboob.capabilities.contact import ICapContact, Contact, ProfileNode
 from weboob.tools.browser import BrowserUnavailable
 
 from .browser import AdopteUnMec
@@ -177,20 +177,17 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                 contact.summary = profile.description
                 contact.avatar = None
                 contact.photos = profile.photos
-                #body += u'\nStats:'
-                #for label, value in self.get_stats().iteritems():
-                #    body += u'\n\t\t%-15s %s' % (label + ':', value)
-                #body += u'\n\nInformations:'
-                #for section, d in self.get_table().iteritems():
-                #    body += u'\n\t%s\n' % section
-                #    for key, value in d.items():
-                #        key = '%s:' % key
-                #        if isinstance(value, list):
-                #            body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
-                #        elif isinstance(value, float):
-                #            body += u'\t\t%-15s %.2f\n' % (key, value)
-                #        else:
-                #            body += u'\t\t%-15s %s\n' % (key, unicode(value))
+                contact.profile = []
+
+                stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
+                for label, value in self.get_stats().iteritems():
+                    stats.value.append(ProfileNode(label, label.capitalize(), value))
+                contact.profile.append(stats)
+
+                for section, d in self.get_table().iteritems():
+                    s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
+                    for key, value in d.iteritems():
+                        s.value.append(ProfileNode(key, key.capitalize(), value))
         except BrowserUnavailable:
             return None
 

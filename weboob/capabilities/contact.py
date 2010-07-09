@@ -22,7 +22,8 @@ from .cap import ICap
 __all__ = ['ICapContact', 'Contact']
 
 class ProfileNode(object):
-    HEAD = 0x01
+    HEAD =    0x01
+    SECTION = 0x02
 
     def __init__(self, name, label, value, sufix=None, flags=None):
         self.name = name
