@@ -34,6 +34,7 @@ class YoujizzBrowser(BaseBrowser):
     DOMAIN = 'youjizz.com'
     PROTOCOL = 'http'
     PAGES = {r'http://.*youjizz\.com/?': IndexPage,
+             r'http://.*youjizz\.com/index.php': IndexPage,
              r'http://.*youjizz\.com/search/.+\.html': IndexPage,
             }
 
