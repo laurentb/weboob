@@ -26,7 +26,7 @@ import sys
 from weboob.core.bcall import CallErrors
 from weboob.core.modules import BackendsConfig
 
-from .base import BaseApplication
+from .base import BackendNotFound, BaseApplication
 from .formatters.instances import formatters
 from .results import ResultsCondition, ResultsConditionException
 
@@ -233,3 +233,10 @@ class ConsoleApplication(BaseApplication):
         except ValueError:
             backend_name = None
         return _id, backend_name
+
+    @classmethod
+    def run(klass, args=None):
+        try:
+            super(ConsoleApplication, klass).run(args)
+        except BackendNotFound, e:
+            logging.error(e)

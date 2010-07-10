@@ -25,7 +25,12 @@ from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
 
 
-__all__ = ['BaseApplication', 'ConfigError']
+__all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
+
+
+class BackendNotFound(Exception):
+    pass
+
 
 class FrontendStorage(object):
     def __init__(self, name, storage):
@@ -138,13 +143,19 @@ class BaseApplication(object):
 
     def load_backends(self, caps=None, names=None, *args, **kwargs):
         if names is None:
-            names = self._enabled_backends
-        return self.weboob.load_backends(caps, names, *args, **kwargs)
+            names = self.requested_backends
+        loaded_backends = self.weboob.load_backends(caps, names, *args, **kwargs)
+        if not loaded_backends:
+            logging.warning(u'No backend loaded')
+        return loaded_backends
 
     def load_modules(self, caps=None, names=None, *args, **kwargs):
         if names is None:
-            names = self._enabled_backends
-        return self.weboob.load_modules(caps, names, *args, **kwargs)
+            names = self.requested_backends
+        loaded_modules = self.weboob.load_modules(caps, names, *args, **kwargs)
+        if not loaded_modules:
+            logging.warning(u'No module loaded')
+        return loaded_modules
 
     def _get_completions(self):
         """
@@ -194,7 +205,11 @@ class BaseApplication(object):
             level = logging.WARNING
         log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        app._enabled_backends = app.options.backends.split(',') if app.options.backends else None
+        app.requested_backends = app.options.backends.split(',') if app.options.backends else None
+        existing_module_names = list(app.weboob.modules_loader.iter_existing_module_names())
+        for requested_backend in app.requested_backends:
+            if requested_backend not in existing_module_names:
+                raise BackendNotFound(u'Unknown backend: "%s"' % requested_backend)
 
         app._handle_app_options()
 
