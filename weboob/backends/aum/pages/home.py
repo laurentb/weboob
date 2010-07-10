@@ -18,6 +18,7 @@
 
 import re
 
+from weboob.tools.browser import ExpectedElementNotFound
 from weboob.backends.aum.pages.base import PageBase
 from logging import error
 
@@ -39,15 +40,11 @@ class HomePage(PageBase):
         tables = self.document.getElementsByTagName('table')
         for table in tables:
             if table.hasAttribute('style') and table.getAttribute('style') == 'background-color:black;background-image:url(http://s.adopteunmec.com/img/barmec.gif);background-repeat:no-repeat':
-
                 fonts = table.getElementsByTagName('font')
                 i = 0
-
                 for font in fonts:
                     if font.hasAttribute('color') and font.getAttribute('color') == '#ff0198':
                         i += 1
                         if i == 3:
                             return int(font.firstChild.data)
-
-        error('Error: Unable to find the available charms counter')
-        return 0
+        raise ExpectedElementNotFound(u'Could not parse number of charms available')
