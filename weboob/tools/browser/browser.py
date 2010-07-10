@@ -34,7 +34,7 @@ from weboob.tools.decorators import retry
 
 # Try to load cookies
 try:
-    from weboob.tools.firefox_cookies import FirefoxCookieJar
+    from .firefox_cookies import FirefoxCookieJar
 except ImportError, e:
     warning("Unable to store cookies: %s" % e)
     HAVE_COOKIES = False
