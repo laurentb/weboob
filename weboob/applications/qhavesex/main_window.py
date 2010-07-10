@@ -22,7 +22,11 @@ from weboob.tools.application.qt import QtMainWindow
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.dating import ICapDating
 
-from weboob.applications.qboobmsg.messages_manager import MessagesManager
+try:
+    from weboob.applications.qboobmsg.messages_manager import MessagesManager
+    HAVE_BOOBMSG = True
+except ImportError:
+    HAVE_BOOBMSG = False
 
 from .ui.main_window_ui import Ui_MainWindow
 from .status import AccountsStatus
@@ -40,7 +44,8 @@ class MainWindow(QtMainWindow):
         self.loaded_tabs = {}
 
         self.ui.tabWidget.addTab(AccountsStatus(self.weboob), self.tr('Status'))
-        self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
+        if HAVE_BOOBMSG:
+            self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
         self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
 
