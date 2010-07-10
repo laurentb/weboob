@@ -73,8 +73,8 @@ class Weboob(object):
                 continue
 
             # Check conditions
-            if (not caps is None and not module.has_caps(caps)) or \
-               (not names is None and not name in names):
+            if caps is not None and not module.has_caps(caps) or \
+                    names is not None and name not in names:
                 continue
 
             try:
@@ -89,14 +89,15 @@ class Weboob(object):
         loaded_backends = {}
         self.modules_loader.load()
         for name, module in self.modules_loader.modules.iteritems():
-            if (caps is None or module.has_caps(caps)) and \
-               (names is None or module.get_name() in names):
-                try:
-                    name = module.get_name()
-                    self.backends[name] = module.create_backend(self, name, {}, storage)
-                    loaded_backends[name] = self.backends[name]
-                except Exception, e:
-                    warning(u'Unable to load "%s" module as backend with no config: %s' % (name, e))
+            if caps is not None and not module.has_caps(caps) or \
+                    names is not None and name not in names:
+                continue
+            try:
+                name = module.get_name()
+                self.backends[name] = module.create_backend(self, name, {}, storage)
+                loaded_backends[name] = self.backends[name]
+            except Exception, e:
+                warning(u'Unable to load "%s" module as backend with no config: %s' % (name, e))
         return loaded_backends
 
     def iter_backends(self, caps=None):
