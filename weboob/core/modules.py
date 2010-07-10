@@ -25,6 +25,7 @@ import os
 import re
 import stat
 
+import weboob.backends
 from weboob.core.backend import BaseBackend
 from weboob.capabilities.cap import ICap
 
@@ -152,14 +153,17 @@ class ModulesLoader(object):
             self.load_module('weboob.backends.%s' % name)
         return self.modules[name]
 
-    def load(self):
-        import weboob.backends
+    def iter_existing_module_names(self):
         for path in weboob.backends.__path__:
             regexp = re.compile('^%s/([\w\d_]+)$' % path)
             for root, dirs, files in os.walk(path):
                 m = regexp.match(root)
                 if m and '__init__.py' in files:
-                    self.load_module('weboob.backends.%s' % m.group(1))
+                    yield m.group(1)
+
+    def load(self):
+        for existing_module_name in self.iter_existing_module_names():
+            self.load_module('weboob.backends.%s' % existing_module_name)
 
     def load_module(self, name):
         try:
