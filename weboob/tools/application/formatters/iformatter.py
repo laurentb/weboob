@@ -16,15 +16,16 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import types
+from weboob.tools.misc import iter_fields
 
 
 __all__ = ['IFormatter']
 
 
 class IFormatter(object):
-    def __init__(self, display_keys=True, return_only=False):
+    def __init__(self, display_keys=True, display_header=True, return_only=False):
         self.display_keys = display_keys
+        self.display_header = display_header
         self.return_only = return_only
 
     def after_format(self, formatted):
@@ -68,14 +69,6 @@ class IFormatter(object):
         """
         raise NotImplementedError()
 
-    def iter_fields(self, obj):
-        for attribute_name in dir(obj):
-            if attribute_name.startswith('_'):
-                continue
-            attribute = getattr(obj, attribute_name)
-            if not isinstance(attribute, types.MethodType):
-                yield attribute_name, attribute
-
     def set_header(self, string):
         raise NotImplementedError()
 
@@ -89,12 +82,12 @@ class IFormatter(object):
             else:
                 id_fields = ('id',)
             for k, v in d:
-                if selected_fields is not None and k not in selected_fields:
+                if selected_fields is not None and '*' not in selected_fields and k not in selected_fields:
                     continue
                 if k in id_fields and backend_name is not None:
                     v = u'%s@%s' % (unicode(v), backend_name)
                 yield k, v
-        fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else self.iter_fields(obj)
+        fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else iter_fields(obj)
         d = dict((k, v) for k, v in iter_select_and_decorate(fields_iterator))
         if condition is not None and not condition.is_valid(d):
             d = None

@@ -16,12 +16,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from dateutil import tz
 import sys
 import traceback
-from dateutil import tz
+import types
 
 
-__all__ = ['toUnicode', 'local2utc', 'html2text', 'get_backtrace']
+__all__ = ['toUnicode', 'local2utc', 'html2text', 'get_backtrace', 'iter_fields']
 
 
 def toUnicode(text):
@@ -77,3 +78,12 @@ def get_backtrace(empty="Empty backtrace."):
         # No i18n here (imagine if i18n function calls error...)
         return "Error while trying to get backtrace"
     return empty
+
+def iter_fields(obj):
+    for attribute_name in dir(obj):
+        if attribute_name.startswith('_'):
+            continue
+        attribute = getattr(obj, attribute_name)
+        if not isinstance(attribute, types.MethodType):
+            yield attribute_name, attribute
+

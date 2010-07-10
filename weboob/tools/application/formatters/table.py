@@ -42,7 +42,7 @@ class TableFormatter(IFormatter):
         if self.column_headers is None:
             return None
         s = ''
-        if self.header:
+        if self.display_header and self.header:
             if self.result_funcname == 'get_string':
                 s += self.header
             elif self.result_funcname == 'get_html_string':

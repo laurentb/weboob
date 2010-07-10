@@ -65,18 +65,23 @@ class ConsoleApplication(BaseApplication):
         results_options.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
         self._parser.add_option_group(results_options)
 
+        formatting_options = OptionGroup(self._parser, 'Formatting Options')
+        formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='display only objects fields')
+        self._parser.add_option_group(formatting_options)
+
     def add_application_options(self, group):
         pass
 
     def _handle_app_options(self):
         self.formatter = formatters[self.options.formatter]
 
+        if self.options.no_header:
+            self.formatter.display_header = False
+
         if self.options.select:
-            self.formatter.display_keys = False
-            if self.options.select == '*':
-                self.selected_fields = None
-            else:
-                self.selected_fields = self.options.select.split(',')
+            self.selected_fields = self.options.select.split(',')
+            if '*' not in self.selected_fields:
+                self.formatter.display_keys = False
         else:
             self.selected_fields = None
 
@@ -240,6 +245,7 @@ class ConsoleApplication(BaseApplication):
             super(ConsoleApplication, klass).run(args)
         except BackendNotFound, e:
             logging.error(e)
+
     def do(self, function, *args, **kwargs):
         kwargs['required_fields'] = self.options.select
         return self.weboob.do(function, *args, **kwargs)

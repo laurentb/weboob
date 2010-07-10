@@ -38,4 +38,5 @@ class SimpleFormatter(IFormatter):
         return self.field_separator.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems())
 
     def set_header(self, string):
-        print string.encode('utf-8')
+        if self.display_header:
+            print string.encode('utf-8')
