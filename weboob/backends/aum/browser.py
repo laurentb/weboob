@@ -97,7 +97,7 @@ class AdopteUnMec(BaseBrowser):
         def inner(self, *args, **kwargs):
             if self.is_on_page(WaitPage):
                 if not self.page.check():
-                    raise AdopteWait()
+                    raise AdopteWait(u'Could not connect between 6pm and 1am.')
                 self.home()
             if not self.page or self.is_on_page(LoginPage) and self.password:
                 self.home()
