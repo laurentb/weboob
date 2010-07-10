@@ -18,7 +18,7 @@
 
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, ExpectedElementNotFound
 
 from ..video import YoujizzVideo
 
@@ -28,24 +28,25 @@ __all__ = ['IndexPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        span_list = self.document.getroot().cssselect("span#miniatura")
+        div_id = 'span#miniatura'
+        span_list = self.document.getroot().cssselect(div_id)
         if not span_list:
-            return
+            raise ExpectedElementNotFound(div_id)
 
         for span in span_list:
             a = span.find('.//a')
             if a is None:
-                continue
+                raise ExpectedElementNotFound('%s.//a' % span)
             url = a.attrib['href']
             _id = re.sub(r'/videos/(.+)\.html', r'\1', url)
 
             thumbnail_url = span.find('.//img').attrib['src']
 
-            title1 = span.cssselect('span#title1')
+            title1_selector = 'span#title1'
+            title1 = span.cssselect(title1_selector)
             if title1 is None:
-                title = None
-            else:
-                title = title1[0].text.strip()
+                raise ExpectedElementNotFound(title1_selector)
+            title = title1[0].text.strip()
 
             duration = 0
             thumbtime = span.cssselect('span.thumbtime')
@@ -58,4 +59,4 @@ class IndexPage(BasePage):
                                title=title,
                                duration=duration,
                                thumbnail_url=thumbnail_url,
-                               nsfw=True)
+                               )
