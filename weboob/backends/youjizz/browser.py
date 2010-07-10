@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
 import re
 import urllib
 from logging import warning
@@ -62,13 +63,12 @@ class YoujizzBrowser(BaseBrowser):
         m = re.search(r'<strong>.*Runtime.*</strong>(.+)<br.*>', data)
         if m:
             minutes, seconds = (int(v) for v in unicode(m.group(1).strip()).split(':'))
-            duration = minutes * 60 + seconds
         else:
-            duration = 0
+            minutes = seconds = 0
         video._id = _id
         video.title = title
         video.url = _get_url()
-        video.duration = duration
+        video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
         return video
 
     @check_domain

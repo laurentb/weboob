@@ -23,13 +23,13 @@ __all__ = ['BaseVideo', 'ICapVideo']
 
 
 class BaseVideo(object):
-    def __init__(self, _id, title=None, url=None, author=None, duration=0, date=None,
+    def __init__(self, _id, title=None, url=None, author=None, duration=None, date=None,
                  rating=0.0, rating_max=0.0, thumbnail_url=None, nsfw=False):
         self.id = unicode(_id)
         self.title = title
         self.url = url
         self.author = author
-        self.duration = int(duration)
+        self.duration = duration
         self.date = date
         self.rating = float(rating)
         self.rating_max = float(rating_max)
@@ -40,10 +40,6 @@ class BaseVideo(object):
     def id2url(cls, _id):
         """Overloaded in child classes provided by backends."""
         raise NotImplementedError()
-
-    @property
-    def formatted_duration(self):
-        return '%d:%02d:%02d' % (self.duration / 3600, (self.duration % 3600 / 60), self.duration % 60)
 
     @property
     def page_url(self):

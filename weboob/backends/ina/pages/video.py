@@ -59,7 +59,8 @@ class VideoPage(BasePage):
             if m:
                 day, month, year = [int(s) for s in m.group(1).split('/')]
                 date = datetime.datetime(year, month, day)
-                return date, int(m.group(2)) * 60 + int(m.group(3))
+                duration = datetime.timedelta(minutes=m.group(3), seconds=m.group(2))
+                return date, duration
         else:
             return None
 

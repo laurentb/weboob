@@ -63,8 +63,9 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             yield YoutubeVideo(entry.id.text.split('/')[-1].decode('utf-8'),
                                title=entry.media.title.text.decode('utf-8').strip(),
                                author=author,
-                               duration=int(entry.media.duration.seconds.decode('utf-8').strip()),
-                               thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip())
+                               duration=datetime.timedelta(seconds=entry.media.duration.seconds.decode('utf-8').strip()),
+                               thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
+                               )
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()

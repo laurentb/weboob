@@ -32,7 +32,7 @@ class MiniVideo(QFrame):
         self.video = video
         self.ui.titleLabel.setText(video.title)
         self.ui.backendLabel.setText(backend.name)
-        self.ui.durationLabel.setText('%d:%02d:%02d' % (video.duration/3600, (video.duration%3600)/60, video.duration%60))
+        self.ui.durationLabel.setText(unicode(video.duration))
         self.ui.authorLabel.setText(unicode(video.author))
         self.ui.dateLabel.setText(video.date and unicode(video.date) or '')
         if video.rating_max:

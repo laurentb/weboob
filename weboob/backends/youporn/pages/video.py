@@ -68,13 +68,13 @@ class VideoPage(PornPage):
             value = span.tail.strip()
 
             if name == 'Duration:':
-                duration = 0
+                seconds = minutes = 0
                 for word in value.split():
                     if word.endswith('min'):
-                        duration += 60 * int(word[:word.find('min')])
+                        minutes = int(word[:word.find('min')])
                     elif word.endswith('sec'):
-                        duration += int(word[:word.find('sec')])
-                v.duration = duration
+                        seconds = int(word[:word.find('sec')])
+                v.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
             elif name == 'Submitted:':
                 author = li.find('i')
                 if author is None:

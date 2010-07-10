@@ -32,7 +32,7 @@ class Video(QDialog):
         self.setWindowTitle("Video - %s" % video.title)
         self.ui.urlEdit.setText(video.url)
         self.ui.titleLabel.setText(video.title)
-        self.ui.durationLabel.setText('%d:%02d:%02d' % (video.duration/3600, (video.duration%3600)/60, video.duration%60))
+        self.ui.durationLabel.setText(unicode(video.duration))
         self.ui.authorLabel.setText(unicode(video.author))
         self.ui.dateLabel.setText(unicode(video.date))
         if video.rating_max:
