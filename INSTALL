@@ -46,8 +46,21 @@ Debian note
 When using Debian, it is advised to install Python Debian packages, and not the
 PyPI ones (when they are available).
 
-To achieve this, please install the following packages before installing Weboob:
+To achieve this, use the --no-deps option of setup.py:
+# ./setup.py develop --no-deps
+
+Then, please install the following packages before installing Weboob:
+* pyqt4-dev-tools
+* python-dateutil
+* python-feedparser
 * python-gdata
+* python-html5lib
+* python-imaging
+* python-lxml
+* python-qt4
+* python-qt4-phonon
+* python-simplejson
+* python-yaml
 
 
 Bash completion
