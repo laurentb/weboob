@@ -35,6 +35,10 @@ __all__ = ['ConsoleApplication']
 
 
 class ConsoleApplication(BaseApplication):
+    """
+    Base application class for CLI applications.
+    """
+
     SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
 
     def __init__(self):
@@ -70,6 +74,7 @@ class ConsoleApplication(BaseApplication):
         self._parser.add_option_group(formatting_options)
 
     def add_application_options(self, group):
+        # XXX why is it in ConsoleApplication and not BaseApplication? -romain
         pass
 
     def _handle_app_options(self):
@@ -200,7 +205,7 @@ class ConsoleApplication(BaseApplication):
             if varargs:
                 args.append("[%s..]" % varargs)
             if varkw:
-                args.append("{WTF}" % varkw)
+                raise TypeError('Command %s requests illegal keyword args (**%s)' % varkw)
             return " ".join(args)
 
         command_name = f.func_name.replace('command_', '')
@@ -230,6 +235,7 @@ class ConsoleApplication(BaseApplication):
         except ResultsConditionException, e:
             logging.error(e)
 
+    # XXX why do not use staticmethod as a decorator? -romain
     register_command = staticmethod(register_command)
     command = staticmethod(command)
 

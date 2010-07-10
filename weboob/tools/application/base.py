@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,20 +56,48 @@ class ApplicationStorage(object):
             return self.storage.save('applications', self.name)
 
 class BaseApplication(object):
+    """
+    Base application.
+
+    This class can be herited to have some common code within weboob
+    applications.
+    """
+
+    # ------ Class attributes --------------------------------------
+
     # Application name
     APPNAME = ''
-    # Default configuration
-    CONFIG = {}
-    # Default storage
-    STORAGE = {}
-    # Configuration directory
+    # Configuration and work directory (default: ~/.weboob/)
     CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
+    # Default configuration dict (can only contain key/values)
+    CONFIG = {}
+    # Default storage tree
+    STORAGE = {}
     # Synopsis
     SYNOPSIS = 'Usage: %prog [options (-h for help)] ...'
     # Version
     VERSION = None
     # Copyright
     COPYRIGHT = None
+
+    # ------ Abstract methods --------------------------------------
+    def create_weboob(self):
+        return Weboob()
+
+    def _get_completions(self):
+        """
+        Overload this method in subclasses if you want to enrich shell completion.
+        @return  a set object
+        """
+        return set()
+
+    def _handle_app_options(self):
+        """
+        Overload this method in subclasses if you want to handle options defined in subclass constructor.
+        """
+        pass
+
+    # ------ BaseApplication methods -------------------------------
 
     def __init__(self, option_parser=None):
         self.weboob = self.create_weboob()
@@ -85,9 +113,6 @@ class BaseApplication(object):
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
-
-    def create_weboob(self):
-        return Weboob()
 
     def create_storage(self, path=None, klass=None):
         """
@@ -151,13 +176,6 @@ class BaseApplication(object):
             logging.warning(u'No configured backend loaded')
         return loaded
 
-    def _get_completions(self):
-        """
-        Overload this method in subclasses if you want to enrich shell completion.
-        @return  a set object
-        """
-        return set()
-
     def _get_optparse_version(self):
         version = None
         if self.VERSION:
@@ -167,14 +185,22 @@ class BaseApplication(object):
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version
 
-    def _handle_app_options(self):
-        """
-        Overload this method in subclasses if you want to handle options defined in subclass constructor.
-        """
-        pass
-
     @classmethod
     def run(klass, args=None):
+        """
+        This static method can be called to run the application.
+
+        It creates the application object, handle options, setup logging, run
+        the main() method, and catch common exceptions.
+
+        You can't do anything after this call, as it *always* finish with
+        a call to sys.exit().
+
+        For example:
+        >>> from weboob.application.myapplication import MyApplication
+        >>> MyApplication.run()
+        """
+
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
@@ -207,6 +233,7 @@ class BaseApplication(object):
             sys.exit(app.main(args))
         except KeyboardInterrupt:
             print 'Program killed by SIGINT'
+            sys.exit(0) # XXX is it really the right exit code? -romain
         except ConfigError, e:
             print 'Configuration error: %s' % e
             sys.exit(1)
