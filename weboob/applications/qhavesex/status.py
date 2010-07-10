@@ -21,14 +21,16 @@ from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImag
 from PyQt4.QtCore import SIGNAL, QTimer
 
 from weboob.capabilities.dating import StatusField
+from weboob.tools.application.qt import QtDo
 
 class Account(QFrame):
-    def __init__(self, backend, parent=None):
+    def __init__(self, weboob, backend, parent=None):
         QFrame.__init__(self, parent)
 
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
 
+        self.weboob = weboob
         self.backend = backend
         self.setLayout(QVBoxLayout())
 
@@ -60,32 +62,39 @@ class Account(QFrame):
         self.updateStats()
 
     def updateStats(self):
-        with self.backend:
-            body = u''
-            in_p = False
-            for field in self.backend.get_status():
-                if field.flags & StatusField.FIELD_HTML:
-                    value = field.value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                else:
-                    value = '%s' % field.value
+        self.process = QtDo(self.weboob, self.updateStats_cb)
+        self.process.body = u''
+        self.process.in_p = False
+        self.process.do_backends(self.backend, 'get_status')
 
-                if field.flags & StatusField.FIELD_TEXT:
-                    if in_p:
-                        body += '</p>'
-                    body += '<p>%s</p>' % value
-                    in_p = False
-                else:
-                    if not in_p:
-                        body += "<p>"
-                        in_p = True
-                    else:
-                        body += "<br />"
+    def updateStats_cb(self, backend, field):
+        if not field:
+            if self.process.in_p:
+                self.process.body += u"</p>"
 
-                    body += '<b>%s</b>: %s' % (field.label, field.value)
-            if in_p:
-                body += "</p>"
+            self.body.setText(self.process.body)
 
-            self.body.setText(body)
+            self.process = None
+            return
+
+        if field.flags & StatusField.FIELD_HTML:
+            value = field.value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        else:
+            value = u'%s' % field.value
+
+        if field.flags & StatusField.FIELD_TEXT:
+            if self.process.in_p:
+                self.process.body += u'</p>'
+            self.process.body += u'<p>%s</p>' % value
+            self.process.in_p = False
+        else:
+            if not self.process.in_p:
+                self.process.body += u"<p>"
+                self.process.in_p = True
+            else:
+                self.process.body += u"<br />"
+
+            self.process.body += u'<b>%s</b>: %s' % (field.label, field.value)
 
 class AccountsStatus(QWidget):
     def __init__(self, weboob, parent=None):
@@ -96,7 +105,7 @@ class AccountsStatus(QWidget):
         self.setLayout(QVBoxLayout())
 
         for backend in self.weboob.iter_backends():
-            account = Account(backend)
+            account = Account(weboob, backend)
             self.layout().addWidget(account)
 
         self.layout().addStretch()
