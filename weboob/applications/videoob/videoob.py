@@ -37,7 +37,7 @@ class Videoob(ConsoleApplication):
             self.options.nsfw = True
         return self.process_command(*argv[1:])
 
-    @ConsoleApplication.command('Get video information (accept ID or URL)')
+    @ConsoleApplication.command('Get information about a video (accepts ID or URL)')
     def command_info(self, _id):
         _id, backend_name = self.parse_id(_id)
         names = (backend_name,) if backend_name is not None else None
@@ -47,7 +47,7 @@ class Videoob(ConsoleApplication):
                 continue
             self.format(video, backend.name)
 
-    @ConsoleApplication.command('Search videos')
+    @ConsoleApplication.command('Search for videos')
     def command_search(self, pattern=None):
         self.load_modules(ICapVideo)
         self.set_header(u'Search pattern: %s' % pattern if pattern else u'Last videos')
