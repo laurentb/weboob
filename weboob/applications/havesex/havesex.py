@@ -77,7 +77,7 @@ class HaveSex(PromptApplication):
         for optim in optims:
             try:
                 self.service('Starting %s' % optim, 'start_optimization', optim)
-            except weboob.CallErrors, errors:
+            except weboob.core.CallErrors, errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
                         print 'Optimization "%s" not found' % optim

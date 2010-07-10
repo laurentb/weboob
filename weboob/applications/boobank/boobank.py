@@ -43,7 +43,7 @@ class Boobank(ConsoleApplication):
         try:
             for backend, account in self.weboob.do('iter_accounts'):
                 self.format(account, backend.name)
-        except weboob.CallErrors, errors:
+        except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
                     logging.error(u'Error: Incorrect password for backend %s' % backend.name)
@@ -62,7 +62,7 @@ class Boobank(ConsoleApplication):
             for backend, operation in self.weboob.do(do):
                 self.format(operation, backend.name)
                 total += operation.amount
-        except weboob.CallErrors, errors:
+        except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, AccountNotFound):
                     logging.error(u'Error: account %s not found' % id)

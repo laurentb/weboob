@@ -23,7 +23,7 @@ from optparse import OptionGroup, OptionParser
 import re
 import sys
 
-from weboob.core.bcall import CallErrors
+from weboob.core import CallErrors
 from weboob.core.modules import BackendsConfig
 
 from .base import BackendNotFound, BaseApplication
