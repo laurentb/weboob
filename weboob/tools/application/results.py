@@ -69,9 +69,9 @@ class Results(object):
 
 class ResultsCondition(object):
     def __init__(self, condition_str):
-        condition_str.replace('OR', 'or')
-        condition_str.replace('AND', 'and')
-        condition_str.replace('NOT', 'not')
+        condition_str = condition_str.replace('OR', 'or') \
+                                     .replace('AND', 'and') \
+                                     .replace('NOT', 'not')
         or_list = []
         try:
             for _or in condition_str.split('or'):
