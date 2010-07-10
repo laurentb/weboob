@@ -203,7 +203,7 @@ class BaseApplication(object):
             level = logging.ERROR
         else:
             level = logging.WARNING
-        log_format = '%(asctime)s:%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
+        log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         app.requested_backends = app.options.backends.split(',') if app.options.backends else None
         if app.requested_backends:
