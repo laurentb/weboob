@@ -22,6 +22,7 @@ from logging import warning
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.browser.decorators import check_domain, id2url
+from weboob.tools.misc import iter_fields
 
 from .pages.index import IndexPage
 from .video import YoujizzVideo
@@ -39,7 +40,9 @@ class YoujizzBrowser(BaseBrowser):
             }
 
     @id2url(YoujizzVideo.id2url)
-    def get_video(self, url):
+    def get_video(self, url, video=None):
+        if video is None:
+            video = YoujizzVideo()
         try:
             data = self.openurl(url).read()
         except BrowserUnavailable:
@@ -62,17 +65,26 @@ class YoujizzBrowser(BaseBrowser):
             duration = minutes * 60 + seconds
         else:
             duration = 0
-        return YoujizzVideo(_id=_id, title=title, url=_get_url(), duration=duration, nsfw=True)
+        video._id = _id
+        video.title = title
+        video.url = _get_url()
+        video.duration = duration
+        return video
 
     @check_domain
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
-    def iter_search_results(self, pattern):
+    def iter_search_results(self, pattern, required_fields=None):
         if not pattern:
             self.home()
         else:
             self.location('/search/%s-1.html' % (urllib.quote_plus(pattern)))
-
         assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+
+        for video in self.page.iter_videos():
+            if required_fields is not None:
+                required_fields_missing = set(required_fields) - set(iter_fields(video))
+                if required_fields_missing:
+                    self.get_video(video.id, video=video)
+            yield video

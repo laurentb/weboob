@@ -240,3 +240,6 @@ class ConsoleApplication(BaseApplication):
             super(ConsoleApplication, klass).run(args)
         except BackendNotFound, e:
             logging.error(e)
+    def do(self, function, *args, **kwargs):
+        kwargs['required_fields'] = self.options.select
+        return self.weboob.do(function, *args, **kwargs)
