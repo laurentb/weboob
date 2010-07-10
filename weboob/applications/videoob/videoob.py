@@ -51,5 +51,5 @@ class Videoob(ConsoleApplication):
     def command_search(self, pattern=None):
         self.load_modules(ICapVideo)
         self.set_header(u'Search pattern: %s' % pattern if pattern else u'Last videos')
-        for backend, video in self.weboob.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
+        for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
             self.format(video, backend.name)
