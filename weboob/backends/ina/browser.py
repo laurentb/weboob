@@ -17,7 +17,6 @@
 
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import id2url
 
 from .pages.video import VideoPage
 from .video import InaVideo
@@ -28,7 +27,7 @@ __all__ = ['InaBrowser']
 
 class InaBrowser(BaseBrowser):
     DOMAIN = 'ina.fr'
-    PAGES = {'http://boutique.ina.fr/video/.+.html': VideoPage,
+    PAGES = {'http://boutique\.ina\.fr/video/.+\.html': VideoPage,
             }
 
     @id2url(InaVideo.id2url)
