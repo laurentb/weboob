@@ -28,7 +28,6 @@ class Videoob(ConsoleApplication):
     APPNAME = 'videoob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
-    CONFIG = {}
 
     def add_application_options(self, group):
         group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
