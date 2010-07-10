@@ -34,6 +34,8 @@ class Videoob(ConsoleApplication):
         group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
 
     def main(self, argv):
+        if self.options.backends:
+            self.options.nsfw = True
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get video information (accept ID or URL)')
