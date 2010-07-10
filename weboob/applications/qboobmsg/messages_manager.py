@@ -82,6 +82,7 @@ class MessagesManager(QWidget):
     def _gotMessage(self, backend, message):
         if message is None:
             self.ui.backendsList.setEnabled(True)
+            self.process = None
             return
 
         item = QTreeWidgetItem(None, [time.strftime('%Y-%m-%d %H:%M:%S', message.get_date().timetuple()),

@@ -67,14 +67,15 @@ class ContactThread(QWidget):
         else:
             command = 'iter_messages'
 
-        self.process = QtDo(self.weboob, self.gotMessage)
-        self.process.do_backends(self.contact.backend, command, thread=self.contact.id)
+        self.process_msg = QtDo(self.weboob, self.gotMessage)
+        self.process_msg.do_backends(self.contact.backend, command, thread=self.contact.id)
 
     def gotMessage(self, backend, message):
         if not message:
             v = self.ui.scrollArea.verticalScrollBar()
             print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
             self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
+            self.process_msg = None
             return
 
         widget = ThreadMessage(message)
@@ -91,14 +92,15 @@ class ContactThread(QWidget):
         text = unicode(self.ui.textEdit.toPlainText())
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
-        self.process = QtDo(self.weboob, self.replyPosted, self.replyNotPosted)
-        self.process.do_backends(self.contact.backend, 'post_reply', self.contact.id, 0, '', text)
+        self.process_reply = QtDo(self.weboob, self.replyPosted, self.replyNotPosted)
+        self.process_reply.do_backends(self.contact.backend, 'post_reply', self.contact.id, 0, '', text)
 
     def replyPosted(self, backend, ignored):
         self.ui.textEdit.clear()
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
         self.refreshMessages()
+        self.process_reply = None
 
     def replyNotPosted(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to send message:\n%s\n')) % error
@@ -142,6 +144,8 @@ class MetaGroup(IGroup):
     def cb(self, cb, backend, contact):
         if contact:
             contact.backend = backend
+        else:
+            self.process = None
         cb(contact)
 
 class ContactsWidget(QWidget):

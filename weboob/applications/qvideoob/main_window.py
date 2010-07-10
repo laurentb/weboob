@@ -88,6 +88,7 @@ class MainWindow(QtMainWindow):
     def addVideo(self, backend, video):
         if not backend:
             self.ui.searchEdit.setEnabled(True)
+            self.process = None
             return
         minivideo = MiniVideo(backend, video)
         self.ui.scrollAreaContent.layout().addWidget(minivideo)
