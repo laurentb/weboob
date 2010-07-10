@@ -20,10 +20,7 @@ import datetime
 import time
 from logging import warning
 import random
-try:
-    import json as simplejson
-except ImportError:
-    import simplejson
+import simplejson
 import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
