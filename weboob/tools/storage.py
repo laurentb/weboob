@@ -15,8 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from copy import deepcopy
 from logging import error
+
+from .config.yamlconfig import YamlConfig
+
 
 class IStorage:
     def load(self, what, name, default={}):
@@ -31,31 +35,27 @@ class IStorage:
     def get(self, what, name, *args, **kwargs):
         raise NotImplementedError()
 
-try:
-    from .config.yamlconfig import YamlConfig
-except ImportError, e:
-    error('Import error for weboob.tools.config.yamlconfig: %s' % e)
-else:
-    class StandardStorage(IStorage):
-        def __init__(self, path):
-            self.config = YamlConfig(path)
-            self.config.load()
 
-        def load(self, what, name, default={}):
-            d = {}
-            if not what in self.config.values:
-                self.config.values[what] = {}
-            else:
-                d = self.config.values[what].get(name, {})
+class StandardStorage(IStorage):
+    def __init__(self, path):
+        self.config = YamlConfig(path)
+        self.config.load()
 
-            self.config.values[what][name] = deepcopy(default)
-            self.config.values[what][name].update(d)
+    def load(self, what, name, default={}):
+        d = {}
+        if not what in self.config.values:
+            self.config.values[what] = {}
+        else:
+            d = self.config.values[what].get(name, {})
 
-        def save(self, what, name):
-            self.config.save()
+        self.config.values[what][name] = deepcopy(default)
+        self.config.values[what][name].update(d)
 
-        def set(self, what, name, *args):
-            self.config.set(what, name, *args)
+    def save(self, what, name):
+        self.config.save()
 
-        def get(self, what, name, *args, **kwargs):
-            return self.config.get(what, name, *args, **kwargs)
+    def set(self, what, name, *args):
+        self.config.set(what, name, *args)
+
+    def get(self, what, name, *args, **kwargs):
+        return self.config.get(what, name, *args, **kwargs)

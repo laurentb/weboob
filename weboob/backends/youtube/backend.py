@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
 import logging
 
 from weboob.core.backend import BaseBackend
@@ -43,11 +44,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         return self.browser.get_video(_id)
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
-        try:
-            import gdata.youtube.service
-        except ImportError:
-            logging.error('Youtube backend search feature requires python-gdata package.')
-            return
+        import gdata.youtube.service
         yt_service = gdata.youtube.service.YouTubeService()
         query = gdata.youtube.service.YouTubeVideoQuery()
         query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
