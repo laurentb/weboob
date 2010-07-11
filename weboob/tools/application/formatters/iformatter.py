@@ -43,7 +43,8 @@ class IFormatter(object):
         call it. It can be used to specify the fields order.
 
         @param obj  [object] object to format
-        @param selected_fields  [list] fields to display. If None, all fields are selected.
+        @param backend_name  [str] name of backend, used to create object ID
+        @param selected_fields  [tuple] fields to display. If None, all fields are selected
         @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """

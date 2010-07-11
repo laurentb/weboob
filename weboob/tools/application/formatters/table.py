@@ -48,7 +48,7 @@ class TableFormatter(IFormatter):
             elif self.result_funcname == 'get_html_string':
                 s+= '<p>%s</p>' % self.header
             s += "\n"
-        table = PrettyTable(self.column_headers)
+        table = PrettyTable(list(self.column_headers))
         for column_header in self.column_headers:
             table.set_field_align(column_header, 'l')
         for line in self.queue:

@@ -27,7 +27,7 @@ from weboob.core import CallErrors
 from weboob.core.modules import BackendsConfig
 
 from .base import BackendNotFound, BaseApplication
-from .formatters.instances import formatters
+from .formatters.load import formatters, load_formatter
 from .results import ResultsCondition, ResultsConditionException
 
 
@@ -60,8 +60,7 @@ class ConsoleApplication(BaseApplication):
 
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
-        results_options.add_option('-f', '--formatter', default='multiline', choices=formatters.keys(),
-                                   help='select output formatter (%s)' % u','.join(formatters.keys()))
+        results_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
         results_options.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
         self._parser.add_option_group(results_options)
 
@@ -73,7 +72,11 @@ class ConsoleApplication(BaseApplication):
         pass
 
     def _handle_app_options(self):
-        self.formatter = formatters[self.options.formatter]
+        if self.options.formatter:
+            formatter_name = self.options.formatter
+        else:
+            formatter_name = 'multiline'
+        self.formatter = load_formatter(formatter_name)
 
         if self.options.no_header:
             self.formatter.display_header = False
@@ -205,7 +208,11 @@ class ConsoleApplication(BaseApplication):
     def command(doc_string, f=register_command):
         return partial(f, doc_string=doc_string)
 
-    def set_header(self, string):
+    def set_default_formatter(self, name):
+        if not self.options.formatter:
+            self.formatter = load_formatter(name)
+
+    def set_formatter_header(self, string):
         self.formatter.set_header(string)
 
     def format(self, result, backend_name=None):

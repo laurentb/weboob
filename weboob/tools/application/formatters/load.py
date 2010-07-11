@@ -15,30 +15,28 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from .multiline import MultilineFormatter
-from .simple import SimpleFormatter
+
+__all__ = ['load_formatter']
 
 
-__all__ = ['formatters']
+formatters = ('htmltable', 'multiline', 'simple', 'table', 'webkit')
+            
 
-
-formatters = dict(
-    multiline=MultilineFormatter(),
-    simple=SimpleFormatter(),
-    )
-
-try:
-    from .table import TableFormatter
-    formatters.update(dict(
-        table=TableFormatter(),
-        htmltable=TableFormatter(result_funcname='get_html_string'),
-        ))
-    try:
+def load_formatter(name):
+    if name not in formatters:
+        raise Exception(u'Formatter "%s" not found' % name)
+    if name in ('htmltable', 'table'):
+        from .table import TableFormatter
+        if name == 'htmltable':
+            return TableFormatter(result_funcname='get_html_string')
+        elif name == 'table':
+            return TableFormatter()
+    elif name == 'simple':
+        from .simple import SimpleFormatter
+        return SimpleFormatter()
+    elif name == 'multiline':
+        from .multiline import MultilineFormatter
+        return MultilineFormatter()
+    elif name == 'webkit':
         from .webkit import WebkitGtkFormatter
-        formatters.update(dict(
-            webkit=WebkitGtkFormatter(),
-            ))
-    except ImportError:
-        pass
-except ImportError:
-    pass
+        return WebkitGtkFormatter()

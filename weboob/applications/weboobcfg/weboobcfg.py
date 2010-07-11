@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 import ConfigParser
 import logging
 import os
@@ -22,6 +23,7 @@ import subprocess
 import re
 
 from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['WeboobCfg']
@@ -30,7 +32,7 @@ __all__ = ['WeboobCfg']
 class WeboobCfg(ConsoleApplication):
     APPNAME = 'weboobcfg'
     VERSION = '0.1'
-    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
 
     def main(self, argv):
         return self.process_command(*argv[1:])
@@ -42,22 +44,18 @@ class WeboobCfg(ConsoleApplication):
                 return False
         return True
 
-    @ConsoleApplication.command('List modules')
-    def command_modules(self, *caps):
-        print '  Name            Capabilities          Description                             '
-        print '+--------------+----------------------+----------------------------------------+'
+    @ConsoleApplication.command('List backends')
+    def command_backends(self, *caps):
+        self.set_default_formatter('table')
         self.weboob.modules_loader.load()
-        for name, module in self.weboob.modules_loader.modules.iteritems():
-            if caps and not self.caps_included(module.iter_caps(), caps):
+        for name, backend in self.weboob.modules_loader.modules.iteritems():
+            if caps and not self.caps_included(backend.iter_caps(), caps):
                 continue
-
-            first_line = True
-            for cap in module.iter_caps():
-                if first_line:
-                    print '  %-14s %-21s %s' % (name, cap.__name__, module.get_description())
-                    first_line = False
-                else:
-                    print '                 %s' % cap.__name__
+            row = OrderedDict([('Name', name),
+                               ('Capabilities', ', '.join(cap.__name__ for cap in backend.iter_caps())),
+                               ('Description', backend.get_description()),
+                               ])
+            self.format(row)
 
     @ConsoleApplication.command('List applications')
     def command_applications(self, *caps):
@@ -71,24 +69,24 @@ class WeboobCfg(ConsoleApplication):
                     applications.add(m.group(1))
         print ' '.join(sorted(applications)).encode('utf-8')
 
-    @ConsoleApplication.command('Display a module')
-    def command_modinfo(self, name):
+    @ConsoleApplication.command('Display information about a backend')
+    def command_info(self, name):
         try:
-            module = self.weboob.modules_loader.get_or_load_module(name)
+            backend = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
-            logging.error('No such module: %s' % name)
+            logging.error('No such backend: "%s"' % name)
             return 1
 
         print '.------------------------------------------------------------------------------.'
-        print '| Module %-69s |' % module.get_name()
+        print '| Backend %-68s |' % backend.get_name()
         print "+-----------------.------------------------------------------------------------'"
-        print '| Version         | %s' % module.get_version()
-        print '| Maintainer      | %s' % module.get_maintainer()
-        print '| License         | %s' % module.get_license()
-        print '| Description     | %s' % module.get_description()
-        print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in module.iter_caps()])
+        print '| Version         | %s' % backend.get_version()
+        print '| Maintainer      | %s' % backend.get_maintainer()
+        print '| License         | %s' % backend.get_license()
+        print '| Description     | %s' % backend.get_description()
+        print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in backend.iter_caps()])
         first = True
-        for key, field in module.get_config().iteritems():
+        for key, field in backend.get_config().iteritems():
             value = field.description
             if not field.default is None:
                 value += ' (default: %s)' % field.default
@@ -98,7 +96,7 @@ class WeboobCfg(ConsoleApplication):
                 first = False
             else:
                 print '|                 | %s: %s' % (key, value)
-        print "'-----------------'                                                             "
+        print "'-----------------'"
 
 
     @ConsoleApplication.command('Add a configured backend')
@@ -157,19 +155,22 @@ class WeboobCfg(ConsoleApplication):
                     except ConfigParser.DuplicateSectionError:
                         print u'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
-    @ConsoleApplication.command('List backends')
-    def command_list(self):
-        print '  Instance Name   Name           Params                                          '
-        print '+---------------+--------------+------------------------------------------------+'
+    @ConsoleApplication.command('List configured backends')
+    def command_configured(self):
+        self.set_default_formatter('table')
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            print '  %-15s %-14s %-47s' % (instance_name, name, ', '.join('%s=%s' % (key, value) for key, value in params.iteritems()))
+            row = OrderedDict([('Instance name', instance_name),
+                               ('Backend name', name),
+                               ('Configuration', ', '.join('%s=%s' % (key, value) for key, value in params.iteritems())),
+                               ])
+            self.format(row)
 
-    @ConsoleApplication.command('Remove a backend')
+    @ConsoleApplication.command('Remove a configured backend')
     def command_remove(self, instance_name):
         try:
             self.weboob.backends_config.remove_backend(instance_name)
         except ConfigParser.NoSectionError:
-            logging.error("Backend '%s' does not exist" % instance_name)
+            logging.error('Backend instance "%s" does not exist' % instance_name)
             return 1
 
     @ConsoleApplication.command('Edit configuration file')
