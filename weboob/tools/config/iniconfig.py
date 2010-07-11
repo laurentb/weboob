@@ -50,10 +50,10 @@ class INIConfig(IConfig):
             for section in self.config.sections():
                 self.values = load_section(section)
             self.values.update(self.config.items('DEFAULT'))
-            logging.debug(u'Frontend configuration file loaded: %s.' % self.path)
+            logging.debug(u'Application configuration file loaded: %s.' % self.path)
         else:
             self.save()
-            logging.debug(u'Frontend configuration file created with default values: %s. '
+            logging.debug(u'Application configuration file created with default values: %s. '
                           'Please customize it.' % self.path)
         return self.values
 
