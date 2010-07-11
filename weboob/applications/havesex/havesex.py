@@ -42,11 +42,11 @@ class HaveSex(PromptApplication):
 
         self.weboob.do('init_optimizations').wait()
 
-        optimizations_str = self.config.get('optimizations').strip()
-        if optimizations_str:
-            optimizations = optimizations_str.split(' ')
-            if optimizations:
-                self.optims('Starting', 'start_optimization', optimizations)
+        optimizations = self.config.get('optimizations')
+        if optimizations:
+            optimizations_list = optimizations.strip().split(' ')
+            if optimizations_list:
+                self.optims('Starting', 'start_optimization', optimizations_list)
 
         return self.loop()
 
