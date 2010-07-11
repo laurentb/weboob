@@ -98,8 +98,6 @@ class BaseApplication(object):
         @return  a IStorage object
         """
         if klass is None:
-            # load StandardStorage only here because some applications don't
-            # want to depend on yaml and do not use this function
             from weboob.tools.storage import StandardStorage
             klass = StandardStorage
 
@@ -122,10 +120,6 @@ class BaseApplication(object):
         @return  a IConfig object
         """
         if klass is None:
-            # load Config only here because some applications don't want
-            # to depend on yaml and do not use this function
-            # from weboob.tools.config.yamlconfig import YamlConfig
-            # klass = YamlConfig
             from weboob.tools.config.iniconfig import INIConfig
             klass = INIConfig
 
