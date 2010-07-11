@@ -41,10 +41,10 @@ from weboob.backends.aum.pages.wait import WaitPage
 from weboob.capabilities.chat import ChatException, ChatMessage
 
 
-__all__ = ['AdopteUnMec']
+__all__ = ['AuMBrowser']
 
 
-class AdopteUnMec(BaseBrowser):
+class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     PROTOCOL = 'http'
     ENCODING = 'iso-8859-1'

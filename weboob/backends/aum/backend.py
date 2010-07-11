@@ -30,7 +30,7 @@ from weboob.capabilities.dating import ICapDating, StatusField
 from weboob.capabilities.contact import ICapContact, Contact, ProfileNode
 from weboob.tools.browser import BrowserUnavailable
 
-from .browser import AdopteUnMec
+from .browser import AuMBrowser
 from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
 from .optim.visibility import Visibility
@@ -53,13 +53,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     STORAGE = {'profiles_walker': {'viewed': []},
                'sluts': {},
               }
-    BROWSER = AdopteUnMec
+    BROWSER = AuMBrowser
 
     def default_browser(self):
         return self.build_browser(self.config['username'], self.config['password'])
-
-    # Private
-    _profiles_walker = None
 
     def get_status(self):
         with self.browser:
