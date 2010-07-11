@@ -36,6 +36,7 @@ setup(
     license='GPLv3',
     url='http://www.weboob.org',
     packages=find_packages(),
+    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
     install_requires=[
         ],
 )
