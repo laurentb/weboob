@@ -18,6 +18,7 @@
 
 from __future__ import with_statement
 
+import logging
 import sys
 
 import weboob
@@ -57,11 +58,11 @@ class HaveSex(PromptApplication):
         found = 0
         for backend, profile in self.weboob.do_backends(backend_name, 'get_profile', _id):
             if profile:
-                print profile.get_profile_text()
+                print profile.get_profile_text().encode('utf-8')
                 found = 1
 
         if not found:
-            print >>sys.stderr, 'Profile not found'
+            logging.error(u'Profile not found')
 
         return True
 
@@ -80,7 +81,7 @@ class HaveSex(PromptApplication):
             except weboob.core.CallErrors, errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
-                        print 'Optimization "%s" not found' % optim
+                        logging.error(u'Optimization "%s" not found' % optim)
 
     @PromptApplication.command("start optimizations")
     def command_start(self, *optims):
