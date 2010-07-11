@@ -42,7 +42,11 @@ class HaveSex(PromptApplication):
 
         self.weboob.do('init_optimizations').wait()
 
-        self.optims('Starting', 'start_optimization', self.config.get('optimizations').split(' '))
+        optimizations_str = self.config.get('optimizations').strip()
+        if optimizations_str:
+            optimizations = optimizations_str.split(' ')
+            if optimizations:
+                self.optims('Starting', 'start_optimization', optimizations)
 
         return self.loop()
 
@@ -77,7 +81,7 @@ class HaveSex(PromptApplication):
     def optims(self, action, function, optims):
         for optim in optims:
             try:
-                self.service('Starting %s' % optim, 'start_optimization', optim)
+                self.service('Starting "%s"' % optim, 'start_optimization', optim)
             except weboob.core.CallErrors, errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
