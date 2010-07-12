@@ -17,9 +17,9 @@
 
 
 import datetime
+import logging
 import re
 import urllib
-from logging import warning
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.browser.decorators import check_domain, id2url
@@ -54,7 +54,7 @@ class YoujizzBrowser(BaseBrowser):
                 return None
             else:
                 if len(video_file_urls) > 1:
-                    warning('Many video file URL found for given URL: %s' % video_file_urls)
+                    logging.warning('Many video file URL found for given URL: %s' % video_file_urls)
                 return video_file_urls[0]
         m = re.search(r'http://.*youjizz\.com/videos/(.+)\.html', url)
         _id = unicode(m.group(1)) if m else None
@@ -84,7 +84,11 @@ class YoujizzBrowser(BaseBrowser):
 
         for video in self.page.iter_videos():
             if required_fields is not None:
-                required_fields_missing = set(required_fields) - set(iter_fields(video))
-                if required_fields_missing:
+                missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
+                if missing_required_fields:
+                    logging.debug(u'Completing missing required fields: %s' % missing_required_fields)
                     self.get_video(video.id, video=video)
+                    missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
+                    if missing_required_fields:
+                        raise Exception(u'Could not load all required fields. Missing: %s' % missing_required_fields)
             yield video
