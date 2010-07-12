@@ -48,7 +48,7 @@ class VideoPage(PornPage):
             return el[0].cssselect('a')[0].attrib['href']
 
     def get_title(self):
-        el = self.document.getroot().cssselect('h1')
+        el = self.document.getroot().cssselect('#videoArea h1')
         if el:
             return unicode(el[0].getchildren()[0].tail).strip()
 
