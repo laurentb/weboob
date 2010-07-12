@@ -17,6 +17,7 @@
 
 
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser.decorators import id2url
 
 from .pages.video import VideoPage
 from .video import InaVideo
