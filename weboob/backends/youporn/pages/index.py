@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
+
 from .base import PornPage
 from ..video import YoupornVideo
 
@@ -47,12 +49,12 @@ class IndexPage(PornPage):
                 _id = _id[:_id.find('/')]
                 title = a.text.strip()
 
-                duration = 0
+                minutes = seconds = 0
                 div = li.cssselect('div[class=duration_views]')
                 if div:
                     h2 = div[0].find('h2')
-                    duration = 60 * int(h2.text.strip())
-                    duration += int(h2.find('span').tail.strip())
+                    minutes = int(h2.text.strip())
+                    seconds = int(h2.find('span').tail.strip())
 
                 rating = 0
                 rating_max = 0
@@ -66,6 +68,6 @@ class IndexPage(PornPage):
                                    title=title,
                                    rating=rating,
                                    rating_max=rating_max,
-                                   duration=duration,
+                                   duration=datetime.timedelta(minutes=minutes, seconds=seconds),
                                    thumbnail_url=thumbnail_url,
                                    )
