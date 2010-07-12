@@ -54,7 +54,7 @@ class Comment(object):
                 self.comments.append(comment)
 
     def parse_date(self, date_s):
-        return local2utc(datetime.strptime(unicode(date_s.strip()), u'le %d/%m/%Y à %H:%M.'))
+        return local2utc(datetime.strptime(date_s.strip().encode('utf-8'), u'le %d/%m/%Y \xe0 %H:%M.'.encode('utf-8')))
 
     def iter_all_comments(self):
         for comment in self.comments:
