@@ -61,11 +61,12 @@ class ConsoleApplication(BaseApplication):
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
         results_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
-        results_options.add_option('-s', '--select', help='select result item key(s) to display (comma-separated)')
+        results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
         self._parser.add_option_group(results_options)
 
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
-        formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='display only objects fields')
+        formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
+        formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
 
     def add_application_options(self, group):
@@ -81,10 +82,11 @@ class ConsoleApplication(BaseApplication):
         if self.options.no_header:
             self.formatter.display_header = False
 
+        if self.options.no_keys:
+            self.formatter.display_keys = False
+
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
-            if '*' not in self.selected_fields:
-                self.formatter.display_keys = False
         else:
             self.selected_fields = None
 
@@ -231,6 +233,8 @@ class ConsoleApplication(BaseApplication):
             logging.error(u'Cannot start application: no configured backend was found.\nHere is a list of all available backends:')
             from weboob.applications.weboobcfg import WeboobCfg
             weboobcfg = WeboobCfg()
+            weboobcfg.options, args = weboobcfg._parser.parse_args([])
+            weboobcfg._handle_app_options()
             if caps is not None:
                 if not isinstance(caps, (list, tuple, set)):
                     caps = (caps,)
@@ -254,5 +258,5 @@ class ConsoleApplication(BaseApplication):
             logging.error(e)
 
     def do(self, function, *args, **kwargs):
-        kwargs['required_fields'] = self.options.select
+        kwargs['required_fields'] = set(self.selected_fields) - set('*')
         return self.weboob.do(function, *args, **kwargs)
