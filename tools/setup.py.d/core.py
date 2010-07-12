@@ -61,7 +61,7 @@ setup(
         'weboob.tools.parsers',
         ],
     scripts=[
-        'scripts/weboobcfg',
+        'scripts/weboob-config',
         'scripts/weboob-debug',
         'scripts/weboob-tests',
         ],

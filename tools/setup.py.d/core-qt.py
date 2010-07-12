@@ -49,7 +49,7 @@ setup(
 	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
         ],
     scripts=[
-        'scripts/qweboobcfg',
+        'scripts/weboob-config-qt',
         ],
     install_requires=[
         'weboob-core',
