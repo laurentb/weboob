@@ -314,11 +314,11 @@ class BaseBrowser(mechanize.Browser):
         # Not found
         if not pageCls:
             self.page = None
-            r = result.read()
-            if isinstance(r, unicode):
-                r = r.encode('iso-8859-15', 'replace')
-            print r
-            warning('Ho my fucking god, there isn\'t any page named %s' % result.geturl())
+            #data = result.read()
+            #if isinstance(data, unicode):
+            #    data = data.encode('utf-8')
+            #print data
+            warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
             return
 
         debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
