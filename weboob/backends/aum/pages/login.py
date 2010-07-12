@@ -28,36 +28,39 @@ class LoginPage(PageBase):
         self.browser.submit()  # submit current form
 
 class RegisterPage(PageBase):
-    def register(self, nickname, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather):
-        """ form2:
-              - pseudo
-              - email
-              - password
-              - sex (0=m, 1=f)
-              - birthday0 (0-31)
-              - birthday1 (0-12)
-              - birthday2 (1930-1999)
-              - zip
-              - country (fr,be,ch,ca)
-              - godfather
+    def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, captcha):
         """
-        self.browser.select_form(name="form2")
-        self.browser.controls.pop() # pop the 'sex' control which is twice on page
+Form name=register (#1)
+## ## __Name__________________ __Type___ __ID________ __Value__________________
+1     sent1time                hidden    (None)        
+2     sex                      radio     sex-0        [] of ['0', '1'] 
+3     birthday0                select    birthday0    ['0'] of ['0', '1', '2', '3', '4', ' ... 
+4     birthday1                select    birthday1    ['0'] of ['0', '1', '2', '3', '4', ' ... 
+5     birthday2                select    birthday2    ['0'] of ['0', '1992', '1991', '1990 ... 
+6     country                  select    country      ['0'] of ['0', 'fr', 'be', 'ch', 'ca'] 
+7     zip                      text      zip           
+8     email                    text      email         
+9     pass                     password  pass          
+10    pass_retype              password  pass_retype   
+11    captcha                  text      captcha       
+12    swear_adult              checkbox  swear_adult  [] of ['on'] 
+13    want_goods               checkbox  want_goods   [] of ['on'] 
+        """
+        self.browser.select_form(name='register')
         self.browser.set_all_readonly(False)
 
-        if isinstance(nickname, unicode):
-            nickname = nickname.encode('iso-8859-15', 'ignore')
-        self.browser['pseudo'] = nickname
-        self.browser['email'] = self.browser.username
-        self.browser['pass'] = password
-        self.browser['sex0'] = [str(sex)]
         self.browser['sex'] = str(sex)
         self.browser['birthday0'] = [str(birthday_d)]
         self.browser['birthday1'] = [str(birthday_m)]
         self.browser['birthday2'] = [str(birthday_y)]
-        self.browser['zip'] = str(zipcode)
         self.browser['country'] = [str(country)]
-        self.browser['godfather'] = godfather
+        self.browser['zip'] = str(zipcode)
+        self.browser['email'] = self.browser.username
+        self.browser['pass'] = password
+        self.browser['pass_retype'] = password
+        self.browser['captcha'] = captcha
+        self.browser['swear_adult'] = ['on']
+        self.browser['want_goods'] = []
 
         self.browser.submit()
 
