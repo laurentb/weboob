@@ -233,8 +233,8 @@ class ConsoleApplication(BaseApplication):
     register_command = staticmethod(register_command)
     command = staticmethod(command)
 
-    def load_backends(self, caps=None, names=None, *args, **kwargs):
-        loaded_backends = BaseApplication.load_backends(self, caps, names, *args, **kwargs)
+    def load_configured_backends(self, caps=None, names=None, *args, **kwargs):
+        loaded_backends = BaseApplication.load_configured_backends(self, caps, names, *args, **kwargs)
         if not loaded_backends:
             logging.error(u'Cannot start application: no configured backend was found.\nHere is a list of all available backends:')
             from weboob.applications.weboobcfg import WeboobCfg
