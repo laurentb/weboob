@@ -29,12 +29,10 @@ class VideoPage(PornPage):
     def on_loaded(self):
         if not PornPage.on_loaded(self):
             return
-
         self.video = YoupornVideo(self.get_id(),
                                   self.get_title(),
                                   self.get_url(),
-                                  nsfw=True)
-
+                                  )
         self.set_details(self.video)
 
     def get_id(self):

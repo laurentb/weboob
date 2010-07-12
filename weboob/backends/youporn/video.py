@@ -23,6 +23,10 @@ __all__ = ['YoupornVideo']
 
 
 class YoupornVideo(BaseVideo):
+    def __init__(self, *args, **kwargs):
+        BaseVideo.__init__(self, *args, **kwargs)
+        self.nsfw = True
+
     @classmethod
     def id2url(cls, _id):
         if _id.isdigit():

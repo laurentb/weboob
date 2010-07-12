@@ -37,7 +37,6 @@ class YoujizzBackend(BaseBackend, ICapVideo):
 
     def get_video(self, _id):
         video = self.browser.get_video(_id)
-        video.nsfw = True
         return video
 
     def iter_page_urls(self, mozaic_url):
@@ -47,5 +46,4 @@ class YoujizzBackend(BaseBackend, ICapVideo):
         if not nsfw:
             yield iter(set())
         for video in self.browser.iter_search_results(pattern, required_fields=required_fields):
-            video.nsfw = True
             yield video
