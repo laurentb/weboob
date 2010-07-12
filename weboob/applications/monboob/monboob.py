@@ -153,7 +153,7 @@ class Monboob(ConsoleApplication):
             bname = to
 
         try:
-            backend = self.weboob.backends[bname]
+            backend = self.weboob.backend_instances[bname]
         except KeyError:
             print >>sys.stderr, 'Backend %s not found' % bname
             return 1
