@@ -20,15 +20,11 @@ from __future__ import with_statement
 
 from logging import warning
 import os
-import sys
 
 from weboob.core.bcall import BackendsCall
 from weboob.core.backends import BackendsConfig, BackendsLoader
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
-
-if sys.version_info[:2] <= (2, 5):
-    import weboob.tools.property
 
 
 __all__ = ['Weboob']
