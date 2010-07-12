@@ -16,8 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.core.backend import BaseBackend
 from weboob.capabilities.travel import ICapTravel, Station, Departure
+from weboob.tools.backend import BaseBackend
 
 from .browser import CanalTP
 

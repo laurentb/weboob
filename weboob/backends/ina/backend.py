@@ -19,7 +19,7 @@
 from logging import debug
 
 from weboob.capabilities.video import ICapVideo
-from weboob.core.backend import BaseBackend
+from weboob.tools.backend import BaseBackend
 
 from .browser import InaBrowser
 

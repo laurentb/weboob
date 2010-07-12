@@ -21,7 +21,7 @@ import os
 from threading import RLock
 
 
-__all__ = ['BackendStorage', 'BaseBackend']
+__all__ = ['BaseBackend']
 
 
 class BackendStorage(object):
@@ -47,23 +47,24 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.save('backends', self.name)
 
+
 class BaseBackend(object):
-    # Module name.
+    # Backend name.
     NAME = None
-    # Name of the maintainer of this module.
-    MAINTAINER = '<unspecifier>'
+    # Name of the maintainer of this backend.
+    MAINTAINER = '<unspecified>'
     # Email address of the maintainer.
     EMAIL = '<unspecified>'
-    # Version of module (for information only).
+    # Version of backend (for information only).
     VERSION = '<unspecified>'
     # Description
     DESCRIPTION = '<unspecified>'
-    # License of this module.
+    # License of this backend.
     LICENSE = '<unspecified>'
     # Icon file path
     ICON = ''
-    # Configuration required for this module.  # Values must be ConfigField
-    # objects.
+    # Configuration required for this backend.
+    # Values must be ConfigField objects.
     CONFIG = {}
     # Storage
     STORAGE = {}

@@ -22,8 +22,8 @@ from xml.dom import minidom
 # TODO store datetime objects instead of strings
 # from datetime import datetime
 
-from weboob.core.backend import BaseBackend
 from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Forecast
+from weboob.tools.backend import BaseBackend
 
 
 __all__ = ['YWeatherBackend']
