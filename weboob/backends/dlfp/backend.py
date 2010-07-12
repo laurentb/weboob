@@ -17,12 +17,16 @@
 
 from __future__ import with_statement
 
-from weboob.core.backend import BaseBackend
+from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
 
 from .feeds import ArticlesList
 from .browser import DLFP
+
+
+__all__ = ['DLFPBackend']
+
 
 class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     NAME = 'dlfp'

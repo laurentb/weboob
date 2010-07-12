@@ -30,7 +30,6 @@ class Weboorrents(ConsoleApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-    CONFIG = {}
 
     def main(self, argv):
         self.load_configured_backends(ICapTorrent)

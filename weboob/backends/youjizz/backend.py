@@ -33,7 +33,6 @@ class YoujizzBackend(BaseBackend, ICapVideo):
     DESCRIPTION = 'Youjizz videos website'
     LICENSE = 'GPLv3'
 
-    CONFIG = {}
     BROWSER = YoujizzBrowser
 
     def get_video(self, _id):

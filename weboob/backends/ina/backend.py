@@ -35,7 +35,6 @@ class InaBackend(BaseBackend, ICapVideo):
     DESCRIPTION = 'INA french video archives'
     LICENSE = 'GPLv3'
 
-    CONFIG = {}
     BROWSER = InaBrowser
 
     def get_video(self, _id):

@@ -33,5 +33,5 @@ class PornPage(BasePage):
             self.browser.select_form(nr=0)
             self.browser.submit(name='user_choice')
             return False
-        except (ControlNotFoundError,FormNotFoundError):
+        except (ControlNotFoundError, FormNotFoundError):
             return True

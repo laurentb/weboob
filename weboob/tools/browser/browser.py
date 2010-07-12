@@ -50,27 +50,42 @@ __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'B
 class BrowserIncorrectPassword(Exception):
     pass
 
+
 class BrowserBanned(BrowserIncorrectPassword):
     pass
+
 
 class BrowserUnavailable(Exception):
     pass
 
+
 class BrowserRetry(Exception):
     pass
 
+
 class ExpectedElementNotFound(Exception):
     pass
+
 
 class NoHistory(object):
     """
     We don't want to fill memory with history
     """
-    def __init__(self): pass
-    def add(self, request, response): pass
-    def back(self, n, _response): pass
-    def clear(self): pass
-    def close(self): pass
+    def __init__(self):
+        pass
+
+    def add(self, request, response):
+        pass
+
+    def back(self, n, _response):
+        pass
+
+    def clear(self):
+        pass
+
+    def close(self):
+        pass
+
 
 class BasePage(object):
     """

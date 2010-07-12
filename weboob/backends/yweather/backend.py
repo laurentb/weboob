@@ -25,6 +25,10 @@ from xml.dom import minidom
 from weboob.core.backend import BaseBackend
 from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Forecast
 
+
+__all__ = ['YWeatherBackend']
+
+
 class YWeatherBackend(BaseBackend, ICapWeather):
     NAME = 'yweather'
     MAINTAINER = 'Romain Bignon'
@@ -59,4 +63,5 @@ class YWeatherBackend(BaseBackend, ICapWeather):
                            int(forecast.getAttribute('low')),
                            int(forecast.getAttribute('high')),
                            forecast.getAttribute('text'),
-                           'C')
+                           'C',
+                           )

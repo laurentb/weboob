@@ -33,7 +33,6 @@ class YoupornBackend(BaseBackend, ICapVideo):
     DESCRIPTION = 'Youporn videos website'
     LICENSE = 'GPLv3'
 
-    CONFIG = {}
     BROWSER = YoupornBrowser
 
     def get_video(self, _id):

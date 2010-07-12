@@ -15,14 +15,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from __future__ import with_statement
 
 from logging import warning
 
-from weboob.core.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, Message
+from weboob.tools.backend import BaseBackend
 
 from .browser import FourChan
+
+
+__all__ = ['FourChanBackend']
+
 
 class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
@@ -32,7 +37,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
 
-    CONFIG = {'boards':        BaseBackend.ConfigField(description='Boards'),
+    CONFIG = {'boards': BaseBackend.ConfigField(description='Boards'),
              }
     STORAGE = {'boards': {}}
     BROWSER = FourChan

@@ -17,7 +17,6 @@
 
 
 from copy import deepcopy
-from logging import error
 
 from .config.yamlconfig import YamlConfig
 

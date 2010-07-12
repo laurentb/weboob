@@ -29,7 +29,7 @@ from weboob.tools.browser import BasePage
 from ..video import InaVideo
 
 
-__ALL__ = ['VideoPage']
+__all__ = ['VideoPage']
 
 
 class VideoPage(BasePage):

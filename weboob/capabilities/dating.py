@@ -19,10 +19,12 @@
 from .cap import ICap
 
 
-__all__ = ['ICapDating', 'Profile']
+__all__ = ['ICapDating']
 
 
-class OptimizationNotFound(Exception): pass
+class OptimizationNotFound(Exception):
+    pass
+
 
 class Optimization(object):
     def start(self):
@@ -30,6 +32,7 @@ class Optimization(object):
 
     def stop(self):
         raise NotImplementedError()
+
 
 class StatusField(object):
     FIELD_TEXT    = 0x001     # the value is a long text
@@ -40,6 +43,7 @@ class StatusField(object):
         self.label = label
         self.value = value
         self.flags = flags
+
 
 class ICapDating(ICap):
     def get_status(self):

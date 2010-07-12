@@ -21,6 +21,10 @@ from weboob.capabilities.travel import ICapTravel, Station, Departure
 
 from .browser import CanalTP
 
+
+__all__ = ['CanalTPBackend']
+
+
 class CanalTPBackend(BaseBackend, ICapTravel):
     NAME = 'canaltp'
     MAINTAINER = 'Romain Bignon'
