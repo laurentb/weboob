@@ -321,7 +321,7 @@ class BaseBrowser(mechanize.Browser):
             warning('Ho my fucking god, there isn\'t any page named %s' % result.geturl())
             return
 
-        debug('[%s] Went on %s' % (self.username, result.geturl()))
+        debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
         document = self.parser.parse(result, self.ENCODING)
