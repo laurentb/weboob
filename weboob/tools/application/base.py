@@ -200,11 +200,6 @@ class BaseApplication(object):
         log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         app.requested_backends = app.options.backends.split(',') if app.options.backends else None
-        if app.requested_backends:
-            existing_backend_names = list(app.weboob.backends_loader.iter_existing_backend_names())
-            for requested_backend in app.requested_backends:
-                if requested_backend not in existing_backend_names:
-                    raise BackendNotFound(u'Unknown backend: "%s"' % requested_backend)
 
         app._handle_app_options()
 
