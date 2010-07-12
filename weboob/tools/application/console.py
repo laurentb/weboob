@@ -212,7 +212,13 @@ class ConsoleApplication(BaseApplication):
 
     def set_default_formatter(self, name):
         if not self.options.formatter:
-            self.formatter = load_formatter(name)
+            try:
+                self.formatter = load_formatter(name)
+            except ImportError:
+                default_name = 'multiline'
+                logging.error('Could not load default formatter "%s" for this command. Falling back to "%s".' % (
+                    name, default_name))
+                self.formatter = load_formatter(default_name)
 
     def set_formatter_header(self, string):
         self.formatter.set_header(string)
