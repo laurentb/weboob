@@ -91,10 +91,12 @@ class BasePage(object):
     """
     Base page
     """
-    def __init__(self, browser, document, url=''):
+    def __init__(self, browser, document, url='', groups=None, group_dict=None):
         self.browser = browser
         self.document = document
         self.url = url
+        self.groups = groups
+        self.group_dict = group_dict
 
     def on_loaded(self):
         """
@@ -304,11 +306,15 @@ class BaseBrowser(mechanize.Browser):
 
         # Find page from url
         pageCls = None
+        page_groups = None
+        page_group_dict = None
         for key, value in self.PAGES.items():
             regexp = re.compile('^%s$' % key)
             m = regexp.match(result.geturl())
             if m:
                 pageCls = value
+                page_groups = m.groups()
+                page_group_dict = m.groupdict()
                 break
 
         # Not found
@@ -325,7 +331,7 @@ class BaseBrowser(mechanize.Browser):
         self.last_update = time.time()
 
         document = self.parser.parse(result, self.ENCODING)
-        self.page = pageCls(self, document, result.geturl())
+        self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict)
         self.page.on_loaded()
 
         if self.password is not None and not self.is_logged():
