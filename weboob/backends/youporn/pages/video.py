@@ -20,27 +20,21 @@ import re
 import datetime
 from logging import warning
 
+from weboob.tools.browser import ExpectedElementNotFound
+
 from .base import PornPage
 from ..video import YoupornVideo
 
-class VideoPage(PornPage):
-    URL_REGEXP = re.compile("https?://[w\.]*youporn.com/watch/(\d+)/?.*")
 
+class VideoPage(PornPage):
     def on_loaded(self):
         if not PornPage.on_loaded(self):
             return
-        self.video = YoupornVideo(self.get_id(),
+        self.video = YoupornVideo(self.group_dict['id'],
                                   self.get_title(),
                                   self.get_url(),
                                   )
         self.set_details(self.video)
-
-    def get_id(self):
-        m = self.URL_REGEXP.match(self.url)
-        if m:
-            return int(m.group(1))
-        warning("Unable to parse ID")
-        return 0
 
     def get_url(self):
         el = self.document.getroot().cssselect('div[id=download]')
@@ -48,9 +42,12 @@ class VideoPage(PornPage):
             return el[0].cssselect('a')[0].attrib['href']
 
     def get_title(self):
-        el = self.document.getroot().cssselect('#videoArea h1')
-        if el:
-            return unicode(el[0].getchildren()[0].tail).strip()
+        selector = '#videoArea h1'
+        try:
+            element = self.document.getroot().cssselect(selector)[0]
+        except IndexError:
+            raise ExpectedElementNotFound(selector)
+        return unicode(element.getchildren()[0].tail).strip()
 
     DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")
     MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

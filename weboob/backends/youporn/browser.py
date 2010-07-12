@@ -35,8 +35,8 @@ class YoupornBrowser(BaseBrowser):
     PROTOCOL = 'http'
     PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
              'http://[w\.]*youporn\.com/search.*': IndexPage,
-             'http://[w\.]*youporn\.com/watch/.+': VideoPage,
-             'http://[w\.]*youporngay\.com:80/watch/.+': VideoPage,
+             'http://[w\.]*youporn\.com/watch/(?P<id>.+)': VideoPage,
+             'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
             }
 
     @id2url(YoupornVideo.id2url)
