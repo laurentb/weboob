@@ -97,7 +97,7 @@ class BackendsCall(object):
                 except Exception, error:
                     self._store_error(backend, error)
                 else:
-                    debug('%s: Called function %s returned: "%s"' % (backend, function, result))
+                    debug('%s: Called function %s returned: %r' % (backend, function, result))
 
                     if hasattr(result, '__iter__'):
                         # Loop on iterator
