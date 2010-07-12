@@ -264,5 +264,6 @@ class ConsoleApplication(BaseApplication):
             logging.error(e)
 
     def do(self, function, *args, **kwargs):
-        kwargs['required_fields'] = set(self.selected_fields) - set('*')
+        if self.selected_fields:
+            kwargs['required_fields'] = set(self.selected_fields) - set('*')
         return self.weboob.do(function, *args, **kwargs)
