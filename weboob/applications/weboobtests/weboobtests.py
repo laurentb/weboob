@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from nose import run
 
 from weboob.tools.application.console import ConsoleApplication
@@ -32,13 +33,13 @@ class WeboobTests(ConsoleApplication):
 
     @ConsoleApplication.command('Run tests')
     def command_run(self):
-        self.load_modules()
         self.load_backends()
+        self.load_configured_backends()
 
         suite = []
         for backend in self.weboob.iter_backends():
-            t = backend.get_test()
-            if t:
-                suite.append(t)
+            test = backend.get_test()
+            if test:
+                suite.append(test)
 
         return run(suite=suite)

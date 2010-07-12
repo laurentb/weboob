@@ -29,7 +29,7 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionModules"/>
+    <addaction name="actionBackends"/>
     <addaction name="actionRefresh"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -47,12 +47,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionModules"/>
+   <addaction name="actionBackends"/>
    <addaction name="actionRefresh"/>
   </widget>
-  <action name="actionModules">
+  <action name="actionBackends">
    <property name="text">
-    <string>Modules</string>
+    <string>Backends</string>
    </property>
   </action>
   <action name="actionQuit">

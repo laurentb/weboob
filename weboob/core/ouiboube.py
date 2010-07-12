@@ -23,9 +23,9 @@ import os
 import sys
 
 from weboob.core.bcall import BackendsCall
-from weboob.core.modules import ModulesLoader, BackendsConfig
-from weboob.core.backend import BaseBackend
+from weboob.core.backends import BackendsConfig, BackendsLoader
 from weboob.core.scheduler import Scheduler
+from weboob.tools.backend import BaseBackend
 
 if sys.version_info[:2] <= (2, 5):
     import weboob.tools.property
@@ -40,7 +40,7 @@ class Weboob(object):
 
     def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None):
         self.workdir = workdir
-        self.backends = {}
+        self.backend_instances = {}
 
         # Scheduler
         if scheduler is None:
@@ -53,10 +53,10 @@ class Weboob(object):
         elif not os.path.isdir(self.workdir):
             warning('"%s" is not a directory' % self.workdir)
 
-        # Modules loader
-        self.modules_loader = ModulesLoader()
+        # Backends loader
+        self.backends_loader = BackendsLoader()
 
-        # Backends config
+        # Backend instances config
         if not backends_filename:
             backends_filename = os.path.join(self.workdir, self.BACKENDS_FILENAME)
         elif not backends_filename.startswith('/'):
@@ -64,41 +64,26 @@ class Weboob(object):
         self.backends_config = BackendsConfig(backends_filename)
 
     def load_backends(self, caps=None, names=None, storage=None):
-        loaded_backends = {}
-        for name, _type, params in self.backends_config.iter_backends():
-            try:
-                module = self.modules_loader.get_or_load_module(_type)
-            except KeyError:
-                warning(u'Unable to find module "%s" for backend "%s"' % (_type, name))
+        loaded = {}
+        self.backends_loader.load_all()
+        for backend_name, backend in self.backends_loader.loaded.iteritems():
+            if caps is not None and not backend.has_caps(caps) or \
+                    names is not None and backend_name not in names:
                 continue
+            backend_instance = backend.create_instance(self, backend_name, {}, storage)
+            self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
+        return loaded
 
-            # Check conditions
-            if caps is not None and not module.has_caps(caps) or \
-                    names is not None and name not in names:
+    def load_configured_backends(self, caps=None, names=None, storage=None):
+        loaded = {}
+        for instance_name, backend_name, params in self.backends_config.iter_backends():
+            backend = self.backends_loader.get_or_load_backend(backend_name)
+            if caps is not None and not backend.has_caps(caps) or \
+                    names is not None and instance_name not in names:
                 continue
-
-            try:
-                self.backends[name] = module.create_backend(self, name, params, storage)
-                loaded_backends[name] = self.backends[name]
-            except Exception, e:
-                warning(u'Unable to load "%s" backend: %s. filename=%s' % (name, e, self.backends_config.confpath))
-
-        return loaded_backends
-
-    def load_modules(self, caps=None, names=None, storage=None):
-        loaded_backends = {}
-        self.modules_loader.load()
-        for name, module in self.modules_loader.modules.iteritems():
-            if caps is not None and not module.has_caps(caps) or \
-                    names is not None and name not in names:
-                continue
-            try:
-                name = module.get_name()
-                self.backends[name] = module.create_backend(self, name, {}, storage)
-                loaded_backends[name] = self.backends[name]
-            except Exception, e:
-                warning(u'Unable to load "%s" module as backend with no config: %s' % (name, e))
-        return loaded_backends
+            backend_instance = backend.create_instance(self, instance_name, params, storage)
+            self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
+        return loaded
 
     def iter_backends(self, caps=None):
         """
@@ -109,7 +94,7 @@ class Weboob(object):
         @param caps  Optional list of capabilities to select backends
         @return  iterator on selected backends.
         """
-        for name, backend in sorted(self.backends.iteritems()):
+        for name, backend in sorted(self.backend_instances.iteritems()):
             if caps is None or backend.has_caps(caps):
                 with backend:
                     yield backend
@@ -134,7 +119,7 @@ class Weboob(object):
 
     def do_caps(self, caps, function, *args, **kwargs):
         """
-        Do calls on loaded modules with the specified capabilities, in
+        Do calls on loaded backends with the specified capabilities, in
         separated threads.
 
         See also documentation of the 'do' method.
@@ -156,14 +141,14 @@ class Weboob(object):
         elif isinstance(backends, (list,tuple)):
             old_backends = backends
             backends = []
-            for b in old_backends:
-                if isinstance(b, (str,unicode)):
+            for backend in old_backends:
+                if isinstance(backend, (str,unicode)):
                     try:
-                        backends.append(self.backends[self.backends.index(b)])
+                        backends.append(self.backends[self.backends.index(backend)])
                     except ValueError:
                         pass
                 else:
-                    backends.append(b)
+                    backends.append(backend)
         return BackendsCall(backends, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):

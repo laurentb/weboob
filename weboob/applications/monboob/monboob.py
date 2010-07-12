@@ -93,7 +93,7 @@ class Monboob(ConsoleApplication):
 
     def main(self, argv):
         self.load_config()
-        self.load_backends(ICapMessages, storage=self.create_storage())
+        self.load_configured_backends(ICapMessages, storage=self.create_storage())
 
         return self.process_command(*argv[1:])
 

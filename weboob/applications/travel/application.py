@@ -29,8 +29,7 @@ class Travel(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_modules(ICapTravel)
-
+        self.load_backends(ICapTravel)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Search stations')

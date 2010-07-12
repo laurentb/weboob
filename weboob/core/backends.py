@@ -26,45 +26,50 @@ import re
 import stat
 
 import weboob.backends
-from weboob.core.backend import BaseBackend
 from weboob.capabilities.cap import ICap
+from weboob.tools.backend import BaseBackend
 
 
-__all__ = ['Module']
+__all__ = ['Backend', 'BackendsConfig', 'BackendsLoader']
 
 
-class Module(object):
-    def __init__(self, name, module):
-        self.name = name
-        self.module = module
+class Backend(object):
+    def __init__(self, package):
+        self.package = package
         self.klass = None
-        for attrname in dir(self.module):
-            attr = getattr(self.module, attrname)
+        for attrname in dir(self.package):
+            attr = getattr(self.package, attrname)
             if isinstance(attr, type) and issubclass(attr, BaseBackend) and attr != BaseBackend:
                 self.klass = attr
-
         if not self.klass:
-            raise ImportError("This is not a backend module (no BaseBackend class found)")
+            raise ImportError('%s is not a backend (no BaseBackend class found)' % package)
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.klass.NAME
 
-    def get_maintainer(self):
+    @property
+    def maintainer(self):
         return '%s <%s>' % (self.klass.MAINTAINER, self.klass.EMAIL)
 
-    def get_version(self):
+    @property
+    def version(self):
         return self.klass.VERSION
 
-    def get_description(self):
+    @property
+    def description(self):
         return self.klass.DESCRIPTION
 
-    def get_license(self):
+    @property
+    def license(self):
         return self.klass.LICENSE
 
-    def get_config(self):
+    @property
+    def config(self):
         return self.klass.CONFIG
 
-    def get_icon_path(self):
+    @property
+    def icon_path(self):
         return self.klass.ICON
 
     def iter_caps(self):
@@ -78,9 +83,11 @@ class Module(object):
                 return True
         return False
 
-    def create_backend(self, weboob, name, config, storage):
-        debug('Created backend "%s"' % name)
-        return self.klass(weboob, name, config, storage)
+    def create_instance(self, weboob, name, config, storage):
+        backend_instance = self.klass(weboob, name, config, storage)
+        debug('Created backend instance "%s"' % name)
+        return backend_instance
+
 
 class BackendsConfig(object):
     class WrongPermissions(Exception):
@@ -128,7 +135,7 @@ class BackendsConfig(object):
         config = SafeConfigParser()
         config.read(self.confpath)
         if not config.has_section(name):
-            raise KeyError(u'Backend "%s" not found' % name)
+            raise KeyError(u'Backend instance "%s" not found' % name)
 
         items = dict(config.items(name, raw=True))
         try:
@@ -141,19 +148,20 @@ class BackendsConfig(object):
         config = SafeConfigParser()
         config.read(self.confpath)
         config.remove_section(name)
-        with open(self.confpath, 'wb') as f:
+        with open(self.confpath, 'w') as f:
             config.write(f)
 
-class ModulesLoader(object):
+
+class BackendsLoader(object):
     def __init__(self):
-        self.modules = {}
+        self.loaded = {}
 
-    def get_or_load_module(self, name):
-        if name not in self.modules:
-            self.load_module('weboob.backends.%s' % name)
-        return self.modules[name]
+    def get_or_load_backend(self, name):
+        if name not in self.loaded:
+            self.load_backend(name)
+        return self.loaded[name]
 
-    def iter_existing_module_names(self):
+    def iter_existing_backend_names(self):
         for path in weboob.backends.__path__:
             regexp = re.compile('^%s/([\w\d_]+)$' % path)
             for root, dirs, files in os.walk(path):
@@ -161,23 +169,24 @@ class ModulesLoader(object):
                 if m and '__init__.py' in files:
                     yield m.group(1)
 
-    def load(self):
-        for existing_module_name in self.iter_existing_module_names():
-            self.load_module('weboob.backends.%s' % existing_module_name)
+    def load_all(self):
+        for existing_backend_name in self.iter_existing_backend_names():
+            self.load_backend(existing_backend_name)
 
-    def load_module(self, name):
+    def load_backend(self, name):
         try:
-            module = Module(name, __import__(name, fromlist=[str(name)]))
+            package_name = 'weboob.backends.%s' % name
+            backend = Backend(__import__(package_name, fromlist=[str(package_name)]))
         except ImportError, e:
-            msg = 'Unable to load module "%s": %s' % (name, e)
+            msg = u'Unable to load backend "%s": %s' % (name, e)
             if logging.root.level == logging.DEBUG:
                 exception(msg)
                 return
             else:
                 error(msg)
                 return
-        if module.get_name() in self.modules:
-            warning('Module "%s" is already loaded (%s)' % (self.modules[module.get_name()].module, name))
+        if backend.name in self.loaded:
+            debug('Backend "%s" is already loaded from %s' % (name, backend.package.__path__[0]))
             return
-        self.modules[module.get_name()] = module
-        debug('Loaded module "%s" from %s' % (name, module.module.__path__))
+        self.loaded[backend.name] = backend
+        debug('Loaded backend "%s" from %s' % (name, backend.package.__path__[0]))

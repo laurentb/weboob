@@ -35,50 +35,50 @@ class BackendCfg(QDialog):
         self.caps = caps
         self.config_widgets = {}
 
-        self.weboob.modules_loader.load()
+        self.weboob.backends_loader.load_all()
 
-        self.ui.backendsList.header().setResizeMode(QHeaderView.ResizeToContents)
+        self.ui.configuredBackendsList.header().setResizeMode(QHeaderView.ResizeToContents)
         self.ui.configFrame.hide()
 
-        for name, module in self.weboob.modules_loader.modules.iteritems():
-            if not self.caps or module.has_caps(*self.caps):
+        for name, backend in self.weboob.backends_loader.loaded.iteritems():
+            if not self.caps or backend.has_caps(*self.caps):
                 item = QListWidgetItem(name.capitalize())
 
-                if module.get_icon_path():
-                    img = QImage(module.get_icon_path())
+                if backend.icon_path:
+                    img = QImage(backend.icon_path)
                     item.setIcon(QIcon(QPixmap.fromImage(img)))
 
-                self.ui.modulesList.addItem(item)
+                self.ui.backendsList.addItem(item)
 
-        self.loadBackendsList()
+        self.loadConfiguredBackendsList()
 
-        self.connect(self.ui.backendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self.backendClicked)
-        self.connect(self.ui.modulesList, SIGNAL('itemSelectionChanged()'), self.modulesSelectionChanged)
+        self.connect(self.ui.configuredBackendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self.configuredBackendClicked)
+        self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self.backendSelectionChanged)
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
         self.connect(self.ui.removeButton, SIGNAL('clicked()'), self.removeEvent)
         self.connect(self.ui.configButtonBox, SIGNAL('accepted()'), self.acceptBackend)
         self.connect(self.ui.configButtonBox, SIGNAL('rejected()'), self.rejectBackend)
 
-    def loadBackendsList(self):
-        self.ui.backendsList.clear()
+    def loadConfiguredBackendsList(self):
+        self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            module = self.weboob.modules_loader.modules[name]
-            if self.caps and not module.has_caps(*self.caps):
+            backend = self.weboob.backends_loader.loaded[name]
+            if self.caps and not backend.has_caps(*self.caps):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
 
-            if module.get_icon_path():
-                img = QImage(module.get_icon_path())
+            if backend.icon_path:
+                img = QImage(backend.icon_path)
                 item.setIcon(0, QIcon(QPixmap.fromImage(img)))
 
-            self.ui.backendsList.addTopLevelItem(item)
+            self.ui.configuredBackendsList.addTopLevelItem(item)
 
     def closeEvent(self, event):
         event.accept()
 
-    def backendClicked(self, item, col):
+    def configuredBackendClicked(self, item, col):
         bname = unicode(item.text(0))
 
         self.editBackend(bname)
@@ -87,7 +87,7 @@ class BackendCfg(QDialog):
         self.editBackend()
 
     def removeEvent(self):
-        item = self.ui.backendsList.currentItem()
+        item = self.ui.configuredBackendsList.currentItem()
         if not item:
             return
 
@@ -100,7 +100,7 @@ class BackendCfg(QDialog):
             return
 
         self.weboob.backends_config.remove_backend(bname)
-        self.loadBackendsList()
+        self.loadConfiguredBackendsList()
 
     def editBackend(self, bname=None):
         self.ui.configFrame.show()
@@ -108,12 +108,12 @@ class BackendCfg(QDialog):
         if bname is not None:
             mname, params = self.weboob.backends_config.get_backend(bname)
 
-            items = self.ui.modulesList.findItems(mname, Qt.MatchFixedString)
+            items = self.ui.backendsList.findItems(mname, Qt.MatchFixedString)
             if not items:
-                print 'Module not found'
+                print 'Backend not found'
             else:
-                self.ui.modulesList.setCurrentItem(items[0])
-                self.ui.modulesList.setEnabled(False)
+                self.ui.backendsList.setCurrentItem(items[0])
+                self.ui.backendsList.setEnabled(False)
 
             self.ui.nameEdit.setText(bname)
             self.ui.nameEdit.setEnabled(False)
@@ -137,19 +137,19 @@ class BackendCfg(QDialog):
             self.ui.nameEdit.setEnabled(True)
             self.ui.proxyBox.setChecked(False)
             self.ui.proxyEdit.clear()
-            self.ui.modulesList.setEnabled(True)
-            self.ui.modulesList.setCurrentRow(-1)
+            self.ui.backendsList.setEnabled(True)
+            self.ui.backendsList.setCurrentRow(-1)
 
     def acceptBackend(self):
         bname = unicode(self.ui.nameEdit.text())
-        selection = self.ui.modulesList.selectedItems()
+        selection = self.ui.backendsList.selectedItems()
 
         if not selection:
-            QMessageBox.critical(self, self.tr('Unable to add a backend'),
-                                       self.tr('Please select a module'))
+            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
+                                       self.tr('Please select a backend'))
             return
 
-        module = self.weboob.modules_loader.modules[unicode(selection[0].text()).lower()]
+        backend = self.weboob.backends_loader.loaded[unicode(selection[0].text()).lower()]
 
         params = {}
         missing = []
@@ -162,7 +162,7 @@ class BackendCfg(QDialog):
             if not params['_proxy']:
                 missing.append(self.tr('Proxy'))
 
-        for key, field in module.get_config().iteritems():
+        for key, field in backend.config.iteritems():
             label, value = self.config_widgets[key]
 
             if isinstance(value, QLineEdit):
@@ -189,49 +189,49 @@ class BackendCfg(QDialog):
                                  unicode(self.tr('Please set a value in this fields:\n%s')) % ('\n'.join(['- %s' % s for s in missing])))
             return
 
-        self.weboob.backends_config.add_backend(bname, module.get_name(), params, edit=not self.ui.nameEdit.isEnabled())
+        self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
         self.ui.configFrame.hide()
 
-        self.loadBackendsList()
+        self.loadConfiguredBackendsList()
 
     def rejectBackend(self):
         self.ui.configFrame.hide()
 
-    def modulesSelectionChanged(self):
+    def backendSelectionChanged(self):
         for key, (label, value) in self.config_widgets.iteritems():
             label.hide()
             value.hide()
             self.ui.configLayout.removeWidget(label)
             self.ui.configLayout.removeWidget(value)
         self.config_widgets.clear()
-        self.ui.moduleInfo.clear()
+        self.ui.backendInfo.clear()
 
-        selection = self.ui.modulesList.selectedItems()
+        selection = self.ui.backendsList.selectedItems()
         if not selection:
             return
 
-        module = self.weboob.modules_loader.modules[unicode(selection[0].text()).lower()]
+        backend = self.weboob.backends_loader.loaded[unicode(selection[0].text()).lower()]
 
-        if module.get_icon_path():
-            img = QImage(module.get_icon_path())
-            self.ui.moduleInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'), QVariant(img))
+        if backend.icon_path:
+            img = QImage(backend.icon_path)
+            self.ui.backendInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'), QVariant(img))
 
-        self.ui.moduleInfo.setText(unicode(self.tr(
-                                   '<h1>%s Module %s</h1>'
+        self.ui.backendInfo.setText(unicode(self.tr(
+                                   '<h1>%s Backend %s</h1>'
                                    '<b>Version</b>: %s<br />'
                                    '<b>Maintainer</b>: %s<br />'
                                    '<b>License</b>: %s<br />'
                                    '<b>Description</b>: %s<br />'
                                    '<b>Capabilities</b>: %s<br />'))
-                                   % ('<img src="mydata://logo.png" />' if module.get_icon_path() else '',
-                                      module.get_name().capitalize(),
-                                      module.get_version(),
-                                      module.get_maintainer().replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
-                                      module.get_license(),
-                                      module.get_description(),
-                                      ', '.join([cap.__name__ for cap in module.iter_caps()])))
+                                   % ('<img src="mydata://logo.png" />' if backend.icon_path else '',
+                                      backend.name.capitalize(),
+                                      backend.version,
+                                      backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
+                                      backend.license,
+                                      backend.description,
+                                      ', '.join([cap.__name__ for cap in backend.iter_caps()])))
 
-        for key, field in module.get_config().iteritems():
+        for key, field in backend.config.iteritems():
             label = QLabel(u'%s:' % field.description)
             if isinstance(field.default, bool):
                 value = QCheckBox()

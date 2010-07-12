@@ -233,7 +233,6 @@ class Masstransit(BaseApplication):
     COPYRIGHT = 'Copyright(C) 2010 Julien Hébert'
 
     def main(self, argv):
-        "main fonction"
-        self.load_modules(ICapTravel)
+        self.load_backends(ICapTravel)
         MasstransitHildon(self.weboob)
         gtk.main()

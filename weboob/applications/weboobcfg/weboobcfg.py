@@ -44,65 +44,10 @@ class WeboobCfg(ConsoleApplication):
                 return False
         return True
 
-    @ConsoleApplication.command('List backends')
-    def command_backends(self, *caps):
-        self.set_default_formatter('table')
-        self.weboob.modules_loader.load()
-        for name, backend in self.weboob.modules_loader.modules.iteritems():
-            if caps and not self.caps_included(backend.iter_caps(), caps):
-                continue
-            row = OrderedDict([('Name', name),
-                               ('Capabilities', ', '.join(cap.__name__ for cap in backend.iter_caps())),
-                               ('Description', backend.get_description()),
-                               ])
-            self.format(row)
-
-    @ConsoleApplication.command('List applications')
-    def command_applications(self, *caps):
-        applications = set()
-        import weboob.applications
-        for path in weboob.applications.__path__:
-            regexp = re.compile('^%s/([\w\d_]+)$' % path)
-            for root, dirs, files in os.walk(path):
-                m = regexp.match(root)
-                if m and '__init__.py' in files:
-                    applications.add(m.group(1))
-        print ' '.join(sorted(applications)).encode('utf-8')
-
-    @ConsoleApplication.command('Display information about a backend')
-    def command_info(self, name):
-        try:
-            backend = self.weboob.modules_loader.get_or_load_module(name)
-        except KeyError:
-            logging.error('No such backend: "%s"' % name)
-            return 1
-
-        print '.------------------------------------------------------------------------------.'
-        print '| Backend %-68s |' % backend.get_name()
-        print "+-----------------.------------------------------------------------------------'"
-        print '| Version         | %s' % backend.get_version()
-        print '| Maintainer      | %s' % backend.get_maintainer()
-        print '| License         | %s' % backend.get_license()
-        print '| Description     | %s' % backend.get_description()
-        print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in backend.iter_caps()])
-        first = True
-        for key, field in backend.get_config().iteritems():
-            value = field.description
-            if not field.default is None:
-                value += ' (default: %s)' % field.default
-            if first:
-                print '|                 | '
-                print '| Configuration   | %s: %s' % (key, value)
-                first = False
-            else:
-                print '|                 | %s: %s' % (key, value)
-        print "'-----------------'"
-
-
     @ConsoleApplication.command('Add a configured backend')
     def command_add(self, name, *options):
-        self.weboob.modules_loader.load()
-        if name not in [module_name for module_name, module in self.weboob.modules_loader.modules.iteritems()]:
+        self.weboob.backends_loader.load_all()
+        if name not in [name for name, backend in self.weboob.backends_loader.loaded.iteritems()]:
             logging.error(u'Backend "%s" does not exist.' % name)
             return 1
 
@@ -116,9 +61,9 @@ class WeboobCfg(ConsoleApplication):
                 return 1
             params[key] = value
         # ask for params non-specified on command-line arguments
-        module = self.weboob.modules_loader.get_or_load_module(name)
+        backend = self.weboob.backends_loader.get_or_load_backend(name)
         asked_config = False
-        for key, value in module.get_config().iteritems():
+        for key, value in backend.config.iteritems():
             if not asked_config:
                 asked_config = True
                 print u'Configuration of backend'
@@ -155,15 +100,73 @@ class WeboobCfg(ConsoleApplication):
                     except ConfigParser.DuplicateSectionError:
                         print u'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
-    @ConsoleApplication.command('List configured backends')
+    @ConsoleApplication.command('Show applications')
+    def command_applications(self, *caps):
+        applications = set()
+        import weboob.applications
+        for path in weboob.applications.__path__:
+            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            for root, dirs, files in os.walk(path):
+                m = regexp.match(root)
+                if m and '__init__.py' in files:
+                    applications.add(m.group(1))
+        print ' '.join(sorted(applications)).encode('utf-8')
+
+    @ConsoleApplication.command('Show available backends')
+    def command_backends(self, *caps):
+        self.set_default_formatter('table')
+        self.weboob.backends_loader.load_all()
+        for name, backend in sorted(self.weboob.backends_loader.loaded.iteritems()):
+            if caps and not self.caps_included(backend.iter_caps(), caps):
+                continue
+            row = OrderedDict([('Name', name),
+                               ('Capabilities', ', '.join(cap.__name__ for cap in backend.iter_caps())),
+                               ('Description', backend.description),
+                               ])
+            self.format(row)
+
+    @ConsoleApplication.command('Show configured backends')
     def command_configured(self):
         self.set_default_formatter('table')
-        for instance_name, name, params in self.weboob.backends_config.iter_backends():
+        for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend name', name),
                                ('Configuration', ', '.join('%s=%s' % (key, value) for key, value in params.iteritems())),
                                ])
             self.format(row)
+
+    @ConsoleApplication.command('Edit configuration file')
+    def command_edit(self):
+        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
+
+    @ConsoleApplication.command('Display information about a backend')
+    def command_info(self, name):
+        try:
+            backend = self.weboob.backends_loader.get_or_load_backend(name)
+        except KeyError:
+            logging.error('No such backend: "%s"' % name)
+            return 1
+
+        print '.------------------------------------------------------------------------------.'
+        print '| Backend %-68s |' % backend.name
+        print "+-----------------.------------------------------------------------------------'"
+        print '| Version         | %s' % backend.version
+        print '| Maintainer      | %s' % backend.maintainer
+        print '| License         | %s' % backend.license
+        print '| Description     | %s' % backend.description
+        print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in backend.iter_caps()])
+        first = True
+        for key, field in backend.config.iteritems():
+            value = field.description
+            if not field.default is None:
+                value += ' (default: %s)' % field.default
+            if first:
+                print '|                 | '
+                print '| Configuration   | %s: %s' % (key, value)
+                first = False
+            else:
+                print '|                 | %s: %s' % (key, value)
+        print "'-----------------'"
 
     @ConsoleApplication.command('Remove a configured backend')
     def command_remove(self, instance_name):
@@ -172,7 +175,3 @@ class WeboobCfg(ConsoleApplication):
         except ConfigParser.NoSectionError:
             logging.error('Backend instance "%s" does not exist' % instance_name)
             return 1
-
-    @ConsoleApplication.command('Edit configuration file')
-    def command_edit(self):
-        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])

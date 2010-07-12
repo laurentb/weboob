@@ -44,10 +44,10 @@ class MainWindow(QtMainWindow):
         self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
 
-        self.connect(self.ui.actionModules, SIGNAL("triggered()"), self.modulesConfig)
+        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
 
-    def modulesConfig(self):
+    def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapDating,), self)
         bckndcfg.show()
 

@@ -33,7 +33,7 @@ class Weboorrents(ConsoleApplication):
     CONFIG = {}
 
     def main(self, argv):
-        self.load_backends(ICapTorrent)
+        self.load_configured_backends(ICapTorrent)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Get information about a torrent')

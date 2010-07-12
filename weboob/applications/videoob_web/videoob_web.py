@@ -72,7 +72,7 @@ class VideoobWeb(BaseApplication):
 
     def main(self, argv):
         self.load_config()
-        self.weboob.load_modules(ICapVideo)
+        self.weboob.load_backends(ICapVideo)
         print 'Web server created. Listening on http://%s:%s' % (
             self.config.get('host'), int(self.config.get('port')))
         srv = make_server(self.config.get('host'), int(self.config.get('port')), self.make_app)

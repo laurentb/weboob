@@ -24,7 +24,7 @@ import re
 import sys
 
 from weboob.core import CallErrors
-from weboob.core.modules import BackendsConfig
+from weboob.core.backends import BackendsConfig
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter

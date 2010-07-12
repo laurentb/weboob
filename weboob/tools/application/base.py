@@ -32,28 +32,28 @@ class BackendNotFound(Exception):
     pass
 
 
-class FrontendStorage(object):
+class ApplicationStorage(object):
     def __init__(self, name, storage):
         self.name = name
         self.storage = storage
 
     def set(self, *args):
         if self.storage:
-            return self.storage.set('frontends', self.name, *args)
+            return self.storage.set('applications', self.name, *args)
 
     def get(self, *args, **kwargs):
         if self.storage:
-            return self.storage.get('frontends', self.name, *args, **kwargs)
+            return self.storage.get('applications', self.name, *args, **kwargs)
         else:
             return kwargs.get('default', None)
 
     def load(self, default):
         if self.storage:
-            return self.storage.load('frontends', self.name, default)
+            return self.storage.load('applications', self.name, default)
 
     def save(self):
         if self.storage:
-            return self.storage.save('frontends', self.name)
+            return self.storage.save('applications', self.name)
 
 class BaseApplication(object):
     # Application name
@@ -107,7 +107,7 @@ class BaseApplication(object):
             path = os.path.join(self.CONFDIR, path)
 
         storage = klass(path)
-        self.storage = FrontendStorage(self.APPNAME, storage)
+        self.storage = ApplicationStorage(self.APPNAME, storage)
         self.storage.load(self.STORAGE)
         return storage
 
@@ -138,18 +138,18 @@ class BaseApplication(object):
     def load_backends(self, caps=None, names=None, *args, **kwargs):
         if names is None:
             names = self.requested_backends
-        loaded_backends = self.weboob.load_backends(caps, names, *args, **kwargs)
-        if not loaded_backends:
+        loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
+        if not loaded:
             logging.warning(u'No backend loaded')
-        return loaded_backends
+        return loaded
 
-    def load_modules(self, caps=None, names=None, *args, **kwargs):
+    def load_configured_backends(self, caps=None, names=None, *args, **kwargs):
         if names is None:
             names = self.requested_backends
-        loaded_modules = self.weboob.load_modules(caps, names, *args, **kwargs)
-        if not loaded_modules:
-            logging.warning(u'No module loaded')
-        return loaded_modules
+        loaded = self.weboob.load_configured_backends(caps, names, *args, **kwargs)
+        if not loaded:
+            logging.warning(u'No configured backend loaded')
+        return loaded
 
     def _get_completions(self):
         """
@@ -201,9 +201,9 @@ class BaseApplication(object):
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         app.requested_backends = app.options.backends.split(',') if app.options.backends else None
         if app.requested_backends:
-            existing_module_names = list(app.weboob.modules_loader.iter_existing_module_names())
+            existing_backend_names = list(app.weboob.backends_loader.iter_existing_backend_names())
             for requested_backend in app.requested_backends:
-                if requested_backend not in existing_module_names:
+                if requested_backend not in existing_backend_names:
                     raise BackendNotFound(u'Unknown backend: "%s"' % requested_backend)
 
         app._handle_app_options()

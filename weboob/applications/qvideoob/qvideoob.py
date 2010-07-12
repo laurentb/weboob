@@ -32,7 +32,7 @@ class QVideoob(QtApplication):
                           }
              }
     def main(self, argv):
-        self.load_modules(ICapVideo)
+        self.load_backends(ICapVideo)
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob)

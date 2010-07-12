@@ -32,7 +32,7 @@ class WetBoobs(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_modules(ICapWeather)
+        self.load_backends(ICapWeather)
 
         return self.process_command(*argv[1:])
 
