@@ -19,7 +19,7 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import VideoPage
+from .pages import ForbiddenVideoPage, VerifyAgePage, VideoPage
 from .video import YoutubeVideo
 
 
@@ -28,10 +28,15 @@ __all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
     DOMAIN = u'youtube.com'
-    PAGES = {'.*youtube\.com/watch\?v=(.+)': VideoPage,
+    PAGES = {'.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
+             '.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
+             '.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
             }
 
     @id2url(YoutubeVideo.id2url)
     def get_video(self, url):
         self.location(url)
-        return self.page.video
+        if hasattr(self.page, 'video'):
+            return self.page.video
+        else:
+            return None
