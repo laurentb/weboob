@@ -32,6 +32,10 @@ from .ui.thread_message_ui import Ui_ThreadMessage
 from .ui.profile_ui import Ui_Profile
 
 class ThreadMessage(QFrame):
+    """
+    This class represents a message in the thread tab.
+    """
+
     def __init__(self, message, parent=None):
         QFrame.__init__(self, parent)
         self.ui = Ui_ThreadMessage()
@@ -48,6 +52,10 @@ class ThreadMessage(QFrame):
         self.ui.contentLabel.setText(content)
 
 class ContactThread(QWidget):
+    """
+    The thread of the selected contact.
+    """
+
     def __init__(self, weboob, contact, parent=None):
         QWidget.__init__(self, parent)
         self.ui = Ui_ContactThread()
@@ -72,15 +80,15 @@ class ContactThread(QWidget):
 
     def gotMessage(self, backend, message):
         if not message:
-            v = self.ui.scrollArea.verticalScrollBar()
-            print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
-            self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
+            #v = self.ui.scrollArea.verticalScrollBar()
+            #print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
+            #self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
             self.process_msg = None
             return
 
         widget = ThreadMessage(message)
         for i, m in enumerate(self.messages):
-            if widget.date < m.date:
+            if widget.date > m.date:
                 self.ui.scrollAreaContent.layout().insertWidget(i, widget)
                 self.messages.insert(i, widget)
                 return
@@ -92,22 +100,23 @@ class ContactThread(QWidget):
         text = unicode(self.ui.textEdit.toPlainText())
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
-        self.process_reply = QtDo(self.weboob, self.replyPosted, self.replyNotPosted)
+        self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
         self.process_reply.do_backends(self.contact.backend, 'post_reply', self.contact.id, 0, '', text)
 
-    def replyPosted(self, backend, ignored):
+    def _postReply_cb(self, backend, ignored):
         self.ui.textEdit.clear()
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
         self.refreshMessages()
         self.process_reply = None
 
-    def replyNotPosted(self, backend, error, backtrace):
+    def _postReply_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to send message:\n%s\n')) % error
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % backtrace
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
+        self.process_reply = None
 
 class ContactProfile(QWidget):
     def __init__(self, weboob, contact, parent=None):
