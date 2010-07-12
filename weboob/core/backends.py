@@ -110,10 +110,16 @@ class BackendsConfig(object):
         for instance_name in config.sections():
             params = dict(config.items(instance_name, raw=True))
             try:
-                yield instance_name, params.pop('backend'), params
+                backend_name = params.pop('_backend')
             except KeyError:
-                warning('Missing field "backend" for configured backend "%s"', instance_name)
-                continue
+                try:
+                    backend_name = params.pop('_type')
+                    logging.warning(u'Please replace _type with _backend in your config file "%s", for backend "%s"' % (
+                        self.confpath, backend_name))
+                except KeyError:
+                    warning('Missing field "_backend" for configured backend "%s"', instance_name)
+                    continue
+            yield instance_name, backend_name, params
 
     def add_backend(self, instance_name, backend_name, params, edit=False):
         if not instance_name:
@@ -122,7 +128,7 @@ class BackendsConfig(object):
         config.read(self.confpath)
         if not edit:
             config.add_section(instance_name)
-        config.set(instance_name, 'backend', backend_name)
+        config.set(instance_name, '_backend', backend_name)
         for key, value in params.iteritems():
             config.set(instance_name, key, value)
         with open(self.confpath, 'wb') as f:
@@ -138,11 +144,17 @@ class BackendsConfig(object):
             raise KeyError(u'Configured backend "%s" not found' % instance_name)
 
         items = dict(config.items(instance_name, raw=True))
+
         try:
-            return items.pop('backend'), items
+            backend_name = items.pop('_backend')
         except KeyError:
-            warning('Missing field "backend" for backend "%s"', instance_name)
-            raise KeyError(u'Configured backend "%s" not found' % instance_name)
+            try:
+                backend_name = items.pop('_type')
+                logging.warning(u'Please replace _type with _backend in your config file "%s"' % self.confpath)
+            except KeyError:
+                warning('Missing field "_backend" for configured backend "%s"', instance_name)
+                raise KeyError(u'Configured backend "%s" not found' % instance_name)
+        return backend_name, items
 
     def remove_backend(self, instance_name):
         config = SafeConfigParser()
