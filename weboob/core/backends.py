@@ -83,9 +83,9 @@ class Backend(object):
                 return True
         return False
 
-    def create_instance(self, weboob, name, config, storage):
-        backend_instance = self.klass(weboob, name, config, storage)
-        debug('Created backend instance "%s"' % name)
+    def create_instance(self, weboob, instance_name, config, storage):
+        backend_instance = self.klass(weboob, instance_name, config, storage)
+        debug(u'Created backend instance "%s" for backend "%s"' % (instance_name, self.name))
         return backend_instance
 
 
@@ -107,47 +107,47 @@ class BackendsConfig(object):
     def iter_backends(self):
         config = SafeConfigParser()
         config.read(self.confpath)
-        for name in config.sections():
-            params = dict(config.items(name, raw=True))
+        for instance_name in config.sections():
+            params = dict(config.items(instance_name, raw=True))
             try:
-                yield name, params.pop('_type'), params
+                yield instance_name, params.pop('backend'), params
             except KeyError:
-                warning('Missing field "_type" for backend "%s"', name)
+                warning('Missing field "backend" for configured backend "%s"', instance_name)
                 continue
 
-    def add_backend(self, name, _type, params, edit=False):
-        if not name:
-            raise ValueError(u'Please give a name to the backend.')
+    def add_backend(self, instance_name, backend_name, params, edit=False):
+        if not instance_name:
+            raise ValueError(u'Please give a name to the configured backend.')
         config = SafeConfigParser()
         config.read(self.confpath)
         if not edit:
-            config.add_section(name)
-        config.set(name, '_type', _type)
+            config.add_section(instance_name)
+        config.set(instance_name, 'backend', backend_name)
         for key, value in params.iteritems():
-            config.set(name, key, value)
+            config.set(instance_name, key, value)
         with open(self.confpath, 'wb') as f:
             config.write(f)
 
-    def edit_backend(self, name, _type, params):
-        return self.add_backend(name, _type, params, True)
+    def edit_backend(self, instance_name, backend_name, params):
+        return self.add_backend(instance_name, backend_name, params, True)
 
-    def get_backend(self, name):
+    def get_backend(self, instance_name):
         config = SafeConfigParser()
         config.read(self.confpath)
-        if not config.has_section(name):
-            raise KeyError(u'Backend instance "%s" not found' % name)
+        if not config.has_section(instance_name):
+            raise KeyError(u'Configured backend "%s" not found' % instance_name)
 
-        items = dict(config.items(name, raw=True))
+        items = dict(config.items(instance_name, raw=True))
         try:
-            return items.pop('_type'), items
+            return items.pop('backend'), items
         except KeyError:
-            warning('Missing field "_type" for backend "%s"', name)
-            raise KeyError(u'Backend "%s" not found' % name)
+            warning('Missing field "backend" for backend "%s"', instance_name)
+            raise KeyError(u'Configured backend "%s" not found' % instance_name)
 
-    def remove_backend(self, name):
+    def remove_backend(self, instance_name):
         config = SafeConfigParser()
         config.read(self.confpath)
-        config.remove_section(name)
+        config.remove_section(instance_name)
         with open(self.confpath, 'w') as f:
             config.write(f)
 
@@ -156,10 +156,10 @@ class BackendsLoader(object):
     def __init__(self):
         self.loaded = {}
 
-    def get_or_load_backend(self, name):
-        if name not in self.loaded:
-            self.load_backend(name)
-        return self.loaded[name]
+    def get_or_load_backend(self, backend_name):
+        if backend_name not in self.loaded:
+            self.load_backend(backend_name)
+        return self.loaded[backend_name]
 
     def iter_existing_backend_names(self):
         for path in weboob.backends.__path__:
@@ -173,12 +173,12 @@ class BackendsLoader(object):
         for existing_backend_name in self.iter_existing_backend_names():
             self.load_backend(existing_backend_name)
 
-    def load_backend(self, name):
+    def load_backend(self, backend_name):
         try:
-            package_name = 'weboob.backends.%s' % name
+            package_name = 'weboob.backends.%s' % backend_name
             backend = Backend(__import__(package_name, fromlist=[str(package_name)]))
         except ImportError, e:
-            msg = u'Unable to load backend "%s": %s' % (name, e)
+            msg = u'Unable to load backend "%s": %s' % (backend_name, e)
             if logging.root.level == logging.DEBUG:
                 exception(msg)
                 return
@@ -186,7 +186,7 @@ class BackendsLoader(object):
                 error(msg)
                 return
         if backend.name in self.loaded:
-            debug('Backend "%s" is already loaded from %s' % (name, backend.package.__path__[0]))
+            debug('Backend "%s" is already loaded from %s' % (backend_name, backend.package.__path__[0]))
             return
         self.loaded[backend.name] = backend
-        debug('Loaded backend "%s" from %s' % (name, backend.package.__path__[0]))
+        debug('Loaded backend "%s" from %s' % (backend_name, backend.package.__path__[0]))
