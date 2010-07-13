@@ -18,7 +18,7 @@
 
 from datetime import datetime, date, time
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.misc import toUnicode
+from weboob.tools.misc import to_unicode
 
 class CanalTP(BaseBrowser):
     DOMAIN = 'widget.canaltp.fr'
@@ -36,7 +36,7 @@ class CanalTP(BaseBrowser):
             except ValueError:
                 continue
             else:
-                yield _id, toUnicode(name)
+                yield _id, to_unicode(name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
         result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/index.php?gare=%s" % unicode(station_id)).read()
@@ -48,12 +48,12 @@ class CanalTP(BaseBrowser):
                 departure = value
             elif key.startswith('ligne'):
                 _type, unknown, _time, arrival, served, late, late_reason = value.split(';', 6)
-                yield {'type':        toUnicode(_type),
+                yield {'type':        to_unicode(_type),
                        'time':        datetime.combine(date.today(), time(*[int(x) for x in _time.split(':')])),
-                       'departure':   toUnicode(departure),
-                       'arrival':     toUnicode(arrival).strip(),
+                       'departure':   to_unicode(departure),
+                       'arrival':     to_unicode(arrival).strip(),
                        'late':        late and time(0, int(late.split()[0])) or time(),
-                       'late_reason': toUnicode(late_reason).replace('\n', '').strip()}
+                       'late_reason': to_unicode(late_reason).replace('\n', '').strip()}
 
     def home(self):
         pass

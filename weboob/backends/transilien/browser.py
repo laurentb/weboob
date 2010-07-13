@@ -20,7 +20,7 @@ from datetime import datetime, date, time
 import HTMLParser
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.misc import toUnicode
+from weboob.tools.misc import to_unicode
 
 from .pages.route import RoutePage
 
@@ -138,13 +138,13 @@ class Transilien(BaseBrowser):
                 _time = None
                 _late_reason = route.time
             else:
-                yield {'type':        toUnicode(route.code_mission),
+                yield {'type':        to_unicode(route.code_mission),
                        'time':        _time,
-                       'departure':   toUnicode(station_id),
-                       'arrival':     toUnicode(route.destination),
+                       'departure':   to_unicode(station_id),
+                       'arrival':     to_unicode(route.destination),
                        'late':        time(),
                        'late_reason': _late_reason,
-                       'plateform':   toUnicode(route.platform)}
+                       'plateform':   to_unicode(route.platform)}
 
     def home(self):
         pass

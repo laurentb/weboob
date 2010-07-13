@@ -22,16 +22,16 @@ import traceback
 import types
 
 
-__all__ = ['toUnicode', 'local2utc', 'html2text', 'get_backtrace', 'iter_fields']
+__all__ = ['to_unicode', 'local2utc', 'html2text', 'get_backtrace', 'iter_fields']
 
 
-def toUnicode(text):
+def to_unicode(text):
     r"""
-    >>> toUnicode('ascii')
+    >>> to_unicode('ascii')
     u'ascii'
-    >>> toUnicode(u'utf\xe9'.encode('UTF-8'))
+    >>> to_unicode(u'utf\xe9'.encode('UTF-8'))
     u'utf\xe9'
-    >>> toUnicode(u'unicode')
+    >>> to_unicode(u'unicode')
     u'unicode'
     """
     if isinstance(text, unicode):
