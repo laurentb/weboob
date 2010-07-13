@@ -44,7 +44,7 @@ class Account(object):
         return self._balance
 
     @balance.setter
-    def balance_set(self, value):
+    def balance(self, value):
         self._balance = float(value)
 
     @property
@@ -52,7 +52,7 @@ class Account(object):
         return self._coming
 
     @coming.setter
-    def coming_set(self, value):
+    def coming(self, value):
         self._coming = float(value)
 
     def __repr__(self):
