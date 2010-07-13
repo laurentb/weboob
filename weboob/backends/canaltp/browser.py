@@ -29,7 +29,8 @@ class CanalTP(BaseBrowser):
         BaseBrowser.__init__(self, '')
 
     def iter_station_search(self, pattern):
-        result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/gare.php?txtrech=%s" % unicode(pattern)).read()
+        url = u'http://widget.canaltp.fr/Prochains_departs_15122009/dev/gare.php?txtrech=%s' % unicode(pattern)
+        result = self.openurl(url.encode('utf-8')).read()
         for station in result.split('&'):
             try:
                 _id, name = station.split('=')
@@ -39,7 +40,8 @@ class CanalTP(BaseBrowser):
                 yield _id, to_unicode(name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
-        result = self.openurl(u"http://widget.canaltp.fr/Prochains_departs_15122009/dev/index.php?gare=%s" % unicode(station_id)).read()
+        url = u'http://widget.canaltp.fr/Prochains_departs_15122009/dev/index.php?gare=%s' % unicode(station_id)
+        result = self.openurl(url.encode('utf-8')).read()
         result = result
         departure = ''
         for line in result.split('&'):

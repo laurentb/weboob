@@ -45,7 +45,7 @@ class YoujizzBrowser(BaseBrowser):
         if video is None:
             video = YoujizzVideo()
         try:
-            data = self.openurl(url).read()
+            data = self.openurl(url.encode('utf-8')).read()
         except BrowserUnavailable:
             return None
         def _get_url():

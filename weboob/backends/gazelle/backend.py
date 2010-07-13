@@ -52,7 +52,7 @@ class GazelleBackend(BaseBackend, ICapTorrent):
         if not torrent:
             return None
 
-        return self.browser.openurl(torrent.url).read()
+        return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern)
