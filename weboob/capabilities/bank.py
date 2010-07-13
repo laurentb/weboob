@@ -18,7 +18,7 @@
 
 import sys
 if sys.version_info[:2] <= (2, 5):
-    from weboob.tools import property
+    from weboob.tools.property import property
 
 
 from .cap import ICap
@@ -73,7 +73,7 @@ class Operation(object):
         return self._label
 
     @label.setter
-    def label_set(self, value):
+    def label(self, value):
         self._label = str(value)
 
     @property
@@ -81,7 +81,7 @@ class Operation(object):
         return self._amount
 
     @amount.setter
-    def amount_set(self, value):
+    def amount(self, value):
         self._amount = float(value)
 
 
