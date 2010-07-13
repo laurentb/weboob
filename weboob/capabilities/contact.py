@@ -34,8 +34,8 @@ class ProfileNode(object):
 
 class Contact(object):
     STATUS_ONLINE =  0x001
-    STATUS_OFFLINE = 0x002
-    STATUS_AWAY =    0x004
+    STATUS_AWAY =    0x002
+    STATUS_OFFLINE = 0x004
     STATUS_ALL =     0xfff
 
     def __init__(self, id, name, status):

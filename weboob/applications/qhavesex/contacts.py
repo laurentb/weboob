@@ -153,9 +153,10 @@ class MetaGroup(IGroup):
     def cb(self, cb, backend, contact):
         if contact:
             contact.backend = backend
-        else:
+            cb(contact)
+        elif not backend:
             self.process = None
-        cb(contact)
+            cb(None)
 
 class ContactsWidget(QWidget):
     def __init__(self, weboob, parent=None):
@@ -215,6 +216,11 @@ class ContactsWidget(QWidget):
         item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend.name))
         item.setIcon(QIcon(QPixmap.fromImage(img)))
         item.setData(Qt.UserRole, contact)
+
+        for i in xrange(self.ui.contactList.count()):
+            if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:
+                self.ui.contactList.insertItem(i, item)
+                return
 
         self.ui.contactList.addItem(item)
 
