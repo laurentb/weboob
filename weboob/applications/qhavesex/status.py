@@ -78,9 +78,9 @@ class Account(QFrame):
             return
 
         if field.flags & StatusField.FIELD_HTML:
-            value = field.value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        else:
             value = u'%s' % field.value
+        else:
+            value = (u'%s' % field.value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
         if field.flags & StatusField.FIELD_TEXT:
             if self.process.in_p:

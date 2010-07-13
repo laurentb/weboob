@@ -60,11 +60,14 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     def get_status(self):
         with self.browser:
-            return (
-                    StatusField('myname', 'My name', self.browser.get_my_name()),
-                    StatusField('score', 'Score', self.browser.score()),
-                    StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
-                   )
+            try:
+                return (
+                        StatusField('myname', 'My name', self.browser.get_my_name()),
+                        StatusField('score', 'Score', self.browser.score()),
+                        StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
+                       )
+            except AdopteWait:
+                return (StatusField('notice', '', u'<h3>You are currently waiting 1am to be able to connect with this account</h3>', StatusField.FIELD_HTML|StatusField.FIELD_TEXT))
 
     def iter_messages(self, thread=None):
         for message in self._iter_messages(thread, False):
