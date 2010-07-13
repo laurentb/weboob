@@ -48,15 +48,14 @@ class IndexPage(BasePage):
                 raise ExpectedElementNotFound(title1_selector)
             title = title1[0].text.strip()
 
-            duration = 0
             thumbtime = span.cssselect('span.thumbtime')
+            minutes = seconds = 0
             if thumbtime is not None:
                 time_span = thumbtime[0].find('span')
-                minutes, seconds = time_span.text.strip().split(':')
-                duration = 60 * int(minutes) + int(seconds)
+                minutes, seconds = (int(v) for v in time_span.text.strip().split(':'))
 
             yield YoujizzVideo(_id,
                                title=title,
-                               duration=duration,
+                               duration=datetime.timedelta(minutes=minutes, seconds=seconds),
                                thumbnail_url=thumbnail_url,
                                )
