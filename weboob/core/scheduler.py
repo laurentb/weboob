@@ -48,10 +48,14 @@ class Scheduler(IScheduler):
 
         self.count += 1
         logging.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
-        timer = Timer(interval, function, args)
-        timer.start()
+        timer = Timer(interval, self._callback, (self.count, function, args))
         self.queue[self.count] = timer
+        timer.start()
         return self.count
+
+    def _callback(self, count, function, args):
+        self.queue.pop(count)
+        return function(*args)
 
     def repeat(self, interval, function, *args):
         return self._repeat(True, interval, function, *args)
