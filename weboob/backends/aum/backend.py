@@ -55,8 +55,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
               }
     BROWSER = AuMBrowser
 
-    def default_browser(self):
-        return self.build_browser(self.config['username'], self.config['password'])
+    def create_default_browser(self):
+        return self.create_browser(self.config['username'], self.config['password'])
 
     def get_status(self):
         with self.browser:

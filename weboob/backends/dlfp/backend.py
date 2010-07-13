@@ -44,8 +44,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     STORAGE = {'seen': {}}
     BROWSER = DLFP
 
-    def default_browser(self):
-        return self.build_browser(self.config['username'], self.config['password'])
+    def create_default_browser(self):
+        return self.create_browser(self.config['username'], self.config['password'])
 
     def iter_messages(self, thread=None):
         return self._iter_messages(thread, False)

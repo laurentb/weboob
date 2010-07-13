@@ -40,9 +40,9 @@ class GazelleBackend(BaseBackend, ICapTorrent):
              }
     BROWSER = GazelleBrowser
 
-    def default_browser(self):
-        return self.build_browser(self.config['protocol'], self.config['domain'],
-                                  self.config['username'], self.config['password'])
+    def create_default_browser(self):
+        return self.create_browser(self.config['protocol'], self.config['domain'],
+                                   self.config['username'], self.config['password'])
 
     def get_torrent(self, id):
         return self.browser.get_torrent(id)

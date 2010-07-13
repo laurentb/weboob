@@ -35,8 +35,8 @@ class CragrBackend(BaseBackend, ICapBank):
              }
     BROWSER = Cragr
 
-    def default_browser(self):
-        return self.build_browser(self.config['website'], self.config['login'], self.config['password'])
+    def create_default_browser(self):
+        return self.create_browser(self.config['website'], self.config['login'], self.config['password'])
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

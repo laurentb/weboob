@@ -18,7 +18,7 @@
 
 import sys
 if sys.version_info[:2] <= (2, 5):
-    import weboob.tools.property
+    from weboob.tools import property
 
 
 from .cap import ICap

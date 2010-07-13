@@ -127,20 +127,20 @@ class BaseBackend(object):
         Attribute 'browser'. The browser is created at the first call
         of this attribute, to avoid useless pages access.
 
-        Note that the 'default_browser' method is called to create it.
+        Note that the 'create_default_browser' method is called to create it.
         """
         if not hasattr(self, '_browser'):
-            self._browser = self.default_browser()
+            self._browser = self.create_default_browser()
         return self._browser
 
-    def default_browser(self):
+    def create_default_browser(self):
         """
         Method to overload to build the default browser in
         attribute 'browser'.
         """
-        return self.build_browser()
+        return self.create_browser()
 
-    def build_browser(self, *args, **kwargs):
+    def create_browser(self, *args, **kwargs):
         """
         Build a browser from the BROWSER class attribute and the
         given arguments.
