@@ -44,7 +44,11 @@ class PromptScheduler(Scheduler):
                 else:
                     self.read_cb(line.strip())
         except KeyboardInterrupt:
+            self._wait_to_stop()
             sys.stdout.write('\n')
+        else:
+            self._wait_to_stop()
+        return True
 
 class PromptApplication(ConsoleApplication):
     SYNOPSIS = 'Usage: %prog [options (-h for help)]'
