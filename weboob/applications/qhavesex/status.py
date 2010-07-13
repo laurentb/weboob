@@ -18,7 +18,7 @@
 from __future__ import with_statement
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
-from PyQt4.QtCore import SIGNAL, QTimer
+from PyQt4.QtCore import SIGNAL
 
 from weboob.capabilities.dating import StatusField
 from weboob.tools.application.qt import QtDo
@@ -49,17 +49,12 @@ class Account(QFrame):
         head.addWidget(self.title)
         head.addStretch()
 
-        self.body = QLabel()
+        self.body = QLabel(u'<i>Waiting...</i>')
 
         self.layout().addWidget(headw)
         self.layout().addWidget(self.body)
 
-        self.timer = QTimer()
-        self.timer.setSingleShot(False)
-        self.timer.setInterval(60)
-        self.connect(self.timer, SIGNAL('timeout()'), self.updateStats)
-
-        self.updateStats()
+        self.weboob.repeat(60, self.updateStats)
 
     def updateStats(self):
         self.process = QtDo(self.weboob, self.updateStats_cb)

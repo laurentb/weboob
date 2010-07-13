@@ -31,26 +31,38 @@ __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 class QtScheduler(IScheduler):
     def __init__(self, app):
         self.app = app
+        self.count = 0
         self.timers = {}
 
     def schedule(self, interval, function, *args):
         timer = QTimer()
-        timer.setInterval(interval)
-        timer.setSingleShot(False)
-        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(timer.timerId(), False, function, *args))
-        self.timers[timer.timerId()] = timer
+        timer.setInterval(interval * 1000)
+        timer.setSingleShot(True)
+
+        count = self.count
+        self.count += 1
+
+        timer.start()
+        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(count, None, function, *args))
+        self.timers[count] = timer
 
     def repeat(self, interval, function, *args):
         timer = QTimer()
-        timer.setInterval(interval)
-        timer.setSingleShot(True)
-        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(timer.timerId(), True, function, *args))
-        self.timers[timer.timerId()] = timer
+        timer.setSingleShot(False)
 
-    def timeout(self, _id, single, function, *args):
+        count = self.count
+        self.count += 1
+
+        timer.start(0)
+        self.app.connect(timer, SIGNAL("timeout()"), lambda: self.timeout(count, interval, function, *args))
+        self.timers[count] = timer
+
+    def timeout(self, _id, interval, function, *args):
         function(*args)
-        if single:
+        if interval is None:
             self.timers.pop(_id)
+        else:
+            self.timers[_id].setInterval(interval * 1000)
 
     def want_stop(self):
         self.app.quit()
