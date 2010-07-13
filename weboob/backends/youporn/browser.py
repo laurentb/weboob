@@ -43,7 +43,7 @@ class YoupornBrowser(BaseBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         if video is None:
-            return video.page.video
+            return self.page.video
         else:
             for k, v in iter_fields(self.page.video):
                 if v and getattr(video, k) != v:
