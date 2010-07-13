@@ -44,6 +44,6 @@ class YoujizzBackend(BaseBackend, ICapVideo):
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, required_fields=None):
         if not nsfw:
-            yield iter(set())
+            return
         for video in self.browser.iter_search_results(pattern, required_fields=required_fields):
             yield video

@@ -42,4 +42,4 @@ class InaBackend(BaseBackend, ICapVideo):
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, required_fields=None):
         debug(u'backend ina: iter_search_results is not implemented')
-        return []
+        return
