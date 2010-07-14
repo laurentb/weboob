@@ -28,6 +28,7 @@ __all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
     DOMAIN = u'youtube.com'
+    ENCODING = None
     PAGES = {r'.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
              r'.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
              r'.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
