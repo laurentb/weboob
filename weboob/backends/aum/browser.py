@@ -46,7 +46,6 @@ __all__ = ['AuMBrowser']
 
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
-    PROTOCOL = 'http'
     ENCODING = 'iso-8859-1'
     PAGES = {'http://www.adopteunmec.com/': LoginPage,
              'http://www.adopteunmec.com/index.html': LoginPage,

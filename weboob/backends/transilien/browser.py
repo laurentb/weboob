@@ -114,7 +114,6 @@ class Parser(HTMLParser.HTMLParser):
 
 class Transilien(BaseBrowser):
     DOMAIN = 'www.transilien.com'
-    PROTOCOL = 'http'
     PAGES = {'http://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': RoutePage,
              'http://www\.transilien\.com/web/ITProchainsTrains\.do\?.*': RoutePage
             }

@@ -21,7 +21,6 @@ from .pages.board import BoardPage
 
 class FourChan(BaseBrowser):
     DOMAIN = 'boards.4chan.org'
-    PROTOCOL = 'http'
     PAGES = {'http://boards.4chan.org/\w+/': BoardPage,
              'http://boards.4chan.org/\w+/res/\d+': BoardPage,
             }

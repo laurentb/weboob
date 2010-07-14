@@ -32,7 +32,6 @@ __all__ = ['YoupornBrowser']
 
 class YoupornBrowser(BaseBrowser):
     DOMAIN = 'youporn.com'
-    PROTOCOL = 'http'
     PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
              'http://[w\.]*youporn\.com/search.*': IndexPage,
              'http://[w\.]*youporn\.com/watch/(?P<id>.+)': VideoPage,

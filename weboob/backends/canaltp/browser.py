@@ -22,8 +22,6 @@ from weboob.tools.misc import to_unicode
 
 class CanalTP(BaseBrowser):
     DOMAIN = 'widget.canaltp.fr'
-    PROTOCOL = 'http'
-    PAGES = {}
 
     def __init__(self):
         BaseBrowser.__init__(self, '')
