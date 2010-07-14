@@ -17,7 +17,7 @@
 
 
 import logging
-from threading import Timer, Event
+from threading import Timer, Event, RLock
 
 
 __all__ = ['Scheduler']
@@ -38,6 +38,7 @@ class IScheduler(object):
 
 class Scheduler(IScheduler):
     def __init__(self):
+        self.mutex = RLock()
         self.stop_event = Event()
         self.count = 0
         self.queue = {}
@@ -46,15 +47,17 @@ class Scheduler(IScheduler):
         if self.stop_event.isSet():
             return
 
-        self.count += 1
-        logging.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
-        timer = Timer(interval, self._callback, (self.count, function, args))
-        self.queue[self.count] = timer
-        timer.start()
-        return self.count
+        with self.mutex:
+            self.count += 1
+            logging.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
+            timer = Timer(interval, self._callback, (self.count, function, args))
+            self.queue[self.count] = timer
+            timer.start()
+            return self.count
 
     def _callback(self, count, function, args):
-        self.queue.pop(count)
+        with self.mutex:
+            self.queue.pop(count)
         return function(*args)
 
     def repeat(self, interval, function, *args):
@@ -65,9 +68,10 @@ class Scheduler(IScheduler):
 
     def _wait_to_stop(self):
         self.want_stop()
-        for e in self.queue.itervalues():
-            e.cancel()
-            e.join()
+        with self.mutex:
+            for e in self.queue.itervalues():
+                e.cancel()
+                e.join()
 
     def run(self):
         try:
