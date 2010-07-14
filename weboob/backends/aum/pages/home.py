@@ -18,7 +18,6 @@
 
 import re
 
-from weboob.tools.browser import ExpectedElementNotFound
 from weboob.backends.aum.pages.base import PageBase
 from logging import error
 
@@ -47,4 +46,5 @@ class HomePage(PageBase):
                         i += 1
                         if i == 3:
                             return int(font.firstChild.data)
-        raise ExpectedElementNotFound(u'Could not parse number of charms available')
+        logging.warning(u'Could not parse number of charms available')
+        return 0

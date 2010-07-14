@@ -43,7 +43,7 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BasePage', 'BaseBrowser', 'ExpectedElementNotFound']
+           'BasePage', 'BaseBrowser']
 
 
 # Exceptions
@@ -60,10 +60,6 @@ class BrowserUnavailable(Exception):
 
 
 class BrowserRetry(Exception):
-    pass
-
-
-class ExpectedElementNotFound(Exception):
     pass
 
 

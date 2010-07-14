@@ -16,9 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import datetime
 import re
 
-from weboob.tools.browser import BasePage, ExpectedElementNotFound
+from weboob.tools.browser import BasePage
+from weboob.tools.parsers.lxmlparser import select
 
 from ..video import YoujizzVideo
 
@@ -28,31 +30,20 @@ __all__ = ['IndexPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        div_id = 'span#miniatura'
-        span_list = self.document.getroot().cssselect(div_id)
-        if not span_list:
-            raise ExpectedElementNotFound(div_id)
-
+        span_list = select(self.document.getroot(), 'span#miniatura')
         for span in span_list:
-            a = span.find('.//a')
-            if a is None:
-                raise ExpectedElementNotFound('%s.//a' % span)
+            a = select(span, 'a', 1)
             url = a.attrib['href']
             _id = re.sub(r'/videos/(.+)\.html', r'\1', url)
 
             thumbnail_url = span.find('.//img').attrib['src']
 
-            title1_selector = 'span#title1'
-            title1 = span.cssselect(title1_selector)
-            if title1 is None:
-                raise ExpectedElementNotFound(title1_selector)
-            title = title1[0].text.strip()
+            selector = 'span#title1'
+            title_el = select(span, 'span#title1', 1)
+            title = title_el.text.strip()
 
-            thumbtime = span.cssselect('span.thumbtime')
-            minutes = seconds = 0
-            if thumbtime is not None:
-                time_span = thumbtime[0].find('span')
-                minutes, seconds = (int(v) for v in time_span.text.strip().split(':'))
+            time_span = select(span, 'span.thumbtime span', 1)
+            minutes, seconds = (int(v) for v in time_span.text.strip().split(':'))
 
             yield YoujizzVideo(_id,
                                title=title,

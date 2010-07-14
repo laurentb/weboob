@@ -20,7 +20,7 @@ import re
 import datetime
 from logging import warning
 
-from weboob.tools.browser import ExpectedElementNotFound
+from weboob.tools.parsers.lxmlparser import select
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -42,11 +42,7 @@ class VideoPage(PornPage):
             return el[0].cssselect('a')[0].attrib['href']
 
     def get_title(self):
-        selector = '#videoArea h1'
-        try:
-            element = self.document.getroot().cssselect(selector)[0]
-        except IndexError:
-            raise ExpectedElementNotFound(selector)
+        element = select(self.document.getroot(), '#videoArea h1', 1)
         return unicode(element.getchildren()[0].tail).strip()
 
     DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")

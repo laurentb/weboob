@@ -18,7 +18,8 @@
 
 import re
 
-from weboob.tools.browser import BasePage, ExpectedElementNotFound
+from weboob.tools.browser import BasePage
+from weboob.tools.parsers.lxmlparser import select
 
 from .video import YoutubeVideo
 
@@ -32,11 +33,7 @@ class ForbiddenVideo(Exception):
 
 class ForbiddenVideoPage(BasePage):
     def on_loaded(self):
-        selector = '.yt-alert-content'
-        try:
-            element = self.document.getroot().cssselect(selector)[0]
-        except IndexError:
-            raise ExpectedElementNotFound(selector)
+        element = select(self.document.getroot(), '.yt-alert-content', 1)
         raise ForbiddenVideo(element.text.strip())
 
 
@@ -57,19 +54,11 @@ class VideoPage(BasePage):
                                   )
 
     def get_author(self):
-        selector = 'a.watch-description-username strong'
-        try:
-            element = self.document.getroot().cssselect(selector)[0]
-        except IndexError:
-            raise ExpectedElementNotFound(selector)
+        element = select(self.document.getroot(), 'a.watch-description-username strong', 1)
         return element.text.strip()
 
     def get_title(self):
-        selector = 'meta[name=title]'
-        try:
-            element = self.document.getroot().cssselect(selector)[0]
-        except IndexError:
-            raise ExpectedElementNotFound(selector)
+        element = select(self.document.getroot(), 'meta[name=title]', 1)
         return unicode(element.attrib['content']).strip()
 
     def get_url(self, _id):
