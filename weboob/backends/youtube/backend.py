@@ -24,7 +24,6 @@ from weboob.tools.backend import BaseBackend
 from weboob.tools.misc import iter_fields
 
 from .browser import YoutubeBrowser
-from .pages import ForbiddenVideo
 from .video import YoutubeVideo
 
 
@@ -41,23 +40,10 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
     BROWSER = YoutubeBrowser
 
-    def get_video(self, _id, video=None):
-        try:
-            browser_video = self.browser.get_video(_id)
-        except ForbiddenVideo:
-            if video is None:
-                return None
-            else:
-                raise
-        if video is None:
-            return browser_video
-        else:
-            for k, v in iter_fields(browser_video):
-                if v and getattr(video, k) != v:
-                    setattr(video, k, v)
-            return video
+    def get_video(self, _id):
+        return self.browser.get_video(_id)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, required_fields=None):
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         import gdata.youtube.service
         yt_service = gdata.youtube.service.YouTubeService()
         query = gdata.youtube.service.YouTubeVideoQuery()
@@ -77,19 +63,6 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                                  duration=datetime.timedelta(seconds=int(entry.media.duration.seconds.decode('utf-8').strip())),
                                  thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
                                  )
-            if required_fields is not None:
-                missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                if missing_required_fields:
-                    logging.debug(u'Completing missing required fields: %s' % missing_required_fields)
-                    try:
-                        self.get_video(video.id, video=video)
-                    except ForbiddenVideo, e:
-                        logging.debug(e)
-                        continue
-                    else:
-                        missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                        if missing_required_fields:
-                            raise Exception(u'Could not load all required fields. Missing: %s' % missing_required_fields)
             yield video
 
     def iter_page_urls(self, mozaic_url):

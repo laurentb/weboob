@@ -27,19 +27,20 @@ from ..video import YoupornVideo
 
 
 class VideoPage(PornPage):
-    def on_loaded(self):
+    def get_video(self, video=None):
         if not PornPage.on_loaded(self):
             return
-        self.video = YoupornVideo(self.group_dict['id'],
-                                  self.get_title(),
-                                  self.get_url(),
-                                  )
-        self.set_details(self.video)
+        if video is None:
+            video = YoupornVideo(self.group_dict['id'])
+        video.title = self.get_title()
+        video.url = self.get_url()
+        self.set_details(video)
+        return video
 
     def get_url(self):
-        el = self.document.getroot().cssselect('div[id=download]')
-        if el:
-            return el[0].cssselect('a')[0].attrib['href']
+        download_div = select(self.document.getroot(), '#download', 1)
+        a = select(download_div, 'a', 1)
+        return a.attrib['href']
 
     def get_title(self):
         element = select(self.document.getroot(), '#videoArea h1', 1)
@@ -49,11 +50,8 @@ class VideoPage(PornPage):
     MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     def set_details(self, v):
-        div = self.document.getroot().cssselect('div[id=details]')
-        if not div:
-            return
-
-        for li in div[0].getiterator('li'):
+        details_div = select(self.document.getroot(), '#details', 1)
+        for li in details_div.getiterator('li'):
             span = li.find('span')
             name = span.text.strip()
             value = span.tail.strip()

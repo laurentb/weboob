@@ -40,6 +40,6 @@ class InaBackend(BaseBackend, ICapVideo):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, required_fields=None):
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         debug(u'backend ina: iter_search_results is not implemented')
         return set()

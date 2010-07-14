@@ -394,3 +394,6 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ControlNotFoundError:
             return
+
+    def fillobj(self, obj, fields):
+        raise NotImplementedError()

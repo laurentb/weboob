@@ -42,7 +42,7 @@ class YoujizzBackend(BaseBackend, ICapVideo):
     def iter_page_urls(self, mozaic_url):
         return self.browser.iter_page_urls(mozaic_url)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, required_fields=None):
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return
-        return self.browser.iter_search_results(pattern, required_fields=required_fields)
+        return self.browser.iter_search_results(pattern)

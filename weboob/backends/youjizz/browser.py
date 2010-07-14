@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import datetime
 import logging
 import re
 import urllib
@@ -26,6 +25,7 @@ from weboob.tools.browser.decorators import check_domain, id2url
 from weboob.tools.misc import iter_fields, to_unicode
 
 from .pages.index import IndexPage
+from .pages.video import VideoPage
 from .video import YoujizzVideo
 
 
@@ -37,57 +37,28 @@ class YoujizzBrowser(BaseBrowser):
     ENCODING = None
     PAGES = {r'http://.*youjizz\.com/?': IndexPage,
              r'http://.*youjizz\.com/index.php': IndexPage,
-             r'http://.*youjizz\.com/search/.+\.html': IndexPage,
+             r'http://.*youjizz\.com/search/(?P<pattern>.+)\.html': IndexPage,
+             r'http://.*youjizz\.com/videos/(?P<id>.+)\.html': VideoPage,
             }
 
+    def fillobj(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        self.location(YoujizzVideo.id2url(video.id))
+        return self.page.get_video(video)
+
     @id2url(YoujizzVideo.id2url)
-    def get_video(self, url, video=None):
-        try:
-            data = self.openurl(url.encode('utf-8')).read()
-        except BrowserUnavailable:
-            return None
-        def _get_url():
-            video_file_urls = re.findall(r'"(http://media[^ ,]+\.flv)"', data)
-            if len(video_file_urls) == 0:
-                return None
-            else:
-                if len(video_file_urls) > 1:
-                    logging.warning('Many video file URL found for given URL: %s' % video_file_urls)
-                return video_file_urls[0]
-        m = re.search(r'http://.*youjizz\.com/videos/(.+)\.html', url)
-        _id = unicode(m.group(1)) if m else None
-        if video is None:
-            video = YoujizzVideo(_id)
-        m = re.search(r'<title>(.+)</title>', data)
-        title = to_unicode(m.group(1)) if m else None
-        m = re.search(r'<strong>.*Runtime.*</strong>(.+)<br.*>', data)
-        if m:
-            minutes, seconds = (int(v) for v in unicode(m.group(1).strip()).split(':'))
-        else:
-            minutes = seconds = 0
-        video.title = title
-        video.url = _get_url()
-        video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
-        return video
+    def get_video(self, url):
+        self.location(url)
+        return self.page.get_video()
 
     @check_domain
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
-    def iter_search_results(self, pattern, required_fields=None):
+    def iter_search_results(self, pattern):
         if not pattern:
             self.home()
         else:
             self.location('/search/%s-1.html' % (urllib.quote_plus(pattern)))
         assert self.is_on_page(IndexPage)
-
-        for video in self.page.iter_videos():
-            if required_fields is not None:
-                missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                if missing_required_fields:
-                    logging.debug(u'Completing missing required fields: %s' % missing_required_fields)
-                    self.get_video(video.id, video=video)
-                    missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                    if missing_required_fields:
-                        raise Exception(u'Could not load all required fields. Missing: %s' % missing_required_fields)
-            yield video
+        return self.page.iter_videos()

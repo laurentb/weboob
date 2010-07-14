@@ -32,26 +32,26 @@ class ForbiddenVideo(Exception):
 
 
 class ForbiddenVideoPage(BasePage):
-    def on_loaded(self):
+    def get_video(self, video=None):
         element = select(self.document.getroot(), '.yt-alert-content', 1)
         raise ForbiddenVideo(element.text.strip())
 
 
 class VerifyAgePage(BasePage):
-    def on_loaded(self):
+    def get_video(self, video=None):
         raise ForbiddenVideo('verify age not implemented')
 
 
 class VideoPage(BasePage):
     VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
 
-    def on_loaded(self):
-        _id = self.group_dict['id']
-        self.video = YoutubeVideo(_id,
-                                  title=self.get_title(),
-                                  url=self.get_url(_id),
-                                  author=self.get_author(),
-                                  )
+    def get_video(self, video=None):
+        if video is None:
+            video = YoutubeVideo(self.group_dict['id'])
+        video.title = self.get_title()
+        video.url = self.get_url(video.id)
+        video.author = self.get_author()
+        return video
 
     def get_author(self):
         element = select(self.document.getroot(), 'a.watch-description-username strong', 1)

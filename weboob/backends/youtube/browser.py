@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import logging
+
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import ForbiddenVideoPage, VerifyAgePage, VideoPage
+from .pages import ForbiddenVideo, ForbiddenVideoPage, VerifyAgePage, VideoPage
 from .video import YoutubeVideo
 
 
@@ -34,10 +36,12 @@ class YoutubeBrowser(BaseBrowser):
              r'.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
             }
 
+    def fillobj(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        self.location(YoutubeVideo.id2url(video.id))
+        return self.page.get_video(video)
+
     @id2url(YoutubeVideo.id2url)
     def get_video(self, url):
         self.location(url)
-        if hasattr(self.page, 'video'):
-            return self.page.video
-        else:
-            return None
+        return self.page.get_video()

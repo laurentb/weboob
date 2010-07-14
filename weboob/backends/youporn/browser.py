@@ -39,30 +39,20 @@ class YoupornBrowser(BaseBrowser):
              r'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
             }
 
-    @id2url(YoupornVideo.id2url)
-    def get_video(self, url, video=None):
-        self.location(url)
-        if video is None:
-            return self.page.video
-        else:
-            for k, v in iter_fields(self.page.video):
-                if v and getattr(video, k) != v:
-                    setattr(video, k, v)
-            return video
+    def fillobj(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        self.location(YoupornVideo.id2url(video.id))
+        return self.page.get_video(video)
 
-    def iter_search_results(self, pattern, sortby, required_fields=None):
+    @id2url(YoupornVideo.id2url)
+    def get_video(self, url):
+        self.location(url)
+        return self.page.get_video()
+
+    def iter_search_results(self, pattern, sortby):
         if not pattern:
             self.home()
         else:
             self.location(self.buildurl('/search/%s' % sortby, query=pattern))
         assert self.is_on_page(IndexPage)
-        for video in self.page.iter_videos():
-            if required_fields is not None:
-                missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                if missing_required_fields:
-                    logging.debug(u'Completing missing required fields: %s' % missing_required_fields)
-                    self.get_video(video.id, video=video)
-                    missing_required_fields = set(required_fields) - set(k for k, v in iter_fields(video) if v)
-                    if missing_required_fields:
-                        raise Exception(u'Could not load all required fields. Missing: %s' % missing_required_fields)
-            yield video
+        return self.page.iter_videos()
