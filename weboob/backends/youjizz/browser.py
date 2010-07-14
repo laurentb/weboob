@@ -23,7 +23,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.browser.decorators import check_domain, id2url
-from weboob.tools.misc import iter_fields
+from weboob.tools.misc import iter_fields, to_unicode
 
 from .pages.index import IndexPage
 from .video import YoujizzVideo
@@ -42,8 +42,6 @@ class YoujizzBrowser(BaseBrowser):
 
     @id2url(YoujizzVideo.id2url)
     def get_video(self, url, video=None):
-        if video is None:
-            video = YoujizzVideo()
         try:
             data = self.openurl(url.encode('utf-8')).read()
         except BrowserUnavailable:
@@ -58,14 +56,15 @@ class YoujizzBrowser(BaseBrowser):
                 return video_file_urls[0]
         m = re.search(r'http://.*youjizz\.com/videos/(.+)\.html', url)
         _id = unicode(m.group(1)) if m else None
+        if video is None:
+            video = YoujizzVideo(_id)
         m = re.search(r'<title>(.+)</title>', data)
-        title = unicode(m.group(1)) if m else None
+        title = to_unicode(m.group(1)) if m else None
         m = re.search(r'<strong>.*Runtime.*</strong>(.+)<br.*>', data)
         if m:
             minutes, seconds = (int(v) for v in unicode(m.group(1).strip()).split(':'))
         else:
             minutes = seconds = 0
-        video._id = _id
         video.title = title
         video.url = _get_url()
         video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
