@@ -28,9 +28,9 @@ __all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
     DOMAIN = u'youtube.com'
-    PAGES = {'.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
-             '.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
-             '.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
+    PAGES = {r'.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
+             r'.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
+             r'.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
             }
 
     @id2url(YoutubeVideo.id2url)

@@ -32,10 +32,11 @@ __all__ = ['YoupornBrowser']
 
 class YoupornBrowser(BaseBrowser):
     DOMAIN = 'youporn.com'
-    PAGES = {'http://[w\.]*youporn\.com/?': IndexPage,
-             'http://[w\.]*youporn\.com/search.*': IndexPage,
-             'http://[w\.]*youporn\.com/watch/(?P<id>.+)': VideoPage,
-             'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
+    ENCODING = None
+    PAGES = {r'http://[w\.]*youporn\.com/?': IndexPage,
+             r'http://[w\.]*youporn\.com/search.*': IndexPage,
+             r'http://[w\.]*youporn\.com/watch/(?P<id>.+)': VideoPage,
+             r'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
             }
 
     @id2url(YoupornVideo.id2url)
