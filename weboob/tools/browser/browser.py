@@ -43,7 +43,7 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BasePage', 'BaseBrowser']
+           'BrowserHTTPError', 'BasePage', 'BaseBrowser']
 
 
 # Exceptions
@@ -56,6 +56,9 @@ class BrowserBanned(BrowserIncorrectPassword):
 
 
 class BrowserUnavailable(Exception):
+    pass
+
+class BrowserHTTPError(BrowserUnavailable):
     pass
 
 
@@ -226,7 +229,7 @@ class BaseBrowser(mechanize.Browser):
         return inner
 
     @check_location
-    @retry(BrowserUnavailable, tries=3)
+    @retry(BrowserHTTPError, tries=3)
     def openurl(self, *args, **kwargs):
         """
         Open an URL but do not create a Page object.
@@ -235,7 +238,7 @@ class BaseBrowser(mechanize.Browser):
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
+            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
@@ -248,7 +251,7 @@ class BaseBrowser(mechanize.Browser):
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             self.page = None
-            raise BrowserUnavailable(e)
+            raise BrowserHTTPError(e)
         except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
             raise BrowserUnavailable(e)
@@ -261,13 +264,13 @@ class BaseBrowser(mechanize.Browser):
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             self.page = None
-            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
+            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
             raise BrowserUnavailable(e)
 
     @check_location
-    @retry(BrowserUnavailable, tries=3)
+    @retry(BrowserHTTPError, tries=3)
     def location(self, *args, **kwargs):
         """
         Change location of browser on an URL.
@@ -289,7 +292,7 @@ class BaseBrowser(mechanize.Browser):
                 self.location(keep_args, keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             self.page = None
-            raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
+            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
