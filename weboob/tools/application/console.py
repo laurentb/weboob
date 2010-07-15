@@ -289,7 +289,7 @@ class ConsoleApplication(BaseApplication):
         """
         Call Weboob.do_caps(), after having filled the yielded object, if selected fields are given by user.
         """
-        for backend, result in self.weboob.do_caps(caps, function, *args, **kwargs):
+        for i, (backend, result) in enumerate(self.weboob.do_caps(caps, function, *args, **kwargs)):
             if self.options.count and i == self.options.count:
                 break
             fields = set(self.selected_fields) - set('*')
@@ -304,7 +304,7 @@ class ConsoleApplication(BaseApplication):
         """
         Call Weboob.do_backends(), after having filled the yielded object, if selected fields are given by user.
         """
-        for backend, result in self.weboob.do_backends(backends, function, *args, **kwargs):
+        for i, (backend, result) in enumerate(self.weboob.do_backends(backends, function, *args, **kwargs)):
             if self.options.count and i == self.options.count:
                 break
             fields = set(self.selected_fields) - set('*')
