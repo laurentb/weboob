@@ -52,9 +52,9 @@ class PageBase(BasePage):
         l = self.document.getElementsByTagName('table')
         for tag in l:
             if tag.getAttribute('width') == '220':
-                # <table><tbody(implicit)><td>
-                child = tag.childNodes[1].childNodes[0].childNodes[3]
-                return int(child.childNodes[0].childNodes[0].data.replace(' ', ''))
+                # <table><tbody(implicit)><tr><td>
+                child = tag.childNodes[0].childNodes[0].childNodes[3]
+                return int(child.childNodes[0].childNodes[1].data.replace(' ', '').strip())
 
         error("Error: I can't find the score :(")
         return '0'
