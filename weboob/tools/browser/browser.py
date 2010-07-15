@@ -233,7 +233,7 @@ class BaseBrowser(mechanize.Browser):
         """
         debug('Opening URL "%s", %s' % (args, kwargs))
         try:
-            return mechanize.Browser.open(self, *args, **kwargs)
+            return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
             raise BrowserUnavailable('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry):
