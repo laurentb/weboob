@@ -104,11 +104,11 @@ class AuMBrowser(BaseBrowser):
             return func(self, *args, **kwargs)
         return inner
 
-    def register(self, nickname, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=''):
+    def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=''):
         if not self.is_on_page(RegisterPage):
             self.location('http://www.adopteunmec.com/register2.php')
 
-        return self.page.register(nickname, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather)
+        return self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather)
 
     @pageaccess
     def add_photo(self, name, f):

@@ -49,6 +49,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
+              'register':      BaseBackend.ConfigField(default=False, description='Register as new account?'),
              }
     STORAGE = {'profiles_walker': {'viewed': []},
                'sluts': {},
@@ -56,7 +57,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     BROWSER = AuMBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'], self.config['password'])
+        if self.config['register']:
+            browser = self.create_browser(self.config['username'])
+            browser.register(password=   self.config['password'],
+                             sex=        0,
+                             birthday_d= 1,
+                             birthday_m= 1,
+                             birthday_y= 1970,
+                             zipcode=    75001,
+                             country=    'fr',
+                             godfather=  '')
+        else:
+            return self.create_browser(self.config['username'], self.config['password'])
 
     def get_status(self):
         with self.browser:

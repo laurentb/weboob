@@ -156,7 +156,6 @@ class Decoder:
         browser.openurl('/register2.php')
         c = Captcha(browser.openurl('/captcha.php'))
 
-        print 'Decoded: %s' % c.text
         for tile in c:
             checksum = tile.checksum()
 
