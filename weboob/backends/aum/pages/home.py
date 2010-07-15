@@ -19,7 +19,7 @@
 import re
 
 from weboob.backends.aum.pages.base import PageBase
-from logging import error
+from logging import error, warning
 
 class HomePage(PageBase):
 
@@ -46,5 +46,5 @@ class HomePage(PageBase):
                         i += 1
                         if i == 3:
                             return int(font.firstChild.data)
-        logging.warning(u'Could not parse number of charms available')
+        warning(u'Could not parse number of charms available')
         return 0
