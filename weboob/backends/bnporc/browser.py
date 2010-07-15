@@ -35,10 +35,6 @@ class BNPorc(BaseBrowser):
 
     is_logging = False
 
-    def __init__(self, *args, **kwargs):
-        kwargs['history'] = None # need history
-        BaseBrowser.__init__(self, *args, **kwargs)
-
     def home(self):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
 

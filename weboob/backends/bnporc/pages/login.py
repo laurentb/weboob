@@ -28,7 +28,6 @@ class LoginPage(BasePage):
 
     def login(self, login, password):
         img = Captcha(self.browser.openurl('/NSImgGrille'))
-        self.browser.back()
 
         try:
             img.build_tiles()
