@@ -20,6 +20,7 @@ from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
 
 from .browser import YoujizzBrowser
+from .video import YoujizzVideo
 
 
 __all__ = ['YoujizzBackend']
@@ -46,3 +47,9 @@ class YoujizzBackend(BaseBackend, ICapVideo):
         if not nsfw:
             return
         return self.browser.iter_search_results(pattern)
+
+    def fill_video(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        return self.browser.get_video(YoujizzVideo.id2url(video.id), video)
+
+    OBJECTS = {YoujizzVideo: fill_video}

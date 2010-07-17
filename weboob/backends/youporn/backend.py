@@ -20,6 +20,7 @@ from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
 
 from .browser import YoupornBrowser
+from .video import YoupornVideo
 
 
 __all__ = ['YoupornBackend']
@@ -46,3 +47,9 @@ class YoupornBackend(BaseBackend, ICapVideo):
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
+
+    def fill_video(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        return self.browser.get_video(YoupornVideo.id2url(video.id), video)
+
+    OBJECTS = {YoupornVideo: fill_video}

@@ -16,11 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import logging
-
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
-from weboob.tools.misc import iter_fields
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
@@ -39,15 +36,10 @@ class YoupornBrowser(BaseBrowser):
              r'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
             }
 
-    def fillobj(self, video, fields):
-        # ignore the fields param: VideoPage.get_video() returns all the information
-        self.location(YoupornVideo.id2url(video.id))
-        return self.page.get_video(video)
-
     @id2url(YoupornVideo.id2url)
-    def get_video(self, url):
+    def get_video(self, url, video=None):
         self.location(url)
-        return self.page.get_video()
+        return self.page.get_video(video)
 
     def iter_search_results(self, pattern, sortby):
         if not pattern:

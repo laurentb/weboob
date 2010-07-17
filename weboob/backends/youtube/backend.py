@@ -17,11 +17,9 @@
 
 
 import datetime
-import logging
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
-from weboob.tools.misc import iter_fields
 
 from .browser import YoutubeBrowser
 from .video import YoutubeVideo
@@ -67,3 +65,9 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
+
+    def fill_video(self, video, fields):
+        # ignore the fields param: VideoPage.get_video() returns all the information
+        return self.browser.get_video(YoutubeVideo.id2url(video.id), video)
+
+    OBJECTS = {YoutubeVideo: fill_video}

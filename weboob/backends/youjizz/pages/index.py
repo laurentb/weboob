@@ -43,7 +43,14 @@ class IndexPage(BasePage):
             title = title_el.text.strip()
 
             time_span = select(span, 'span.thumbtime span', 1)
-            minutes, seconds = (int(v) for v in time_span.text.strip().split(':'))
+            time_txt = time_span.text.strip()
+            if time_txt == 'N/A':
+                minutes, seconds = 0, 0
+            elif ':' in time_txt:
+                minutes, seconds = (int(v) for v in time_txt.split(':'))
+            else:
+                raise SelectElementException('Unable to parse the video duration: %s' % time_txt)
+
 
             yield YoujizzVideo(_id,
                                title=title,

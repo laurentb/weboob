@@ -24,7 +24,7 @@ from weboob.tools.parsers.lxmlparser import select
 from .video import YoutubeVideo
 
 
-__all__ = ['ForbiddenVideoPage', 'VerifyAgePage', 'VideoPage']
+__all__ = ['ForbiddenVideo', 'ForbiddenVideoPage', 'VerifyAgePage', 'VideoPage']
 
 
 class ForbiddenVideo(Exception):

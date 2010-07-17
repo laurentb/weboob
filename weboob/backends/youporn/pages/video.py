@@ -18,7 +18,6 @@
 
 import re
 import datetime
-from logging import warning
 
 from weboob.tools.parsers.lxmlparser import select
 

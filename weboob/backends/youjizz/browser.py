@@ -16,13 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import logging
-import re
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import check_domain, id2url
-from weboob.tools.misc import iter_fields, to_unicode
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
@@ -41,15 +38,10 @@ class YoujizzBrowser(BaseBrowser):
              r'http://.*youjizz\.com/videos/(?P<id>.+)\.html': VideoPage,
             }
 
-    def fillobj(self, video, fields):
-        # ignore the fields param: VideoPage.get_video() returns all the information
-        self.location(YoujizzVideo.id2url(video.id))
-        return self.page.get_video(video)
-
     @id2url(YoujizzVideo.id2url)
-    def get_video(self, url):
+    def get_video(self, url, video=None):
         self.location(url)
-        return self.page.get_video()
+        return self.page.get_video(video)
 
     @check_domain
     def iter_page_urls(self, mozaic_url):

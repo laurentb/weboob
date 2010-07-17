@@ -21,8 +21,10 @@ import os
 from threading import RLock
 
 
-__all__ = ['BaseBackend']
+__all__ = ['BaseBackend', 'NotSupportedObject']
 
+
+class NotSupportedObject(Exception): pass
 
 class BackendStorage(object):
     def __init__(self, name, storage):
@@ -72,6 +74,12 @@ class BaseBackend(object):
     BROWSER = None
     # Test class
     TEST = None
+    # Supported objects to fill
+    # The key is the class and the value the method to call to fill
+    # Method prototype: method(object, fields)
+    # When the method is called, fields are only the one which are
+    # NOT yet filled.
+    OBJECTS = {}
 
     class ConfigField(object):
         def __init__(self, default=None, is_masked=False, regexp=None, description=None):
@@ -165,3 +173,10 @@ class BaseBackend(object):
         if not self.TEST:
             return None
         return self.TEST(self)
+
+    def fillobj(self, obj, fields):
+        for key, value in self.OBJECTS.iteritems():
+            if isinstance(obj, key):
+                return value(self, obj, fields)
+
+        raise NotSupportedObject('The object of type %s is not supported by this backend' % type(obj))
