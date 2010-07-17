@@ -60,7 +60,7 @@ class HaveSex(PromptApplication):
         _id, backend_name = self.parse_id(id)
 
         found = 0
-        for backend, profile in self.weboob.do_backends(backend_name, 'get_profile', _id):
+        for backend, profile in self.weboob.do('get_profile', _id, backends=backend_name):
             if profile:
                 print profile.get_profile_text().encode('utf-8')
                 found = 1

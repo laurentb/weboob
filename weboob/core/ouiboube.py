@@ -108,43 +108,30 @@ class Weboob(object):
           **kwargs.
 
         @param function  backend's method name, or callable object
+        @param backends  list of backends to iterate on
+        @param caps  iterate on backends with this caps
         @return  an iterator of results
         """
-        backends = list(self.iter_backends())
-        return BackendsCall(backends, function, *args, **kwargs)
+        backends = self.backend_instances.values()
+        if 'backends' in kwargs and kwargs['backends']:
+            if isinstance(kwargs['backends'], BaseBackend):
+                backends = [kwargs.pop('backends')]
+            elif isinstance(kwargs['backends'], (str,unicode)) and kwargs['backends']:
+                backends = self.backend_instances[kwargs.pop('backends')]
+            elif isinstance(kwargs['backends'], (list,tuple)):
+                backends = []
+                for backend in kwargs.pop('backends'):
+                    if isinstance(backend, (str,unicode)):
+                        try:
+                            backends.append(self.backend_instances[backend])
+                        except ValueError:
+                            pass
+                    else:
+                        backends.append(backend)
 
-    def do_caps(self, caps, function, *args, **kwargs):
-        """
-        Do calls on loaded backends with the specified capabilities, in
-        separated threads.
+        if 'caps' in kwargs:
+            backends = [backend for backend in backends if backend.has_caps(kwargs.pop('caps'))]
 
-        See also documentation of the 'do' method.
-
-        @param caps  list of caps or cap to select backends
-        @param function  backend's method name, or callable object
-        @return  an iterator of results
-        """
-        backends = list(self.iter_backends(caps))
-        return BackendsCall(backends, function, *args, **kwargs)
-
-    def do_backends(self, backends, function, *args, **kwargs):
-        if backends is None:
-            backends = list(self.iter_backends())
-        elif isinstance(backends, BaseBackend):
-            backends = [backends]
-        elif isinstance(backends, (str,unicode)):
-            backends = [backend for backend in self.iter_backends() if backend.name == backends]
-        elif isinstance(backends, (list,tuple)):
-            old_backends = backends
-            backends = []
-            for backend in old_backends:
-                if isinstance(backend, (str,unicode)):
-                    try:
-                        backends.append(self.backends[self.backends.index(backend)])
-                    except ValueError:
-                        pass
-                else:
-                    backends.append(backend)
         return BackendsCall(backends, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):

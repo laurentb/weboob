@@ -80,10 +80,7 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addVideo)
-        if backend_name:
-            self.process.do_backends(backend_name, 'iter_search_results', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True)
-        else:
-            self.process.do('iter_search_results', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True)
+        self.process.do('iter_search_results', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True, backends=backend_name)
 
     def addVideo(self, backend, video):
         if not backend:

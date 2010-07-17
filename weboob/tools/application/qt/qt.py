@@ -99,23 +99,9 @@ class QtDo(QObject):
         self.connect(self, SIGNAL('cb'), self.local_cb)
         self.connect(self, SIGNAL('eb'), self.local_eb)
 
-    def run_thread(func):
-        def inner(self, *args, **kwargs):
-            self.process = func(self, *args, **kwargs)
-            self.process.callback_thread(self.thread_cb, self.thread_eb)
-        return inner
-
-    @run_thread
     def do(self, *args, **kwargs):
-        return self.weboob.do(*args, **kwargs)
-
-    @run_thread
-    def do_caps(self, *args, **kwargs):
-        return self.weboob.do_caps(*args, **kwargs)
-
-    @run_thread
-    def do_backends(self, *args, **kwargs):
-        return self.weboob.do_backends(*args, **kwargs)
+        self.process = self.weboob.do(*args, **kwargs)
+        self.process.callback_thread(self.thread_cb, self.thread_eb)
 
     def default_eb(self, backend, error, backtrace):
         # TODO display a messagebox

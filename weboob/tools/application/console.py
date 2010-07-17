@@ -284,33 +284,3 @@ class ConsoleApplication(BaseApplication):
                 except Exception, e:
                     logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
             yield backend, result
-
-    def do_caps(self, caps, function, *args, **kwargs):
-        """
-        Call Weboob.do_caps(), after having filled the yielded object, if selected fields are given by user.
-        """
-        for i, (backend, result) in enumerate(self.weboob.do_caps(caps, function, *args, **kwargs)):
-            if self.options.count and i == self.options.count:
-                break
-            fields = set(self.selected_fields) - set('*')
-            if fields:
-                try:
-                    backend.browser.fillobj(result, fields)
-                except Exception, e:
-                    logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-            yield backend, result
-
-    def do_backends(self, backends, function, *args, **kwargs):
-        """
-        Call Weboob.do_backends(), after having filled the yielded object, if selected fields are given by user.
-        """
-        for i, (backend, result) in enumerate(self.weboob.do_backends(backends, function, *args, **kwargs)):
-            if self.options.count and i == self.options.count:
-                break
-            fields = set(self.selected_fields) - set('*')
-            if fields:
-                try:
-                    backend.browser.fillobj(result, fields)
-                except Exception, e:
-                    logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-            yield backend, result

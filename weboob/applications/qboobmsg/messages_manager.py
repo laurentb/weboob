@@ -74,10 +74,7 @@ class MessagesManager(QWidget):
 
         self.process = QtDo(self.weboob, self._gotMessage)
 
-        if self.backend:
-            self.process.do_backends(self.backend.name, command)
-        else:
-            self.process.do_caps(ICapMessages, command)
+        self.process.do(self.backend.name, command, backends=self.backend, caps=ICapMessages)
 
     def _gotMessage(self, backend, message):
         if message is None:

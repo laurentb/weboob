@@ -54,11 +54,12 @@ class ICapDating(ICap):
 
     OPTIM_PROFILE_WALKER = None
     OPTIM_VISIBILITY = None
+    OPTIM_PRIORITY_CONNECTION = None
 
     def init_optimizations(self):
         raise NotImplementedError()
 
-    def get_optim(self, optim):
+    def _get_optim(self, optim):
         optim = optim.upper()
         if not hasattr(self, 'OPTIM_%s' % optim):
             raise OptimizationNotFound()
@@ -66,15 +67,18 @@ class ICapDating(ICap):
         return getattr(self, 'OPTIM_%s' % optim)
 
     def start_optimization(self, optim):
-        optim = self.get_optim(optim)
+        optim = self._get_optim(optim)
         if not optim:
             return False
 
         return optim.start()
 
     def stop_optimization(self, optim):
-        optim = self.get_optim(optim)
+        optim = self._get_optim(optim)
         if not optim:
             return False
 
         return optim.stop()
+
+    def list_optimizations(self):
+        pass

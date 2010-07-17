@@ -40,7 +40,7 @@ class Weboorrents(ConsoleApplication):
         _id, backend_name = self.parse_id(id)
 
         found = 0
-        for backend, torrent in self.weboob.do_backends(backend_name, 'get_torrent', _id):
+        for backend, torrent in self.weboob.do('get_torrent', _id, backends=backend_name):
             if torrent:
                 self.format(torrent, backend.name)
                 found = 1
@@ -52,7 +52,7 @@ class Weboorrents(ConsoleApplication):
     def command_getfile(self, id, dest):
         _id, backend_name = self.parse_id(id)
 
-        for backend, buf in self.weboob.do_backends(backend_name, 'get_torrent_file', _id):
+        for backend, buf in self.weboob.do('get_torrent_file', _id, backends=backend_name):
             if buf:
                 if dest == '-':
                     print buf

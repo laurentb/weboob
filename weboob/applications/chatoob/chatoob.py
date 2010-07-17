@@ -46,7 +46,7 @@ class Chatoob(ConsoleApplication):
 
     @ConsoleApplication.command('list online contacts')
     def command_list(self):
-        for backend, contact in self.weboob.do_caps(ICapContact, 'iter_contacts', status=Contact.STATUS_ONLINE):
+        for backend, contact in self.weboob.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
             self.format(contact, backend.name)
 
     @ConsoleApplication.command('get messages')

@@ -76,7 +76,7 @@ class ContactThread(QWidget):
             command = 'iter_messages'
 
         self.process_msg = QtDo(self.weboob, self.gotMessage)
-        self.process_msg.do_backends(self.contact.backend, command, thread=self.contact.id)
+        self.process_msg.do(command, thread=self.contact.id, backends=self.contact.backend)
 
     def gotMessage(self, backend, message):
         if not message:
@@ -101,7 +101,7 @@ class ContactThread(QWidget):
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
         self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
-        self.process_reply.do_backends(self.contact.backend, 'post_reply', self.contact.id, 0, '', text)
+        self.process_reply.do('post_reply', self.contact.id, 0, '', text, backends=self.contact.backend)
 
     def _postReply_cb(self, backend, ignored):
         self.ui.textEdit.clear()
@@ -128,6 +128,8 @@ class ContactProfile(QWidget):
         self.contact = contact
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
+        self.ui.statusLabel.setText('%s' % contact.status_msg)
+        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % contact.summary)
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
@@ -148,7 +150,7 @@ class MetaGroup(IGroup):
             status = Contact.STATUS_ALL
 
         self.process = QtDo(self.weboob, lambda b, d: self.cb(cb, b, d))
-        self.process.do_caps(ICapContact, 'iter_contacts', status)
+        self.process.do('iter_contacts', status, caps=ICapContact)
 
     def cb(self, cb, backend, contact):
         if contact:
@@ -232,6 +234,9 @@ class ContactsWidget(QWidget):
             return
 
         self.contact = current.data(Qt.UserRole).toPyObject()
+
+        if not self.contact:
+            return
 
         self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
         if self.contact.backend.has_caps(ICapMessages):

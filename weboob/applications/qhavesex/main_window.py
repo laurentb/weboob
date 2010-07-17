@@ -48,6 +48,7 @@ class MainWindow(QtMainWindow):
             self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
         self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
+        self.ui.tabWidget.addTab(QWidget(), self.tr('Optimizations'))
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)

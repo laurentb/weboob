@@ -18,7 +18,6 @@
 from __future__ import with_statement
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
-from PyQt4.QtCore import SIGNAL
 
 from weboob.capabilities.dating import StatusField
 from weboob.tools.application.qt import QtDo
@@ -60,7 +59,7 @@ class Account(QFrame):
         self.process = QtDo(self.weboob, self.updateStats_cb)
         self.process.body = u''
         self.process.in_p = False
-        self.process.do_backends(self.backend, 'get_status')
+        self.process.do('get_status', backends=self.backend)
 
     def updateStats_cb(self, backend, field):
         if not field:
