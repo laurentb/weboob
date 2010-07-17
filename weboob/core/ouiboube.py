@@ -130,7 +130,8 @@ class Weboob(object):
                         backends.append(backend)
 
         if 'caps' in kwargs:
-            backends = [backend for backend in backends if backend.has_caps(kwargs.pop('caps'))]
+            caps = kwargs.pop('caps')
+            backends = [backend for backend in backends if backend.has_caps(caps)]
 
         return BackendsCall(backends, function, *args, **kwargs)
 
