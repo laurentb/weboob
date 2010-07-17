@@ -99,7 +99,7 @@ class BackendsCall(object):
                 else:
                     debug('%s: Called function %s returned: %r' % (backend, function, result))
 
-                    if hasattr(result, '__iter__'):
+                    if hasattr(result, '__iter__') and not isinstance(result, (str,unicode)):
                         # Loop on iterator
                         try:
                             for subresult in result:
