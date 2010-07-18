@@ -275,14 +275,29 @@ class ConsoleApplication(BaseApplication):
         """
         Call Weboob.do(), after having filled the yielded object, if selected fields are given by user.
         """
-        for i, (backend, result) in enumerate(self.weboob.do(function, *args, **kwargs)):
-            if self.options.count and i == self.options.count:
-                break
+
+        def inner(backend, count, selected_fields, function, *args, **kwargs):
+            res = getattr(backend, function)(*args, **kwargs)
             if self.selected_fields:
                 fields = set(self.selected_fields) - set('*')
+            else:
+                fields = None
+            if hasattr(res, '__iter__'):
+                for i, sub in enumerate(res):
+                    if self.options.count and i == self.options.count:
+                        break
+                    if fields:
+                        try:
+                            backend.fillobj(sub, fields)
+                        except NoSupportedObject, e:
+                            logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
+                    yield sub
+            else:
                 if fields:
                     try:
-                        backend.fillobj(result, fields)
-                    except NotSupportedObject, e:
+                        backend.fillobj(sub, fields)
+                    except NoSupportedObject, e:
                         logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-            yield backend, result
+                return res
+
+        return self.weboob.do(inner, function, *args, **kwargs)
