@@ -29,6 +29,7 @@ from weboob.tools.backend import NotSupportedObject
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter
+from .formatters.iformatter import FieldNotFound
 from .results import ResultsCondition, ResultsConditionException
 
 
@@ -234,6 +235,8 @@ class ConsoleApplication(BaseApplication):
         try:
             self.formatter.format(obj=result, backend_name=backend_name,
                                   selected_fields=self.selected_fields, condition=self.condition)
+        except FieldNotFound, e:
+            logging.error(e)
         except ResultsConditionException, e:
             logging.error(e)
 

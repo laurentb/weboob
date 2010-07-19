@@ -17,9 +17,15 @@
 
 
 from weboob.tools.misc import iter_fields
+from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['IFormatter']
+__all__ = ['FieldNotFound', 'IFormatter']
+
+
+class FieldNotFound(Exception):
+    def __init__(self, field):
+        Exception.__init__(self, u'Field not found: "%s"' % field)
 
 
 class IFormatter(object):
@@ -30,6 +36,9 @@ class IFormatter(object):
 
     def after_format(self, formatted):
         raise NotImplementedError()
+
+    def build_id(self, v, backend_name):
+        return u'%s@%s' % (unicode(v), backend_name)
 
     def flush(self):
         raise NotImplementedError()
@@ -82,14 +91,23 @@ class IFormatter(object):
                 id_fields = id_attr
             else:
                 id_fields = ('id',)
-            for k, v in d:
-                if selected_fields is not None and '*' not in selected_fields and k not in selected_fields:
-                    continue
-                if k in id_fields and backend_name is not None:
-                    v = u'%s@%s' % (unicode(v), backend_name)
-                yield k, v
+            if selected_fields is None or '*' in selected_fields:
+                for k, v in d:
+                    if k in id_fields and backend_name is not None:
+                        v = self.build_id(v, backend_name)
+                    yield k, v
+            else:
+                d = dict(d)
+                for selected_field in selected_fields:
+                    if selected_field in id_fields and backend_name is not None:
+                        v = self.build_id(v, backend_name)
+                    try:
+                        yield selected_field, d[selected_field]
+                    except KeyError:
+                        raise FieldNotFound(selected_field)
+
         fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else iter_fields(obj)
-        d = dict((k, v) for k, v in iter_select_and_decorate(fields_iterator))
+        d = OrderedDict([(k, v) for k, v in iter_select_and_decorate(fields_iterator)])
         if condition is not None and not condition.is_valid(d):
             d = None
         return d
