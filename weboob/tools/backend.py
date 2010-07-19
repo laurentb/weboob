@@ -179,4 +179,4 @@ class BaseBackend(object):
             if isinstance(obj, key):
                 return value(self, obj, fields)
 
-        raise NotSupportedObject('The object of type %s is not supported by this backend' % type(obj))
+        raise NotSupportedObject('The object of type %s is not supported by the backend %s' % (type(obj), self))
