@@ -42,7 +42,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
     SORTBY = ['relevance', 'rating', 'views', 'time']
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
-            return
+            return set()
         return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
 
     def iter_page_urls(self, mozaic_url):
