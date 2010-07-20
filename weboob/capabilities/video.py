@@ -71,6 +71,6 @@ class ICapVideo(ICap):
         Get a Video from an ID.
 
         @param _id  the video id. It can be a numeric ID, or a page url, or so.
-        @return  a Video object
+        @return a Video object
         """
         raise NotImplementedError()
