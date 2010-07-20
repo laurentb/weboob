@@ -99,10 +99,11 @@ class IFormatter(object):
             else:
                 d = dict(d)
                 for selected_field in selected_fields:
+                    v = d[selected_field]
                     if selected_field in id_fields and backend_name is not None:
                         v = self.build_id(v, backend_name)
                     try:
-                        yield selected_field, d[selected_field]
+                        yield selected_field, v
                     except KeyError:
                         raise FieldNotFound(selected_field)
 
