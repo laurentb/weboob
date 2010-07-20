@@ -114,7 +114,11 @@ class BaseBrowser(mechanize.Browser):
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     PAGES = {}
-    USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3'
+    USER_AGENTS = {
+        'desktop_firefox': 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3',
+        'android': 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17',
+    }
+    USER_AGENT = USER_AGENTS['desktop_firefox']
 
     # ------ Abstract methods --------------------------------------
 
