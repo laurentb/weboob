@@ -24,7 +24,23 @@ setup(
     name='weboob-core',
     version='0.1',
     description='Weboob, Web Out Of Browsers - core library',
-    # long_description=read('README'),
+    long_description="""
+Weboob is a project which provides a core library, backends and applications.
+
+The core library defines capabilities: features common to various websites. For example, http://www.youtube.com and
+http://www.dailymotion.com are both videos providers: Weboob defines the “ICapVideo” capability.
+
+Each backend interfaces a website and implements one or many of these capabilities. Backends can be configured, which
+means that the end-user can provide personal information to access the underlaying website (login/password for example).
+
+Applications offer the ability to the end-user to work with many backends in parallel, in a multi-threaded way. For
+example, one could search a video on many providers websites. Applications are toolkit-agnostic. They can use Gtk, Qt or
+text-only, more adapted to reuse data through pipes.
+
+The core library provides base classes which help the developer to write backends and applications.
+
+Weboob is written in Python and is distributed under the GPLv3 license.
+""",
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     license='GPLv3',
