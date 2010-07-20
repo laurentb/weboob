@@ -140,7 +140,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                     new_baskets = self.browser.nb_new_baskets()
                     if new_baskets:
                         ids = self.browser.get_baskets()
-                        while new_baskets > 0:
+                        while new_baskets > 0 and len(ids) > new_baskets:
                             new_baskets -= 1
                             profile = self.browser.get_profile(ids[new_baskets])
 

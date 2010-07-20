@@ -39,7 +39,8 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     BROWSER = YoutubeBrowser
 
     def get_video(self, _id):
-        return self.browser.get_video(_id)
+        with self.browser:
+            return self.browser.get_video(_id)
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         import gdata.youtube.service
@@ -68,6 +69,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
     def fill_video(self, video, fields):
         # ignore the fields param: VideoPage.get_video() returns all the information
-        return self.browser.get_video(YoutubeVideo.id2url(video.id), video)
+        with self.browser:
+            return self.browser.get_video(YoutubeVideo.id2url(video.id), video)
 
     OBJECTS = {YoutubeVideo: fill_video}

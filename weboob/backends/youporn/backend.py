@@ -37,19 +37,22 @@ class YoupornBackend(BaseBackend, ICapVideo):
     BROWSER = YoupornBrowser
 
     def get_video(self, _id):
-        return self.browser.get_video(_id)
+        with self.browser:
+            return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
-        return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
+        with self.browser:
+            return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
 
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 
     def fill_video(self, video, fields):
         # ignore the fields param: VideoPage.get_video() returns all the information
-        return self.browser.get_video(YoupornVideo.id2url(video.id), video)
+        with self.browser:
+            return self.browser.get_video(YoupornVideo.id2url(video.id), video)
 
     OBJECTS = {YoupornVideo: fill_video}

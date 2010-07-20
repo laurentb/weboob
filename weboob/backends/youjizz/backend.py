@@ -37,19 +37,23 @@ class YoujizzBackend(BaseBackend, ICapVideo):
     BROWSER = YoujizzBrowser
 
     def get_video(self, _id):
-        video = self.browser.get_video(_id)
+        with self.browser:
+            video = self.browser.get_video(_id)
         return video
 
     def iter_page_urls(self, mozaic_url):
-        return self.browser.iter_page_urls(mozaic_url)
+        with self.browser:
+            return self.browser.iter_page_urls(mozaic_url)
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
-        return self.browser.iter_search_results(pattern)
+        with self.browser:
+            return self.browser.iter_search_results(pattern)
 
     def fill_video(self, video, fields):
         # ignore the fields param: VideoPage.get_video() returns all the information
-        return self.browser.get_video(YoujizzVideo.id2url(video.id), video)
+        with self.browser:
+            return self.browser.get_video(YoujizzVideo.id2url(video.id), video)
 
     OBJECTS = {YoujizzVideo: fill_video}
