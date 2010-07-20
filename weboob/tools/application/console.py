@@ -25,7 +25,7 @@ import sys
 
 from weboob.core import CallErrors
 from weboob.core.backends import BackendsConfig
-from weboob.tools.backend import NotSupportedObject
+from weboob.tools.backend import ObjectNotSupported
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter
@@ -286,6 +286,6 @@ class ConsoleApplication(BaseApplication):
                 if fields:
                     try:
                         backend.fillobj(result, fields)
-                    except NotSupportedObject, e:
+                    except ObjectNotSupported, e:
                         logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
             yield backend, result

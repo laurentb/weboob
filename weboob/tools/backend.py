@@ -21,10 +21,10 @@ import os
 from threading import RLock
 
 
-__all__ = ['BaseBackend', 'NotSupportedObject']
+__all__ = ['BaseBackend', 'ObjectNotSupported']
 
 
-class NotSupportedObject(Exception): pass
+class ObjectNotSupported(Exception): pass
 
 class BackendStorage(object):
     def __init__(self, name, storage):
@@ -179,4 +179,4 @@ class BaseBackend(object):
             if isinstance(obj, key):
                 return value(self, obj, fields)
 
-        raise NotSupportedObject('The object of type %s is not supported by the backend %s' % (type(obj), self))
+        raise ObjectNotSupported('The object of type %s is not supported by the backend %s' % (type(obj), self))
