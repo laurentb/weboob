@@ -5,3 +5,4 @@ Session.vim
 *.egg-info
 build
 dist
+deb
