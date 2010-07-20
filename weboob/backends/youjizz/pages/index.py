@@ -20,7 +20,7 @@ import datetime
 import re
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
 
 from ..video import YoujizzVideo
 
