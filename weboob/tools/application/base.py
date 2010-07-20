@@ -23,6 +23,7 @@ from optparse import OptionGroup, OptionParser
 
 from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
+from weboob.tools.backend import NotSupportedObject
 
 
 __all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
@@ -184,6 +185,34 @@ class BaseApplication(object):
             else:
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version
+
+    def _complete_obj(self, backend, obj, fields):
+        if fields:
+            try:
+                backend.fillobj(obj, fields)
+            except NotSupportedObject, e:
+                logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
+        return obj
+
+    def _complete_iter(self, backend, count, fields, res):
+        for i, sub in enumerate(res):
+            if count and i == count:
+                break
+            sub = self._complete_obj(backend, sub, fields)
+            yield sub
+
+    def complete(self, backend, count, selected_fields, function, *args, **kwargs):
+        res = getattr(backend, function)(*args, **kwargs)
+
+        if self.selected_fields:
+            fields = set(self.selected_fields) - set('*')
+        else:
+            fields = None
+
+        if hasattr(res, '__iter__'):
+            return self._complete_iter(backend, count, fields, res)
+        else:
+            return self._complete_obj(backend, fields, res)
 
     @classmethod
     def run(klass, args=None):

@@ -25,7 +25,6 @@ import sys
 
 from weboob.core import CallErrors
 from weboob.core.backends import BackendsConfig
-from weboob.tools.backend import NotSupportedObject
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter
@@ -276,28 +275,4 @@ class ConsoleApplication(BaseApplication):
         Call Weboob.do(), after having filled the yielded object, if selected fields are given by user.
         """
 
-        def inner(backend, count, selected_fields, function, *args, **kwargs):
-            res = getattr(backend, function)(*args, **kwargs)
-            if self.selected_fields:
-                fields = set(self.selected_fields) - set('*')
-            else:
-                fields = None
-            if hasattr(res, '__iter__'):
-                for i, sub in enumerate(res):
-                    if self.options.count and i == self.options.count:
-                        break
-                    if fields:
-                        try:
-                            backend.fillobj(sub, fields)
-                        except NoSupportedObject, e:
-                            logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-                    yield sub
-            else:
-                if fields:
-                    try:
-                        backend.fillobj(sub, fields)
-                    except NoSupportedObject, e:
-                        logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-                return res
-
-        return self.weboob.do(inner, function, *args, **kwargs)
+        return self.weboob.do(self.complete, self.options.count, self.selected_fields, function, *args, **kwargs)
