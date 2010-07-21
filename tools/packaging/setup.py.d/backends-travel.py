@@ -21,24 +21,24 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-havesex',
+    name='weboob-backends-travel',
     version='0.1',
-    description='HaveSex, the Weboob sexual life swiss-knife',
-    long_description='Optimize your probabilities to have sex on dating websites',
-    author='Romain Bignon',
+    description='Weboob backends implementing travel capability',
+    author='Romain Bignon, Julien Hébert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/HaveSex',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapTravel',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.havesex',
-        ],
-    scripts=[
-        'scripts/havesex',
+        'weboob.backends',
+        'weboob.backends.canaltp',
+        'weboob.backends.transilien',
+        'weboob.backends.transilien.pages',
         ],
     install_requires=[
-        'weboob-backends-dating',
+        'weboob-core', # python-weboob-core
         ],
 )

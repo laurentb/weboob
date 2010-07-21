@@ -21,22 +21,29 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-travel',
+    name='weboob-masstransit',
     version='0.1',
-    description='Weboob backends implementing travel capability',
-    author='Romain Bignon, Julien Hébert',
+    description='Masstransit, the Weboob travel swiss-knife, Hildon version (Maemo OS)',
+    long_description='Search for train stations and departure timegrids',
+    author='Julien Hébert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapTravel',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/Masstransit',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.canaltp',
-        'weboob.backends.transilien',
-        'weboob.backends.transilien.pages',
+        'weboob.applications',
+        'weboob.applications.masstransit',
+        ],
+    scripts=[
+        'scripts/masstransit',
         ],
     install_requires=[
-        'weboob-core',
+        'weboob-backends-travel', # python-weboob-backends-travel
+        # python-gtk
+        # python-conic, on Maemo
+        # python-hildon, on Maemo
         ],
 )

@@ -43,6 +43,8 @@ Weboob is written in Python and is distributed under the GPLv3 license.
 """,
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
     classifiers=[
@@ -56,8 +58,8 @@ Weboob is written in Python and is distributed under the GPLv3 license.
         ],
     # keywords='',
     namespace_packages = [
-	'weboob',
-	'weboob.applications',
+        'weboob',
+        'weboob.applications',
         'weboob.tools',
         'weboob.tools.application',
 	],
@@ -78,10 +80,25 @@ Weboob is written in Python and is distributed under the GPLv3 license.
         ],
     scripts=[
         'scripts/weboob-config',
-        'scripts/weboob-debug',
-        'scripts/weboob-tests',
+        # 'scripts/weboob-debug',
+        # 'scripts/weboob-tests',
         ],
     install_requires=[
-        'python-dateutil',
+        'elementtidy', # python-elementtidy
+        'lxml', # python-lxml
+        'mechanize', # python-mechanize
+        'python-dateutil', # python-dateutil
+        'PyYAML', # python-yaml
         ],
+    # package name / Debian package name
+    #
+    # Recommends
+    # html2text / python-html2text
+    # PrettyTable / python-prettytable
+    #
+    # Suggests
+    # ClientForm / python-clientform
+    # ipython / ipython
+    # nose / python-nose
+    # pysqlite / python-pysqlite2
 )

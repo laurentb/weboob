@@ -21,24 +21,25 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-dating',
+    name='weboob-wetboobs',
     version='0.1',
-    description='Weboob backends implementing dating capability',
+    description='Wetboobs, the Weboob weather forecast swiss-knife',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapDating',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/Wetboobs',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.aum',
-        'weboob.backends.aum.data',
-        'weboob.backends.aum.optim',
-        'weboob.backends.aum.pages',
+        'weboob.applications',
+        'weboob.applications.wetboobs',
+        ],
+    scripts=[
+        'scripts/wetboobs',
         ],
     install_requires=[
-        'weboob-core',
-	# html5lib, no egg?
+        'weboob-backends-weather', # python-weboob-backends-weather
         ],
 )

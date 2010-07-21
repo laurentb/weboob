@@ -19,28 +19,35 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/applications/qvideoob/ui')
 
 setup(
-    name='weboob-backends-bank',
+    name='weboob-qvideoob',
     version='0.1',
-    description='Weboob backends implementing bank capability',
-    author='Laurent Bachelier',
+    description='QVideoob, the Weboob video swiss-knife, Qt version',
+    long_description='Search for videos on many websites, and get info about them',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapBank',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/QVideoob',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.bnporc',
-        'weboob.backends.bnporc.data',
-        'weboob.backends.bnporc.pages',
-        'weboob.backends.cragr',
-        'weboob.backends.cragr.pages',
+        'weboob.applications',
+        'weboob.applications.qvideoob',
+        'weboob.applications.qvideoob.ui',
+        ],
+    scripts=[
+        'scripts/qvideoob',
         ],
     install_requires=[
-        'weboob-core',
-	# bnporc requires Image module
-	#'PIL',
+        'weboob-core-qt', # python-weboob-core-qt
+        'weboob-backends-video', # python-weboob-backends-video
+        # python-qt4-phonon
         ],
 )

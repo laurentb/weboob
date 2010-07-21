@@ -27,6 +27,8 @@ setup(
     long_description='Search for torrents on many websites, and get info about them',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org/Weboorrents',
     namespace_packages = ['weboob', 'weboob.applications'],
@@ -39,6 +41,6 @@ setup(
         'scripts/weboorrents',
         ],
     install_requires=[
-        'weboob-backends-torrent',
+        'weboob-backends-torrent', # python-weboob-backends-torrent
         ],
 )

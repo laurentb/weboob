@@ -21,24 +21,30 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-video',
+    name='weboob-backends-bank',
     version='0.1',
-    description='Weboob backends implementing video capability',
-    author='Christophe Benz, Romain Bignon',
+    description='Weboob backends implementing bank capability',
+    author='Laurent Bachelier',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapVideo',
+    url='http://www.weboob.org/ICapBank',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.ina',
-        'weboob.backends.ina.pages',
-        'weboob.backends.youtube',
-        'weboob.backends.youtube.pages',
+        'weboob.backends.bnporc',
+        'weboob.backends.bnporc.data',
+        'weboob.backends.bnporc.pages',
+        'weboob.backends.cragr',
+        'weboob.backends.cragr.pages',
         ],
     install_requires=[
-        'weboob-core',
-	# gdata, no egg?
+        'weboob-core', # python-weboob-core
+        'ClientForm', # python-clientform
+        # not Pypi packages:
+        # Suggests
+        # python-imaging
         ],
 )

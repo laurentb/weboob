@@ -21,24 +21,26 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-videoob',
+    name='weboob-boobank',
     version='0.1',
-    description='Videoob, the Weboob video swiss-knife',
-    long_description='Search for videos on many websites, and get info about them',
-    author='Christophe Benz',
+    description='Boobank, the Weboob bank-accounts swiss-knife',
+    long_description='List your bank accounts and get info about them',
+    author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Videoob',
+    url='http://www.weboob.org/Boobank',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.videoob',
+        'weboob.applications.boobank',
         ],
     scripts=[
-        'scripts/videoob',
+        'scripts/boobank',
         ],
     install_requires=[
-        'weboob-backends-video',
+        'weboob-backends-bank', # python-weboob-backends-bank
         ],
 )

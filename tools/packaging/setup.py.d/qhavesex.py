@@ -22,37 +22,31 @@ from setuptools import setup
 import os
 
 
-os.system('make -C weboob/tools/application/qt')
+os.system('make -C weboob/applications/qhavesex/ui')
 
 setup(
-    name='weboob-core-qt',
+    name='weboob-qhavesex',
     version='0.1',
-    description='Weboob, Web Out Of Browsers - core library, Qt configuration GUI',
-    long_description='Configure backends using a Qt GUI.',
+    description='QHaveSex, the Weboob sexual life swiss-knife, Qt version',
+    long_description='Optimize your probabilities to have sex on dating websites',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org',
-    namespace_packages = [
-        'weboob',
-        'weboob.applications',
-        'weboob.tools',
-        'weboob.tools.application',
-        ],
+    url='http://www.weboob.org/QHaveSex',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.applications.qweboobcfg',
-        'weboob.tools.application.qt',
-        ],
-    data_files=[
-	('weboob/tools', ['weboob/tools/__init__.py']),
-	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
+        'weboob.applications',
+        'weboob.applications.qhavesex',
+        'weboob.applications.qhavesex.ui',
         ],
     scripts=[
-        'scripts/weboob-config-qt',
+        'scripts/qhavesex',
         ],
     install_requires=[
-        'weboob-core',
-	#'PyQt',
+        'weboob-core-qt', # python-weboob-core-qt
+        'weboob-backends-dating', # python-weboob-backends-dating
         ],
 )

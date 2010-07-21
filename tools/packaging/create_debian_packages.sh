@@ -1,7 +1,10 @@
 #!/bin/sh
 
+[ ! -d /usr/share/pyshared/stdeb ] && echo 'Please install the python-stdeb package' && exit
+
 DEB_DIRPATH="$PWD/deb"
-SCRIPT_DIRPATH=$(dirname $0)
+DIST_DIRPATH="$PWD/dist"
+SCRIPT_DIRPATH=$(dirname $(readlink -f "$0"))
 
 SETUP_PY_LIST="
 $SCRIPT_DIRPATH/setup.py.d/core.py
@@ -32,29 +35,34 @@ $SCRIPT_DIRPATH/setup.py.d/weboorrents.py
 $SCRIPT_DIRPATH/setup.py.d/wetboobs.py
 "
 
-rm -rf $DEB_DIRPATH
+rm -rf $DEB_DIRPATH *.egg-info
 mkdir $DEB_DIRPATH
 
 for f in $SETUP_PY_LIST
 do
     echo "========== Creating Debian package for $f"
-    rm -rf dist
+    rm -rf $DIST_DIRPATH
+    MANIFEST_IN=$SCRIPT_DIRPATH/MANIFEST.in.d/$(basename $f .py)
+    ln -s $MANIFEST_IN MANIFEST.in
     python $f sdist
-    pushd dist
+    cd $DIST_DIRPATH
     TARGZ=$(ls *.tar.gz)
     tar xf $TARGZ
     PKGNAME=$(basename $f .py)
-    mkdir $DEB_DIRPATH/$PKGNAME
     TARGZ_DIRPATH=$(basename $TARGZ .tar.gz)
-    pushd $TARGZ_DIRPATH
-    ln -s ../../$f setup.py
-    python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.d/$PKGNAME.cfg
-    pushd deb_dist
-    pushd $TARGZ_DIRPATH
+    cd $TARGZ_DIRPATH
+    ln -s $f setup.py
+    ln -s $MANIFEST_IN MANIFEST.in
+    python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.cfg
+    cd deb_dist/$TARGZ_DIRPATH
     fakeroot dpkg-buildpackage
-    popd
-    mv *.deb *.diff.gz *.changes *.orig.tar.gz $DEB_DIRPATH/$PKGNAME/
-    popd
-    popd
-    #break
+    cd ..
+    mv *.deb *.diff.gz *.changes *.orig.tar.gz $DEB_DIRPATH
+    cd ../..
+    break
 done
+
+rm -rf $DIST_DIRPATH MANIFEST.in *.egg-info
+
+echo
+echo "Packages are in the $DEB_DIRPATH directory"

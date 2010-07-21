@@ -21,24 +21,26 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-messages',
+    name='weboob-backends-video',
     version='0.1',
-    description='Weboob backends implementing messages capability',
-    author='Romain Bignon',
+    description='Weboob backends implementing video capability',
+    author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapMessages',
+    url='http://www.weboob.org/ICapVideo',
     namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
         'weboob.backends',
-        'weboob.backends.dlfp',
-        'weboob.backends.dlfp.pages',
-        'weboob.backends.fourchan',
-        'weboob.backends.fourchan.pages',
+        'weboob.backends.ina',
+        'weboob.backends.ina.pages',
+        'weboob.backends.youtube',
+        'weboob.backends.youtube.pages',
         ],
     install_requires=[
-        'weboob-core',
-	# feedparser, no egg?
+        'weboob-core', # python-weboob-core
+        'gdata', # python-gdata
         ],
 )

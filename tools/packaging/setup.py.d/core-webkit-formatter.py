@@ -26,6 +26,8 @@ setup(
     description='Weboob, Web Out Of Browsers - core library, WebKit formatter',
     author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
     classifiers=[
@@ -38,22 +40,25 @@ setup(
         'Topic :: Internet',
         ],
     namespace_packages = [
-	'weboob',
+        'weboob',
         'weboob.tools',
         'weboob.tools.application',
         'weboob.tools.application.formatters',
 	],
     packages=[
-	'weboob',
+        'weboob',
         'weboob.tools.application.formatters.webkit',
         ],
     data_files=[
-	('weboob/tools', ['weboob/tools/__init__.py']),
-	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
-	('weboob/tools/application/formatters', ['weboob/tools/application/formatters/__init__.py']),
+        ('weboob/tools', ['weboob/tools/__init__.py']),
+        ('weboob/tools/application', ['weboob/tools/application/__init__.py']),
+        ('weboob/tools/application/formatters', ['weboob/tools/application/formatters/__init__.py']),
         ],
     install_requires=[
-	'weboob-core',
-	# webkit dependency, is not an egg?
+        'weboob-core', # python-weboob-core
+        # not Pypi packages:
+        # Depends
+        # gtk
+        # webkit
         ],
 )

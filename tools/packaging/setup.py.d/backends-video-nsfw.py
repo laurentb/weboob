@@ -21,24 +21,25 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-travel',
+    name='weboob-backends-video-nsfw',
     version='0.1',
-    description='The Weboob travel swiss-knife',
-    long_description='Search for train stations and departure timegrids',
-    author='Romain Bignon',
+    description='Weboob backends implementing video capability - non-suitable for work',
+    author='Romain Bignon, Roger Philibert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Travel',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapVideo',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.travel',
-        ],
-    scripts=[
-        'scripts/travel',
+        'weboob.backends',
+        'weboob.backends.youjizz',
+        'weboob.backends.youjizz.pages',
+        'weboob.backends.youporn',
+        'weboob.backends.youporn.pages',
         ],
     install_requires=[
-        'weboob-backends-travel',
+        'weboob-core', # python-weboob-core
         ],
 )

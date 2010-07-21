@@ -33,6 +33,8 @@ setup(
     description='Weboob, Web Out Of Browsers - core library',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
     packages=find_packages(),

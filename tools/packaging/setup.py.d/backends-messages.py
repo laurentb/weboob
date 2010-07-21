@@ -21,23 +21,26 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-wetboobs',
+    name='weboob-backends-messages',
     version='0.1',
-    description='Wetboobs, the Weboob weather forecast swiss-knife',
+    description='Weboob backends implementing messages capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Wetboobs',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapMessages',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.wetboobs',
-        ],
-    scripts=[
-        'scripts/wetboobs',
+        'weboob.backends',
+        'weboob.backends.dlfp',
+        'weboob.backends.dlfp.pages',
+        'weboob.backends.fourchan',
+        'weboob.backends.fourchan.pages',
         ],
     install_requires=[
-        'weboob-backends-weather',
+        'weboob-core', # python-weboob-core
+        'FeedParser', # python-feedparser
         ],
 )

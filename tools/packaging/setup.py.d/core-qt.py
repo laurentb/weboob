@@ -19,26 +19,42 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/tools/application/qt')
 
 setup(
-    name='weboob-boobank',
+    name='weboob-core-qt',
     version='0.1',
-    description='Boobank, the Weboob bank-accounts swiss-knife',
-    long_description='List your bank accounts and get info about them',
-    author='Christophe Benz, Romain Bignon',
+    description='Weboob, Web Out Of Browsers - core library, Qt configuration GUI',
+    long_description='Configure backends using a Qt GUI.',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Boobank',
-    namespace_packages = ['weboob', 'weboob.applications'],
-    packages=[
+    url='http://www.weboob.org',
+    namespace_packages = [
         'weboob',
         'weboob.applications',
-        'weboob.applications.boobank',
+        'weboob.tools',
+        'weboob.tools.application',
+        ],
+    packages=[
+        'weboob',
+        'weboob.applications.qweboobcfg',
+        'weboob.tools.application.qt',
+        ],
+    data_files=[
+        ('weboob/tools', ['weboob/tools/__init__.py']),
+        ('weboob/tools/application', ['weboob/tools/application/__init__.py']),
         ],
     scripts=[
-        'scripts/boobank',
+        'scripts/weboob-config-qt',
         ],
     install_requires=[
-        'weboob-backends-bank',
+        'weboob-core', # python-weboob-core
+        'PyQt', # python-qt4
         ],
 )

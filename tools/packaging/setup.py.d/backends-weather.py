@@ -19,32 +19,24 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/applications/qvideoob/ui')
 
 setup(
-    name='weboob-qvideoob',
+    name='weboob-backends-weather',
     version='0.1',
-    description='QVideoob, the Weboob video swiss-knife, Qt version',
-    long_description='Search for videos on many websites, and get info about them',
+    description='Weboob backends implementing weather capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/QVideoob',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapWeather',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.qvideoob',
-        'weboob.applications.qvideoob.ui',
-        ],
-    scripts=[
-        'scripts/qvideoob',
+        'weboob.backends',
+        'weboob.backends.yweather',
         ],
     install_requires=[
-        'weboob-backends-video',
-	# python-qt4-phonon
+        'weboob-core', # python-weboob-core
         ],
 )

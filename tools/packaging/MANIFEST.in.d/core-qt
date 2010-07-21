@@ -1,0 +1,2 @@
+include weboob/tools/__init__.py
+include weboob/tools/application/__init__.py

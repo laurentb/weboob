@@ -19,28 +19,33 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/applications/qboobmsg/ui')
 
 setup(
-    name='weboob-videoob-web',
+    name='weboob-qboobmsg',
     version='0.1',
-    description='Videoob-web, the Weboob video swiss-knife, web server version',
-    long_description='Search for videos on many websites, and get info about them',
-    author='Christophe Benz',
+    description='QBoobMsg, the Weboob e-mail swiss-knife, Qt version',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/VideoobWeb',
+    url='http://www.weboob.org/QBoobMsg',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.videoob_web',
-        'weboob.applications.videoob_web.public',
-        'weboob.applications.videoob_web.templates',
+        'weboob.applications.qboobmsg',
+        'weboob.applications.qboobmsg.ui',
         ],
     scripts=[
-        'scripts/videoob-web-server',
+        'scripts/qboobmsg',
         ],
     install_requires=[
-        'weboob-backends-video',
+        'weboob-core-qt', # python-weboob-core-qt
+        'weboob-backends-messages', # python-weboob-backends-messages
         ],
 )

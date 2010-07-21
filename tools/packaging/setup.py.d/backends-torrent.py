@@ -19,32 +19,25 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/applications/qhavesex/ui')
 
 setup(
-    name='weboob-qhavesex',
+    name='weboob-backends-torrent',
     version='0.1',
-    description='QHaveSex, the Weboob sexual life swiss-knife, Qt version',
-    long_description='Optimize your probabilities to have sex on dating websites',
+    description='Weboob backends implementing torrent capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/QHaveSex',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapTorrent',
+    namespace_packages = ['weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.qhavesex',
-        'weboob.applications.qhavesex.ui',
-        ],
-    scripts=[
-        'scripts/qhavesex',
+        'weboob.backends',
+        'weboob.backends.gazelle',
+        'weboob.backends.gazelle.pages',
         ],
     install_requires=[
-        'weboob-backends-dating',
-	#'yaml',
+        'weboob-core', # python-weboob-core
         ],
 )

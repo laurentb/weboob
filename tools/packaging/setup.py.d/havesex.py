@@ -21,23 +21,26 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-monboob',
+    name='weboob-havesex',
     version='0.1',
-    description='Monboob, the Weboob e-mail swiss-knife',
+    description='HaveSex, the Weboob sexual life swiss-knife',
+    long_description='Optimize your probabilities to have sex on dating websites',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Monboob',
+    url='http://www.weboob.org/HaveSex',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.monboob',
+        'weboob.applications.havesex',
         ],
     scripts=[
-        'scripts/monboob',
+        'scripts/havesex',
         ],
     install_requires=[
-        'weboob-backends-messages',
+        'weboob-backends-dating', # python-weboob-backends-dating
         ],
 )

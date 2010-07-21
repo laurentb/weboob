@@ -21,20 +21,31 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-weather',
+    name='weboob-videoob-web',
     version='0.1',
-    description='Weboob backends implementing weather capability',
-    author='Romain Bignon',
+    description='Videoob-web, the Weboob video swiss-knife, web server version',
+    long_description='Search for videos on many websites, and get info about them',
+    author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapWeather',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/VideoobWeb',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.yweather',
+        'weboob.applications',
+        'weboob.applications.videoob_web',
+        'weboob.applications.videoob_web.public',
+        'weboob.applications.videoob_web.templates',
+        ],
+    scripts=[
+        'scripts/videoob-web-server',
         ],
     install_requires=[
-        'weboob-core',
+        'weboob-backends-video', # python-weboob-backends-video
+        'Mako', # python-mako
+        'Routes', # python-routes
+        'WebOb', # python-webob
         ],
 )
