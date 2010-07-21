@@ -35,7 +35,7 @@ $SCRIPT_DIRPATH/setup.py.d/weboorrents.py
 $SCRIPT_DIRPATH/setup.py.d/wetboobs.py
 "
 
-rm -rf $DEB_DIRPATH *.egg-info
+rm -rf $DEB_DIRPATH $DIST_DIRPATH MANIFEST.in *.egg-info
 mkdir $DEB_DIRPATH
 
 for f in $SETUP_PY_LIST
@@ -43,7 +43,7 @@ do
     echo "========== Creating Debian package for $f"
     rm -rf $DIST_DIRPATH
     MANIFEST_IN=$SCRIPT_DIRPATH/MANIFEST.in.d/$(basename $f .py)
-    ln -s $MANIFEST_IN MANIFEST.in
+    [ -f $MANIFEST_IN ] && ln -s $MANIFEST_IN MANIFEST.in
     python $f sdist
     cd $DIST_DIRPATH
     TARGZ=$(ls *.tar.gz)
@@ -52,14 +52,14 @@ do
     TARGZ_DIRPATH=$(basename $TARGZ .tar.gz)
     cd $TARGZ_DIRPATH
     ln -s $f setup.py
-    ln -s $MANIFEST_IN MANIFEST.in
+    [ -f $MANIFEST_IN ] && ln -s $MANIFEST_IN MANIFEST.in
     python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.cfg
     cd deb_dist/$TARGZ_DIRPATH
     fakeroot dpkg-buildpackage
     cd ..
     mv *.deb *.diff.gz *.changes *.orig.tar.gz $DEB_DIRPATH
-    cd ../..
-    break
+    cd ../../..
+    # break
 done
 
 rm -rf $DIST_DIRPATH MANIFEST.in *.egg-info
