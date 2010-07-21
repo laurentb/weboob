@@ -35,10 +35,13 @@ setup(
         'weboob',
         'weboob.backends',
         'weboob.backends.aum',
-        'weboob.backends.aum.data',
         'weboob.backends.aum.optim',
         'weboob.backends.aum.pages',
         ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.aum': ['data/*'],
+        },
     install_requires=[
         'weboob-core', # python-weboob-core
         'html5lib', # python-html5lib

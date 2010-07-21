@@ -35,11 +35,14 @@ setup(
         'weboob',
         'weboob.backends',
         'weboob.backends.bnporc',
-        'weboob.backends.bnporc.data',
         'weboob.backends.bnporc.pages',
         'weboob.backends.cragr',
         'weboob.backends.cragr.pages',
         ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.bnporc': ['data/*'],
+        },
     install_requires=[
         'weboob-core', # python-weboob-core
         'ClientForm', # python-clientform

@@ -37,7 +37,6 @@ setup(
         'weboob.backends.ina',
         'weboob.backends.ina.pages',
         'weboob.backends.youtube',
-        'weboob.backends.youtube.pages',
         ],
     install_requires=[
         'weboob-core', # python-weboob-core
