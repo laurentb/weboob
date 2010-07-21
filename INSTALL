@@ -62,6 +62,12 @@ Then, please install the following packages before installing Weboob:
 * python-simplejson
 * python-yaml
 
+Optional:
+* python-gtk
+* python-webkit
+* python-imaging
+* python-webob
+
 
 Bash completion
 ---------------
