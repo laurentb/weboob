@@ -17,6 +17,7 @@
 
 
 from .cap import ICap
+from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['ICapContact', 'Contact']
@@ -32,6 +33,20 @@ class ProfileNode(object):
         self.sufix = sufix
         self.flags = flags
 
+class ContactPhoto(object):
+    def __init__(self, name):
+        self.name = name
+        self.url = u''
+        self.data = ''
+        self.thumbnail_url = u''
+        self.thumbnail_data = u''
+
+    def __iscomplete__(self):
+        return (self.data and (not self.thumbnail_url or self.thumbnail_data))
+
+    def __repr__(self):
+        return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.name, len(self.data), len(self.thumbnail_data))
+
 class Contact(object):
     STATUS_ONLINE =  0x001
     STATUS_AWAY =    0x002
@@ -45,8 +60,16 @@ class Contact(object):
         self.status_msg = u''
         self.summary = u''
         self.avatar = None
-        self.photos = []
+        self.photos = OrderedDict()
         self.profile = None
+
+    def set_photo(self, name, **kwargs):
+        if not name in self.photos:
+            self.photos[name] = ContactPhoto(name)
+
+        photo = self.photos[name]
+        for key, value in kwargs.iteritems():
+            setattr(photo, key, value)
 
     def iter_fields(self):
         return {'id': self.id,
