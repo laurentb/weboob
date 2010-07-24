@@ -127,9 +127,29 @@ class ContactProfile(QWidget):
         self.weboob = weboob
         self.contact = contact
 
+        self.gotProfile(contact.backend, contact)
+
+        self.process_contact = QtDo(self.weboob, self.gotProfile)
+        self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
+
+    def gotProfile(self, backend, contact):
+        if not backend:
+            return
+
+        first = True
+        for photo in contact.photos.itervalues():
+            photo = contact.photos.values()[0]
+            if first:
+                img = QImage.fromData(photo.data)
+                self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
+            else:
+                # TODO display thumbnails
+                pass
+            first = False
+
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
-        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % contact.summary)
+        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % (contact.summary.replace('\n', '<br />') or '<i>Receiving...</i>'))
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
@@ -190,12 +210,22 @@ class ContactsWidget(QWidget):
         group = self.ui.groupBox.itemData(i).toPyObject()
         group.iter_contacts(self.addContact)
 
-    def addContact(self, contact):
+    def setPhoto(self, contact, item):
         if not contact:
             return
 
-        data = urllib2.urlopen(contact.thumbnail_url).read()
-        img = QImage.fromData(data)
+        img = None
+        for photo in contact.photos.itervalues():
+            if photo.thumbnail_data:
+                img = QImage.fromData(photo.thumbnail_data)
+                break
+
+        if img:
+            item.setIcon(QIcon(QPixmap.fromImage(img)))
+
+    def addContact(self, contact):
+        if not contact:
+            return
 
         status = ''
         if contact.status == Contact.STATUS_ONLINE:
@@ -216,8 +246,10 @@ class ContactsWidget(QWidget):
 
         item = QListWidgetItem()
         item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend.name))
-        item.setIcon(QIcon(QPixmap.fromImage(img)))
         item.setData(Qt.UserRole, contact)
+
+        process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+        process.do('fillobj', contact, ['photos'], backends=contact.backend)
 
         for i in xrange(self.ui.contactList.count()):
             if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:

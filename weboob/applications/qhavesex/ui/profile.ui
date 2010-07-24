@@ -35,7 +35,7 @@
          <item>
           <widget class="QLabel" name="photoLabel">
            <property name="text">
-            <string>photo</string>
+            <string><i>Receiving...</i></string>
            </property>
           </widget>
          </item>
