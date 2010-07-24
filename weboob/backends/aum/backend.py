@@ -175,31 +175,47 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
             else:
                 return
 
-    def get_contact(self, _id):
+    def get_contact(self, contact):
         try:
             with self.browser:
-                profile = self.browser.get_profide(_id)
+                if isinstance(contact, Contact):
+                    _id = contact.id
+                elif isinstance(contact, (int,long,str,unicode)):
+                    _id = contact
+                else:
+                    raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
+
+                profile = self.browser.get_profile(_id)
 
                 if profile.is_online():
                     s = Contact.STATUS_ONLINE
                 else:
                     s = Contact.STATUS_OFFLINE
-                contact = Contact(_id, profile.get_name(), s)
+
+                if isinstance(contact, Contact):
+                    contact.id = _id
+                    contact.name = profile.get_name()
+                    contact.status = s
+                else:
+                    contact = Contact(_id, profile.get_name(), s)
                 contact.status_msg = u'%s old' % profile.table['details']['old']
                 contact.summary = profile.description
                 contact.avatar = None
-                contact.photos = profile.photos
+                for photo in profile.photos:
+                    contact.set_photo(photo.split('/')[-1], url=photo, thumbnail_url=photo.replace('image', 'thumb1_'))
                 contact.profile = []
 
                 stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
-                for label, value in self.get_stats().iteritems():
+                for label, value in profile.get_stats().iteritems():
                     stats.value.append(ProfileNode(label, label.capitalize(), value))
                 contact.profile.append(stats)
 
-                for section, d in self.get_table().iteritems():
+                for section, d in profile.get_table().iteritems():
                     s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
                     for key, value in d.iteritems():
                         s.value.append(ProfileNode(key, key.capitalize(), value))
+
+                return contact
         except BrowserUnavailable:
             return None
 
@@ -226,7 +242,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                 # TODO age in contact['birthday']
                 c = Contact(contact['id'], contact['pseudo'], s)
                 c.status_msg = u'%s old' % contact['birthday']
-                c.thumbnail_url = contact['cover']
+                c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
                 yield c
 
     def iter_chat_messages(self, _id=None):
@@ -239,3 +255,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
 
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
+
+    def fill_contact(self, contact, fields):
+        if 'profile' in fields:
+            contact = self.get_contact(contact)
+        if 'photos' in fields:
+            for name, photo in contact.photos.iteritems():
+                with self.browser:
+                    if photo.url:
+                        data = self.browser.openurl(photo.url).read()
+                        contact.set_photo(name, data=data)
+                    if photo.thumbnail_url:
+                        data = self.browser.openurl(photo.thumbnail_url).read()
+                        contact.set_photo(name, thumbnail_data=data)
+
+    OBJECTS = {Contact: fill_contact}
