@@ -19,6 +19,7 @@
 import re
 import os
 from threading import RLock
+from logging import debug
 
 
 __all__ = ['BaseBackend', 'ObjectNotSupported']
@@ -175,8 +176,32 @@ class BaseBackend(object):
         return self.TEST(self)
 
     def fillobj(self, obj, fields):
+        missing_fields = []
+        for field in fields:
+            if not hasattr(obj, field):
+                continue
+            value = getattr(obj, field)
+
+            missing = False
+            if isinstance(value, dict):
+                for v in value.itervalues():
+                    if hasattr(v, '__iscomplete__') and not v.__iscomplete__():
+                        missing = True
+                        break
+            elif isinstance(value, (list,tuple)):
+                for v in value:
+                    if hasattr(v, '__iscomplete__') and not v.__iscomplete__():
+                        missing = True
+                        break
+            elif not value or hasattr(value, '__iscomplete__') and not value.__iscomplete__():
+                missing = True
+
+            if missing:
+                missing_fields.append(field)
+
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
-                return value(self, obj, fields)
+                debug('Complete %r with fields: %s' % (obj, missing_fields))
+                return value(self, obj, missing_fields) or obj
 
         raise ObjectNotSupported('The object of type %s is not supported by the backend %s' % (type(obj), self))
