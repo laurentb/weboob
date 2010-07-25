@@ -117,7 +117,7 @@ class Weboob(object):
             if isinstance(kwargs['backends'], BaseBackend):
                 backends = [kwargs.pop('backends')]
             elif isinstance(kwargs['backends'], (str,unicode)) and kwargs['backends']:
-                backends = self.backend_instances[kwargs.pop('backends')]
+                backends = [self.backend_instances[kwargs.pop('backends')]]
             elif isinstance(kwargs['backends'], (list,tuple)):
                 backends = []
                 for backend in kwargs.pop('backends'):
