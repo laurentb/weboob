@@ -113,14 +113,15 @@ class Weboob(object):
         @return  an iterator of results
         """
         backends = self.backend_instances.values()
-        if 'backends' in kwargs and kwargs['backends']:
-            if isinstance(kwargs['backends'], BaseBackend):
-                backends = [kwargs.pop('backends')]
-            elif isinstance(kwargs['backends'], (str,unicode)) and kwargs['backends']:
-                backends = [self.backend_instances[kwargs.pop('backends')]]
-            elif isinstance(kwargs['backends'], (list,tuple)):
+        if 'backends' in kwargs:
+            _backends = kwargs.pop('backends')
+            if isinstance(_backends, BaseBackend):
+                backends = [_backends]
+            elif isinstance(_backends, (str,unicode)) and _backends:
+                backends = [self.backend_instances[_backends]]
+            elif isinstance(_backends, (list,tuple)):
                 backends = []
-                for backend in kwargs.pop('backends'):
+                for backend in _backends:
                     if isinstance(backend, (str,unicode)):
                         try:
                             backends.append(self.backend_instances[backend])
@@ -128,6 +129,8 @@ class Weboob(object):
                             pass
                     else:
                         backends.append(backend)
+            else:
+                warning('The "backends" value isn\'t supported: %r' % _backends)
 
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
