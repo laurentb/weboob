@@ -56,7 +56,7 @@ class Account(QFrame):
         self.weboob.repeat(60, self.updateStats)
 
     def updateStats(self):
-        self.process = QtDo(self.weboob, self.updateStats_cb)
+        self.process = QtDo(self.weboob, self.updateStats_cb, self.updateStats_eb)
         self.process.body = u''
         self.process.in_p = False
         self.process.do('get_status', backends=self.backend)
@@ -89,6 +89,10 @@ class Account(QFrame):
                 self.process.body += u"<br />"
 
             self.process.body += u'<b>%s</b>: %s' % (field.label, field.value)
+
+    def updateStats_eb(self, backend, err, backtrace):
+        self.body.setText(u'<b>Unable to connect:</b> %s' % unicode(err))
+        self.title.setText(u'<font color=#ff0000>%s</font>' % unicode(self.title.text()))
 
 class AccountsStatus(QWidget):
     def __init__(self, weboob, parent=None):
