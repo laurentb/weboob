@@ -231,10 +231,14 @@ class ContactThreadPage(PageBase):
     """
 
     def post(self, content):
+        if isinstance(content, unicode):
+            content = content.encode('iso-8859-15', 'replace')
+
+        if len(content) < 3:
+            raise AdopteCantPostMail("Your message is too short (minimum 3 chars)")
+
         try:
             self.browser.select_form(name="sendMsg")
-            if isinstance(content, unicode):
-                content = content.encode('iso-8859-15', 'replace')
             self.browser['message'] = content
 
             self.browser.submit()  # submit current form
