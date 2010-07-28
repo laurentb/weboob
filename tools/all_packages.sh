@@ -27,7 +27,6 @@ $SCRIPT_DIRNAME/setup.py.d/monboob.py
 $SCRIPT_DIRNAME/setup.py.d/qboobmsg.py
 $SCRIPT_DIRNAME/setup.py.d/qhavesex.py
 $SCRIPT_DIRNAME/setup.py.d/qvideoob.py
-$SCRIPT_DIRNAME/setup.py.d/qweboobcfg.py
 $SCRIPT_DIRNAME/setup.py.d/travel.py
 $SCRIPT_DIRNAME/setup.py.d/videoob.py
 $SCRIPT_DIRNAME/setup.py.d/videoob_web.py

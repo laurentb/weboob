@@ -20,11 +20,11 @@
 # This script can be distributed under the same license as the
 # weboob or bash packages.
 
-have weboobcfg &&
+have weboob-config &&
 _weboob()
 {
     local cur words
-   
+
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
     words="$(${COMP_WORDS[0]} --shell-completion)"
@@ -39,7 +39,7 @@ _weboob()
 
 }
 [ "$have" ] || return
-weboob_applications=$(weboobcfg applications)
+weboob_applications=$(weboob-config applications)
 for application in $weboob_applications
 do
     complete -F _weboob $application
