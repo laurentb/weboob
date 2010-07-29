@@ -46,38 +46,15 @@ $SCRIPT_DIRPATH/setup.py.d/wetboobs.py
 rm -rf $DEB_DIRPATH $DIST_DIRPATH MANIFEST.in *.egg-info
 mkdir $DEB_DIRPATH
 
-for f in $SETUP_PY_LIST
+for filepath in $SETUP_PY_LIST
 do
-    echo "========== Creating Debian package for $f"
-    PKGNAME=$(basename $f .py)
-    rm -f MANIFEST.in
-    MANIFEST_IN=$SCRIPT_DIRPATH/MANIFEST.in.d/$PKGNAME
-    [ -f $MANIFEST_IN ] && ln -s $MANIFEST_IN MANIFEST.in
-    README=$SCRIPT_DIRPATH/README.d/$PKGNAME
-    [ -f $README ] && mv README README.old && ln -s $README README
-    python $f sdist
-    cd $DIST_DIRPATH
-    TARGZ=$(ls weboob-$PKGNAME-*.tar.gz)
-    tar xf $TARGZ
-    TARGZ_DIRPATH=$(basename $TARGZ .tar.gz)
-    [ ! -d $TARGZ_DIRPATH ] && echo "$TARGZ_DIRPATH not found" && exit
-    cd $TARGZ_DIRPATH
-    ln -s $f setup.py
-    [ -f $MANIFEST_IN ] && ln -sf $MANIFEST_IN MANIFEST.in
-    python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.cfg
-    [ ! -d deb_dist/$TARGZ_DIRPATH ] && echo "deb_dist/$TARGZ_DIRPATH not found" && exit
-    cd deb_dist/$TARGZ_DIRPATH
-    fakeroot dpkg-buildpackage
-    cd ..
-    [ ! -f *.deb ] && echo "Debian package not found" && exit
-    mv *.deb *.diff.gz *.changes *.orig.tar.gz $DEB_DIRPATH
-    cd ../../..
-    [ -f $README ] && mv README.old README
+    echo "========== Creating Debian package for $filepath"
+    exec $SCRIPT_DIRPATH/create_debian_package.sh $filepath
     pwd
     # break
 done
 
-# rm -rf $DIST_DIRPATH MANIFEST.in *.egg-info
+rm -rf $DIST_DIRPATH MANIFEST.in *.egg-info
 
 echo
 echo "Packages are in the $DEB_DIRPATH directory"
