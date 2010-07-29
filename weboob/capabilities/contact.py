@@ -26,7 +26,7 @@ class ProfileNode(object):
     HEAD =    0x01
     SECTION = 0x02
 
-    def __init__(self, name, label, value, sufix=None, flags=None):
+    def __init__(self, name, label, value, sufix=None, flags=0):
         self.name = name
         self.label = label
         self.value = value

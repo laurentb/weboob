@@ -214,6 +214,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                     s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
                     for key, value in d.iteritems():
                         s.value.append(ProfileNode(key, key.capitalize(), value))
+                    contact.profile.append(s)
 
                 return contact
         except BrowserUnavailable:

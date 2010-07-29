@@ -15,10 +15,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import urllib2
 import time
 import logging
-from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, QFrame, QMessageBox
+from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, \
+                        QFrame, QMessageBox, QTabWidget, QVBoxLayout, \
+                        QFormLayout, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
@@ -127,10 +128,9 @@ class ContactProfile(QWidget):
         self.weboob = weboob
         self.contact = contact
 
-        self.gotProfile(contact.backend, contact)
-
-        self.process_contact = QtDo(self.weboob, self.gotProfile)
-        self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
+        if self.gotProfile(contact.backend, contact):
+            self.process_contact = QtDo(self.weboob, self.gotProfile)
+            self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
 
     def gotProfile(self, backend, contact):
         if not backend:
@@ -139,17 +139,64 @@ class ContactProfile(QWidget):
         first = True
         for photo in contact.photos.itervalues():
             photo = contact.photos.values()[0]
-            if first:
+            if first and photo.data:
                 img = QImage.fromData(photo.data)
                 self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
+                first = False
             else:
                 # TODO display thumbnails
                 pass
-            first = False
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
         self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % (contact.summary.replace('\n', '<br />') or '<i>Receiving...</i>'))
+
+        if not contact.profile:
+            return True
+
+        for head in contact.profile:
+            if head.flags & head.HEAD:
+                widget = self.ui.headFrame
+            else:
+                widget = self.ui.profileTab
+            self.process_node(head, widget)
+
+        return False
+
+    def process_node(self, node, widget):
+        # Set the value widget
+        value = None
+        if node.flags & node.SECTION:
+            value = QWidget()
+            value.setLayout(QFormLayout())
+            for sub in node.value:
+                self.process_node(sub, value)
+        elif isinstance(node.value, list):
+            value = QLabel('<br />'.join([unicode(s) for s in node.value]))
+            value.setWordWrap(True)
+        elif isinstance(node.value, tuple):
+            value = QLabel(', '.join([unicode(s) for s in node.value]))
+            value.setWordWrap(True)
+        elif isinstance(node.value, (str,unicode,int)):
+            print '[%s]' % node.value
+            value = QLabel(unicode(node.value))
+
+        if not value:
+            print 'no value :('
+            return
+
+        # Insert the value widget into the parent widget, depending
+        # of its type.
+        if isinstance(widget, QTabWidget):
+            widget.addTab(value, node.label)
+        elif isinstance(widget.layout(), QFormLayout):
+            label = QLabel(u'<b>%s:</b> ' % node.label)
+            widget.layout().addRow(label, value)
+        elif isinstance(widget.layout(), QVBoxLayout):
+            widget.layout().addWidget(value)
+        else:
+            print 'TODO'
+            return
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
