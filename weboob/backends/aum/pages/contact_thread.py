@@ -232,7 +232,10 @@ class ContactThreadPage(PageBase):
 
     def post(self, content):
         if isinstance(content, unicode):
-            content = content.encode('iso-8859-15', 'replace')
+            # LOL the data is Windows-1252 encoded, even if the charset label
+            # of the page is ISO-8859-1.
+            # That's crappy, but necessary if we want to use special chars.
+            content = content.encode('Windows-1252', 'replace')
 
         if len(content) < 3:
             raise AdopteCantPostMail("Your message is too short (minimum 3 chars)")
