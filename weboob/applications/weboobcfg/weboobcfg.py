@@ -30,7 +30,7 @@ __all__ = ['WeboobCfg']
 
 
 class WeboobCfg(ConsoleApplication):
-    APPNAME = 'weboobcfg'
+    APPNAME = 'weboob-config'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
 
@@ -81,7 +81,7 @@ class WeboobCfg(ConsoleApplication):
         try:
             self.weboob.backends_config.add_backend(name, name, params)
             print u'Backend "%s" successfully added to file "%s".\n'\
-                    'Please check configuration parameters values with "weboobcfg edit".' % (
+                    'Please check configuration parameters values with "weboob-config edit".' % (
                         name, self.weboob.backends_config.confpath)
         except ConfigParser.DuplicateSectionError:
             print u'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
@@ -94,7 +94,7 @@ class WeboobCfg(ConsoleApplication):
                     try:
                         self.weboob.backends_config.add_backend(new_name, name, params)
                         print u'Backend "%s" successfully added to file "%s".\n'\
-                                'Please check configuration parameters values with "weboobcfg edit".' % (
+                                'Please check configuration parameters values with "weboob-config edit".' % (
                                     name, self.weboob.backends_config.confpath)
                         break
                     except ConfigParser.DuplicateSectionError:

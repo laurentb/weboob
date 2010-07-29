@@ -256,7 +256,7 @@ class ConsoleApplication(BaseApplication):
                     caps = (caps,)
                 caps = iter(cap.__name__ for cap in caps)
             weboobcfg.command_backends(*caps)
-            logging.error(u'You can configure a backends using the "weboobcfg add" command:\nweboobcfg add <name> [options..]')
+            logging.error(u'You can configure a backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
             sys.exit(0)
 
     def parse_id(self, _id):
