@@ -33,8 +33,7 @@ rm -f $TARGZ
 cd $TARGZ_DIRPATH
 ln -s $FILEPATH setup.py
 [ -f $MANIFEST_IN ] && ln -sf $MANIFEST_IN MANIFEST.in
-# rm -f MANIFEST.in
-python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.cfg
+python setup.py --command-packages=stdeb.command sdist_dsc --extra-cfg-file $SCRIPT_DIRPATH/stdeb.cfg --copyright-file $SCRIPT_DIRPATH/copyright
 [ ! -d deb_dist/$TARGZ_DIRPATH ] && echo "deb_dist/$TARGZ_DIRPATH not found" && exit
 cd deb_dist/$TARGZ_DIRPATH
 dpkg-buildpackage -rfakeroot
