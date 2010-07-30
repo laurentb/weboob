@@ -1,30 +1,41 @@
 Weboob installation
 ===================
 
-Like any Python package using setuptools, Weboob can be installed in normal or
-development mode.
+Like any Python package using setuptools, Weboob can be installed:
+ * from eggs
+ * from Debian packages
+ * from setup.py in install mode or in development mode
 
-Weboob is distributed with many packages. There is one package for the core
+
+From Eggs
+---------
+
+Weboob is distributed using many packages. There is one package for the core
 library, many packages for backends (grouped by capabilities), and one package
 for each application.
 
-
-Eggs install
-------------
-
-Call the helper script which will build the packages and install them all:
-
-# ./tools/all_packages.sh install
+To install:
+TODO: no packages released for the moment
 
 To uninstall:
-* remove the Weboob eggs:
-# rm -rf /usr/lib/python2.5/site-packages/weboob_*.egg
-* remove the weboob lines in
-/usr/lib/python2.5/site-packages/easy-install.pth
+TODO: no packages released for the moment
 
 
-Development mode
-----------------
+From Debian packages
+--------------------
+
+Install from the Weboob repository:
+TODO: no Debian repository exists
+
+For developers: build yourself Debian packages using
+$ ./tools/packaging/create_debian_packages.sh
+
+
+From setup.py
+-------------
+
+The install mode copies files to /usr/lib/python2.5/site-packages
+or /usr/local/lib/python2.6/dist-packages
 
 The development mode doesn't copy files, but it creates an egg-link
 which points to the development directory.
@@ -32,41 +43,18 @@ It is useful for development when files often change.
 
 # ./setup.py develop
 Creates /usr/lib/python2.5/site-packages/weboob_dev.egg-link
+or /usr/local/lib/python2.6/dist-packages/weboob_dev.egg-link
 
-Scripts are not copied to /usr/bin, so you must launch them with:
-$ ./scripts/videoob (for example)
-
-To uninstall, remove this egg-link and remove the weboob_dev line in
-/usr/lib/python2.5/site-packages/easy-install.pth
-
-
-Debian note
------------
-
-When using Debian, it is advised to install Python Debian packages, and not the
-PyPI ones (when they are available).
-
-To achieve this, use the --no-deps option of setup.py:
+If you don't want to install all the dependencies, use the --no-deps option:
 # ./setup.py develop --no-deps
+and install dependencies by hand from your distribution packages, or from PyPI
+using easy_install, or the more modern pip.
 
-Then, please install the following packages before installing Weboob:
-* pyqt4-dev-tools
-* python-dateutil
-* python-feedparser
-* python-gdata
-* python-html5lib
-* python-imaging
-* python-lxml
-* python-qt4
-* python-qt4-phonon
-* python-simplejson
-* python-yaml
+Scripts are copied to /usr/bin.
 
-Optional:
-* python-gtk
-* python-webkit
-* python-imaging
-* python-webob
+To uninstall, remove the egg-link and remove the weboob_dev line in
+/usr/lib/python2.5/site-packages/easy-install.pth
+or /usr/local/lib/python2.6/dist-packages/easy-install.pth
 
 
 Bash completion
