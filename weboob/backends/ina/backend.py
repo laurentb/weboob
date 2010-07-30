@@ -17,6 +17,7 @@
 
 
 from logging import debug
+import os
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
@@ -34,6 +35,7 @@ class InaBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'INA french video archives'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.gif')
 
     BROWSER = InaBrowser
 

@@ -37,6 +37,10 @@ setup(
         'weboob.backends.youtube',
         'weboob.backends.youtube.pages',
         ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.ina': ['data/*'],
+        },
     install_requires=[
         'weboob-core',
 	# gdata, no egg?
