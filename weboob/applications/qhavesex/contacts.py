@@ -177,12 +177,10 @@ class ContactProfile(QWidget):
         elif isinstance(node.value, tuple):
             value = QLabel(', '.join([unicode(s) for s in node.value]))
             value.setWordWrap(True)
-        elif isinstance(node.value, (str,unicode,int)):
-            print '[%s]' % node.value
+        elif isinstance(node.value, (str,unicode,int,long,float)):
             value = QLabel(unicode(node.value))
-
-        if not value:
-            print 'no value :('
+        else:
+            logging.warning('Not supported value: %r' % node.value)
             return
 
         # Insert the value widget into the parent widget, depending
@@ -195,8 +193,7 @@ class ContactProfile(QWidget):
         elif isinstance(widget.layout(), QVBoxLayout):
             widget.layout().addWidget(value)
         else:
-            print 'TODO'
-            return
+            logging.warning('Not supported widget: %r' % widget)
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
