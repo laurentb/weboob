@@ -12,6 +12,7 @@
 
 FILEPATH="$1"
 
+DEB_DIRPATH="$PWD/deb"
 DIST_DIRPATH="$PWD/dist"
 SCRIPT_DIRPATH=$(dirname $(readlink -f "$0"))
 
@@ -23,10 +24,12 @@ README=$SCRIPT_DIRPATH/README.d/$PKGNAME
 [ -f $README ] && mv README README.old && ln -s $README README
 python $FILEPATH sdist
 cd $DIST_DIRPATH
-TARGZ=$(ls weboob-$PKGNAME-*.tar.gz)
+TARGZ=$(find -maxdepth 1 -regex ".*$PKGNAME-[0-9]\.[0-9]\.tar\.gz")
+[ ! -f $TARGZ ] && echo "$TARGZ not found" && exit
 tar xf $TARGZ
 TARGZ_DIRPATH=$(basename $TARGZ .tar.gz)
 [ ! -d $TARGZ_DIRPATH ] && echo "$TARGZ_DIRPATH not found" && exit
+rm -f $TARGZ
 cd $TARGZ_DIRPATH
 ln -s $FILEPATH setup.py
 [ -f $MANIFEST_IN ] && ln -sf $MANIFEST_IN MANIFEST.in

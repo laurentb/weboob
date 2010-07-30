@@ -49,9 +49,7 @@ mkdir $DEB_DIRPATH
 for filepath in $SETUP_PY_LIST
 do
     echo "========== Creating Debian package for $filepath"
-    exec $SCRIPT_DIRPATH/create_debian_package.sh $filepath
-    pwd
-    # break
+    $SCRIPT_DIRPATH/create_debian_package.sh $filepath
 done
 
 rm -rf $DIST_DIRPATH MANIFEST.in *.egg-info

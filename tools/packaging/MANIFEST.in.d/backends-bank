@@ -1,1 +1,1 @@
-include share/pyshared/weboob/backends/aum/data/*
+include weboob/backends/bnporc/data/*
