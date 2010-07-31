@@ -19,40 +19,33 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/tools/application/qt')
 
 setup(
-    name='weboob-core-qt',
+    name='weboob-backends-dating',
     version='0.1',
-    description='Weboob, Web Out Of Browsers - core library, Qt configuration GUI',
-    long_description='Configure backends using a Qt GUI.',
+    description='Weboob backends implementing dating capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org',
-    namespace_packages = [
-        'weboob',
-        'weboob.applications',
-        'weboob.tools',
-        'weboob.tools.application',
-        ],
+    url='http://www.weboob.org/ICapDating',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications.qweboobcfg',
-        'weboob.tools.application.qt',
+        'weboob.backends',
+        'weboob.backends.aum',
+        'weboob.backends.aum.optim',
+        'weboob.backends.aum.pages',
         ],
-    data_files=[
-	('weboob/tools', ['weboob/tools/__init__.py']),
-	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
-        ],
-    scripts=[
-        'scripts/weboob-config-qt',
-        ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.aum': ['data/*'],
+        },
     install_requires=[
-        'weboob-core',
-	#'PyQt',
+        'weboob-core', # python-weboob-core
+        'html5lib', # python-html5lib
+        'PIL', # python-imaging
+        'simplejson', # python-simplejson
         ],
 )

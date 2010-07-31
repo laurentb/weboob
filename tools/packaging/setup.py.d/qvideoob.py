@@ -19,26 +19,35 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/applications/qvideoob/ui')
 
 setup(
-    name='weboob-boobank',
+    name='weboob-qvideoob',
     version='0.1',
-    description='Boobank, the Weboob bank-accounts swiss-knife',
-    long_description='List your bank accounts and get info about them',
-    author='Christophe Benz, Romain Bignon',
+    description='QVideoob, the Weboob video swiss-knife, Qt version',
+    long_description='Search for videos on many websites, and get info about them',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Boobank',
+    url='http://www.weboob.org/QVideoob',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.boobank',
+        'weboob.applications.qvideoob',
+        'weboob.applications.qvideoob.ui',
         ],
     scripts=[
-        'scripts/boobank',
+        'scripts/qvideoob',
         ],
     install_requires=[
-        'weboob-backends-bank',
+        'weboob-core-qt', # python-weboob-core-qt
+        'weboob-backends-video', # python-weboob-backends-video
+        # python-qt4-phonon
         ],
 )

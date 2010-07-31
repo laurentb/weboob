@@ -21,24 +21,24 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-weboorrents',
+    name='weboob-backends-travel',
     version='0.1',
-    description='Weboorrents, the Weboob bittorrent swiss-knife',
-    long_description='Search for torrents on many websites, and get info about them',
-    author='Romain Bignon',
+    description='Weboob backends implementing travel capability',
+    author='Romain Bignon, Julien Hébert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Weboorrents',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapTravel',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.weboorrents',
-        ],
-    scripts=[
-        'scripts/weboorrents',
+        'weboob.backends',
+        'weboob.backends.canaltp',
+        'weboob.backends.transilien',
+        'weboob.backends.transilien.pages',
         ],
     install_requires=[
-        'weboob-backends-torrent',
+        'weboob-core', # python-weboob-core
         ],
 )

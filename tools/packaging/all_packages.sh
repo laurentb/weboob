@@ -4,8 +4,6 @@ SCRIPT_DIRNAME=$(dirname $0)
 
 [ -z "$1" ] && echo "no command provided" && exit 1
 
-COMMAND="$1"
-
 SETUP_PY_LIST="
 $SCRIPT_DIRNAME/setup.py.d/core.py
 $SCRIPT_DIRNAME/setup.py.d/core-qt.py
@@ -37,5 +35,5 @@ $SCRIPT_DIRNAME/setup.py.d/wetboobs.py
 for f in $SETUP_PY_LIST
 do
     python $f clean --all
-    python $f "$COMMAND"
+    python $f $@
 done

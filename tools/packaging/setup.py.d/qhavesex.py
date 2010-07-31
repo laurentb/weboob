@@ -19,30 +19,34 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/applications/qhavesex/ui')
 
 setup(
-    name='weboob-backends-video',
+    name='weboob-qhavesex',
     version='0.1',
-    description='Weboob backends implementing video capability',
-    author='Christophe Benz, Romain Bignon',
+    description='QHaveSex, the Weboob sexual life swiss-knife, Qt version',
+    long_description='Optimize your probabilities to have sex on dating websites',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapVideo',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/QHaveSex',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.ina',
-        'weboob.backends.ina.pages',
-        'weboob.backends.youtube',
-        'weboob.backends.youtube.pages',
+        'weboob.applications',
+        'weboob.applications.qhavesex',
+        'weboob.applications.qhavesex.ui',
         ],
-    include_package_data=True,
-    package_data={
-        'weboob.backends.ina': ['data/*'],
-        },
+    scripts=[
+        'scripts/qhavesex',
+        ],
     install_requires=[
-        'weboob-core',
-	# gdata, no egg?
+        'weboob-core-qt', # python-weboob-core-qt
+        'weboob-backends-dating', # python-weboob-backends-dating
         ],
 )

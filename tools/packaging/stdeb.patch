@@ -1,0 +1,10 @@
+--- /dev/null	2010-07-21 23:28:33.036382748 +0200
++++ /usr/share/pyshared/stdeb/util.py	2010-07-21 23:28:39.808445830 +0200
+@@ -254,6 +254,7 @@
+     import pkg_resources
+ 
+     depends = [] # This will be the return value from this function.
++    return depends
+ 
+     parsed_reqs=[]
+ 

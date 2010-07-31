@@ -19,32 +19,28 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/applications/qhavesex/ui')
 
 setup(
-    name='weboob-qhavesex',
+    name='weboob-weboorrents',
     version='0.1',
-    description='QHaveSex, the Weboob sexual life swiss-knife, Qt version',
-    long_description='Optimize your probabilities to have sex on dating websites',
+    description='Weboorrents, the Weboob bittorrent swiss-knife',
+    long_description='Search for torrents on many websites, and get info about them',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/QHaveSex',
+    url='http://www.weboob.org/Weboorrents',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.qhavesex',
-        'weboob.applications.qhavesex.ui',
+        'weboob.applications.weboorrents',
         ],
     scripts=[
-        'scripts/qhavesex',
+        'scripts/weboorrents',
         ],
     install_requires=[
-        'weboob-backends-dating',
-	#'yaml',
+        'weboob-backends-torrent', # python-weboob-backends-torrent
         ],
 )

@@ -21,21 +21,26 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-torrent',
+    name='weboob-videoob',
     version='0.1',
-    description='Weboob backends implementing torrent capability',
-    author='Romain Bignon',
+    description='Videoob, the Weboob video swiss-knife',
+    long_description='Search for videos on many websites, and get info about them',
+    author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapTorrent',
-    namespace_packages = ['weboob.backends'],
+    url='http://www.weboob.org/Videoob',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.gazelle',
-        'weboob.backends.gazelle.pages',
+        'weboob.applications',
+        'weboob.applications.videoob',
+        ],
+    scripts=[
+        'scripts/videoob',
         ],
     install_requires=[
-        'weboob-core',
+        'weboob-backends-video', # python-weboob-backends-video
         ],
 )

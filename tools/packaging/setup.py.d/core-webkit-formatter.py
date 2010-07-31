@@ -21,12 +21,13 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-core',
+    name='weboob-core-webkit-formatter',
     version='0.1',
-    description='Weboob, Web Out Of Browsers - core library',
-    # long_description=read('README'),
-    author='Romain Bignon',
+    description='Weboob, Web Out Of Browsers - core library, WebKit formatter',
+    author='Christophe Benz',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
     classifiers=[
@@ -38,34 +39,21 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet',
         ],
-    # keywords='',
     namespace_packages = [
-	'weboob',
-	'weboob.applications',
-        'weboob.tools',
-        'weboob.tools.application',
-	],
-    packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.weboobcfg',
-        'weboob.applications.weboobdebug',
-        'weboob.applications.weboobtests',
-        'weboob.capabilities',
-        'weboob.core',
         'weboob.tools',
         'weboob.tools.application',
         'weboob.tools.application.formatters',
-        'weboob.tools.browser',
-        'weboob.tools.config',
-        'weboob.tools.parsers',
-        ],
-    scripts=[
-        'scripts/weboob-config',
-        'scripts/weboob-debug',
-        'scripts/weboob-tests',
+	],
+    packages=[
+        'weboob',
+        'weboob.tools.application.formatters.webkit',
         ],
     install_requires=[
-        'python-dateutil',
+        'weboob-core', # python-weboob-core
+        # not Pypi packages:
+        # Depends
+        # python-gtk2
+        # python-webkit
         ],
 )

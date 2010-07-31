@@ -19,41 +19,38 @@
 
 from setuptools import setup
 
+import os
+
+
+os.system('make -C weboob/tools/application/qt')
 
 setup(
-    name='weboob-core-webkit-formatter',
+    name='weboob-core-qt',
     version='0.1',
-    description='Weboob, Web Out Of Browsers - core library, WebKit formatter',
-    author='Christophe Benz',
+    description='Weboob, Web Out Of Browsers - core library, Qt configuration GUI',
+    long_description='Configure backends using a Qt GUI.',
+    author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Natural Language :: English',
-        'Programming Language :: Python',
-        'Topic :: Internet',
-        ],
     namespace_packages = [
-	'weboob',
+        'weboob',
+        'weboob.applications',
         'weboob.tools',
         'weboob.tools.application',
-        'weboob.tools.application.formatters',
-	],
-    packages=[
-	'weboob',
-        'weboob.tools.application.formatters.webkit',
         ],
-    data_files=[
-	('weboob/tools', ['weboob/tools/__init__.py']),
-	('weboob/tools/application', ['weboob/tools/application/__init__.py']),
-	('weboob/tools/application/formatters', ['weboob/tools/application/formatters/__init__.py']),
+    packages=[
+        'weboob',
+        'weboob.applications.qweboobcfg',
+        'weboob.tools.application.qt',
+        ],
+    scripts=[
+        'scripts/weboob-config-qt',
         ],
     install_requires=[
-	'weboob-core',
-	# webkit dependency, is not an egg?
+        'weboob-core', # python-weboob-core
+        'PyQt', # python-qt4
         ],
 )

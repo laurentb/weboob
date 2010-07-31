@@ -21,24 +21,33 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-havesex',
+    name='weboob-backends-bank',
     version='0.1',
-    description='HaveSex, the Weboob sexual life swiss-knife',
-    long_description='Optimize your probabilities to have sex on dating websites',
-    author='Romain Bignon',
+    description='Weboob backends implementing bank capability',
+    author='Laurent Bachelier',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/HaveSex',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapBank',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.havesex',
+        'weboob.backends',
+        'weboob.backends.bnporc',
+        'weboob.backends.bnporc.pages',
+        'weboob.backends.cragr',
+        'weboob.backends.cragr.pages',
         ],
-    scripts=[
-        'scripts/havesex',
-        ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.bnporc': ['data/*'],
+        },
     install_requires=[
-        'weboob-backends-dating',
+        'weboob-core', # python-weboob-core
+        'ClientForm', # python-clientform
+        # not Pypi packages:
+        # Suggests
+        # python-imaging
         ],
 )

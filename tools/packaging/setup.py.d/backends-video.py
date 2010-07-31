@@ -19,30 +19,31 @@
 
 from setuptools import setup
 
-import os
-
-
-os.system('make -C weboob/applications/qboobmsg/ui')
 
 setup(
-    name='weboob-qboobmsg',
+    name='weboob-backends-video',
     version='0.1',
-    description='QBoobMsg, the Weboob e-mail swiss-knife, Qt version',
-    author='Romain Bignon',
+    description='Weboob backends implementing video capability',
+    author='Christophe Benz, Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/QBoobMsg',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapVideo',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.qboobmsg',
-        'weboob.applications.qboobmsg.ui',
+        'weboob.backends',
+        'weboob.backends.ina',
+        'weboob.backends.ina.pages',
+        'weboob.backends.youtube',
         ],
-    scripts=[
-        'scripts/qboobmsg',
-        ],
+    include_package_data=True,
+    package_data={
+        'weboob.backends.ina': ['data/*'],
+        },
     install_requires=[
-        'weboob-backends-messages',
+        'weboob-core', # python-weboob-core
+        'gdata', # python-gdata
         ],
 )

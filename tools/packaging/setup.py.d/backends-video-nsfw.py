@@ -21,24 +21,25 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-masstransit',
+    name='weboob-backends-video-nsfw',
     version='0.1',
-    description='Masstransit, the Weboob travel swiss-knife, Hildon version (Maemo OS)',
-    long_description='Search for train stations and departure timegrids',
-    author='Julien Hébert',
+    description='Weboob backends implementing video capability - non-suitable for work',
+    author='Romain Bignon, Roger Philibert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Masstransit',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapVideo',
+    namespace_packages = ['weboob', 'weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.masstransit',
-        ],
-    scripts=[
-        'scripts/masstransit',
+        'weboob.backends',
+        'weboob.backends.youjizz',
+        'weboob.backends.youjizz.pages',
+        'weboob.backends.youporn',
+        'weboob.backends.youporn.pages',
         ],
     install_requires=[
-        'weboob-backends-travel',
+        'weboob-core', # python-weboob-core
         ],
 )

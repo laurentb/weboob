@@ -33,10 +33,27 @@ setup(
     description='Weboob, Web Out Of Browsers - core library',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
     packages=find_packages(),
     scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
     install_requires=[
+        'ClientForm', # python-clientform
+        'elementtidy', # python-elementtidy
+        'FeedParser', # python-feedparser
+        'gdata', # python-gdata
+        'html5lib', # python-html5lib
+        'lxml', # python-lxml
+        'Mako', # python-mako
+        'mechanize', # python-mechanize
+        'PIL', # python-imaging
+        'PyQt', # python-qt4
+        'python-dateutil', # python-dateutil
+        'PyYAML', # python-yaml
+        'Routes', # python-routes
+        'simplejson', # python-simplejson
+        'WebOb', # python-webob
         ],
 )

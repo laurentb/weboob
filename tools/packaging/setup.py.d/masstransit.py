@@ -21,26 +21,29 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-backends-bank',
+    name='weboob-masstransit',
     version='0.1',
-    description='Weboob backends implementing bank capability',
-    author='Laurent Bachelier',
+    description='Masstransit, the Weboob travel swiss-knife, Hildon version (Maemo OS)',
+    long_description='Search for train stations and departure timegrids',
+    author='Julien Hébert',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/ICapBank',
-    namespace_packages = ['weboob', 'weboob.backends'],
+    url='http://www.weboob.org/Masstransit',
+    namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
-        'weboob.backends',
-        'weboob.backends.bnporc',
-        'weboob.backends.bnporc.data',
-        'weboob.backends.bnporc.pages',
-        'weboob.backends.cragr',
-        'weboob.backends.cragr.pages',
+        'weboob.applications',
+        'weboob.applications.masstransit',
+        ],
+    scripts=[
+        'scripts/masstransit',
         ],
     install_requires=[
-        'weboob-core',
-	# bnporc requires Image module
-	#'PIL',
+        'weboob-backends-travel', # python-weboob-backends-travel
+        # python-gtk
+        # python-conic, on Maemo
+        # python-hildon, on Maemo
         ],
 )

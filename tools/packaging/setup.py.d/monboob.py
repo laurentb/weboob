@@ -21,24 +21,25 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-travel',
+    name='weboob-monboob',
     version='0.1',
-    description='The Weboob travel swiss-knife',
-    long_description='Search for train stations and departure timegrids',
+    description='Monboob, the Weboob e-mail swiss-knife',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Travel',
+    url='http://www.weboob.org/Monboob',
     namespace_packages = ['weboob', 'weboob.applications'],
     packages=[
         'weboob',
         'weboob.applications',
-        'weboob.applications.travel',
+        'weboob.applications.monboob',
         ],
     scripts=[
-        'scripts/travel',
+        'scripts/monboob',
         ],
     install_requires=[
-        'weboob-backends-travel',
+        'weboob-backends-messages', # python-weboob-backends-messages
         ],
 )

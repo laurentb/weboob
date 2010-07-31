@@ -21,23 +21,23 @@ from setuptools import setup
 
 
 setup(
-    name='weboob-monboob',
+    name='weboob-backends-torrent',
     version='0.1',
-    description='Monboob, the Weboob e-mail swiss-knife',
+    description='Weboob backends implementing torrent capability',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
+    maintainer='Christophe Benz',
+    maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
-    url='http://www.weboob.org/Monboob',
-    namespace_packages = ['weboob', 'weboob.applications'],
+    url='http://www.weboob.org/ICapTorrent',
+    namespace_packages = ['weboob.backends'],
     packages=[
         'weboob',
-        'weboob.applications',
-        'weboob.applications.monboob',
-        ],
-    scripts=[
-        'scripts/monboob',
+        'weboob.backends',
+        'weboob.backends.gazelle',
+        'weboob.backends.gazelle.pages',
         ],
     install_requires=[
-        'weboob-backends-messages',
+        'weboob-core', # python-weboob-core
         ],
 )
