@@ -19,6 +19,7 @@
 from __future__ import with_statement
 
 import datetime
+import os
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
@@ -37,6 +38,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'Youtube videos website'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     BROWSER = YoutubeBrowser
 

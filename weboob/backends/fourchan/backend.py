@@ -19,6 +19,7 @@
 from __future__ import with_statement
 
 from logging import warning
+import os
 
 from weboob.capabilities.messages import ICapMessages, Message
 from weboob.tools.backend import BaseBackend
@@ -36,6 +37,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     CONFIG = {'boards': BaseBackend.ConfigField(description='Boards'),
              }

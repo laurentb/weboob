@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import os
+
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 from weboob.tools.backend import BaseBackend
 
@@ -29,6 +31,7 @@ class TransilienBackend(BaseBackend, ICapTravel):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Transports in Paris"
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     BROWSER = Transilien
 
     def iter_station_search(self, pattern):

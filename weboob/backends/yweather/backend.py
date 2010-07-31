@@ -18,6 +18,7 @@
 
 import urllib2
 from xml.dom import minidom
+import os
 
 # TODO store datetime objects instead of strings
 # from datetime import datetime
@@ -36,6 +37,7 @@ class YWeatherBackend(BaseBackend, ICapWeather):
     VERSION = '0.1'
     DESCRIPTION = 'Yahoo Weather'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'
 

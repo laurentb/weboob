@@ -17,6 +17,8 @@
 
 from __future__ import with_statement
 
+import os
+
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
@@ -35,6 +37,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),

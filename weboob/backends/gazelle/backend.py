@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.backend import BaseBackend
@@ -32,6 +33,7 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     VERSION = '0.1'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     CONFIG = {'username': BaseBackend.ConfigField(description='Username on website'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),

@@ -18,6 +18,8 @@
 
 from __future__ import with_statement
 
+import os
+
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
 
@@ -35,6 +37,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'Youporn videos website'
     LICENSE = 'GPLv3'
+    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
     BROWSER = YoupornBrowser
 
