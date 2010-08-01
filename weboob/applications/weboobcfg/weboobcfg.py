@@ -47,7 +47,7 @@ class WeboobCfg(ConsoleApplication):
     @ConsoleApplication.command('Add a configured backend')
     def command_add(self, name, *options):
         self.weboob.backends_loader.load_all()
-        if name not in [name for name, backend in self.weboob.backends_loader.loaded.iteritems()]:
+        if name not in [_name for _name, backend in self.weboob.backends_loader.loaded.iteritems()]:
             logging.error(u'Backend "%s" does not exist.' % name)
             return 1
 
