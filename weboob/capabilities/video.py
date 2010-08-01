@@ -22,9 +22,23 @@ from .cap import ICap
 __all__ = ['BaseVideo', 'ICapVideo']
 
 
+class ContactThumbnail(object):
+    def __init__(self, url):
+        self.url = url
+        self.data = None
+
+    def __str__(self):
+        return '<%s>' % self.url
+
+    def __repr__(self):
+        return '<Thumbnail url="%s">' % self.url
+
+    def __iscomplete__(self):
+        return self.data
+
 class BaseVideo(object):
     def __init__(self, _id, title=None, url=None, author=None, duration=None, date=None,
-                 rating=0.0, rating_max=0.0, thumbnail_url=None, nsfw=False):
+                 rating=0.0, rating_max=0.0, thumbnail=None, thumbnail_url=None, nsfw=False):
         self.id = unicode(_id)
         self.title = title
         self.url = url
@@ -33,7 +47,9 @@ class BaseVideo(object):
         self.date = date
         self.rating = float(rating)
         self.rating_max = float(rating_max)
-        self.thumbnail_url = thumbnail_url
+        self.thumbnail = thumbnail
+        if thumbnail_url and not self.thumbnail:
+            self.thumbnail = ContactThumbnail(thumbnail_url)
         self.nsfw = nsfw
 
     @classmethod

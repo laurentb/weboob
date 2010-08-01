@@ -87,7 +87,7 @@ class MainWindow(QtMainWindow):
             self.ui.searchEdit.setEnabled(True)
             self.process = None
             return
-        minivideo = MiniVideo(backend, video)
+        minivideo = MiniVideo(self.weboob, backend, video)
         self.ui.scrollAreaContent.layout().addWidget(minivideo)
         self.minivideos.append(minivideo)
         if (video.nsfw and not self.ui.nsfwCheckBox.isChecked() or

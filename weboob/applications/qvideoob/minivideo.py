@@ -19,15 +19,17 @@
 import urllib2
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
+from weboob.tools.application.qt import QtDo
 from weboob.applications.qvideoob.ui.minivideo_ui import Ui_MiniVideo
 from .video import Video
 
 class MiniVideo(QFrame):
-    def __init__(self, backend, video, parent=None):
+    def __init__(self, weboob, backend, video, parent=None):
         QFrame.__init__(self, parent)
         self.ui = Ui_MiniVideo()
         self.ui.setupUi(self)
 
+        self.weboob = weboob
         self.backend = backend
         self.video = video
         self.ui.titleLabel.setText(video.title)
@@ -40,9 +42,15 @@ class MiniVideo(QFrame):
         else:
             self.ui.ratingLabel.setText('%s' % video.rating)
 
-        if video.thumbnail_url:
-            data = urllib2.urlopen(video.thumbnail_url).read()
-            img = QImage.fromData(data)
+        self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
+        self.process_thumbnail.do('fillobj', self.video, ['thumbnail'], backends=backend)
+
+    def gotThumbnail(self, backend, video):
+        if not backend:
+            return
+
+        if video.thumbnail.data:
+            img = QImage.fromData(video.thumbnail.data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 
     def enterEvent(self, event):

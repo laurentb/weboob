@@ -57,8 +57,14 @@ class YoujizzBackend(BaseBackend, ICapVideo):
             return self.browser.iter_search_results(pattern)
 
     def fill_video(self, video, fields):
-        # ignore the fields param: VideoPage.get_video() returns all the information
-        with self.browser:
-            return self.browser.get_video(YoujizzVideo.id2url(video.id), video)
+        if fields != ['thumbnail']:
+            # if we don't want only the thumbnail, we probably want also every fields
+            with self.browser:
+                video = self.browser.get_video(YoujizzVideo.id2url(video.id), video)
+        if 'thumbnail' in fields:
+            with self.browser:
+                video.thumbnail.data = self.browser.openurl(video.thumbnail.url).read()
+
+        return video
 
     OBJECTS = {YoujizzVideo: fill_video}
