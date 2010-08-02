@@ -20,11 +20,11 @@ from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application.console import ConsoleApplication
 
 
-__all__ = ['Travel']
+__all__ = ['Traveloob']
 
 
-class Travel(ConsoleApplication):
-    APPNAME = 'travel'
+class Traveloob(ConsoleApplication):
+    APPNAME = 'traveloob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
