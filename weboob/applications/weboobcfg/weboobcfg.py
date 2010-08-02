@@ -100,17 +100,27 @@ class WeboobCfg(ConsoleApplication):
                     except ConfigParser.DuplicateSectionError:
                         print u'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
-    @ConsoleApplication.command('Show applications')
-    def command_applications(self, *caps):
-        applications = set()
-        import weboob.applications
-        for path in weboob.applications.__path__:
-            regexp = re.compile('^%s/([\w\d_]+)$' % path)
-            for root, dirs, files in os.walk(path):
-                m = regexp.match(root)
-                if m and '__init__.py' in files:
-                    applications.add(m.group(1))
-        print ' '.join(sorted(applications)).encode('utf-8')
+    @ConsoleApplication.command('Show configured backends')
+    def command_listconfigured(self):
+        self.set_default_formatter('table')
+        for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
+            row = OrderedDict([('Instance name', instance_name),
+                               ('Backend name', name),
+                               ('Configuration', ', '.join('%s=%s' % (key, value) for key, value in params.iteritems())),
+                               ])
+            self.format(row)
+
+    @ConsoleApplication.command('Remove a configured backend')
+    def command_remove(self, instance_name):
+        try:
+            self.weboob.backends_config.remove_backend(instance_name)
+        except ConfigParser.NoSectionError:
+            logging.error('Backend instance "%s" does not exist' % instance_name)
+            return 1
+
+    @ConsoleApplication.command('Edit configuration file')
+    def command_edit(self):
+        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
 
     @ConsoleApplication.command('Show available backends')
     def command_backends(self, *caps):
@@ -124,20 +134,6 @@ class WeboobCfg(ConsoleApplication):
                                ('Description', backend.description),
                                ])
             self.format(row)
-
-    @ConsoleApplication.command('Show configured backends')
-    def command_configured(self):
-        self.set_default_formatter('table')
-        for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
-            row = OrderedDict([('Instance name', instance_name),
-                               ('Backend name', name),
-                               ('Configuration', ', '.join('%s=%s' % (key, value) for key, value in params.iteritems())),
-                               ])
-            self.format(row)
-
-    @ConsoleApplication.command('Edit configuration file')
-    def command_edit(self):
-        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
 
     @ConsoleApplication.command('Display information about a backend')
     def command_info(self, name):
@@ -168,10 +164,16 @@ class WeboobCfg(ConsoleApplication):
                 print '|                 | %s: %s' % (key, value)
         print "'-----------------'"
 
-    @ConsoleApplication.command('Remove a configured backend')
-    def command_remove(self, instance_name):
-        try:
-            self.weboob.backends_config.remove_backend(instance_name)
-        except ConfigParser.NoSectionError:
-            logging.error('Backend instance "%s" does not exist' % instance_name)
-            return 1
+    @ConsoleApplication.command('Show applications')
+    def command_applications(self, *caps):
+        applications = set()
+        import weboob.applications
+        for path in weboob.applications.__path__:
+            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            for root, dirs, files in os.walk(path):
+                m = regexp.match(root)
+                if m and '__init__.py' in files:
+                    applications.add(m.group(1))
+        print ' '.join(sorted(applications)).encode('utf-8')
+
+
