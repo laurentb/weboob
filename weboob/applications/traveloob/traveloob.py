@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import logging
+
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application.console import ConsoleApplication
 
@@ -29,15 +31,32 @@ class Traveloob(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_backends(ICapTravel)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('Search stations')
     def command_stations(self, pattern):
+        self.load_backends(ICapTravel)
         for backend, station in self.weboob.do('iter_station_search', pattern):
             self.format(station, backend.name)
 
     @ConsoleApplication.command('List all departures for a given station')
     def command_departures(self, station, arrival=None):
-        for backend, departure in self.weboob.do('iter_station_departures', station, arrival):
+        station_id, backend_name = self.parse_id(station)
+        if arrival:
+            arrival_id, backend_name2 = self.parse_id(arrival)
+            if backend_name and backend_name2 and backend_name != backend_name2:
+                logging.error('Departure and arrival aren\'t on the same backend')
+                return 1
+        else:
+            arrival_id = backend_name2 = None
+
+        if backend_name:
+            backends = [backend_name]
+        elif backend_name2:
+            backends = [backend_name2]
+        else:
+            backends = None
+
+        self.load_backends(ICapTravel, names=backends)
+        for backend, departure in self.weboob.do('iter_station_departures', station_id, arrival_id):
             self.format(departure, backend.name)
