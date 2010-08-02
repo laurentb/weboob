@@ -28,7 +28,7 @@ class VideoThumbnail(object):
         self.data = None
 
     def __str__(self):
-        return '<%s>' % self.url
+        return self.url
 
     def __repr__(self):
         return '<Thumbnail url="%s">' % self.url
