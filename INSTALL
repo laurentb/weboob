@@ -21,8 +21,8 @@ you have to handle them by hand, according to your distribution.
 If you still want to download them, you can uncomment the dependencies
 in setup.py
 
-To uninstall, remove the egg-link and remove the weboob_dev line in
-your Python system-wide packages directory.
+To uninstall, remove the egg-info from the Python system-wide packages directory
+and remove the weboob_dev line in easy-install.pth.
 
 
 Development mode
@@ -31,5 +31,9 @@ Development mode
 The development mode doesn't copy files, but creates an egg-link
 in the Python system-wide packages directory which points to the development
 directory. It is useful for development when files often change.
+
+To uninstall, remove the egg-link from the Python system-wide packages directory
+and remove the weboob_dev line in easy-install.pth.
+
 
 # ./setup.py develop
