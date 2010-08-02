@@ -40,20 +40,20 @@ setup(
     packages=find_packages(),
     scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
     install_requires=[
-        'ClientForm', # python-clientform
-        'elementtidy', # python-elementtidy
-        'FeedParser', # python-feedparser
-        'gdata', # python-gdata
-        'html5lib', # python-html5lib
-        'lxml', # python-lxml
-        'Mako', # python-mako
-        'mechanize', # python-mechanize
-        'PIL', # python-imaging
-        'PyQt', # python-qt4
-        'python-dateutil', # python-dateutil
-        'PyYAML', # python-yaml
-        'Routes', # python-routes
-        'simplejson', # python-simplejson
-        'WebOb', # python-webob
+        # 'ClientForm', # python-clientform
+        # 'elementtidy', # python-elementtidy
+        # 'FeedParser', # python-feedparser
+        # 'gdata', # python-gdata
+        # 'html5lib', # python-html5lib
+        # 'lxml', # python-lxml
+        # 'Mako', # python-mako
+        # 'mechanize', # python-mechanize
+        # 'PIL', # python-imaging
+        # 'PyQt', # python-qt4
+        # 'python-dateutil', # python-dateutil
+        # 'PyYAML', # python-yaml
+        # 'Routes', # python-routes
+        # 'simplejson', # python-simplejson
+        # 'WebOb', # python-webob
         ],
 )
