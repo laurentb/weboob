@@ -2,8 +2,5 @@
 *.pyc
 *.swp
 Session.vim
-*.egg-info
 build
 dist
-deb
-MANIFEST.in
