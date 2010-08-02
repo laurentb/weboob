@@ -1,64 +1,35 @@
 Weboob installation
 ===================
 
-Like any Python package using setuptools, Weboob can be installed:
- * from eggs
- * from Debian packages
- * from setup.py in install mode or in development mode
+Like any Python package using setuptools, Weboob can be installed in install
+mode or in development mode.
 
 
-From Eggs
----------
+Install mode
+------------
 
-Weboob is distributed using many packages. There is one package for the core
-library, many packages for backends (grouped by capabilities), and one package
-for each application.
+The install mode copies files to the Python system-wide packages directory
+(for example /usr/lib/python2.5/site-packages for Python 2.5,
+or /usr/local/lib/python2.6/dist-packages for Python 2.6)
 
-To install:
-TODO: no packages released for the moment
-
-To uninstall:
-TODO: no packages released for the moment
-
-
-From Debian packages
---------------------
-
-Install from the Weboob repository:
-TODO: no Debian repository exists
-
-For developers: build yourself Debian packages using
-$ ./tools/packaging/create_debian_packages.sh
-
-
-From setup.py
--------------
-
-The install mode copies files to /usr/lib/python2.5/site-packages
-or /usr/local/lib/python2.6/dist-packages
-
-The development mode doesn't copy files, but it creates an egg-link
-which points to the development directory.
-It is useful for development when files often change.
-
-# ./setup.py develop
-Creates /usr/lib/python2.5/site-packages/weboob_dev.egg-link
-or /usr/local/lib/python2.6/dist-packages/weboob_dev.egg-link
-
-If you don't want to install all the dependencies, use the --no-deps option:
-# ./setup.py develop --no-deps
-and install dependencies by hand from your distribution packages, or from PyPI
-using easy_install, or the more modern pip.
+# ./setup.py install
 
 Scripts are copied to /usr/bin.
 
+Since there are many dependencies, when you install from sources,
+you have to handle them by hand, according to your distribution.
+If you still want to download them, you can uncomment the dependencies
+in setup.py
+
 To uninstall, remove the egg-link and remove the weboob_dev line in
-/usr/lib/python2.5/site-packages/easy-install.pth
-or /usr/local/lib/python2.6/dist-packages/easy-install.pth
+your Python system-wide packages directory.
 
 
-Bash completion
----------------
+Development mode
+----------------
 
-To enable bash completion, just source the tools/weboob_bash_completion
-file from your ~/.bash_completion file (which is sourced by /etc/bash_completion).
+The development mode doesn't copy files, but creates an egg-link
+in the Python system-wide packages directory which points to the development
+directory. It is useful for development when files often change.
+
+# ./setup.py develop
