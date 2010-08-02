@@ -66,11 +66,11 @@ class ConsoleApplication(BaseApplication):
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
         results_options.add_option('-n', '--count', type='int', help='get a maximum number of results (all backends merged)')
-        results_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
         results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
         self._parser.add_option_group(results_options)
 
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
+        formatting_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
