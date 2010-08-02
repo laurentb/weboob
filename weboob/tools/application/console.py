@@ -15,12 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
+from __future__ import with_statement
+
 from functools import partial
 import getpass
 from inspect import getargspec
 import logging
 from optparse import OptionGroup, OptionParser
 import re
+import subprocess
 import sys
 
 from weboob.core import CallErrors
@@ -256,7 +260,12 @@ class ConsoleApplication(BaseApplication):
                     caps = (caps,)
                 caps = iter(cap.__name__ for cap in caps)
             weboobcfg.command_backends(*caps)
-            logging.error(u'You can configure a backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
+            logging.error(u'You can configure backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(['which', 'weboob-config-qt'], stdout=devnull)
+                return_code = process.wait()
+            if return_code == 0:
+                logging.error(u'You can configure backends using the "weboob-config-qt" GUI, too.')
             sys.exit(0)
 
     def parse_id(self, _id):
