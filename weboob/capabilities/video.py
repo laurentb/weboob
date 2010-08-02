@@ -22,7 +22,7 @@ from .cap import ICap
 __all__ = ['BaseVideo', 'ICapVideo']
 
 
-class ContactThumbnail(object):
+class VideoThumbnail(object):
     def __init__(self, url):
         self.url = url
         self.data = None
@@ -49,7 +49,7 @@ class BaseVideo(object):
         self.rating_max = float(rating_max)
         self.thumbnail = thumbnail
         if thumbnail_url and not self.thumbnail:
-            self.thumbnail = ContactThumbnail(thumbnail_url)
+            self.thumbnail = VideoThumbnail(thumbnail_url)
         self.nsfw = nsfw
 
     @classmethod
