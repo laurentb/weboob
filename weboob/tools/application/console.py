@@ -15,12 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
+from __future__ import with_statement
+
 from functools import partial
 import getpass
 from inspect import getargspec
 import logging
 from optparse import OptionGroup, OptionParser
 import re
+import subprocess
 import sys
 
 from weboob.core import CallErrors
@@ -66,11 +70,11 @@ class ConsoleApplication(BaseApplication):
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
         results_options.add_option('-n', '--count', type='int', help='get a maximum number of results (all backends merged)')
-        results_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
         results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
         self._parser.add_option_group(results_options)
 
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
+        formatting_options.add_option('-f', '--formatter', choices=formatters, help='select output formatter (%s)' % u','.join(formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
@@ -256,7 +260,12 @@ class ConsoleApplication(BaseApplication):
                     caps = (caps,)
                 caps = iter(cap.__name__ for cap in caps)
             weboobcfg.command_backends(*caps)
-            logging.error(u'You can configure a backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
+            logging.error(u'You can configure backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(['which', 'weboob-config-qt'], stdout=devnull)
+                return_code = process.wait()
+            if return_code == 0:
+                logging.error(u'You can configure backends using the "weboob-config-qt" GUI, too.')
             sys.exit(0)
 
     def parse_id(self, _id):

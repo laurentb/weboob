@@ -38,8 +38,10 @@ class INIConfig(IConfig):
         def load_section(section):
             sections = section.split(':')
             if len(sections) > 1:
+                result = {}
                 for s in sections:
-                    values = load_section(s)
+                    result[s] = load_section(s)
+                return result
             else:
                 return {section: dict(self.config.items(section))}
 

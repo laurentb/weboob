@@ -30,7 +30,7 @@ class TableFormatter(IFormatter):
     header = None
 
     def __init__(self, display_keys=True, return_only=False, result_funcname='get_string'):
-        IFormatter.__init__(self, display_keys, return_only)
+        IFormatter.__init__(self, display_keys=display_keys, return_only=return_only)
         self.result_funcname = result_funcname
 
     def after_format(self, formatted):
