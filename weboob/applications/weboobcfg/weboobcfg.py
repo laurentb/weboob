@@ -66,25 +66,25 @@ class WeboobCfg(ConsoleApplication):
         for key, value in backend.config.iteritems():
             if not asked_config:
                 asked_config = True
-                print u'Configuration of backend'
-                print u'------------------------'
+                print 'Configuration of backend'
+                print '------------------------'
             if key not in params:
                 params[key] = self.ask(' [%s] %s' % (key, value.description),
                                        default=value.default,
                                        masked=value.is_masked,
                                        regexp=value.regexp)
             else:
-                print u' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
+                print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
         if asked_config:
-            print u'------------------------'
+            print '------------------------'
 
         try:
             self.weboob.backends_config.add_backend(name, name, params)
-            print u'Backend "%s" successfully added to file "%s".\n'\
+            print 'Backend "%s" successfully added to file "%s".\n'\
                     'Please check configuration parameters values with "weboob-config edit".' % (
                         name, self.weboob.backends_config.confpath)
         except ConfigParser.DuplicateSectionError:
-            print u'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
+            print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             response = raw_input(u'Add new instance of "%s" backend? [yN] ' % name)
             if response.lower() == 'y':
                 while True:
@@ -93,12 +93,12 @@ class WeboobCfg(ConsoleApplication):
                         continue
                     try:
                         self.weboob.backends_config.add_backend(new_name, name, params)
-                        print u'Backend "%s" successfully added to file "%s".\n'\
+                        print 'Backend "%s" successfully added to file "%s".\n'\
                                 'Please check configuration parameters values with "weboob-config edit".' % (
                                     name, self.weboob.backends_config.confpath)
                         break
                     except ConfigParser.DuplicateSectionError:
-                        print u'Instance "%s" already exists for backend "%s".' % (new_name, name)
+                        print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
     @ConsoleApplication.command('Show configured backends')
     def command_listconfigured(self):
