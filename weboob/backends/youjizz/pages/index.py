@@ -38,7 +38,6 @@ class IndexPage(BasePage):
 
             thumbnail_url = span.find('.//img').attrib['src']
 
-            selector = 'span#title1'
             title_el = select(span, 'span#title1', 1)
             title = title_el.text.strip()
 

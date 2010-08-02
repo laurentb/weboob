@@ -19,7 +19,7 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import ForbiddenVideo, ForbiddenVideoPage, VerifyAgePage, VideoPage
+from .pages import ForbiddenVideoPage, VerifyAgePage, VideoPage
 from .video import YoutubeVideo
 
 

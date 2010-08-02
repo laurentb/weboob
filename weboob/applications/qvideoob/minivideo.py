@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import urllib2
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.tools.application.qt import QtDo

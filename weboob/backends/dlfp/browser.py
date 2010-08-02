@@ -77,7 +77,7 @@ class DLFP(BaseBrowser):
         url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL, self.DOMAIN, thread_id, reply_id, content_type)
 
         request = self.request_class(url, urllib.urlencode(data), {'Referer': url})
-        result = self.openurl(request).read()
+        self.openurl(request).read()
         # No message to send
         return ()
 
