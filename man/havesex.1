@@ -1,0 +1,83 @@
+.TH HAVESEX 1 "02 August 2010"
+.SH NAME
+havesex \- Interact with dating websites
+.SH SYNOPSIS
+.B havesex
+[\-dqv] [\-b \fIbackends\fR]
+.br
+.B havesex
+[\-\-version] [\-\-help]
+.SH DESCRIPTION
+.LP
+Weboob provides several applications to interact with a lot of websites.
+
+Havesex is a console interactive application which loads the configured
+\fICapDating\fr backends.
+
+It helps draging on dating websites to have sex. It provides commands to have
+interaction with girls, and some optimization services.
+
+.SH COMMANDS
+.TP
+\fBprofile\fR \fIid\fR
+display a slut profile
+.TP
+\fBstart\fR \fIoptimizations..\fR
+start optimizations
+.TP
+\fBstop\fR \fIoptimizations..\fR
+stop optimizations
+
+.SH OPTIMIZATIONS
+Optimizations services are background tasks.
+
+.SS PROFILE_WALKER
+This optimization service is used to walk on profiles. It is usefull to show girls you exist, when they can see who visite their profile.
+
+Note that in future, it will be associated with the SCORING optimization service.
+
+.SS VISIBILITY
+This optimization is used to increase your visibility on website. It depends on each websites, so there isn't any explicit explanation.
+
+For example, the AuM backend will reconnects to website every five minutes to go back on top research results.
+
+.SH CONFIGURATION
+The file \fI~/.weboob/havesex\fR is the configuration of \fBhavesex\fR:
+
+.nf
+[GLOBAL]
+# Optimizations to auto-enable
+optimizations = PROFILE_WALKER VISIBILITY
+.fi
+
+.SH OPTIONS
+.SS Logging options
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+display debug messages
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+display only error messages
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+display info messages
+.SS Misc options
+.TP
+\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
+select backends to load
+.TP
+\fB\-\-version\fR
+display version of \fIweboob-config\fR
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show the help message and exit
+
+.SH COPYRIGHT
+Copyright(C) 2010 Romain Bignon
+.LP
+For full COPYRIGHT see COPYING file with weboob package.
+.LP
+.RE
+.SH FILES
+ "~/.weboob/backends"
+ "~/.weboob/havesex"

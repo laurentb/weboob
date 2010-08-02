@@ -1,0 +1,80 @@
+.TH VIDEOOB 1 "02 August 2010"
+.SH NAME
+videoob \- Video search and information
+.SH SYNOPSIS
+.B videoob
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIcommand\fR [arguments..]
+.br
+.B videoob
+[\-\-version] [\-\-help]
+.SH DESCRIPTION
+.LP
+Weboob provides several applications to interact with a lot of websites.
+
+This console application can be used to search videos on supported
+websites and to display information about them, including the direct link
+to the video file.
+
+.SH COMMANDS
+.TP
+\fBsearch\fR \fIpattern\fR
+search videos on the selected backends which match the specified pattern
+.TP
+\fBinfo\fR \fIid\fR
+get information about a video
+
+.SH OPTIONS
+.SS Videoob options
+.TP
+\fB\-\-nsfw\fR
+return also results which are NSFW (Not Safe For Work)
+
+when this option isn't set, the adult content results are omitted
+.SS Results options
+.TP
+\fB\-c\fR, \fB\-\-condition\fR \fICONDITION\fR
+filter result items to display given a boolean condition
+.TP
+\fB\-n\fR, \fB\-\-count\fR \fICOUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-f\fR, \fB\-\-formatter\fR \fIFORMATTER\fR
+select the output formatter (htmltable,multiline,simple,table,webkit)
+.TP
+\fB\-s\fR, \fB\-\-select\fR \fIFIELDS\fR
+select return field keys to display (comma separated)
+.TP
+\fB\-\-no-header\fR
+do not display header
+.TP
+\fB\-\-no-keys\fR
+do not display field keys
+.SS Logging options
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+display debug messages
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+display only error messages
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+display info messages
+.SS Misc options
+.TP
+\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
+select backends to load
+.TP
+\fB\-\-version\fR
+display version of \fIweboob-config\fR
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show the help message and exit
+
+.SH COPYRIGHT
+Copyright(C) 2010 Christophe Benz, Romain Bignon
+.LP
+For full COPYRIGHT see COPYING file with weboob package.
+.LP
+.RE
+.SH FILES
+ "~/.weboob/backends"
