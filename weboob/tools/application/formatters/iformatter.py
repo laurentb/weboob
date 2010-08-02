@@ -108,7 +108,7 @@ class IFormatter(object):
                         raise FieldNotFound(selected_field)
 
         fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else iter_fields(obj)
-        d = OrderedDict([(k, v) for k, v in iter_select_and_decorate(fields_iterator)])
+        d = dict(fields_iterator)
         if condition is not None and not condition.is_valid(d):
-            d = None
-        return d
+            return None
+        return OrderedDict([(k, v) for k, v in iter_select_and_decorate(d.iteritems())])
