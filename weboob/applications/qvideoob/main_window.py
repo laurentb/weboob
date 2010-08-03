@@ -73,6 +73,7 @@ class MainWindow(QtMainWindow):
         for minivideo in self.minivideos:
             self.ui.scrollAreaContent.layout().removeWidget(minivideo)
             minivideo.hide()
+            minivideo.deleteLater()
 
         self.minivideos = []
         self.ui.searchEdit.setEnabled(False)

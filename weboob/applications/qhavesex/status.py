@@ -102,8 +102,15 @@ class AccountsStatus(QWidget):
 
         self.setLayout(QVBoxLayout())
 
+    def load(self):
+        while self.layout().count() > 0:
+            item = self.layout().takeAt(0)
+            if item.widget():
+                item.widget().hide()
+                item.widget().deleteLater()
+
         for backend in self.weboob.iter_backends():
-            account = Account(weboob, backend)
+            account = Account(self.weboob, backend)
             self.layout().addWidget(account)
 
         self.layout().addStretch()

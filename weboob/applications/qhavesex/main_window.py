@@ -43,6 +43,9 @@ class MainWindow(QtMainWindow):
 
         self.loaded_tabs = {}
 
+        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
+
         self.ui.tabWidget.addTab(AccountsStatus(self.weboob), self.tr('Status'))
         if HAVE_BOOBMSG:
             self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
@@ -50,12 +53,12 @@ class MainWindow(QtMainWindow):
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Optimizations'))
 
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
-
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapDating,), self)
-        bckndcfg.show()
+        if bckndcfg.run():
+            self.loaded_tabs.clear()
+            widget = self.ui.tabWidget.widget(self.ui.tabWidget.currentIndex())
+            widget.load()
 
     def tabChanged(self, i):
         widget = self.ui.tabWidget.currentWidget()
