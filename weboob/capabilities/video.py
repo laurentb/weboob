@@ -24,7 +24,7 @@ __all__ = ['BaseVideo', 'ICapVideo']
 
 class VideoThumbnail(object):
     def __init__(self, url):
-        self.url = url
+        self.url = url.replace(' ', '%20')
         self.data = None
 
     def __str__(self):
