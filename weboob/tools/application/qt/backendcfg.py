@@ -31,6 +31,9 @@ class BackendCfg(QDialog):
         self.ui = Ui_BackendCfg()
         self.ui.setupUi(self)
 
+        self.to_unload = set()
+        self.to_load = set()
+
         self.weboob = weboob
         self.caps = caps
         self.config_widgets = {}
@@ -77,9 +80,6 @@ class BackendCfg(QDialog):
 
             self.ui.configuredBackendsList.addTopLevelItem(item)
 
-    def closeEvent(self, event):
-        event.accept()
-
     def configuredBackendClicked(self, item, col):
         bname = unicode(item.text(0))
 
@@ -102,6 +102,8 @@ class BackendCfg(QDialog):
             return
 
         self.weboob.backends_config.remove_backend(bname)
+        self.to_unload.add(bname)
+        self.ui.configFrame.hide()
         self.loadConfiguredBackendsList()
 
     def editBackend(self, bname=None):
@@ -192,6 +194,7 @@ class BackendCfg(QDialog):
             return
 
         self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
+        self.to_load.add(bname)
         self.ui.configFrame.hide()
 
         self.loadConfiguredBackendsList()
@@ -250,3 +253,13 @@ class BackendCfg(QDialog):
 
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
+
+    def run(self):
+        self.exec_()
+
+        ret = (len(self.to_load) > 0 or len(self.to_unload) > 0)
+
+        self.weboob.unload_backends(self.to_unload)
+        self.weboob.load_configured_backends(names=self.to_load)
+
+        return ret
