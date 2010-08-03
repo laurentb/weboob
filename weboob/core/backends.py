@@ -25,7 +25,6 @@ import os
 import re
 import stat
 
-import weboob.backends
 from weboob.capabilities.cap import ICap
 from weboob.tools.backend import BaseBackend
 
@@ -171,9 +170,16 @@ class BackendsLoader(object):
     def get_or_load_backend(self, backend_name):
         if backend_name not in self.loaded:
             self.load_backend(backend_name)
-        return self.loaded[backend_name]
+        if backend_name in self.loaded:
+            return self.loaded[backend_name]
+        else:
+            return None
 
     def iter_existing_backend_names(self):
+        try:
+            import weboob.backends
+        except ImportError:
+            return
         for path in weboob.backends.__path__:
             regexp = re.compile('^%s/([\w\d_]+)$' % path)
             for root, dirs, files in os.walk(path):

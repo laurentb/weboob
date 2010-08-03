@@ -63,6 +63,8 @@ class BackendCfg(QDialog):
     def loadConfiguredBackendsList(self):
         self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
+            if name not in self.weboob.backends_loader.loaded:
+                continue
             backend = self.weboob.backends_loader.loaded[name]
             if self.caps and not backend.has_caps(*self.caps):
                 continue

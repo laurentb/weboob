@@ -47,7 +47,7 @@ class Weboob(object):
         if not os.path.exists(self.workdir):
             os.mkdir(self.workdir, 0700)
         elif not os.path.isdir(self.workdir):
-            warning('"%s" is not a directory' % self.workdir)
+            warning(u'"%s" is not a directory' % self.workdir)
 
         # Backends loader
         self.backends_loader = BackendsLoader()
@@ -64,7 +64,7 @@ class Weboob(object):
         self.backends_loader.load_all()
         for backend_name, backend in self.backends_loader.loaded.iteritems():
             if caps is not None and not backend.has_caps(caps) or \
-                    names is not None and backend_name not in names:
+               names is not None and backend_name not in names:
                 continue
             backend_instance = backend.create_instance(self, backend_name, {}, storage)
             self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
@@ -76,6 +76,11 @@ class Weboob(object):
             if '_enabled' in params and not params['_enabled']:
                 continue
             backend = self.backends_loader.get_or_load_backend(backend_name)
+            if backend is None:
+                warning(u'Backend "%s" is referenced in ~/.weboob/backends '
+                        'configuration file, but was not found. '
+                        'Hint: is it installed?' % backend_name)
+                continue
             if caps is not None and not backend.has_caps(caps) or \
                names is not None and instance_name not in names:
                 continue
@@ -132,7 +137,7 @@ class Weboob(object):
                     else:
                         backends.append(backend)
             else:
-                warning('The "backends" value isn\'t supported: %r' % _backends)
+                warning(u'The "backends" value isn\'t supported: %r' % _backends)
 
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
