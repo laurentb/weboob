@@ -312,6 +312,8 @@ class ProfilePage(PageBase):
                 description += ''.join(c.data.split('\n')) # to strip \n
             elif hasattr(c, 'tagName') and c.tagName == 'br':
                 description += '\n'
+            elif hasattr(c, 'tagName') and c.tagName == 'i':
+                description += ''.join(c.childNodes[0].data.split('\n'))
 
         self.description = description
 
