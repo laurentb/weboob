@@ -44,6 +44,9 @@ class ContactPhoto(object):
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
 
+    def __str__(self):
+        return self.url
+
     def __repr__(self):
         return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.name, len(self.data), len(self.thumbnail_data))
 
