@@ -32,6 +32,10 @@ The development mode doesn't copy files, but creates an egg-link
 in the Python system-wide packages directory which points to the development
 directory. It is useful for development when files often change.
 
+# ./setup.py develop
+
+Scripts are copied to /usr/bin too.
+
 To uninstall, remove the egg-link from the Python system-wide packages directory
 and remove the weboob_dev line in easy-install.pth.
 
