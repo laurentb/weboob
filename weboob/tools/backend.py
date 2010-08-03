@@ -130,6 +130,12 @@ class BaseBackend(object):
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
 
+    def deinit(self):
+        """
+        This abstract method is called when the backend is unloaded.
+        """
+        pass
+
     @property
     def browser(self):
         """

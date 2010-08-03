@@ -115,12 +115,16 @@ class BaseApplication(object):
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
-    def create_storage(self, path=None, klass=None):
+    def deinit(self):
+        self.weboob.deinit()
+
+    def create_storage(self, path=None, klass=None, localonly=False):
         """
         Create a storage object.
 
         @param path [str]  an optional specific path.
         @param klass [IStorage]  what klass to instance.
+        @param localonly [bool]  if True, do not set it on the Weboob object.
         @return  a IStorage object
         """
         if klass is None:
@@ -135,6 +139,10 @@ class BaseApplication(object):
         storage = klass(path)
         self.storage = ApplicationStorage(self.APPNAME, storage)
         self.storage.load(self.STORAGE)
+
+        if not localonly:
+            self.weboob.storage = storage
+
         return storage
 
     def load_config(self, path=None, klass=None):
@@ -259,10 +267,13 @@ class BaseApplication(object):
         app._handle_app_options()
 
         try:
-            sys.exit(app.main(args))
-        except KeyboardInterrupt:
-            print 'Program killed by SIGINT'
-            sys.exit(0) # XXX is it really the right exit code? -romain
-        except ConfigError, e:
-            print 'Configuration error: %s' % e
-            sys.exit(1)
+            try:
+                sys.exit(app.main(args))
+            except KeyboardInterrupt:
+                print 'Program killed by SIGINT'
+                sys.exit(0) # XXX is it really the right exit code? -romain
+            except ConfigError, e:
+                print 'Configuration error: %s' % e
+                sys.exit(1)
+        finally:
+            app.deinit()

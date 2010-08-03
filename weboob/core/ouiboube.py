@@ -34,7 +34,7 @@ class Weboob(object):
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None):
+    def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None, storage=None):
         self.workdir = workdir
         self.backend_instances = {}
 
@@ -59,8 +59,20 @@ class Weboob(object):
             backends_filename = os.path.join(self.workdir, backends_filename)
         self.backends_config = BackendsConfig(backends_filename)
 
+        # Storage
+        self.storage = storage
+
+    def __deinit__(self):
+        self.deinit()
+
+    def deinit(self):
+        self.unload_backends()
+
     def load_backends(self, caps=None, names=None, storage=None):
         loaded = {}
+        if storage is None:
+            storage = self.storage
+
         self.backends_loader.load_all()
         for backend_name, backend in self.backends_loader.loaded.iteritems():
             if caps is not None and not backend.has_caps(caps) or \
@@ -72,6 +84,9 @@ class Weboob(object):
 
     def load_configured_backends(self, caps=None, names=None, storage=None):
         loaded = {}
+        if storage is None:
+            storage = self.storage
+
         for instance_name, backend_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled']:
                 continue
