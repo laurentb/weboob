@@ -59,10 +59,39 @@ class HaveSex(PromptApplication):
     def command_profile(self, id):
         _id, backend_name = self.parse_id(id)
 
+        def print_node(node, level=1):
+            if node.flags & node.SECTION:
+                print '\t' * level + node.label
+                for sub in node.value:
+                    print_node(sub, level+1)
+            else:
+                if isinstance(node.value, (tuple,list)):
+                    value = ','.join([unicode(v) for v in node.value])
+                else:
+                    value = node.value
+                print '\t' * level + '%-20s %s' % (node.label + ':', value)
+
         found = 0
-        for backend, profile in self.weboob.do('get_profile', _id, backends=backend_name):
-            if profile:
-                print profile.get_profile_text().encode('utf-8')
+        for backend, contact in self.weboob.do('get_contact', _id, backends=backend_name):
+            if contact:
+                print 'Nickname:', contact.name
+                if contact.status & contact.STATUS_ONLINE:
+                    s = 'online'
+                elif contact.status & contact.STATUS_OFFLINE:
+                    s = 'offline'
+                elif contact.status & contact.STATUS_AWAY:
+                    s = 'away'
+                else:
+                    s = 'unknown'
+                print 'Status: %s (%s)' % (s, contact.status_msg)
+                print 'Photos:'
+                for name, photo in contact.photos.iteritems():
+                    print '\t%s' % photo
+                print 'Profile:'
+                for head in contact.profile:
+                    print_node(head)
+                print 'Description:'
+                print '\n'.join(['\t%s' % s for s in contact.summary.split('\n')])
                 found = 1
 
         if not found:
