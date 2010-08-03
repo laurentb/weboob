@@ -1,0 +1,50 @@
+Weboob 0.1 (2010-08-03)
+	* First public release.
+	* The core system can load/unload backends, supports configured
+	  backends, can do asynchronous calls to specific backends.
+	* Capabilities are abstractions to be overloaded by backends:
+	  - ICapBank
+	  - ICapChat
+	  - ICapContact
+	  - ICapDating
+	  - ICapMessages
+	  - ICapMessagesReply
+	  - ICapTorrent
+	  - ICapTravel
+	  - ICapVideo
+	  - ICapWeather
+	* Backends interact with websites:
+	  - AuM
+	  - BNPorc
+	  - CanalTP
+	  - CrAgr
+	  - DLFP
+	  - FourChan
+	  - Gazelle
+	  - INA
+	  - Transilien
+	  - YouJizz
+	  - YouPorn
+	  - YouTube
+	  - YWeather
+	* Applications interact with backends:
+	  Console
+	  - boobank
+	  - chatoob
+	  - havesex
+	  - traveloob
+	  - videoob
+	  - weboob-config
+	  - weboorrents
+	  - wetboobs
+	  Nokia N900 Phones
+	  - masstransit
+	  Daemon
+	  - monboob
+	  Qt
+	  - QBoobMsg
+	  - QHaveSex
+	  - QVideoob
+	  - weboob-config-qt
+	  Web
+	  - videoob-web-server
