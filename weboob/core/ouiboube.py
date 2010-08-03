@@ -88,6 +88,17 @@ class Weboob(object):
             self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
         return loaded
 
+    def unload_backends(self, names=None):
+        if isinstance(names, (str,unicode)):
+            names = [names]
+        elif names is None:
+            names = self.backend_instances.keys()
+
+        for name in names:
+            backend = self.backend_instances.pop(name)
+            with backend:
+                backend.deinit()
+
     def iter_backends(self, caps=None):
         """
         Iter on each backends.
