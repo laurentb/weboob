@@ -73,10 +73,11 @@ class Weboob(object):
     def load_configured_backends(self, caps=None, names=None, storage=None):
         loaded = {}
         for instance_name, backend_name, params in self.backends_config.iter_backends():
+            if '_enabled' in params and not params['_enabled']:
+                continue
             backend = self.backends_loader.get_or_load_backend(backend_name)
             if caps is not None and not backend.has_caps(caps) or \
-               names is not None and instance_name not in names or \
-               '_enabled' in params and not params['_enabled']:
+               names is not None and instance_name not in names:
                 continue
             backend_instance = backend.create_instance(self, instance_name, params, storage)
             self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
