@@ -27,25 +27,25 @@ from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Fore
 from weboob.tools.backend import BaseBackend
 
 
-__all__ = ['YWeatherBackend']
+__all__ = ['YahooBackend']
 
 
-class YWeatherBackend(BaseBackend, ICapWeather):
-    NAME = 'yweather'
+class YahooBackend(BaseBackend, ICapWeather):
+    NAME = 'yahoo'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
     VERSION = '0.1'
-    DESCRIPTION = 'Yahoo Weather'
+    DESCRIPTION = 'Yahoo'
     LICENSE = 'GPLv3'
     ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
 
-    URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'
+    WEATHER_URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'
 
     def iter_city_search(self, pattern):
         raise NotImplementedError()
 
-    def _get_dom(self, city_id):
-        handler = urllib2.urlopen(self.URL % (city_id, 'c'))
+    def _get_weather_dom(self, city_id):
+        handler = urllib2.urlopen(self.WEATHER_URL % (city_id, 'c'))
         dom = minidom.parse(handler)
         handler.close()
         if not dom.getElementsByTagName('yweather:condition'):
