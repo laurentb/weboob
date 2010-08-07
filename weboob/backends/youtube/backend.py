@@ -68,9 +68,6 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                                  )
             yield video
 
-    def iter_page_urls(self, mozaic_url):
-        raise NotImplementedError()
-
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields

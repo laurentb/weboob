@@ -43,10 +43,6 @@ class YoujizzBrowser(BaseBrowser):
         self.location(url)
         return self.page.get_video(video)
 
-    @check_domain
-    def iter_page_urls(self, mozaic_url):
-        raise NotImplementedError()
-
     def iter_search_results(self, pattern):
         if not pattern:
             self.home()
