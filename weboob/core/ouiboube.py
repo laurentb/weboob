@@ -146,8 +146,8 @@ class Weboob(object):
         @return  an iterator of results
         """
         backends = self.backend_instances.values()
-        if 'backends' in kwargs:
-            _backends = kwargs.pop('backends')
+        _backends = kwargs.pop('backends', None)
+        if _backends:
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
             elif isinstance(_backends, (str,unicode)) and _backends:
