@@ -59,7 +59,7 @@ class YoujizzBackend(BaseBackend, ICapVideo):
                 video = self.browser.get_video(YoujizzVideo.id2url(video.id), video)
         if 'thumbnail' in fields:
             with self.browser:
-                video.thumbnail.data = self.browser.openurl(video.thumbnail.url).read()
+                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
 
