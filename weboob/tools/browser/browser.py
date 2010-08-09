@@ -238,14 +238,28 @@ class BaseBrowser(mechanize.Browser):
         """
         Open an URL but do not create a Page object.
         """
+        if_fail = kwargs.pop('if_fail', 'raise')
         debug('Opening URL "%s", %s' % (args, kwargs))
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
-            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
+            if if_fail == 'raise':
+                raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
+            else:
+                return None
         except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
+
+    def readurl(self, url, if_fail=None):
+        """
+        Download URL data specifying what to do on failure (nothing by default).
+        """
+        result = self.openurl(url, if_fail=if_fail)
+        if result:
+            return result.read()
+        else:
+            return None
 
     def submit(self, *args, **kwargs):
         """
