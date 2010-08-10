@@ -35,7 +35,9 @@ class SimpleFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        return self.field_separator.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems())
+        return self.field_separator.join(u'%s%s' % (
+            (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
+            for k, v in item.iteritems())
 
     def set_header(self, string):
         if self.display_header:

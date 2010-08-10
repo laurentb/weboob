@@ -35,7 +35,9 @@ class MultilineFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'\n'.join(u'%s%s' % ((u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v) for k, v in item.iteritems())
+        result = u'\n'.join(u'%s%s' % (
+            (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
+            for k, v in item.iteritems())
         if len(item) > 1:
             result += self.after_item
         return result
