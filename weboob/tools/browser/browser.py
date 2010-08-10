@@ -19,10 +19,8 @@
 import mechanize
 import urllib
 import urllib2
-try:
-    from mechanize import ControlNotFoundError
-except ImportError:
-    from ClientForm import ControlNotFoundError
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
 import re
 import time
 from logging import warning, debug

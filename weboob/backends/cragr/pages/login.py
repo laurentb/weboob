@@ -16,11 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-try:
-    from mechanize import ControlNotFoundError
-except ImportError:
-    from ClientForm import ControlNotFoundError
-import ClientForm
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from .base import CragrBasePage
 

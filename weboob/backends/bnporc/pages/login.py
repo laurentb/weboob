@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import ClientForm
+from weboob.tools.mech import ClientForm
 import sys
 
 from weboob.tools.browser import BasePage

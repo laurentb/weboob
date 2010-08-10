@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Laurent Bachelier
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,21 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
+import mechanize
+if hasattr(mechanize, "FormParser"):
+    ClientForm = mechanize
+else:
+    import ClientForm
 
-from mechanize import FormNotFoundError
-from weboob.tools.browser import BasePage
-
-
-__all__ = ['PornPage']
-
-
-class PornPage(BasePage):
-    def on_loaded(self):
-        try:
-            self.browser.select_form(nr=0)
-            self.browser.submit(name='user_choice')
-            return False
-        except (ControlNotFoundError, FormNotFoundError):
-            return True
