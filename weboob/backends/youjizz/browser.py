@@ -19,7 +19,7 @@
 import urllib
 
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.browser.decorators import check_domain, id2url
+from weboob.tools.browser.decorators import id2url
 
 from .pages.index import IndexPage
 from .pages.video import VideoPage
