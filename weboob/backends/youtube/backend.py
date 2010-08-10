@@ -53,16 +53,13 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             query.categories.extend('/%s' % search_term.lower().encode('utf-8') for search_term in pattern.split())
         feed = yt_service.YouTubeQuery(query)
         for entry in feed.entry:
-            if entry.media.name:
-                author = entry.media.name.text.decode('utf-8').strip()
-            else:
-                author = None
             video = YoutubeVideo(entry.id.text.split('/')[-1].decode('utf-8'),
                                  title=entry.media.title.text.decode('utf-8').strip(),
-                                 author=author,
                                  duration=datetime.timedelta(seconds=int(entry.media.duration.seconds.decode('utf-8').strip())),
                                  thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
                                  )
+            if entry.media.name:
+                video.author = entry.media.name.text.decode('utf-8').strip()
             yield video
 
     def fill_video(self, video, fields):
