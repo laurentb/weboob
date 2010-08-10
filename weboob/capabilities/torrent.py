@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['ICapTorrent', 'Torrent']
@@ -35,7 +35,7 @@ class Torrent(object):
         self.description = description
 
 
-class ICapTorrent(ICap):
+class ICapTorrent(IBaseCap):
     def iter_torrents(self, pattern):
         raise NotImplementedError()
 

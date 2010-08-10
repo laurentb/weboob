@@ -19,7 +19,7 @@
 import datetime
 import time
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']
@@ -83,7 +83,7 @@ class Message(object):
             self.thread_id, self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
-class ICapMessages(ICap):
+class ICapMessages(IBaseCap):
     def iter_new_messages(self, thread=None):
         """
         Iterates on new messages from last time this function has been called.
@@ -102,7 +102,7 @@ class ICapMessages(ICap):
         """
         raise NotImplementedError()
 
-class ICapMessagesReply(ICap):
+class ICapMessagesReply(IBaseCap):
     def post_reply(self, thread_id, reply_id, title, message):
         """
         Post a reply.

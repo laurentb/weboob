@@ -25,7 +25,7 @@ import os
 import re
 import stat
 
-from weboob.capabilities.cap import ICap
+from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
 
 
@@ -80,7 +80,7 @@ class Backend(object):
 
     def iter_caps(self):
         for cap in self.klass.__bases__:
-            if issubclass(cap, ICap) and cap != ICap:
+            if issubclass(cap, IBaseCap) and cap != IBaseCap:
                 yield cap
 
     def has_caps(self, *caps):

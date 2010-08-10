@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .cap import ICap
+from .base import IBaseCap
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -85,7 +85,7 @@ class Contact(object):
                 'profile': self.profile,
                }.iteritems()
 
-class ICapContact(ICap):
+class ICapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         """
         Iter contacts

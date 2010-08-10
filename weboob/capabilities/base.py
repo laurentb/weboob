@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,5 +16,26 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-class ICap(object):
+__all__ = ['IBaseCap', 'NotLoaded', 'LoadingError']
+
+
+class NotLoadedMeta(type):
+    def __unicode__(self):
+        return u'Not loaded'
+
+
+class NotLoaded(object):
+    __metaclass__ = NotLoadedMeta
+
+
+class LoadingErrorMeta(type):
+    def __unicode__(self):
+        return u'Loading error'
+
+
+class LoadingError(object):
+    __metaclass__ = LoadingErrorMeta
+
+
+class IBaseCap(object):
     pass

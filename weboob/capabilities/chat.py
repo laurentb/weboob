@@ -18,7 +18,7 @@
 
 import datetime
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['ChatException', 'ICapChat']
@@ -36,7 +36,7 @@ class ChatMessage(object):
         self.date = datetime.datetime.utcnow() if date is None else date
 
 
-class ICapChat(ICap):
+class ICapChat(IBaseCap):
     def iter_chat_messages(self, _id=None):
         raise NotImplementedError()
 

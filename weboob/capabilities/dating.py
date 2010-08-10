@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['ICapDating']
@@ -45,7 +45,7 @@ class StatusField(object):
         self.flags = flags
 
 
-class ICapDating(ICap):
+class ICapDating(IBaseCap):
     def get_status(self):
         """
         Get a list of fields

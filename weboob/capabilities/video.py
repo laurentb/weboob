@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .cap import ICap
+from .base import IBaseCap, LoadingError, NotLoaded
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
@@ -36,17 +36,18 @@ class VideoThumbnail(object):
     def __iscomplete__(self):
         return self.data
 
+
 class BaseVideo(object):
-    def __init__(self, _id, title=None, url=None, author=None, duration=None, date=None,
-                 rating=0.0, rating_max=0.0, thumbnail=None, thumbnail_url=None, nsfw=False):
+    def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
+                 rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=NotLoaded, nsfw=False):
         self.id = unicode(_id)
         self.title = title
         self.url = url
         self.author = author
         self.duration = duration
         self.date = date
-        self.rating = float(rating)
-        self.rating_max = float(rating_max)
+        self.rating = rating
+        self.rating_max = rating_max
         self.thumbnail = thumbnail
         if thumbnail_url and not self.thumbnail:
             self.thumbnail = VideoThumbnail(thumbnail_url)
@@ -62,7 +63,7 @@ class BaseVideo(object):
         return self.id2url(self.id)
 
 
-class ICapVideo(ICap):
+class ICapVideo(IBaseCap):
     def iter_page_urls(self, mozaic_url):
         raise NotImplementedError()
 

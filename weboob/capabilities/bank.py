@@ -21,7 +21,7 @@ if sys.version_info[:2] <= (2, 5):
     from weboob.tools.property import property
 
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['Account', 'AccountNotFound', 'ICapBank', 'Operation']
@@ -85,7 +85,7 @@ class Operation(object):
         self._amount = float(value)
 
 
-class ICapBank(ICap):
+class ICapBank(IBaseCap):
     def iter_accounts(self):
         raise NotImplementedError()
 

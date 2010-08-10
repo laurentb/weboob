@@ -18,13 +18,13 @@
 
 from datetime import time
 
-from .cap import ICap
+from .base import IBaseCap
 
 
 __all__ = ['Departure', 'ICapTravel', 'Station']
 
 
-class ICapTravel(ICap):
+class ICapTravel(IBaseCap):
     def iter_station_search(self, pattern):
         """
         Iterates on search results of stations.
