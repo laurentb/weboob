@@ -24,7 +24,6 @@ from logging import debug, error, exception, warning
 import os
 import re
 import stat
-import xdg.IconTheme
 
 from weboob.capabilities.cap import ICap
 from weboob.tools.backend import BaseBackend
@@ -71,7 +70,12 @@ class Backend(object):
     @property
     def icon_path(self):
         if self.klass.ICON is None:
-            self.klass.ICON = xdg.IconTheme.getIconPath(self.klass.NAME)
+            try:
+                import xdg.IconTheme
+            except ImportError:
+                pass
+            else:
+                self.klass.ICON = xdg.IconTheme.getIconPath(self.klass.NAME)
         return self.klass.ICON
 
     def iter_caps(self):
