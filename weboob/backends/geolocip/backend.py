@@ -34,7 +34,6 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation"
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     CONFIG = {'email':         BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
              }

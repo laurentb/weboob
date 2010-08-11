@@ -33,7 +33,6 @@ class CanalTPBackend(BaseBackend, ICapTravel):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "French trains"
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     BROWSER = CanalTP
 
     def iter_station_search(self, pattern):

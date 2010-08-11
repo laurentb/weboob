@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QHavesex
+Comment=Optimize your probabilities to have sex on dating websites
+Exec=qhavesex
+# Icon=qhavesex
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Chat;ContactManagement;Qt;

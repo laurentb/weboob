@@ -37,8 +37,6 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
               'get_news':      BaseBackend.ConfigField(default=True, description='Get newspapers'),

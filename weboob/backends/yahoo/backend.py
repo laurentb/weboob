@@ -37,8 +37,6 @@ class YahooBackend(BaseBackend, ICapWeather):
     VERSION = '0.1'
     DESCRIPTION = 'Yahoo'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     WEATHER_URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'
 
     def iter_city_search(self, pattern):

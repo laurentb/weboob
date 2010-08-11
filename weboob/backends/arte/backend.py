@@ -37,8 +37,6 @@ class ArteBackend(BaseBackend, ICapVideo):
     VERSION = '0.2'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     BROWSER = ArteBrowser
 
     def get_video(self, _id):

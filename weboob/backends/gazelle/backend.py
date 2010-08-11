@@ -33,8 +33,6 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     VERSION = '0.1'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     CONFIG = {'username': BaseBackend.ConfigField(description='Username on website'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
               'protocol': BaseBackend.ConfigField(description='Protocol to use ("http" or "https")', regexp='^(http|https)$'),

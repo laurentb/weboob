@@ -17,10 +17,22 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from __future__ import with_statement
+
 from setuptools import find_packages, setup
 
+import glob
 import os
+import subprocess
+import sys
 
+
+with open('/dev/null', 'w') as devnull:
+    process = subprocess.Popen(['which', 'pyuic4'], stdout=devnull)
+    return_code = process.wait()
+if return_code != 0:
+    print 'pyuic4 is not installed on your system'
+    sys.exit(1)
 
 os.system('make -C weboob/applications/qboobmsg/ui')
 os.system('make -C weboob/applications/qhavesex/ui')
@@ -28,9 +40,9 @@ os.system('make -C weboob/applications/qvideoob/ui')
 os.system('make -C weboob/tools/application/qt')
 
 setup(
-    name='weboob-dev',
+    name='weboob',
     version='dev',
-    description='Weboob, Web Out Of Browsers - core library',
+    description='Weboob, Web Out Of Browsers - development version',
     author='Romain Bignon',
     author_email='weboob@lists.symlink.me',
     maintainer='Christophe Benz',
@@ -57,3 +69,15 @@ setup(
         # 'WebOb', # python-webob
         ],
 )
+
+def install_xdg():
+    """
+    On xdg-compliant systems, install desktop file and icon
+    """
+    print 'Installing desktop menu files'
+    os.system('xdg-desktop-menu install --novendor desktop/*.desktop')
+    for filepath in glob.glob('icons/*'):
+        print 'Installing icon %s' % filepath
+        os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
+
+install_xdg()

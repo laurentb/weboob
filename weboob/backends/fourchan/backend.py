@@ -37,8 +37,6 @@ class FourChanBackend(BaseBackend, ICapMessages):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     CONFIG = {'boards': BaseBackend.ConfigField(description='Boards'),
              }
     STORAGE = {'boards': {}}

@@ -31,7 +31,6 @@ class TransilienBackend(BaseBackend, ICapTravel):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Transports in Paris"
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
     BROWSER = Transilien
 
     def iter_station_search(self, pattern):

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Weboob backends configuration
+Comment=Configure Weboob backends
+Exec=weboob-config-qt
+# Icon=weboob-config-qt
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;Qt;

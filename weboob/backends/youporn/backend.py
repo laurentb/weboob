@@ -37,8 +37,6 @@ class YoupornBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'Youporn videos website'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     BROWSER = YoupornBrowser
 
     def get_video(self, _id):

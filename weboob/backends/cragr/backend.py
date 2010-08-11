@@ -15,12 +15,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 import os
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import Cragr
+
 
 class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
@@ -29,8 +31,6 @@ class CragrBackend(BaseBackend, ICapBank):
     VERSION = '0.1'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
               'website':  BaseBackend.ConfigField(description='What website to use', default='m.lefil.com'),

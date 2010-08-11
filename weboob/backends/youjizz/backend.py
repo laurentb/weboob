@@ -37,8 +37,6 @@ class YoujizzBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'Youjizz videos website'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     BROWSER = YoujizzBrowser
 
     def get_video(self, _id):

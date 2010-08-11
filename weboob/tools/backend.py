@@ -66,7 +66,7 @@ class BaseBackend(object):
     # License of this backend.
     LICENSE = '<unspecified>'
     # Icon file path
-    ICON = ''
+    ICON = None
     # Configuration required for this backend.
     # Values must be ConfigField objects.
     CONFIG = {}

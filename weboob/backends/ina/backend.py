@@ -35,8 +35,6 @@ class InaBackend(BaseBackend, ICapVideo):
     VERSION = '0.1'
     DESCRIPTION = 'INA french video archives'
     LICENSE = 'GPLv3'
-    ICON = os.path.join(os.path.dirname(__file__), 'data/logo.png')
-
     BROWSER = InaBrowser
 
     def get_video(self, _id):
