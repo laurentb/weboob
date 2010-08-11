@@ -20,6 +20,9 @@ __all__ = ['IBaseCap', 'NotLoaded', 'LoadingError']
 
 
 class NotLoadedMeta(type):
+    def __str__(self):
+        return unicode(self).decode('utf-8')
+
     def __unicode__(self):
         return u'Not loaded'
 
@@ -29,6 +32,9 @@ class NotLoaded(object):
 
 
 class LoadingErrorMeta(type):
+    def __str__(self):
+        return unicode(self).decode('utf-8')
+
     def __unicode__(self):
         return u'Loading error'
 
