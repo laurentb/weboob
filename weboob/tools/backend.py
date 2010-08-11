@@ -21,6 +21,7 @@ import os
 from threading import RLock
 from logging import debug
 
+from weboob.capabilities.cap import ICap
 
 __all__ = ['BaseBackend', 'ObjectNotSupported']
 
@@ -170,9 +171,15 @@ class BaseBackend(object):
 
         return self.BROWSER(*args, **kwargs)
 
+    def iter_caps(self):
+        for cap in self.__class__.__bases__:
+            if issubclass(cap, ICap) and cap != ICap:
+                yield cap
+
     def has_caps(self, *caps):
         for c in caps:
-            if isinstance(self, c):
+            if (isinstance(c, (unicode,str)) and c in [cap.__name__ for cap in self.iter_caps()]) or \
+               isinstance(self, c):
                 return True
         return False
 

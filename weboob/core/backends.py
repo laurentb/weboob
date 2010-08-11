@@ -78,7 +78,8 @@ class Backend(object):
 
     def has_caps(self, *caps):
         for c in caps:
-            if issubclass(self.klass, c):
+            if (isinstance(c, (unicode,str)) and c in [cap.__name__ for cap in self.iter_caps()]) or \
+               (type(c) == type and issubclass(self.klass, c)):
                 return True
         return False
 
