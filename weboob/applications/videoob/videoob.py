@@ -50,6 +50,6 @@ class Videoob(ConsoleApplication):
     @ConsoleApplication.command('Search for videos')
     def command_search(self, pattern=None):
         self.load_backends(ICapVideo)
-        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Last videos')
+        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw):
             self.format(video, backend.name)

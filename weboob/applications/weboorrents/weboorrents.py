@@ -65,6 +65,6 @@ class Weboorrents(ConsoleApplication):
 
     @ConsoleApplication.command('Search torrents')
     def command_search(self, pattern=None):
-        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Last torrents')
+        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.weboob.do('iter_torrents', pattern=pattern):
             self.format(torrent, backend.name)
