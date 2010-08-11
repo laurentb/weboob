@@ -124,7 +124,8 @@ class BaseBrowser(mechanize.Browser):
         """
         Go to the home page.
         """
-        self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))
+        if self.DOMAIN is not None:
+            self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))
 
     def login(self):
         """
