@@ -25,7 +25,7 @@ __all__ = ['BaseVideo', 'ICapVideo']
 class VideoThumbnail(object):
     def __init__(self, url):
         self.url = url.replace(' ', '%20')
-        self.data = None
+        self.data = NotLoaded
 
     def __str__(self):
         return self.url
@@ -34,12 +34,12 @@ class VideoThumbnail(object):
         return '<Thumbnail url="%s">' % self.url
 
     def __iscomplete__(self):
-        return self.data
+        return self.data is not NotLoaded
 
 
 class BaseVideo(object):
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
-                 rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=NotLoaded, nsfw=False):
+                 rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         self.id = unicode(_id)
         self.title = title
         self.url = url
@@ -49,7 +49,7 @@ class BaseVideo(object):
         self.rating = rating
         self.rating_max = rating_max
         self.thumbnail = thumbnail
-        if thumbnail_url and not self.thumbnail:
+        if thumbnail_url is not None and self.thumbnail is NotLoaded:
             self.thumbnail = VideoThumbnail(thumbnail_url)
         self.nsfw = nsfw
 
