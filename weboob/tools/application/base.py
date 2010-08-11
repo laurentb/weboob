@@ -24,6 +24,7 @@ from optparse import OptionGroup, OptionParser
 from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotSupported
+from weboob.tools.misc import iter_fields
 
 
 __all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
@@ -196,6 +197,8 @@ class BaseApplication(object):
 
     def _complete_obj(self, backend, obj, fields):
         if fields:
+            if '*' in fields:
+                fields = [k for k, v in iter_fields(obj)]
             try:
                 backend.fillobj(obj, fields)
             except ObjectNotSupported, e:
@@ -213,7 +216,7 @@ class BaseApplication(object):
         res = getattr(backend, function)(*args, **kwargs)
 
         if self.selected_fields:
-            fields = set(self.selected_fields) - set('*')
+            fields = self.selected_fields
         else:
             fields = None
 
