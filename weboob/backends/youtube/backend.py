@@ -20,10 +20,14 @@ from __future__ import with_statement
 
 import datetime
 
+import gdata.youtube.service
+
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, ObjectNotAvailable
+from weboob.tools.misc import to_unicode
 
 from .browser import YoutubeBrowser
+from .pages import ForbiddenVideo
 from .video import YoutubeVideo
 
 
@@ -41,36 +45,61 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
     def get_video(self, _id):
         with self.browser:
-            return self.browser.get_video(_id)
+            try:
+                return self.browser.get_video(_id)
+            except ForbiddenVideo, e:
+                raise ObjectNotAvailable(e)
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
-        import gdata.youtube.service
+    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+        YOUTUBE_MAX_RESULTS = 50
+        YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()
-        query = gdata.youtube.service.YouTubeVideoQuery()
-        query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
-        query.racy = 'include' if nsfw else 'exclude'
-        if pattern:
-            query.categories.extend('/%s' % search_term.lower().encode('utf-8') for search_term in pattern.split())
-        feed = yt_service.YouTubeQuery(query)
-        for entry in feed.entry:
-            video = YoutubeVideo(entry.id.text.split('/')[-1].decode('utf-8'),
-                                 title=entry.media.title.text.decode('utf-8').strip(),
-                                 duration=datetime.timedelta(seconds=int(entry.media.duration.seconds.decode('utf-8').strip())),
-                                 thumbnail_url=entry.media.thumbnail[0].url.decode('utf-8').strip(),
-                                 )
-            if entry.media.name:
-                video.author = entry.media.name.text.decode('utf-8').strip()
-            yield video
+
+        start_index = 1
+        nb_yielded = 0
+        while True:
+            query = gdata.youtube.service.YouTubeVideoQuery()
+            if pattern is not None:
+                query.vq = pattern
+            query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
+            query.racy = 'include' if nsfw else 'exclude'
+
+            if max_results is None or max_results > YOUTUBE_MAX_RESULTS:
+                query_max_results = YOUTUBE_MAX_RESULTS
+            else:
+                query_max_results = max_results
+            query.max_results = query_max_results
+
+            if start_index > YOUTUBE_MAX_START_INDEX:
+                return
+            query.start_index = start_index
+            start_index += query_max_results
+
+            feed = yt_service.YouTubeQuery(query)
+            for entry in feed.entry:
+                video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()),
+                                     title=to_unicode(entry.media.title.text.strip()),
+                                     duration=to_unicode(datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))),
+                                     thumbnail_url=to_unicode(entry.media.thumbnail[0].url.strip()),
+                                     )
+                if entry.media.name:
+                    video.author = to_unicode(entry.media.name.text.strip())
+                yield video
+                nb_yielded += 1
+                if nb_yielded == max_results:
+                    return
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:
-                video = self.browser.get_video(YoutubeVideo.id2url(video.id), video)
+                try:
+                    video = self.browser.get_video(YoutubeVideo.id2url(video.id), video)
+                except ForbiddenVideo, e:
+                    raise ObjectNotAvailable(e)
         if 'thumbnail' in fields:
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
-
         return video
 
     OBJECTS = {YoutubeVideo: fill_video}

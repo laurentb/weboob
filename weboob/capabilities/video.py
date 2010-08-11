@@ -72,7 +72,7 @@ class ICapVideo(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def iter_search_results(self, pattern=None, sortby=SEARCH_RELEVANCE, nsfw=False):
+    def iter_search_results(self, pattern=None, sortby=SEARCH_RELEVANCE, nsfw=False, max_results=None):
         """
         Iter results of a search on a pattern. Note that if pattern is None,
         it get the latest videos.
@@ -80,6 +80,7 @@ class ICapVideo(IBaseCap):
         @param pattern  [str] pattern to search on
         @param sortby  [enum] sort by...
         @param nsfw  [bool] include non-suitable for work videos if True
+        @param max_results  [int] maximum number of results to return
         """
         raise NotImplementedError()
 

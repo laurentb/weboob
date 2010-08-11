@@ -20,6 +20,7 @@ import re
 
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select
+from weboob.tools.misc import to_unicode
 
 from .video import YoutubeVideo
 
@@ -59,7 +60,7 @@ class VideoPage(BasePage):
 
     def get_title(self):
         element = select(self.document.getroot(), 'meta[name=title]', 1)
-        return unicode(element.attrib['content']).strip()
+        return to_unicode(element.attrib['content'].strip())
 
     def get_url(self, _id):
         video_signature = None
