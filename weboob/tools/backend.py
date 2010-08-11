@@ -21,7 +21,7 @@ import os
 from threading import RLock
 from logging import debug
 
-from weboob.capabilities.cap import ICap
+from weboob.capabilities.base import IBaseCap, NotLoaded
 
 __all__ = ['BaseBackend', 'ObjectNotSupported']
 
@@ -173,7 +173,7 @@ class BaseBackend(object):
 
     def iter_caps(self):
         for cap in self.__class__.__bases__:
-            if issubclass(cap, ICap) and cap != ICap:
+            if issubclass(cap, IBaseCap) and cap != IBaseCap:
                 yield cap
 
     def has_caps(self, *caps):
@@ -206,7 +206,7 @@ class BaseBackend(object):
                     if hasattr(v, '__iscomplete__') and not v.__iscomplete__():
                         missing = True
                         break
-            elif not value or hasattr(value, '__iscomplete__') and not value.__iscomplete__():
+            elif value is NotLoaded or hasattr(value, '__iscomplete__') and not value.__iscomplete__():
                 missing = True
 
             if missing:
