@@ -36,6 +36,7 @@ class AccountComing(BasePage):
                 date = tds[0].getchildren()[0].attrib.get('name', '')
                 label = u''
                 label += tds[1].text
+                label = label.replace(u'\xa0', u'')
                 for child in tds[1].getchildren():
                     if child.text: label += child.text
                     if child.tail: label += child.tail
@@ -43,7 +44,7 @@ class AccountComing(BasePage):
                 label = label.strip()
                 amount = tds[2].text.replace('.', '').replace(',', '.')
 
-                operation = Operation()
+                operation = Operation(len(self.operations))
                 operation.date = date
                 operation.label = label
                 operation.amount = float(amount)

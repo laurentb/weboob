@@ -62,8 +62,8 @@ class Account(CapBaseObject):
 
 class Operation(CapBaseObject):
     FIELDS = ('date', 'label', 'amount')
-    def __init__(self):
-        CapBaseObject(self, 0)
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
         self.date = None
         self._label = u''
         self._amount = 0.0

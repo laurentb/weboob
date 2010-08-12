@@ -45,7 +45,7 @@ class AccountHistory(BasePage):
                 label = label.strip()
                 amount = tds[2].text.replace('.', '').replace(',', '.')
                 # if we don't have exactly one '.', this is not a floatm try the next
-                operation = Operation()
+                operation = Operation(len(self.operations))
                 if amount.count('.') != 1:
                     amount = tds[3].text.replace('.', '').replace(',', '.')
                     operation.amount = float(amount)

@@ -55,5 +55,9 @@ class CragrBackend(BaseBackend, ICapBank):
                 raise AccountNotFound()
 
     def iter_operations(self, account):
-        """ Not supported yet """
+        """ TODO Not supported yet """
+        return iter([])
+
+    def iter_history(self, account):
+        """ TODO Not supported yet """
         return iter([])
