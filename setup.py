@@ -65,16 +65,27 @@ class Options:
     pass
 
 options = Options()
+options.hildon = False
 options.qt = True
 options.xdg = True
 
 args = list(sys.argv)
+if '--hildon' in args and '--no-hildon' in args:
+    print '--hildon and --no-hildon options are incompatible'
+    sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
     print '--qt and --no-qt options are incompatible'
     sys.exit(1)
 if '--xdg' in args and '--no-xdg' in args:
     print '--xdg and --no-xdg options are incompatible'
     sys.exit(1)
+
+if '--hildon' in args:
+    options.hildon = True
+    args.remove('--hildon')
+elif '--no-hildon' in args:
+    options.hildon = False
+    args.remove('--no-hildon')
 
 if '--qt' in args:
     options.qt = True
@@ -91,14 +102,20 @@ elif '--no-xdg' in args:
     args.remove('--no-xdg')
 sys.argv = args
 
+hildon_scripts = ('masstransit',)
 qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
 scripts = os.listdir('scripts')
 
+if not options.hildon:
+    scripts = set(scripts) - set(hildon_scripts)
 if options.qt:
     build_qt()
 else:
     scripts = set(scripts) - set(qt_scripts)
 
+hildon_packages = (
+    'weboob.applications.masstransit',
+    )
 qt_packages = (
     'weboob.applications.qboobmsg',
     'weboob.applications.qboobmsg.ui',
@@ -111,6 +128,8 @@ qt_packages = (
     )
 packages = find_packages()
 
+if not options.hildon:
+    packages = set(packages) - set(hildon_packages)
 if not options.qt:
     packages = set(packages) - set(qt_packages)
 
