@@ -73,7 +73,7 @@ class Backend(object):
             try:
                 import xdg.IconTheme
             except ImportError:
-                pass
+                debug(u'Python xdg module was not found. Please install it to read icon files.')
             else:
                 self.klass.ICON = xdg.IconTheme.getIconPath(self.klass.NAME)
         return self.klass.ICON
