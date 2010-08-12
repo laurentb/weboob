@@ -22,7 +22,6 @@ from __future__ import with_statement
 from setuptools import find_packages, setup
 
 import glob
-from optparse import OptionParser
 import os
 import subprocess
 import sys
@@ -62,12 +61,35 @@ def install_xdg():
         os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
 
 
-option_parser = OptionParser()
-option_parser.add_option('--xdg', action='store_true', default=True, help='Install desktop files and icons')
-option_parser.add_option('--no-xdg', action='store_false', dest='xdg', help='Don\'t install desktop files and icons')
-option_parser.add_option('--qt', action='store_true', default=True, help='Install Qt applications')
-option_parser.add_option('--no-qt', action='store_false', dest='qt', help='Don\'t install Qt applications')
-options, sys.argv = option_parser.parse_args(sys.argv)
+class Options:
+    pass
+
+options = Options()
+options.qt = True
+options.xdg = True
+
+args = list(sys.argv)
+if '--qt' in args and '--no-qt' in args:
+    print '--qt and --no-qt options are incompatible'
+    sys.exit(1)
+if '--xdg' in args and '--no-xdg' in args:
+    print '--xdg and --no-xdg options are incompatible'
+    sys.exit(1)
+
+if '--qt' in args:
+    options.qt = True
+    args.remove('--qt')
+elif '--no-qt' in args:
+    options.qt = False
+    args.remove('--no-qt')
+
+if '--xdg' in args:
+    options.xdg = True
+    args.remove('--xdg')
+elif '--no-xdg' in args:
+    options.xdg = False
+    args.remove('--no-xdg')
+sys.argv = args
 
 qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
 scripts = os.listdir('scripts')
