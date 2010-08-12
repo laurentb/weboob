@@ -164,5 +164,5 @@ setup(
         ],
 )
 
-if sys.argv[1] in ('install', 'develop') and options.xdg:
+if sys.argv[1] in ('install', 'develop') and options.xdg and not options.hildon:
     install_xdg()
