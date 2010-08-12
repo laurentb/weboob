@@ -17,8 +17,6 @@
 
 from __future__ import with_statement
 
-import os
-
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser

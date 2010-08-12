@@ -17,7 +17,6 @@
 
 
 from logging import debug
-import os
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend

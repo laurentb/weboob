@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 from logging import warning
-import os
 
 from weboob.capabilities.messages import ICapMessages, Message
 from weboob.tools.backend import BaseBackend

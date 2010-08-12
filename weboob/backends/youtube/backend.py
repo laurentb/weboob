@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 import datetime
-import os
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend

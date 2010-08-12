@@ -18,8 +18,6 @@
 
 from __future__ import with_statement
 
-import os
-
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
 

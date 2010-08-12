@@ -19,7 +19,6 @@ from __future__ import with_statement
 
 from datetime import datetime
 from dateutil import tz
-import os
 from logging import warning
 from time import sleep
 

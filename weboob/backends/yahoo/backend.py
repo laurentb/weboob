@@ -18,7 +18,6 @@
 
 import urllib2
 from xml.dom import minidom
-import os
 
 # TODO store datetime objects instead of strings
 # from datetime import datetime
