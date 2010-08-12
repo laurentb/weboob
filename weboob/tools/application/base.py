@@ -23,7 +23,7 @@ from optparse import OptionGroup, OptionParser
 
 from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
-from weboob.tools.backend import ObjectNotAvailable, ObjectNotSupported
+from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.misc import iter_fields
 
 
@@ -201,7 +201,7 @@ class BaseApplication(object):
                 fields = [k for k, v in iter_fields(obj)]
             try:
                 backend.fillobj(obj, fields)
-            except (ObjectNotAvailable, ObjectNotSupported), e:
+            except ObjectNotAvailable, e:
                 logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
         return obj
 

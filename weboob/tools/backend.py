@@ -24,14 +24,10 @@ from logging import debug
 from weboob.capabilities.base import IBaseCap, NotLoaded
 
 
-__all__ = ['BaseBackend', 'ObjectNotAvailable', 'ObjectNotSupported']
+__all__ = ['BaseBackend', 'ObjectNotAvailable']
 
 
 class ObjectNotAvailable(Exception):
-    pass
-
-
-class ObjectNotSupported(Exception):
     pass
 
 
@@ -222,9 +218,9 @@ class BaseBackend(object):
         if not missing_fields:
             return obj
 
+        assert obj in self.OBJECTS, 'The object of type %s is not supported by the backend %s' % (type(obj), self)
+
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
                 debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 return value(self, obj, missing_fields) or obj
-
-        raise ObjectNotSupported('The object of type %s is not supported by the backend %s' % (type(obj), self))
