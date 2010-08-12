@@ -27,39 +27,60 @@ import os
 import subprocess
 import sys
 
+def check_executable(executable, error):
+    with open('/dev/null', 'w') as devnull:
+        process = subprocess.Popen(['which', executable], stdout=devnull)
+        return_code = process.wait()
+    if return_code == 0:
+        return True
+    else:
+        print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
+        if error:
+            print >>sys.stderr, error
+        sys.exit(1)
+
+def build_qt():
+    print 'Building Qt applications'
+    check_executable('pyuic4', 'To disable Qt applications, use --no-qt.')
+
+    os.system('make -C weboob/applications/qboobmsg/ui')
+    os.system('make -C weboob/applications/qhavesex/ui')
+    os.system('make -C weboob/applications/qvideoob/ui')
+    os.system('make -C weboob/tools/application/qt')
+
+def install_xdg():
+    """
+    On xdg-compliant systems, install desktop file and icon
+    """
+    print 'Installing desktop menu files'
+    check_executable('xdg-desktop-menu', 'To disable resources installation, use --no-xdg.')
+
+    os.system('xdg-desktop-menu install --novendor desktop/*.desktop')
+    for filepath in glob.glob('icons/*'):
+        print 'Installing icon %s' % filepath
+        os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
 
 option_parser = OptionParser()
 option_parser.add_option('--xdg', action='store_true', default=True, help='Install desktop files and icons')
 option_parser.add_option('--no-xdg', action='store_false', dest='xdg', help='Don\'t install desktop files and icons')
-option_parser.add_option('--gui', action='store_true', default=True, help='Install GUI applications')
-option_parser.add_option('--no-gui', action='store_false', dest='gui', help='Don\'t install GUI applications')
+option_parser.add_option('--qt', action='store_true', default=True, help='Install Qt applications')
+option_parser.add_option('--no-qt', action='store_false', dest='qt', help='Don\'t install Qt applications')
 options, sys.argv = option_parser.parse_args(sys.argv)
 
-gui_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
+qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
 scripts = os.listdir('scripts')
 
-if options.gui:
-    with open('/dev/null', 'w') as devnull:
-        process = subprocess.Popen(['which', 'pyuic4'], stdout=devnull)
-        return_code = process.wait()
-    if return_code == 0:
-        os.system('make -C weboob/applications/qboobmsg/ui')
-        os.system('make -C weboob/applications/qhavesex/ui')
-        os.system('make -C weboob/applications/qvideoob/ui')
-        os.system('make -C weboob/tools/application/qt')
-        scripts
-    else:
-        print 'pyuic4 is not installed on your system'
-        sys.exit(1)
+if options.qt:
+    build_qt()
 else:
-    scripts = set(scripts) - set(gui_scripts)
+    scripts = set(scripts) - set(qt_scripts)
 
 setup(
     name='weboob',
     version='dev',
     description='Weboob, Web Out Of Browsers - development version',
     author='Romain Bignon',
-    author_email='weboob@lists.symlink.me',
+    author_email='weboob@weboob.org',
     maintainer='Christophe Benz',
     maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
@@ -85,15 +106,6 @@ setup(
         ],
 )
 
-def install_xdg():
-    """
-    On xdg-compliant systems, install desktop file and icon
-    """
-    print 'Installing desktop menu files'
-    os.system('xdg-desktop-menu install --novendor desktop/*.desktop')
-    for filepath in glob.glob('icons/*'):
-        print 'Installing icon %s' % filepath
-        os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
 
 if options.xdg:
     install_xdg()
