@@ -22,7 +22,7 @@ from __future__ import with_statement
 import logging
 
 import weboob
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import ICapBank
 from weboob.tools.application.console import ConsoleApplication
 
 

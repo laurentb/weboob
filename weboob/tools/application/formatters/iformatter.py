@@ -17,7 +17,6 @@
 
 
 from weboob.capabilities.base import CapBaseObject
-from weboob.tools.misc import iter_fields
 from weboob.tools.ordereddict import OrderedDict
 
 

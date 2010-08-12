@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import logging
+import sys
 
 from weboob.capabilities.geolocip import ICapGeolocIp
 from weboob.tools.application.console import ConsoleApplication
