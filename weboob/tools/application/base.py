@@ -218,7 +218,10 @@ class BaseApplication(object):
 
     def complete(self, backend, count, selected_fields, function, *args, **kwargs):
         assert count is None or count > 0
-        res = getattr(backend, function)(*args, **kwargs)
+        if callable(function):
+            res = function(backend, *args, **kwargs)
+        else:
+            res = getattr(backend, function)(*args, **kwargs)
 
         if self.selected_fields:
             fields = self.selected_fields
