@@ -40,15 +40,24 @@ class Boobank(ConsoleApplication):
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
         self.load_configured_backends(ICapBank)
+        tot_balance = 0.0
+        tot_coming = 0.0
         try:
             for backend, account in self.do('iter_accounts'):
                 self.format(account)
+                tot_balance += account.balance
+                tot_coming += account.coming
         except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
                     logging.error(u'Error: Incorrect password for backend %s' % backend.name)
                 else:
                     logging.error(u'Error[%s]: %s\n%s' % (backend.name, error, backtrace))
+        else:
+            self.format((('id', ''),
+                         ('label', 'Total'),
+                         ('balance', tot_balance),
+                         ('coming', tot_coming)))
 
     @ConsoleApplication.command('Display old operations')
     def command_history(self, id):

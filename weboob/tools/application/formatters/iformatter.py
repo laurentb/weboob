@@ -57,10 +57,12 @@ class IFormatter(object):
         @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """
-        assert isinstance(obj, (dict, CapBaseObject))
+        assert isinstance(obj, (dict, CapBaseObject, tuple))
 
         if isinstance(obj, dict):
             item = obj
+        elif isinstance(obj, tuple):
+            item = OrderedDict([(k, v) for k, v in obj])
         else:
             item = self.to_dict(obj, condition, selected_fields)
 
