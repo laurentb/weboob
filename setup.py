@@ -27,6 +27,7 @@ import os
 import subprocess
 import sys
 
+
 def check_executable(executable, error):
     with open('/dev/null', 'w') as devnull:
         process = subprocess.Popen(['which', executable], stdout=devnull)
@@ -60,6 +61,7 @@ def install_xdg():
         print 'Installing icon %s' % filepath
         os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
 
+
 option_parser = OptionParser()
 option_parser.add_option('--xdg', action='store_true', default=True, help='Install desktop files and icons')
 option_parser.add_option('--no-xdg', action='store_false', dest='xdg', help='Don\'t install desktop files and icons')
@@ -75,6 +77,21 @@ if options.qt:
 else:
     scripts = set(scripts) - set(qt_scripts)
 
+qt_packages = (
+    'weboob.applications.qboobmsg',
+    'weboob.applications.qboobmsg.ui',
+    'weboob.applications.qhavesex',
+    'weboob.applications.qhavesex.ui',
+    'weboob.applications.qvideoob',
+    'weboob.applications.qvideoob.ui',
+    'weboob.applications.qweboobcfg',
+    'weboob.applications.qweboobcfg.ui',
+    )
+packages = find_packages()
+
+if not options.qt:
+    packages = set(packages) - set(qt_packages)
+
 setup(
     name='weboob',
     version='dev',
@@ -85,7 +102,7 @@ setup(
     maintainer_email='christophe.benz@gmail.com',
     license='GPLv3',
     url='http://www.weboob.org',
-    packages=find_packages(),
+    packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
     install_requires=[
         # 'ClientForm', # python-clientform
