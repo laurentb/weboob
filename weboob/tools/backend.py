@@ -218,7 +218,7 @@ class BaseBackend(object):
         if not missing_fields:
             return obj
 
-        assert obj in self.OBJECTS, 'The object of type %s is not supported by the backend %s' % (type(obj), self)
+        assert type(obj) in self.OBJECTS, 'The object of type %s is not supported by the backend %s' % (type(obj), self)
 
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
