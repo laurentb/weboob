@@ -53,6 +53,10 @@ class BNPorcBackend(BaseBackend, ICapBank):
             else:
                 raise AccountNotFound()
 
+    def iter_history(self, account):
+        for history in self.browser.get_history(account):
+            yield history
+
     def iter_operations(self, account):
         for coming in self.browser.get_coming_operations(account):
             yield coming

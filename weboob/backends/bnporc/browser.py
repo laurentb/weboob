@@ -25,7 +25,7 @@ class BNPorc(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
-             '.*identifiant=DSP_HISTOCPT.*':                pages.AccountHistory,
+             '.*SAF_ROP.*':                                 pages.AccountHistory,
              '.*NS_AVEEC.*':                                pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
@@ -70,10 +70,15 @@ class BNPorc(BaseBrowser):
 
         l = self.page.get_list()
         for a in l:
-            if a.id == id:
+            if long(a.id) == id:
                 return a
 
         return None
+
+    def get_history(self, account):
+        if not self.is_on_page(pages.AccountHistory) or self.page.account.id != account.id:
+            self.location('/SAF_ROP?ch4=%s' % account.link_id)
+        return self.page.get_operations()
 
     def get_coming_operations(self, account):
         if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:

@@ -18,7 +18,7 @@
 
 from .accounts_list import AccountsList
 from .account_coming import AccountComing
+from .account_history import AccountHistory
 from .login import LoginPage, ConfirmPage
 
-class AccountHistory(AccountsList): pass
 class AccountPrelevement(AccountsList): pass

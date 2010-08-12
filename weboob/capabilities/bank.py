@@ -97,3 +97,6 @@ class ICapBank(IBaseCap):
 
     def iter_operations(self, account):
         raise NotImplementedError()
+
+    def iter_history(self, id):
+        raise NotImplementedError()

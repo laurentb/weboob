@@ -50,6 +50,19 @@ class Boobank(ConsoleApplication):
                 else:
                     logging.error(u'Error[%s]: %s\n%s' % (backend.name, error, backtrace))
 
+    @ConsoleApplication.command('Display old operations')
+    def command_history(self, id):
+        id, backend_name = self.parse_id(id)
+        names = (backend_name,) if backend_name is not None else None
+        self.load_configured_backends(ICapBank, names=names)
+
+        def do(backend):
+            account = backend.get_account(id)
+            return backend.iter_history(account)
+
+        for backend, operation in self.do(do):
+            self.format(operation)
+
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
         id, backend_name = self.parse_id(id)
