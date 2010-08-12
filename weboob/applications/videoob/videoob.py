@@ -42,7 +42,7 @@ class Videoob(ConsoleApplication):
         _id, backend_name = self.parse_id(_id)
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapVideo, names=names)
-        for backend, video in self.weboob.do('get_video', _id):
+        for backend, video in self.do('get_video', _id):
             if video is None:
                 continue
             self.format(video, backend.name)

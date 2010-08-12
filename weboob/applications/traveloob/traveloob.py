@@ -36,7 +36,7 @@ class Traveloob(ConsoleApplication):
     @ConsoleApplication.command('Search stations')
     def command_stations(self, pattern):
         self.load_backends(ICapTravel)
-        for backend, station in self.weboob.do('iter_station_search', pattern):
+        for backend, station in self.do('iter_station_search', pattern):
             self.format(station, backend.name)
 
     @ConsoleApplication.command('List all departures for a given station')
@@ -58,5 +58,5 @@ class Traveloob(ConsoleApplication):
             backends = None
 
         self.load_backends(ICapTravel, names=backends)
-        for backend, departure in self.weboob.do('iter_station_departures', station_id, arrival_id):
+        for backend, departure in self.do('iter_station_departures', station_id, arrival_id):
             self.format(departure, backend.name)

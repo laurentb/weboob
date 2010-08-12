@@ -183,7 +183,7 @@ class Monboob(ConsoleApplication):
         self.weboob.loop()
 
     def process(self):
-        for backend, message in self.weboob.do('iter_new_messages'):
+        for backend, message in self.do('iter_new_messages'):
             self.send_email(backend, message)
 
     def send_email(self, backend, mail):

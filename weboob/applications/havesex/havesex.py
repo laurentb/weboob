@@ -40,7 +40,7 @@ class HaveSex(PromptApplication):
         self.load_config()
         self.load_configured_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
 
-        self.weboob.do('init_optimizations').wait()
+        self.do('init_optimizations').wait()
 
         optimizations = self.config.get('optimizations')
         if optimizations:
@@ -72,7 +72,7 @@ class HaveSex(PromptApplication):
                 print '\t' * level + '%-20s %s' % (node.label + ':', value)
 
         found = 0
-        for backend, contact in self.weboob.do('get_contact', _id, backends=backend_name):
+        for backend, contact in self.do('get_contact', _id, backends=backend_name):
             if contact:
                 print 'Nickname:', contact.name
                 if contact.status & contact.STATUS_ONLINE:
@@ -101,7 +101,7 @@ class HaveSex(PromptApplication):
 
     def service(self, action, function, *params):
         sys.stdout.write('%s:' % action)
-        for backend, result in self.weboob.do(function, *params):
+        for backend, result in self.do(function, *params):
             if result:
                 sys.stdout.write(' ' + backend.name)
                 sys.stdout.flush()

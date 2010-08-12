@@ -33,7 +33,7 @@ class Chatoob(ConsoleApplication):
 
     def main(self, argv):
         self.load_configured_backends(ICapChat)
-        #for backend, result in self.weboob.do('start_chat_polling', self.on_new_chat_message):
+        #for backend, result in self.do('start_chat_polling', self.on_new_chat_message):
             #logging.info(u'Polling chat messages for backend %s' % backend)
         return self.process_command(*argv[1:])
 
@@ -46,16 +46,16 @@ class Chatoob(ConsoleApplication):
 
     @ConsoleApplication.command('list online contacts')
     def command_list(self):
-        for backend, contact in self.weboob.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
+        for backend, contact in self.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
             self.format(contact, backend.name)
 
     @ConsoleApplication.command('get messages')
     def command_messages(self):
-        for backend, message in self.weboob.do('iter_chat_messages'):
+        for backend, message in self.do('iter_chat_messages'):
             self.format(message, backend.name)
 
     @ConsoleApplication.command('send message to contact')
     def command_send(self, _id, message):
-        for backend, result in self.weboob.do('send_chat_message', _id, message):
+        for backend, result in self.do('send_chat_message', _id, message):
             if not result:
                 logging.error(u'Failed to send message to contact id="%s" on backend "%s"' % (_id, backend.name))

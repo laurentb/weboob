@@ -41,7 +41,7 @@ class Boobank(ConsoleApplication):
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
         try:
-            for backend, account in self.weboob.do('iter_accounts'):
+            for backend, account in self.do('iter_accounts'):
                 self.format(account, backend.name)
         except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
@@ -59,7 +59,7 @@ class Boobank(ConsoleApplication):
             return backend.iter_operations(account)
 
         try:
-            for backend, operation in self.weboob.do(do):
+            for backend, operation in self.do(do):
                 self.format(operation, backend.name)
                 total += operation.amount
         except weboob.core.CallErrors, errors:

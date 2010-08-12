@@ -40,7 +40,7 @@ class Weboorrents(ConsoleApplication):
         _id, backend_name = self.parse_id(id)
 
         found = 0
-        for backend, torrent in self.weboob.do('get_torrent', _id, backends=backend_name):
+        for backend, torrent in self.do('get_torrent', _id, backends=backend_name):
             if torrent:
                 self.format(torrent, backend.name)
                 found = 1
@@ -52,7 +52,7 @@ class Weboorrents(ConsoleApplication):
     def command_getfile(self, id, dest):
         _id, backend_name = self.parse_id(id)
 
-        for backend, buf in self.weboob.do('get_torrent_file', _id, backends=backend_name):
+        for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
             if buf:
                 if dest == '-':
                     print buf
@@ -66,5 +66,5 @@ class Weboorrents(ConsoleApplication):
     @ConsoleApplication.command('Search torrents')
     def command_search(self, pattern=None):
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
-        for backend, torrent in self.weboob.do('iter_torrents', pattern=pattern):
+        for backend, torrent in self.do('iter_torrents', pattern=pattern):
             self.format(torrent, backend.name)

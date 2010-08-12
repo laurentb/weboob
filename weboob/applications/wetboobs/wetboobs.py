@@ -38,13 +38,13 @@ class WetBoobs(ConsoleApplication):
 
     @ConsoleApplication.command('search cities')
     def command_search(self, pattern):
-        for backend, city in self.weboob.do('iter_city_search', pattern):
+        for backend, city in self.do('iter_city_search', pattern):
             self.format(city, backend.name)
 
     @ConsoleApplication.command('get current weather')
     def command_current(self, city):
         try:
-            for backend, current in self.weboob.do('get_current', city):
+            for backend, current in self.do('get_current', city):
                 self.format(current, backend.name)
         except CallErrors, e:
             for error in e:
@@ -56,7 +56,7 @@ class WetBoobs(ConsoleApplication):
     @ConsoleApplication.command('get forecasts')
     def command_forecasts(self, city):
         try:
-            for backend, forecast in self.weboob.do('iter_forecast', city):
+            for backend, forecast in self.do('iter_forecast', city):
                 self.format(forecast, backend.name)
         except CallErrors, e:
             for error in e:
