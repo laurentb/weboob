@@ -94,7 +94,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:
                 try:
-                    video = self.browser.get_video(YoutubeVideo.id2url(video.id), video)
+                    video = self.browser.get_video(video.id, video)
                 except ForbiddenVideo, e:
                     raise ObjectNotAvailable(e)
         if 'thumbnail' in fields:
