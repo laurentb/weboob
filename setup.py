@@ -106,6 +106,5 @@ setup(
         ],
 )
 
-
-if options.xdg:
+if sys.argv[1] in ('install', 'develop') and options.xdg:
     install_xdg()
