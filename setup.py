@@ -22,22 +22,37 @@ from __future__ import with_statement
 from setuptools import find_packages, setup
 
 import glob
+from optparse import OptionParser
 import os
 import subprocess
 import sys
 
 
-with open('/dev/null', 'w') as devnull:
-    process = subprocess.Popen(['which', 'pyuic4'], stdout=devnull)
-    return_code = process.wait()
-if return_code != 0:
-    print 'pyuic4 is not installed on your system'
-    sys.exit(1)
+option_parser = OptionParser()
+option_parser.add_option('--xdg', action='store_true', default=True, help='Install desktop files and icons')
+option_parser.add_option('--no-xdg', action='store_false', dest='xdg', help='Don\'t install desktop files and icons')
+option_parser.add_option('--gui', action='store_true', default=True, help='Install GUI applications')
+option_parser.add_option('--no-gui', action='store_false', dest='gui', help='Don\'t install GUI applications')
+options, sys.argv = option_parser.parse_args(sys.argv)
 
-os.system('make -C weboob/applications/qboobmsg/ui')
-os.system('make -C weboob/applications/qhavesex/ui')
-os.system('make -C weboob/applications/qvideoob/ui')
-os.system('make -C weboob/tools/application/qt')
+gui_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
+scripts = os.listdir('scripts')
+
+if options.gui:
+    with open('/dev/null', 'w') as devnull:
+        process = subprocess.Popen(['which', 'pyuic4'], stdout=devnull)
+        return_code = process.wait()
+    if return_code == 0:
+        os.system('make -C weboob/applications/qboobmsg/ui')
+        os.system('make -C weboob/applications/qhavesex/ui')
+        os.system('make -C weboob/applications/qvideoob/ui')
+        os.system('make -C weboob/tools/application/qt')
+        scripts
+    else:
+        print 'pyuic4 is not installed on your system'
+        sys.exit(1)
+else:
+    scripts = set(scripts) - set(gui_scripts)
 
 setup(
     name='weboob',
@@ -50,7 +65,7 @@ setup(
     license='GPLv3',
     url='http://www.weboob.org',
     packages=find_packages(),
-    scripts=[os.path.join('scripts', script) for script in os.listdir('scripts')],
+    scripts=[os.path.join('scripts', script) for script in scripts],
     install_requires=[
         # 'ClientForm', # python-clientform
         # 'elementtidy', # python-elementtidy
@@ -80,4 +95,5 @@ def install_xdg():
         print 'Installing icon %s' % filepath
         os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
 
-install_xdg()
+if options.xdg:
+    install_xdg()
