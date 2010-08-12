@@ -18,7 +18,7 @@
 
 from datetime import time
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['Departure', 'ICapTravel', 'Station']
@@ -45,18 +45,23 @@ class ICapTravel(IBaseCap):
         raise NotImplementedError()
 
 
-class Station(object):
-    def __init__(self, _id, name):
-        self.id = _id
+class Station(CapBaseObject):
+    FIELDS = ('name',)
+
+    def __init__(self, id, name):
+        CapBaseObject.__init__(self, id)
         self.name = name
 
     def __repr__(self):
         return "<Station id='%s' name='%s'>" % (self.id, self.name)
 
 
-class Departure(object):
-    def __init__(self, _id, _type, _time):
-        self.id = _id
+class Departure(CapBaseObject):
+    FIELDS = ('type', 'time', 'departure_station', 'arrival_station', 'late', 'information', 'plateform')
+
+    def __init__(self, id, _type, _time):
+        CapBaseObject.__init__(self, id)
+
         self.type = _type
         self.time = _time
         self.departure_station = u''

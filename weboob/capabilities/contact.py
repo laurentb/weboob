@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -50,14 +50,16 @@ class ContactPhoto(object):
     def __repr__(self):
         return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.name, len(self.data), len(self.thumbnail_data))
 
-class Contact(object):
+class Contact(CapBaseObject):
+    FIELDS = ('name', 'status', 'status_msg', 'summary', 'avatar', 'photos', 'profile')
+
     STATUS_ONLINE =  0x001
     STATUS_AWAY =    0x002
     STATUS_OFFLINE = 0x004
     STATUS_ALL =     0xfff
 
     def __init__(self, id, name, status):
-        self.id = id
+        CapBaseObject.__init__(self, id)
         self.name = name
         self.status = status
         self.status_msg = u''
@@ -73,17 +75,6 @@ class Contact(object):
         photo = self.photos[name]
         for key, value in kwargs.iteritems():
             setattr(photo, key, value)
-
-    def iter_fields(self):
-        return {'id': self.id,
-                'name': self.name,
-                'status': self.status,
-                'status_msg': self.status_msg,
-                'summary': self.summary,
-                'avatar': self.avatar,
-                'photos': self.photos,
-                'profile': self.profile,
-               }.iteritems()
 
 class ICapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):

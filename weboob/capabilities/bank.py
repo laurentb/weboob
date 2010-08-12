@@ -21,7 +21,7 @@ if sys.version_info[:2] <= (2, 5):
     from weboob.tools.property import property
 
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['Account', 'AccountNotFound', 'ICapBank', 'Operation']
@@ -31,9 +31,10 @@ class AccountNotFound(Exception):
     pass
 
 
-class Account(object):
+class Account(CapBaseObject):
+    FIELDS = ('label', 'balance', 'coming')
     def __init__(self):
-        self.id = 0
+        CapBaseObject.__init__(self, 0)
         self.label = ''
         self._balance = 0.0
         self._coming = 0.0
@@ -59,8 +60,10 @@ class Account(object):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
 
 
-class Operation(object):
+class Operation(CapBaseObject):
+    FIELDS = ('date', 'label', 'amount')
     def __init__(self):
+        CapBaseObject(self, 0)
         self.date = None
         self._label = u''
         self._amount = 0.0

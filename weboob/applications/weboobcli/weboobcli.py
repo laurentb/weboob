@@ -47,6 +47,6 @@ class WeboobCli(ConsoleApplication):
             self.load_backends(cap_s)
 
         for backend, obj in self.do(cmd, *args):
-            self.format(obj, backend.name)
+            self.format(obj)
 
         return 0

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010  Christophe Benz, Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['IBaseCap', 'NotLoaded', 'LoadingError']
+from weboob.tools.misc import iter_fields
+
+__all__ = ['IBaseCap', 'NotLoaded', 'LoadingError', 'CapBaseObject']
 
 
 class NotLoadedMeta(type):
@@ -45,3 +47,20 @@ class LoadingError(object):
 
 class IBaseCap(object):
     pass
+
+class CapBaseObject(object):
+    FIELDS = None
+
+    def __init__(self, id, backend=None):
+        self.id = id
+        self.backend = backend
+
+    def iter_fields(self):
+        if self.FIELDS is None:
+            for key, value in iter_fields(self):
+                if key != 'backend':
+                    yield key, value
+        else:
+            yield 'id', self.id
+            for attrstr in self.FIELDS:
+                yield attrstr, getattr(self, attrstr)

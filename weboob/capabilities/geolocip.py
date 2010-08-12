@@ -16,13 +16,16 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .cap import ICap
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ('IpLocation', 'ICapGeolocIp')
 
-class IpLocation(object):
+class IpLocation(CapBaseObject):
+    FIELDS = ('city', 'region', 'zipcode', 'country', 'lt', 'lg', 'host', 'tls', 'isp')
     def __init__(self, ipaddr):
+        CapBaseObject.__init__(self, ipaddr)
+
         self.ipaddr = ipaddr
         self.city = None
         self.region = None
@@ -34,6 +37,6 @@ class IpLocation(object):
         self.tld = None
         self.isp = None
 
-class ICapGeolocIp(ICap):
+class ICapGeolocIp(IBaseCap):
     def get_location(self, ipaddr):
         raise NotImplementedError()

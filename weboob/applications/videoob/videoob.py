@@ -45,7 +45,7 @@ class Videoob(ConsoleApplication):
         for backend, video in self.do('get_video', _id):
             if video is None:
                 continue
-            self.format(video, backend.name)
+            self.format(video)
 
     @ConsoleApplication.command('Search for videos')
     def command_search(self, pattern=None):
@@ -53,4 +53,4 @@ class Videoob(ConsoleApplication):
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw,
                                       max_results=self.options.count):
-            self.format(video, backend.name)
+            self.format(video)

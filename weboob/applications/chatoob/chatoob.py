@@ -47,12 +47,12 @@ class Chatoob(ConsoleApplication):
     @ConsoleApplication.command('list online contacts')
     def command_list(self):
         for backend, contact in self.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
-            self.format(contact, backend.name)
+            self.format(contact)
 
     @ConsoleApplication.command('get messages')
     def command_messages(self):
         for backend, message in self.do('iter_chat_messages'):
-            self.format(message, backend.name)
+            self.format(message)
 
     @ConsoleApplication.command('send message to contact')
     def command_send(self, _id, message):

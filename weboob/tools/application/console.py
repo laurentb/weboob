@@ -241,10 +241,9 @@ class ConsoleApplication(BaseApplication):
     def set_formatter_header(self, string):
         self.formatter.set_header(string)
 
-    def format(self, result, backend_name=None):
+    def format(self, result):
         try:
-            self.formatter.format(obj=result, backend_name=backend_name,
-                                  selected_fields=self.selected_fields, condition=self.condition)
+            self.formatter.format(obj=result, selected_fields=self.selected_fields, condition=self.condition)
         except FieldNotFound, e:
             logging.error(e)
         except ResultsConditionException, e:

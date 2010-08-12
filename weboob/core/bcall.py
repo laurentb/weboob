@@ -22,6 +22,8 @@ from copy import copy
 import logging
 from logging import debug
 from threading import Thread, Event, RLock, Timer
+
+from weboob.capabilities.base import CapBaseObject
 from weboob.tools.misc import get_backtrace
 
 
@@ -80,6 +82,8 @@ class BackendsCall(object):
 
     def _store_result(self, backend, result):
         with self.mutex:
+            if isinstance(result, CapBaseObject):
+                result.backend = backend.name
             self.responses.append((backend, result))
             self.response_event.set()
 

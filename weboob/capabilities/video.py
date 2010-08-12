@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap, LoadingError, NotLoaded
+from .base import IBaseCap, LoadingError, NotLoaded, CapBaseObject
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
@@ -37,7 +37,9 @@ class VideoThumbnail(object):
         return self.data is not NotLoaded
 
 
-class BaseVideo(object):
+class BaseVideo(CapBaseObject):
+    FIELDS = ('title', 'url', 'author', 'duration', 'date', 'rating', 'rating_max', 'thumbnail', 'nsfw')
+
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         self.id = unicode(_id)

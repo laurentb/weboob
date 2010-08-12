@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from weboob.capabilities.base import CapBaseObject
 from weboob.tools.misc import iter_fields
 from weboob.tools.ordereddict import OrderedDict
 
@@ -43,7 +44,7 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, backend_name=None, selected_fields=None, condition=None):
+    def format(self, obj, selected_fields=None, condition=None):
         """
         Format an object to be human-readable.
         An object has fields which can be selected, and the objects
@@ -52,15 +53,17 @@ class IFormatter(object):
         call it. It can be used to specify the fields order.
 
         @param obj  [object] object to format
-        @param backend_name  [str] name of backend, used to create object ID
         @param selected_fields  [tuple] fields to display. If None, all fields are selected
         @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """
+        assert isinstance(obj, (dict, CapBaseObject))
+
         if isinstance(obj, dict):
             item = obj
         else:
-            item = self.to_dict(obj, backend_name, condition, selected_fields)
+            item = self.to_dict(obj, condition, selected_fields)
+
         if item is None:
             return None
         formatted = self.format_dict(item=item)
@@ -82,33 +85,25 @@ class IFormatter(object):
     def set_header(self, string):
         raise NotImplementedError()
 
-    def to_dict(self, obj, backend_name=None, condition=None, selected_fields=None):
+    def to_dict(self, obj, condition=None, selected_fields=None):
         def iter_select_and_decorate(d):
-            if hasattr(obj, '__id__'):
-                id_attr = getattr(obj, '__id__')
-                if not isinstance(id_attr, (set, list, tuple)):
-                    id_attr = (id_attr,)
-                id_fields = id_attr
-            else:
-                id_fields = ('id',)
             if selected_fields is None or '*' in selected_fields:
-                for k, v in d:
-                    if k in id_fields and backend_name is not None:
-                        v = self.build_id(v, backend_name)
-                    yield k, v
+                fields = d.iterkeys()
             else:
-                d = dict(d)
-                for selected_field in selected_fields:
-                    v = d[selected_field]
-                    if selected_field in id_fields and backend_name is not None:
-                        v = self.build_id(v, backend_name)
-                    try:
-                        yield selected_field, v
-                    except KeyError:
-                        raise FieldNotFound(selected_field)
+                fields = selected_fields
 
-        fields_iterator = obj.iter_fields() if hasattr(obj, 'iter_fields') else iter_fields(obj)
-        d = dict(fields_iterator)
+            for key in fields:
+                try:
+                    value = d[key]
+                except KeyError:
+                    raise FieldNotFound(key)
+
+                if key == 'id' and obj.backend is not None:
+                    value = self.build_id(value, obj.backend)
+                yield key, value
+
+        fields_iterator = obj.iter_fields()
+        d = OrderedDict(fields_iterator)
         if condition is not None and not condition.is_valid(d):
             return None
-        return OrderedDict([(k, v) for k, v in iter_select_and_decorate(d.iteritems())])
+        return OrderedDict([(k, v) for k, v in iter_select_and_decorate(d)])

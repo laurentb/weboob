@@ -42,7 +42,7 @@ class Weboorrents(ConsoleApplication):
         found = 0
         for backend, torrent in self.do('get_torrent', _id, backends=backend_name):
             if torrent:
-                self.format(torrent, backend.name)
+                self.format(torrent)
                 found = 1
 
         if not found:
@@ -67,4 +67,4 @@ class Weboorrents(ConsoleApplication):
     def command_search(self, pattern=None):
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
-            self.format(torrent, backend.name)
+            self.format(torrent)

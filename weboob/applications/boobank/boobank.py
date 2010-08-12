@@ -35,14 +35,14 @@ class Boobank(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_configured_backends(ICapBank)
         return self.process_command(*argv[1:])
 
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
+        self.load_configured_backends(ICapBank)
         try:
             for backend, account in self.do('iter_accounts'):
-                self.format(account, backend.name)
+                self.format(account)
         except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
@@ -52,19 +52,13 @@ class Boobank(ConsoleApplication):
 
     @ConsoleApplication.command('Display all future operations')
     def command_coming(self, id):
-        total = 0.0
+        id, backend_name = self.parse_id(id)
+        names = (backend_name,) if backend_name is not None else None
+        self.load_configured_backends(ICapBank, names=names)
 
         def do(backend):
             account = backend.get_account(id)
             return backend.iter_operations(account)
 
-        try:
-            for backend, operation in self.do(do):
-                self.format(operation, backend.name)
-                total += operation.amount
-        except weboob.core.CallErrors, errors:
-            for backend, error, backtrace in errors:
-                if isinstance(error, AccountNotFound):
-                    logging.error(u'Error: account %s not found' % id)
-                else:
-                    logging.error(u'Error[%s]: %s\n%s' % (backend.name, error, backtrace))
+        for backend, operation in self.do(do):
+            self.format(operation)

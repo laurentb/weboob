@@ -16,15 +16,19 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject, NotLoaded
 
 
 __all__ = ['ICapTorrent', 'Torrent']
 
 
-class Torrent(object):
-    def __init__(self, id, name, date=None, size=0.0, url=u'', seeders=0, leechers=0, files=[], description=u''):
-        self.id = id
+class Torrent(CapBaseObject):
+    FIELDS = ('name', 'size', 'date', 'url', 'seeders', 'leechers', 'files', 'description')
+
+    def __init__(self, id, name, date=NotLoaded, size=NotLoaded, url=NotLoaded,
+                       seeders=NotLoaded, leechers=NotLoaded, files=NotLoaded,
+                       description=NotLoaded):
+        CapBaseObject.__init__(self, id)
         self.name = name
         self.date = date
         self.size = size

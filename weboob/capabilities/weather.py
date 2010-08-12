@@ -16,14 +16,15 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['City', 'CityNotFound', 'Current', 'Forecast', 'ICapWeather']
 
 
-class Forecast(object):
+class Forecast(CapBaseObject):
     def __init__(self, date, low, high, text, unit):
+        CapBaseObject.__init__(self, date)
         self.date = date
         self.low = low
         self.high = high
@@ -31,17 +32,18 @@ class Forecast(object):
         self.unit = unit
 
 
-class Current(object):
+class Current(CapBaseObject):
     def __init__(self, date, temp, text, unit):
+        CapBaseObject.__init__(self, date)
         self.date = date
         self.temp = temp
         self.text = text
         self.unit = unit
 
 
-class City(object):
-    def __init__(self, city_id, name):
-        self.city_id = city_id
+class City(CapBaseObject):
+    def __init__(self, id, name):
+        self.id = id
         self.name = name
 
 

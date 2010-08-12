@@ -18,7 +18,7 @@
 
 import datetime
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['ChatException', 'ICapChat']
@@ -28,8 +28,11 @@ class ChatException(Exception):
     pass
 
 
-class ChatMessage(object):
-     def __init__(self, id_from, id_to, message, date=None):
+class ChatMessage(CapBaseObject):
+    FIELDS = ('id_from', 'id_to', 'date', 'message')
+
+    def __init__(self, id_from, id_to, message, date=None):
+        CapBaseObject.__init__(self, '%s.%s' % (id_from, id_to))
         self.id_from = id_from
         self.id_to = id_to
         self.message = message

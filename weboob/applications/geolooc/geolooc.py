@@ -37,6 +37,6 @@ class Geolooc(ConsoleApplication):
 
         self.load_configured_backends(ICapGeolocIp)
         for backend, location in self.do('get_location', argv[1]):
-            self.format(location, backend.name)
+            self.format(location)
 
         return 0
