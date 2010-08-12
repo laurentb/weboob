@@ -18,7 +18,20 @@
 
 from weboob.tools.misc import iter_fields
 
-__all__ = ['IBaseCap', 'NotLoaded', 'LoadingError', 'CapBaseObject']
+
+__all__ = ['IBaseCap', 'NotAvailable', 'NotLoaded', 'CapBaseObject']
+
+
+class NotAvailableMeta(type):
+    def __str__(self):
+        return unicode(self).decode('utf-8')
+
+    def __unicode__(self):
+        return u'Not available'
+
+
+class NotAvailable(object):
+    __metaclass__ = NotAvailableMeta
 
 
 class NotLoadedMeta(type):
@@ -31,18 +44,6 @@ class NotLoadedMeta(type):
 
 class NotLoaded(object):
     __metaclass__ = NotLoadedMeta
-
-
-class LoadingErrorMeta(type):
-    def __str__(self):
-        return unicode(self).decode('utf-8')
-
-    def __unicode__(self):
-        return u'Loading error'
-
-
-class LoadingError(object):
-    __metaclass__ = LoadingErrorMeta
 
 
 class IBaseCap(object):

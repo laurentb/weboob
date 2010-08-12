@@ -21,6 +21,7 @@ import logging
 import optparse
 from optparse import OptionGroup, OptionParser
 
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
@@ -203,6 +204,9 @@ class BaseApplication(object):
                 backend.fillobj(obj, fields)
             except ObjectNotAvailable, e:
                 logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
+                for field in set(fields) - set('*'):
+                    if getattr(obj, field) is NotLoaded:
+                        setattr(obj, field, NotAvailable)
         return obj
 
     def _complete_iter(self, backend, count, fields, res):
