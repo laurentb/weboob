@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap, LoadingError, NotLoaded, CapBaseObject
+from .base import IBaseCap, NotLoaded, CapBaseObject
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
