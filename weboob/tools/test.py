@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from unittest import TestCase
+from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
 
 
 __all__ = ['TestCase', 'BackendTest']
-
 
 class BackendTest(TestCase):
     BACKEND = None
@@ -28,8 +28,16 @@ class BackendTest(TestCase):
     def __init__(self, *args, **kwargs):
         TestCase.__init__(self, *args, **kwargs)
 
+        self.backend = None
         self.weboob = Weboob()
-        if not self.weboob.load_configured_backends(modules=[self.BACKEND]):
-            return None
 
-        self.backend = self.weboob.backend_instances.values()[0]
+        if self.weboob.load_configured_backends(modules=[self.BACKEND]):
+            self.backend = self.weboob.backend_instances.values()[0]
+
+    def run(self, result):
+        if not self.backend:
+            result.startTest(self)
+            result.stopTest(self)
+            raise SkipTest()
+
+        return TestCase.run(self, result)
