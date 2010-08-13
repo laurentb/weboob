@@ -35,7 +35,13 @@ class ArteBackend(BaseBackend, ICapVideo):
     VERSION = '0.2'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'
+    CONFIG = {'lang':     BaseBackend.ConfigField(default='fr', description='Lang of videos', choices=['fr', 'de', 'en']),
+              'quality':  BaseBackend.ConfigField(default='hd', description='Quality of video', choices=['hd', 'sd']),
+             }
     BROWSER = ArteBrowser
+
+    def create_default_browser(self):
+        return self.create_browser(lang=self.config['lang'], quality=self.config['quality'])
 
     def get_video(self, _id):
         with self.browser:
