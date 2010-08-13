@@ -29,6 +29,9 @@ class NotAvailableMeta(type):
     def __unicode__(self):
         return u'Not available'
 
+    def __nonzero__(self):
+        return False
+
 
 class NotAvailable(object):
     __metaclass__ = NotAvailableMeta
@@ -40,6 +43,9 @@ class NotLoadedMeta(type):
 
     def __unicode__(self):
         return u'Not loaded'
+
+    def __nonzero__(self):
+        return False
 
 
 class NotLoaded(object):
