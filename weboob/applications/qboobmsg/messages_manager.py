@@ -82,7 +82,7 @@ class MessagesManager(QWidget):
             self.process = None
             return
 
-        item = QTreeWidgetItem(None, [time.strftime('%Y-%m-%d %H:%M:%S', message.get_date().timetuple()),
+        item = QTreeWidgetItem(None, [time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple()),
                                                       message.sender, message.title])
         item.setData(0, Qt.UserRole, message)
 
@@ -99,7 +99,7 @@ class MessagesManager(QWidget):
         for i in xrange(root.childCount()):
             sub = root.child(i)
             sub_message = sub.data(0, Qt.UserRole).toPyObject()
-            if sub_message.thread_id == message.thread_id and sub_message.reply_id == message.id:
+            if sub_message.thread_id == message.thread_id and sub_message.parent_message_id == message.message_id:
                 # do not remove it now because childCount() would change.
                 to_remove.append(sub)
 
@@ -111,7 +111,7 @@ class MessagesManager(QWidget):
         top_message = top.data(0, Qt.UserRole).toPyObject()
         item_message = item.data(0, Qt.UserRole).toPyObject()
 
-        if top_message and top_message.thread_id == item_message.thread_id and top_message.id == item_message.reply_id:
+        if top_message and top_message.thread_id == item_message.thread_id and top_message.id == item_message.parent_message_id:
             # it's my parent
             top.addChild(item)
             return True

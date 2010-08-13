@@ -114,6 +114,9 @@ class Weboob(object):
             with backend:
                 backend.deinit()
 
+    def get_backend(self, name):
+        return self.backend_instances[name]
+
     def iter_backends(self, caps=None):
         """
         Iter on each backends.

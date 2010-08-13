@@ -42,11 +42,11 @@ class ThreadMessage(QFrame):
         self.ui = Ui_ThreadMessage()
         self.ui.setupUi(self)
 
-        self.date = message.get_date()
+        self.date = message.date
 
         self.ui.nameLabel.setText(message.sender)
-        self.ui.headerLabel.setText(time.strftime('%Y-%m-%d %H:%M:%S', message.get_date().timetuple()))
-        if message.is_html:
+        self.ui.headerLabel.setText(time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple()))
+        if message.flags & message.IS_HTML:
             content = message.content
         else:
             content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
@@ -128,7 +128,7 @@ class ContactProfile(QWidget):
         self.weboob = weboob
         self.contact = contact
 
-        if self.gotProfile(contact.backend, contact):
+        if self.gotProfile(self.weboob.get_backend(contact.backend), contact):
             self.process_contact = QtDo(self.weboob, self.gotProfile)
             self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
 
@@ -218,7 +218,6 @@ class MetaGroup(IGroup):
 
     def cb(self, cb, backend, contact):
         if contact:
-            contact.backend = backend
             cb(contact)
         elif not backend:
             self.process = None
@@ -290,7 +289,7 @@ class ContactsWidget(QWidget):
             status += u' — %s' % contact.status_msg
 
         item = QListWidgetItem()
-        item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend.name))
+        item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend))
         item.setData(Qt.UserRole, contact)
 
         process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
@@ -315,10 +314,12 @@ class ContactsWidget(QWidget):
         if not self.contact:
             return
 
+        backend = self.weboob.get_backend(self.contact.backend)
+
         self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
-        if self.contact.backend.has_caps(ICapMessages):
+        if backend.has_caps(ICapMessages):
             self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact), self.tr('Messages'))
-        if self.contact.backend.has_caps(ICapChat):
+        if backend.has_caps(ICapChat):
             self.ui.tabWidget.addTab(QWidget(), self.tr('Chat'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Notes'))
