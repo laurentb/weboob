@@ -17,3 +17,5 @@
 
 
 from .wetboobs import WetBoobs
+
+__all__ = ['WetBoobs']

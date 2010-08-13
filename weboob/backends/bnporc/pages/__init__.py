@@ -22,3 +22,6 @@ from .account_history import AccountHistory
 from .login import LoginPage, ConfirmPage
 
 class AccountPrelevement(AccountsList): pass
+
+__all__ = ['AccountsList', 'AccountComing', 'AccountHistory', 'LoginPage',
+           'ConfirmPage', 'AccountPrelevement']

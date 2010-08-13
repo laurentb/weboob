@@ -18,3 +18,5 @@
 
 
 from .geolooc import Geolooc
+
+__all__ = ['Geolooc']

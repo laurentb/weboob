@@ -18,3 +18,5 @@
 
 
 from .masstransit import Masstransit
+
+__all__ = ['Masstransit']

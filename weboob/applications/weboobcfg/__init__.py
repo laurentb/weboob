@@ -17,3 +17,5 @@
 
 
 from .weboobcfg import WeboobCfg
+
+__all__ = ['WeboobCfg']

@@ -17,3 +17,5 @@
 
 
 from .qweboobcfg import QWeboobCfg
+
+__all__ = ['QWeboobCfg']

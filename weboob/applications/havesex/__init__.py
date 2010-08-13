@@ -17,3 +17,5 @@
 
 
 from .havesex import HaveSex
+
+__all__ = ['HaveSex']

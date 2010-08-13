@@ -223,8 +223,8 @@ class BaseApplication(object):
         else:
             res = getattr(backend, function)(*args, **kwargs)
 
-        if self.selected_fields:
-            fields = self.selected_fields
+        if selected_fields:
+            fields = selected_fields
         else:
             fields = None
 

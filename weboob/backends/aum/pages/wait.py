@@ -30,7 +30,7 @@ class WaitPage(PageBase):
         return result == 'Ok'
 
     def process_wait(self):
-        while not self.check(self):
+        while not self.check():
             sleep(10)
 
         self.browser.location('/home.php')

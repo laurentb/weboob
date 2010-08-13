@@ -17,3 +17,5 @@
 
 
 from .webkitgtk import WebkitGtkFormatter
+
+__all__ = ['WebkitGtkFormatter']

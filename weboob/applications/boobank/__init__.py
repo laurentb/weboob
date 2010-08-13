@@ -17,3 +17,5 @@
 
 
 from .boobank import Boobank
+
+__all__ = ['Boobank']

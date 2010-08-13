@@ -18,3 +18,5 @@
 
 from .accounts_list import AccountsList
 from .login import LoginPage
+
+__all__ = ['AccountsList', 'LoginPage']

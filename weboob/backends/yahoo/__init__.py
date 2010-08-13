@@ -17,3 +17,5 @@
 
 
 from .backend import YahooBackend
+
+__all__ = ['YahooBackend']

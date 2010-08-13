@@ -17,3 +17,5 @@
 
 
 from .weboobcli import WeboobCli
+
+__all__ = ['WeboobCli']

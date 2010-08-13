@@ -16,4 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.tools.browser.browser import *
+from weboob.tools.browser.browser import BrowserIncorrectPassword, BrowserBanned, \
+                                         BrowserUnavailable, BrowserRetry, \
+                                         BrowserHTTPError, BasePage, BaseBrowser
+
+
+__all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
+           'BrowserHTTPError', 'BasePage', 'BaseBrowser']

@@ -83,12 +83,12 @@ class Article(object):
                     if a.text: self.title += a.text
                     if a.tail: self.title += a.tail
                 self.title = self.title.strip()
-                subdivs = div.findall('a')
-                if len(subdivs) > 1:
-                    date_s = unicode(subdivs[1].text)
-                else:
-                    date_s = unicode(div.find('i').tail)
-                #print date_s
+                # TODO use the date_s
+                #subdivs = div.findall('a')
+                #if len(subdivs) > 1:
+                #    date_s = unicode(subdivs[1].text)
+                #else:
+                #    date_s = unicode(div.find('i').tail)
             if div.attrib.get('class', '').startswith('bodydiv '):
                 self.body = self.browser.parser.tostring(div)
 

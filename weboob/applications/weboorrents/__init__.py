@@ -17,3 +17,5 @@
 
 
 from .weboorrents import Weboorrents
+
+__all__ = ['Weboorrents']

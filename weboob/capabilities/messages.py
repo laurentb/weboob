@@ -19,7 +19,7 @@
 import datetime
 import time
 
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']

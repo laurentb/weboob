@@ -17,3 +17,5 @@
 
 
 from .videoob_web import VideoobWeb
+
+__all__ = ['VideoobWeb']
