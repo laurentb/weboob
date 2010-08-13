@@ -35,8 +35,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     VERSION = '0.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
-    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
-              'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
+    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website', regexp='.+'),
+              'password':      BaseBackend.ConfigField(description='Password of account', regexp='.+', is_masked=True),
               'get_news':      BaseBackend.ConfigField(default=True, description='Get newspapers'),
               'get_telegrams': BaseBackend.ConfigField(default=False, description='Get telegrams'),
              }

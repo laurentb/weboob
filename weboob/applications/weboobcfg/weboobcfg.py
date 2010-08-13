@@ -72,6 +72,7 @@ class WeboobCfg(ConsoleApplication):
                 params[key] = self.ask(' [%s] %s' % (key, value.description),
                                        default=value.default,
                                        masked=value.is_masked,
+                                       choices=value.choices,
                                        regexp=value.regexp)
             else:
                 print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
@@ -104,9 +105,10 @@ class WeboobCfg(ConsoleApplication):
     def command_listconfigured(self):
         self.set_default_formatter('table')
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
+            backend = self.weboob.backends_loader.get_or_load_backend(name)
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend name', name),
-                               ('Configuration', ', '.join('%s=%s' % (key, value) for key, value in params.iteritems())),
+                               ('Configuration', ', '.join('%s=%s' % (key, ('*****' if backend.config[key].is_masked else value)) for key, value in params.iteritems())),
                                ])
             self.format(row)
 

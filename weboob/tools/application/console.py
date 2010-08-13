@@ -116,7 +116,7 @@ class ConsoleApplication(BaseApplication):
     def _get_completions(self):
         return set(name for name, arguments, doc_string in self._commands)
 
-    def ask(self, question, default=None, masked=False, regexp=None):
+    def ask(self, question, default=None, masked=False, regexp=None, choices=None):
         """
         Ask a question to user.
 
@@ -127,19 +127,39 @@ class ConsoleApplication(BaseApplication):
         @return  entered text by user (str)
         """
 
+        is_bool = False
+
+        if choices:
+            question = u'%s (%s)' % (question,
+                                     '/'.join([s for s in (choices.iterkeys() if isinstance(choices, dict)
+                                                                              else choices)]))
         if default is not None:
-            question = u'%s [%s]' % (question, default)
-        hidden_msg = u'(input chars are hidden) ' if masked else ''
-        question = u'%s%s: ' % (hidden_msg, question)
+            if isinstance(default, bool):
+                question = u'%s (%s/%s)' % (question, 'Y' if default else 'y',
+                                                      'n' if default else 'N')
+                choices = ('y', 'n', 'Y', 'N')
+                default = 'y' if default else 'n'
+                is_bool = True
+            else:
+                question = u'%s [%s]' % (question, default)
+
+        if masked:
+            question = u'(input chars are hidden) %s' % question
+
+        question += ': '
 
         correct = False
         while not correct:
             line = getpass.getpass(question) if masked else raw_input(question)
             if not line and default is not None:
                 line = default
-            correct = not regexp or re.match(regexp, unicode(line))
+            correct = (not regexp or re.match(regexp, unicode(line))) and \
+                      (not choices or unicode(line) in [unicode(s) for s in (choices.iterkeys() if isinstance(choices, dict) else choices)])
 
-        return line
+        if is_bool:
+            return line.lower() == 'y'
+        else:
+            return line
 
     def process_command(self, command=None, *args):
         if command is None:
