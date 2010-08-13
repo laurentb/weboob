@@ -213,7 +213,7 @@ class BaseApplication(object):
         for i, sub in enumerate(res):
             if count and i == count:
                 break
-            sub = self._complete_obj(backend, sub, fields)
+            sub = self._complete_obj(backend, fields, sub)
             yield sub
 
     def complete(self, backend, count, selected_fields, function, *args, **kwargs):
