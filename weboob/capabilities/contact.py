@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, NotLoaded
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -62,11 +62,11 @@ class Contact(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.name = name
         self.status = status
-        self.status_msg = u''
-        self.summary = u''
-        self.avatar = None
+        self.status_msg = NotLoaded
+        self.summary = NotLoaded
+        self.avatar = NotLoaded
         self.photos = OrderedDict()
-        self.profile = None
+        self.profile = NotLoaded
 
     def set_photo(self, name, **kwargs):
         if not name in self.photos:
