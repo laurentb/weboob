@@ -93,6 +93,7 @@ class ContactItem:
                  'heure': 3600,
                  'jours': 24*3600,
                  'jour': 24*3600,
+                 'mois': 24*3600*30,
                 }
             try:
                 i = int(m.group(1)) * d[m.group(2)]
