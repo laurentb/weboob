@@ -17,7 +17,7 @@
 
 
 import re
-from logging import warning
+from logging import warning, debug
 
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
@@ -50,6 +50,9 @@ class TorrentsPage(BasePage):
             table = table[0]
             current_group = None
             for tr in table.findall('tr'):
+                if tr.attrib.get('class', '') == 'colhead':
+                    # ignore
+                    continue
                 if tr.attrib.get('class', '') == 'group':
                     tds = tr.findall('td')
                     current_group = u''
@@ -72,7 +75,9 @@ class TorrentsPage(BasePage):
                         i = 0
                     elif len(tds) in (8,9):
                         # An alone torrent
-                        i = len(tds) - 7
+                        i = len(tds) - 1
+                        while i >= 0 and tds[i].find('a') is None:
+                            i -= 1
                     else:
                         # Useless title
                         continue
@@ -87,8 +92,8 @@ class TorrentsPage(BasePage):
                         continue
                     id = id.group(1)
                     size = self.unit(*tds[i+3].text.split())
-                    seeders = int(tds[i+5].text)
-                    leechers = int(tds[i+6].text)
+                    seeders = int(tds[-2].text)
+                    leechers = int(tds[-1].text)
 
                     torrent = Torrent(id,
                                       title,
@@ -98,7 +103,7 @@ class TorrentsPage(BasePage):
                                       leechers=leechers)
                     yield torrent
                 else:
-                    print tr.attrib
+                    debug('unknown attrib: %s' % tr.attrib)
 
     def get_torrent(self, id):
         table = self.document.getroot().cssselect('div.thin')
