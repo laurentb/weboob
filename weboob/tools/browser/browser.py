@@ -314,6 +314,9 @@ class BaseBrowser(mechanize.Browser):
             self.home()
             self.location(*keep_args, **keep_kwargs)
 
+    def get_document(self, result):
+        return self.parser.parse(result, self.ENCODING)
+
     def _change_location(self, result):
         """
         This function is called when we have moved to a page, to load a Page
@@ -346,7 +349,7 @@ class BaseBrowser(mechanize.Browser):
         debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
-        document = self.parser.parse(result, self.ENCODING)
+        document = self.get_document(result)
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict)
         self.page.on_loaded()
 
