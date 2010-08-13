@@ -18,6 +18,7 @@
 from unittest import TestCase
 from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
+from random import choice
 
 
 __all__ = ['TestCase', 'BackendTest']
@@ -32,7 +33,7 @@ class BackendTest(TestCase):
         self.weboob = Weboob()
 
         if self.weboob.load_configured_backends(modules=[self.BACKEND]):
-            self.backend = self.weboob.backend_instances.values()[0]
+            self.backend = choice(self.weboob.backend_instances.values())
 
     def run(self, result):
         if not self.backend:
