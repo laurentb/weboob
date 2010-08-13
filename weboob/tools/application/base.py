@@ -196,7 +196,7 @@ class BaseApplication(object):
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version
 
-    def _complete_obj(self, backend, obj, fields):
+    def _complete_obj(self, backend, fields, obj):
         if fields:
             if '*' in fields:
                 fields = [k for k, v in iter_fields(obj)]
