@@ -26,6 +26,7 @@ from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.base import NotLoaded
 
 from .ui.contacts_ui import Ui_Contacts
 from .ui.contact_thread_ui import Ui_ContactThread
@@ -45,7 +46,12 @@ class ThreadMessage(QFrame):
         self.date = message.date
 
         self.ui.nameLabel.setText(message.sender)
-        self.ui.headerLabel.setText(time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple()))
+        header = time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple())
+        if message.flags & message.IS_UNREAD:
+            header += u' — <font color=#ff0000>Unread</font>'
+        else:
+            header += u' — <font color=#00ff00>Read</font>'
+        self.ui.headerLabel.setText(header)
         if message.flags & message.IS_HTML:
             content = message.content
         else:
@@ -149,7 +155,7 @@ class ContactProfile(QWidget):
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
-        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % (contact.summary.replace('\n', '<br />') or '<i>Receiving...</i>'))
+        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % ('<i>Receiving...</i>' if contact.summary is NotLoaded else contact.summary.replace('\n', '<br />')))
 
         if not contact.profile:
             return True
