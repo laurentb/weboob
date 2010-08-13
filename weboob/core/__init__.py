@@ -17,3 +17,6 @@
 
 
 from .bcall import CallErrors
+from .ouiboube import Weboob
+
+__all__ = ['CallErrors', 'Weboob']

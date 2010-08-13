@@ -15,4 +15,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from .weboobtests import WeboobTests
+from unittest import TestCase
+from weboob.core import Weboob
+
+
+__all__ = ['TestCase', 'BackendTest']
+
+
+class BackendTest(TestCase):
+    BACKEND = None
+
+    def __init__(self, *args, **kwargs):
+        TestCase.__init__(self, *args, **kwargs)
+
+        self.weboob = Weboob()
+        if not self.weboob.load_configured_backends(modules=[self.BACKEND]):
+            return None
+
+        self.backend = self.weboob.backend_instances.values()[0]

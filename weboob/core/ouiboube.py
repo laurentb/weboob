@@ -82,13 +82,15 @@ class Weboob(object):
             self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
         return loaded
 
-    def load_configured_backends(self, caps=None, names=None, storage=None):
+    def load_configured_backends(self, caps=None, names=None, modules=None, storage=None):
         loaded = {}
         if storage is None:
             storage = self.storage
 
         for instance_name, backend_name, params in self.backends_config.iter_backends():
-            if '_enabled' in params and not params['_enabled']:
+            if '_enabled' in params and not params['_enabled'] or \
+               names is not None and instance_name not in names or \
+               modules is not None and backend_name not in modules:
                 continue
             backend = self.backends_loader.get_or_load_backend(backend_name)
             if backend is None:
@@ -96,8 +98,7 @@ class Weboob(object):
                         'configuration file, but was not found. '
                         'Hint: is it installed?' % backend_name)
                 continue
-            if caps is not None and not backend.has_caps(caps) or \
-               names is not None and instance_name not in names:
+            if caps is not None and not backend.has_caps(caps):
                 continue
             backend_instance = backend.create_instance(self, instance_name, params, storage)
             self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
