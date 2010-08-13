@@ -174,7 +174,7 @@ class Monboob(ConsoleApplication):
                                              0,
                                              title='Unable to send message',
                                              sender='Monboob',
-                                             reply_id=msg_id,
+                                             parent_message_id=msg_id,
                                              content=content))
 
     @ConsoleApplication.command("run daemon")
@@ -191,34 +191,34 @@ class Monboob(ConsoleApplication):
         recipient = self.config.get('recipient')
 
         reply_id = ''
-        if mail.get_reply_id():
-            reply_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_reply_id(), domain)
-        subject = mail.get_title()
-        sender = u'"%s" <%s@%s>' % (mail.get_from().replace('"', '""'), backend.name, domain)
+        if mail.parent_id:
+            reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent_id, domain)
+        subject = mail.title
+        sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""'), backend.name, domain)
 
-        # assume that get_date() returns an UTC datetime
-        date = formatdate(time.mktime(utc2local(mail.get_date()).timetuple()), localtime=True)
-        msg_id = u'<%s.%s@%s>' % (backend.name, mail.get_full_id(), domain)
+        # assume that .date is an UTC datetime
+        date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
+        msg_id = u'<%s.%s@%s>' % (backend.name, mail.id, domain)
 
-        if int(self.config.get('html')) and mail.is_html:
-            body = mail.get_content()
+        if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+            body = mail.content
             content_type = 'html'
         else:
-            if mail.is_html:
-                body = html2text(mail.get_content())
+            if mail.flags & mail.IS_HTML:
+                body = html2text(mail.content)
             else:
-                body = mail.get_content()
+                body = mail.content
             content_type = 'plain'
 
-        if mail.get_signature():
-            if int(self.config.get('html')) and mail.is_html:
-                body += u'<p>-- <br />%s</p>' % mail.get_signature()
+        if mail.signature:
+            if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+                body += u'<p>-- <br />%s</p>' % mail.signature
             else:
                 body += u'\n\n-- \n'
-                if mail.is_html:
-                    body += html2text(mail.get_signature())
+                if mail.flags & mail.IS_HTML:
+                    body += html2text(mail.signature)
                 else:
-                    body += mail.get_signature()
+                    body += mail.signature
 
         # Header class is smart enough to try US-ASCII, then the charset we
         # provide, then fall back to UTF-8.

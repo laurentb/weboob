@@ -75,30 +75,27 @@ class FourChanBackend(BaseBackend, ICapMessages):
     def _iter_thread_messages(self, board, thread, only_new):
         thread = self.browser.get_thread(board, thread)
 
+        flags = Message.IS_HTML
         if thread.id in self.storage.get('boards', board, default={}):
             self.storage.set('boards', board, thread.id, [])
-            new = True
-        else:
-            new = False
+            flags |= Message.IS_NEW
 
-        if not only_new or new:
+        if not only_new or flags & Message.IS_NEW:
             yield Message('%s.%s' % (board, thread.id),
                           0,
                           thread.filename,
                           thread.author,
                           thread.datetime,
                           content=thread.text,
-                          is_html=True,
-                          is_new=new)
+                          flags=flags)
 
         for comment in thread.comments:
+            flags = Message.IS_HTML
             if not comment.id in self.storage.get('boards', board, thread.id, default=[]):
                 self.storage.set('boards', board, thread.id, self.storage.get('boards', board, thread.id, default=[]) + [comment.id])
-                new = True
-            else:
-                new = False
+                flags |= Message.IS_NEW
 
-            if not only_new or new:
+            if not only_new or flags & Message.IS_NEW:
                 yield Message('%s.%s' % (board, thread.id),
                               comment.id,
                               thread.filename,
@@ -106,8 +103,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
                               comment.datetime,
                               0,
                               comment.text,
-                              is_html=True,
-                              is_new=new)
+                              flags)
 
         self.storage.save()
 

@@ -19,18 +19,24 @@
 import datetime
 import time
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject, NotLoaded
 
 
 __all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']
 
 
-class Message(object):
-    def __init__(self, thread_id, _id, title, sender, date=None, reply_id=u'',
-                 content=u'', signature=u'', is_html=False, is_new=False):
+class Message(CapBaseObject):
+    IS_HTML = 0x001
+    IS_NEW  = 0x002
+    IS_UNREAD = 0x004
+
+    def __init__(self, thread_id, message_id, title, sender, date=None, parent_message_id=u'',
+                 content=u'', signature=u'', flags=0):
+        CapBaseObject.__init__(self, '%s.%s' % (thread_id, message_id))
+
         self.thread_id = unicode(thread_id)
-        self.id = unicode(_id)
-        self.reply_id = unicode(reply_id)
+        self.message_id = unicode(message_id)
+        self.parent_message_id = unicode(parent_message_id)
         self.title = unicode(title)
         self.sender = unicode(sender)
         self.signature = unicode(signature)
@@ -39,48 +45,24 @@ class Message(object):
         if date is None:
             date = datetime.datetime.utcnow()
         self.date = date
-        self.is_new = is_new
-        self.is_html = is_html
+        self.flags = flags
 
-    def get_date_int(self):
-        return int(time.strftime('%Y%m%d%H%M%S', self.get_date().timetuple()))
+    @property
+    def date_int(self):
+        return int(time.strftime('%Y%m%d%H%M%S', self.date.timetuple()))
 
-    def get_full_id(self):
-        return '%s.%s' % (self.thread_id, self.id)
-
-    def get_full_reply_id(self):
-        return '%s.%s' % (self.thread_id, self.reply_id)
-
-    def get_id(self):
-        return self.id
-
-    def get_thread_id(self):
-        return self.thread_id
-
-    def get_reply_id(self):
-        return self.reply_id
-
-    def get_title(self):
-        return self.title
-
-    def get_date(self):
-        return self.date
-
-    def get_from(self):
-        return self.sender
-
-    def get_content(self):
-        return self.content
-
-    def get_signature(self):
-        return self.signature
+    @property
+    def parent_id(self):
+        if not self.parent_message_id:
+            return ''
+        return '%s.%s' % (self.thread_id, self.parent_message_id)
 
     def __eq__(self, msg):
-        return self.id == msg.id and self.thread_id == msg.thread_id
+        return self.id == msg.id
 
     def __repr__(self):
-        result = '<Message id="%s.%s" title="%s" date="%s" from="%s">' % (
-            self.thread_id, self.id, self.title, self.date, self.sender)
+        result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
+            self.id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
 class ICapMessages(IBaseCap):

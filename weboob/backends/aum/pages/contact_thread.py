@@ -91,9 +91,9 @@ class MailParser(Message):
                10: '(L)',
               }
 
-    def __init__(self, id, name, tr):
+    def __init__(self, thread_id, name, tr):
         #             <td>             <table>  implicit<tbody>  <tr>
-        Message.__init__(self, id, 0, 'Discussion with %s' % name, name)
+        Message.__init__(self, thread_id, 0, 'Discussion with %s' % name, name)
         self.tr = tr.childNodes[0].childNodes[1].childNodes[0].childNodes[0]
 
         tds = self.tr.childNodes
@@ -131,8 +131,8 @@ class MailParser(Message):
         self.parse_profile_link()
         self.parse_from()
 
-    def set_reply_id(self, date):
-        self.reply_id = date
+    def set_parent_message_id(self, date):
+        self.parent_message_id = date
 
     def parse_date(self, date_str):
         # To match regexp, we have to remove any return chars in string
@@ -153,10 +153,11 @@ class MailParser(Message):
             d = d.astimezone(tz.tzutc())
             # and get timestamp
             self.date = d
-            self.id = self.get_date_int()
+            self.message_id = self.date_int
+            self.id = '%s.%s' % (self.thread_id, self.message_id)
 
             if m.group(7).find('nouveau') >= 0:
-                self.is_new = True
+                self.flags |= self.IS_UNREAD
         else:
             error('Error: unable to parse the datetime string "%s"' % date_str)
 
@@ -176,7 +177,7 @@ class MailParser(Message):
                     self.signature = u'Profile: http://www.adopteunmec.com%s' % self.profile_link
                     return
 
-        warning('Unable to find the profile URL in the message %s@%s' % (self.get_from(), self.get_id()))
+        warning('Unable to find the profile URL in the message %s@%s' % (self.sender, self.id))
 
     def parse_from(self):
         tds = self.tr.getElementsByTagName('div')
@@ -190,7 +191,7 @@ class MailParser(Message):
 
             return
 
-        warning('Warning: unable to find from in the mail %s' % self.get_id())
+        warning('Warning: unable to find from in the mail %s' % self.id)
 
 class ContactThreadPage(PageBase):
 
@@ -274,7 +275,7 @@ class ContactThreadPage(PageBase):
     id_regexp = re.compile("/thread.php\?id=([0-9]+)")
 
     def on_loaded(self):
-        self.items = []
+        self.mails = []
 
         a_list = self.document.getElementsByTagName('a')
         self.id = 0
@@ -313,12 +314,6 @@ class ContactThreadPage(PageBase):
 
             mail = MailParser(self.id, self.name, tag)
 
-            if self.items:
-                self.items[-1].set_reply_id(mail.get_date_int())
-            self.items += [mail]
-
-    def get_id(self):
-        return self.id
-
-    def get_mails(self):
-        return self.items
+            if self.mails:
+                self.mails[-1].set_parent_message_id(mail.date_int)
+            self.mails += [mail]

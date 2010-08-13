@@ -132,7 +132,6 @@ class BaseBackend(object):
                 elif isinstance(field.default, float) and not isinstance(value, float):
                     value = float(value)
 
-            print value, field.choices
             if field.choices:
                 if (isinstance(field.choices, (tuple,list)) and not value in field.choices) or \
                    (isinstance(field.choices, dict) and not value in field.choices.iterkeys()):

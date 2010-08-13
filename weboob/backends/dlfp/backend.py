@@ -69,12 +69,12 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
             if thread_wanted and thread_wanted != article.id:
                 continue
 
+            flags = Message.IS_HTML
             if not article.id in self.storage.get('seen', what, default={}):
                 seen[article.id] = {'comments': []}
-                new = True
+                flags |= Message.IS_NEW
             else:
                 seen[article.id] = self.storage.get('seen', what, article.id, default={})
-                new = False
 
             try:
                 with self.browser:
@@ -82,7 +82,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
             except BrowserUnavailable:
                 continue
 
-            if not only_new or new:
+            if not only_new or flags & Message.IS_NEW:
                 yield Message(thread.id,
                               0,
                               thread.title,
@@ -90,16 +90,15 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                               article.datetime,
                               content=''.join([thread.body, thread.part2]),
                               signature='URL: %s' % article.url,
-                              is_html=True,
-                              is_new=new)
+                              flags=flags)
 
             for comment in thread.iter_all_comments():
+                flags = Message.IS_HTML
                 if not comment.id in seen[article.id]['comments']:
                     seen[article.id]['comments'].append(comment.id)
-                    new = True
-                else:
-                    new = False
-                if not only_new or new:
+                    flags |= Message.IS_NEW
+
+                if not only_new or flags & Message.IS_NEW:
                     yield Message(thread.id,
                                   comment.id,
                                   comment.title,
@@ -108,8 +107,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
                                   comment.reply_id,
                                   comment.body,
                                   'Score: %d' % comment.score,
-                                  is_html=True,
-                                  is_new=new)
+                                  flags)
+
         # If there is no articles seen, it's suspicious, probably I can't
         # fetch the feed.
         if seen:

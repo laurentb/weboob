@@ -105,8 +105,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                 if thread:
                     slut = self._get_slut(int(thread))
                     for mail in self._iter_thread_messages(thread, only_new, slut['lastmsg'], {}):
-                        if slut['lastmsg'] < mail.get_date():
-                            slut['lastmsg'] = mail.get_date()
+                        if slut['lastmsg'] < mail.date:
+                            slut['lastmsg'] = mail.date
                         yield mail
 
                     self.storage.set('sluts', int(thread), slut)
@@ -122,8 +122,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
                             continue
 
                         for mail in self._iter_thread_messages(contact.get_id(), only_new, last_msg, profiles):
-                            if last_msg < mail.get_date():
-                                last_msg = mail.get_date()
+                            if last_msg < mail.date:
+                                last_msg = mail.date
 
                             yield mail
 
@@ -153,7 +153,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesReply, ICapDating, ICapC
     def _iter_thread_messages(self, id, only_new, last_msg, profiles):
         mails = self.browser.get_thread_mails(id)
         for mail in mails:
-            if only_new and mail.get_date() <= last_msg:
+            if only_new and mail.date <= last_msg:
                 continue
 
             if not mail.profile_link in profiles:
