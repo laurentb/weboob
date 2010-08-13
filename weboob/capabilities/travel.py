@@ -53,7 +53,7 @@ class Station(CapBaseObject):
         self.name = name
 
     def __repr__(self):
-        return "<Station id='%s' name='%s'>" % (self.id, self.name)
+        return "<Station id=%r name=%r>" % (self.id, self.name)
 
 
 class Departure(CapBaseObject):
@@ -71,5 +71,5 @@ class Departure(CapBaseObject):
         self.plateform = u''
 
     def __repr__(self):
-        return "<Departure id='%s' type='%s' time='%s' departure='%s' arrival='%s'>" % (
+        return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)

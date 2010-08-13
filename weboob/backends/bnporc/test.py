@@ -25,5 +25,5 @@ class BNPorcTest(BackendTest):
         l = [a for a in self.backend.iter_accounts()]
         if len(l) > 0:
             a = l[0]
-            o = self.backend.iter_operations(a)
-            h = self.backend.iter_history(a)
+            self.backend.iter_operations(a)
+            self.backend.iter_history(a)

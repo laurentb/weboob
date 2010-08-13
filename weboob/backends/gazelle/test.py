@@ -23,4 +23,4 @@ class GazelleTest(BackendTest):
     def test_torrent(self):
         l = [torrent for torrent in self.backend.iter_torrents('sex')]
         if len(l) > 0:
-            f = self.backend.get_torrent_file(l[0].id)
+            self.backend.get_torrent_file(l[0].id)
