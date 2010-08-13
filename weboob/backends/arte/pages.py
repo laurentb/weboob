@@ -17,6 +17,7 @@
 
 
 import re
+import urllib
 
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select
@@ -53,7 +54,32 @@ class IndexPage(BasePage):
                             thumbnail_url=thumbnail_url)
 
 class VideoPage(BasePage):
-    VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
-
-    def get_video(self, video=None):
+    def get_video(self, video=None, lang='fr', quality='hd'):
+        if not video:
+            video = ArteVideo(self.group_dict['id'])
+        video.title = self.get_title()
+        video.url = self.get_url(lang, quality)
         return video
+
+    def get_title(self):
+        return self.document.getroot().cssselect('h2')[0].text
+
+    def get_url(self, lang, quality):
+        obj = select(self.document.getroot(), 'object', 1)
+        movie_url = select(obj, 'param[name=movie]', 1)
+        xml_url = urllib.unquote(movie_url.attrib['value'].split('videorefFileUrl=')[-1])
+
+        doc = self.browser.get_document(self.browser.openurl(xml_url))
+        videos_list = select(doc.getroot(), 'video')
+        videos = {}
+        for v in videos_list:
+            videos[v.attrib['lang']] = v.attrib['ref']
+
+        if lang in videos:
+            xml_url = videos[lang]
+        else:
+            xml_url = videos.popitem()[1]
+
+        doc = self.browser.get_document(self.browser.openurl(xml_url))
+        video_url = select(doc.getroot(), 'url[quality=%s]' % quality, 1).text
+        return video_url

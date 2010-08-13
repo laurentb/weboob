@@ -31,7 +31,7 @@ class ArteBrowser(BaseBrowser):
     ENCODING = None
     PAGES = {r'http://videos.arte.tv/fr/videos/arte7.*': IndexPage,
              r'http://videos.arte.tv/fr/do_search/videos/recherche.*': IndexPage,
-             r'http://videos.arte.tv/fr/videos/.*\.html': VideoPage
+             r'http://videos.arte.tv/fr/videos/(?P<id>.+)\.html': VideoPage
             }
 
     @id2url(ArteVideo.id2url)
