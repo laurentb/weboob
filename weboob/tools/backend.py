@@ -87,11 +87,12 @@ class BaseBackend(object):
     OBJECTS = {}
 
     class ConfigField(object):
-        def __init__(self, default=None, is_masked=False, regexp=None, description=None):
+        def __init__(self, default=None, is_masked=False, regexp=None, description=None, choices=None):
             self.default = default
             self.is_masked = is_masked
             self.regexp = regexp
             self.description = description
+            self.choices=None
 
     class ConfigError(Exception): pass
 
@@ -130,6 +131,13 @@ class BaseBackend(object):
                     value = int(value)
                 elif isinstance(field.default, float) and not isinstance(value, float):
                     value = float(value)
+
+            if field.choices:
+                if (isinstance(field.choices, (tuple,list)) and not value in field.choices) or \
+                   (isinstance(field.choices, dict) and not value in field.choices.iterkeys()):
+                    raise BaseBackend.ConfigError('Value of "%s" might be in this list: %s' %
+                                                  ', '.join([s for s in (field.choices.iterkeys() if isinstance(field.choices, dict)
+                                                                                                  else field.choices)]))
             self.config[name] = value
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
