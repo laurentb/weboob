@@ -38,6 +38,13 @@ class BackendCfg(QDialog):
         self.caps = caps
         self.config_widgets = {}
 
+        # This attribute is set when itemChanged it called, because when
+        # a backend is enabled/disabled, we don't want to display its config
+        # frame, and the itemClicked event is always emit just after a
+        # itemChanged event.
+        # is_enabling is a counter to prevent race conditions.
+        self.is_enabling = 0
+
         self.weboob.backends_loader.load_all()
 
         self.ui.configuredBackendsList.header().setResizeMode(QHeaderView.ResizeToContents)
@@ -83,6 +90,8 @@ class BackendCfg(QDialog):
             self.ui.configuredBackendsList.addTopLevelItem(item)
 
     def configuredBackendEnabled(self, item, col):
+        self.is_enabling += 1
+
         instname = unicode(item.text(0))
         bname = unicode(item.text(1))
         if item.checkState(0) == Qt.Checked:
@@ -99,6 +108,10 @@ class BackendCfg(QDialog):
         self.weboob.backends_config.edit_backend(instname, bname, {'_enabled': enabled})
 
     def configuredBackendClicked(self, item, col):
+        if self.is_enabling:
+            self.is_enabling -= 1
+            return
+
         bname = unicode(item.text(0))
 
         self.editBackend(bname)
