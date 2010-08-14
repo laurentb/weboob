@@ -17,7 +17,7 @@
 
 from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QLineEdit, QCheckBox, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
-                        QListWidgetItem, QTextDocument
+                        QListWidgetItem, QTextDocument, QComboBox
 from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
 import re
@@ -56,6 +56,7 @@ class BackendCfg(QDialog):
         self.loadConfiguredBackendsList()
 
         self.connect(self.ui.configuredBackendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self.configuredBackendClicked)
+        self.connect(self.ui.configuredBackendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'), self.configuredBackendEnabled)
         self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self.backendSelectionChanged)
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
@@ -73,12 +74,29 @@ class BackendCfg(QDialog):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
+            item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true') else Qt.Unchecked)
 
             if backend.icon_path:
                 img = QImage(backend.icon_path)
                 item.setIcon(0, QIcon(QPixmap.fromImage(img)))
 
             self.ui.configuredBackendsList.addTopLevelItem(item)
+
+    def configuredBackendEnabled(self, item, col):
+        instname = unicode(item.text(0))
+        bname = unicode(item.text(1))
+        if item.checkState(0) == Qt.Checked:
+            self.to_load.add(instname)
+            enabled = '1'
+        else:
+            self.to_unload.add(instname)
+            try:
+                self.to_load.remove(instname)
+            except KeyError:
+                pass
+            enabled = '0'
+
+        self.weboob.backends_config.edit_backend(instname, bname, {'_enabled': enabled})
 
     def configuredBackendClicked(self, item, col):
         bname = unicode(item.text(0))
@@ -103,6 +121,10 @@ class BackendCfg(QDialog):
 
         self.weboob.backends_config.remove_backend(bname)
         self.to_unload.add(bname)
+        try:
+            self.to_load.remove(bname)
+        except KeyError:
+            pass
         self.ui.configFrame.hide()
         self.loadConfiguredBackendsList()
 
@@ -114,7 +136,7 @@ class BackendCfg(QDialog):
 
             items = self.ui.backendsList.findItems(mname, Qt.MatchFixedString)
             if not items:
-                print 'Backend not found'
+                warning('Backend not found')
             else:
                 self.ui.backendsList.setCurrentItem(items[0])
                 self.ui.backendsList.setEnabled(False)
@@ -128,12 +150,19 @@ class BackendCfg(QDialog):
                 self.ui.proxyBox.setChecked(False)
                 self.ui.proxyEdit.clear()
 
+            params.pop('_enabled', None)
+
             for key, value in params.iteritems():
                 l, widget = self.config_widgets[key]
                 if isinstance(widget, QLineEdit):
                     widget.setText(unicode(value))
                 elif isinstance(widget, QCheckBox):
                     widget.setChecked(value.lower() in ('1', 'true', 'yes', 'on'))
+                elif isinstance(widget, QComboBox):
+                    for i in xrange(widget.count()):
+                        if unicode(widget.itemData(i).toString()) == value:
+                            widget.setCurrentIndex(i)
+                            break
                 else:
                     warning('Unknown type field "%s": %s', key, widget)
         else:
@@ -173,6 +202,8 @@ class BackendCfg(QDialog):
                 params[key] = unicode(value.text())
             elif isinstance(value, QCheckBox):
                 params[key] = '1' if value.isChecked() else '0'
+            elif isinstance(value, QComboBox):
+                params[key] = unicode(value.itemData(value.currentIndex()).toString())
             else:
                 warning('Unknown type field "%s": %s', key, value)
 
@@ -208,7 +239,9 @@ class BackendCfg(QDialog):
             value.hide()
             self.ui.configLayout.removeWidget(label)
             self.ui.configLayout.removeWidget(value)
-        self.config_widgets.clear()
+            label.deleteLater()
+            value.deleteLater()
+        self.config_widgets = {}
         self.ui.backendInfo.clear()
 
         selection = self.ui.backendsList.selectedItems()
@@ -242,6 +275,10 @@ class BackendCfg(QDialog):
                 value = QCheckBox()
                 if field.default:
                     value.setChecked(True)
+            elif field.choices:
+                value = QComboBox()
+                for k, l in (field.choices.iteritems() if isinstance(field.choices, dict) else ((k,k) for k in field.choices)):
+                    value.addItem(l, QVariant(k))
             else:
                 value = QLineEdit()
                 if field.default is not None:
