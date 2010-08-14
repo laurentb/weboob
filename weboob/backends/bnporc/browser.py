@@ -26,7 +26,7 @@ class BNPorc(BaseBrowser):
     ENCODING = None # refer to the HTML encoding
     PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
              '.*SAF_ROP.*':                                 pages.AccountHistory,
-             '.*NS_AVEEC.*':                                pages.AccountComing,
+             '.*NS_AVEET.*':                                pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
              '.*type=homeconnex.*':                         pages.LoginPage,
@@ -82,5 +82,5 @@ class BNPorc(BaseBrowser):
 
     def get_coming_operations(self, account):
         if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
-            self.location('/NS_AVEEC?ch4=%s' % account.link_id)
+            self.location('/NS_AVEET?ch4=%s' % account.link_id)
         return self.page.get_operations()
