@@ -100,6 +100,11 @@ class Weboob(object):
                 continue
             if caps is not None and not backend.has_caps(caps):
                 continue
+
+            if instance_name in self.backend_instances:
+                warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
+                self.unload_backends(instance_name)
+
             backend_instance = backend.create_instance(self, instance_name, params, storage)
             self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
         return loaded
