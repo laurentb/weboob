@@ -33,7 +33,7 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     LICENSE = 'GPLv3'
     CONFIG = {'username': BaseBackend.ConfigField(description='Username on website'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'protocol': BaseBackend.ConfigField(description='Protocol to use ("http" or "https")', regexp='^(http|https)$'),
+              'protocol': BaseBackend.ConfigField(description='Protocol to use', choices=('http', 'https')),
               'domain': BaseBackend.ConfigField(description='Domain (example "ssl.what.cd")'),
              }
     BROWSER = GazelleBrowser
