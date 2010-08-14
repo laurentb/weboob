@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from ConfigParser import SafeConfigParser
+from ConfigParser import RawConfigParser
 import logging
 from logging import debug, error, exception, warning
 import os
@@ -112,10 +112,10 @@ class BackendsConfig(object):
                     u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
 
     def iter_backends(self):
-        config = SafeConfigParser()
+        config = RawConfigParser()
         config.read(self.confpath)
         for instance_name in config.sections():
-            params = dict(config.items(instance_name, raw=True))
+            params = dict(config.items(instance_name))
             try:
                 backend_name = params.pop('_backend')
             except KeyError:
@@ -131,7 +131,7 @@ class BackendsConfig(object):
     def add_backend(self, instance_name, backend_name, params, edit=False):
         if not instance_name:
             raise ValueError(u'Please give a name to the configured backend.')
-        config = SafeConfigParser()
+        config = RawConfigParser()
         config.read(self.confpath)
         if not edit:
             config.add_section(instance_name)
@@ -145,12 +145,12 @@ class BackendsConfig(object):
         return self.add_backend(instance_name, backend_name, params, True)
 
     def get_backend(self, instance_name):
-        config = SafeConfigParser()
+        config = RawConfigParser()
         config.read(self.confpath)
         if not config.has_section(instance_name):
             raise KeyError(u'Configured backend "%s" not found' % instance_name)
 
-        items = dict(config.items(instance_name, raw=True))
+        items = dict(config.items(instance_name))
 
         try:
             backend_name = items.pop('_backend')
@@ -164,7 +164,7 @@ class BackendsConfig(object):
         return backend_name, items
 
     def remove_backend(self, instance_name):
-        config = SafeConfigParser()
+        config = RawConfigParser()
         config.read(self.confpath)
         config.remove_section(instance_name)
         with open(self.confpath, 'w') as f:
