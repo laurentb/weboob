@@ -22,6 +22,7 @@ from logging import warning, debug
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
 from weboob.capabilities.torrent import Torrent
+from weboob.capabilities.base import NotLoaded
 
 
 __all__ = ['TorrentsPage']
@@ -168,7 +169,9 @@ class TorrentsPage(BasePage):
                 body = html2text(self.browser.parser.tostring(body_t[0]))
 
             if title and body:
-                torrent.description += '%s\n\n%s\n' % (title, body)
+                if torrent.description is NotLoaded:
+                    torrent.description = u''
+                torrent.description += u'%s\n\n%s\n' % (title, body)
 
         div = self.document.getroot().cssselect('div#files_%s' % torrent.id)
         if div:
