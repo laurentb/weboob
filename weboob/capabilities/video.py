@@ -22,7 +22,7 @@ from .base import IBaseCap, NotLoaded, CapBaseObject
 __all__ = ['BaseVideo', 'ICapVideo']
 
 
-class VideoThumbnail(object):
+class VideoThumbnail(CapBaseObject):
     def __init__(self, url):
         self.url = url.replace(' ', '%20')
         self.data = NotLoaded

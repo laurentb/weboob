@@ -21,7 +21,7 @@ import os
 from threading import RLock
 from logging import debug
 
-from weboob.capabilities.base import IBaseCap, NotLoaded
+from weboob.capabilities.base import IBaseCap, NotLoaded, CapBaseObject
 
 
 __all__ = ['BaseBackend', 'ObjectNotAvailable']
@@ -193,6 +193,9 @@ class BaseBackend(object):
         return False
 
     def fillobj(self, obj, fields):
+        def not_loaded(v):
+            return (v is NotLoaded or isinstance(value, CapBaseObject) and not value.__iscomplete__())
+
         missing_fields = []
         for field in fields:
             if not hasattr(obj, field):
@@ -200,17 +203,12 @@ class BaseBackend(object):
             value = getattr(obj, field)
 
             missing = False
-            if isinstance(value, dict):
-                for v in value.itervalues():
-                    if hasattr(v, '__iscomplete__') and not v.__iscomplete__():
+            if hasattr(value, '__iter__'):
+                for v in (value.itervalues() if isinstance(value, dict) else value):
+                    if not_loaded(v):
                         missing = True
                         break
-            elif isinstance(value, (list,tuple)):
-                for v in value:
-                    if hasattr(v, '__iscomplete__') and not v.__iscomplete__():
-                        missing = True
-                        break
-            elif value is NotLoaded or hasattr(value, '__iscomplete__') and not value.__iscomplete__():
+            elif not_loaded(value):
                 missing = True
 
             if missing:

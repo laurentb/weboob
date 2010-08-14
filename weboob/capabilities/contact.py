@@ -33,9 +33,10 @@ class ProfileNode(object):
         self.sufix = sufix
         self.flags = flags
 
-class ContactPhoto(object):
+class ContactPhoto(CapBaseObject):
     def __init__(self, name):
-        self.name = name
+        CapBaseObject.__init__(self, name)
+        self.name = name #useless, but keep compatibility
         self.url = u''
         self.data = ''
         self.thumbnail_url = u''

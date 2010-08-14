@@ -62,7 +62,30 @@ class CapBaseObject(object):
         self.id = id
         self.backend = backend
 
+    def __iscomplete__(self):
+        """
+        Return True if the object is completed.
+
+        It is usefull when the object is a field of an other object which is
+        going to be filled.
+
+        The default behavior is to iter on fields (with iter_fields) and if
+        a field is NotLoaded, return False.
+        """
+        for key, value in self.iter_fields():
+            if value is NotLoaded:
+                return False
+        return True
+
     def iter_fields(self):
+        """
+        Iterate on the FIELDS keys and values.
+
+        Can be overloaded to iterate on other things.
+
+        @return [iter(key,value)]  iterator on key, value
+        """
+
         if self.FIELDS is None:
             for key, value in iter_fields(self):
                 if key != 'backend':
