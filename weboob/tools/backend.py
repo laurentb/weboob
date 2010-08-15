@@ -22,6 +22,7 @@ from threading import RLock
 from logging import debug
 
 from weboob.capabilities.base import IBaseCap, NotLoaded, CapBaseObject
+from weboob.tools.misc import iter_fields
 
 
 __all__ = ['BaseBackend', 'ObjectNotAvailable']
@@ -197,9 +198,14 @@ class BaseBackend(object):
             return (v is NotLoaded or isinstance(value, CapBaseObject) and not value.__iscomplete__())
 
         missing_fields = []
+        if fields is None or '*' in fields:
+            if isinstance(obj, CapBaseObject):
+                fields = obj.iter_fields()
+            else:
+                fields = iter_fields(obj)
+
         for field in fields:
-            if not hasattr(obj, field):
-                continue
+            assert hasattr(obj, field), u'%r does not have field %s' % (obj, field)
             value = getattr(obj, field)
 
             missing = False
