@@ -284,7 +284,7 @@ class ConsoleApplication(BaseApplication):
             if caps is not None:
                 if not isinstance(caps, (list, tuple, set)):
                     caps = (caps,)
-                caps = [(cap if isinstance(cap, (str,unicode)) else cap.__name__) for cap in caps]
+                caps = [(cap if isinstance(cap, basestring) else cap.__name__) for cap in caps]
             weboobcfg.command_backends(*caps)
             logging.error(u'You can configure backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
             with open('/dev/null', 'w') as devnull:

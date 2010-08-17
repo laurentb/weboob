@@ -51,8 +51,8 @@ class Cragr(BaseBrowser):
         return self.page and self.page.is_logged() or self.is_logging
 
     def login(self):
-        assert isinstance(self.username, (str,unicode))
-        assert isinstance(self.password, (str,unicode))
+        assert isinstance(self.username, basestring)
+        assert isinstance(self.password, basestring)
 
         self.is_logging = True
         if not self.is_on_page(pages.LoginPage):

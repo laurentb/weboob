@@ -188,7 +188,7 @@ class BaseBackend(object):
 
     def has_caps(self, *caps):
         for c in caps:
-            if (isinstance(c, (unicode,str)) and c in [cap.__name__ for cap in self.iter_caps()]) or \
+            if (isinstance(c, basestring) and c in [cap.__name__ for cap in self.iter_caps()]) or \
                isinstance(self, c):
                 return True
         return False

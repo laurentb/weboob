@@ -42,8 +42,8 @@ class BNPorc(BaseBrowser):
         return not self.is_on_page(pages.LoginPage) or self.is_logging
 
     def login(self):
-        assert isinstance(self.username, (str,unicode))
-        assert isinstance(self.password, (str,unicode))
+        assert isinstance(self.username, basestring)
+        assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
         if not self.is_on_page(pages.LoginPage):

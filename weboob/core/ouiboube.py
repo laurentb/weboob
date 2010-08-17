@@ -110,7 +110,7 @@ class Weboob(object):
         return loaded
 
     def unload_backends(self, names=None):
-        if isinstance(names, (str,unicode)):
+        if isinstance(names, basestring):
             names = [names]
         elif names is None:
             names = self.backend_instances.keys()
@@ -159,12 +159,12 @@ class Weboob(object):
         if _backends:
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
-            elif isinstance(_backends, (str,unicode)) and _backends:
+            elif isinstance(_backends, basestring) and _backends:
                 backends = [self.backend_instances[_backends]]
             elif isinstance(_backends, (list,tuple)):
                 backends = []
                 for backend in _backends:
-                    if isinstance(backend, (str,unicode)):
+                    if isinstance(backend, basestring):
                         try:
                             backends.append(self.backend_instances[backend])
                         except ValueError:
