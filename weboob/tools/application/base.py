@@ -97,9 +97,24 @@ class BaseApplication(object):
         """
         return set()
 
-    def _handle_app_options(self):
+    def _handle_options(self):
         """
-        Overload this method in subclasses if you want to handle options defined in subclass constructor.
+        Overload this method in application type subclass
+        if you want to handle options defined in subclass constructor.
+        """
+        pass
+
+    def add_application_options(self, group):
+        """
+        Overload this method if your application needs extra options.
+
+        These options will be displayed in an option group.
+        """
+        pass
+
+    def handle_application_options(self):
+        """
+        Overload this method in your application if you want to handle options defined in add_application_options.
         """
         pass
 
@@ -173,12 +188,14 @@ class BaseApplication(object):
         self.config.load(self.CONFIG)
 
     def main(self, argv):
-        """ Main function """
+        """
+        Main method
+
+        Called by run
+        """
         raise NotImplementedError()
 
     def load_backends(self, caps=None, names=None, *args, **kwargs):
-        if names is None:
-            names = self.requested_backends
         loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
         if not loaded:
             logging.warning(u'No backend loaded')
@@ -195,13 +212,16 @@ class BaseApplication(object):
 
     def _complete_obj(self, backend, fields, obj):
         if fields:
-            if '*' in fields:
+            if fields == 'direct':
+                fields = None
+            elif fields == 'full':
                 fields = [k for k, v in iter_fields(obj)]
             try:
+                print fields
                 backend.fillobj(obj, fields)
             except ObjectNotAvailable, e:
                 logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
-                for field in set(fields) - set('*'):
+                for field in fields:
                     if getattr(obj, field) is NotLoaded:
                         setattr(obj, field, NotAvailable)
         return obj
@@ -213,7 +233,7 @@ class BaseApplication(object):
             sub = self._complete_obj(backend, fields, sub)
             yield sub
 
-    def complete(self, backend, count, selected_fields, function, *args, **kwargs):
+    def _complete(self, backend, count, selected_fields, function, *args, **kwargs):
         assert count is None or count > 0
         if callable(function):
             res = function(backend, *args, **kwargs)
@@ -235,10 +255,10 @@ class BaseApplication(object):
         """
         This static method can be called to run the application.
 
-        It creates the application object, handle options, setup logging, run
-        the main() method, and catch common exceptions.
+        It creates the application object, handles options, setups logging, calls
+        the main() method, and catches common exceptions.
 
-        You can't do anything after this call, as it *always* finish with
+        You can't do anything after this call, as it *always* finishes with
         a call to sys.exit().
 
         For example:
@@ -251,6 +271,8 @@ class BaseApplication(object):
         app = klass()
         app.options, args = app._parser.parse_args(args)
 
+        app.set_requested_backends(app.options.backends.split(',') if app.options.backends else None)
+
         if app.options.shell_completion:
             items = set()
             for option in app._parser.option_list:
@@ -261,7 +283,7 @@ class BaseApplication(object):
             sys.exit(0)
 
         if app.options.debug:
-            level=logging.DEBUG
+            level = logging.DEBUG
         elif app.options.verbose:
             level = logging.INFO
         elif app.options.quiet:
@@ -270,9 +292,9 @@ class BaseApplication(object):
             level = logging.WARNING
         log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        app.requested_backends = app.options.backends.split(',') if app.options.backends else None
 
-        app._handle_app_options()
+        app._handle_options()
+        app.handle_application_options()
 
         try:
             try:
@@ -285,3 +307,6 @@ class BaseApplication(object):
                 sys.exit(1)
         finally:
             app.deinit()
+
+    def set_requested_backends(self, requested_backends):
+        pass

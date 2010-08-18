@@ -146,12 +146,12 @@ class Weboob(object):
         """
         backends = self.backend_instances.values()
         _backends = kwargs.pop('backends', None)
-        if _backends:
+        if _backends is not None:
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
             elif isinstance(_backends, basestring) and _backends:
                 backends = [self.backend_instances[_backends]]
-            elif isinstance(_backends, (list,tuple)):
+            elif isinstance(_backends, (list, tuple, set)):
                 backends = []
                 for backend in _backends:
                     if isinstance(backend, basestring):

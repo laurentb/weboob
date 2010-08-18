@@ -23,23 +23,24 @@ import logging
 
 import weboob
 from weboob.capabilities.bank import ICapBank
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
 __all__ = ['Boobank']
 
 
-class Boobank(ConsoleApplication):
+class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '0.1'
-    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
 
-    def main(self, argv):
-        return self.process_command(*argv[1:])
-
-    @ConsoleApplication.command('List every available accounts')
-    def command_list(self):
+    def load_default_backends(self):
         self.load_backends(ICapBank)
+
+    def do_list(self, line):
+        """
+        List every available accounts.
+        """
         tot_balance = 0.0
         tot_coming = 0.0
         try:
@@ -54,13 +55,14 @@ class Boobank(ConsoleApplication):
                 else:
                     logging.error(u'Error[%s]: %s\n%s' % (backend.name, error, backtrace))
         else:
-            self.format((('id', ''),
-                         ('label', 'Total'),
+            self.format((('label', 'Total'),
                          ('balance', tot_balance),
                          ('coming', tot_coming)))
 
-    @ConsoleApplication.command('Display old operations')
-    def command_history(self, id):
+    def do_history(self, id):
+        """
+        Display old operations.
+        """
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapBank, names=names)
@@ -72,8 +74,10 @@ class Boobank(ConsoleApplication):
         for backend, operation in self.do(do):
             self.format(operation)
 
-    @ConsoleApplication.command('Display all future operations')
-    def command_coming(self, id):
+    def do_coming(self, id):
+        """
+        Display all future operations.
+        """
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapBank, names=names)
