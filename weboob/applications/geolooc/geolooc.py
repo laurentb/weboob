@@ -35,7 +35,7 @@ class Geolooc(ConsoleApplication):
             print >>sys.stderr, 'Syntax: %s ipaddr' % argv[0]
             return 1
 
-        self.load_configured_backends(ICapGeolocIp)
+        self.load_backends(ICapGeolocIp)
         for backend, location in self.do('get_location', argv[1]):
             self.format(location)
 

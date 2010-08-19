@@ -179,14 +179,6 @@ class BaseApplication(object):
             logging.warning(u'No backend loaded')
         return loaded
 
-    def load_configured_backends(self, caps=None, names=None, *args, **kwargs):
-        if names is None:
-            names = self.requested_backends
-        loaded = self.weboob.load_configured_backends(caps, names, *args, **kwargs)
-        if not loaded:
-            logging.warning(u'No configured backend loaded')
-        return loaded
-
     def _get_optparse_version(self):
         version = None
         if self.VERSION:

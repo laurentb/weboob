@@ -310,6 +310,6 @@ class BackendCfg(QDialog):
         ret = (len(self.to_load) > 0 or len(self.to_unload) > 0)
 
         self.weboob.unload_backends(self.to_unload)
-        self.weboob.load_configured_backends(names=self.to_load)
+        self.weboob.load_backends(names=self.to_load)
 
         return ret

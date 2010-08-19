@@ -29,9 +29,6 @@ class WeboobCli(ConsoleApplication):
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
-    def add_application_options(self, group):
-        group.add_option('-C', '--configured', action='store_true', help='load configured backends')
-
     def main(self, argv):
         if len(argv) < 3:
             print >>sys.stderr, "Syntax: %s capability command [args ..]" % argv[0]
@@ -41,10 +38,7 @@ class WeboobCli(ConsoleApplication):
         cmd = argv[2]
         args = argv[3:]
 
-        if self.options.configured:
-            self.load_configured_backends(cap_s)
-        else:
-            self.load_backends(cap_s)
+        self.load_backends(cap_s)
 
         for backend, obj in self.do(cmd, *args):
             self.format(obj)

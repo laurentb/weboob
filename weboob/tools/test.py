@@ -32,7 +32,7 @@ class BackendTest(TestCase):
         self.backend = None
         self.weboob = Weboob()
 
-        if self.weboob.load_configured_backends(modules=[self.BACKEND]):
+        if self.weboob.load_backends(modules=[self.BACKEND]):
             self.backend = choice(self.weboob.backend_instances.values())
 
     def run(self, result):

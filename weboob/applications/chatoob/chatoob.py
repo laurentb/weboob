@@ -32,7 +32,7 @@ class Chatoob(ConsoleApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
 
     def main(self, argv):
-        self.load_configured_backends(ICapChat)
+        self.load_backends(ICapChat)
         #for backend, result in self.do('start_chat_polling', self.on_new_chat_message):
             #logging.info(u'Polling chat messages for backend %s' % backend)
         return self.process_command(*argv[1:])

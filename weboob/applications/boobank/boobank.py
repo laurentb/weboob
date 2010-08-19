@@ -39,7 +39,7 @@ class Boobank(ConsoleApplication):
 
     @ConsoleApplication.command('List every available accounts')
     def command_list(self):
-        self.load_configured_backends(ICapBank)
+        self.load_backends(ICapBank)
         tot_balance = 0.0
         tot_coming = 0.0
         try:
@@ -63,7 +63,7 @@ class Boobank(ConsoleApplication):
     def command_history(self, id):
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
-        self.load_configured_backends(ICapBank, names=names)
+        self.load_backends(ICapBank, names=names)
 
         def do(backend):
             account = backend.get_account(id)
@@ -76,7 +76,7 @@ class Boobank(ConsoleApplication):
     def command_coming(self, id):
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
-        self.load_configured_backends(ICapBank, names=names)
+        self.load_backends(ICapBank, names=names)
 
         def do(backend):
             account = backend.get_account(id)

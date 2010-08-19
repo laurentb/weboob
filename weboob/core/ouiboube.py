@@ -68,21 +68,7 @@ class Weboob(object):
     def deinit(self):
         self.unload_backends()
 
-    def load_backends(self, caps=None, names=None, storage=None):
-        loaded = {}
-        if storage is None:
-            storage = self.storage
-
-        self.backends_loader.load_all()
-        for backend_name, backend in self.backends_loader.loaded.iteritems():
-            if caps is not None and not backend.has_caps(caps) or \
-               names is not None and backend_name not in names:
-                continue
-            backend_instance = backend.create_instance(self, backend_name, {}, storage)
-            self.backend_instances[backend_name] = loaded[backend_name] = backend_instance
-        return loaded
-
-    def load_configured_backends(self, caps=None, names=None, modules=None, storage=None):
+    def load_backends(self, caps=None, names=None, modules=None, storage=None):
         loaded = {}
         if storage is None:
             storage = self.storage

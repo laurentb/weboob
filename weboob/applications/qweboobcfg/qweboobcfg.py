@@ -27,7 +27,7 @@ class QWeboobCfg(QtApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
-        self.load_configured_backends()
+        self.load_backends()
 
         self.dlg = BackendCfg(self.weboob)
         self.dlg.show()
