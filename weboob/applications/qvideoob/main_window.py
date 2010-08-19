@@ -18,7 +18,9 @@
 
 from PyQt4.QtCore import SIGNAL
 
+from weboob.capabilities.video import ICapVideo
 from weboob.tools.application.qt import QtMainWindow, QtDo
+from weboob.tools.application.qt.backendcfg import BackendCfg
 
 from weboob.applications.qvideoob.ui.main_window_ui import Ui_MainWindow
 
@@ -35,11 +37,6 @@ class MainWindow(QtMainWindow):
         self.weboob = weboob
         self.minivideos = []
 
-        self.ui.backendEdit.addItem('All backends', '')
-        for i, backend in enumerate(self.weboob.iter_backends()):
-            self.ui.backendEdit.addItem(backend.name, backend.name)
-            if backend.name == self.config.get('settings', 'backend'):
-                self.ui.backendEdit.setCurrentIndex(i+1)
         self.ui.sortbyEdit.setCurrentIndex(int(self.config.get('settings', 'sortby')))
         self.ui.nsfwCheckBox.setChecked(int(self.config.get('settings', 'nsfw')))
         self.ui.sfwCheckBox.setChecked(int(self.config.get('settings', 'sfw')))
@@ -48,6 +45,23 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.urlEdit, SIGNAL("returnPressed()"), self.openURL)
         self.connect(self.ui.nsfwCheckBox, SIGNAL("stateChanged(int)"), self.nsfwChanged)
         self.connect(self.ui.sfwCheckBox, SIGNAL("stateChanged(int)"), self.sfwChanged)
+
+        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+
+        self.loadBackendsList()
+
+    def backendsConfig(self):
+        bckndcfg = BackendCfg(self.weboob, (ICapVideo,), self)
+        if bckndcfg.run():
+            self.loadBackendsList()
+
+    def loadBackendsList(self):
+        self.ui.backendEdit.clear()
+        self.ui.backendEdit.addItem('All backends', '')
+        for i, backend in enumerate(self.weboob.iter_backends()):
+            self.ui.backendEdit.addItem(backend.name, backend.name)
+            if backend.name == self.config.get('settings', 'backend'):
+                self.ui.backendEdit.setCurrentIndex(i+1)
 
     def nsfwChanged(self, state):
         self.config.set('settings', 'nsfw', int(self.ui.nsfwCheckBox.isChecked()))
