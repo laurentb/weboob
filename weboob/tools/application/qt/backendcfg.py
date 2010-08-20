@@ -280,7 +280,7 @@ class BackendCfg(QDialog):
                                       backend.version,
                                       backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
                                       backend.license,
-                                      ('<b>Website</b>: %s<br />' % backend.website) if backend.website else '',
+                                      (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
                                       backend.description,
                                       ', '.join([cap.__name__ for cap in backend.iter_caps()])))
 

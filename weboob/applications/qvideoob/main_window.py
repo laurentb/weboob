@@ -50,6 +50,9 @@ class MainWindow(QtMainWindow):
 
         self.loadBackendsList()
 
+        if self.ui.backendEdit.count() == 0:
+            self.backendsConfig()
+
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapVideo,), self)
         if bckndcfg.run():
@@ -57,11 +60,19 @@ class MainWindow(QtMainWindow):
 
     def loadBackendsList(self):
         self.ui.backendEdit.clear()
-        self.ui.backendEdit.addItem('All backends', '')
         for i, backend in enumerate(self.weboob.iter_backends()):
+            if i == 0:
+                self.ui.backendEdit.addItem('All backends', '')
             self.ui.backendEdit.addItem(backend.name, backend.name)
             if backend.name == self.config.get('settings', 'backend'):
                 self.ui.backendEdit.setCurrentIndex(i+1)
+
+        if self.ui.backendEdit.count() == 0:
+            self.ui.searchEdit.setEnabled(False)
+            self.ui.urlEdit.setEnabled(False)
+        else:
+            self.ui.searchEdit.setEnabled(True)
+            self.ui.urlEdit.setEnabled(True)
 
     def nsfwChanged(self, state):
         self.config.set('settings', 'nsfw', int(self.ui.nsfwCheckBox.isChecked()))

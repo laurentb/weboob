@@ -53,6 +53,9 @@ class MainWindow(QtMainWindow):
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Optimizations'))
 
+        if self.weboob.count_backends() == 0:
+            self.backendsConfig()
+
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapDating,), self)
         if bckndcfg.run():

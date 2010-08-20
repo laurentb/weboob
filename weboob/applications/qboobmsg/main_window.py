@@ -39,9 +39,13 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionRefresh, SIGNAL("triggered()"), self.refresh)
 
+        if self.weboob.count_backends() == 0:
+            self.backendsConfig()
+
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapMessages,), self)
-        bckndcfg.show()
+        if bckndcfg.run():
+            self.refresh()
 
     def refresh(self):
         self.centralWidget().refresh()
