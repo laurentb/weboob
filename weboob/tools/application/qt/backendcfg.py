@@ -272,6 +272,7 @@ class BackendCfg(QDialog):
                                    '<b>Version</b>: %s<br />'
                                    '<b>Maintainer</b>: %s<br />'
                                    '<b>License</b>: %s<br />'
+                                   '%s'
                                    '<b>Description</b>: %s<br />'
                                    '<b>Capabilities</b>: %s<br />'))
                                    % ('<img src="mydata://logo.png" />' if backend.icon_path else '',
@@ -279,6 +280,7 @@ class BackendCfg(QDialog):
                                       backend.version,
                                       backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
                                       backend.license,
+                                      ('<b>Website</b>: %s<br />' % backend.website) if backend.website else '',
                                       backend.description,
                                       ', '.join([cap.__name__ for cap in backend.iter_caps()])))
 

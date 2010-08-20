@@ -26,8 +26,6 @@ __all__ = ['GazelleBrowser']
 
 
 class GazelleBrowser(BaseBrowser):
-    DOMAIN = 'ssl.what.cd'
-    PROTOCOL = 'https'
     PAGES = {'https?://%s/?(index.php)?':  IndexPage,
              'https?://%s/login.php':      LoginPage,
              'https?://%s/torrents.php.*': TorrentsPage,
