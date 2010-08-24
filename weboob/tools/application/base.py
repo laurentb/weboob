@@ -77,7 +77,10 @@ class BaseApplication(object):
     # Default storage tree
     STORAGE = {}
     # Synopsis
-    SYNOPSIS = 'Usage: %prog [options (-h for help)] ...'
+    SYNOPSIS = 'Usage: %prog [-h] [-dqv] [-b backends] ...'
+    SYNOPSIS += '       %prog [--help] [--version]'
+    # Description
+    DESCRIPTION = None
     # Version
     VERSION = None
     # Copyright
@@ -109,6 +112,8 @@ class BaseApplication(object):
             self._parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
         else:
             self._parser = option_parser
+        if self.DESCRIPTION:
+            self._parser.description = self.DESCRIPTION
         self._parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
         logging_options = OptionGroup(self._parser, 'Logging Options')
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')

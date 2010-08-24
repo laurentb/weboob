@@ -147,6 +147,24 @@ class BaseBackend(object):
         """
         pass
 
+    class classprop(object):
+        def __init__(self, fget):
+            self.fget = fget
+        def __get__(self, inst, objtype=None):
+            if inst:
+                return self.fget(inst)
+            else:
+                return self.fget(objtype)
+
+    @classprop
+    def ICON(self):
+        try:
+            import xdg.IconTheme
+        except ImportError:
+            debug(u'Python xdg module was not found. Please install it to read icon files.')
+        else:
+            return xdg.IconTheme.getIconPath(self.NAME)
+
     @property
     def browser(self):
         """

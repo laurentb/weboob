@@ -22,7 +22,8 @@ from logging import warning
 import os
 
 from weboob.core.bcall import BackendsCall
-from weboob.core.backends import BackendsConfig, BackendsLoader
+from weboob.core.modules import ModulesLoader
+from weboob.core.backendscfg import BackendsConfig
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
 
@@ -50,7 +51,7 @@ class Weboob(object):
             warning(u'"%s" is not a directory' % self.workdir)
 
         # Backends loader
-        self.backends_loader = BackendsLoader()
+        self.modules_loader = ModulesLoader()
 
         # Backend instances config
         if not backends_filename:
@@ -73,25 +74,25 @@ class Weboob(object):
         if storage is None:
             storage = self.storage
 
-        for instance_name, backend_name, params in self.backends_config.iter_backends():
+        for instance_name, module_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled'] or \
                names is not None and instance_name not in names or \
-               modules is not None and backend_name not in modules:
+               modules is not None and module_name not in modules:
                 continue
-            backend = self.backends_loader.get_or_load_backend(backend_name)
-            if backend is None:
+            module = self.modules_loader.get_or_load_module(module_name)
+            if module is None:
                 warning(u'Backend "%s" is referenced in ~/.weboob/backends '
                         'configuration file, but was not found. '
-                        'Hint: is it installed?' % backend_name)
+                        'Hint: is it installed?' % module_name)
                 continue
-            if caps is not None and not backend.has_caps(caps):
+            if caps is not None and not module.has_caps(caps):
                 continue
 
             if instance_name in self.backend_instances:
                 warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
                 self.unload_backends(instance_name)
 
-            backend_instance = backend.create_instance(self, instance_name, params, storage)
+            backend_instance = module.create_instance(self, instance_name, params, storage)
             self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
         return loaded
 

@@ -28,7 +28,7 @@ import subprocess
 import sys
 
 from weboob.core import CallErrors
-from weboob.core.backends import BackendsConfig
+from weboob.core.backendscfg import BackendsConfig
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter
@@ -44,7 +44,8 @@ class ConsoleApplication(BaseApplication):
     Base application class for CLI applications.
     """
 
-    SYNOPSIS = 'Usage: %prog [options (-h for help)] command [parameters...]'
+    SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] command [arguments..]\n'
+    SYNOPSIS += '       %prog [--help] [--version]'
 
     def __init__(self):
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
@@ -62,6 +63,8 @@ class ConsoleApplication(BaseApplication):
 
         if self._parser.description is None:
             self._parser.description = ''
+        else:
+            self._parser.description += '\n\n'
         self._parser.description += 'Available commands:\n'
         for name, arguments, doc_string in self._commands:
             command = '%s %s' % (name, arguments)

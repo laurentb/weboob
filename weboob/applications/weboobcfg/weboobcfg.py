@@ -46,8 +46,8 @@ class WeboobCfg(ConsoleApplication):
 
     @ConsoleApplication.command('Add a configured backend')
     def command_add(self, name, *options):
-        self.weboob.backends_loader.load_all()
-        if name not in [_name for _name, backend in self.weboob.backends_loader.loaded.iteritems()]:
+        self.weboob.modules_loader.load_all()
+        if name not in [_name for _name, backend in self.weboob.modules_loader.loaded.iteritems()]:
             logging.error(u'Backend "%s" does not exist.' % name)
             return 1
 
@@ -61,7 +61,7 @@ class WeboobCfg(ConsoleApplication):
                 return 1
             params[key] = value
         # ask for params non-specified on command-line arguments
-        backend = self.weboob.backends_loader.get_or_load_backend(name)
+        backend = self.weboob.modules_loader.get_or_load_module(name)
         asked_config = False
         for key, value in backend.config.iteritems():
             if not asked_config:
@@ -105,7 +105,7 @@ class WeboobCfg(ConsoleApplication):
     def command_listconfigured(self):
         self.set_default_formatter('table')
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
-            backend = self.weboob.backends_loader.get_or_load_backend(name)
+            backend = self.weboob.modules_loader.get_or_load_module(name)
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend name', name),
                                ('Configuration', ', '.join('%s=%s' % (key, ('*****' if backend.config[key].is_masked else value)) for key, value in params.iteritems())),
@@ -127,8 +127,8 @@ class WeboobCfg(ConsoleApplication):
     @ConsoleApplication.command('Show available backends')
     def command_backends(self, *caps):
         self.set_default_formatter('table')
-        self.weboob.backends_loader.load_all()
-        for name, backend in sorted(self.weboob.backends_loader.loaded.iteritems()):
+        self.weboob.modules_loader.load_all()
+        for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
             if caps and not self.caps_included(backend.iter_caps(), caps):
                 continue
             row = OrderedDict([('Name', name),
@@ -140,7 +140,7 @@ class WeboobCfg(ConsoleApplication):
     @ConsoleApplication.command('Display information about a backend')
     def command_info(self, name):
         try:
-            backend = self.weboob.backends_loader.get_or_load_backend(name)
+            backend = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
             logging.error('No such backend: "%s"' % name)
             return 1

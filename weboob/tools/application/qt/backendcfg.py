@@ -45,12 +45,12 @@ class BackendCfg(QDialog):
         # is_enabling is a counter to prevent race conditions.
         self.is_enabling = 0
 
-        self.weboob.backends_loader.load_all()
+        self.weboob.modules_loader.load_all()
 
         self.ui.configuredBackendsList.header().setResizeMode(QHeaderView.ResizeToContents)
         self.ui.configFrame.hide()
 
-        for name, backend in self.weboob.backends_loader.loaded.iteritems():
+        for name, backend in self.weboob.modules_loader.loaded.iteritems():
             if not self.caps or backend.has_caps(*self.caps):
                 item = QListWidgetItem(name.capitalize())
 
@@ -74,10 +74,8 @@ class BackendCfg(QDialog):
     def loadConfiguredBackendsList(self):
         self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            if name not in self.weboob.backends_loader.loaded:
-                continue
-            backend = self.weboob.backends_loader.loaded[name]
-            if self.caps and not backend.has_caps(*self.caps):
+            backend = self.weboob.modules_loader.get_or_load_module(name)
+            if not backend or self.caps and not backend.has_caps(*self.caps):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
@@ -195,7 +193,12 @@ class BackendCfg(QDialog):
                                        self.tr('Please select a backend'))
             return
 
-        backend = self.weboob.backends_loader.loaded[unicode(selection[0].text()).lower()]
+        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+
+        if not backend:
+            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
+                                       self.tr('The selected backend does not exist.'))
+            return
 
         params = {}
         missing = []
@@ -261,7 +264,7 @@ class BackendCfg(QDialog):
         if not selection:
             return
 
-        backend = self.weboob.backends_loader.loaded[unicode(selection[0].text()).lower()]
+        backend = self.weboob.modules_loader.loaded[unicode(selection[0].text()).lower()]
 
         if backend.icon_path:
             img = QImage(backend.icon_path)
