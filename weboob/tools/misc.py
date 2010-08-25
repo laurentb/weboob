@@ -87,3 +87,13 @@ def iter_fields(obj):
         if not isinstance(attribute, types.MethodType):
             yield attribute_name, attribute
 
+def iternb(it, nb=0):
+    """
+    Iter 'nb' times on the generator
+    """
+    i = 0
+    for v in it:
+        if i >= nb:
+            raise StopIteration()
+        yield v
+        i += 1
