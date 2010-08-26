@@ -35,7 +35,7 @@ class AccountComing(BasePage):
                     continue
                 date = tds[0].getchildren()[0].attrib.get('name', '')
                 label = u''
-                label += tds[1].text
+                label += tds[1].text or u''
                 label = label.replace(u'\xa0', u'')
                 for child in tds[1].getchildren():
                     if child.text: label += child.text
