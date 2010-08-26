@@ -77,7 +77,7 @@ class Operation(CapBaseObject):
 
     @label.setter
     def label(self, value):
-        self._label = str(value)
+        self._label = unicode(value)
 
     @property
     def amount(self):
