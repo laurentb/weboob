@@ -213,7 +213,7 @@ class BaseBackend(object):
 
     def fillobj(self, obj, fields):
         def not_loaded(v):
-            return (v is NotLoaded or isinstance(value, CapBaseObject) and not value.__iscomplete__())
+            return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
 
         if isinstance(fields, basestring):
             fields = (fields,)
