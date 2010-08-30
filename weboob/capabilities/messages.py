@@ -19,32 +19,47 @@
 import datetime
 import time
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, NotLoaded
 
 
-__all__ = ['ICapMessages', 'ICapMessagesReply', 'Message']
+__all__ = ['ICapMessages', 'ICapMessagesPost', 'Message', 'Thread', 'CantSendMessage']
 
 
 class Message(CapBaseObject):
-    IS_HTML = 0x001
-    IS_NEW  = 0x002
-    IS_UNREAD = 0x004
+    IS_HTML = 0x001          # The content is HTML formatted
+    IS_UNREAD = 0x002        # The message is unread
+    IS_ACCUSED = 0x004       # The receiver has read this message
+    IS_NOT_ACCUSED = 0x008   # The receiver has not read this message
 
-    def __init__(self, thread_id, message_id, title, sender, date=None, parent_message_id=u'',
-                 content=u'', signature=u'', flags=0):
-        CapBaseObject.__init__(self, '%s.%s' % (thread_id, message_id))
+    def __init__(self, thread, id,
+                       title,
+                       sender,
+                       receiver=NotLoaded,
+                       date=None,
+                       parent=NotLoaded,
+                       content=NotLoaded,
+                       signature=NotLoaded,
+                       children=NotLoaded,
+                       flags=0):
+        CapBaseObject.__init__(self, id)
+        self.thread = thread
+        self.title = title
+        self.sender = sender
+        self.receiver = receiver
 
-        self.thread_id = unicode(thread_id)
-        self.message_id = unicode(message_id)
-        self.parent_message_id = unicode(parent_message_id)
-        self.title = unicode(title)
-        self.sender = unicode(sender)
-        self.signature = unicode(signature)
-
-        self.content = content
         if date is None:
             date = datetime.datetime.utcnow()
         self.date = date
+
+        if isinstance(parent, Message):
+            self.parent = parent
+        else:
+            self.parent = NotLoaded
+            self._parent_id = parent
+
+        self.content = content
+        self.signature = signature
+        self.children = children
         self.flags = flags
 
     @property
@@ -52,46 +67,93 @@ class Message(CapBaseObject):
         return int(time.strftime('%Y%m%d%H%M%S', self.date.timetuple()))
 
     @property
-    def parent_id(self):
-        if not self.parent_message_id:
+    def full_id(self):
+        return '%s.%s' % (self.thread.id, self.id)
+
+    @property
+    def full_parent_id(self):
+        if self.parent:
+            return self.parent.full_id()
+        elif self._parent_id is None:
             return ''
-        return '%s.%s' % (self.thread_id, self.parent_message_id)
+        elif self._parent_id is NotLoaded:
+            return NotLoaded
+        else:
+            return '%s.%s' % (self.thread.id, self._parent_id)
 
     def __eq__(self, msg):
-        return self.id == msg.id
+        return self.thread.id == msg.thread.id and self.id == msg.id
 
     def __repr__(self):
         result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
-            self.id, self.title, self.date, self.sender)
+            self.full_id, self.title, self.date, self.sender)
         return result.encode('utf-8')
 
+class Thread(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.root = NotLoaded
+        self.title = NotLoaded
+        self.date = NotLoaded
+        self.nb_messages = NotLoaded
+        self.nb_unread = NotLoaded
+
+    def iter_all_messages(self):
+        if self.root:
+            yield self.root
+            for m in self._iter_all_messages(self.root):
+                yield m
+
+    def _iter_all_messages(self, message):
+        if message.children:
+            for child in message.children:
+                yield child
+                for m in self._iter_all_messages(child):
+                    yield m
+
 class ICapMessages(IBaseCap):
-    def iter_new_messages(self, thread=None):
+    def iter_threads(self):
         """
-        Iterates on new messages from last time this function has been called.
+        Iterates on threads, from newers to olders.
 
-        @param thread  thread name (optional)
-        @return [list]  Message objects
-        """
-        raise NotImplementedError()
-
-    def iter_messages(self, thread=None):
-        """
-        Iterates on every messages
-
-        @param thread  thread name (optional)
-        @return [list]  Message objects
+        @return [iter]  Thread objects
         """
         raise NotImplementedError()
 
-class ICapMessagesReply(IBaseCap):
-    def post_reply(self, thread_id, reply_id, title, message):
+    def get_thread(self, id):
+        """
+        Get a specific thread.
+
+        @return [Thread]  the Thread object
+        """
+        raise NotImplementedError()
+
+    def iter_unread_messages(self, thread=None):
+        """
+        Iterates on messages which hasn't been marked as read.
+
+        @param thread  thread name (optional)
+        @return [iter]  Message objects
+        """
+        raise NotImplementedError()
+
+    def set_message_read(self, message):
+        """
+        Set a message as read.
+
+        @param [message]  message read (or ID)
+        """
+        raise NotImplementedError()
+
+class CantSendMessage(Exception):
+    pass
+
+class ICapMessagesPost(IBaseCap):
+    def post_message(self, message):
         """
         Post a reply.
 
-        @param thread_id  ID of thread
-        @param reply_id  message's id to reply
-        @param title  title of message
-        @param message  message to send
+        @param message  Message object
+        @return
         """
         raise NotImplementedError()
