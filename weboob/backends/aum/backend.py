@@ -297,7 +297,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def fill_contact(self, contact, fields):
         if 'profile' in fields:
             contact = self.get_contact(contact)
-        if 'photos' in fields:
+        if 'photos' in fields and contact.photos:
             for name, photo in contact.photos.iteritems():
                 with self.browser:
                     if photo.url:
