@@ -215,6 +215,9 @@ class BaseBackend(object):
         def not_loaded(v):
             return (v is NotLoaded or isinstance(value, CapBaseObject) and not value.__iscomplete__())
 
+        if isinstance(fields, basestring):
+            fields = (fields,)
+
         missing_fields = []
         if fields is None or '*' in fields:
             if isinstance(obj, CapBaseObject):
