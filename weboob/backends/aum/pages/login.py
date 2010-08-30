@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import re
+
 from weboob.tools.browser import BrowserIncorrectPassword
 
 from .base import PageBase
@@ -29,7 +31,29 @@ class LoginPage(PageBase):
 
         self.browser.submit()  # submit current form
 
+class RegisterError(Exception):
+    pass
+
 class RegisterPage(PageBase):
+    def on_loaded(self):
+        display_errors = False
+        for div in self.document.getElementsByTagName('div'):
+            if div.getAttribute('class') == 'balloon':
+                display_errors = True
+                break
+
+        if not display_errors:
+            return
+
+        errors = []
+        for script in self.document.getElementsByTagName('script'):
+            for child in script.childNodes:
+                if child and child.data.find('dispErrors') >= 0:
+                    for m in re.finditer('"(\w+)": "(.*)",', child.data):
+                        errors.append(m.group(2))
+
+        raise RegisterError(u'Unable to register account: %s' % ', '.join(errors))
+
     def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country):
         """
 Form name=register (#1)
@@ -53,7 +77,7 @@ Form name=register (#1)
         self.browser.select_form(name='register')
         self.browser.set_all_readonly(False)
 
-        self.browser['sex'] = str(sex)
+        self.browser['sex'] = [str(sex)]
         self.browser['birthday0'] = [str(birthday_d)]
         self.browser['birthday1'] = [str(birthday_m)]
         self.browser['birthday2'] = [str(birthday_y)]

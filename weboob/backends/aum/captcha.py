@@ -103,6 +103,8 @@ class Tile:
         try:
             return self.hash[self.checksum()]
         except KeyError:
+            print 'Unable te resolve:'
+            self.display()
             raise CaptchaError()
 
 class Captcha:

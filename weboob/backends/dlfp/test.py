@@ -18,9 +18,13 @@
 
 from weboob.tools.test import BackendTest
 
+
+__all__ = ['DLFPTest']
+
+
 class DLFPTest(BackendTest):
     BACKEND = 'dlfp'
 
     def test_new_messages(self):
-        for message in self.backend.iter_new_messages():
+        for message in self.backend.iter_unread_messages():
             pass

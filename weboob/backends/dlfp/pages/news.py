@@ -31,7 +31,7 @@ class Comment(object):
         self.reply_id = reply_id
         self.title = u''
         self.author = u''
-        self.date = u''
+        self.date = None
         self.body = u''
         self.score = 0
         self.comments = []
@@ -73,7 +73,8 @@ class Article(object):
         self.author = u''
         self.body = u''
         self.part2 = u''
-        self.date = u''
+        self.date = None
+        self.url = u''
         self.comments = []
 
         for div in tree.findall('div'):
@@ -116,6 +117,7 @@ class ContentPage(DLFPPage):
     def parse_div(self, div):
         if div.attrib.get('class', '') in ('newsdiv', 'centraldiv'):
             self.article = Article(self.browser, url2id(self.url), div)
+            self.article.url = self.url
         if div.attrib.get('class', '') == 'articlediv':
             self.article.parse_part2(div)
         if div.attrib.get('class', '') == 'comments':

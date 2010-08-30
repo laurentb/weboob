@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import re
+import time
 from datetime import datetime
 from dateutil import tz
 from logging import error, warning
@@ -23,9 +24,8 @@ from mechanize import FormNotFoundError
 
 from weboob.backends.aum.pages.base import PageBase
 from weboob.backends.aum.exceptions import AdopteCantPostMail
-from weboob.capabilities.messages import Message
 
-class MailParser(Message):
+class MailParser(object):
 
     """
     <td>
@@ -93,8 +93,14 @@ class MailParser(Message):
 
     def __init__(self, thread_id, name, tr):
         #             <td>             <table>  implicit<tbody>  <tr>
-        Message.__init__(self, thread_id, 0, 'Discussion with %s' % name, name)
+        self.thread_id = thread_id
+        self.date = None
+        self.message_id = 0
+        self.title = 'Discussion with %s' % name
+        self.sender = name
+        self.name = name
         self.tr = tr.childNodes[0].childNodes[1].childNodes[0].childNodes[0]
+        self.new = False
 
         tds = self.tr.childNodes
 
@@ -131,6 +137,10 @@ class MailParser(Message):
         self.parse_profile_link()
         self.parse_from()
 
+    @property
+    def date_int(self):
+        return int(time.strftime('%Y%m%d%H%M%S', self.date.timetuple()))
+
     def set_parent_message_id(self, date):
         self.parent_message_id = date
 
@@ -157,7 +167,7 @@ class MailParser(Message):
             self.id = '%s.%s' % (self.thread_id, self.message_id)
 
             if m.group(7).find('nouveau') >= 0:
-                self.flags |= self.IS_UNREAD
+                self.new = True
         else:
             error('Error: unable to parse the datetime string "%s"' % date_str)
 

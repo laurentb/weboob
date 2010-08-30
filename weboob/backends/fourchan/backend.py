@@ -20,7 +20,7 @@ from __future__ import with_statement
 
 from logging import warning
 
-from weboob.capabilities.messages import ICapMessages, Message
+from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 
 from .browser import FourChan
@@ -41,71 +41,89 @@ class FourChanBackend(BaseBackend, ICapMessages):
     STORAGE = {'boards': {}}
     BROWSER = FourChan
 
-    def iter_messages(self, thread=None):
-        return self._iter_messages(thread, False)
+    def _splitid(self, id):
+        return id.split('.', 1)
 
-    def iter_new_messages(self, thread=None):
-        return self._iter_messages(thread, True)
+    def get_thread(self, id):
+        thread = None
 
-    def _iter_messages(self, thread, only_new):
-        if thread:
-            if '.' in thread:
-                board, thread = thread.split('.', 2)
-                return self._iter_messages_of(board, thread, only_new)
-            else:
-                warning('"%s" is not a valid ID' % thread)
-        else:
-            for board in self.config['boards'].split(' '):
-                return self._iter_messages_of(board, None, only_new)
+        if isinstance(id, Thread):
+            thread = id
+            id = thread.id
 
-    def _iter_messages_of(self, board, thread_wanted, only_new):
-        if not board in self.storage.get('boards', default={}):
-            self.storage.set('boards', board, {})
+        if not '.' in id:
+            warning('Malformated ID (%s)' % id)
+            return
 
-        if thread_wanted:
-            for message in self._iter_thread_messages(board, thread_wanted, only_new):
-                yield message
-        else:
+        board, thread_id = self._splitid(id)
+
+        with self.browser:
+            _thread = self.browser.get_thread(board, thread_id)
+
+        flags = 0
+        if not _thread.id in self.storage.get('boards', board, default={}):
+            flags |= Message.IS_UNREAD
+
+        if not thread:
+            thread = Thread(id)
+        thread.title = _thread.filename
+        thread.root = Message(thread=thread,
+                              id=0, # root message
+                              title=_thread.filename,
+                              sender=_thread.author,
+                              receiver=None,
+                              date=_thread.datetime,
+                              parent=None,
+                              content=_thread.text,
+                              signature=None,
+                              children=None,
+                              flags=flags|Message.IS_HTML)
+
+        parent = thread.root
+        for comment in _thread.comments:
+            flags = 0
+            if not comment.id in self.storage.get('boards', board, _thread.id, default=[]):
+                flags |= Message.IS_UNREAD
+
+            m = Message(thread=thread,
+                        id=comment.id,
+                        title=_thread.filename,
+                        sender=comment.author,
+                        receiver=None,
+                        date=comment.datetime,
+                        parent=parent,
+                        content=comment.text,
+                        signature=None,
+                        children=None,
+                        flags=flags|Message.IS_HTML)
+            parent.children = [m]
+            parent = m
+
+        return thread
+
+    def iter_threads(self):
+        for board in self.config['boards'].split(' '):
             with self.browser:
                 threads = self.browser.get_threads(board)
             for thread in threads:
-                for message in self._iter_thread_messages(board, thread.id, only_new):
-                    yield message
+                t = Thread('%s.%s' % (board, thread.id))
+                t.title = thread.filename
+                yield t
 
-    def _iter_thread_messages(self, board, thread, only_new):
-        thread = self.browser.get_thread(board, thread)
+    def iter_unread_messages(self):
+        for thread in self.iter_threads():
+            self.fill_thread(thread, 'root')
 
-        flags = Message.IS_HTML
-        if thread.id in self.storage.get('boards', board, default={}):
-            self.storage.set('boards', board, thread.id, [])
-            flags |= Message.IS_NEW
+            for m in thread.iter_all_messages():
+                if m.flags & Message.IS_UNREAD:
+                    yield m
 
-        if not only_new or flags & Message.IS_NEW:
-            yield Message('%s.%s' % (board, thread.id),
-                          0,
-                          thread.filename,
-                          thread.author,
-                          thread.datetime,
-                          content=thread.text,
-                          flags=flags)
-
-        for comment in thread.comments:
-            flags = Message.IS_HTML
-            if not comment.id in self.storage.get('boards', board, thread.id, default=[]):
-                self.storage.set('boards', board, thread.id, self.storage.get('boards', board, thread.id, default=[]) + [comment.id])
-                flags |= Message.IS_NEW
-
-            if not only_new or flags & Message.IS_NEW:
-                yield Message('%s.%s' % (board, thread.id),
-                              comment.id,
-                              thread.filename,
-                              comment.author,
-                              comment.datetime,
-                              0,
-                              comment.text,
-                              flags)
-
+    def set_message_read(self, message):
+        board, thread_id = self._splitid(message.thread.id)
+        self.storage.set('boards', board, thread_id, self.storage.get('boards', board, thread_id, default=[]) + [message.id])
         self.storage.save()
 
-    #def post_reply(self, thread_id, reply_id, title, message):
-    #    return self.browser.post_reply(thread_id, reply_id, title, message)
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    OBJECTS = {Thread: fill_thread}

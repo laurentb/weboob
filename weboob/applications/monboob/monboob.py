@@ -30,7 +30,7 @@ import asyncore
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import Scheduler
-from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
 from weboob.tools.application.console import ConsoleApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local
 
@@ -158,23 +158,31 @@ class Monboob(ConsoleApplication):
             print >>sys.stderr, 'Backend %s not found' % bname
             return 1
 
-        if not backend.has_caps(ICapMessagesReply):
-            print >>sys.stderr, 'The backend %s does not implement ICapMessagesReply' % bname
+        if not backend.has_caps(ICapMessagesPost):
+            print >>sys.stderr, 'The backend %s does not implement ICapMessagesPost' % bname
             return 1
 
         thread_id, msg_id = id.rsplit('.', 1)
+        thread = Thread(thread_id)
+        message = Message(thread,
+                          0,
+                          title=title,
+                          sender=None,
+                          receiver=None,
+                          parent=Message(thread, msg_id),
+                          content=content)
         try:
-            backend.post_reply(thread_id, msg_id, title, content)
+            backend.post_message(message)
         except Exception, e:
             content = u'Unable to send message to %s:\n' % thread_id
             content += '\n\t%s\n' % e
             if logging.root.level == logging.DEBUG:
                 content += '\n%s\n' % get_backtrace(e)
-            self.send_email(backend, Message(thread_id,
+            self.send_email(backend, Message(thread,
                                              0,
                                              title='Unable to send message',
                                              sender='Monboob',
-                                             parent_message_id=msg_id,
+                                             parent=Message(thread, msg_id),
                                              content=content))
 
     @ConsoleApplication.command("run daemon")
@@ -183,22 +191,23 @@ class Monboob(ConsoleApplication):
         self.weboob.loop()
 
     def process(self):
-        for backend, message in self.weboob.do('iter_new_messages'):
+        for backend, message in self.weboob.do('iter_unread_messages'):
             self.send_email(backend, message)
+            backend.set_message_read(message)
 
     def send_email(self, backend, mail):
         domain = self.config.get('domain')
         recipient = self.config.get('recipient')
 
         reply_id = ''
-        if mail.parent_id:
-            reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent_id, domain)
+        if mail.parent:
+            reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent.full_id, domain)
         subject = mail.title
         sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""'), backend.name, domain)
 
         # assume that .date is an UTC datetime
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
-        msg_id = u'<%s.%s@%s>' % (backend.name, mail.id, domain)
+        msg_id = u'<%s.%s@%s>' % (backend.name, mail.full_id, domain)
 
         if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
             body = mail.content

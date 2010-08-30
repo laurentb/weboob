@@ -34,7 +34,7 @@ class FourChan(BaseBrowser):
         return self.page.articles
 
     def get_thread(self, board, id):
-        self.location('http://boards.4chan.org/%s/res/%d' % (board, id))
+        self.location('http://boards.4chan.org/%s/res/%d' % (board, long(id)))
 
         assert len(self.page.articles) == 1
         return self.page.articles[0]

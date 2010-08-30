@@ -18,8 +18,7 @@
 from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BrowserUnavailable
-from weboob.capabilities.messages import ICapMessages, ICapMessagesReply, Message
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 
 from .feeds import ArticlesList
 from .browser import DLFP
@@ -28,7 +27,7 @@ from .browser import DLFP
 __all__ = ['DLFPBackend']
 
 
-class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
+class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
@@ -46,75 +45,95 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesReply):
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
 
-    def iter_messages(self, thread=None):
-        return self._iter_messages(thread, False)
-
-    def iter_new_messages(self, thread=None):
-        return self._iter_messages(thread, True)
-
-    def _iter_messages(self, thread, only_new):
+    def iter_threads(self):
+        whats = set()
         if self.config['get_news']:
-            for message in self._iter_messages_of('newspaper', thread, only_new):
-                yield message
+            whats.add('newspaper')
         if self.config['get_telegrams']:
-            for message in self._iter_messages_of('telegram', thread, only_new):
-                yield message
+            whats.add('telegram')
 
-    def _iter_messages_of(self, what, thread_wanted, only_new):
-        if not what in self.storage.get('seen', default={}):
-            self.storage.set('seen', what, {})
+        for what in whats:
+            for article in ArticlesList(what).iter_articles():
+                thread = Thread(article.id)
+                thread.title = article.title
+                yield thread
 
-        seen = {}
-        for article in ArticlesList(what).iter_articles():
-            if thread_wanted and thread_wanted != article.id:
-                continue
+    def get_thread(self, id):
+        if isinstance(id, Thread):
+            thread = id
+            id = thread.id
 
-            flags = Message.IS_HTML
-            if not article.id in self.storage.get('seen', what, default={}):
-                seen[article.id] = {'comments': []}
-                flags |= Message.IS_NEW
-            else:
-                seen[article.id] = self.storage.get('seen', what, article.id, default={})
+        with self.browser:
+            content = self.browser.get_content(id)
 
-            try:
-                with self.browser:
-                    thread = self.browser.get_content(article.id)
-            except BrowserUnavailable:
-                continue
+        if not thread:
+            thread = Thread(id)
 
-            if not only_new or flags & Message.IS_NEW:
-                yield Message(thread.id,
-                              0,
-                              thread.title,
-                              thread.author,
-                              article.datetime,
-                              content=''.join([thread.body, thread.part2]),
-                              signature='URL: %s' % article.url,
+        flags = Message.IS_HTML
+        if not thread.id in self.storage.get('seen', default={}):
+            flags |= Message.IS_UNREAD
+
+        thread.title = content.title
+        if not thread.date:
+            thread.date = content.date
+
+        thread.root = Message(thread=thread,
+                              id=0, # root message
+                              title=content.title,
+                              sender=content.author,
+                              receiver=None,
+                              date=thread.date, #TODO XXX WTF this is None
+                              parent=None,
+                              content=''.join([content.body, content.part2]),
+                              signature='URL: %s' % content.url,
+                              children=[],
                               flags=flags)
 
-            for comment in thread.iter_all_comments():
-                flags = Message.IS_HTML
-                if not comment.id in seen[article.id]['comments']:
-                    seen[article.id]['comments'].append(comment.id)
-                    flags |= Message.IS_NEW
+        for com in content.comments:
+            self._insert_comment(com, thread.root)
 
-                if not only_new or flags & Message.IS_NEW:
-                    yield Message(thread.id,
-                                  comment.id,
-                                  comment.title,
-                                  comment.author,
-                                  comment.date,
-                                  comment.reply_id,
-                                  comment.body,
-                                  'Score: %d' % comment.score,
-                                  flags)
+        return thread
 
-        # If there is no articles seen, it's suspicious, probably I can't
-        # fetch the feed.
-        if seen:
-            self.storage.set('seen', what, seen)
-            self.storage.save()
+    def _insert_comment(self, com, parent):
+        """"
+        Insert 'com' comment and its children in the parent message.
+        """
+        flags = Message.IS_HTML
+        if not com.id in self.storage.get('seen', parent.thread.id, 'comments', default=[]):
+            flags |= Message.IS_UNREAD
 
-    def post_reply(self, thread_id, reply_id, title, message):
+        message = Message(thread=parent.thread,
+                          id=com.id,
+                          title=com.title,
+                          sender=com.author,
+                          receiver=None,
+                          date=com.date,
+                          parent=parent,
+                          content=com.body,
+                          signature='Score: %d' % com.score,
+                          children=[],
+                          flags=flags)
+
+        parent.children.append(message)
+        for sub in com.comments:
+            self._insert_comment(sub, message)
+
+    def iter_unread_messages(self, thread=None):
+        for thread in self.iter_threads():
+            self.fill_thread(thread, 'root')
+            for m in thread.iter_all_messages():
+                if m.flags & m.IS_UNREAD:
+                    yield m
+
+    def set_message_read(self, message):
+        self.storage.set('seen', message.thread.id, 'comments', self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
+        self.storage.save()
+
+    def post_mesage(self, message):
         with self.browser:
-            return self.browser.post_reply(thread_id, reply_id, title, message)
+            return self.browser.post_reply(message.thread.id, message.parent.id, message.title, message.content)
+
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    OBJECTS = {Thread: fill_thread}

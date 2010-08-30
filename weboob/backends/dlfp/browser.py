@@ -86,3 +86,4 @@ class DLFP(BaseBrowser):
 
     def is_logged(self):
         return (self.page and self.page.is_logged())
+

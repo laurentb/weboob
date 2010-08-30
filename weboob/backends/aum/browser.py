@@ -108,7 +108,7 @@ class AuMBrowser(BaseBrowser):
         if not self.is_on_page(RegisterPage):
             self.location('http://www.adopteunmec.com/register2.php')
 
-        return self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather)
+        return self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country)
 
     @pageaccess
     def add_photo(self, name, f):
@@ -198,9 +198,9 @@ class AuMBrowser(BaseBrowser):
         return self.page.get_contact_list()
 
     @pageaccess
-    def get_thread_mails(self, id):
+    def get_thread_mails(self, id, full=False):
         if not self.is_on_page(ContactThreadPage) or self.page.id != int(id):
-            self.page.open_thread_page(id)
+            self.page.open_thread_page(id, full)
         return self.page.mails
 
     @pageaccess
