@@ -22,7 +22,7 @@ class INATest(BackendTest):
     BACKEND = 'ina'
 
     def test_ina(self):
-        l = [v for v in self.backend.iter_search_results('chirac')]
+        l = list(self.backend.iter_search_results('chirac'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

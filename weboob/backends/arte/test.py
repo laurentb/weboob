@@ -22,7 +22,7 @@ class ArteTest(BackendTest):
     BACKEND = 'arte'
 
     def test_arte(self):
-        l = [v for v in self.backend.iter_search_results('arte')]
+        l = list(self.backend.iter_search_results('arte'))
         if len(l) > 0:
             v = l[0]
             self.backend.fillobj(v, ('url',))

@@ -22,7 +22,7 @@ class CrAgrTest(BackendTest):
     BACKEND = 'cragr'
 
     def test_cragr(self):
-        l = [a for a in self.backend.iter_accounts()]
+        l = list(self.backend.iter_accounts())
         if len(l) > 0:
             a = l[0]
-            [o for o in self.backend.iter_history(a)]
+            list(self.backend.iter_history(a))
