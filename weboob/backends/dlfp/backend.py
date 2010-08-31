@@ -18,7 +18,7 @@
 from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .feeds import ArticlesList
 from .browser import DLFP
@@ -129,7 +129,12 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         self.storage.set('seen', message.thread.id, 'comments', self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
 
-    def post_mesage(self, message):
+    def post_message(self, message):
+        if not message.parent:
+            raise CantSendMessage('Posting news and telegrams on DLFP is not supported yet')
+
+        assert message.thread
+
         with self.browser:
             return self.browser.post_reply(message.thread.id, message.parent.id, message.title, message.content)
 
