@@ -151,39 +151,43 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         return thread
 
     def iter_unread_messages(self, thread=None):
-        with self.browser:
-            contacts = self.browser.get_threads_list()
-        for contact in contacts:
-            slut = self._get_slut(contact.get_id())
-            if contact.get_lastmsg_date() > slut['lastmsg']:
-                thread = self.get_thread(contact.get_id())
-                for m in thread.iter_all_messages():
-                    if m.flags & m.IS_UNREAD:
-                        yield m
+        try:
+            with self.browser:
+                contacts = self.browser.get_threads_list()
+            for contact in contacts:
+                slut = self._get_slut(contact.get_id())
+                if contact.get_lastmsg_date() > slut['lastmsg']:
+                    thread = self.get_thread(contact.get_id())
+                    for m in thread.iter_all_messages():
+                        if m.flags & m.IS_UNREAD:
+                            yield m
 
-        # Send mail when someone added me in her basket.
-        # XXX possibly race condition if a slut adds me in her basket
-        #     between the aum.nb_new_baskets() and aum.get_baskets().
-        with self.browser:
-            new_baskets = self.browser.nb_new_baskets()
-            if new_baskets:
-                ids = self.browser.get_baskets()
-                while new_baskets > 0 and len(ids) > new_baskets:
-                    new_baskets -= 1
-                    profile = self.browser.get_profile(ids[new_baskets])
+            # Send mail when someone added me in her basket.
+            # XXX possibly race condition if a slut adds me in her basket
+            #     between the aum.nb_new_baskets() and aum.get_baskets().
+            with self.browser:
+                new_baskets = self.browser.nb_new_baskets()
+                if new_baskets:
+                    ids = self.browser.get_baskets()
+                    while new_baskets > 0 and len(ids) > new_baskets:
+                        new_baskets -= 1
+                        profile = self.browser.get_profile(ids[new_baskets])
 
-                    thread = Thread(profile.get_id())
-                    thread.root = Message(thread=thread,
-                                          id=self.MAGIC_ID_BASKET,
-                                          title='Basket of %s' % profile.get_name(),
-                                          sender=profile.get_name(),
-                                          receiver=self.browser.get_my_name(),
-                                          date=None, # now
-                                          content='You are taken in her basket!',
-                                          signature=profile.get_profile_text(),
-                                          children=[],
-                                          flags=Message.IS_UNREAD)
-                    yield thread.root
+                        thread = Thread(profile.get_id())
+                        thread.root = Message(thread=thread,
+                                              id=self.MAGIC_ID_BASKET,
+                                              title='Basket of %s' % profile.get_name(),
+                                              sender=profile.get_name(),
+                                              receiver=self.browser.get_my_name(),
+                                              date=None, # now
+                                              content='You are taken in her basket!',
+                                              signature=profile.get_profile_text(),
+                                              children=[],
+                                              flags=Message.IS_UNREAD)
+                        yield thread.root
+        except BrowserUnavailable, e:
+            debug('No messages, browser is unavailable: %s' % e)
+            pass # don't care about waiting
 
     def set_message_read(self, message):
         if message.id == self.MAGIC_ID_BASKET:
@@ -297,7 +301,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def fill_contact(self, contact, fields):
         if 'profile' in fields:
             contact = self.get_contact(contact)
-        if 'photos' in fields and contact.photos:
+        if contact and 'photos' in fields:
             for name, photo in contact.photos.iteritems():
                 with self.browser:
                     if photo.url:
