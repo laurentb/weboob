@@ -108,7 +108,7 @@ class WeboobCfg(ConsoleApplication):
             backend = self.weboob.modules_loader.get_or_load_module(name)
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend name', name),
-                               ('Configuration', ', '.join('%s=%s' % (key, ('*****' if backend.config[key].is_masked else value)) for key, value in params.iteritems())),
+                               ('Configuration', ', '.join('%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].is_masked else value)) for key, value in params.iteritems())),
                                ])
             self.format(row)
 
