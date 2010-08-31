@@ -32,8 +32,8 @@ class Message(CapBaseObject):
     IS_NOT_ACCUSED = 0x008   # The receiver has not read this message
 
     def __init__(self, thread, id,
-                       title,
-                       sender,
+                       title=NotLoaded,
+                       sender=NotLoaded,
                        receiver=NotLoaded,
                        date=None,
                        parent=NotLoaded,
