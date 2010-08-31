@@ -69,4 +69,4 @@ class VideoPage(BasePage):
                 continue
             for m in re.finditer(self.VIDEO_SIGNATURE_REGEX, data.text):
                 video_signature = m.group(1)
-        return u'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=18' % (_id, video_signature)
+        return u'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=&ps=&asv=&fmt=18' % (_id, video_signature)
