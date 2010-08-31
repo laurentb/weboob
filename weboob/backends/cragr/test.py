@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 class CrAgrTest(BackendTest):
     BACKEND = 'cragr'
 
-    def test_bnporc(self):
+    def test_cragr(self):
         l = [a for a in self.backend.iter_accounts()]
         if len(l) > 0:
             a = l[0]
