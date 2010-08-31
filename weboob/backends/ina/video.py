@@ -25,4 +25,4 @@ __all__ = ['InaVideo']
 class InaVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
-        return _id
+        return 'http://boutique.ina.fr/video/%s.html' % _id
