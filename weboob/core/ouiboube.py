@@ -75,7 +75,7 @@ class Weboob(object):
             storage = self.storage
 
         for instance_name, module_name, params in self.backends_config.iter_backends():
-            if '_enabled' in params and not params['_enabled'] or \
+            if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
                names is not None and instance_name not in names or \
                modules is not None and module_name not in modules:
                 continue
