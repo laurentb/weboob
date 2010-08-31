@@ -22,7 +22,7 @@ class TransilienTest(BackendTest):
     BACKEND = 'transilien'
 
     def test_transilien(self):
-        stations = [s for s in self.backend.iter_station_search('defense')]
+        stations = list(self.backend.iter_station_search('defense'))
         self.assertTrue(len(stations) > 0)
 
-        [d for d in self.backend.iter_station_departures(stations[0].id)]
+        list(self.backend.iter_station_departures(stations[0].id))

@@ -24,7 +24,7 @@ class YoujizzTest(BackendTest):
     def test_youjizz(self):
         self.assertTrue(len(self.backend.iter_search_results('anus', nsfw=False)) == 0)
 
-        l = [v for v in self.backend.iter_search_results('futanari', nsfw=True)]
+        l = list(self.backend.iter_search_results('futanari', nsfw=True))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

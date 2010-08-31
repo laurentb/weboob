@@ -29,5 +29,5 @@ class AuMTest(BackendTest):
         for message in self.backend.iter_unread_messages():
             pass
 
-        contacts = [c for c in self.backend.iter_contacts()]
+        contacts = list(self.backend.iter_contacts())
         self.backend.fillobj(contacts[0], ['photos', 'profile'])
