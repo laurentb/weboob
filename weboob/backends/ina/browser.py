@@ -34,9 +34,9 @@ class InaBrowser(BaseBrowser):
             }
 
     @id2url(InaVideo.id2url)
-    def get_video(self, url):
+    def get_video(self, url, video=None):
         self.location(url)
-        return self.page.video
+        return self.page.get_video(video)
 
     def iter_search_results(self, pattern):
         self.location(self.buildurl('/recherche/recherche', search=pattern))

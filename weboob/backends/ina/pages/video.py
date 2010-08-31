@@ -35,14 +35,16 @@ __all__ = ['VideoPage']
 class VideoPage(BasePage):
     URL_REGEXP = re.compile('http://boutique.ina.fr/video/(.+).html')
 
-    def on_loaded(self):
+    def get_video(self, video):
         date, duration = self.get_date_and_duration()
-        self.video = InaVideo(self.get_id(),
-                              title=self.get_title(),
-                              url=self.get_url(),
-                              date=date,
-                              duration=duration,
-                              )
+        if not video:
+            video = InaVideo(self.get_id())
+
+        video.title = self.get_title()
+        video.url = self.get_url()
+        video.date = date
+        video.duration = duration
+        return video
 
     def get_id(self):
         m = self.URL_REGEXP.match(self.url)

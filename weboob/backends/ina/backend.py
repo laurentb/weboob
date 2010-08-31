@@ -22,6 +22,7 @@ from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
 
 from .browser import InaBrowser
+from .video import InaVideo
 
 
 __all__ = ['InaBackend']
@@ -42,3 +43,16 @@ class InaBackend(BaseBackend, ICapVideo):
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.iter_search_results(pattern)
+
+    def fill_video(self, video, fields):
+        if fields != ['thumbnail']:
+            # if we don't want only the thumbnail, we probably want also every fields
+            with self.browser:
+                video = self.browser.get_video(video.id, video)
+        if 'thumbnail' in fields:
+            with self.browser:
+                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+
+        return video
+
+    OBJECTS = {InaVideo: fill_video}

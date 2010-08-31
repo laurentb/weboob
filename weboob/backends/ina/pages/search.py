@@ -34,11 +34,9 @@ class SearchPage(BasePage):
     def iter_videos(self):
         ul = select(self.document.getroot(), 'div.container-videos ul', 1)
         for li in ul.findall('li'):
-            m = self.URL_REGEXP.match(li.find('a').attrib['href'])
-            if m:
-                id = m.group(1)
-            else:
-                raise SelectElementException('Unable to match id (%r)' % li.find('a').attrib['href'])
+            id = re.sub(r'/video/(.+)\.html', r'\1', li.find('a').attrib['href'])
+
+            thumbnail = 'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
 
             title = select(li, 'p.titre', 1).text
 
@@ -47,14 +45,15 @@ class SearchPage(BasePage):
             date = datetime.datetime(year, month, day)
 
             duration = select(li, 'p.duree', 1).text
-            m = re.match(r'(\d+)min(\d+)s', duration)
+            m = re.match(r'((\d+)min)?(\d+)s', duration)
             if m:
-                duration = datetime.timedelta(minutes=int(m.group(1)), seconds=int(m.group(2)))
+                duration = datetime.timedelta(minutes=int(m.group(2) or 0), seconds=int(m.group(3)))
             else:
                 raise SelectElementException('Unable to match duration (%r)' % duration)
 
             yield InaVideo(id,
                            title=title,
                            date=date,
-                           duration=duration
+                           duration=duration,
+                           thumbnail_url=thumbnail,
                           )
