@@ -19,13 +19,13 @@ import time
 import logging
 from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, \
                         QFrame, QMessageBox, QTabWidget, QVBoxLayout, \
-                        QFormLayout, QLabel
+                        QFormLayout, QLabel, QPushButton
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
-from weboob.capabilities.messages import ICapMessages
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
 from weboob.capabilities.base import NotLoaded
 
 from .ui.contacts_ui import Ui_Contacts
@@ -43,13 +43,13 @@ class ThreadMessage(QFrame):
         self.ui = Ui_ThreadMessage()
         self.ui.setupUi(self)
 
-        self.date = message.date
+        self.message = message
 
         self.ui.nameLabel.setText(message.sender)
         header = time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple())
-        if message.flags & message.IS_UNREAD:
+        if message.flags & message.IS_NOT_ACCUSED:
             header += u' — <font color=#ff0000>Unread</font>'
-        else:
+        elif message.flags & message.IS_ACCUSED:
             header += u' — <font color=#00ff00>Read</font>'
         self.ui.headerLabel.setText(header)
         if message.flags & message.IS_HTML:
@@ -58,57 +58,108 @@ class ThreadMessage(QFrame):
             content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
         self.ui.contentLabel.setText(content)
 
+    def __eq__(self, m):
+        return self.message == m.message
+
 class ContactThread(QWidget):
     """
     The thread of the selected contact.
     """
 
-    def __init__(self, weboob, contact, parent=None):
+    def __init__(self, weboob, contact, support_reply, parent=None):
         QWidget.__init__(self, parent)
         self.ui = Ui_ContactThread()
         self.ui.setupUi(self)
 
         self.weboob = weboob
         self.contact = contact
+        self.thread = None
         self.messages = []
+        self.process_msg = None
 
-        self.connect(self.ui.sendButton, SIGNAL('clicked()'), self.postReply)
+        if support_reply:
+            self.connect(self.ui.sendButton, SIGNAL('clicked()'), self.postReply)
+        else:
+            self.ui.frame.hide()
 
         self.refreshMessages()
 
     def refreshMessages(self):
-        if self.ui.scrollAreaContent.layout().count() > 0:
-            command = 'iter_new_messages'
+        if self.process_msg:
+            return
+
+        self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError)
+        if self.thread:
+            self.process_msg.do('fillobj', self.thread, ['root'], backends=self.contact.backend)
         else:
-            command = 'iter_messages'
+            self.process_msg.do('get_thread', self.contact.id, backends=self.contact.backend)
 
-        self.process_msg = QtDo(self.weboob, self.gotMessage)
-        self.process_msg.do(command, thread=self.contact.id, backends=self.contact.backend)
+    def gotError(self, backend, error, backtrace):
+        self.ui.textEdit.setEnabled(False)
+        self.ui.sendButton.setEnabled(False)
 
-    def gotMessage(self, backend, message):
-        if not message:
+    def gotThread(self, backend, thread):
+        if not thread:
             #v = self.ui.scrollArea.verticalScrollBar()
             #print v.minimum(), v.value(), v.maximum(), v.sliderPosition()
             #self.ui.scrollArea.verticalScrollBar().setValue(self.ui.scrollArea.verticalScrollBar().maximum())
             self.process_msg = None
             return
 
+        self.ui.textEdit.setEnabled(True)
+        self.ui.sendButton.setEnabled(True)
+
+        self.thread = thread
+
+        for message in thread.iter_all_messages():
+            self._insert_message(message)
+
+    def _insert_message(self, message):
         widget = ThreadMessage(message)
+        if widget in self.messages:
+            return
+
         for i, m in enumerate(self.messages):
-            if widget.date > m.date:
+            if widget.message.date > m.message.date:
                 self.ui.scrollAreaContent.layout().insertWidget(i, widget)
                 self.messages.insert(i, widget)
+                if message.parent is NotLoaded:
+                    self._insert_load_button(i)
                 return
 
         self.ui.scrollAreaContent.layout().addWidget(widget)
         self.messages.append(widget)
+        if message.parent is NotLoaded:
+            self._insert_load_button(-1)
+
+    def _insert_load_button(self, pos):
+        button = QPushButton(self.tr('More messages...'))
+        self.connect(button, SIGNAL('clicked()'), lambda: self._load_button_pressed(button))
+        if pos >= 0:
+            self.ui.scrollAreaContent.layout().insertWidget(i, button)
+        else:
+            self.ui.scrollAreaContent.layout().addWidget(button)
+
+    def _load_button_pressed(self, button):
+        self.ui.scrollAreaContent.layout().removeWidget(button)
+        button.hide()
+        button.deleteLater()
+
+        self.refreshMessages()
 
     def postReply(self):
         text = unicode(self.ui.textEdit.toPlainText())
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
+        m = Message(thread=self.thread,
+                    id=0,
+                    title=u'',
+                    sender=None,
+                    receiver=None,
+                    content=text,
+                    parent=self.messages[0].message if len(self.messages) > 0 else None)
         self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
-        self.process_reply.do('post_reply', self.contact.id, 0, '', text, backends=self.contact.backend)
+        self.process_reply.do('post_message', m, backends=self.contact.backend)
 
     def _postReply_cb(self, backend, ignored):
         self.ui.textEdit.clear()
@@ -135,8 +186,13 @@ class ContactProfile(QWidget):
         self.contact = contact
 
         if self.gotProfile(self.weboob.get_backend(contact.backend), contact):
-            self.process_contact = QtDo(self.weboob, self.gotProfile)
+            self.process_contact = QtDo(self.weboob, self.gotProfile, self.gotError)
             self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
+
+    def gotError(self, backend, error, backtrace):
+        #self.process_contact.default_eb(backend, error, backtrace)
+        self.ui.frame_photo.hide()
+        self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % error)
 
     def gotProfile(self, backend, contact):
         if not backend:
@@ -324,7 +380,7 @@ class ContactsWidget(QWidget):
 
         self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
         if backend.has_caps(ICapMessages):
-            self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact), self.tr('Messages'))
+            self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact, backend.has_caps(ICapMessagesPost)), self.tr('Messages'))
         if backend.has_caps(ICapChat):
             self.ui.tabWidget.addTab(QWidget(), self.tr('Chat'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
