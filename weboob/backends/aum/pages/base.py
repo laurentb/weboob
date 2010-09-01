@@ -30,6 +30,11 @@ class PageBase(BasePage):
             if div.getAttribute('id') == 'oops':
                 raise BrowserUnavailable()
 
+        # Check when the account is temporarily blocked.
+        for img in self.document.getElementsByTagName('img'):
+            if img.getAttribute('src') == 'http://s.adopteunmec.com/img/exemple.jpg':
+                raise BrowserUnavailable('Your account is blocked. You have to unblock by yourself but we can\'t help you.')
+
     def open_contact_list_page(self):
         self.browser.follow_link(url_regex=r"/mails.php$")
 
