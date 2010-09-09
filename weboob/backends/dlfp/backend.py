@@ -110,7 +110,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                           date=com.date,
                           parent=parent,
                           content=com.body,
-                          signature='Score: %d' % com.score,
+                          signature='<br />'.join(['Score: %d' % com.score,
+                                                   'URL: %s' % com.url]),
                           children=[],
                           flags=flags)
 

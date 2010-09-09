@@ -34,27 +34,34 @@ class Comment(object):
         self.date = None
         self.body = u''
         self.score = 0
+        self.url = u''
         self.comments = []
 
         for sub in div.getchildren():
             if sub.tag == 'a':
                 self.id = sub.attrib['name']
+                self.url = u'https://linuxfr.org/comments/%s.html#%s' % (self.id, self.id)
             elif sub.tag == 'h1':
                 try:
                     self.title = sub.find('b').text
                 except UnicodeError:
                     warning('Bad encoded title, but DLFP sucks')
             elif sub.tag == 'div' and sub.attrib.get('class', '').startswith('comment'):
-                self.author = sub.find('a').text
+                self.author = sub.find('a').text if sub.find('a') is not None else 'Unknown'
                 self.date = self.parse_date(sub.find('i').tail)
-                self.score = int(sub.findall('i')[1].find('span').text)
+                self.score = int(sub.findall('i')[-1].find('span').text)
                 self.body = self.browser.parser.tostring(sub.find('p'))
             elif sub.attrib.get('class', '') == 'commentsul':
                 comment = Comment(self.browser, sub.find('li'), self.id)
                 self.comments.append(comment)
 
     def parse_date(self, date_s):
-        return local2utc(datetime.strptime(date_s.strip().encode('utf-8'), u'le %d/%m/%Y \xe0 %H:%M.'.encode('utf-8')))
+        date_s = date_s.strip().encode('utf-8')
+        if not date_s:
+            date = datetime.now()
+        else:
+            date = datetime.strptime(date_s, u'le %d/%m/%Y \xe0 %H:%M.'.encode('utf-8'))
+        return local2utc(date)
 
     def iter_all_comments(self):
         for comment in self.comments:
