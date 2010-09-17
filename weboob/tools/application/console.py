@@ -279,8 +279,14 @@ class ConsoleApplication(BaseApplication):
     def load_backends(self, caps=None, names=None, *args, **kwargs):
         loaded_backends = BaseApplication.load_backends(self, caps, names, *args, **kwargs)
         if not loaded_backends:
-            logging.error(u'Cannot start application: no configured backend was found.\nHere is a list of all available backends:')
-            from weboob.applications.weboobcfg import WeboobCfg
+            print 'Cannot start application: no configured backend was found.'
+            try:
+                from weboob.applications.weboobcfg import WeboobCfg
+            except ImportError:
+                print 'Please edit ~/.weboob/backends to add backends'
+                return
+
+            print '\nHere is a list of all available backends:'
             weboobcfg = WeboobCfg()
             weboobcfg.options, args = weboobcfg._parser.parse_args([])
             weboobcfg._handle_app_options()
@@ -289,12 +295,13 @@ class ConsoleApplication(BaseApplication):
                     caps = (caps,)
                 caps = [(cap if isinstance(cap, basestring) else cap.__name__) for cap in caps]
             weboobcfg.command_backends(*caps)
-            logging.error(u'You can configure backends using the "weboob-config add" command:\nweboob-config add <name> [options..]')
+            weboobcfg.formatter.flush()
+            print '\nYou can configure backends with weboob-config:\n\tweboob-config add <name> [options..]'
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', 'weboob-config-qt'], stdout=devnull)
                 return_code = process.wait()
             if return_code == 0:
-                logging.error(u'You can configure backends using the "weboob-config-qt" GUI, too.')
+                print '\nYou can configure backends using the "weboob-config-qt" GUI, too.'
             sys.exit(0)
 
     def parse_id(self, _id):
