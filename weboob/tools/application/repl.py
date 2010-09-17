@@ -31,12 +31,13 @@ import re
 import subprocess
 import sys
 
+from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.backendscfg import BackendsConfig
+from weboob.tools.misc import iter_fields
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters, load_formatter
-from .formatters.iformatter import FieldNotFound
 from .results import ResultsCondition, ResultsConditionException
 
 
@@ -155,7 +156,19 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         """
         if kwargs.pop('backends', None) is None:
             kwargs['backends'] = self.enabled_backends
-        return self.weboob.do(self._complete, self.options.count, self.selected_fields, function, *args, **kwargs)
+        fields = self.selected_fields
+        if fields == ['direct']:
+            fields = None
+        elif fields == ['full']:
+            fields = [k for k, v in iter_fields(obj)]
+        try:
+            for values in self.weboob.do(self._complete, self.options.count, fields, function, *args, **kwargs):
+                yield values
+        except CallErrors, e:
+            if len(e.errors) == 1 and isinstance(e.errors[0][1], FieldNotFound):
+                logging.error(e.errors[0][1])
+            else:
+                raise
 
     # options related methods
 
@@ -175,7 +188,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
         else:
-            self.selected_fields = 'direct'
+            self.selected_fields = ['direct']
 
         if self.options.condition:
             self.condition = ResultsCondition(self.options.condition)
@@ -380,7 +393,10 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         """
         select [FIELD_NAME]... | "direct" | "full"
         """
-        print self.selected_fields
+        if line:
+            self.selected_fields = line.split()
+        else:
+            print ' '.join(self.selected_fields)
 
 
     # user interaction related methods
@@ -445,8 +461,11 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         self.formatter.set_header(string)
 
     def format(self, result):
+        fields = self.selected_fields
+        if fields == ['direct'] or fields == ['full']:
+            fields = None
         try:
-            self.formatter.format(obj=result, selected_fields=self.selected_fields, condition=self.condition)
+            self.formatter.format(obj=result, selected_fields=fields, condition=self.condition)
         except FieldNotFound, e:
             logging.error(e)
         except ResultsConditionException, e:

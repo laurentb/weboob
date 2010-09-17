@@ -19,7 +19,12 @@
 from weboob.tools.misc import iter_fields
 
 
-__all__ = ['IBaseCap', 'NotAvailable', 'NotLoaded', 'CapBaseObject']
+__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded', 'CapBaseObject']
+
+
+class FieldNotFound(Exception):
+    def __init__(self, obj, field):
+        Exception.__init__(self, u'Field "%s" not found for object %s' % (field, obj))
 
 
 class NotAvailableMeta(type):
@@ -54,6 +59,7 @@ class NotLoaded(object):
 
 class IBaseCap(object):
     pass
+
 
 class CapBaseObject(object):
     FIELDS = None

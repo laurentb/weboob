@@ -25,7 +25,6 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core.ouiboube import Weboob
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
-from weboob.tools.misc import iter_fields
 
 
 __all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
@@ -212,12 +211,7 @@ class BaseApplication(object):
 
     def _complete_obj(self, backend, fields, obj):
         if fields:
-            if fields == 'direct':
-                fields = None
-            elif fields == 'full':
-                fields = [k for k, v in iter_fields(obj)]
             try:
-                print fields
                 backend.fillobj(obj, fields)
             except ObjectNotAvailable, e:
                 logging.warning(u'Could not retrieve required fields (%s): %s' % (','.join(fields), e))
@@ -292,6 +286,7 @@ class BaseApplication(object):
             level = logging.WARNING
         log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
+        logging.root.level = level
 
         app._handle_options()
         app.handle_application_options()

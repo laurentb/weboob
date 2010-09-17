@@ -16,16 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['FieldNotFound', 'IFormatter']
-
-
-class FieldNotFound(Exception):
-    def __init__(self, field):
-        Exception.__init__(self, u'Field not found: "%s"' % field)
+__all__ = ['IFormatter']
 
 
 class IFormatter(object):
@@ -97,7 +92,7 @@ class IFormatter(object):
                 try:
                     value = d[key]
                 except KeyError:
-                    raise FieldNotFound(key)
+                    raise FieldNotFound(obj, key)
 
                 if key == 'id' and obj.backend is not None:
                     value = self.build_id(value, obj.backend)

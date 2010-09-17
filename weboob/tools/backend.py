@@ -21,7 +21,7 @@ import os
 from threading import RLock
 from logging import debug
 
-from weboob.capabilities.base import IBaseCap, NotLoaded, CapBaseObject
+from weboob.capabilities.base import CapBaseObject, FieldNotFound, IBaseCap, NotLoaded
 from weboob.tools.misc import iter_fields
 
 
@@ -211,7 +211,10 @@ class BaseBackend(object):
                 return True
         return False
 
-    def fillobj(self, obj, fields):
+    def fillobj(self, obj, fields=None):
+        """
+        @param fields  which fields to fill; if None, only "direct" fields are filled (list)
+        """
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
 
@@ -219,14 +222,15 @@ class BaseBackend(object):
             fields = (fields,)
 
         missing_fields = []
-        if fields is None or '*' in fields:
+        if fields is None:
             if isinstance(obj, CapBaseObject):
-                fields = obj.iter_fields()
+                fields = [item[0] for item in obj.iter_fields()]
             else:
-                fields = iter_fields(obj)
+                fields = [item[0] for item in iter_fields(obj)]
 
         for field in fields:
-            assert hasattr(obj, field), u'%r does not have field %s' % (obj, field)
+            if not hasattr(obj, field):
+                raise FieldNotFound(obj, field)
             value = getattr(obj, field)
 
             missing = False
