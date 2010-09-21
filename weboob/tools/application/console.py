@@ -88,7 +88,7 @@ class ConsoleApplication(BaseApplication):
         # XXX why is it in ConsoleApplication and not BaseApplication? -romain
         pass
 
-    def _handle_app_options(self):
+    def _handle_options(self):
         if self.options.formatter:
             formatter_name = self.options.formatter
         else:
