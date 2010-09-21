@@ -83,7 +83,10 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
         if self._parser.description is None:
             self._parser.description = ''
-        help_str = self.do_help(return_only=True)
+
+        app_cmds, weboob_cmds, undoc_cmds = self.get_commands_doc()
+        help_str = '%s Commands:\n%s\n\n' % (self.APPNAME, '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
+        help_str +='Weboob Commands:\n%s\n' % '\n'.join(' %s' % cmd for cmd in weboob_cmds)
         self._parser.description += help_str
 
         results_options = OptionGroup(self._parser, 'Results Options')
@@ -148,6 +151,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
             for cmd in cmds:
                 self.onecmd(cmd)
         else:
+            self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             self.cmdloop()
 
     def do(self, function, *args, **kwargs):
@@ -230,11 +234,27 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                     doc = command
             return doc
 
-    def do_help(self, arg=None, return_only=False):
-        if return_only:
-            stringio = StringIO()
-            old_stdout = self.stdout
-            self.stdout = stringio
+    def get_commands_doc(self):
+        names = set(name for name in self.get_names() if name.startswith('do_'))
+        application_cmds_doc = []
+        weboob_cmds_doc = []
+        cmds_undoc = []
+        for name in sorted(names):
+            cmd = name[3:]
+            if cmd in self.hidden_commands.union(['help']):
+                continue
+            elif getattr(self, name).__doc__:
+                short_help = '    %s' % self.get_command_help(cmd, short=True)
+                if cmd in self.weboob_commands:
+                    weboob_cmds_doc.append(short_help)
+                else:
+                    application_cmds_doc.append(short_help)
+            else:
+                cmds_undoc.append(cmd)
+
+        return application_cmds_doc, weboob_cmds_doc, cmds_undoc
+
+    def do_help(self, arg=None):
         if arg:
             cmd_names = set(name[3:] for name in self.get_names() if name.startswith('do_'))
             if arg in cmd_names:
@@ -246,33 +266,16 @@ class ReplApplication(cmd.Cmd, BaseApplication):
             else:
                 logging.error(u'Unknown command: "%s"' % arg)
         else:
-            names = set(name for name in self.get_names() if name.startswith('do_'))
-            application_cmds_doc = []
-            weboob_cmds_doc = []
-            cmds_undoc = []
-            for name in sorted(names):
-                cmd = name[3:]
-                if cmd in self.hidden_commands.union(['help']):
-                    continue
-                elif getattr(self, name).__doc__:
-                    short_help = '    %s' % self.get_command_help(cmd, short=True)
-                    if cmd in self.weboob_commands:
-                        weboob_cmds_doc.append(short_help)
-                    else:
-                        application_cmds_doc.append(short_help)
-                else:
-                    cmds_undoc.append(cmd)
+            application_cmds_doc, weboob_cmds_doc, undoc_cmds_doc = self.get_commands_doc()
+
             application_cmds_header = '%s commands' % self.APPNAME.capitalize()
             self.stdout.write('%s\n%s\n' % (application_cmds_header, '-' * len(application_cmds_header)))
             self.stdout.write('\n'.join(application_cmds_doc) + '\n\n')
             weboob_cmds_header = 'Generic Weboob commands'
             self.stdout.write('%s\n%s\n' % (weboob_cmds_header, '-' * len(weboob_cmds_header)))
             self.stdout.write('\n'.join(weboob_cmds_doc) + '\n\n')
-            self.print_topics(self.undoc_header, cmds_undoc, 15,80)
+            self.print_topics(self.undoc_header, undoc_cmds_doc, 15,80)
             self.stdout.write('Type "help <command>" for more info about a command.\n')
-        if return_only:
-            self.stdout = old_stdout
-            return stringio.getvalue()
 
     def emptyline(self):
         """
@@ -360,8 +363,10 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         elif len(args) == 2 and args[1] in commands or \
                 len(args) == 3 and args[1] in ('enable', 'only') and args[2] not in available_backends_names or \
                 len(args) == 3 and args[1] == 'disable' and args[2] not in enabled_backends_names:
-            if args[1] in ('enable', 'only'):
+            if args[1] == 'enable':
                 choices = sorted(available_backends_names - enabled_backends_names)
+            elif args[1] == 'only':
+                choices = sorted(available_backends_names)
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
 
