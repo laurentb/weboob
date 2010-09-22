@@ -68,27 +68,27 @@ class Results(object):
 
 
 class ResultsCondition(object):
+    condition_str = None
+
     def __init__(self, condition_str):
         condition_str = condition_str.replace('OR', 'or') \
                                      .replace('AND', 'and') \
                                      .replace('NOT', 'not')
         or_list = []
-        try:
-            for _or in condition_str.split('or'):
-                and_dict = {}
-                for _and in _or.split('and'):
-                    if '!=' in _and:
-                        k, v = _and.split('!=')
-                        k += '!'
-                    elif '=' in _and:
-                        k, v = _and.split('=')
-                    else:
-                        raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
-                    and_dict[k] = v
-                or_list.append(and_dict)
-        except:
-            raise ResultsConditionException(u'Could not parse condition expression "%s"' % condition_str)
+        for _or in condition_str.split('or'):
+            and_dict = {}
+            for _and in _or.split('and'):
+                if '!=' in _and:
+                    k, v = _and.split('!=')
+                    k += '!'
+                elif '=' in _and:
+                    k, v = _and.split('=')
+                else:
+                    raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                and_dict[k.strip()] = v.strip()
+            or_list.append(and_dict)
         self.condition = or_list
+        self.condition_str = condition_str
 
     def is_valid(self, d):
         for _or in self.condition:
@@ -108,6 +108,12 @@ class ResultsCondition(object):
                 else:
                     raise ResultsConditionException(u'Field "%s" is not valid.' % k)
         return True
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.condition_str
 
 
 class ResultsConditionException(Exception):

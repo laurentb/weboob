@@ -90,7 +90,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         self._parser.description += help_str
 
         results_options = OptionGroup(self._parser, 'Results Options')
-        results_options.add_option('-c', '--condition', help='filter result items to display given a boolean condition')
+        results_options.add_option('-c', '--condition', help='filter result items to display given a boolean expression')
         results_options.add_option('-n', '--count', default='10', type='int',
                                    help='get a maximum number of results (all backends merged)')
         results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
@@ -161,9 +161,9 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         if kwargs.pop('backends', None) is None:
             kwargs['backends'] = self.enabled_backends
         fields = self.selected_fields
-        if fields == ['direct']:
+        if fields == '$direct':
             fields = None
-        elif fields == ['full']:
+        elif fields == '$full':
             fields = [k for k, v in iter_fields(obj)]
         try:
             for values in self.weboob.do(self._complete, self.options.count, fields, function, *args, **kwargs):
@@ -192,7 +192,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
         else:
-            self.selected_fields = ['direct']
+            self.selected_fields = '$direct'
 
         if self.options.condition:
             self.condition = ResultsCondition(self.options.condition)
@@ -373,14 +373,37 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         if choices is not None:
             return ['%s ' % choice for choice in choices if choice.startswith(text)] if text else choices
 
+    def do_condition(self, line):
+        """
+        condition [EXPRESSION] | off
+
+        If an argument is given, set the condition expression used to filter the results.
+        If the "off" value is given, conditional filtering is disabled.
+
+        If no argument is given, print the current condition expression.
+        """
+        if line:
+            if line == 'off':
+                self.condition = None
+            else:
+                try:
+                    self.condition = ResultsCondition(line)
+                except ResultsConditionException, e:
+                    print e
+        else:
+            if self.condition is None:
+                print 'No condition is set.'
+            else:
+                print str(self.condition)
+
     def do_count(self, line):
         """
         count [NUMBER]
 
         If an argument is given, set the maximum number of results fetched.
-        Otherwise, display the current setting.
-
         Count must be at least 1, or negative for infinite.
+
+        If no argument is given, print the current count value.
         """
         if line:
             try:
@@ -396,12 +419,25 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
     def do_select(self, line):
         """
-        select [FIELD_NAME]... | "direct" | "full"
+        select [FIELD_NAME]... | "$direct" | "$full"
+
+        If an argument is given, set the selected fields.
+        $direct selects all fields loaded in one http request.
+        $full selects all fields using as much http requests as necessary.
+
+        If no argument is given, print the currently selected fields.
         """
         if line:
-            self.selected_fields = line.split()
+            split = line.split()
+            if len(split) == 1 and split[0] in ('$direct', '$full'):
+                self.selected_fields = split[0]
+            else:
+                self.selected_fields = split
         else:
-            print ' '.join(self.selected_fields)
+            if isinstance(self.selected_fields, basestring):
+                print self.selected_fields
+            else:
+                print ' '.join(self.selected_fields)
 
 
     # user interaction related methods
@@ -467,7 +503,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
     def format(self, result):
         fields = self.selected_fields
-        if fields == ['direct'] or fields == ['full']:
+        if fields in ('$direct', '$full'):
             fields = None
         try:
             self.formatter.format(obj=result, selected_fields=fields, condition=self.condition)
