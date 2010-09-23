@@ -51,11 +51,10 @@ class Videoob(ReplApplication):
             logging.error(u'This command takes an argument: %s' % self.get_command_help('info', short=True))
             return
         _id, backend_name = self.parse_id(_id)
-        names = (backend_name,) if backend_name is not None else None
-        for backend, video in self.do('get_video', _id):
-            if video is None:
-                continue
+        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+        for backend, video in self.do('get_video', _id, backends=backend_names):
             self.format(video)
+        self.flush()
     
     def do_search(self, pattern=None):
         """
@@ -69,3 +68,4 @@ class Videoob(ReplApplication):
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw,
                                       max_results=self.options.count):
             self.format(video)
+        self.flush()

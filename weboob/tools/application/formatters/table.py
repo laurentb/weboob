@@ -58,6 +58,7 @@ class TableFormatter(IFormatter):
             return s
         else:
             print s.encode('utf-8')
+        self.queue = []
 
     def format_dict(self, item):
         # format is done in self.flush() by prettytable

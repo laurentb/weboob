@@ -23,8 +23,7 @@ formatters = ('htmltable', 'multiline', 'simple', 'table', 'webkit')
             
 
 def load_formatter(name):
-    if name not in formatters:
-        raise Exception(u'Formatter "%s" not found' % name)
+    assert name in formatters
     if name in ('htmltable', 'table'):
         from .table import TableFormatter
         if name == 'htmltable':

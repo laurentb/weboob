@@ -37,7 +37,7 @@ from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.misc import iter_fields
 
 from .base import BackendNotFound, BaseApplication
-from .formatters.load import formatters, load_formatter
+from .formatters.load import formatters as available_formatters, load_formatter
 from .results import ResultsCondition, ResultsConditionException
 
 
@@ -65,7 +65,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                                 'Type "help" to display available commands.',
                                 '',
                                ))
-        self.weboob_commands = set(['backends', 'count', 'quit', 'select'])
+        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
 
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
@@ -76,7 +76,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         try:
             BaseApplication.__init__(self, option_parser=option_parser)
         except BackendsConfig.WrongPermissions, e:
-            logging.error(u'Error: %s' % e)
+            print e
             sys.exit(1)
 
         self._parser.format_description = lambda x: self._parser.description
@@ -97,8 +97,8 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         self._parser.add_option_group(results_options)
 
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
-        formatting_options.add_option('-f', '--formatter', choices=formatters,
-                                      help='select output formatter (%s)' % u','.join(formatters))
+        formatting_options.add_option('-f', '--formatter', choices=available_formatters,
+                                      help='select output formatter (%s)' % u','.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
@@ -158,8 +158,8 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         """
         Call Weboob.do(), passing count and selected fields given by user.
         """
-        if kwargs.pop('backends', None) is None:
-            kwargs['backends'] = self.enabled_backends
+        backends = kwargs.pop('backends', None)
+        kwargs['backends'] = self.enabled_backends if backends is None else backends
         fields = self.selected_fields
         if fields == '$direct':
             fields = None
@@ -177,11 +177,8 @@ class ReplApplication(cmd.Cmd, BaseApplication):
     # options related methods
 
     def _handle_options(self):
-        if self.options.formatter:
-            formatter_name = self.options.formatter
-        else:
-            formatter_name = 'multiline'
-        self.formatter = load_formatter(formatter_name)
+        self.formatter_name = self.options.formatter if self.options.formatter else 'multiline'
+        self.formatter = load_formatter(self.formatter_name)
 
         if self.options.no_header:
             self.formatter.display_header = False
@@ -241,17 +238,16 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         cmds_undoc = []
         for name in sorted(names):
             cmd = name[3:]
-            if cmd in self.hidden_commands.union(['help']):
+            if cmd in self.hidden_commands.union(self.weboob_commands).union(['help']):
                 continue
             elif getattr(self, name).__doc__:
                 short_help = '    %s' % self.get_command_help(cmd, short=True)
-                if cmd in self.weboob_commands:
-                    weboob_cmds_doc.append(short_help)
-                else:
-                    application_cmds_doc.append(short_help)
+                application_cmds_doc.append(short_help)
             else:
                 cmds_undoc.append(cmd)
-
+        for cmd in self.weboob_commands:
+            short_help = '    %s' % self.get_command_help(cmd, short=True)
+            weboob_cmds_doc.append(short_help)
         return application_cmds_doc, weboob_cmds_doc, cmds_undoc
 
     def do_help(self, arg=None):
@@ -264,7 +260,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                 else:
                     self.stdout.write('%s\n' % command_help)
             else:
-                logging.error(u'Unknown command: "%s"' % arg)
+                print 'Unknown command: "%s"' % arg
         else:
             application_cmds_doc, weboob_cmds_doc, undoc_cmds_doc = self.get_commands_doc()
 
@@ -285,7 +281,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         pass
 
     def default(self, line):
-        logging.error(u'Unknown command: "%s"' % line)
+        print 'Unknown command: "%s"' % line
 
     def completenames(self, text, *ignored):
         return ['%s ' % name for name in cmd.Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
@@ -308,17 +304,27 @@ class ReplApplication(cmd.Cmd, BaseApplication):
             * only    enable given backends and disable the others
             * list    display enabled and available backends
         """
-        if not line:
-            args = ['list']
-        else:
+        line = line.strip()
+        if line:
             args = line.split()
+        else:
+            args = ['list']
 
         action = args[0]
         given_backend_names = args[1:]
 
+        skipped_backend_names = []
+        for backend_name in given_backend_names:
+            if backend_name not in [backend.name for backend in self.weboob.iter_backends()]:
+                print 'Backend "%s" does not exist => skipping.' % backend_name
+                skipped_backend_names.append(backend_name)
+        for skipped_backend_name in skipped_backend_names:
+            given_backend_names.remove(skipped_backend_name)
+
         if action in ('enable', 'disable', 'only'):
             if not given_backend_names:
-                logging.error(u'Please give at least a backend name.')
+                print 'Please give at least a backend name.'
+                return
 
         given_backends = set(backend for backend in self.weboob.iter_backends() if backend.name in given_backend_names)
 
@@ -328,7 +334,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                 try:
                     action_func(backend)
                 except KeyError, e:
-                    logging.error(e)
+                    print e
         elif action == 'disable':
             action_func = self.enabled_backends.remove
             for backend in given_backends:
@@ -343,12 +349,12 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                 try:
                     action_func(backend)
                 except KeyError, e:
-                    logging.error(e)
+                    print e
         elif action == 'list':
             print 'Available: %s' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             print 'Enabled: %s' % ', '.join(sorted(backend.name for backend in self.enabled_backends))
         else:
-            logging.error(u'Unknown action: "%s"' % action)
+            print 'Unknown action: "%s"' % action
             return False
 
     def complete_backends(self, text, line, begidx, endidx):
@@ -375,13 +381,14 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
     def do_condition(self, line):
         """
-        condition [EXPRESSION] | off
+        condition [EXPRESSION | off]
 
         If an argument is given, set the condition expression used to filter the results.
         If the "off" value is given, conditional filtering is disabled.
 
         If no argument is given, print the current condition expression.
         """
+        line = line.strip()
         if line:
             if line == 'off':
                 self.condition = None
@@ -398,24 +405,56 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
     def do_count(self, line):
         """
-        count [NUMBER]
+        count [NUMBER | off]
 
         If an argument is given, set the maximum number of results fetched.
-        Count must be at least 1, or negative for infinite.
+        NUMBER must be at least 1.
+        "off" value disables counting, and allows infinite searches.
 
         If no argument is given, print the current count value.
         """
+        line = line.strip()
         if line:
-            try:
-                self.options.count = int(line)
-            except ValueError, e:
-                print e
-            if self.options.count == 0:
-                print 'count must be at least 1, or negative for infinite'
-            elif self.options.count < 0:
+            if line == 'off':
                 self.options.count = None
+            else:
+                try:
+                    count = int(line)
+                except ValueError:
+                    print 'Could not interpret "%s" as a number.' % line
+                else:
+                    if count > 0:
+                        self.options.count = count
+                    else:
+                        print 'Number must be at least 1.'
         else:
-            print self.options.count
+            if self.options.count is None:
+                print 'Counting disabled.'
+            else:
+                print self.options.count
+
+    def do_formatter(self, line):
+        """
+        formatter [FORMATTER_NAME | list]
+
+        If an argument is given, set the formatter to use.
+        If argument is "list", print the available formatters.
+
+        If no argument is given, print the current formatter.
+        """
+        line = line.strip()
+        if line:
+            if line == 'list':
+                print ', '.join(available_formatters)
+            else:
+                if line in available_formatters:
+                    self.formatter = load_formatter(line)
+                    self.formatter_name = line
+                else:
+                    print 'Formatter "%s" is not available.\n' \
+                            'Available formatters: %s.' % (line, ', '.join(available_formatters))
+        else:
+            print self.formatter_name
 
     def do_select(self, line):
         """
@@ -427,6 +466,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
         If no argument is given, print the currently selected fields.
         """
+        line = line.strip()
         if line:
             split = line.split()
             if len(split) == 1 and split[0] in ('$direct', '$full'):
@@ -494,8 +534,8 @@ class ReplApplication(cmd.Cmd, BaseApplication):
                 self.formatter = load_formatter(name)
             except ImportError:
                 default_name = 'multiline'
-                logging.error('Could not load default formatter "%s" for this command. Falling back to "%s".' % (
-                    name, default_name))
+                print 'Could not load default formatter "%s" for this command. Falling back to "%s".' % (
+                    name, default_name)
                 self.formatter = load_formatter(default_name)
 
     def set_formatter_header(self, string):
@@ -508,9 +548,12 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         try:
             self.formatter.format(obj=result, selected_fields=fields, condition=self.condition)
         except FieldNotFound, e:
-            logging.error(e)
+            print e
         except ResultsConditionException, e:
-            logging.error(e)
+            print e
+
+    def flush(self):
+        self.formatter.flush()
 
     def parse_id(self, _id):
         try:
