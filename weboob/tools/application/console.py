@@ -48,6 +48,7 @@ class ConsoleApplication(BaseApplication):
     SYNOPSIS += '       %prog [--help] [--version]'
 
     def __init__(self):
+        self.enabled_backends = set()
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
         app_options = OptionGroup(option_parser, '%s Options' % self.APPNAME.capitalize())
         self.add_application_options(app_options)
@@ -277,6 +278,8 @@ class ConsoleApplication(BaseApplication):
     command = staticmethod(command)
 
     def load_backends(self, caps=None, names=None, *args, **kwargs):
+        if names is None:
+            names = self.enabled_backends
         loaded_backends = BaseApplication.load_backends(self, caps, names, *args, **kwargs)
         if not loaded_backends:
             print 'Cannot start application: no configured backend was found.'
@@ -318,9 +321,12 @@ class ConsoleApplication(BaseApplication):
         except BackendNotFound, e:
             logging.error(e)
 
+    def set_requested_backends(self, requested_backends):
+        self.enabled_backends = requested_backends
+
     def do(self, function, *args, **kwargs):
         """
         Call Weboob.do(), after having filled the yielded object, if selected fields are given by user.
         """
 
-        return self.weboob.do(self.complete, self.options.count, self.selected_fields, function, *args, **kwargs)
+        return self.weboob.do(self._complete, self.options.count, self.selected_fields, function, *args, **kwargs)
