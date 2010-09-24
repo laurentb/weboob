@@ -20,23 +20,26 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.torrent import ICapTorrent
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
 __all__ = ['Weboorrents']
 
 
-class Weboorrents(ConsoleApplication):
+class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
-    def main(self, argv):
+    def load_default_backends(self):
         self.load_backends(ICapTorrent)
-        return self.process_command(*argv[1:])
 
-    @ConsoleApplication.command('Get information about a torrent')
-    def command_info(self, id):
+    def do_info(self, id):
+        """
+        info ID
+
+        Get information about a torrent.
+        """
         _id, backend_name = self.parse_id(id)
 
         found = 0
@@ -48,8 +51,16 @@ class Weboorrents(ConsoleApplication):
         if not found:
             print >>sys.stderr, 'Torrent "%s" not found' % id
 
-    @ConsoleApplication.command('Get the torrent file')
-    def command_getfile(self, id, dest):
+    def do_getfile(self, line):
+        """
+        getfile ID FILENAME
+
+        Get the .torrent file.
+        FILENAME is where to write the file. If FILENAME is '-',
+        the file is written to stdout.
+        """
+        id, dest = self.parseline(line, 2, 2)
+
         _id, backend_name = self.parse_id(id)
 
         for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
@@ -63,8 +74,14 @@ class Weboorrents(ConsoleApplication):
 
         print >>sys.stderr, 'Torrent "%s" not found' % id
 
-    @ConsoleApplication.command('Search torrents')
-    def command_search(self, pattern=None):
+    def do_search(self, pattern):
+        """
+        search [PATTERN]
+
+        Search torrents.
+        """
+        if not pattern:
+            pattern = None
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
             self.format(torrent)

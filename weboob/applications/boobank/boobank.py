@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
 # Copyright(C) 2009-2010  Romain Bignon, Christophe Benz
 #
@@ -39,6 +37,8 @@ class Boobank(ReplApplication):
 
     def do_list(self, line):
         """
+        list
+
         List every available accounts.
         """
         tot_balance = 0.0
@@ -61,6 +61,8 @@ class Boobank(ReplApplication):
 
     def do_history(self, id):
         """
+        history ID
+
         Display old operations.
         """
         id, backend_name = self.parse_id(id)
@@ -76,6 +78,8 @@ class Boobank(ReplApplication):
 
     def do_coming(self, id):
         """
+        coming ID
+
         Display all future operations.
         """
         id, backend_name = self.parse_id(id)
@@ -88,25 +92,22 @@ class Boobank(ReplApplication):
 
         for backend, operation in self.do(do):
             self.format(operation)
-      
-    def do_transfer(self, arg):
+
+    def do_transfer(self, line):
         """
+        transfer FROM TO AMOUNT
+
         Make a transfer beetwen two account
         """
-        id_from , id_to, amount = arg.split()
-        
+        id_from, id_to, amount = self.parseline(line, 3, 3)
+
         id_from, backend_name = self.parse_id(id_from)
         id_to, backend_name = self.parse_id(id_to)
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapBank, names=names)
-        
+
         def do(backend):
-            return backend.transfer(id_from, id_to, amount)
-        
+            return backend.transfer(id_from, id_to, float(amount))
+
         for backend, operation in self.do(do):
             pass
-        
-        
-        
-        
-        

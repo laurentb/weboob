@@ -16,51 +16,61 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import logging
+import sys
 
 from weboob.core import CallErrors
 from weboob.capabilities.weather import ICapWeather, CityNotFound
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
 __all__ = ['WetBoobs']
 
 
-class WetBoobs(ConsoleApplication):
+class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
-    def main(self, argv):
+    def load_default_backends(self):
         self.load_backends(ICapWeather)
 
-        return self.process_command(*argv[1:])
+    def do_search(self, pattern):
+        """
+        search PATTERN
 
-    @ConsoleApplication.command('search cities')
-    def command_search(self, pattern):
+        Search cities.
+        """
         for backend, city in self.do('iter_city_search', pattern):
             self.format(city)
 
-    @ConsoleApplication.command('get current weather')
-    def command_current(self, city):
+    def do_current(self, city):
+        """
+        current CITY
+
+        Get current weather.
+        """
         try:
             for backend, current in self.do('get_current', city):
                 self.format(current)
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):
-                    logging.error('City "%s" not found' % city)
+                    print >>sys.stderr, 'City "%s" not found' % city
                 else:
                     raise error
 
-    @ConsoleApplication.command('get forecasts')
-    def command_forecasts(self, city):
+    def do_forecasts(self, city):
+        """
+        forecasts CITY
+
+        Get forecasts.
+        """
         try:
             for backend, forecast in self.do('iter_forecast', city):
                 self.format(forecast)
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):
-                    logging.error('City "%s" not found' % city)
+                    print >>sys.stderr, 'City "%s" not found' % city
                 else:
                     raise error

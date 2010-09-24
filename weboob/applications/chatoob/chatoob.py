@@ -18,7 +18,7 @@
 
 import logging
 
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.contact import ICapContact, Contact
 
@@ -26,36 +26,42 @@ from weboob.capabilities.contact import ICapContact, Contact
 __all__ = ['Chatoob']
 
 
-class Chatoob(ConsoleApplication):
+class Chatoob(ReplApplication):
     APPNAME = 'chatoob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
 
-    def main(self, argv):
+    def load_default_backends(self):
         self.load_backends(ICapChat)
-        #for backend, result in self.do('start_chat_polling', self.on_new_chat_message):
-            #logging.info(u'Polling chat messages for backend %s' % backend)
-        return self.process_command(*argv[1:])
 
     def on_new_chat_message(self, message):
         print 'on_new_chat_message: %s' % message
 
-    @ConsoleApplication.command('exit program')
-    def command_exit(self):
-        self.weboob.want_stop()
+    def do_list(self, line):
+        """
+        list
 
-    @ConsoleApplication.command('list online contacts')
-    def command_list(self):
+        List all contacts.
+        """
         for backend, contact in self.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
             self.format(contact)
 
-    @ConsoleApplication.command('get messages')
-    def command_messages(self):
+    def do_messages(self, line):
+        """
+        messages
+
+        Get messages.
+        """
         for backend, message in self.do('iter_chat_messages'):
             self.format(message)
 
-    @ConsoleApplication.command('send message to contact')
-    def command_send(self, _id, message):
+    def do_send(self, line):
+        """
+        send CONTACT MESSAGE
+
+        Send a message to the specified contact.
+        """
+        _id, message = self.parseline(line, 2, 2)
         for backend, result in self.do('send_chat_message', _id, message):
             if not result:
                 logging.error(u'Failed to send message to contact id="%s" on backend "%s"' % (_id, backend.name))

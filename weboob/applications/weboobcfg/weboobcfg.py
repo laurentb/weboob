@@ -22,20 +22,17 @@ import os
 import subprocess
 import re
 
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['WeboobCfg']
 
 
-class WeboobCfg(ConsoleApplication):
+class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
-
-    def main(self, argv):
-        return self.process_command(*argv[1:])
 
     def caps_included(self, modcaps, caps):
         modcaps = [x.__name__ for x in modcaps]
@@ -44,8 +41,18 @@ class WeboobCfg(ConsoleApplication):
                 return False
         return True
 
-    @ConsoleApplication.command('Add a configured backend')
-    def command_add(self, name, *options):
+    def do_add(self, line):
+        """
+        add NAME [OPTIONS ...]
+
+        Add a configured backend.
+        """
+        name, options = self.parseline(line, 2, 1)
+        if options:
+            options = options.split(' ')
+        else:
+            options = ()
+
         self.weboob.modules_loader.load_all()
         if name not in [_name for _name, backend in self.weboob.modules_loader.loaded.iteritems()]:
             logging.error(u'Backend "%s" does not exist.' % name)
@@ -101,8 +108,12 @@ class WeboobCfg(ConsoleApplication):
                     except ConfigParser.DuplicateSectionError:
                         print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
-    @ConsoleApplication.command('Show configured backends')
-    def command_listconfigured(self):
+    def do_listconfigured(self):
+        """
+        list
+
+        Show configured backends.
+        """
         self.set_default_formatter('table')
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
@@ -112,20 +123,33 @@ class WeboobCfg(ConsoleApplication):
                                ])
             self.format(row)
 
-    @ConsoleApplication.command('Remove a configured backend')
-    def command_remove(self, instance_name):
+    def do_remove(self, instance_name):
+        """
+        remove NAME
+
+        Remove a configured backend.
+        """
         try:
             self.weboob.backends_config.remove_backend(instance_name)
         except ConfigParser.NoSectionError:
             logging.error('Backend instance "%s" does not exist' % instance_name)
             return 1
 
-    @ConsoleApplication.command('Edit configuration file')
-    def command_edit(self):
+    def do_edit(self):
+        """
+        edit
+
+        Edit configuration file.
+        """
         subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
 
-    @ConsoleApplication.command('Show available backends')
-    def command_backends(self, *caps):
+    def do_backends(self, line):
+        """
+        backends [CAPS ...]
+
+        Show available backends
+        """
+        caps = line.split(' ')
         self.set_default_formatter('table')
         self.weboob.modules_loader.load_all()
         for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
@@ -137,8 +161,12 @@ class WeboobCfg(ConsoleApplication):
                                ])
             self.format(row)
 
-    @ConsoleApplication.command('Display information about a backend')
-    def command_info(self, name):
+    def do_info(self, name):
+        """
+        info NAME
+
+        Display information about a backend.
+        """
         try:
             backend = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
@@ -166,8 +194,12 @@ class WeboobCfg(ConsoleApplication):
                 print '|                 | %s: %s' % (key, value)
         print "'-----------------'"
 
-    @ConsoleApplication.command('Show applications')
-    def command_applications(self, *caps):
+    def do_applications(self, line):
+        """
+        applications
+
+        Show applications.
+        """
         applications = set()
         import weboob.applications
         for path in weboob.applications.__path__:

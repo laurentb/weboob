@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010  Christophe Benz, Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,16 +19,12 @@
 from __future__ import with_statement
 
 import atexit
-import cmd
-from cStringIO import StringIO
-from functools import partial
+from cmd import Cmd
 import getpass
-from inspect import getargspec
 import logging
 from optparse import OptionGroup, OptionParser
 import os
 import re
-import subprocess
 import sys
 
 from weboob.capabilities.base import FieldNotFound
@@ -41,10 +37,13 @@ from .formatters.load import formatters as available_formatters, load_formatter
 from .results import ResultsCondition, ResultsConditionException
 
 
-__all__ = ['ReplApplication']
+__all__ = ['ReplApplication', 'NotEnoughArguments']
 
 
-class ReplApplication(cmd.Cmd, BaseApplication):
+class NotEnoughArguments(Exception):
+    pass
+
+class ReplApplication(Cmd, BaseApplication):
     """
     Base application class for CLI applications.
     """
@@ -53,7 +52,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
     SYNOPSIS += '       %prog [--help] [--version]'
 
     def __init__(self):
-        cmd.Cmd.__init__(self)
+        Cmd.__init__(self)
         self.prompt = '%s> ' % self.APPNAME
         self.intro = '\n'.join(('Welcome to %s v%s' % (self.APPNAME, self.VERSION),
                                 '',
@@ -69,9 +68,6 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         self.hidden_commands = set(['EOF'])
 
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
-        app_options = OptionGroup(option_parser, '%s Options' % self.APPNAME.capitalize())
-        self.add_application_options(app_options)
-        option_parser.add_option_group(app_options)
 
         try:
             BaseApplication.__init__(self, option_parser=option_parser)
@@ -85,7 +81,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
             self._parser.description = ''
 
         app_cmds, weboob_cmds, undoc_cmds = self.get_commands_doc()
-        help_str = '%s Commands:\n%s\n\n' % (self.APPNAME, '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
+        help_str = '%s Commands:\n%s\n\n' % (self.APPNAME.capitalize(), '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
         help_str +='Weboob Commands:\n%s\n' % '\n'.join(' %s' % cmd for cmd in weboob_cmds)
         self._parser.description += help_str
 
@@ -140,6 +136,29 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         except BackendNotFound, e:
             logging.error(e)
 
+    def parseargs(self, line, nb, req_n=None):
+        args = line.strip().split(' ', nb - 1)
+        if req_n is not None and len(args) < req_n:
+            raise NotEnoughArguments('Command needs %d arguments' % req_n)
+
+        if len(args) < nb:
+            args += tuple([None for i in xrange(nb - len(args))])
+        return args
+
+    def onecmd(self, _cmd):
+        """
+        This REPL method is overrided to catch some particular exceptions.
+        """
+        try:
+            return super(ReplApplication, self).onecmd(_cmd)
+        except CallErrors, e:
+            if len(e.errors) == 1 and isinstance(e.errors[0][1], FieldNotFound):
+                print >>sys.stderr, e.errors[0][1]
+            else:
+                raise
+        except NotEnoughArguments, e:
+            print >>sys.stderr, 'Error: no enough arguments.'
+
     def main(self, argv):
         cmd_args = argv[1:]
         if cmd_args:
@@ -164,15 +183,11 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         if fields == '$direct':
             fields = None
         elif fields == '$full':
-            fields = [k for k, v in iter_fields(obj)]
-        try:
-            for values in self.weboob.do(self._complete, self.options.count, fields, function, *args, **kwargs):
-                yield values
-        except CallErrors, e:
-            if len(e.errors) == 1 and isinstance(e.errors[0][1], FieldNotFound):
-                logging.error(e.errors[0][1])
-            else:
-                raise
+            # XXX IT ABSOLUTLY DOESN'T WORK, OBJ ISN'T EXISTANT.
+            # PLEASE REVIEW THIS CODE.
+            #fields = [k for k, v in iter_fields(obj)]
+            fields = None
+        return self.weboob.do(self._complete, self.options.count, fields, function, *args, **kwargs)
 
     # options related methods
 
@@ -284,7 +299,7 @@ class ReplApplication(cmd.Cmd, BaseApplication):
         print 'Unknown command: "%s"' % line
 
     def completenames(self, text, *ignored):
-        return ['%s ' % name for name in cmd.Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
+        return ['%s ' % name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
 
     def completion_helper(self, text, choices):
         if text:

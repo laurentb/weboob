@@ -19,28 +19,37 @@
 import logging
 
 from weboob.capabilities.travel import ICapTravel
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
 __all__ = ['Traveloob']
 
 
-class Traveloob(ConsoleApplication):
+class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
-    def main(self, argv):
-        return self.process_command(*argv[1:])
-
-    @ConsoleApplication.command('Search stations')
-    def command_stations(self, pattern):
+    def load_default_backends(self):
         self.load_backends(ICapTravel)
+
+    def do_stations(self, pattern):
+        """
+        search PATTERN
+
+        Search stations.
+        """
         for backend, station in self.do('iter_station_search', pattern):
             self.format(station)
 
-    @ConsoleApplication.command('List all departures for a given station')
-    def command_departures(self, station, arrival=None):
+    def do_departures(self, line):
+        """
+        departures STATION [ARRIVAL]
+
+        List all departures for a given station.
+        """
+        station, arrival = self.parseline(line, 2, 1)
+
         station_id, backend_name = self.parse_id(station)
         if arrival:
             arrival_id, backend_name2 = self.parse_id(arrival)
@@ -57,6 +66,5 @@ class Traveloob(ConsoleApplication):
         else:
             backends = None
 
-        self.load_backends(ICapTravel, names=backends)
-        for backend, departure in self.do('iter_station_departures', station_id, arrival_id):
+        for backend, departure in self.do('iter_station_departures', station_id, arrival_id, backends=backends):
             self.format(departure)

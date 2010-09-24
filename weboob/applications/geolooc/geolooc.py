@@ -19,23 +19,25 @@
 import sys
 
 from weboob.capabilities.geolocip import ICapGeolocIp
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
 __all__ = ['Geolooc']
 
 
-class Geolooc(ConsoleApplication):
+class Geolooc(ReplApplication):
     APPNAME = 'geolooc'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+
+    def load_default_backends(self):
+        self.load_backends(ICapGeolocIp)
 
     def main(self, argv):
         if len(argv) < 2:
             print >>sys.stderr, 'Syntax: %s ipaddr' % argv[0]
             return 1
 
-        self.load_backends(ICapGeolocIp)
         for backend, location in self.do('get_location', argv[1]):
             self.format(location)
 

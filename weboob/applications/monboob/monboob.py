@@ -31,7 +31,7 @@ import asyncore
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 from weboob.tools.misc import html2text, get_backtrace, utc2local
 
 
@@ -75,7 +75,7 @@ class MonboobScheduler(Scheduler):
         return True
 
 
-class Monboob(ConsoleApplication):
+class Monboob(ReplApplication):
     APPNAME = 'monboob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
@@ -91,11 +91,13 @@ class Monboob(ConsoleApplication):
     def create_weboob(self):
         return Weboob(scheduler=MonboobScheduler(self))
 
-    def main(self, argv):
-        self.load_config()
+    def load_default_backends(self):
         self.load_backends(ICapMessages, storage=self.create_storage())
 
-        return self.process_command(*argv[1:])
+    def main(self, argv):
+        self.load_config()
+
+        return self.onecmd(' '.join(argv[1:]))
 
     def get_email_address_ident(self, msg, header):
         s = msg.get(header)
@@ -108,8 +110,12 @@ class Monboob(ConsoleApplication):
             except IndexError:
                 return s
 
-    @ConsoleApplication.command("pipe with a mail to post message")
-    def command_post(self):
+    def do_post(self):
+        """
+        post
+
+        Pipe with a mail to post message.
+        """
         msg = message_from_file(sys.stdin)
         return self.process_incoming_mail(msg)
 
@@ -185,8 +191,12 @@ class Monboob(ConsoleApplication):
                                              parent=Message(thread, msg_id),
                                              content=content))
 
-    @ConsoleApplication.command("run daemon")
-    def command_run(self):
+    def do_run(self):
+        """
+        run
+
+        Run the fetching daemon.
+        """
         self.weboob.repeat(int(self.config.get('interval')), self.process)
         self.weboob.loop()
 

@@ -50,9 +50,6 @@ class ConsoleApplication(BaseApplication):
     def __init__(self):
         self.enabled_backends = set()
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
-        app_options = OptionGroup(option_parser, '%s Options' % self.APPNAME.capitalize())
-        self.add_application_options(app_options)
-        option_parser.add_option_group(app_options)
 
         try:
             BaseApplication.__init__(self, option_parser=option_parser)
@@ -84,10 +81,6 @@ class ConsoleApplication(BaseApplication):
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
-
-    def add_application_options(self, group):
-        # XXX why is it in ConsoleApplication and not BaseApplication? -romain
-        pass
 
     def _handle_options(self):
         if self.options.formatter:

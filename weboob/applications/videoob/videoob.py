@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 # Copyright(C) 2010  Christophe Benz, Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
@@ -55,7 +54,7 @@ class Videoob(ReplApplication):
         for backend, video in self.do('get_video', _id, backends=backend_names):
             self.format(video)
         self.flush()
-    
+
     def do_nsfw(self, line):
         """
         nsfw [on | off]

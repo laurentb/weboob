@@ -18,19 +18,23 @@
 
 import logging
 
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.repl import ReplApplication
 
 
-class WeboobDebug(ConsoleApplication):
+class WeboobDebug(ReplApplication):
     APPNAME = 'weboobdebug'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
 
-    def main(self, argv):
-        return self.process_command(*argv[1:])
+    def load_default_backends(self):
+        pass
 
-    @ConsoleApplication.command('Debug backend')
-    def command_shell(self, backend_name):
+    def do_shell(self, backend_name):
+        """
+        shell BACKEND
+
+        Debug a backend.
+        """
         try:
             backend = self.weboob.load_backends(names=[backend_name])[backend_name]
         except KeyError:
