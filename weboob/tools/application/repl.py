@@ -435,24 +435,47 @@ class ReplApplication(cmd.Cmd, BaseApplication):
 
     def do_formatter(self, line):
         """
-        formatter [FORMATTER_NAME | list]
+        formatter [FORMATTER_NAME | list | option OPTION_NAME [on | off]]
 
-        If an argument is given, set the formatter to use.
-        If argument is "list", print the available formatters.
+        If a FORMATTER_NAME is given, set the formatter to use.
+
+        If the argument is "list", print the available formatters.
+
+        If the argument is "option", set the formatter options.
+        Valid options are: header, keys.
+        If on/off value is given, set the value of the option.
+        If not, print the current value for the option.
 
         If no argument is given, print the current formatter.
         """
-        line = line.strip()
-        if line:
-            if line == 'list':
+        args = line.strip().split()
+        if args:
+            if args[0] == 'list':
                 print ', '.join(available_formatters)
+            elif args[0] == 'option':
+                if len(args) > 1:
+                    if len(args) == 2:
+                        if args[1] == 'header':
+                            print 'off' if self.options.no_header else 'on'
+                        elif args[1] == 'keys':
+                            print 'off' if self.options.no_keys else 'on'
+                    else:
+                        if args[2] not in ('on', 'off'):
+                            print 'Invalid value "%s". Please use "on" or "off" values.' % args[2]
+                        else:
+                            if args[1] == 'header':
+                                self.options.no_header = True if args[2] == 'off' else False
+                            elif args[1] == 'keys':
+                                self.options.no_keys = True if args[2] == 'off' else False
+                else:
+                    print 'Don\'t know which option to set. Available options: header, keys.'
             else:
-                if line in available_formatters:
-                    self.formatter = load_formatter(line)
-                    self.formatter_name = line
+                if args[0] in available_formatters:
+                    self.formatter = load_formatter(args[0])
+                    self.formatter_name = args[0]
                 else:
                     print 'Formatter "%s" is not available.\n' \
-                            'Available formatters: %s.' % (line, ', '.join(available_formatters))
+                            'Available formatters: %s.' % (args[0], ', '.join(available_formatters))
         else:
             print self.formatter_name
 
