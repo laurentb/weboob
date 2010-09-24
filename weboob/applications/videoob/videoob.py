@@ -56,6 +56,25 @@ class Videoob(ReplApplication):
             self.format(video)
         self.flush()
     
+    def do_nsfw(self, line):
+        """
+        nsfw [on | off]
+
+        If argument is given, enable or disable the non-suitable for work behavior.
+
+        If no argument is given, print the current behavior.
+        """
+        line = line.strip()
+        if line:
+            if line == 'on':
+                self.options.nsfw = True
+            elif line == 'off':
+                self.options.nsfw = False
+            else:
+                print 'Invalid argument "%s".' % line
+        else:
+            print "on" if self.options.nsfw else "off"
+
     def do_search(self, pattern=None):
         """
         search [PATTERN]
