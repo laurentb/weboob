@@ -55,6 +55,9 @@ class Videoob(ReplApplication):
             self.format(video)
         self.flush()
 
+    def complete_nsfw(self, text, line, begidx, endidx):
+        return ['on', 'off']
+
     def do_nsfw(self, line):
         """
         nsfw [on | off]

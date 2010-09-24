@@ -187,7 +187,7 @@ class ReplApplication(Cmd, BaseApplication):
             # PLEASE REVIEW THIS CODE.
             #fields = [k for k, v in iter_fields(obj)]
             fields = None
-        return self.weboob.do(self._complete, self.options.count, fields, function, *args, **kwargs)
+        return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
     # options related methods
 
@@ -299,13 +299,28 @@ class ReplApplication(Cmd, BaseApplication):
         print 'Unknown command: "%s"' % line
 
     def completenames(self, text, *ignored):
-        return ['%s ' % name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
+        return [name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
 
-    def completion_helper(self, text, choices):
-        if text:
-            return [x for x in choices if x.startswith(text)]
-        else:
-            return choices
+    def complete(self, text, state):
+        """
+        Override of the Cmd.complete() method to:
+        - add a space at end of proposals
+        - display only proposals for words which match the
+          text already written by user.
+        """
+        super(ReplApplication, self).complete(text, state)
+
+        # When state = 0, Cmd.complete() set the 'completion_matches' attribute by
+        # calling the completion function. Then, for other states, it only try to
+        # get the right item in list.
+        # So that's the good place to rework the choices.
+        if state == 0:
+            self.completion_matches = [choice for choice in self.completion_matches if choice.startswith(text)]
+
+        try:
+            return '%s ' % self.completion_matches[state]
+        except IndexError:
+            return None
 
     def do_backends(self, line):
         """
@@ -373,7 +388,7 @@ class ReplApplication(Cmd, BaseApplication):
             return False
 
     def complete_backends(self, text, line, begidx, endidx):
-        choices = None
+        choices = []
         commands = ['enable', 'disable', 'only', 'list']
         available_backends_names = set(backend.name for backend in self.weboob.iter_backends())
         enabled_backends_names = set(backend.name for backend in self.enabled_backends)
@@ -391,8 +406,7 @@ class ReplApplication(Cmd, BaseApplication):
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
 
-        if choices is not None:
-            return ['%s ' % choice for choice in choices if choice.startswith(text)] if text else choices
+        return choices
 
     def do_condition(self, line):
         """

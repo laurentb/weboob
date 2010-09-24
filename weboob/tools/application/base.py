@@ -213,7 +213,7 @@ class BaseApplication(object):
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version
 
-    def _complete_obj(self, backend, fields, obj):
+    def _do_complete_obj(self, backend, fields, obj):
         if fields:
             try:
                 backend.fillobj(obj, fields)
@@ -224,14 +224,14 @@ class BaseApplication(object):
                         setattr(obj, field, NotAvailable)
         return obj
 
-    def _complete_iter(self, backend, count, fields, res):
+    def _do_complete_iter(self, backend, count, fields, res):
         for i, sub in enumerate(res):
             if count and i == count:
                 break
-            sub = self._complete_obj(backend, fields, sub)
+            sub = self._do_complete_obj(backend, fields, sub)
             yield sub
 
-    def _complete(self, backend, count, selected_fields, function, *args, **kwargs):
+    def _do_complete(self, backend, count, selected_fields, function, *args, **kwargs):
         assert count is None or count > 0
         if callable(function):
             res = function(backend, *args, **kwargs)
@@ -244,9 +244,9 @@ class BaseApplication(object):
             fields = None
 
         if hasattr(res, '__iter__'):
-            return self._complete_iter(backend, count, fields, res)
+            return self._do_complete_iter(backend, count, fields, res)
         else:
-            return self._complete_obj(backend, fields, res)
+            return self._do_complete_obj(backend, fields, res)
 
     @classmethod
     def run(klass, args=None):

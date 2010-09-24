@@ -322,4 +322,4 @@ class ConsoleApplication(BaseApplication):
         Call Weboob.do(), after having filled the yielded object, if selected fields are given by user.
         """
 
-        return self.weboob.do(self._complete, self.options.count, self.selected_fields, function, *args, **kwargs)
+        return self.weboob.do(self._do_complete, self.options.count, self.selected_fields, function, *args, **kwargs)
