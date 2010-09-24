@@ -393,12 +393,10 @@ class ReplApplication(Cmd, BaseApplication):
         available_backends_names = set(backend.name for backend in self.weboob.iter_backends())
         enabled_backends_names = set(backend.name for backend in self.enabled_backends)
 
-        args = line.split()
-        if len(args) == 1 or len(args) == 2 and args[1] not in commands:
+        args = line.split(' ')
+        if len(args) == 2:
             choices = commands
-        elif len(args) == 2 and args[1] in commands or \
-                len(args) == 3 and args[1] in ('enable', 'only') and args[2] not in available_backends_names or \
-                len(args) == 3 and args[1] == 'disable' and args[2] not in enabled_backends_names:
+        elif len(args) == 3:
             if args[1] == 'enable':
                 choices = sorted(available_backends_names - enabled_backends_names)
             elif args[1] == 'only':
@@ -461,6 +459,20 @@ class ReplApplication(Cmd, BaseApplication):
                 print 'Counting disabled.'
             else:
                 print self.options.count
+
+    def complete_formatter(self, text, line, *ignored):
+        commands = list(available_formatters) + ['list', 'option']
+        options = ['header', 'keys']
+        option_values = ['on', 'off']
+
+        args = line.split(' ')
+        if len(args) == 2:
+            return commands
+        if args[1] == 'option':
+            if len(args) == 3:
+                return options
+            if len(args) == 4:
+                return option_values
 
     def do_formatter(self, line):
         """
