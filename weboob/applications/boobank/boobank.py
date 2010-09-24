@@ -88,3 +88,25 @@ class Boobank(ReplApplication):
 
         for backend, operation in self.do(do):
             self.format(operation)
+      
+    def do_transfer(self, arg):
+        """
+        Make a transfer beetwen two account
+        """
+        id_from , id_to, amount = arg.split()
+        
+        id_from, backend_name = self.parse_id(id_from)
+        id_to, backend_name = self.parse_id(id_to)
+        names = (backend_name,) if backend_name is not None else None
+        self.load_backends(ICapBank, names=names)
+        
+        def do(backend):
+            return backend.transfer(id_from, id_to, amount)
+        
+        for backend, operation in self.do(do):
+            pass
+        
+        
+        
+        
+        

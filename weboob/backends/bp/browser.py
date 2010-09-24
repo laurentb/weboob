@@ -183,8 +183,26 @@ class BPbrowser(object):
 		
 		
 		
+	def make_transfer(self, from_account, to_account, amount):
+		self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/f_virementSafran.jsp?n=11")
+		self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/aiguillage/saisieComptes.ea")
 		
+		self.Browser.select_form(name="AiguillageForm")
+		self.Browser["idxCompteEmetteur"] = [from_account.id]
+		self.Browser["idxCompteReceveur"] = [to_account.id]
+		self.Browser.submit()
 		
+		self.Browser.select_form(name="VirementNationalForm")
+		self.Browser["montant"] = str(amount)
+		self.Browser.submit()
+		
+		#Confirmation
+		# TODO: verifier que tout c'est bien passe
+		self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
+
+		
+			
+			
 		
 		
 		

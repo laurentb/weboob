@@ -29,6 +29,9 @@ __all__ = ['Account', 'AccountNotFound', 'ICapBank', 'Operation']
 
 class AccountNotFound(Exception):
     pass
+    
+class NotEnoughMoney(Exception):
+    pass
 
 
 class Account(CapBaseObject):
@@ -100,3 +103,6 @@ class ICapBank(IBaseCap):
 
     def iter_history(self, id):
         raise NotImplementedError()
+    
+    def transfer(self, id_from, id_to, amount):
+		raise NotImplementedError()
