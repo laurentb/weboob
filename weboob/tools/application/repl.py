@@ -51,10 +51,14 @@ class ReplApplication(Cmd, BaseApplication):
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] [command [arguments..]]\n'
     SYNOPSIS += '       %prog [--help] [--version]'
 
+    # shell escape strings
+    BOLD   = '[1m'
+    NC     = '[0m'    # no color
+
     def __init__(self):
         Cmd.__init__(self)
-        self.prompt = '%s> ' % self.APPNAME
-        self.intro = '\n'.join(('Welcome to %s v%s' % (self.APPNAME, self.VERSION),
+        self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
+        self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
                                 '%s' % self.COPYRIGHT,
                                 'This program is free software; you can redistribute it and/or modify',
@@ -112,6 +116,12 @@ class ReplApplication(Cmd, BaseApplication):
             def savehist():
                 readline.write_history_file(history_filepath)
             atexit.register(savehist)
+
+        self._interactive = False
+
+    @property
+    def interactive(self):
+        return self._interactive
 
     def set_requested_backends(self, requested_backends):
         self.load_default_backends()
@@ -171,6 +181,7 @@ class ReplApplication(Cmd, BaseApplication):
                 self.onecmd(cmd)
         else:
             self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
+            self._interactive = True
             self.cmdloop()
 
     def do(self, function, *args, **kwargs):
