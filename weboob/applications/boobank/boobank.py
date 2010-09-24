@@ -99,7 +99,7 @@ class Boobank(ReplApplication):
 
         Make a transfer beetwen two account
         """
-        id_from, id_to, amount = self.parseline(line, 3, 3)
+        id_from, id_to, amount = self.parseargs(line, 3, 3)
 
         id_from, backend_name = self.parse_id(id_from)
         id_to, backend_name = self.parse_id(id_to)

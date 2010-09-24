@@ -47,7 +47,7 @@ class WeboobCfg(ReplApplication):
 
         Add a configured backend.
         """
-        name, options = self.parseline(line, 2, 1)
+        name, options = self.parseargs(line, 2, 1)
         if options:
             options = options.split(' ')
         else:
