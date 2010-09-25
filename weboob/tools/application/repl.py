@@ -273,7 +273,6 @@ class ReplApplication(Cmd, BaseApplication):
             print '\nAborted.'
 
     def main(self, argv):
-        self.load_default_backends()
         cmd_args = argv[1:]
         if cmd_args:
             if cmd_args[0] == 'help':
@@ -335,6 +334,8 @@ class ReplApplication(Cmd, BaseApplication):
         elif self.options.count < 0:
             # infinite search
             self.options.count = None
+
+        self.load_default_backends()
 
     # default REPL commands
 
