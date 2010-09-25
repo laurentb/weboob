@@ -29,9 +29,7 @@ class Geolooc(ReplApplication):
     APPNAME = 'geolooc'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-
-    def load_default_backends(self):
-        self.load_backends(ICapGeolocIp)
+    CAPS = ICapGeolocIp
 
     def main(self, argv):
         if len(argv) < 2:

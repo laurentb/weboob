@@ -16,8 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import ConfigParser
-import logging
 import os
 import subprocess
 import re
@@ -37,13 +35,6 @@ class WeboobCfg(ReplApplication):
     def load_default_backends(self):
         pass
 
-    def caps_included(self, modcaps, caps):
-        modcaps = [x.__name__ for x in modcaps]
-        for cap in caps:
-            if not cap in modcaps:
-                return False
-        return True
-
     def do_add(self, line):
         """
         add NAME [OPTIONS ...]
@@ -56,60 +47,17 @@ class WeboobCfg(ReplApplication):
         else:
             options = ()
 
-        self.weboob.modules_loader.load_all()
-        if name not in [_name for _name, backend in self.weboob.modules_loader.loaded.iteritems()]:
-            logging.error(u'Backend "%s" does not exist.' % name)
-            return
-
         params = {}
         # set backend params from command-line arguments
         for option in options:
             try:
                 key, value = option.split('=', 1)
             except ValueError:
-                logging.error(u'Parameters have to be formatted "key=value"')
+                print 'Parameters have to be formatted "key=value"'
                 return
             params[key] = value
-        # ask for params non-specified on command-line arguments
-        backend = self.weboob.modules_loader.get_or_load_module(name)
-        asked_config = False
-        for key, value in backend.config.iteritems():
-            if not asked_config:
-                asked_config = True
-                print 'Configuration of backend'
-                print '------------------------'
-            if key not in params:
-                params[key] = self.ask(' [%s] %s' % (key, value.description),
-                                       default=value.default,
-                                       masked=value.is_masked,
-                                       choices=value.choices,
-                                       regexp=value.regexp)
-            else:
-                print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
-        if asked_config:
-            print '------------------------'
 
-        try:
-            self.weboob.backends_config.add_backend(name, name, params)
-            print 'Backend "%s" successfully added to file "%s".\n'\
-                    'Please check configuration parameters values with "weboob-config edit".' % (
-                        name, self.weboob.backends_config.confpath)
-        except ConfigParser.DuplicateSectionError:
-            print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
-            response = raw_input(u'Add new instance of "%s" backend? [yN] ' % name)
-            if response.lower() == 'y':
-                while True:
-                    new_name = raw_input(u'Please give new instance name (could be "%s_1"): ' % name)
-                    if not new_name:
-                        continue
-                    try:
-                        self.weboob.backends_config.add_backend(new_name, name, params)
-                        print 'Backend "%s" successfully added to file "%s".\n'\
-                                'Please check configuration parameters values with "weboob-config edit".' % (
-                                    name, self.weboob.backends_config.confpath)
-                        break
-                    except ConfigParser.DuplicateSectionError:
-                        print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+        self.add_backend(name, params)
 
     def do_list(self, line):
         """
@@ -133,11 +81,10 @@ class WeboobCfg(ReplApplication):
 
         Remove a configured backend.
         """
-        try:
-            self.weboob.backends_config.remove_backend(instance_name)
-        except ConfigParser.NoSectionError:
-            logging.error('Backend instance "%s" does not exist' % instance_name)
+        if not self.weboob.backends_config.remove_backend(instance_name):
+            print 'Backend instance "%s" does not exist' % instance_name
             return 1
+        return 0
 
     def do_edit(self):
         """
@@ -174,7 +121,7 @@ class WeboobCfg(ReplApplication):
         try:
             backend = self.weboob.modules_loader.get_or_load_module(name)
         except KeyError:
-            logging.error('No such backend: "%s"' % name)
+            print 'No such backend: "%s"' % name
             return 1
 
         print '.------------------------------------------------------------------------------.'
@@ -213,5 +160,3 @@ class WeboobCfg(ReplApplication):
                 if m and '__init__.py' in files:
                     applications.add(m.group(1))
         print ' '.join(sorted(applications)).encode('utf-8')
-
-

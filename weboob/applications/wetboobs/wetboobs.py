@@ -30,9 +30,7 @@ class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-
-    def load_default_backends(self):
-        self.load_backends(ICapWeather)
+    CAPS = ICapWeather
 
     def do_search(self, pattern):
         """

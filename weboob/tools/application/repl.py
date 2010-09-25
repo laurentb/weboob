@@ -29,7 +29,7 @@ import sys
 
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
-from weboob.core.backendscfg import BackendsConfig
+from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
 from weboob.tools.misc import iter_fields
 
 from .base import BackendNotFound, BaseApplication
@@ -50,6 +50,7 @@ class ReplApplication(Cmd, BaseApplication):
 
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] [command [arguments..]]\n'
     SYNOPSIS += '       %prog [--help] [--version]'
+    CAPS = None
 
     # shell escape strings
     BOLD   = '[1m'
@@ -124,9 +125,100 @@ class ReplApplication(Cmd, BaseApplication):
     def interactive(self):
         return self._interactive
 
+    def caps_included(self, modcaps, caps):
+        modcaps = [x.__name__ for x in modcaps]
+        if not isinstance(caps, (list,set,tuple)):
+            caps = (caps,)
+        for cap in caps:
+            if not cap in modcaps:
+                return False
+        return True
+
+    def add_backend(self, name, params={}):
+        backend = self.weboob.modules_loader.get_or_load_module(name)
+        if not backend:
+            print 'Backend "%s" does not exist.' % name
+            return None
+
+        # ask for params non-specified on command-line arguments
+        asked_config = False
+        for key, value in backend.config.iteritems():
+            if not asked_config:
+                asked_config = True
+                print 'Configuration of backend'
+                print '------------------------'
+            if key not in params:
+                params[key] = self.ask(' [%s] %s' % (key, value.description),
+                                       default=value.default,
+                                       masked=value.is_masked,
+                                       choices=value.choices,
+                                       regexp=value.regexp)
+            else:
+                print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
+        if asked_config:
+            print '------------------------'
+
+        try:
+            self.weboob.backends_config.add_backend(name, name, params)
+            print 'Backend "%s" successfully added.' % name
+            return name
+        except BackendAlreadyExists:#ConfigParser.DuplicateSectionError:
+            print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
+            while self.ask('Add new instance of "%s" backend?' % name, default=False):
+                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=u'^[\d\w_-]+$')
+                try:
+                    self.weboob.backends_config.add_backend(new_name, name, params)
+                    print 'Backend "%s" successfully added.' % new_name
+                    return new_name
+                except BackendAlreadyExists:
+                    print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+
     def load_backends(self, *args, **kwargs):
         ret = super(ReplApplication, self).load_backends(*args, **kwargs)
         self.enabled_backends = list(self.weboob.iter_backends())
+        while len(self.enabled_backends) == 0:
+            print 'Warning: there is currently no configured backend for %s' % self.APPNAME
+            if not self.ask('Do you want to configure backends?', default=True):
+                break
+
+            self.weboob.modules_loader.load_all()
+            r = ''
+            while r != 'q':
+                backends = []
+                print '\nAvailable backends:'
+                for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
+                    if self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__):
+                        continue
+                    backends.append(name)
+                    loaded = ' '
+                    for bi in self.weboob.iter_backends():
+                        if bi.NAME == name:
+                            if loaded == ' ':
+                                loaded = 'X'
+                            elif loaded == 'X':
+                                loaded = 2
+                            else:
+                                loaded += 1
+                    print '%s%d)%s [%s] %s%-15s%s (%s)' % (self.BOLD, len(backends), self.NC, loaded,
+                                                           self.BOLD, name, self.NC, backend.description)
+                print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
+                r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
+
+                if r.isdigit():
+                    i = int(r) - 1
+                    if i < 0 or i >= len(backends):
+                        print 'Error: %s is not a valid choice' % r
+                        continue
+                    name = backends[i]
+                    try:
+                        inst = self.add_backend(name)
+                        if inst:
+                            self.load_backends(names=inst)
+                    except (KeyboardInterrupt,EOFError):
+                        print '\nAborted.'
+
+            print 'Right right!'
+
         return ret
 
     def load_default_backends(self):
@@ -135,7 +227,7 @@ class ReplApplication(Cmd, BaseApplication):
 
         Applications can overload this method to restrict backends loaded.
         """
-        self.load_backends()
+        self.load_backends(self.CAPS)
 
     @classmethod
     def run(klass, args=None):
@@ -152,6 +244,15 @@ class ReplApplication(Cmd, BaseApplication):
         if len(args) < nb:
             args += tuple([None for i in xrange(nb - len(args))])
         return args
+
+    def postcmd(self, stop, line):
+        """
+        This REPL method is overrided to return None instead of integers
+        to prevent stopping cmdloop().
+        """
+        if not isinstance(stop, bool):
+            stop = None
+        return stop
 
     def onecmd(self, _cmd):
         """
@@ -180,7 +281,9 @@ class ReplApplication(Cmd, BaseApplication):
             cmd_line = ' '.join(cmd_args)
             cmds = cmd_line.split(';')
             for cmd in cmds:
-                self.onecmd(cmd)
+                ret = self.onecmd(cmd)
+                if ret:
+                    return ret
         else:
             self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             self._interactive = True
@@ -374,27 +477,18 @@ class ReplApplication(Cmd, BaseApplication):
         given_backends = set(backend for backend in self.weboob.iter_backends() if backend.name in given_backend_names)
 
         if action == 'enable':
-            action_func = self.enabled_backends.add
             for backend in given_backends:
-                try:
-                    action_func(backend)
-                except KeyError, e:
-                    print e
+                self.enabled_backends.add(backend)
         elif action == 'disable':
-            action_func = self.enabled_backends.remove
             for backend in given_backends:
                 try:
-                    action_func(backend)
-                except KeyError, e:
-                    logging.info('%s is not enabled' % e)
+                    self.enabled_backends.remove(backend)
+                except KeyError:
+                    print '%s is not enabled' % backend
         elif action == 'only':
             self.enabled_backends = set()
-            action_func = self.enabled_backends.add
             for backend in given_backends:
-                try:
-                    action_func(backend)
-                except KeyError, e:
-                    print e
+                self.enabled_backends.add(backend)
         elif action == 'list':
             print 'Available: %s' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             print 'Enabled: %s' % ', '.join(sorted(backend.name for backend in self.enabled_backends))
@@ -587,7 +681,7 @@ class ReplApplication(Cmd, BaseApplication):
                 question = u'%s [%s]' % (question, default)
 
         if masked:
-            question = u'(input chars are hidden) %s' % question
+            question = u'%s (hidden input)' % question
 
         question += ': '
 
@@ -596,7 +690,9 @@ class ReplApplication(Cmd, BaseApplication):
             line = getpass.getpass(question) if masked else raw_input(question)
             if not line and default is not None:
                 line = default
-            correct = (not regexp or re.match(regexp, unicode(line))) and \
+            if isinstance(line, str):
+                line = line.decode('utf-8')
+            correct = (not regexp or re.match(unicode(regexp), unicode(line))) and \
                       (not choices or unicode(line) in
                        [unicode(s) for s in (choices.iterkeys() if isinstance(choices, dict) else choices)])
 

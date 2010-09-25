@@ -29,9 +29,7 @@ class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-
-    def load_default_backends(self):
-        self.load_backends(ICapTravel)
+    CAPS = ICapTravel
 
     def do_stations(self, pattern):
         """

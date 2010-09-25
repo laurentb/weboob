@@ -120,6 +120,7 @@ class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
+    CAPS = ICapVideo
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -130,9 +131,6 @@ class Videoob(ReplApplication):
             self.player = None
 
         self.videos = []
-
-    def load_default_backends(self):
-        self.load_backends(caps=ICapVideo)
 
     def add_application_options(self, group):
         group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')

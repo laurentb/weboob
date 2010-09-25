@@ -30,9 +30,7 @@ class Chatoob(ReplApplication):
     APPNAME = 'chatoob'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
-
-    def load_default_backends(self):
-        self.load_backends(ICapChat)
+    CAPS = ICapChat
 
     def on_new_chat_message(self, message):
         print 'on_new_chat_message: %s' % message

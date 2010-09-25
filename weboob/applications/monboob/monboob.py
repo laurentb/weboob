@@ -84,6 +84,7 @@ class Monboob(ReplApplication):
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
               'html':      0}
+    CAPS = ICapMessages
 
     def add_application_options(self, group):
         group.add_option('-S', '--smtpd', help='run a fake smtpd server and set the port')

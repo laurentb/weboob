@@ -20,11 +20,13 @@ from __future__ import with_statement
 
 import stat
 import os
-from ConfigParser import RawConfigParser
+from ConfigParser import RawConfigParser, DuplicateSectionError
 from logging import warning
 
-__all__ = ['BackendsConfig']
+__all__ = ['BackendsConfig', 'BackendAlreadyExists']
 
+class BackendAlreadyExists(Exception):
+    pass
 
 class BackendsConfig(object):
     class WrongPermissions(Exception):
@@ -64,7 +66,10 @@ class BackendsConfig(object):
         config = RawConfigParser()
         config.read(self.confpath)
         if not edit:
-            config.add_section(instance_name)
+            try:
+                config.add_section(instance_name)
+            except DuplicateSectionError:
+                raise BackendAlreadyExists(instance_name)
         config.set(instance_name, '_backend', backend_name)
         for key, value in params.iteritems():
             config.set(instance_name, key, value)
@@ -96,8 +101,10 @@ class BackendsConfig(object):
     def remove_backend(self, instance_name):
         config = RawConfigParser()
         config.read(self.confpath)
-        config.remove_section(instance_name)
+        if not config.remove_section(instance_name):
+            return False
         with open(self.confpath, 'w') as f:
             config.write(f)
+        return True
 
 

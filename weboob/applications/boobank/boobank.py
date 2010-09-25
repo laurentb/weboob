@@ -31,9 +31,7 @@ class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
-
-    def load_default_backends(self):
-        self.load_backends(ICapBank)
+    CAPS = ICapBank
 
     def do_list(self, line):
         """

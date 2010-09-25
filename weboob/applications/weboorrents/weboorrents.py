@@ -30,9 +30,7 @@ class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-
-    def load_default_backends(self):
-        self.load_backends(ICapTorrent)
+    CAPS = ICapTorrent
 
     def do_info(self, id):
         """

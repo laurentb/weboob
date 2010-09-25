@@ -306,7 +306,9 @@ class BaseApplication(object):
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
                 print 'Program killed by SIGINT'
-                sys.exit(0) # XXX is it really the right exit code? -romain
+                sys.exit(0)
+            except EOFError:
+                sys.exit(0)
             except ConfigError, e:
                 print 'Configuration error: %s' % e
                 sys.exit(1)

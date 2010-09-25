@@ -35,6 +35,7 @@ class HaveSex(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     STORAGE_FILENAME = 'dating.storage'
     CONFIG = {'optimizations': ''}
+    CAPS = ICapDating
 
     def load_default_backends(self):
         self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
