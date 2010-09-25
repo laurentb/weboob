@@ -127,15 +127,17 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             flags = 0
             if mail.date > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
+
+                if not mail.profile_link in profiles:
+                    with self.browser:
+                        profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
+                mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
+
             if mail.sender != my_name:
                 if mail.new:
                     flags |= Message.IS_NOT_ACCUSED
                 else:
                     flags |= Message.IS_ACCUSED
-
-            if not mail.profile_link in profiles:
-                profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
-            mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
             msg = Message(thread=thread,
                           id=mail.message_id,
