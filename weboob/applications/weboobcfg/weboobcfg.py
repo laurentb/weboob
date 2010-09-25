@@ -34,6 +34,9 @@ class WeboobCfg(ReplApplication):
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
 
+    def load_default_backends(self):
+        pass
+
     def caps_included(self, modcaps, caps):
         modcaps = [x.__name__ for x in modcaps]
         for cap in caps:
@@ -56,7 +59,7 @@ class WeboobCfg(ReplApplication):
         self.weboob.modules_loader.load_all()
         if name not in [_name for _name, backend in self.weboob.modules_loader.loaded.iteritems()]:
             logging.error(u'Backend "%s" does not exist.' % name)
-            return 1
+            return
 
         params = {}
         # set backend params from command-line arguments
@@ -65,7 +68,7 @@ class WeboobCfg(ReplApplication):
                 key, value = option.split('=', 1)
             except ValueError:
                 logging.error(u'Parameters have to be formatted "key=value"')
-                return 1
+                return
             params[key] = value
         # ask for params non-specified on command-line arguments
         backend = self.weboob.modules_loader.get_or_load_module(name)
@@ -108,7 +111,7 @@ class WeboobCfg(ReplApplication):
                     except ConfigParser.DuplicateSectionError:
                         print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
-    def do_listconfigured(self):
+    def do_list(self, line):
         """
         list
 
@@ -118,10 +121,11 @@ class WeboobCfg(ReplApplication):
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
             row = OrderedDict([('Instance name', instance_name),
-                               ('Backend name', name),
+                               ('Backend', name),
                                ('Configuration', ', '.join('%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].is_masked else value)) for key, value in params.iteritems())),
                                ])
             self.format(row)
+        self.flush()
 
     def do_remove(self, instance_name):
         """

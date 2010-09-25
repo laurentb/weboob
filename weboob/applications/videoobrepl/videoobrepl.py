@@ -57,7 +57,7 @@ class DefaultOptions():
 
 class MyPlayer():
     """Black magic invoking a video player to this world.
-    
+
     Presently, due to strong disturbances in the holidays of the ether
     world, the video player used is chosen from a static list of
     programs. See PLAYERS for more information.
@@ -82,11 +82,11 @@ class MyPlayer():
         if self.options.verbose:
             print "Video player is (%s,%s)" % (self.player,
                                                self.player_stdin)
-                                               
-        
+
+
     def play(self, video):
         """Play a video object, using programs from the PLAYERS list.
-        
+
         This function dispatch calls to either _play_default or
         _play_rtmp for special rtmp streams using SWF verification.
         """
@@ -289,7 +289,7 @@ class MyCmd(Cmd):
 
     def do_search(self, pattern):
         """search [PATTERN]
-        
+
         Search for videos.
         If no patterns are given, display the last entries.
         """
@@ -307,7 +307,7 @@ class MyCmd(Cmd):
         for i, (backend, video) in enumerate(videos_g):
             self.videos.append((backend,video))
 
-        
+
         # code factorisatorminator: display the list of videos
         self.do_ls("")
 
@@ -334,8 +334,8 @@ class MyCmd(Cmd):
             print_keys_values([
                 ("url", video.url),
                 ("duration", "%s seconds" % video.duration),
-                ("rating", "%.2f/%.2f" % (video.rating,
-                                          video.rating_max))],
+                ("rating", "%.2f/%.2f" % (video.rating or 0,
+                                          video.rating_max or 0))],
                 indent=4)
 
 

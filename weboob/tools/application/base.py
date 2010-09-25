@@ -122,6 +122,7 @@ class BaseApplication(object):
     def __init__(self, option_parser=None):
         self.weboob = self.create_weboob()
         self.config = None
+        self.options = None
         if option_parser is None:
             self._parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
         else:
@@ -199,6 +200,8 @@ class BaseApplication(object):
         raise NotImplementedError()
 
     def load_backends(self, caps=None, names=None, *args, **kwargs):
+        if names is None and self.options.backends:
+            names = self.options.backends.split(',')
         loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
         if not loaded:
             logging.warning(u'No backend loaded')
@@ -248,6 +251,14 @@ class BaseApplication(object):
         else:
             return self._do_complete_obj(backend, fields, res)
 
+    def parse_args(self, args):
+        self.options, args = self._parser.parse_args(args)
+
+        self._handle_options()
+        self.handle_application_options()
+
+        return args
+
     @classmethod
     def run(klass, args=None):
         """
@@ -267,9 +278,7 @@ class BaseApplication(object):
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
-        app.options, args = app._parser.parse_args(args)
-
-        app.set_requested_backends(app.options.backends.split(',') if app.options.backends else None)
+        args = app.parse_args(args)
 
         if app.options.shell_completion:
             items = set()
@@ -292,9 +301,6 @@ class BaseApplication(object):
         logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
         logging.root.level = level
 
-        app._handle_options()
-        app.handle_application_options()
-
         try:
             try:
                 sys.exit(app.main(args))
@@ -306,6 +312,3 @@ class BaseApplication(object):
                 sys.exit(1)
         finally:
             app.deinit()
-
-    def set_requested_backends(self, requested_backends):
-        pass

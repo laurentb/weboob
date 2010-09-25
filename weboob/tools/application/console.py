@@ -48,7 +48,6 @@ class ConsoleApplication(BaseApplication):
     SYNOPSIS += '       %prog [--help] [--version]'
 
     def __init__(self):
-        self.enabled_backends = set()
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
 
         try:
@@ -271,8 +270,6 @@ class ConsoleApplication(BaseApplication):
     command = staticmethod(command)
 
     def load_backends(self, caps=None, names=None, *args, **kwargs):
-        if names is None:
-            names = self.enabled_backends
         loaded_backends = BaseApplication.load_backends(self, caps, names, *args, **kwargs)
         if not loaded_backends:
             print 'Cannot start application: no configured backend was found.'
@@ -313,9 +310,6 @@ class ConsoleApplication(BaseApplication):
             super(ConsoleApplication, klass).run(args)
         except BackendNotFound, e:
             logging.error(e)
-
-    def set_requested_backends(self, requested_backends):
-        self.enabled_backends = requested_backends
 
     def do(self, function, *args, **kwargs):
         """

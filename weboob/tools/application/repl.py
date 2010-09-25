@@ -107,7 +107,7 @@ class ReplApplication(Cmd, BaseApplication):
             import readline
         except ImportError:
             pass
-        finally:
+        else:
             history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
             try:
                 readline.read_history_file(history_filepath)
@@ -118,18 +118,16 @@ class ReplApplication(Cmd, BaseApplication):
             atexit.register(savehist)
 
         self._interactive = False
+        self.enabled_backends = []
 
     @property
     def interactive(self):
         return self._interactive
 
-    def set_requested_backends(self, requested_backends):
-        self.load_default_backends()
-        if requested_backends:
-            self.enabled_backends = set(backend for backend in self.weboob.iter_backends()
-                                        if backend.name in requested_backends)
-        else:
-            self.enabled_backends = list(self.weboob.iter_backends())
+    def load_backends(self, *args, **kwargs):
+        ret = super(ReplApplication, self).load_backends(*args, **kwargs)
+        self.enabled_backends = list(self.weboob.iter_backends())
+        return ret
 
     def load_default_backends(self):
         """
@@ -168,8 +166,12 @@ class ReplApplication(Cmd, BaseApplication):
                 raise
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
+        except (KeyboardInterrupt,EOFError):
+            # ^C during a command process doesn't exit application.
+            print '\nAborted.'
 
     def main(self, argv):
+        self.load_default_backends()
         cmd_args = argv[1:]
         if cmd_args:
             if cmd_args[0] == 'help':
@@ -197,6 +199,8 @@ class ReplApplication(Cmd, BaseApplication):
             # XXX IT ABSOLUTLY DOESN'T WORK, OBJ ISN'T EXISTANT.
             # PLEASE REVIEW THIS CODE.
             #fields = [k for k, v in iter_fields(obj)]
+            # TODO Perhaps this is the core goal to determine what fields to use,
+            # by creating a singleton AllFields.
             fields = None
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
