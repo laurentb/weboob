@@ -224,6 +224,13 @@ class Videoob(ReplApplication):
 
         If PATTERN is not given, this command will search for the latest videos.
         """
+        if len(self.enabled_backends) == 0:
+            if self.interactive:
+                print 'No backend loaded. Please use the "backends" command.'
+            else:
+                print 'No backend loaded.'
+            return 1
+
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
         self.videos = []
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw,

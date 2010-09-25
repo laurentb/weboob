@@ -488,8 +488,8 @@ class ReplApplication(Cmd, BaseApplication):
             for backend in given_backends:
                 try:
                     self.enabled_backends.remove(backend)
-                except KeyError:
-                    print '%s is not enabled' % backend
+                except ValueError:
+                    print '%s is not enabled' % backend.name
         elif action == 'only':
             self.enabled_backends = set()
             for backend in given_backends:
@@ -508,11 +508,14 @@ class ReplApplication(Cmd, BaseApplication):
                 self.weboob.unload_backends(backend.name)
                 try:
                     self.enabled_backends.remove(backend)
-                except KeyError:
+                except ValueError:
                     pass
         else:
             print 'Unknown action: "%s"' % action
-            return False
+            return 1
+
+        if len(self.enabled_backends) == 0:
+            print 'Warning: no more backends are loaded. %s is probably unusable.' % self.APPNAME.capitalize()
 
     def complete_backends(self, text, line, begidx, endidx):
         choices = []
@@ -523,14 +526,14 @@ class ReplApplication(Cmd, BaseApplication):
         args = line.split(' ')
         if len(args) == 2:
             choices = commands
-        elif len(args) == 3:
+        elif len(args) >= 3:
             if args[1] == 'enable':
                 choices = sorted(available_backends_names - enabled_backends_names)
             elif args[1] == 'only':
                 choices = sorted(available_backends_names)
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
-            elif args[1] == 'add':
+            elif args[1] == 'add' and len(args) == 3:
                 self.weboob.modules_loader.load_all()
                 for name, module in sorted(self.weboob.modules_loader.loaded.iteritems()):
                     if not self.CAPS or self.caps_included(module.iter_caps(), self.CAPS.__name__):
