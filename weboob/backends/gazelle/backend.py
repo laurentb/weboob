@@ -28,7 +28,7 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     NAME = 'gazelle'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.1'
+    VERSION = '0.2'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'
     CONFIG = {'username': BaseBackend.ConfigField(description='Username on website'),

@@ -23,7 +23,7 @@ from .main_window import MainWindow
 
 class QBoobMsg(QtApplication):
     APPNAME = 'qboobmsg'
-    VERSION = '0.1'
+    VERSION = '0.2'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):

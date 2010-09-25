@@ -28,7 +28,7 @@ __all__ = ['Weboorrents']
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.1'
+    VERSION = '0.2'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapTorrent
 

@@ -372,7 +372,7 @@ class MyCmd(Cmd):
 
 class VideoobRepl(ConsoleApplication):
     APPNAME = 'videoob-repl'
-    VERSION = '0.1'
+    VERSION = '0.2'
     COPYRIGHT = 'Copyright(C) 2010 John Obbele'
 
     def add_application_options(self, group):

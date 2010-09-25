@@ -33,7 +33,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.1'
+    VERSION = '0.2'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
     CONFIG = {'boards': BaseBackend.ConfigField(description='Boards'),

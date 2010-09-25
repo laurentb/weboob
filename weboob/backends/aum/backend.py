@@ -42,7 +42,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.1'
+    VERSION = '0.2'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"“Adopte un mec” french dating website"
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),

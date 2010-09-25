@@ -31,7 +31,7 @@ __all__ = ['HaveSex']
 
 class HaveSex(ReplApplication):
     APPNAME = 'havesex'
-    VERSION = '0.1'
+    VERSION = '0.2'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     STORAGE_FILENAME = 'dating.storage'
     CONFIG = {'optimizations': ''}
