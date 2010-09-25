@@ -97,7 +97,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             thread = Thread(contact.get_id())
             yield thread
 
-    def get_thread(self, id):
+    def get_thread(self, id, profiles=None):
+        """
+        Get a thread and its messages.
+
+        The 'profiles' parameter is only used for internal calls.
+        """
         thread = None
         if isinstance(id, Thread):
             thread = id
@@ -116,6 +121,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         child = None
         msg = None
         slut = self._get_slut(id)
+        if not profiles:
+            profiles = {}
         for mail in mails:
             flags = 0
             if mail.date > slut['lastmsg']:
@@ -125,6 +132,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     flags |= Message.IS_NOT_ACCUSED
                 else:
                     flags |= Message.IS_ACCUSED
+
+            if not mail.profile_link in profiles:
+                profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
+            mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
             msg = Message(thread=thread,
                           id=mail.message_id,
@@ -152,12 +163,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def iter_unread_messages(self, thread=None):
         try:
+            profiles = {}
             with self.browser:
                 contacts = self.browser.get_threads_list()
             for contact in contacts:
                 slut = self._get_slut(contact.get_id())
                 if contact.get_lastmsg_date() > slut['lastmsg']:
-                    thread = self.get_thread(contact.get_id())
+                    thread = self.get_thread(contact.get_id(), profiles)
                     for m in thread.iter_all_messages():
                         if m.flags & m.IS_UNREAD:
                             yield m
