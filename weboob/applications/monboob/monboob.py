@@ -111,7 +111,7 @@ class Monboob(ReplApplication):
             except IndexError:
                 return s
 
-    def do_post(self):
+    def do_post(self, line):
         """
         post
 
@@ -192,7 +192,7 @@ class Monboob(ReplApplication):
                                              parent=Message(thread, msg_id),
                                              content=content))
 
-    def do_run(self):
+    def do_run(self, line):
         """
         run
 
