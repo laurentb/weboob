@@ -129,7 +129,7 @@ class BaseApplication(object):
             self._parser = option_parser
         if self.DESCRIPTION:
             self._parser.description = self.DESCRIPTION
-        app_options = OptionGroup(option_parser, '%s Options' % self.APPNAME.capitalize())
+        app_options = OptionGroup(self._parser, '%s Options' % self.APPNAME.capitalize())
         self.add_application_options(app_options)
         if len(app_options.option_list) > 0:
             self._parser.add_option_group(app_options)
