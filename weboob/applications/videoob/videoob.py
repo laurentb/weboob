@@ -150,7 +150,8 @@ class Videoob(ReplApplication):
         _id, backend_name = self.parse_id(_id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
         for backend, video in self.do('get_video', _id, backends=backend_names):
-            return video
+            if video:
+                return video
 
     def do_play(self, _id):
         """
@@ -189,7 +190,7 @@ class Videoob(ReplApplication):
 
         video = self._get_video(_id)
         if not video:
-            print 'Video not found: ', _id
+            print 'Video not found:', _id
             return
         self.format(video)
         self.flush()
