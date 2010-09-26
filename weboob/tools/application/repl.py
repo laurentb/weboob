@@ -495,8 +495,11 @@ class ReplApplication(Cmd, BaseApplication):
             for backend in given_backends:
                 self.enabled_backends.add(backend)
         elif action == 'list':
-            print 'Available: %s' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
-            print 'Enabled: %s' % ', '.join(sorted(backend.name for backend in self.enabled_backends))
+            enabled_backends_names = set(backend.name for backend in self.enabled_backends)
+            disabled_backends_names = set(backend.name for backend in self.weboob.iter_backends()) - enabled_backends_names
+            print 'Enabled: %s' % ', '.join(enabled_backends_names)
+            if len(disabled_backends_names) > 0:
+                print 'Disabled: %s' % ', '.join(disabled_backends_names)
         elif action == 'add':
             for name in given_backend_names:
                 instname = self.add_backend(name)
