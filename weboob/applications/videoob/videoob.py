@@ -153,6 +153,15 @@ class Videoob(ReplApplication):
             if video:
                 return video
 
+
+    def _complete_id(self):
+        return ['%s@%s' % (video.id, video.backend) for video in self.videos]
+
+    def complete_play(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
+
     def do_play(self, _id):
         """
         play ID
@@ -177,6 +186,11 @@ class Videoob(ReplApplication):
             print 'No player has been found on this system.'
             print 'The URL of this video is:'
             print '  %s' % video.url
+
+    def complete_info(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
 
     def do_info(self, _id):
         """
