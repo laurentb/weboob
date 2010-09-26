@@ -94,7 +94,7 @@ class CapBaseObject(object):
 
         if self.FIELDS is None:
             for key, value in iter_fields(self):
-                if key != 'backend':
+                if key not in ('backend','FIELDS'):
                     yield key, value
         else:
             yield 'id', self.id
