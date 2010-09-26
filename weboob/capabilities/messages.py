@@ -31,6 +31,8 @@ class Message(CapBaseObject):
     IS_ACCUSED = 0x004       # The receiver has read this message
     IS_NOT_ACCUSED = 0x008   # The receiver has not read this message
 
+    FIELDS = ('thread', 'title', 'sender', 'receiver', 'date', 'parent', 'content', 'signature', 'children', 'flags')
+
     def __init__(self, thread, id,
                        title=NotLoaded,
                        sender=NotLoaded,
@@ -90,6 +92,8 @@ class Message(CapBaseObject):
         return result.encode('utf-8')
 
 class Thread(CapBaseObject):
+    FIELDS = ('root', 'title', 'date', 'nb_messages', 'nb_unread')
+
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.root = NotLoaded
