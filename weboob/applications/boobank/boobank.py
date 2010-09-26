@@ -33,6 +33,8 @@ class Boobank(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
 
+    accounts = []
+
     def do_list(self, line):
         """
         list
@@ -41,11 +43,13 @@ class Boobank(ReplApplication):
         """
         tot_balance = 0.0
         tot_coming = 0.0
+        self.accounts = []
         try:
             for backend, account in self.do('iter_accounts'):
                 self.format(account)
                 tot_balance += account.balance
                 tot_coming += account.coming
+                self.accounts.append(account)
         except weboob.core.CallErrors, errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
@@ -56,6 +60,16 @@ class Boobank(ReplApplication):
             self.format((('label', 'Total'),
                          ('balance', tot_balance),
                          ('coming', tot_coming)))
+
+    def _complete_account(self, exclude=None):
+        if exclude:
+            id, backend = self.parse_id(exclude)
+        return ['%s@%s' % (acc.id, acc.backend) for acc in self.accounts if not exclude or (acc.id != id and acc.backend == backend)]
+
+    def complete_history(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_account()
 
     def do_history(self, id):
         """
@@ -74,6 +88,11 @@ class Boobank(ReplApplication):
         for backend, operation in self.do(do):
             self.format(operation)
 
+    def complete_coming(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_account()
+
     def do_coming(self, id):
         """
         coming ID
@@ -90,6 +109,13 @@ class Boobank(ReplApplication):
 
         for backend, operation in self.do(do):
             self.format(operation)
+
+    def complete_transfer(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_account()
+        if len(args) == 3:
+            return self._complete_account(args[1])
 
     def do_transfer(self, line):
         """
