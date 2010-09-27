@@ -69,12 +69,15 @@ class WebkitGtkFormatter(TableFormatter):
         </style>
         <script type="text/javascript">
 $(function() {
-    $.each($("table"), function() {
-        var $this = $(this);
-        var thead = $('<thead>').append($this.find('tr:first'));
-        $this.append(thead);
-        $this.tablesorter();
-    });
+    var $table = $("table");
+    $table
+        .prepend(
+            $("<thead>")
+                .append(
+                    $table.find("tr:first")
+                )
+        )
+        .tablesorter();
 });
         </script>
         %(table)s
