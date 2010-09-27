@@ -53,8 +53,8 @@ class ReplApplication(Cmd, BaseApplication):
     CAPS = None
 
     # shell escape strings
-    BOLD   = '[1m'
-    NC     = '[0m'    # no color
+    BOLD   = '[37;1m'
+    NC     = '[37;0m'    # no color
 
     def __init__(self):
         Cmd.__init__(self)
