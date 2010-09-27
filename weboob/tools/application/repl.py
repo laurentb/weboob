@@ -262,10 +262,7 @@ class ReplApplication(Cmd, BaseApplication):
         try:
             return super(ReplApplication, self).onecmd(_cmd)
         except CallErrors, e:
-            if len(e.errors) == 1 and isinstance(e.errors[0][1], FieldNotFound):
-                print >>sys.stderr, e.errors[0][1]
-            else:
-                raise
+            print >>sys.stderr, '%s' % e
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
         except (KeyboardInterrupt,EOFError):
