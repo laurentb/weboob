@@ -104,9 +104,9 @@ class WeboobCfg(ReplApplication):
         """
         backends [CAPS ...]
 
-        Show available backends
+        Show available backends.
         """
-        caps = line.split(' ')
+        caps = line.split()
         self.set_default_formatter('table')
         self.weboob.modules_loader.load_all()
         for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
@@ -117,6 +117,7 @@ class WeboobCfg(ReplApplication):
                                ('Description', backend.description),
                                ])
             self.format(row)
+        self.flush()
 
     def do_info(self, line):
         """
