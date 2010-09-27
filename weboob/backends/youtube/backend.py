@@ -19,6 +19,10 @@
 from __future__ import with_statement
 
 import datetime
+try:
+    import gdata.youtube.service
+except ImportError:
+    raise ImportError("Missing dependence: python-gdata")
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend, ObjectNotAvailable
@@ -49,8 +53,6 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                 raise ObjectNotAvailable(e)
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
-        import gdata.youtube.service
-
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()
