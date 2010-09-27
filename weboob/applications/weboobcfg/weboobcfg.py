@@ -115,16 +115,19 @@ class WeboobCfg(ReplApplication):
                                ])
             self.format(row)
 
-    def do_info(self, name):
+    def do_info(self, line):
         """
         info NAME
 
         Display information about a backend.
         """
+        if not line:
+            print 'No backend name was specified.'
+            return
         try:
-            backend = self.weboob.modules_loader.get_or_load_module(name)
+            backend = self.weboob.modules_loader.get_or_load_module(line)
         except KeyError:
-            print 'No such backend: "%s"' % name
+            print 'No such backend: "%s"' % line
             return 1
 
         print '.------------------------------------------------------------------------------.'
