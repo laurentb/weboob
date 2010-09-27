@@ -86,13 +86,16 @@ class WeboobCfg(ReplApplication):
             return 1
         return 0
 
-    def do_edit(self):
+    def do_edit(self, line):
         """
         edit
 
         Edit configuration file.
         """
-        subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
+        if line:
+            print 'This command takes no argument.'
+        else:
+            subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
 
     def do_backends(self, line):
         """
