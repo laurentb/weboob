@@ -215,9 +215,9 @@ class Videoob(ReplApplication):
         line = line.strip()
         if line:
             if line == 'on':
-                self.options.nsfw = True
+                self.nsfw = True
             elif line == 'off':
-                self.options.nsfw = False
+                self.nsfw = False
             else:
                 print 'Invalid argument "%s".' % line
         else:
@@ -240,7 +240,7 @@ class Videoob(ReplApplication):
 
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
         self.videos = []
-        for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.options.nsfw,
+        for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
             self.videos.append(video)
             self.format(video)
