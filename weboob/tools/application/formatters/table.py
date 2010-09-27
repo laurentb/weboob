@@ -54,11 +54,11 @@ class TableFormatter(IFormatter):
         for line in self.queue:
             table.add_row(line)
         s += getattr(table, self.result_funcname)()
+        self.queue = []
         if self.return_only:
             return s
         else:
             print s.encode('utf-8')
-        self.queue = []
 
     def format_dict(self, item):
         # format is done in self.flush() by prettytable
