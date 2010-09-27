@@ -28,7 +28,7 @@ class BPBackend(BaseBackend, ICapBank):
     EMAIL = 'nicolas@jombi.fr'
     VERSION = '0.2'
     LICENSE = 'GPLv3'
-    DESCRIPTION = 'La banque postale, banque française'
+    DESCRIPTION = u'La banque postale, French bank'
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
              }
