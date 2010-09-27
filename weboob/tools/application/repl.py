@@ -134,7 +134,9 @@ class ReplApplication(Cmd, BaseApplication):
                 return False
         return True
 
-    def add_backend(self, name, params={}):
+    def add_backend(self, name, params=None):
+        if params is None:
+            params = {}
         backend = self.weboob.modules_loader.get_or_load_module(name)
         if not backend:
             print 'Backend "%s" does not exist.' % name
