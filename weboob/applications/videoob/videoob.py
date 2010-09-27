@@ -122,22 +122,15 @@ class Videoob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
     CAPS = ICapVideo
 
+    nsfw = True
+    videos = []
+
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
-
         try:
             self.player = Player()
         except OSError:
             self.player = None
-
-        self.videos = []
-
-    def add_application_options(self, group):
-        group.add_option('--nsfw', action='store_true', help='enable non-suitable for work videos')
-
-    def handle_application_options(self):
-        if self.options.backends:
-            self.options.nsfw = True
 
     def _get_video(self, _id):
         if self.interactive:
@@ -152,7 +145,6 @@ class Videoob(ReplApplication):
         for backend, video in self.do('get_video', _id, backends=backend_names):
             if video:
                 return video
-
 
     def _complete_id(self):
         return ['%s@%s' % (video.id, video.backend) for video in self.videos]
@@ -229,7 +221,7 @@ class Videoob(ReplApplication):
             else:
                 print 'Invalid argument "%s".' % line
         else:
-            print "on" if self.options.nsfw else "off"
+            print "on" if self.nsfw else "off"
 
     def do_search(self, pattern=None):
         """
