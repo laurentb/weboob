@@ -111,7 +111,7 @@ class ContactItem:
 
         text = tag.getAttribute('onclick')
 
-        regexp = re.compile("window.location='/thread.php\?id=(.*)'")
+        regexp = re.compile("window.location='/thread.php\?id=(\d+)'")
         m = regexp.match(text)
 
         if m:
