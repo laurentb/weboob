@@ -142,6 +142,7 @@ class BaseApplication(object):
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
     def deinit(self):
+        self.weboob.want_stop()
         self.weboob.deinit()
 
     def create_storage(self, path=None, klass=None, localonly=False):

@@ -74,6 +74,7 @@ class Scheduler(IScheduler):
             for e in self.queue.itervalues():
                 e.cancel()
                 e.join()
+            self.queue = {}
 
     def run(self):
         try:
@@ -88,6 +89,12 @@ class Scheduler(IScheduler):
 
     def want_stop(self):
         self.stop_event.set()
+        with self.mutex:
+            for t in self.queue.itervalues():
+                t.cancel()
+                # Contrary to _wait_to_stop(), don't call t.join
+                # because want_stop() have to be non-blocking.
+            self.queue = {}
 
     def _repeated_cb(self, interval, function, args):
         function(*args)
