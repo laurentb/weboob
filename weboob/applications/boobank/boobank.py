@@ -125,13 +125,20 @@ class Boobank(ReplApplication):
         """
         id_from, id_to, amount = self.parseargs(line, 3, 3)
 
-        id_from, backend_name = self.parse_id(id_from)
-        id_to, backend_name = self.parse_id(id_to)
+        id_from, backend_name_from = self.parse_id(id_from)
+        id_to, backend_name_to = self.parse_id(id_to)
+        
+        if backend_name_from != backend_name_to:
+            print "Transfer between different backend is not implemented"
+            return
+        else:
+            backend_name = backend_name_from
+        
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapBank, names=names)
 
         def do(backend):
             return backend.transfer(id_from, id_to, float(amount))
 
-        for backend, operation in self.do(do):
-            pass
+        for backend, id_transfer in self.do(do):
+            self.format((('Transfer', str(id_transfer)),))

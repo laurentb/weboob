@@ -24,7 +24,7 @@ if sys.version_info[:2] <= (2, 5):
 from .base import IBaseCap, CapBaseObject
 
 
-__all__ = ['Account', 'AccountNotFound', 'ICapBank', 'Operation']
+__all__ = ['Account', 'AccountNotFound', 'NotEnoughMoney', 'ICapBank', 'Operation']
 
 
 class AccountNotFound(Exception):

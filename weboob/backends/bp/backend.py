@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-#       backend.py
+#      backend.py
 #
-#       Copyright 2010 nicolas <nicolas@jombi.fr>
+#      Copyright 2010 nicolas <nicolas@jombi.fr>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ class BPBackend(BaseBackend, ICapBank):
     VERSION = '0.2'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'La banque postale, French bank'
-    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
+    CONFIG = {'login':  BaseBackend.ConfigField(description='Account ID'),
               'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
              }
     BROWSER = BPbrowser
@@ -57,4 +57,4 @@ class BPBackend(BaseBackend, ICapBank):
         to_account = self.get_account(id_to)
 
         #TODO: retourner le numero du virement
-        self.browser.make_transfer(from_account, to_account, amount)
+        return self.browser.make_transfer(from_account, to_account, amount)

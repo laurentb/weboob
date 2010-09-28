@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-#	 browser.py
+#    browser.py
 #
-#	 Copyright 2010 nicolas <nicolas@NicolasDesktop>
+#    Copyright 2010 nicolas <nicolas@NicolasDesktop>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-#	 MA 02110-1301, USA.
+#    MA 02110-1301, USA.
 
 import mechanize
 import hashlib
@@ -197,4 +197,12 @@ class BPbrowser(object):
 
         #Confirmation
         # TODO: verifier que tout c'est bien passe
-        self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
+        rep = self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
+        html = rep.get_data()
+        
+        pattern = "Votre virement N.+ ([0-9]+) "
+        
+        regex = re.compile(pattern)
+        match = regex.search(html)
+        id_transfer = match.groups()[0]
+        return id_transfer
