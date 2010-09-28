@@ -49,6 +49,7 @@ class ContactItem:
 
     def __init__(self, tr):
         self.tr = tr
+        self.id = 0
 
     def __get_element(self, id):
         return self.tr.getElementsByTagName('td')[self.fields.index(id)]
@@ -107,6 +108,9 @@ class ContactItem:
             return None
 
     def get_id(self):
+        if self.id:
+            return self.id
+
         tag = self.__get_element('thread_link')
 
         text = tag.getAttribute('onclick')
@@ -115,8 +119,10 @@ class ContactItem:
         m = regexp.match(text)
 
         if m:
-            return int(m.group(1))
+            self.id = int(m.group(1))
+            return self.id
 
+        warning('Unable to parse ID (%s)' % text)
         return 0
 
 

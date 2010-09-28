@@ -94,6 +94,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             contacts = self.browser.get_threads_list()
 
         for contact in contacts:
+            if not contact.get_id():
+                continue
             thread = Thread(contact.get_id())
             yield thread
 
@@ -169,6 +171,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             with self.browser:
                 contacts = self.browser.get_threads_list()
             for contact in contacts:
+                if not contact.get_id():
+                    continue
                 slut = self._get_slut(contact.get_id())
                 if contact.get_lastmsg_date() > slut['lastmsg']:
                     thread = self.get_thread(contact.get_id(), profiles)
