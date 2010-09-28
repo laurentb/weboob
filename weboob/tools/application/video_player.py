@@ -66,7 +66,7 @@ class VideoPlayer():
         """
         player_name = self.get_player_name()
         print 'Invoking "%s %s".' % (player_name, video.url)
-        os.spawnlp(os.P_NOWAIT, player_name, video.url)
+        os.spawnlp(os.P_NOWAIT, player_name, player_name, video.url)
 
     def _play_rtmp(self, video):
         """
