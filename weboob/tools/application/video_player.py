@@ -104,7 +104,7 @@ class VideoPlayer():
         print ':: Streaming from %s' % video_url
         print ':: to %s %s' % (player_name, args)
         p1 = Popen(rtmp.split(), stdout=PIPE)
-        p2 = Popen([player_name, args], stdin=p1.stdout, stderr=PIPE)
+        Popen([player_name, args], stdin=p1.stdout, stderr=PIPE)
 
     def _find_in_path(self,path, filename):
         for i in path.split(':'):
