@@ -1,0 +1,35 @@
+Weboob is a free software written by:
+
+Romain Bignon <romain@peerfuse.org>
+        * Manager;
+        * Core team;
+        * Qt Applications;
+        * AuM, Arte, BNPorc, CanalTP, DLFP, Fourchan, Gazelle, Geolocip, Yahoo
+          and Youporn backends maintainer.
+
+Christophe Benz <christophe.benz@gmail.com>
+        * Core team;
+        * Packaging;
+        * INA and Youtube backends maintainer.
+
+Roger Philibert <roger.philibert@gmail.com>
+        * Youjizz backend maintainer.
+
+Juke <juke@free.fr>
+        * Developer of masstransit;
+        * Transilien backend maintainer.
+
+Nicolas Duhamel <nicolas@jombi.fr>
+        * BP backend maintainer.
+
+Laurent Bachelier <laurent@bachelier.name>
+        * CrAgr backend maintainer.
+
+Flo <florent.fourcot@resel.fr>
+        * BNPorc patches.
+
+Antoine <antoine.underlinux@orange.fr>
+        * QVideoob fixes.
+
+Want to be a celebrity? Learn how to contribute to Weboob!
+http://weboob.org/How_to_contribute
