@@ -48,19 +48,6 @@ def build_qt():
     os.system('make -C weboob/applications/qvideoob/ui')
     os.system('make -C weboob/tools/application/qt')
 
-def install_xdg():
-    """
-    On xdg-compliant systems, install desktop file and icon
-    """
-    print 'Installing desktop menu files'
-    check_executable('xdg-desktop-menu', 'To disable resources installation, use --no-xdg.')
-
-    os.system('xdg-desktop-menu install --novendor desktop/*.desktop')
-    for filepath in glob.glob('icons/*'):
-        print 'Installing icon %s' % filepath
-        os.system('xdg-icon-resource install --size 64 --novendor %s' % filepath)
-
-
 class Options:
     pass
 
@@ -102,36 +89,38 @@ elif '--no-xdg' in args:
     args.remove('--no-xdg')
 sys.argv = args
 
-hildon_scripts = ('masstransit',)
-qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
 scripts = os.listdir('scripts')
-
-if not options.hildon:
-    scripts = set(scripts) - set(hildon_scripts)
-if options.qt:
-    build_qt()
-else:
-    scripts = set(scripts) - set(qt_scripts)
-
-hildon_packages = (
-    'weboob.applications.masstransit',
-    )
-qt_packages = (
-    'weboob.applications.qboobmsg',
-    'weboob.applications.qboobmsg.ui',
-    'weboob.applications.qhavesex',
-    'weboob.applications.qhavesex.ui',
-    'weboob.applications.qvideoob',
-    'weboob.applications.qvideoob.ui',
-    'weboob.applications.qweboobcfg',
-    'weboob.applications.qweboobcfg.ui',
-    )
 packages = find_packages()
 
-if not options.hildon:
-    packages = set(packages) - set(hildon_packages)
-if not options.qt:
-    packages = set(packages) - set(qt_packages)
+if sys.argv[1] in ('bdist', 'sdist'):
+    hildon_scripts = ('masstransit',)
+    qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
+
+    if not options.hildon:
+        scripts = set(scripts) - set(hildon_scripts)
+    if options.qt:
+        build_qt()
+    else:
+        scripts = set(scripts) - set(qt_scripts)
+
+    hildon_packages = (
+        'weboob.applications.masstransit',
+        )
+    qt_packages = (
+        'weboob.applications.qboobmsg',
+        'weboob.applications.qboobmsg.ui',
+        'weboob.applications.qhavesex',
+        'weboob.applications.qhavesex.ui',
+        'weboob.applications.qvideoob',
+        'weboob.applications.qvideoob.ui',
+        'weboob.applications.qweboobcfg',
+        'weboob.applications.qweboobcfg.ui',
+        )
+
+    if not options.hildon:
+        packages = set(packages) - set(hildon_packages)
+    if not options.qt:
+        packages = set(packages) - set(qt_packages)
 
 setup(
     name='weboob',
@@ -145,6 +134,14 @@ setup(
     url='http://www.weboob.org',
     packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
+
+    # see also MANIFEST.in
+    data_files=[
+        ('share/applications', glob.glob('desktop/*')),
+        ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
+        ('share/man/man1', glob.glob('man/*')),
+        ],
+
     install_requires=[
         # 'ClientForm', # python-clientform
         # 'elementtidy', # python-elementtidy
@@ -163,6 +160,3 @@ setup(
         # 'WebOb', # python-webob
         ],
 )
-
-if sys.argv[1] in ('install', 'develop') and options.xdg and not options.hildon:
-    install_xdg()
