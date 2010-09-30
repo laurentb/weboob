@@ -19,7 +19,6 @@ from __future__ import with_statement
 
 import logging
 
-import weboob
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.application.repl import ReplApplication
 
@@ -44,18 +43,11 @@ class Boobank(ReplApplication):
         tot_balance = 0.0
         tot_coming = 0.0
         self.accounts = []
-        try:
-            for backend, account in self.do('iter_accounts'):
-                self.format(account)
-                tot_balance += account.balance
-                tot_coming += account.coming
-                self.accounts.append(account)
-        except weboob.core.CallErrors, errors:
-            for backend, error, backtrace in errors:
-                if isinstance(error, weboob.tools.browser.BrowserIncorrectPassword):
-                    logging.error(u'Error: Incorrect password for backend %s' % backend.name)
-                else:
-                    logging.error(u'Error[%s]: %s\n%s' % (backend.name, error, backtrace))
+        for backend, account in self.do('iter_accounts'):
+            self.format(account)
+            tot_balance += account.balance
+            tot_coming += account.coming
+            self.accounts.append(account)
         else:
             self.format((('label', 'Total'),
                          ('balance', tot_balance),
@@ -127,13 +119,13 @@ class Boobank(ReplApplication):
 
         id_from, backend_name_from = self.parse_id(id_from)
         id_to, backend_name_to = self.parse_id(id_to)
-        
+
         if backend_name_from != backend_name_to:
             print "Transfer between different backend is not implemented"
             return
         else:
             backend_name = backend_name_from
-        
+
         names = (backend_name,) if backend_name is not None else None
         self.load_backends(ICapBank, names=names)
 

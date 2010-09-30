@@ -97,6 +97,7 @@ class Weboob(object):
         return loaded
 
     def unload_backends(self, names=None):
+        unloaded = {}
         if isinstance(names, basestring):
             names = [names]
         elif names is None:
@@ -106,6 +107,9 @@ class Weboob(object):
             backend = self.backend_instances.pop(name)
             with backend:
                 backend.deinit()
+            unloaded[backend.name] = backend
+
+        return unloaded
 
     def get_backend(self, name):
         return self.backend_instances[name]

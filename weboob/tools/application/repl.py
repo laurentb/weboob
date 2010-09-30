@@ -31,6 +31,7 @@ from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
 from weboob.tools.misc import iter_fields
+from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import formatters as available_formatters, load_formatter
@@ -119,7 +120,7 @@ class ReplApplication(Cmd, BaseApplication):
             atexit.register(savehist)
 
         self._interactive = False
-        self.enabled_backends = []
+        self.enabled_backends = set()
 
     @property
     def interactive(self):
@@ -134,10 +135,20 @@ class ReplApplication(Cmd, BaseApplication):
                 return False
         return True
 
-    def add_backend(self, name, params=None):
+    def edit_backend(self, name, params=None):
+        return self.add_backend(name, params, True)
+
+    def add_backend(self, name, params=None, edit=False):
         if params is None:
             params = {}
-        backend = self.weboob.modules_loader.get_or_load_module(name)
+
+        if not edit:
+            backend = self.weboob.modules_loader.get_or_load_module(name)
+        else:
+            bname, items = self.weboob.backends_config.get_backend(name)
+            backend = self.weboob.modules_loader.get_or_load_module(bname)
+            items.update(params)
+            params = items
         if not backend:
             print 'Backend "%s" does not exist.' % name
             return None
@@ -149,9 +160,9 @@ class ReplApplication(Cmd, BaseApplication):
                 asked_config = True
                 print 'Configuration of backend'
                 print '------------------------'
-            if key not in params:
+            if key not in params or edit:
                 params[key] = self.ask(' [%s] %s' % (key, value.description),
-                                       default=value.default,
+                                       default=params[key] if (edit and key in params) else value.default,
                                        masked=value.is_masked,
                                        choices=value.choices,
                                        regexp=value.regexp)
@@ -161,10 +172,10 @@ class ReplApplication(Cmd, BaseApplication):
             print '------------------------'
 
         try:
-            self.weboob.backends_config.add_backend(name, name, params)
-            print 'Backend "%s" successfully added.' % name
+            self.weboob.backends_config.add_backend(name, name, params, edit=edit)
+            print 'Backend "%s" successfully %s.' % (name, 'updated' if edit else 'added')
             return name
-        except BackendAlreadyExists:#ConfigParser.DuplicateSectionError:
+        except BackendAlreadyExists:
             print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             while self.ask('Add new instance of "%s" backend?' % name, default=False):
                 new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=u'^[\d\w_-]+$')
@@ -175,10 +186,19 @@ class ReplApplication(Cmd, BaseApplication):
                 except BackendAlreadyExists:
                     print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
 
+    def unload_backends(self, *args, **kwargs):
+        unloaded = self.weboob.unload_backends(*args, **kwargs)
+        for backend in unloaded.itervalues():
+            try:
+                self.enabled_backends.remove(backend)
+            except ValueError:
+                pass
+        return unloaded
+
     def load_backends(self, *args, **kwargs):
         ret = super(ReplApplication, self).load_backends(*args, **kwargs)
         for name, backend in ret.iteritems():
-            self.enabled_backends.append(backend)
+            self.enabled_backends.add(backend)
         while len(self.enabled_backends) == 0:
             print 'Warning: there is currently no configured backend for %s' % self.APPNAME
             if not self.ask('Do you want to configure backends?', default=True):
@@ -264,7 +284,31 @@ class ReplApplication(Cmd, BaseApplication):
         try:
             return super(ReplApplication, self).onecmd(_cmd)
         except CallErrors, e:
-            print >>sys.stderr, '%s' % e
+            ask_debug_mode = False
+            for backend, error, backtrace in e.errors:
+                if isinstance(error, BrowserIncorrectPassword):
+                    msg = unicode(error)
+                    if not msg:
+                        msg = 'invalid login/password.'
+                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+                    if self.ask('Do you want to reconfigure this backend?', default=True):
+                        self.unload_backends(names=[backend.name])
+                        self.edit_backend(backend.name)
+                        self.load_backends(names=[backend.name])
+                elif isinstance(error, BrowserUnavailable):
+                    msg = unicode(error)
+                    if not msg:
+                        msg = 'website is unavailable.'
+                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+                else:
+                    common_errors = True
+                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, error)
+                    if logging.root.level == logging.DEBUG:
+                        print >>sys.stderr, backtrace
+                    else:
+                        ask_debug_mode = True
+            if ask_debug_mode:
+                print >>sys.stderr, 'Use --debug option to print backtraces.'
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
         except (KeyboardInterrupt,EOFError):
@@ -507,11 +551,7 @@ class ReplApplication(Cmd, BaseApplication):
         elif action == 'remove':
             for backend in given_backends:
                 self.weboob.backends_config.remove_backend(backend.name)
-                self.weboob.unload_backends(backend.name)
-                try:
-                    self.enabled_backends.remove(backend)
-                except ValueError:
-                    pass
+                self.unload_backends(backend.name)
         else:
             print 'Unknown action: "%s"' % action
             return 1
