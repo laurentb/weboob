@@ -191,7 +191,7 @@ class ReplApplication(Cmd, BaseApplication):
         for backend in unloaded.itervalues():
             try:
                 self.enabled_backends.remove(backend)
-            except ValueError:
+            except KeyError:
                 pass
         return unloaded
 
@@ -497,6 +497,7 @@ class ReplApplication(Cmd, BaseApplication):
             * only    enable given backends and disable the others
             * list    display enabled and available backends
             * add     add a backend
+            * edit    edit a backend
             * remove  remove a backend
         """
         line = line.strip()
@@ -531,7 +532,7 @@ class ReplApplication(Cmd, BaseApplication):
             for backend in given_backends:
                 try:
                     self.enabled_backends.remove(backend)
-                except ValueError:
+                except KeyError:
                     print '%s is not enabled' % backend.name
         elif action == 'only':
             self.enabled_backends = set()
@@ -548,6 +549,14 @@ class ReplApplication(Cmd, BaseApplication):
                 instname = self.add_backend(name)
                 if instname:
                     self.load_backends(names=[instname])
+        elif action == 'edit':
+            for backend in given_backends:
+                enabled = backend in self.enabled_backends
+                self.unload_backends(names=[backend.name])
+                self.edit_backend(backend.name)
+                for newb in self.load_backends(names=[backend.name]).itervalues():
+                    if not enabled:
+                        self.enabled_backends.remove(newb)
         elif action == 'remove':
             for backend in given_backends:
                 self.weboob.backends_config.remove_backend(backend.name)
@@ -561,7 +570,7 @@ class ReplApplication(Cmd, BaseApplication):
 
     def complete_backends(self, text, line, begidx, endidx):
         choices = []
-        commands = ['enable', 'disable', 'only', 'list', 'add', 'remove']
+        commands = ['enable', 'disable', 'only', 'list', 'add', 'edit', 'remove']
         available_backends_names = set(backend.name for backend in self.weboob.iter_backends())
         enabled_backends_names = set(backend.name for backend in self.enabled_backends)
 
@@ -580,6 +589,8 @@ class ReplApplication(Cmd, BaseApplication):
                 for name, module in sorted(self.weboob.modules_loader.loaded.iteritems()):
                     if not self.CAPS or self.caps_included(module.iter_caps(), self.CAPS.__name__):
                         choices.append(name)
+            elif args[1] == 'edit':
+                choices = sorted(available_backends_names)
             elif args[1] == 'remove':
                 choices = sorted(available_backends_names)
 
