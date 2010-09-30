@@ -258,7 +258,10 @@ class BaseBrowser(mechanize.Browser):
         Download URL data specifying what to do on failure (nothing by default).
         """
         result = self.openurl(url, if_fail=if_fail)
+
         if result:
+            if self.SAVE_RESPONSES:
+                self.save_response(result)
             return result.read()
         else:
             return None
