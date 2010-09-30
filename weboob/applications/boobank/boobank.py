@@ -17,8 +17,6 @@
 
 from __future__ import with_statement
 
-import logging
-
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.application.repl import ReplApplication
 

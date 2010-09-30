@@ -301,7 +301,6 @@ class ReplApplication(Cmd, BaseApplication):
                         msg = 'website is unavailable.'
                     print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
                 else:
-                    common_errors = True
                     print >>sys.stderr, 'Error(%s): %s' % (backend.name, error)
                     if logging.root.level == logging.DEBUG:
                         print >>sys.stderr, backtrace
