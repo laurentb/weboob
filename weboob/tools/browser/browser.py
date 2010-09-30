@@ -26,6 +26,8 @@ import time
 from logging import warning, debug
 from copy import copy
 from threading import RLock
+import os
+import tempfile
 
 from weboob.tools.parsers import get_parser
 from weboob.tools.decorators import retry
@@ -117,6 +119,7 @@ class BaseBrowser(mechanize.Browser):
         'android': 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17',
     }
     USER_AGENT = USER_AGENTS['desktop_firefox']
+    SAVE_RESPONSES = False
 
     # ------ Abstract methods --------------------------------------
 
@@ -260,6 +263,20 @@ class BaseBrowser(mechanize.Browser):
         else:
             return None
 
+    def save_response(self, result):
+        """
+        Save a stream to a temporary file, and log its name.
+        The stream is rewinded after saving.
+        """
+        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+        fd, path = tempfile.mkstemp(prefix="response", dir=tmpdir)
+        with os.fdopen(fd, 'w') as f:
+            f.write(result.read())
+        debug("Response saved to %s" % path)
+        result.seek(0)
+
     def submit(self, *args, **kwargs):
         """
         Submit the selected form.
@@ -348,6 +365,9 @@ class BaseBrowser(mechanize.Browser):
 
         debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
+
+        if self.SAVE_RESPONSES:
+            self.save_response(result)
 
         document = self.get_document(result)
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict)

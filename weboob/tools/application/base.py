@@ -138,6 +138,7 @@ class BaseApplication(object):
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
+        logging_options.add_option('-S', '--save-responses', action='store_true', help='save every response')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
@@ -289,6 +290,10 @@ class BaseApplication(object):
             items.update(app._get_completions())
             print ' '.join(items)
             sys.exit(0)
+
+        if app.options.save_responses:
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.SAVE_RESPONSES = True
 
         if app.options.debug:
             level = logging.DEBUG
