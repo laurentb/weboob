@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import sys
+import logging
+import re
 from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
-                        QAbstractTextDocumentLayout, QPalette
+                        QAbstractTextDocumentLayout, QPalette, QMessageBox
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
@@ -105,8 +107,26 @@ class QtDo(QObject):
 
     def default_eb(self, backend, error, backtrace):
         # TODO display a messagebox
-        print error
-        print backtrace
+        msg = u'%s' % error
+        if logging.root.level == logging.DEBUG:
+            msg += '<br />'
+            ul_opened = False
+            for line in backtrace.split('\n'):
+                m = re.match('  File (.*)', line)
+                if m:
+                    if not ul_opened:
+                        msg += '<ul>'
+                        ul_opened = True
+                    else:
+                        msg += '</li>'
+                    msg += '<li><b>%s</b>' % m.group(1)
+                else:
+                    msg += '<br />%s' % line
+            if ul_opened:
+                msg += '</li></ul>'
+            print >>sys.stderr, error
+            print >>sys.stderr, backtrace
+        QMessageBox.critical(None, self.tr('Error'), msg, QMessageBox.Ok)
 
     def local_cb(self, backend, data):
         self.cb(backend, data)

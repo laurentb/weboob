@@ -99,6 +99,7 @@ class BackendsCall(object):
                     else:
                         result = getattr(backend, function)(*args, **kwargs)
                 except Exception, error:
+                    debug('%s: Called function %s raised an error: %r' % (backend, function, error))
                     self._store_error(backend, error)
                 else:
                     debug('%s: Called function %s returned: %r' % (backend, function, result))
