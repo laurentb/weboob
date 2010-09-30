@@ -135,7 +135,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
                 mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
-            if mail.sender != my_name:
+            if mail.sender == my_name:
                 if mail.new:
                     flags |= Message.IS_NOT_ACCUSED
                 else:
@@ -235,49 +235,46 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             self.browser.post_mail(message.thread.id, message.content)
 
     def get_contact(self, contact):
-        try:
-            with self.browser:
-                if isinstance(contact, Contact):
-                    _id = contact.id
-                elif isinstance(contact, (int,long,str,unicode)):
-                    _id = contact
-                else:
-                    raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
+        with self.browser:
+            if isinstance(contact, Contact):
+                _id = contact.id
+            elif isinstance(contact, (int,long,str,unicode)):
+                _id = contact
+            else:
+                raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
 
-                profile = self.browser.get_profile(_id)
+            profile = self.browser.get_profile(_id)
 
-                if profile.is_online():
-                    s = Contact.STATUS_ONLINE
-                else:
-                    s = Contact.STATUS_OFFLINE
+            if profile.is_online():
+                s = Contact.STATUS_ONLINE
+            else:
+                s = Contact.STATUS_OFFLINE
 
-                if isinstance(contact, Contact):
-                    contact.id = _id
-                    contact.name = profile.get_name()
-                    contact.status = s
-                else:
-                    contact = Contact(_id, profile.get_name(), s)
-                contact.status_msg = u'%s old' % profile.table['details']['old']
-                contact.summary = profile.description
-                contact.avatar = None
-                for photo in profile.photos:
-                    contact.set_photo(photo.split('/')[-1], url=photo, thumbnail_url=photo.replace('image', 'thumb1_'))
-                contact.profile = []
+            if isinstance(contact, Contact):
+                contact.id = _id
+                contact.name = profile.get_name()
+                contact.status = s
+            else:
+                contact = Contact(_id, profile.get_name(), s)
+            contact.status_msg = u'%s old' % profile.table['details']['old']
+            contact.summary = profile.description
+            contact.avatar = None
+            for photo in profile.photos:
+                contact.set_photo(photo.split('/')[-1], url=photo, thumbnail_url=photo.replace('image', 'thumb1_'))
+            contact.profile = []
 
-                stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
-                for label, value in profile.get_stats().iteritems():
-                    stats.value.append(ProfileNode(label, label.capitalize(), value))
-                contact.profile.append(stats)
+            stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
+            for label, value in profile.get_stats().iteritems():
+                stats.value.append(ProfileNode(label, label.capitalize(), value))
+            contact.profile.append(stats)
 
-                for section, d in profile.get_table().iteritems():
-                    s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
-                    for key, value in d.iteritems():
-                        s.value.append(ProfileNode(key, key.capitalize(), value))
-                    contact.profile.append(s)
+            for section, d in profile.get_table().iteritems():
+                s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
+                for key, value in d.iteritems():
+                    s.value.append(ProfileNode(key, key.capitalize(), value))
+                contact.profile.append(s)
 
-                return contact
-        except BrowserUnavailable:
-            return None
+            return contact
 
     def init_optimizations(self):
         self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
