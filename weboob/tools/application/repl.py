@@ -70,7 +70,7 @@ class ReplApplication(Cmd, BaseApplication):
                                 'Type "help" to display available commands.',
                                 '',
                                ))
-        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'select', 'quit']
+        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
 
         option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
@@ -597,6 +597,15 @@ class ReplApplication(Cmd, BaseApplication):
         return choices
 
     def do_logging(self, line):
+        """
+        logging [LEVEL]
+
+        Set logging level.
+
+        Availables: debug, info, warning, error.
+        * quiet is an alias for error
+        * default is an alias for warning
+        """
         args = self.parseargs(line, 1, 0)
         levels = (('debug',   logging.DEBUG),
                   ('info',    logging.INFO),
