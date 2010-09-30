@@ -596,6 +596,39 @@ class ReplApplication(Cmd, BaseApplication):
 
         return choices
 
+    def do_logging(self, line):
+        args = self.parseargs(line, 1, 0)
+        levels = (('debug',   logging.DEBUG),
+                  ('info',    logging.INFO),
+                  ('warning', logging.WARNING),
+                  ('error',   logging.ERROR),
+                  ('quiet',   logging.ERROR),
+                  ('default', logging.WARNING)
+                 )
+
+        if not args[0]:
+            current = None
+            for label, level in levels:
+                if logging.root.level == level:
+                    current = label
+                    break
+            print 'Current level: %s' % current
+            return
+
+        levels = dict(levels)
+        try:
+            logging.root.setLevel(levels[args[0]])
+        except KeyError:
+            print >>sys.stderr, 'Level "%s" does not exist.' % args[0]
+            print >>sys.stderr, 'Availables: %s' % ' '.join(levels.iterkeys())
+
+    def complete_logging(self, text, line, begidx, endidx):
+        levels = ('debug', 'info', 'warning', 'error', 'quiet', 'default')
+        args = line.split(' ')
+        if len(args) == 2:
+            return levels
+        return ()
+
     def do_condition(self, line):
         """
         condition [EXPRESSION | off]
