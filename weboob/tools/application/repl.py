@@ -196,7 +196,18 @@ class ReplApplication(Cmd, BaseApplication):
         return unloaded
 
     def load_backends(self, *args, **kwargs):
+        if 'errors' in kwargs:
+            errors = kwargs['errors']
+        else:
+            kwargs['errors'] = errors = []
         ret = super(ReplApplication, self).load_backends(*args, **kwargs)
+
+        for err in errors:
+            print >>sys.stderr, 'Error(%s): %s' % (err.backend_name, err)
+            if self.ask('Do you want to reconfigure this backend?', default=True):
+                self.edit_backend(err.backend_name)
+                self.load_backends(names=[err.backend_name])
+
         for name, backend in ret.iteritems():
             self.enabled_backends.add(backend)
         while len(self.enabled_backends) == 0:
