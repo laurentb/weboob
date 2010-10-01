@@ -38,6 +38,9 @@ class AuMTest(BackendTest):
     def test_contacts(self):
         try:
             contacts = list(self.backend.iter_contacts())
+            if len(contacts) == 0:
+                # so bad, we can't test that...
+                return
             self.backend.fillobj(contacts[0], ['photos', 'profile'])
         except BrowserUnavailable:
             # enough frequent to do not care about.
