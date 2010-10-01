@@ -16,12 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .accounts_list import AccountsList
-from .account_coming import AccountComing
-from .account_history import AccountHistory
-from .login import LoginPage, ConfirmPage, ChangePasswordPage
+__all__ = ['PasswordExpired']
 
-class AccountPrelevement(AccountsList): pass
 
-__all__ = ['AccountsList', 'AccountComing', 'AccountHistory', 'LoginPage',
-           'ConfirmPage', 'AccountPrelevement', 'ChangePasswordPage']
+class PasswordExpired(Exception):
+    pass

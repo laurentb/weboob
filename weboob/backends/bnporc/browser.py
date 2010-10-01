@@ -18,22 +18,33 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.backends.bnporc import pages
+from .errors import PasswordExpired
 
-# Browser
+
+__all__ = ['BNPorc']
+
+
 class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
              '.*SAF_ROP.*':                                 pages.AccountHistory,
+             '.*Action=SAF_CHM.*':                          pages.ChangePasswordPage,
              '.*NS_AVEET.*':                                pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
              '.*type=homeconnex.*':                         pages.LoginPage,
              '.*layout=HomeConnexion.*':                    pages.ConfirmPage,
+             '.*SAF_CHM_VALID.*':                           pages.ConfirmPage,
             }
 
     is_logging = False
+
+    def __init__(self, *args, **kwargs):
+        self.rotating_password = kwargs.pop('rotating_password', None)
+        self.password_changed_cb = kwargs.pop('password_changed_cb', None)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
@@ -57,9 +68,35 @@ class BNPorc(BaseBrowser):
             raise BrowserIncorrectPassword()
         self.is_logging = False
 
+    def change_password(self, new_password):
+        assert new_password.isdigit() and len(new_password) == 6
+
+        self.location('https://www.secure.bnpparibas.net/SAF_CHM?Action=SAF_CHM')
+        assert self.is_on_page(pages.ChangePasswordPage)
+
+        self.page.change_password(self.password, new_password)
+        self.password, self.rotating_password = (new_password, self.password)
+
+        if self.password_changed_cb:
+            self.password_changed_cb(self.rotating_password, self.password)
+
+    def check_expired_password(func):
+        def inner(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except PasswordExpired:
+                if self.rotating_password is not None:
+                    self.change_password(self.rotating_password)
+                    return func(self, *args, **kwargs)
+                else:
+                    raise
+        return inner
+
+    @check_expired_password
     def get_accounts_list(self):
         if not self.is_on_page(pages.AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
+
         return self.page.get_list()
 
     def get_account(self, id):

@@ -18,9 +18,15 @@
 
 from weboob.tools.mech import ClientForm
 import sys
+import urllib
+from logging import error
 
 from weboob.tools.browser import BasePage
 from weboob.backends.bnporc.captcha import Captcha, TileError
+
+
+__all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
+
 
 class LoginPage(BasePage):
     def on_loaded(self):
@@ -32,7 +38,7 @@ class LoginPage(BasePage):
         try:
             img.build_tiles()
         except TileError, err:
-            print >>sys.stderr, "Error: %s" % err
+            error("Error: %s" % err)
             if err.tile:
                 err.tile.display()
 
@@ -47,3 +53,24 @@ class LoginPage(BasePage):
 
 class ConfirmPage(BasePage):
     pass
+
+class ChangePasswordPage(BasePage):
+    def change_password(self, current, new):
+        img = Captcha(self.browser.openurl('/NSImgGrille'))
+
+        try:
+            img.build_tiles()
+        except TileError, err:
+            error('Error: %s' % err)
+            if err.tile:
+                err.tile.display()
+
+        code_current = img.get_codes(current)
+        code_new = img.get_codes(new)
+
+        data = {'ch1': code_current,
+                'ch2': code_new,
+                'ch3': code_new
+               }
+
+        self.browser.location('/SAF_CHM_VALID', urllib.urlencode(data))

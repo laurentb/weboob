@@ -22,6 +22,9 @@ from weboob.tools.backend import BaseBackend
 from .browser import BNPorc
 
 
+__all__ = ['BNPorcBackend']
+
+
 class BNPorcBackend(BaseBackend, ICapBank):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
@@ -30,12 +33,29 @@ class BNPorcBackend(BaseBackend, ICapBank):
     LICENSE = 'GPLv3'
     DESCRIPTION = 'BNP Paribas french bank\' website'
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
+              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
+              'rotating_password': BaseBackend.ConfigField(
+                           description='Password to set when the allowed uses are exhausted (6 digits)',
+                           default='',
+                           regexp='^(\d{6}|)$'),
              }
     BROWSER = BNPorc
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'], self.config['password'])
+        if self.config['rotating_password'].isdigit() and len(self.config['rotating_password']) == 6:
+            rotating_password = self.config['rotating_password']
+        else:
+            rotating_password = None
+        return self.create_browser(self.config['login'],
+                                   self.config['password'],
+                                   password_changed_cb=self._password_changed_cb,
+                                   rotating_password=rotating_password)
+
+    def _password_changed_cb(self, old, new):
+        new_settings = {'password':          new,
+                        'rotating_password': old,
+                       }
+        self.weboob.backends_config.edit_backend(self.name, self.NAME, new_settings)
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

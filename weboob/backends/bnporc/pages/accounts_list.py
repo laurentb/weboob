@@ -21,6 +21,8 @@ import re
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 
+from ..errors import PasswordExpired
+
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 
@@ -59,4 +61,11 @@ class AccountsList(BasePage):
                             account.coming = float(coming)
 
                 l.append(account)
+
+        if len(l) == 0:
+            # oops, no accounts? check if we have not exhausted the allowed use
+            # of this password
+            for div in self.document.getroot().cssselect('div.Style_texte_gras'):
+                if div.text.strip() == 'Vous avez atteint la date de fin de vie de votre code secret.':
+                    raise PasswordExpired(div.text.strip())
         return l
