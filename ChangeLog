@@ -1,3 +1,43 @@
+Weboob 0.2 (2010-10-01)
+	* Backend 'yweather' renamed to 'yahoo'.
+	* New capability: ICapGeolocIp to geolocalise IP addresses.
+	* New backend Arte: for the arte.tv french TV website.
+	* New backend GeolocIp: for the geolocalise-ip.com website.
+	* New backend BP: for the “Banque Postale” french bank.
+	* AuM backend: check when the account is blocked.
+	* AuM backend: ability to register new account.
+	* BNPorc backend: support history.
+	* CrAgr backend fix: support of another version of Credit Agricole.
+	* CrAgr backend fix: check if website is down.
+	* DLFP backend: display comments link in signature.
+	* DLFP backend fix: parsing of comments when templeet sucks.
+	* Youtube backend: support infinite searches.
+	* Youtube backend fix: parsing of URLs (#388).
+	* New application geolooc: a console application to interact with
+	  ICapGeolocIp backends.
+	* New application weboob-cli: a console application to interact with
+	  every backends.
+	* boobank application: new command 'history'.
+	* boobank application: new command 'transfer'.
+	* QHaveSex application: know if a message has been read or not.
+	* videoob application: new command 'play'.
+	* Console applications: can be interactive (repl) when run without any
+	  command (#353).
+	* Console applications: if no backends are loaded at startup, ask user to
+	  add them.
+	* Console applications: -s '*' fills objects.
+	* Qt applications: display configuration window if no backends are loaded
+	  at startup.
+	* Core: ability to fill objects already fetched to complete them.
+	* Core: ICapMessages has been rewritten to be more efficient.
+	* Core: can enable or disable backends.
+	* Core: a test architecture has been written.
+	* Core: all loaded backends now need to be configured (#368).
+	* Core: new pargument --save-responses to debug HTML pages (#274).
+	* Core fix: handle read URL data failure.
+	* Core fix: Client is merged into mechanize >= 0.2 (#362).
+
+
 Weboob 0.1 (2010-08-03)
 	* First public release.
 	* The core system can load/unload backends, supports configured
