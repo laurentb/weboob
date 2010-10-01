@@ -26,9 +26,6 @@ __all__ = ['LoginPage']
 
 
 class LoginPage(CragrBasePage):
-    def on_loaded(self):
-        pass
-
     def login(self, login, password):
         self.browser.select_form(nr=0)
         try:
