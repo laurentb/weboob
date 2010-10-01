@@ -136,7 +136,7 @@ class ContactThread(QWidget):
         button = QPushButton(self.tr('More messages...'))
         self.connect(button, SIGNAL('clicked()'), lambda: self._load_button_pressed(button))
         if pos >= 0:
-            self.ui.scrollAreaContent.layout().insertWidget(i, button)
+            self.ui.scrollAreaContent.layout().insertWidget(pos, button)
         else:
             self.ui.scrollAreaContent.layout().addWidget(button)
 
