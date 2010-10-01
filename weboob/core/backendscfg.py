@@ -72,6 +72,8 @@ class BackendsConfig(object):
                 raise BackendAlreadyExists(instance_name)
         config.set(instance_name, '_backend', backend_name)
         for key, value in params.iteritems():
+            if isinstance(value, unicode):
+                value = value.encode('utf-8')
             config.set(instance_name, key, value)
         with open(self.confpath, 'wb') as f:
             config.write(f)
