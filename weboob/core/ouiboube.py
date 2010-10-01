@@ -69,7 +69,22 @@ class Weboob(object):
     def deinit(self):
         self.unload_backends()
 
-    def load_backends(self, caps=None, names=None, modules=None, storage=None):
+    class LoadError(Exception):
+        def __init__(self, backend_name, exception):
+            Exception.__init__(self, unicode(exception))
+            self.backend_name = backend_name
+
+    def load_backends(self, caps=None, names=None, modules=None, storage=None, errors=None):
+        """
+        Load backends.
+
+        @param caps [tuple(ICapBase)]  load backends which implement all of caps
+        @param names [tuple(unicode)]  load backends with instance name in list
+        @param modules [tuple(unicode)]  load backends which module is in list
+        @param storage [IStorage]  use the storage if specified
+        @param errors [list]  if specified, store every errors in
+        @return [dict(str,BaseBackend)]  return loaded backends
+        """
         loaded = {}
         if storage is None:
             storage = self.storage
@@ -92,8 +107,13 @@ class Weboob(object):
                 warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
                 self.unload_backends(instance_name)
 
-            backend_instance = module.create_instance(self, instance_name, params, storage)
-            self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
+            try:
+                backend_instance = module.create_instance(self, instance_name, params, storage)
+            except BaseBackend.ConfigError, e:
+                if errors is not None:
+                    errors.append(self.LoadError(instance_name, e))
+            else:
+                self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
         return loaded
 
     def unload_backends(self, names=None):
