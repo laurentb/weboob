@@ -46,12 +46,13 @@ class MessagesManager(QWidget):
         self.backend = None
 
         self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self._backendChanged)
+        self.connect(self.ui.threadsList,  SIGNAL('itemSelectionChanged()'), self._threadChanged)
         self.connect(self.ui.messagesTree, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self, SIGNAL('gotMessage'), self._gotMessage)
 
     def load(self):
-        self.refresh()
+        self.refreshThreads()
 
     def _backendChanged(self):
         selection = self.ui.backendsList.selectedItems()
@@ -61,8 +62,21 @@ class MessagesManager(QWidget):
 
         self.backend = selection[0].data(Qt.UserRole).toPyObject()
 
+    def refreshThreads(self):
+        self.ui.messagesTree.clear()
+        self.ui.threadsList.clear()
+
+        self.process_threads = QtDo(self.weboob, self._gotThread)
+        self.process_threads.do('iter_threads', backends=self.backends, caps=ICapMessages)
+
+    def _gotThread(self, backend, thread):
+        if not backend:
+            return
+
+    def _threadChanged(self):
         self.ui.messagesTree.clear()
         self.refresh()
+        pass
 
     def refresh(self):
         if self.ui.messagesTree.topLevelItemCount() > 0:
