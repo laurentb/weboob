@@ -25,12 +25,20 @@ class AccountsList(CragrBasePage):
 
     def get_list(self):
         l = []
+
         for div in self.document.getiterator('div'):
-            if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag == 'br':
+            if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag in ('a', 'br'):
                 account = Account()
-                account.label = div.find('a').text.strip()
-                account.id = div.findall('br')[1].tail.strip()
-                s = div.find('div').find('span').find('b').text
+                if div.getchildren()[0].tag == 'a':
+                    # This is at least present on CA Nord-Est
+                    account.label = ' '.join(div.find('a').text.split()[:-1])
+                    account.id = div.find('a').text.split()[-1]
+                    s = div.find('div').find('b').find('span').text
+                else:
+                    # This is at least present on CA Toulouse
+                    account.label = div.find('a').text.strip()
+                    account.id = div.findall('br')[1].tail.strip()
+                    s = div.find('div').find('span').find('b').text
                 balance = u''
                 for c in s:
                     if c.isdigit():
