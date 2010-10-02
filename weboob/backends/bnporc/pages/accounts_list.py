@@ -56,9 +56,12 @@ class AccountsList(BasePage):
                             account.coming = 0.0
                         else:
                             a = td.findall('a')
-                            coming = a[0].text
-                            coming = coming.replace('.','').replace(',','.')
-                            account.coming = float(coming)
+                            if len(a) == 0:
+                              account.coming = 0.0
+                            else:
+                              coming = a[0].text
+                              coming = coming.replace('.','').replace(',','.')
+                              account.coming = float(coming)
 
                 l.append(account)
 
