@@ -41,7 +41,7 @@ class AccountsList(BasePage):
                     elif td.attrib.get('headers', '').startswith('Libelle_'):
                         a = td.findall('a')
                         label = unicode(a[0].text)
-                        account.label = label
+                        account.label = label.strip()
                         m = self.LINKID_REGEXP.match(a[0].attrib.get('href', ''))
                         if m:
                             account.link_id = m.group(1)
