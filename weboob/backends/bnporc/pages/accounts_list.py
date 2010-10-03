@@ -51,17 +51,14 @@ class AccountsList(BasePage):
                         balance = balance.replace('.','').replace(',','.')
                         account.balance = float(balance)
                     elif td.attrib.get('headers', '').startswith('Avenir'):
+                        a = td.findall('a')
                         # Some accounts don't have a "coming"
-                        if td.text.strip() == '-':
-                            account.coming = 0.0
+                        if len(a):
+                            coming = a[0].text
+                            coming = coming.replace('.','').replace(',','.')
+                            account.coming = float(coming)
                         else:
-                            a = td.findall('a')
-                            if len(a) == 0:
-                              account.coming = 0.0
-                            else:
-                              coming = a[0].text
-                              coming = coming.replace('.','').replace(',','.')
-                              account.coming = float(coming)
+                            account.coming = 0.0
 
                 l.append(account)
 
