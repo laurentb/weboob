@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from logging import warning
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.backends.bnporc import pages
 from .errors import PasswordExpired
@@ -86,6 +88,7 @@ class BNPorc(BaseBrowser):
                 return func(self, *args, **kwargs)
             except PasswordExpired:
                 if self.rotating_password is not None:
+                    warning('[%s] Your password has expired. Switching...' % self.username)
                     self.change_password(self.rotating_password)
                     return func(self, *args, **kwargs)
                 else:

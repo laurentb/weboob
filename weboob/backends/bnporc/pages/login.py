@@ -17,7 +17,6 @@
 
 
 from weboob.tools.mech import ClientForm
-import sys
 import urllib
 from logging import error
 
