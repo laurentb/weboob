@@ -113,3 +113,15 @@ class MessagesManager(QWidget):
 
         for child in message.children:
             self._insert_message(child, item)
+
+    def _messageSelected(self, item, column):
+        message = item.data(0, Qt.UserRole).toPyObject()
+        if message.flags & message.IS_HTML:
+            content = message.content
+        else:
+            content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        self.ui.messageBody.setText("<h1>%s</h1>"
+                                    "<b>Date</b>: %s<br />"
+                                    "<b>From</b>: %s<br />"
+                                    "<p>%s</p>"
+                                    % (message.title, str(message.date), message.sender, content))
