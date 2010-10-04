@@ -62,6 +62,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         if isinstance(id, Thread):
             thread = id
             id = thread.id
+        else:
+            thread = None
 
         with self.browser:
             content = self.browser.get_content(id)
