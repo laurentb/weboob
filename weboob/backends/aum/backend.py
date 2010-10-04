@@ -97,6 +97,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             if not contact.get_id():
                 continue
             thread = Thread(contact.get_id())
+            thread.title = 'Discussion with %s' % contact.get_name()
             yield thread
 
     def get_thread(self, id, profiles=None):
@@ -140,6 +141,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     flags |= Message.IS_NOT_ACCUSED
                 else:
                     flags |= Message.IS_ACCUSED
+
+            if not thread.title:
+                thread.title = mail.title
 
             msg = Message(thread=thread,
                           id=mail.message_id,
@@ -192,9 +196,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         profile = self.browser.get_profile(ids[new_baskets])
 
                         thread = Thread(profile.get_id())
+                        thread.title = 'Basket of %s' % profile.get_name()
                         thread.root = Message(thread=thread,
                                               id=self.MAGIC_ID_BASKET,
-                                              title='Basket of %s' % profile.get_name(),
+                                              title=thread.title,
                                               sender=profile.get_name(),
                                               receiver=self.browser.get_my_name(),
                                               date=None, # now
