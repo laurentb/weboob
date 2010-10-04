@@ -49,7 +49,6 @@ class MessagesManager(QWidget):
         self.connect(self.ui.threadsList,  SIGNAL('itemSelectionChanged()'), self._threadChanged)
         self.connect(self.ui.messagesTree, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
-        self.connect(self, SIGNAL('gotMessage'), self._gotMessage)
 
     def load(self):
         self.refreshThreads()
@@ -61,86 +60,56 @@ class MessagesManager(QWidget):
             return
 
         self.backend = selection[0].data(Qt.UserRole).toPyObject()
+        self.refreshThreads()
 
     def refreshThreads(self):
         self.ui.messagesTree.clear()
         self.ui.threadsList.clear()
 
         self.process_threads = QtDo(self.weboob, self._gotThread)
-        self.process_threads.do('iter_threads', backends=self.backends, caps=ICapMessages)
+        self.process_threads.do('iter_threads', backends=self.backend, caps=ICapMessages)
 
     def _gotThread(self, backend, thread):
         if not backend:
+            self.process_threads = None
             return
+
+        item = QListWidgetItem(thread.title)
+        item.setData(Qt.UserRole, (thread.backend, thread.id))
+        self.ui.threadsList.addItem(item)
 
     def _threadChanged(self):
         self.ui.messagesTree.clear()
-        self.refresh()
-        pass
+        selection = self.ui.threadsList.selectedItems()
+        if not selection:
+            return
 
-    def refresh(self):
-        if self.ui.messagesTree.topLevelItemCount() > 0:
-            command = 'iter_new_messages'
-        else:
-            command = 'iter_messages'
+        t = selection[0].data(Qt.UserRole).toPyObject()
+        print t
+        self.refreshThreadMessages(*t)
 
+    def refreshThreadMessages(self, backend, id):
         self.ui.backendsList.setEnabled(False)
+        self.ui.threadsList.setEnabled(False)
 
-        self.process = QtDo(self.weboob, self._gotMessage)
+        self.process = QtDo(self.weboob, self._gotThreadMessages)
+        self.process.do('get_thread', id, backends=backend)
 
-        self.process.do(command, backends=self.backend, caps=ICapMessages)
-
-    def _gotMessage(self, backend, message):
-        if message is None:
+    def _gotThreadMessages(self, backend, thread):
+        if thread is None:
             self.ui.backendsList.setEnabled(True)
+            self.ui.threadsList.setEnabled(True)
             self.process = None
             return
 
+        self._insert_message(thread.root, self.ui.messagesTree.invisibleRootItem())
+
+    def _insert_message(self, message, top):
         item = QTreeWidgetItem(None, [time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple()),
                                                       message.sender, message.title])
         item.setData(0, Qt.UserRole, message)
 
-        root = self.ui.messagesTree.invisibleRootItem()
+        top.addChild(item)
 
-        # try to find a message which would be my parent.
-        # if no one is found, insert it on top level.
-        if not self._insertMessage(root, item):
-            self.ui.messagesTree.addTopLevelItem(item)
-
-        # Check orphaned items which are child of this new one to put
-        # in.
-        to_remove = []
-        for i in xrange(root.childCount()):
-            sub = root.child(i)
-            sub_message = sub.data(0, Qt.UserRole).toPyObject()
-            if sub_message.thread_id == message.thread_id and sub_message.parent_message_id == message.message_id:
-                # do not remove it now because childCount() would change.
-                to_remove.append(sub)
-
-        for sub in to_remove:
-            root.removeChild(sub)
-            item.addChild(sub)
-
-    def _insertMessage(self, top, item):
-        top_message = top.data(0, Qt.UserRole).toPyObject()
-        item_message = item.data(0, Qt.UserRole).toPyObject()
-
-        if top_message and top_message.thread_id == item_message.thread_id and top_message.id == item_message.parent_message_id:
-            # it's my parent
-            top.addChild(item)
-            return True
-        else:
-            # check the children
-            for i in xrange(top.childCount()):
-                sub = top.child(i)
-                if self._insertMessage(sub, item):
-                    return True
-        return False
-
-    def _messageSelected(self, item, column):
-        message = item.data(0, Qt.UserRole).toPyObject()
-        self.ui.messageBody.setText("<h1>%s</h1>"
-                                    "<b>Date</b>: %s<br />"
-                                    "<b>From</b>: %s<br />"
-                                    "<p>%s</p>"
-                                    % (message.title, str(message.date), message.sender, message.content))
+        for child in message.children:
+            self._insert_message(child, item)
