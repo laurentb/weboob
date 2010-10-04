@@ -162,6 +162,8 @@ class ContactThread(QWidget):
         self.process_reply.do('post_message', m, backends=self.contact.backend)
 
     def _postReply_cb(self, backend, ignored):
+        if not backend:
+            return
         self.ui.textEdit.clear()
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
