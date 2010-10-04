@@ -122,8 +122,8 @@ class BackendsCall(object):
                     for finished in self.backends.itervalues():
                         if not finished:
                             return
-                    self.finish_event.set()
                     self.response_event.set()
+                    self.finish_event.set()
 
     def _callback_thread_run(self, callback, errback):
         responses = []
