@@ -54,13 +54,18 @@ class DLFP(BaseBrowser):
         self.location(id2url(_id))
         return self.page.get_article()
 
-    def post_reply(self, thread, reply_id, title, message):
+    def post_reply(self, thread, reply_id, title, message, is_html=False):
         content_type = id2contenttype(thread)
         thread_id = id2threadid(thread)
         reply_id = int(reply_id)
 
         if not content_type or not thread_id:
             return False
+
+        if is_html:
+            format = 1
+        else:
+            format = 3
 
         # Define every data fields
         data = {'news_id': thread_id,
@@ -70,7 +75,7 @@ class DLFP(BaseBrowser):
                 'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
                 'subject': unicode(title).encode('utf-8'),
                 'body': unicode(message).encode('utf-8'),
-                'format': 3,
+                'format': format,
                 'submit': 'Envoyer',
                 }
 
@@ -78,8 +83,7 @@ class DLFP(BaseBrowser):
 
         request = self.request_class(url, urllib.urlencode(data), {'Referer': url})
         self.openurl(request).read()
-        # No message to send
-        return ()
+        return None
 
     def login(self):
         self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))

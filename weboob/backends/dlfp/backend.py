@@ -139,7 +139,11 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         assert message.thread
 
         with self.browser:
-            return self.browser.post_reply(message.thread.id, message.parent.id, message.title, message.content)
+            return self.browser.post_reply(message.thread.id,
+                                           message.parent.id,
+                                           message.title,
+                                           message.content,
+                                           message.flags & message.IS_HTML)
 
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)
