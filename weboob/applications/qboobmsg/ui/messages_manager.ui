@@ -215,6 +215,20 @@
              <widget class="QTextEdit" name="replyEdit"/>
             </item>
             <item>
+             <widget class="QComboBox" name="htmlBox">
+              <item>
+               <property name="text">
+                <string>With HTML</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Without HTML</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="sendButton">
               <property name="text">
                <string>Send</string>

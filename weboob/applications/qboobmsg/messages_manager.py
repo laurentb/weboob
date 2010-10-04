@@ -190,27 +190,35 @@ class MessagesManager(QWidget):
         text = unicode(self.ui.replyEdit.toPlainText())
         title = unicode(self.ui.titleEdit.text())
 
+        self.ui.backendsList.setEnabled(False)
+        self.ui.threadsList.setEnabled(False)
+        self.ui.messagesTree.setEnabled(False)
         self.ui.replyButton.setEnabled(False)
-        self.ui.titleEdit.setEnabled(False)
-        self.ui.replyEdit.setEnabled(False)
-        self.ui.sendButton.setEnabled(False)
+        self.ui.replyWidget.setEnabled(False)
         self.ui.sendButton.setText(self.tr('Sending...'))
+        flags = 0
+        if self.ui.htmlBox.currentIndex() == 0:
+            flags = Message.IS_HTML
         m = Message(thread=self.thread,
                     id=0,
                     title=title,
                     sender=None,
                     receiver=None,
                     content=text,
-                    parent=self.message)
+                    parent=self.message,
+                    flags=flags)
         self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
         self.process_reply.do('post_message', m, backends=self.thread.backend)
 
     def _postReply_cb(self, backend, ignored):
+        if not backend:
+            return
+
+        self.ui.backendsList.setEnabled(True)
+        self.ui.threadsList.setEnabled(True)
+        self.ui.messagesTree.setEnabled(True)
         self.ui.replyButton.setEnabled(True)
-        self.ui.titleEdit.setEnabled(True)
-        self.ui.titleEdit.clear()
-        self.ui.replyEdit.setEnabled(True)
-        self.ui.replyEdit.clear()
+        self.ui.replyWidget.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
         self.ui.sendButton.setText(self.tr('Send'))
         self.hideReply()
@@ -223,13 +231,10 @@ class MessagesManager(QWidget):
             content += '\n%s\n' % backtrace
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
+        self.ui.backendsList.setEnabled(True)
+        self.ui.threadsList.setEnabled(True)
+        self.ui.messagesTree.setEnabled(True)
         self.ui.replyButton.setEnabled(True)
-        self.ui.titleEdit.setEnabled(True)
-        self.ui.titleEdit.clear()
-        self.ui.replyEdit.setEnabled(True)
-        self.ui.replyEdit.clear()
-        self.ui.sendButton.setEnabled(True)
+        self.ui.replyWidget.setEnabled(True)
         self.ui.sendButton.setText(self.tr('Send'))
         self.process_reply = None
-
-
