@@ -21,6 +21,7 @@ from datetime import datetime
 from dateutil import tz
 from logging import warning, debug
 
+from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, StatusField
@@ -161,10 +162,14 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
             child = msg
 
-        if full:
+        if full and msg:
             # If we have get all the messages, replace NotLoaded with None as
             # parent.
             msg.parent = None
+        if not full and not msg:
+            # Perhaps there are hidden messages
+            msg = NotLoaded
+
         thread.root = msg
 
         return thread
