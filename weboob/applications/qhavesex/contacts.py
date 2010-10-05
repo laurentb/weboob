@@ -111,8 +111,11 @@ class ContactThread(QWidget):
 
         self.thread = thread
 
-        for message in thread.iter_all_messages():
-            self._insert_message(message)
+        if thread.root is NotLoaded:
+            self._insert_load_button(0)
+        else:
+            for message in thread.iter_all_messages():
+                self._insert_message(message)
 
     def _insert_message(self, message):
         widget = ThreadMessage(message)
