@@ -104,6 +104,7 @@ class MessagesManager(QWidget):
 
     def refreshThreadMessages(self, backend, id):
         self.ui.messagesTree.clear()
+        self.ui.messageBody.clear()
         self.ui.backendsList.setEnabled(False)
         self.ui.threadsList.setEnabled(False)
         self.ui.replyButton.setEnabled(False)
@@ -122,6 +123,8 @@ class MessagesManager(QWidget):
         self.thread = thread
         self.showMessage(thread.root)
         self._insert_message(thread.root, self.ui.messagesTree.invisibleRootItem())
+
+        self.ui.messagesTree.expandAll()
 
     def _insert_message(self, message, top):
         item = QTreeWidgetItem(None, [message.title, message.sender,

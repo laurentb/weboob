@@ -45,7 +45,7 @@ class MainWindow(QtMainWindow):
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapMessages,), self)
         if bckndcfg.run():
-            self.refresh()
+            self.load()
 
     def refresh(self):
-        self.centralWidget().refresh()
+        self.centralWidget().refreshThreads()
