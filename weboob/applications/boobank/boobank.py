@@ -69,13 +69,12 @@ class Boobank(ReplApplication):
         """
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
-        self.load_backends(ICapBank, names=names)
 
         def do(backend):
             account = backend.get_account(id)
             return backend.iter_history(account)
 
-        for backend, operation in self.do(do):
+        for backend, operation in self.do(do, backends=names):
             self.format(operation)
 
     def complete_coming(self, text, line, *ignored):
@@ -91,13 +90,12 @@ class Boobank(ReplApplication):
         """
         id, backend_name = self.parse_id(id)
         names = (backend_name,) if backend_name is not None else None
-        self.load_backends(ICapBank, names=names)
 
         def do(backend):
             account = backend.get_account(id)
             return backend.iter_operations(account)
 
-        for backend, operation in self.do(do):
+        for backend, operation in self.do(do, backends=names):
             self.format(operation)
 
     def complete_transfer(self, text, line, *ignored):
@@ -125,10 +123,9 @@ class Boobank(ReplApplication):
             backend_name = backend_name_from
 
         names = (backend_name,) if backend_name is not None else None
-        self.load_backends(ICapBank, names=names)
 
         def do(backend):
             return backend.transfer(id_from, id_to, float(amount))
 
-        for backend, id_transfer in self.do(do):
+        for backend, id_transfer in self.do(do, backends=names):
             self.format((('Transfer', str(id_transfer)),))
