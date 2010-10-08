@@ -24,6 +24,7 @@ __all__ = ['BaseVideo', 'ICapVideo']
 
 class VideoThumbnail(CapBaseObject):
     def __init__(self, url):
+        CapBaseObject.__init__(self, url)
         self.url = url.replace(' ', '%20')
         self.data = NotLoaded
 
@@ -42,7 +43,7 @@ class BaseVideo(CapBaseObject):
 
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
-        self.id = unicode(_id)
+        CapBaseObject.__init__(self, unicode(_id))
         self.title = title
         self.url = url
         self.author = author
