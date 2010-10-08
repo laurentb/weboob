@@ -32,10 +32,10 @@ class FourChanTest(BackendTest):
             debug('Count: %s' % count)
             tot += count
 
-        print 'Total messages: %s' % tot
+        debug('Total messages: %s' % tot)
 
         count = 0
         for message in self.backend.iter_unread_messages():
             count += 1
 
-        print 'Unread messages: %s' % count
+        debug('Unread messages: %s' % count)
