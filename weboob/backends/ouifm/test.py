@@ -18,13 +18,9 @@
 
 from weboob.tools.test import BackendTest
 
-class YoutubeTest(BackendTest):
-    BACKEND = 'youtube'
+class OuiFMTest(BackendTest):
+    BACKEND = 'ouifm'
 
-    def test_youtube(self):
-        l = list(self.backend.iter_search_results('lol'))
+    def test_ouifm(self):
+        l = list(self.backend.iter_radios())
         self.assertTrue(len(l) > 0)
-        v = l[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
-        self.backend.browser.openurl(v.url)
