@@ -22,4 +22,4 @@ class GeolocIPTest(BackendTest):
     BACKEND = 'geolocip'
 
     def test_geolocip(self):
-        location = self.backend.get_location('88.198.11.130')
+        self.backend.get_location('88.198.11.130')
