@@ -85,6 +85,7 @@ class Monboob(ReplApplication):
               'smtp':      'localhost',
               'html':      0}
     CAPS = ICapMessages
+    DISABLE_REPL = True
 
     def add_application_options(self, group):
         group.add_option('-S', '--smtpd', help='run a fake smtpd server and set the port')
@@ -98,7 +99,7 @@ class Monboob(ReplApplication):
     def main(self, argv):
         self.load_config()
 
-        return self.onecmd(' '.join(argv[1:]))
+        return ReplApplication.main(self, argv)
 
     def get_email_address_ident(self, msg, header):
         s = msg.get(header)

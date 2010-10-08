@@ -28,13 +28,16 @@ class WeboobCli(ReplApplication):
     APPNAME = 'weboob-cli'
     VERSION = '0.2'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] capability method [arguments..]\n'
+    SYNOPSIS += '       %prog [--help] [--version]'
+    DISABLE_REPL = True
 
     def load_default_backends(self):
         pass
 
     def main(self, argv):
         if len(argv) < 3:
-            print >>sys.stderr, "Syntax: %s capability command [args ..]" % argv[0]
+            print >>sys.stderr, "Syntax: %s capability method [args ..]" % argv[0]
             return 1
 
         cap_s = argv[1]

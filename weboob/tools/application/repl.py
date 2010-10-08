@@ -52,6 +52,7 @@ class ReplApplication(Cmd, BaseApplication):
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] [command [arguments..]]\n'
     SYNOPSIS += '       %prog [--help] [--version]'
     CAPS = None
+    DISABLE_REPL = False
 
     # shell escape strings
     BOLD   = '[37;1m'
@@ -86,9 +87,13 @@ class ReplApplication(Cmd, BaseApplication):
         if self._parser.description is None:
             self._parser.description = ''
 
+        help_str = u''
+
         app_cmds, weboob_cmds, undoc_cmds = self.get_commands_doc()
-        help_str = '%s Commands:\n%s\n\n' % (self.APPNAME.capitalize(), '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
-        help_str +='Weboob Commands:\n%s\n' % '\n'.join(' %s' % cmd for cmd in weboob_cmds)
+        if len(app_cmds) > 0 or len(undoc_cmds) > 0:
+            help_str += '%s Commands:\n%s\n\n' % (self.APPNAME.capitalize(), '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
+        if not self.DISABLE_REPL:
+            help_str +='Weboob Commands:\n%s\n' % '\n'.join(' %s' % cmd for cmd in weboob_cmds)
         self._parser.description += help_str
 
         results_options = OptionGroup(self._parser, 'Results Options')
@@ -337,6 +342,9 @@ class ReplApplication(Cmd, BaseApplication):
                 ret = self.onecmd(cmd)
                 if ret:
                     return ret
+        elif self.DISABLE_REPL:
+            self._parser.print_help()
+            self._parser.exit()
         else:
             self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             self._interactive = True
