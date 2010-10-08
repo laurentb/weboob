@@ -40,6 +40,7 @@ class WetBoobs(ReplApplication):
         """
         for backend, city in self.do('iter_city_search', pattern):
             self.format(city)
+        self.flush()
 
     def do_current(self, city):
         """
@@ -50,6 +51,7 @@ class WetBoobs(ReplApplication):
         try:
             for backend, current in self.do('get_current', city):
                 self.format(current)
+            self.flush()
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):
@@ -66,6 +68,7 @@ class WetBoobs(ReplApplication):
         try:
             for backend, forecast in self.do('iter_forecast', city):
                 self.format(forecast)
+            self.flush()
         except CallErrors, e:
             for error in e:
                 if isinstance(error, CityNotFound):

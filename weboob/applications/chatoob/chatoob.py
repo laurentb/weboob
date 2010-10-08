@@ -43,6 +43,7 @@ class Chatoob(ReplApplication):
         """
         for backend, contact in self.do('iter_contacts', status=Contact.STATUS_ONLINE, caps=ICapContact):
             self.format(contact)
+        self.flush()
 
     def do_messages(self, line):
         """
@@ -52,6 +53,7 @@ class Chatoob(ReplApplication):
         """
         for backend, message in self.do('iter_chat_messages'):
             self.format(message)
+        self.flush()
 
     def do_send(self, line):
         """

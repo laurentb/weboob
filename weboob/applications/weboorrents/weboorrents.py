@@ -48,6 +48,8 @@ class Weboorrents(ReplApplication):
 
         if not found:
             print >>sys.stderr, 'Torrent "%s" not found' % id
+        else:
+            self.flush()
 
     def do_getfile(self, line):
         """
@@ -83,3 +85,4 @@ class Weboorrents(ReplApplication):
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
             self.format(torrent)
+        self.flush()

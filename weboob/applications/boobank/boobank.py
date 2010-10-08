@@ -76,6 +76,7 @@ class Boobank(ReplApplication):
 
         for backend, operation in self.do(do, backends=names):
             self.format(operation)
+        self.flush()
 
     def complete_coming(self, text, line, *ignored):
         args = line.split(' ')
@@ -97,6 +98,7 @@ class Boobank(ReplApplication):
 
         for backend, operation in self.do(do, backends=names):
             self.format(operation)
+        self.flush()
 
     def complete_transfer(self, text, line, *ignored):
         args = line.split(' ')
@@ -129,3 +131,4 @@ class Boobank(ReplApplication):
 
         for backend, id_transfer in self.do(do, backends=names):
             self.format((('Transfer', str(id_transfer)),))
+        self.flush()

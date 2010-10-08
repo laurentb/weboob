@@ -33,12 +33,13 @@ class Traveloob(ReplApplication):
 
     def do_stations(self, pattern):
         """
-        search PATTERN
+        stations PATTERN
 
         Search stations.
         """
         for backend, station in self.do('iter_station_search', pattern):
             self.format(station)
+        self.flush()
 
     def do_departures(self, line):
         """
@@ -66,3 +67,4 @@ class Traveloob(ReplApplication):
 
         for backend, departure in self.do('iter_station_departures', station_id, arrival_id, backends=backends):
             self.format(departure)
+        self.flush()
