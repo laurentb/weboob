@@ -60,13 +60,29 @@ class NotLoaded(object):
 class IBaseCap(object):
     pass
 
-
 class CapBaseObject(object):
     FIELDS = None
+    _attribs = None
 
     def __init__(self, id, backend=None):
         self.id = id
         self.backend = backend
+
+    def add_field(self, name, type, value=NotLoaded):
+        """
+        Add a field in list, which needs to be of type @type.
+
+        @param name [str]  name of field
+        @param type [class]  type accepted (can be a tuple of types)
+        @param value [object]  value set to attribute (default is NotLoaded)
+        """
+        if not isinstance(self.FIELDS, list):
+            self.FIELDS = []
+        self.FIELDS.append(name)
+
+        if self._attribs is None:
+            self._attribs = {}
+        self._attribs[name] = self._AttribValue(type, value)
 
     def __iscomplete__(self):
         """
@@ -101,3 +117,27 @@ class CapBaseObject(object):
             yield 'id', self.id
             for attrstr in self.FIELDS:
                 yield attrstr, getattr(self, attrstr)
+
+    class _AttribValue(object):
+        def __init__(self, type, value):
+            self.type = type
+            self.value = value
+
+    def __getattr__(self, name):
+        if self._attribs is not None and name in self._attribs:
+            return self._attribs[name].value
+        else:
+            raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, name)
+
+    def __setattr__(self, name, value):
+        try:
+            attr = (self._attribs or {})[name]
+        except KeyError:
+            object.__setattr__(self, name, value)
+        else:
+            if not isinstance(value, attr.type) and \
+               value is not NotLoaded and \
+               value is not NotAvailable and \
+               value is not None:
+                raise ValueError('Value for "%s" needs to be of type %r, not %r' % (name, attr.type, type(value)))
+            attr.value = value
