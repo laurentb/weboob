@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from datetime import datetime
+
 import re
 from logging import warning
 
@@ -26,7 +28,7 @@ class Message(object):
         self.browser = browser
         self.board = board
         self.filename = filename
-        self.datetime = 0
+        self.datetime = datetime.now()
         self.url = url
         self.author = u''
         self.text = u''

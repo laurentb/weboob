@@ -31,4 +31,4 @@ class PlayerPage(BasePage):
             _radio = '_%s' % radio
         title = select(self.document.getroot(), 'div#titre%s' % _radio, 1).text.strip()
         artist = select(self.document.getroot(), 'div#artiste%s' % _radio, 1).text.strip()
-        return artist, title
+        return unicode(artist), unicode(title)

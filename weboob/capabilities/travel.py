@@ -16,13 +16,38 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from datetime import time
+from datetime import time, datetime
 
 from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['Departure', 'ICapTravel', 'Station']
 
+
+class Station(CapBaseObject):
+    def __init__(self, id, name):
+        CapBaseObject.__init__(self, id)
+        self.add_field('name', (str,unicode), name)
+
+    def __repr__(self):
+        return "<Station id=%r name=%r>" % (self.id, self.name)
+
+
+class Departure(CapBaseObject):
+    def __init__(self, id, _type, _time):
+        CapBaseObject.__init__(self, id)
+
+        self.add_field('type', (str,unicode), _type)
+        self.add_field('time', datetime, _time)
+        self.add_field('departure_station', (str,unicode))
+        self.add_field('arrival_station', (str,unicode))
+        self.add_field('late', time, time())
+        self.add_field('information', (str,unicode))
+        self.add_field('plateform', (str,unicode))
+
+    def __repr__(self):
+        return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
+            self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
 
 class ICapTravel(IBaseCap):
     def iter_station_search(self, pattern):
@@ -43,33 +68,3 @@ class ICapTravel(IBaseCap):
         @return [iter]  result of Departure objects
         """
         raise NotImplementedError()
-
-
-class Station(CapBaseObject):
-    FIELDS = ('name',)
-
-    def __init__(self, id, name):
-        CapBaseObject.__init__(self, id)
-        self.name = name
-
-    def __repr__(self):
-        return "<Station id=%r name=%r>" % (self.id, self.name)
-
-
-class Departure(CapBaseObject):
-    FIELDS = ('type', 'time', 'departure_station', 'arrival_station', 'late', 'information', 'plateform')
-
-    def __init__(self, id, _type, _time):
-        CapBaseObject.__init__(self, id)
-
-        self.type = _type
-        self.time = _time
-        self.departure_station = u''
-        self.arrival_station = u''
-        self.late = time()
-        self.information = u''
-        self.plateform = u''
-
-    def __repr__(self):
-        return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
-            self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)

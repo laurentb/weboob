@@ -36,11 +36,11 @@ class OuiFMBackend(BaseBackend, ICapRadio):
     LICENSE = 'GPLv3'
     BROWSER = OuiFMBrowser
 
-    _RADIOS = {'general':     (u'OUÏ FM',            u'OUI FM',                       'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3'),
-               'alternatif':  (u'OUÏ FM Alternatif', u'OUI FM - L\'Alternative Rock', 'http://ouifm.ice.infomaniak.ch/ouifm2.mp3'),
-               'collector':   (u'OUÏ FM Collector',  u'OUI FM - Classic Rock',        'http://ouifm.ice.infomaniak.ch/ouifm3.mp3'),
-               'blues':       (u'OUÏ FM Blues',      u'OUI FM - Blues',               'http://ouifm.ice.infomaniak.ch/ouifm4.mp3'),
-               'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           'http://ouifm.ice.infomaniak.ch/ouifm5.mp3'),
+    _RADIOS = {'general':     (u'OUÏ FM',            u'OUI FM',                       u'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3'),
+               'alternatif':  (u'OUÏ FM Alternatif', u'OUI FM - L\'Alternative Rock', u'http://ouifm.ice.infomaniak.ch/ouifm2.mp3'),
+               'collector':   (u'OUÏ FM Collector',  u'OUI FM - Classic Rock',        u'http://ouifm.ice.infomaniak.ch/ouifm3.mp3'),
+               'blues':       (u'OUÏ FM Blues',      u'OUI FM - Blues',               u'http://ouifm.ice.infomaniak.ch/ouifm4.mp3'),
+               'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3'),
               }
 
     def iter_radios(self):
@@ -70,7 +70,7 @@ class OuiFMBackend(BaseBackend, ICapRadio):
         radio.current = current
 
         stream = Stream(0)
-        stream.title = '128kbits/s'
+        stream.title = u'128kbits/s'
         stream.url = url
         radio.streams = [stream]
         return radio

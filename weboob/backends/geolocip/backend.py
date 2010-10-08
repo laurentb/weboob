@@ -18,6 +18,7 @@
 from __future__ import with_statement
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser
 
@@ -66,5 +67,8 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
             iploc.lg = float(tab['lg'])
             iploc.host = tab['host']
             iploc.tld = tab['tld']
-            iploc.isp = tab['fai']
+            if 'fai' in tab:
+                iploc.isp = tab['fai']
+            else:
+                iploc.isp = NotAvailable
             return iploc

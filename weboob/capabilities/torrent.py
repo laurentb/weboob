@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from datetime import datetime
 
 from .base import IBaseCap, CapBaseObject, NotLoaded
 
@@ -23,21 +24,18 @@ __all__ = ['ICapTorrent', 'Torrent']
 
 
 class Torrent(CapBaseObject):
-    FIELDS = ('name', 'size', 'date', 'url', 'seeders', 'leechers', 'files', 'description')
-
     def __init__(self, id, name, date=NotLoaded, size=NotLoaded, url=NotLoaded,
                        seeders=NotLoaded, leechers=NotLoaded, files=NotLoaded,
                        description=NotLoaded):
         CapBaseObject.__init__(self, id)
-        self.name = name
-        self.date = date
-        self.size = size
-        self.url = url
-        self.seeders = seeders
-        self.leechers = leechers
-        self.files = files
-        self.description = description
-
+        self.add_field('name', (str,unicode), name)
+        self.add_field('size', (int,long,float), size)
+        self.add_field('date', datetime, date)
+        self.add_field('url', (str,unicode), url)
+        self.add_field('seeders', int, seeders)
+        self.add_field('leechers', int, leechers)
+        self.add_field('files', list, files)
+        self.add_field('description', (str,unicode), description)
 
 class ICapTorrent(IBaseCap):
     def iter_torrents(self, pattern):

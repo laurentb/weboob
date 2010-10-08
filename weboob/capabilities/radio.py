@@ -16,19 +16,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap, NotLoaded, CapBaseObject
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['Emission', 'Stream', 'Radio', 'ICapRadio']
 
 
 class Emission(CapBaseObject):
-    FIELDS = ('artist', 'title')
-
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.artist = NotLoaded
-        self.title = NotLoaded
+        self.add_field('artist', unicode)
+        self.add_field('title', unicode)
 
     def __iscomplete__(self):
         # This volatile information may be reloaded everytimes.
@@ -38,12 +36,10 @@ class Emission(CapBaseObject):
         return u'%s - %s' % (self.artist, self.title)
 
 class Stream(CapBaseObject):
-    FIELDS = ('title', 'url')
-
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.title = NotLoaded
-        self.url = NotLoaded
+        self.add_field('title', unicode)
+        self.add_field('url', unicode)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.title, self.url)
@@ -52,14 +48,12 @@ class Stream(CapBaseObject):
         return self.__unicode__()
 
 class Radio(CapBaseObject):
-    FIELDS = ('title', 'description', 'current', 'streams')
-
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.title = NotLoaded
-        self.description = NotLoaded
-        self.streams = NotLoaded
-        self.current = NotLoaded
+        self.add_field('title', unicode)
+        self.add_field('description', unicode)
+        self.add_field('current', Emission)
+        self.add_field('streams', list)
 
 class ICapRadio(IBaseCap):
     def iter_radios(self):

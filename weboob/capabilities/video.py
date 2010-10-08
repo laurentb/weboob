@@ -16,7 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .base import IBaseCap, NotLoaded, CapBaseObject
+from datetime import datetime, timedelta
+
+from .base import IBaseCap, CapBaseObject, NotLoaded
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
@@ -25,8 +27,8 @@ __all__ = ['BaseVideo', 'ICapVideo']
 class VideoThumbnail(CapBaseObject):
     def __init__(self, url):
         CapBaseObject.__init__(self, url)
-        self.url = url.replace(' ', '%20')
-        self.data = NotLoaded
+        self.add_field('url', (unicode,str), url.replace(' ', '%20'))
+        self.add_field('data', str)
 
     def __str__(self):
         return self.url
@@ -39,22 +41,23 @@ class VideoThumbnail(CapBaseObject):
 
 
 class BaseVideo(CapBaseObject):
-    FIELDS = ('title', 'url', 'author', 'duration', 'date', 'rating', 'rating_max', 'thumbnail', 'nsfw')
-
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         CapBaseObject.__init__(self, unicode(_id))
-        self.title = title
-        self.url = url
-        self.author = author
-        self.duration = duration
-        self.date = date
-        self.rating = rating
-        self.rating_max = rating_max
-        self.thumbnail = thumbnail
+
+        self.add_field('title', (str,unicode), title)
+        self.add_field('url', (str,unicode), url)
+        self.add_field('author', (str,unicode), author)
+        self.add_field('duration', (int,long,timedelta), duration)
+        self.add_field('date', datetime, date)
+        self.add_field('rating', (int,long,float), rating)
+        self.add_field('rating_max', (int,long,float), rating_max)
+        self.add_field('thumbnail', VideoThumbnail, thumbnail)
+        self.add_field('nsfw', bool, nsfw)
+
+        # XXX remove this and fix all backends
         if thumbnail_url is not None and self.thumbnail is NotLoaded:
             self.thumbnail = VideoThumbnail(thumbnail_url)
-        self.nsfw = nsfw
 
     @classmethod
     def id2url(cls, _id):

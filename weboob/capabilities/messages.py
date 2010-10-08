@@ -31,8 +31,6 @@ class Message(CapBaseObject):
     IS_ACCUSED = 0x004       # The receiver has read this message
     IS_NOT_ACCUSED = 0x008   # The receiver has not read this message
 
-    FIELDS = ('thread', 'title', 'sender', 'receiver', 'date', 'parent', 'content', 'signature', 'children', 'flags')
-
     def __init__(self, thread, id,
                        title=NotLoaded,
                        sender=NotLoaded,
@@ -44,10 +42,16 @@ class Message(CapBaseObject):
                        children=NotLoaded,
                        flags=0):
         CapBaseObject.__init__(self, id)
-        self.thread = thread
-        self.title = title
-        self.sender = sender
-        self.receiver = receiver
+        self.add_field('thread', Thread, thread)
+        self.add_field('title', (str,unicode), title)
+        self.add_field('sender', (str,unicode), sender)
+        self.add_field('receiver', (str,unicode), receiver)
+        self.add_field('date', datetime.datetime, date)
+        self.add_field('parent', Message, parent)
+        self.add_field('content', (str,unicode), content)
+        self.add_field('signature', (str,unicode), signature)
+        self.add_field('children', list, children)
+        self.add_field('flags', int, flags)
 
         if date is None:
             date = datetime.datetime.utcnow()
@@ -58,11 +62,6 @@ class Message(CapBaseObject):
         else:
             self.parent = NotLoaded
             self._parent_id = parent
-
-        self.content = content
-        self.signature = signature
-        self.children = children
-        self.flags = flags
 
     @property
     def date_int(self):
@@ -92,15 +91,13 @@ class Message(CapBaseObject):
         return result.encode('utf-8')
 
 class Thread(CapBaseObject):
-    FIELDS = ('root', 'title', 'date', 'nb_messages', 'nb_unread')
-
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.root = NotLoaded
-        self.title = NotLoaded
-        self.date = NotLoaded
-        self.nb_messages = NotLoaded
-        self.nb_unread = NotLoaded
+        self.add_field('root', Message)
+        self.add_field('title', (str,unicode))
+        self.add_field('date', datetime.datetime)
+        self.add_field('nb_messages', int)
+        self.add_field('nb_unread', int)
 
     def iter_all_messages(self):
         if self.root:

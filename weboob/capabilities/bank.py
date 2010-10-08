@@ -17,9 +17,7 @@
 
 
 import sys
-if sys.version_info[:2] <= (2, 5):
-    from weboob.tools.property import property
-
+from datetime import datetime
 
 from .base import IBaseCap, CapBaseObject
 
@@ -29,67 +27,32 @@ __all__ = ['Account', 'AccountNotFound', 'NotEnoughMoney', 'ICapBank', 'Operatio
 
 class AccountNotFound(Exception):
     pass
-    
+
 class NotEnoughMoney(Exception):
     pass
 
 
 class Account(CapBaseObject):
-    FIELDS = ('label', 'balance', 'coming')
     def __init__(self):
         CapBaseObject.__init__(self, 0)
-        self.label = ''
-        self._balance = 0.0
-        self._coming = 0.0
-        self.link_id = ''
-
-    @property
-    def balance(self):
-        return self._balance
-
-    @balance.setter
-    def balance(self, value):
-        self._balance = float(value)
-
-    @property
-    def coming(self):
-        return self._coming
-
-    @coming.setter
-    def coming(self, value):
-        self._coming = float(value)
+        self.add_field('label', (str,unicode))
+        self.add_field('balance', float)
+        self.add_field('coming', float)
+        self.add_field('link_id', (str,unicode))
 
     def __repr__(self):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
 
 
 class Operation(CapBaseObject):
-    FIELDS = ('date', 'label', 'amount')
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.date = None
-        self._label = u''
-        self._amount = 0.0
+        self.add_field('date', (str,unicode,datetime))
+        self.add_field('label', unicode)
+        self.add_field('amount', float)
 
     def __repr__(self):
         return "<Operation date='%s' label='%s' amount=%s>" % (self.date, self.label, self.amount)
-
-    @property
-    def label(self):
-        return self._label
-
-    @label.setter
-    def label(self, value):
-        self._label = unicode(value)
-
-    @property
-    def amount(self):
-        return self._amount
-
-    @amount.setter
-    def amount(self, value):
-        self._amount = float(value)
-
 
 class ICapBank(IBaseCap):
     def iter_accounts(self):
@@ -103,6 +66,6 @@ class ICapBank(IBaseCap):
 
     def iter_history(self, id):
         raise NotImplementedError()
-    
+
     def transfer(self, id_from, id_to, amount):
 		raise NotImplementedError()

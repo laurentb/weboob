@@ -36,11 +36,11 @@ class ProfileNode(object):
 class ContactPhoto(CapBaseObject):
     def __init__(self, name):
         CapBaseObject.__init__(self, name)
-        self.name = name #useless, but keep compatibility
-        self.url = u''
-        self.data = ''
-        self.thumbnail_url = u''
-        self.thumbnail_data = u''
+        self.add_field('name', (str,unicode), name)
+        self.add_field('url', (str,unicode))
+        self.add_field('data', str)
+        self.add_field('thumbnail_url', (str,unicode))
+        self.add_field('thumbnail_data', (str,unicode))
 
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
@@ -49,11 +49,11 @@ class ContactPhoto(CapBaseObject):
         return self.url
 
     def __repr__(self):
-        return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.name, len(self.data), len(self.thumbnail_data))
+        return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.id,
+                                                             len(self.data) if self.data else 0,
+                                                             len(self.thumbnail_data) if self.thumbnail_data else 0)
 
 class Contact(CapBaseObject):
-    FIELDS = ('name', 'status', 'status_msg', 'summary', 'avatar', 'photos', 'profile')
-
     STATUS_ONLINE =  0x001
     STATUS_AWAY =    0x002
     STATUS_OFFLINE = 0x004
@@ -61,13 +61,12 @@ class Contact(CapBaseObject):
 
     def __init__(self, id, name, status):
         CapBaseObject.__init__(self, id)
-        self.name = name
-        self.status = status
-        self.status_msg = NotLoaded
-        self.summary = NotLoaded
-        self.avatar = NotLoaded
-        self.photos = OrderedDict()
-        self.profile = NotLoaded
+        self.add_field('name', (str,unicode), name)
+        self.add_field('status', int, status)
+        self.add_field('status_msg', (str,unicode))
+        self.add_field('summary', (str,unicode))
+        self.add_field('photos', dict, OrderedDict())
+        self.add_field('profile', list)
 
     def set_photo(self, name, **kwargs):
         if not name in self.photos:
