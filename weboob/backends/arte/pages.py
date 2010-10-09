@@ -81,5 +81,16 @@ class VideoPage(BasePage):
             xml_url = videos.popitem()[1]
 
         doc = self.browser.get_document(self.browser.openurl(xml_url))
-        video_url = select(doc.getroot(), 'url[quality=%s]' % quality, 1).text
+
+        obj = select(doc.getroot(), 'urls', 1)
+        videos_list = select(obj, 'url')
+        urls = {}
+        for v in videos_list:
+            urls[v.attrib['quality']] = v.text
+
+        if quality in urls:
+            video_url = urls[quality]
+        else:
+            video_url = urls.popitem()[1]
+
         return video_url
