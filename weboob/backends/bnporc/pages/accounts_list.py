@@ -19,6 +19,7 @@
 import re
 
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 
 from ..errors import PasswordExpired
@@ -58,7 +59,7 @@ class AccountsList(BasePage):
                             coming = coming.replace('.','').replace(',','.')
                             account.coming = float(coming)
                         else:
-                            account.coming = 0.0
+                            account.coming = NotAvailable
 
                 l.append(account)
 

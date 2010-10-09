@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import NotLoaded, NotAvailable
 from .iformatter import IFormatter
 
 
@@ -38,7 +38,7 @@ class MultilineFormatter(IFormatter):
     def format_dict(self, item):
         result = u'\n'.join(u'%s%s' % (
             (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
-            for k, v in item.iteritems() if v is not NotLoaded)
+            for k, v in item.iteritems() if (v is not NotLoaded and v is not NotAvailable))
         if len(item) > 1:
             result += self.after_item
         return result

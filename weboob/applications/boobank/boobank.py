@@ -44,7 +44,8 @@ class Boobank(ReplApplication):
         for backend, account in self.do('iter_accounts'):
             self.format(account)
             tot_balance += account.balance
-            tot_coming += account.coming
+            if account.coming:
+                tot_coming += account.coming
             self.accounts.append(account)
         else:
             self.format((('label', 'Total'),
