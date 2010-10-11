@@ -26,7 +26,7 @@ __all__ = ['Videoob']
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
-    VERSION = '0.2'
+    VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
     CAPS = ICapVideo
 

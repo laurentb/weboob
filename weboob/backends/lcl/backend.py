@@ -29,7 +29,7 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),

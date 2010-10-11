@@ -135,7 +135,7 @@ if not options.qt:
 
 setup(
     name='weboob',
-    version='0.2',
+    version='0.3',
     description='Weboob, Web Out Of Browsers - development version',
     author='Romain Bignon',
     author_email='weboob@weboob.org',

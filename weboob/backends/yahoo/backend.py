@@ -33,7 +33,7 @@ class YahooBackend(BaseBackend, ICapWeather):
     NAME = 'yahoo'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     DESCRIPTION = 'Yahoo'
     LICENSE = 'GPLv3'
     WEATHER_URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'

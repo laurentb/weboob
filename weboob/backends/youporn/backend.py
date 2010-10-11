@@ -32,7 +32,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
     NAME = 'youporn'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     DESCRIPTION = 'Youporn videos website'
     LICENSE = 'GPLv3'
     BROWSER = YoupornBrowser

@@ -29,7 +29,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = 'BNP Paribas french bank\' website'
     CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),

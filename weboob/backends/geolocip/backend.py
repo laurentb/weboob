@@ -30,7 +30,7 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation"
     CONFIG = {'email':         BaseBackend.ConfigField(description='Username on website'),

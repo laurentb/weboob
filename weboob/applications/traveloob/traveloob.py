@@ -27,7 +27,7 @@ __all__ = ['Traveloob']
 
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
-    VERSION = '0.2'
+    VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapTravel
 

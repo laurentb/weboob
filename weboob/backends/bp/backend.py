@@ -26,7 +26,7 @@ class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.2'
+    VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'La banque postale, French bank'
     CONFIG = {'login':  BaseBackend.ConfigField(description='Account ID'),

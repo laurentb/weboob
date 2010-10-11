@@ -32,7 +32,7 @@ class ArteBackend(BaseBackend, ICapVideo):
     NAME = 'arte'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@peerfuse.org'
-    VERSION = '0.2'
+    VERSION = '0.3'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'
     CONFIG = {'lang':     BaseBackend.ConfigField(default='fr', description='Lang of videos', choices=['fr', 'de', 'en']),
