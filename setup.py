@@ -54,7 +54,6 @@ class Options:
 options = Options()
 options.hildon = False
 options.qt = True
-options.xdg = True
 
 args = list(sys.argv)
 if '--hildon' in args and '--no-hildon' in args:
@@ -62,9 +61,6 @@ if '--hildon' in args and '--no-hildon' in args:
     sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
     print '--qt and --no-qt options are incompatible'
-    sys.exit(1)
-if '--xdg' in args and '--no-xdg' in args:
-    print '--xdg and --no-xdg options are incompatible'
     sys.exit(1)
 
 if '--hildon' in args:
@@ -81,19 +77,13 @@ elif '--no-qt' in args:
     options.qt = False
     args.remove('--no-qt')
 
-if '--xdg' in args:
-    options.xdg = True
-    args.remove('--xdg')
-elif '--no-xdg' in args:
-    options.xdg = False
-    args.remove('--no-xdg')
 sys.argv = args
 
 scripts = set(os.listdir('scripts'))
 packages = set(find_packages())
 
-hildon_scripts = set('masstransit',)
-qt_scripts = set('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
+hildon_scripts = set(('masstransit',))
+qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt'))
 
 if not options.hildon:
     scripts = scripts - hildon_scripts
@@ -102,10 +92,10 @@ if options.qt:
 else:
     scripts = scripts - qt_scripts
 
-hildon_packages = (
+hildon_packages = set((
     'weboob.applications.masstransit',
-    )
-qt_packages = (
+    ),)
+qt_packages = set((
     'weboob.applications.qboobmsg',
     'weboob.applications.qboobmsg.ui',
     'weboob.applications.qhavesex',
@@ -114,7 +104,7 @@ qt_packages = (
     'weboob.applications.qvideoob.ui',
     'weboob.applications.qweboobcfg',
     'weboob.applications.qweboobcfg.ui',
-    )
+    ))
 
 if not options.hildon:
     packages = packages - hildon_packages
