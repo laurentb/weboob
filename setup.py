@@ -89,38 +89,37 @@ elif '--no-xdg' in args:
     args.remove('--no-xdg')
 sys.argv = args
 
-scripts = os.listdir('scripts')
-packages = find_packages()
+scripts = set(os.listdir('scripts'))
+packages = set(find_packages())
 
-if sys.argv[1] in ('bdist', 'sdist'):
-    hildon_scripts = ('masstransit',)
-    qt_scripts = ('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
+hildon_scripts = set('masstransit',)
+qt_scripts = set('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt')
 
-    if not options.hildon:
-        scripts = set(scripts) - set(hildon_scripts)
-    if options.qt:
-        build_qt()
-    else:
-        scripts = set(scripts) - set(qt_scripts)
+if not options.hildon:
+    scripts = scripts - hildon_scripts
+if options.qt:
+    build_qt()
+else:
+    scripts = scripts - qt_scripts
 
-    hildon_packages = (
-        'weboob.applications.masstransit',
-        )
-    qt_packages = (
-        'weboob.applications.qboobmsg',
-        'weboob.applications.qboobmsg.ui',
-        'weboob.applications.qhavesex',
-        'weboob.applications.qhavesex.ui',
-        'weboob.applications.qvideoob',
-        'weboob.applications.qvideoob.ui',
-        'weboob.applications.qweboobcfg',
-        'weboob.applications.qweboobcfg.ui',
-        )
+hildon_packages = (
+    'weboob.applications.masstransit',
+    )
+qt_packages = (
+    'weboob.applications.qboobmsg',
+    'weboob.applications.qboobmsg.ui',
+    'weboob.applications.qhavesex',
+    'weboob.applications.qhavesex.ui',
+    'weboob.applications.qvideoob',
+    'weboob.applications.qvideoob.ui',
+    'weboob.applications.qweboobcfg',
+    'weboob.applications.qweboobcfg.ui',
+    )
 
-    if not options.hildon:
-        packages = set(packages) - set(hildon_packages)
-    if not options.qt:
-        packages = set(packages) - set(qt_packages)
+if not options.hildon:
+    packages = packages - hildon_packages
+if not options.qt:
+    packages = packages - qt_packages
 
 setup(
     name='weboob',
@@ -135,7 +134,6 @@ setup(
     packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
 
-    # see also MANIFEST.in
     data_files=[
         ('share/applications', glob.glob('desktop/*')),
         ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
