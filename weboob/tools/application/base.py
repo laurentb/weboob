@@ -76,7 +76,7 @@ class BaseApplication(object):
     # Default storage tree
     STORAGE = {}
     # Synopsis
-    SYNOPSIS =  'Usage: %prog [-h] [-dqv] [-b backends] ...'
+    SYNOPSIS =  'Usage: %prog [-h] [-dqv] [-b backends] ...\n'
     SYNOPSIS += '       %prog [--help] [--version]'
     # Description
     DESCRIPTION = None
