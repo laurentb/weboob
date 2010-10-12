@@ -74,10 +74,8 @@ class ReplApplication(Cmd, BaseApplication):
         self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
 
-        option_parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
-
         try:
-            BaseApplication.__init__(self, option_parser=option_parser)
+            BaseApplication.__init__(self)
         except BackendsConfig.WrongPermissions, e:
             print e
             sys.exit(1)
