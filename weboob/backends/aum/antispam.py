@@ -42,7 +42,9 @@ class AntiSpam(object):
         return True
 
     def check_profile(self, profile):
-        # TODO
+        # This pattern in bad french is in several spambots description.
+        if profile.description.find('chercher un mac tres chowd') >= 0:
+            return False
         return True
 
     OBJECTS = {ContactItem: check_contact,
