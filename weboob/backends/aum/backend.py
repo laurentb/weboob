@@ -30,6 +30,7 @@ from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 
 from .captcha import CaptchaError
+from .antispam import AntiSpam
 from .browser import AuMBrowser
 from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
@@ -48,7 +49,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     DESCRIPTION = u"“Adopte un mec” french dating website"
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'register':      BaseBackend.ConfigField(default=False, description='Register as new account?'),
+              'register':      BaseBackend.ConfigField(description='Register as new account?', default=False),
+              'antispam':      BaseBackend.ConfigField(description='Enable anti-spam', default=False),
              }
     STORAGE = {'profiles_walker': {'viewed': []},
                'sluts': {},
@@ -56,6 +58,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     BROWSER = AuMBrowser
 
     MAGIC_ID_BASKET = 1
+
+    def __init__(self, *args, **kwargs):
+        BaseBackend.__init__(self, *args, **kwargs)
+        if self.config['antispam']:
+            self.antispam = AntiSpam()
+        else:
+            self.antispam = None
 
     def create_default_browser(self):
         if self.config['register']:
@@ -96,6 +105,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
         for contact in contacts:
             if not contact.get_id():
+                continue
+            if self.antispam and not self.antispam.check(contact):
+                debug('Skipped a spam-thread from %s' % contact.get_name())
                 continue
             thread = Thread(contact.get_id())
             thread.title = 'Discussion with %s' % contact.get_name()
@@ -199,6 +211,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     while new_baskets > 0 and len(ids) > new_baskets:
                         new_baskets -= 1
                         profile = self.browser.get_profile(ids[new_baskets])
+                        if self.antispam and not self.antispam.check(profile):
+                            debug('Skipped a spam-basket from %s' % profile.get_name())
+                            continue
 
                         thread = Thread(profile.get_id())
                         thread.title = 'Basket of %s' % profile.get_name()
