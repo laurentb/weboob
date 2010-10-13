@@ -1,6 +1,6 @@
 import datetime
 import feedparser
-from weboob.backends.dlfp.tools import url2id
+
 
 class Entry:
     def __init__(self, entry, url2id=None):
