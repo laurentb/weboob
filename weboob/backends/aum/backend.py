@@ -194,6 +194,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             for contact in contacts:
                 if not contact.get_id():
                     continue
+                if self.antispam and not self.antispam.check(contact):
+                    debug('Skipped a spam-unread-thread from %s' % contact.get_name())
+                    continue
                 slut = self._get_slut(contact.get_id())
                 if contact.get_lastmsg_date() > slut['lastmsg']:
                     thread = self.get_thread(contact.get_id(), profiles)
