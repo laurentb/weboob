@@ -18,10 +18,11 @@
 from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
+from weboob.tools.newsfeed import NewsFeed
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
-from .feeds import ArticlesList
 from .browser import DLFP
+from .tools import id2url, url2id
 
 
 __all__ = ['DLFPBackend']
@@ -41,6 +42,9 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
              }
     STORAGE = {'seen': {}}
     BROWSER = DLFP
+    RSS_TELEGRAMS= "https://linuxfr.org/backend/journaux/rss20.rss"
+    RSS_NEWSPAPERS = "https://linuxfr.org/backend/news/rss20.rss"
+    
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
@@ -48,12 +52,13 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     def iter_threads(self):
         whats = set()
         if self.config['get_news']:
-            whats.add('newspaper')
+            whats.add(self.RSS_NEWSPAPERS)
         if self.config['get_telegrams']:
-            whats.add('telegram')
+            whats.add(self.RSS_TELEGRAMS)
+            
 
         for what in whats:
-            for article in ArticlesList(what).iter_articles():
+            for article in NewsFeed(what, url2id).iter_entries():
                 thread = Thread(article.id)
                 thread.title = article.title
                 yield thread
