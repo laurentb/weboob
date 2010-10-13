@@ -22,7 +22,7 @@ import atexit
 from cmd import Cmd
 import getpass
 import logging
-from optparse import OptionGroup, OptionParser
+from optparse import OptionGroup
 import os
 import re
 import sys
