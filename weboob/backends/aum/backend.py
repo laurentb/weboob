@@ -108,6 +108,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 continue
             if self.antispam and not self.antispam.check(contact):
                 debug('Skipped a spam-thread from %s' % contact.get_name())
+                self.browser.report_fake(contact.get_id())
                 continue
             thread = Thread(contact.get_id())
             thread.title = 'Discussion with %s' % contact.get_name()
@@ -196,6 +197,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     continue
                 if self.antispam and not self.antispam.check(contact):
                     debug('Skipped a spam-unread-thread from %s' % contact.get_name())
+                    self.browser.report_fake(contact.get_id())
                     continue
                 slut = self._get_slut(contact.get_id())
                 if contact.get_lastmsg_date() > slut['lastmsg']:
@@ -216,6 +218,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         profile = self.browser.get_profile(ids[new_baskets])
                         if self.antispam and not self.antispam.check(profile):
                             debug('Skipped a spam-basket from %s' % profile.get_name())
+                            self.browser.report_fake(profile.get_id())
                             continue
 
                         thread = Thread(profile.get_id())

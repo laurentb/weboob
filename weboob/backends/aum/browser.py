@@ -227,6 +227,9 @@ class AuMBrowser(BaseBrowser):
         warning('Deblock: %s' % result)
         return True
 
+    def report_fake(self, id):
+        return self.readurl('http://www.adopteunmec.com/fake.php', 'id=%s' % id)
+
     @pageaccess
     def rate(self, id, what, rating):
         print 'rate "%s"' % id, what, rating
