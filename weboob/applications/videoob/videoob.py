@@ -17,18 +17,47 @@
 
 
 from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.video_player import VideoPlayer
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['Videoob']
 
+
+class VideoListFormatter(IFormatter):
+    count = 0
+
+    def after_format(self, formatted):
+        print formatted.encode('utf-8')
+
+    def flush(self):
+        self.count = 0
+        pass
+
+    def format_dict(self, item):
+        self.count += 1
+        backend = item['id'].split('@', 1)[1]
+        result = u'%s(%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+        result += '            %s' % item['duration']
+        if item['author'] is not NotLoaded:
+            result += ' - %s' % item['author']
+        if item['rating'] is not NotLoaded:
+            result += u' (%s/%s)' % (item['rating'], item['rating_max'])
+        return result
+
+    def set_header(self, string):
+        if self.display_header:
+            print string.encode('utf-8')
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
     CAPS = ICapVideo
+    EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
+    COMMANDS_FORMATTERS = {'search':    'video_list'}
 
     nsfw = True
     videos = []
@@ -40,14 +69,16 @@ class Videoob(ReplApplication):
         except OSError:
             self.player = None
 
-    def _get_video(self, _id):
+    def _get_video(self, _id, fields=None):
         if self.interactive:
             try:
-                video = self.videos[int(_id)]
-            except (KeyError,ValueError):
+                video = self.videos[int(_id) - 1]
+            except (IndexError,ValueError):
                 pass
             else:
-                return video
+                for backend, video in self.do('fillobj', video, fields, backends=[video.backend]):
+                    if video:
+                        return video
         _id, backend_name = self.parse_id(_id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
         for backend, video in self.do('get_video', _id, backends=backend_names):
@@ -72,7 +103,7 @@ class Videoob(ReplApplication):
             print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return
 
-        video = self._get_video(_id)
+        video = self._get_video(_id, ['url'])
         if not video:
             print 'Video not found: ', _id
             return
