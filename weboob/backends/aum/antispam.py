@@ -37,7 +37,7 @@ class AntiSpam(object):
         resume = contact.get_resume()
 
         # Check if there is an email address in the offer.
-        if re.match('[\w\d\.-_]+@[\w\d\.]+ vous offre la possibilit', resume):
+        if re.match('[\w\d\.\-_]+@[\w\d\.]+ vous offre la possibilit', resume):
             return False
         if contact.get_name() == 'Ekaterina':
             return False
@@ -55,11 +55,15 @@ class AntiSpam(object):
             return False
         if profile.description.find('plan cam sexy') >= 0:
             return False
+        if profile.description.find('show sex') >= 0:
+            return False
         if profile.description.find('un mec tres chaude') >= 0:
             return False
         if profile.description.find('bale chatt') >= 0:
             return False
         if profile.description.find('cc moi  ') >= 0:
+            return False
+        if profile.description.find('une fille tres chaud') >= 0:
             return False
         # Her 'Shopping-list' begins with 'hummm'
         if profile.description.find(':\nhummm') >= 0:
