@@ -39,6 +39,8 @@ class AntiSpam(object):
         # Check if there is an email address in the offer.
         if re.match('[\w\d\.-_]+@[\w\d\.]+ vous offre la possibilit', resume):
             return False
+        if contact.get_name() == 'Ekaterina':
+            return False
 
         return True
 
