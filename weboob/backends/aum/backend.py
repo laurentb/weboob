@@ -88,6 +88,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         else:
             return self.create_browser(self.config['username'], self.config['password'])
 
+    def report_spam(self, id):
+        self.browser.delete_thread(id)
+        self.browser.report_fake(id)
+
     def get_status(self):
         with self.browser:
             try:
@@ -108,7 +112,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 continue
             if self.antispam and not self.antispam.check(contact):
                 debug('Skipped a spam-thread from %s' % contact.get_name())
-                self.browser.report_fake(contact.get_id())
+                self.report_spam(contact.get_id())
                 continue
             thread = Thread(contact.get_id())
             thread.title = 'Discussion with %s' % contact.get_name()
@@ -142,12 +146,21 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             profiles = {}
         for mail in mails:
             flags = 0
+            if self.antispam and not self.antispam.check(mail):
+                debug('Skipped a spam-mail from %s' % mail.sender)
+                self.report_spam(thread.id)
+                break
+
             if mail.date > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
 
                 if not mail.profile_link in profiles:
                     with self.browser:
                         profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
+                if self.antispam and not self.antispam.check(profiles[mail.profile_link]):
+                    debug('Skipped a spam-mail-profile from %s' % mail.sender)
+                    self.report_spam(thread.id)
+                    break
                 mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
             if mail.sender == my_name:
@@ -197,7 +210,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     continue
                 if self.antispam and not self.antispam.check(contact):
                     debug('Skipped a spam-unread-thread from %s' % contact.get_name())
-                    self.browser.report_fake(contact.get_id())
+                    self.report_spam(contact.get_id())
                     continue
                 slut = self._get_slut(contact.get_id())
                 if contact.get_lastmsg_date() > slut['lastmsg']:
@@ -218,7 +231,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         profile = self.browser.get_profile(ids[new_baskets])
                         if self.antispam and not self.antispam.check(profile):
                             debug('Skipped a spam-basket from %s' % profile.get_name())
-                            self.browser.report_fake(profile.get_id())
+                            self.report_spam(profile.get_id())
                             continue
 
                         thread = Thread(profile.get_id())

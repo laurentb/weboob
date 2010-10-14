@@ -210,6 +210,23 @@ class AuMBrowser(BaseBrowser):
         self.page.post(content)
 
     @pageaccess
+    def delete_thread(self, id):
+        """
+        mail.php
+     delete=true&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=6671957&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=
+     delete=true&suppr%5B%5D=13121086&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=
+        """
+        data = 'delete=true&suppr%%5B%%5D=%s' % id
+        for i in xrange(23):
+            data += '&suppr%5B%5D='
+        url = 'http://www.adopteunmec.com/mail.php'
+        request = self.request_class(url, data, {'Referer': url, 'Content-Type': 'application/x-www-form-urlencoded'})
+        # WTF IT DOESN'T WORK I HAVE YOU AUM I WANT TO DEFECATE IN YOUR MOUTH
+        self.openurl(request).read()
+
+        return True
+
+    @pageaccess
     def send_charm(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
         warning('Charm: %s' % result)
@@ -222,11 +239,13 @@ class AuMBrowser(BaseBrowser):
         # TODO check if it works (but it should)
         return True
 
+    @pageaccess
     def deblock(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id).read()
         warning('Deblock: %s' % result)
         return True
 
+    @pageaccess
     def report_fake(self, id):
         return self.readurl('http://www.adopteunmec.com/fake.php', 'id=%s' % id)
 
