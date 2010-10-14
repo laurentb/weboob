@@ -19,6 +19,7 @@ import re
 
 from .pages.contact_list import ContactItem
 from .pages.profile import ProfilePage
+from .pages.contact_thread import MailParser
 
 
 __all__ = ['AntiSpam']
@@ -36,17 +37,57 @@ class AntiSpam(object):
         resume = contact.get_resume()
 
         # Check if there is an email address in the offer.
-        if re.match('[\w\d\._]+@[\w\d\.]+ vous offre la possibilit', resume):
+        if re.match('[\w\d\.-_]+@[\w\d\.]+ vous offre la possibilit', resume):
             return False
 
         return True
 
     def check_profile(self, profile):
+        # The name of profile is in form #123456789
+        if re.match('^#\d+$', profile.get_name()):
+            return False
         # This pattern in bad french is in several spambots description.
-        if profile.description.find('chercher un mac tres chowd') >= 0:
+        if re.match('.*chercher? un m.c tres ch..d.*', profile.description):
+            return False
+        if profile.description.find('ajouter moi plan cam') >= 0:
+            return False
+        if profile.description.find('plan cam sexy') >= 0:
+            return False
+        if profile.description.find('un mec tres chaude') >= 0:
+            return False
+        if profile.description.find('bale chatt') >= 0:
+            return False
+        if profile.description.find('cc moi  ') >= 0:
+            return False
+        # Her 'Shopping-list' begins with 'hummm'
+        if profile.description.find(':\nhummm') >= 0:
+            return False
+        # Part of an email address (camiliasexy1live.fr)
+        if profile.description.find('sexy1live') >= 0:
+            return False
+        # Strange thing...
+        if re.match('.*je suis tres cho\w+d.*', profile.description):
+            return False
+        # Strange thing...
+        if re.match('.*ma croissance de \d+ sm.*', profile.description):
+            return False
+        if re.match('.*mon\s{2,}msn\s{2,}moi\s{2,}ok\s{2,}.*', profile.description):
+            return False
+        if re.match('.*voila\s{2,}mon\s{2,}msn.*', profile.description):
+            return False
+        if re.match('.*cava tout+ ami.*', profile.description) >= 0:
+            return False
+        if re.match('.*site\s{2,}de\s{2,}chat\s{2,}et mon msn.*', profile.description) >= 0:
+            return False
+        return True
+
+    def check_mail(self, mail):
+        # Spambot with a long first-message.
+        if mail.content.find('Je veux que vous m\'ayez ecrit directement sur le mon e-mail') >= 0:
             return False
         return True
 
     OBJECTS = {ContactItem: check_contact,
                ProfilePage: check_profile,
+               MailParser:  check_mail,
               }
