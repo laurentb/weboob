@@ -54,6 +54,7 @@ class Options:
 options = Options()
 options.hildon = False
 options.qt = True
+options.xdg = True
 
 args = list(sys.argv)
 if '--hildon' in args and '--no-hildon' in args:
@@ -61,6 +62,9 @@ if '--hildon' in args and '--no-hildon' in args:
     sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
     print '--qt and --no-qt options are incompatible'
+    sys.exit(1)
+if '--xdg' in args and '--no-xdg' in args:
+    print '--xdg and --no-xdg options are incompatible'
     sys.exit(1)
 
 if '--hildon' in args:
@@ -76,6 +80,13 @@ if '--qt' in args:
 elif '--no-qt' in args:
     options.qt = False
     args.remove('--no-qt')
+
+if '--xdg' in args:
+    options.xdg = True
+    args.remove('--xdg')
+elif '--no-xdg' in args:
+    options.xdg = False
+    args.remove('--no-xdg')
 
 sys.argv = args
 
@@ -111,6 +122,15 @@ if not options.hildon:
 if not options.qt:
     packages = packages - qt_packages
 
+data_files = [
+    ('share/man/man1', glob.glob('man/*')),
+    ]
+if options.xdg:
+    data_files.extend([
+        ('share/applications', glob.glob('desktop/*')),
+        ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
+        ])
+
 setup(
     name='weboob',
     version='0.3',
@@ -124,11 +144,7 @@ setup(
     packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
 
-    data_files=[
-        ('share/applications', glob.glob('desktop/*')),
-        ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
-        ('share/man/man1', glob.glob('man/*')),
-        ],
+    data_files=data_files,
 
     install_requires=[
         # 'ClientForm', # python-clientform
