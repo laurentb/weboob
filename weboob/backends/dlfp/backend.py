@@ -22,7 +22,7 @@ from weboob.tools.newsfeed import NewsFeed
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import DLFP
-from .tools import id2url, url2id
+from .tools import url2id
 
 
 __all__ = ['DLFPBackend']
