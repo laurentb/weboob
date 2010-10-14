@@ -253,11 +253,13 @@ class BaseBrowser(mechanize.Browser):
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
 
-    def readurl(self, url, if_fail=None):
+    def readurl(self, url, *args, **kwargs):
         """
         Download URL data specifying what to do on failure (nothing by default).
         """
-        result = self.openurl(url, if_fail=if_fail)
+        if not 'if_fail' in kwargs:
+            kwargs['if_fail'] = None
+        result = self.openurl(url, *args, **kwargs)
 
         if result:
             if self.SAVE_RESPONSES:
@@ -384,7 +386,8 @@ class BaseBrowser(mechanize.Browser):
         if self._cookie:
             self._cookie.save()
 
-    def buildurl(self, base, *args, **kwargs):
+    @staticmethod
+    def buildurl(base, *args, **kwargs):
         """
         Build an URL and escape arguments.
         You can give a serie of tuples in *args (and the order is keept), or
