@@ -89,8 +89,11 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             return self.create_browser(self.config['username'], self.config['password'])
 
     def report_spam(self, id):
-        self.browser.delete_thread(id)
-        self.browser.report_fake(id)
+        # XXX as 'delete_thread' doesn't work (see implementation of this function),
+        # do not report fake because it will flood admins and we should be discovered.
+        #self.browser.delete_thread(id)
+        #self.browser.report_fake(id)
+        pass
 
     def get_status(self):
         with self.browser:
