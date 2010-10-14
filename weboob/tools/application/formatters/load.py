@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010  Christophe Benz, Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,26 +16,53 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['load_formatter']
+__all__ = ['FormattersLoader', 'FormatterLoadError']
 
 
-formatters = ('htmltable', 'multiline', 'simple', 'table', 'webkit')
-            
+class FormatterLoadError(Exception):
+    pass
 
-def load_formatter(name):
-    assert name in formatters
-    if name in ('htmltable', 'table'):
-        from .table import TableFormatter
+class FormattersLoader(object):
+    BUILTINS = ['htmltable', 'multiline', 'simple', 'table', 'webkit']
+
+    def __init__(self):
+        self.formatters = {}
+
+    def register_formatter(self, name, klass):
+        self.formatters[name] = klass
+
+    def get_available_formatters(self):
+        l = set(self.formatters.iterkeys())
+        l = l.union(self.BUILTINS)
+        l = list(l)
+        l.sort()
+        return l
+
+    def build_formatter(self, name):
+        if not name in self.formatters:
+            try:
+                self.formatters[name] = self.load_builtin_formatter(name)
+            except ImportError, e:
+                FormattersLoader.BUILTINS.remove(name)
+                raise FormatterLoadError('Unable to load formatter "%s": %s' % (name, e))
+        return self.formatters[name]()
+
+    def load_builtin_formatter(self, name):
+        if not name in self.BUILTINS:
+            raise FormatterLoadError('Formatter "%s" does not exist' % name)
+
         if name == 'htmltable':
-            return TableFormatter(result_funcname='get_html_string')
+            from .table import HTMLTableFormatter
+            return HTMLTableFormatter
         elif name == 'table':
-            return TableFormatter()
-    elif name == 'simple':
-        from .simple import SimpleFormatter
-        return SimpleFormatter()
-    elif name == 'multiline':
-        from .multiline import MultilineFormatter
-        return MultilineFormatter()
-    elif name == 'webkit':
-        from .webkit import WebkitGtkFormatter
-        return WebkitGtkFormatter()
+            from .table import TableFormatter
+            return TableFormatter
+        elif name == 'simple':
+            from .simple import SimpleFormatter
+            return SimpleFormatter
+        elif name == 'multiline':
+            from .multiline import MultilineFormatter
+            return MultilineFormatter
+        elif name == 'webkit':
+            from .webkit import WebkitGtkFormatter
+            return WebkitGtkFormatter

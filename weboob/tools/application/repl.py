@@ -34,7 +34,7 @@ from weboob.tools.misc import iter_fields
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 
 from .base import BackendNotFound, BaseApplication
-from .formatters.load import formatters as available_formatters, load_formatter
+from .formatters.load import FormattersLoader, FormatterLoadError
 from .results import ResultsCondition, ResultsConditionException
 
 
@@ -58,6 +58,10 @@ class ReplApplication(Cmd, BaseApplication):
     BOLD   = '[37;1m'
     NC     = '[37;0m'    # no color
 
+    EXTRA_FORMATTERS = {}
+    DEFAULT_FORMATTER = 'multiline'
+    COMMANDS_FORMATTERS = {}
+
     def __init__(self):
         Cmd.__init__(self)
         self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
@@ -73,6 +77,12 @@ class ReplApplication(Cmd, BaseApplication):
                                ))
         self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
+
+        self.formatters_loader = FormattersLoader()
+        for key, klass in self.EXTRA_FORMATTERS.iteritems():
+            self.formatters_loader.register_formatter(key, klass)
+        self.formatter = None
+        self.commands_formatters = self.COMMANDS_FORMATTERS.copy()
 
         try:
             BaseApplication.__init__(self)
@@ -102,6 +112,7 @@ class ReplApplication(Cmd, BaseApplication):
         self._parser.add_option_group(results_options)
 
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
+        available_formatters = self.formatters_loader.get_available_formatters()
         formatting_options.add_option('-f', '--formatter', choices=available_formatters,
                                       help='select output formatter (%s)' % u','.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
@@ -295,6 +306,11 @@ class ReplApplication(Cmd, BaseApplication):
         """
         This REPL method is overrided to catch some particular exceptions.
         """
+        cmd_name = _cmd.split()[0]
+        if cmd_name in self.commands_formatters:
+            self.set_formatter(self.commands_formatters[cmd_name])
+        else:
+            self.set_formatter(self.DEFAULT_FORMATTER)
         try:
             return super(ReplApplication, self).onecmd(_cmd)
         except CallErrors, e:
@@ -313,9 +329,9 @@ class ReplApplication(Cmd, BaseApplication):
                     msg = unicode(error)
                     if not msg:
                         msg = 'website is unavailable.'
-                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
                 else:
-                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, error)
+                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
                     if logging.root.level == logging.DEBUG:
                         print >>sys.stderr, backtrace
                     else:
@@ -369,14 +385,9 @@ class ReplApplication(Cmd, BaseApplication):
     # options related methods
 
     def _handle_options(self):
-        self.formatter_name = self.options.formatter if self.options.formatter else 'multiline'
-        self.formatter = load_formatter(self.formatter_name)
-
-        if self.options.no_header:
-            self.formatter.display_header = False
-
-        if self.options.no_keys:
-            self.formatter.display_keys = False
+        if self.options.formatter:
+            self.commands_formatters = {}
+            self.DEFAULT_FORMATTER = self.options.formatter
 
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
@@ -709,7 +720,8 @@ class ReplApplication(Cmd, BaseApplication):
                 print self.options.count
 
     def complete_formatter(self, text, line, *ignored):
-        commands = list(available_formatters) + ['list', 'option']
+        formatters = self.formatters_loader.get_available_formatters()
+        commands = ['list', 'option'] + formatters
         options = ['header', 'keys']
         option_values = ['on', 'off']
 
@@ -721,12 +733,16 @@ class ReplApplication(Cmd, BaseApplication):
                 return options
             if len(args) == 4:
                 return option_values
+        elif args[1] in formatters:
+            return list(set(name[3:] for name in self.get_names() if name.startswith('do_')))
 
     def do_formatter(self, line):
         """
-        formatter [FORMATTER_NAME | list | option OPTION_NAME [on | off]]
+        formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
 
-        If a FORMATTER_NAME is given, set the formatter to use.
+        If a FORMATTER is given, set the formatter to use.
+        You can add a COMMAND to apply the formatter change only to
+        a given command.
 
         If the argument is "list", print the available formatters.
 
@@ -740,7 +756,7 @@ class ReplApplication(Cmd, BaseApplication):
         args = line.strip().split()
         if args:
             if args[0] == 'list':
-                print ', '.join(available_formatters)
+                print ', '.join(self.formatters_loader.get_available_formatters())
             elif args[0] == 'option':
                 if len(args) > 1:
                     if len(args) == 2:
@@ -759,14 +775,19 @@ class ReplApplication(Cmd, BaseApplication):
                 else:
                     print 'Don\'t know which option to set. Available options: header, keys.'
             else:
-                if args[0] in available_formatters:
-                    self.formatter = load_formatter(args[0])
-                    self.formatter_name = args[0]
+                if args[0] in self.formatters_loader.get_available_formatters():
+                    if len(args) > 1:
+                        self.commands_formatters[args[1]] = self.set_formatter(args[0])
+                    else:
+                        self.commands_formatters = {}
+                        self.DEFAULT_FORMATTER = self.set_formatter(args[0])
                 else:
                     print 'Formatter "%s" is not available.\n' \
-                            'Available formatters: %s.' % (args[0], ', '.join(available_formatters))
+                            'Available formatters: %s.' % (args[0], ', '.join(self.formatters_loader.get_available_formatters()))
         else:
-            print self.formatter_name
+            print 'Default formatter: %s' % self.DEFAULT_FORMATTER
+            for key, klass in self.commands_formatters.iteritems():
+                print 'Command "%s": %s' % (key, klass)
 
     def do_select(self, line):
         """
@@ -842,15 +863,24 @@ class ReplApplication(Cmd, BaseApplication):
 
     # formatting related methods
 
-    def set_default_formatter(self, name):
-        if not self.options.formatter:
-            try:
-                self.formatter = load_formatter(name)
-            except ImportError:
-                default_name = 'multiline'
-                print 'Could not load default formatter "%s" for this command. Falling back to "%s".' % (
-                    name, default_name)
-                self.formatter = load_formatter(default_name)
+    def set_formatter(self, name):
+        """
+        Set the current formatter from name.
+
+        It returns the name of the formatter which has been really set.
+        """
+        try:
+            self.formatter = self.formatters_loader.build_formatter(name)
+        except FormatterLoadError, e:
+            print '%s' % e
+            print 'Falling back to "%s".' % (name, self.DEFAULT_FORMATTER)
+            self.formatter = self.formatters_loader.build_formatter(self.DEFAULT_FORMATTER)
+            name = self.DEFAULT_FORMATTER
+        if self.options.no_header:
+            self.formatter.display_header = False
+        if self.options.no_keys:
+            self.formatter.display_keys = False
+        return name
 
     def set_formatter_header(self, string):
         self.formatter.set_header(string)

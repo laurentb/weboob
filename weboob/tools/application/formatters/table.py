@@ -21,17 +21,17 @@ from prettytable import PrettyTable
 from .iformatter import IFormatter
 
 
-__all__ = ['TableFormatter']
+__all__ = ['TableFormatter', 'HTMLTableFormatter']
 
 
 class TableFormatter(IFormatter):
     column_headers = None
     queue = []
     header = None
+    HTML = False
 
-    def __init__(self, display_keys=True, return_only=False, result_funcname='get_string'):
+    def __init__(self, display_keys=True, return_only=False):
         IFormatter.__init__(self, display_keys=display_keys, return_only=return_only)
-        self.result_funcname = result_funcname
 
     def after_format(self, formatted):
         if self.column_headers is None:
@@ -43,17 +43,21 @@ class TableFormatter(IFormatter):
             return None
         s = ''
         if self.display_header and self.header:
-            if self.result_funcname == 'get_string':
-                s += self.header
-            elif self.result_funcname == 'get_html_string':
+            if self.HTML:
                 s+= '<p>%s</p>' % self.header
+            else:
+                s += self.header
             s += "\n"
         table = PrettyTable(list(self.column_headers))
         for column_header in self.column_headers:
             table.set_field_align(column_header, 'l')
         for line in self.queue:
             table.add_row(line)
-        s += getattr(table, self.result_funcname)()
+
+        if self.HTML:
+            s += table.get_html_string()
+        else:
+            s += table.get_string()
         self.queue = []
         if self.return_only:
             return s
@@ -66,3 +70,6 @@ class TableFormatter(IFormatter):
 
     def set_header(self, string):
         self.header = string
+
+class HTMLTableFormatter(TableFormatter):
+    HTML = True
