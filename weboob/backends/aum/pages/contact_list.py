@@ -80,6 +80,10 @@ class ContactItem:
         tag = self.__get_element('resume')
         return tag.getElementsByTagName('b')[0].firstChild.data.strip()
 
+    def get_suppr_id(self):
+        tag = self.__get_element('remove')
+        return tag.getElementsByTagName('input')[0].getAttribute('id').split('_')[-1]
+
     LASTMSG_RE = re.compile('il y a (\d+) (\w+)')
     def get_lastmsg_date(self):
         tag = self.__get_element('resume')

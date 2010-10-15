@@ -211,18 +211,9 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def delete_thread(self, id):
-        """
-        mail.php
-     delete=true&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=6671957&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=
-     delete=true&suppr%5B%5D=13121086&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=&suppr%5B%5D=
-        """
         data = 'delete=true&suppr%%5B%%5D=%s' % id
-        for i in xrange(23):
-            data += '&suppr%5B%5D='
         url = 'http://www.adopteunmec.com/mail.php'
-        request = self.request_class(url, data, {'Referer': url, 'Content-Type': 'application/x-www-form-urlencoded'})
-        # WTF IT DOESN'T WORK I HAVE YOU AUM I WANT TO DEFECATE IN YOUR MOUTH
-        self.openurl(request).read()
+        self.openurl(url, data).read()
 
         return True
 
