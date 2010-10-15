@@ -19,7 +19,7 @@
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.video_player import VideoPlayer
+from weboob.tools.application.media_player import MediaPlayer
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
@@ -40,9 +40,9 @@ class VideoListFormatter(IFormatter):
         self.count += 1
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s(%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
         else:
-            result = u'%s(%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
         result += '            %s' % item['duration']
         if item['author'] is not NotLoaded:
             result += ' - %s' % item['author']
@@ -68,7 +68,7 @@ class Videoob(ReplApplication):
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
         try:
-            self.player = VideoPlayer()
+            self.player = MediaPlayer()
         except OSError:
             self.player = None
 
@@ -103,16 +103,13 @@ class Videoob(ReplApplication):
         Play a video with a found player.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return
 
         video = self._get_video(_id, ['url'])
         if not video:
             print 'Video not found: ', _id
             return
-
-        backend = self.weboob.get_backend(video.backend)
-        backend.fillobj(video, ['url'])
 
         if self.player:
             self.player.play(video)
