@@ -302,17 +302,20 @@ class ReplApplication(Cmd, BaseApplication):
             stop = None
         return stop
 
-    def onecmd(self, _cmd):
+    def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.
         """
-        cmd_name = _cmd.split()[0]
-        if cmd_name in self.commands_formatters:
-            self.set_formatter(self.commands_formatters[cmd_name])
+        cmd, arg, ignored = self.parseline(line)
+
+        # Set the right formatter for the command.
+        if cmd in self.commands_formatters:
+            self.set_formatter(self.commands_formatters[cmd])
         else:
             self.set_formatter(self.DEFAULT_FORMATTER)
+
         try:
-            return super(ReplApplication, self).onecmd(_cmd)
+            return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
             ask_debug_mode = False
             for backend, error, backtrace in e.errors:
