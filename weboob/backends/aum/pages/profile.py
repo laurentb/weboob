@@ -315,7 +315,7 @@ class ProfilePage(PageBase):
             elif hasattr(c, 'tagName') and c.tagName == 'i':
                 description += ''.join(c.childNodes[0].data.split('\n'))
 
-        self.description = description
+        self.description = description.strip()
 
     def parse_table(self, div):
         d = self.table[self.tables[div.getAttribute('id')]]
