@@ -89,9 +89,12 @@ class AntiSpam(object):
             return False
         if re.match('.*voila\s{2,}mon\s{2,}msn.*', profile.description):
             return False
-        if re.match('.*cava tout+ ami.*', profile.description) >= 0:
+        if re.match('.*cava tout+ ami.*', profile.description):
             return False
-        if re.match('.*site\s{2,}de\s{2,}chat\s{2,}et mon msn.*', profile.description) >= 0:
+        if re.match('.*site\s{2,}de\s{2,}chat\s{2,}et mon msn.*', profile.description):
+            return False
+        # "ajouter  moi :  alussiahotmail.fr"
+        if re.match('^ajouter  moi :\s+\w+\.\w+\n', profile.description):
             return False
         return True
 
