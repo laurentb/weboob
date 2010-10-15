@@ -31,6 +31,9 @@ class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
+    COMMANDS_FORMATTERS = {'backends':    'table',
+                           'list':        'table',
+                           }
 
     def load_default_backends(self):
         pass
@@ -65,7 +68,6 @@ class WeboobCfg(ReplApplication):
 
         Show configured backends.
         """
-        self.set_default_formatter('table')
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
             row = OrderedDict([('Instance name', instance_name),
@@ -107,7 +109,6 @@ class WeboobCfg(ReplApplication):
         Show available backends.
         """
         caps = line.split()
-        self.set_default_formatter('table')
         self.weboob.modules_loader.load_all()
         for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
             if caps and not self.caps_included(backend.iter_caps(), caps):
