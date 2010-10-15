@@ -74,7 +74,7 @@ class AntiSpam(object):
         if profile.description.endswith('Moi la bonne jeune fille gaie'):
             return False
         # Her 'Shopping-list' begins with 'hummm'
-        if profile.description.find(':\nhummm') >= 0:
+        if profile.description.endswith('Sa shopping-list :\nhummm'):
             return False
         # Part of an email address (camiliasexy1live.fr)
         if profile.description.find('sexy1live') >= 0:
