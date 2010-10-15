@@ -881,6 +881,8 @@ class ReplApplication(Cmd, BaseApplication):
             self.formatter.display_header = False
         if self.options.no_keys:
             self.formatter.display_keys = False
+        if self.interactive:
+            self.formatter.interactive = True
         return name
 
     def set_formatter_header(self, string):

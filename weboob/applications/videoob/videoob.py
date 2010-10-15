@@ -38,8 +38,11 @@ class VideoListFormatter(IFormatter):
 
     def format_dict(self, item):
         self.count += 1
-        backend = item['id'].split('@', 1)[1]
-        result = u'%s(%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            result = u'%s(%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+        else:
+            result = u'%s(%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
         result += '            %s' % item['duration']
         if item['author'] is not NotLoaded:
             result += ' - %s' % item['author']

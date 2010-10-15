@@ -28,6 +28,7 @@ class IFormatter(object):
         self.display_keys = display_keys
         self.display_header = display_header
         self.return_only = return_only
+        self.interactive = False
 
     def after_format(self, formatted):
         raise NotImplementedError()
