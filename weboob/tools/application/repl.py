@@ -388,6 +388,7 @@ class ReplApplication(Cmd, BaseApplication):
         if self.options.formatter:
             self.commands_formatters = {}
             self.DEFAULT_FORMATTER = self.options.formatter
+        self.set_formatter(self.DEFAULT_FORMATTER)
 
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
