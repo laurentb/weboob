@@ -25,13 +25,13 @@ __all__ = ['TableFormatter', 'HTMLTableFormatter']
 
 
 class TableFormatter(IFormatter):
-    column_headers = None
-    queue = []
-    header = None
     HTML = False
 
     def __init__(self, display_keys=True, return_only=False):
         IFormatter.__init__(self, display_keys=display_keys, return_only=return_only)
+        self.queue = []
+        self.header = None
+        self.column_headers = None
 
     def after_format(self, formatted):
         if self.column_headers is None:
