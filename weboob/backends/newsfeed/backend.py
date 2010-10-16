@@ -1,74 +1,41 @@
 # -*- coding: utf-8 -*-
 
+# Copyright(C) 2010  Clément Schreiner
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, Message, Thread
-import datetime
-import feedparser
-
-    
-
-class Article:
-    def __init__(self, entry):
-        self.id = entry.id
-        if entry.has_key("link"):
-            self.link = entry["link"]
-        if entry.has_key("title"):
-            self.title = entry["title"]
-        else:
-            self.title = None
-        if entry.has_key("author"):
-            self.author = entry["author"]
-        else:
-            self.author = None
-        if entry.has_key("updated_parsed"):
-            updated_parsed = entry["updated_parsed"]
-            self.datetime = datetime.datetime(updated_parsed.tm_year,
-                                              updated_parsed.tm_mon,
-                                              updated_parsed.tm_mday,
-                                              updated_parsed.tm_hour,
-                                              updated_parsed.tm_min,
-                                              updated_parsed.tm_sec)
-        else:
-            self.datetime = None
-        if entry.has_key("content"):
-            self.content = entry["content"][0]["value"]
-        else:
-            self.content = None
-
-
-class NewsFeed:
-    def __init__(self, url):
-        self.feed = feedparser.parse(url)
-
-    
-        
-
-    def iter_articles(self):
-        for entry in self.feed['entries']:
-            yield Article(entry)
-
-    def get_article(self, id):
-        for entry in self.feed['entries']:
-            if entry.id == id:
-                return Article(entry)
-            
+from weboob.tools.newsfeed import Newsfeed 
 
 
     
 
-class NewsFeedBackend(BaseBackend, ICapMessages):
+class NewsfeedBackend(BaseBackend, ICapMessages):
     NAME = 'newsfeed'
-    MAINTAINER = "Clement Schreiner"
+    MAINTAINER = u"Clément Schreiner"
     EMAIL = "clemux@clemux.info"
     VERSION = "0.1"
-    DESCRIPTION = "News feeds"
+    DESCRIPTION = "Loads RSS and Atom feeds from any websites"
     LICENSE = "GPLv3"
-    CONFIG = {'url': BaseBackend.ConfigField(description='URL to the feed'),}
-    STORAGE = {'seen': {}}
+    CONFIG = {'url': BaseBackend.ConfigField(description="Atom/RSS feed's url"),}
+    STORAGE = {'seen': []}
     
-              
+               
     def iter_threads(self):
-        for article in NewsFeed(self.config["url"]).iter_articles():
+        for article in Newsfeed(self.config["url"]).iter_entries():
             thread = Thread(article.id)
             thread.title = article.title
             yield thread
@@ -81,19 +48,24 @@ class NewsFeedBackend(BaseBackend, ICapMessages):
             id = thread.id
         else:
             thread = Thread(id)
-        article = NewsFeed(self.config["url"]).get_article(id)
-        flags = 0
-        if not thread.id in self.storage.get('seen', default={}):
+        entry = Newsfeed(self.config["url"]).get_entry(id)
+        flags = Message.IS_HTML
+        if not thread.id in self.storage.get('seen', default=[]):
             flags |= Message.IS_UNREAD
-        thread.title = article.title
+        if len(entry.content):
+            content = entry.content[0]
+        else:
+            content = None
+        thread.title = entry.title
         thread.root = Message(thread=thread,
                               id=0,
-                              title=article.title,
-                              sender=article.author,
+                              title=entry.title,
+                              sender=entry.author,
                               receiver=None,
-                              date=article.datetime,
+                              date=entry.datetime,
                               parent=None,
-                              content=article.content,
+                              content=content,
+                              children=[],
                               flags=flags)
         return thread
                               
@@ -107,5 +79,5 @@ class NewsFeedBackend(BaseBackend, ICapMessages):
 
 
     def set_message_read(self, message):
-        self.storage.set('seen', message.thread.id)
+        self.storage.get('seen', default=[]).append(message.id)
         self.storage.save()

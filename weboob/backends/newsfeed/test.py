@@ -16,6 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .backend import NewsfeedBackend
+from weboob.tools.test import BackendTest
 
-__all__ = ['NewsfeedBackend']
+class NewsfeedTest(BackendTest):
+    BACKEND = 'newsfeed'
+    
+    def test_newsfeed(self):
+        for message in self.backend.iter_unread_messages():
+            pass
+        

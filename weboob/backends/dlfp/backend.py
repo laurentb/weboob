@@ -18,7 +18,7 @@
 from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
-from weboob.tools.newsfeed import NewsFeed
+from weboob.tools.newsfeed import Newsfeed
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import DLFP
@@ -58,7 +58,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             
 
         for what in whats:
-            for article in NewsFeed(what, url2id).iter_entries():
+            for article in Newsfeed(what, url2id).iter_entries():
                 thread = Thread(article.id)
                 thread.title = article.title
                 yield thread

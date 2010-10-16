@@ -25,28 +25,45 @@ class Entry:
             self.id = url2id(entry.id)
         else:
             self.id = entry.id
+
         if entry.has_key("link"):
             self.link = entry["link"]
+        else:
+            self.link = None
+
         if entry.has_key("title"):
             self.title = entry["title"]
         else:
             self.title = None
+
         if entry.has_key("author"):
             self.author = entry["author"]
         else:
             self.author = None
+
         if entry.has_key("updated_parsed"):
-            #updated_parsed = entry["updated_parsed"]
             self.datetime = datetime.datetime(*entry['updated_parsed'][:7])
         else:
             self.datetime = None
+
+        if entry.has_key("summary"):
+            self.summary = entry["summary"]
+        else:
+            self.summary = None
+        
+        self.content = []
         if entry.has_key("content"):
-            self.content = entry["content"][0]["value"]
+            for i in entry["content"]:
+                self.content.append(i.value)
+        elif self.summary:
+            self.content.append(self.summary)
         else:
             self.content = None
+                                        
+            
 
 
-class NewsFeed:
+class Newsfeed:
     def __init__(self, url, url2id=None):
         self.feed = feedparser.parse(url)
         self.url2id = url2id
