@@ -309,10 +309,11 @@ class ReplApplication(Cmd, BaseApplication):
         cmd, arg, ignored = self.parseline(line)
 
         # Set the right formatter for the command.
-        if cmd in self.commands_formatters:
-            self.set_formatter(self.commands_formatters[cmd])
-        else:
-            self.set_formatter(self.DEFAULT_FORMATTER)
+        try:
+            formatter_name = self.commands_formatters[cmd]
+        except KeyError:
+            formatter_name = self.DEFAULT_FORMATTER
+        self.set_formatter(formatter_name)
 
         try:
             return super(ReplApplication, self).onecmd(line)
@@ -877,7 +878,9 @@ class ReplApplication(Cmd, BaseApplication):
             self.formatter = self.formatters_loader.build_formatter(name)
         except FormatterLoadError, e:
             print '%s' % e
-            print 'Falling back to "%s".' % (name, self.DEFAULT_FORMATTER)
+            if self.DEFAULT_FORMATTER == name:
+                self.DEFAULT_FORMATTER = ReplApplication.DEFAULT_FORMATTER
+            print 'Falling back to "%s".' % (self.DEFAULT_FORMATTER)
             self.formatter = self.formatters_loader.build_formatter(self.DEFAULT_FORMATTER)
             name = self.DEFAULT_FORMATTER
         if self.options.no_header:
