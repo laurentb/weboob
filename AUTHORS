@@ -4,8 +4,8 @@ Romain Bignon <romain@peerfuse.org>
         * Manager;
         * Core team;
         * Qt Applications;
-        * AuM, Arte, BNPorc, CanalTP, DLFP, Fourchan, Gazelle, Geolocip, Yahoo
-          and Youporn backends maintainer.
+        * AuM, Arte, BNPorc, CanalTP, DLFP, Fourchan, Gazelle, Geolocip, LCL,
+          OuiFM, Redmine, Yahoo and Youporn backends maintainer.
 
 Christophe Benz <christophe.benz@gmail.com>
         * Core team;
@@ -24,6 +24,9 @@ Nicolas Duhamel <nicolas@jombi.fr>
 
 Laurent Bachelier <laurent@bachelier.name>
         * CrAgr backend maintainer.
+
+Clément Schreiner <clemux@clemux.info>
+        * Newsfeed backend maintainer.
 
 Flo <florent.fourcot@resel.fr>
         * BNPorc patches.
