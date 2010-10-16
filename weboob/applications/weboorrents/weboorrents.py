@@ -21,16 +21,98 @@ import sys
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['Weboorrents']
 
+def sizeof_fmt(num):
+    for x in ['bytes','KB','MB','GB','TB']:
+        if num < 1024.0:
+            return "%-4.1f%s" % (num, x)
+        num /= 1024.0
+
+class TorrentInfoFormatter(IFormatter):
+    def after_format(self, formatted):
+        print formatted.encode('utf-8')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result = u'%s%s%s\n' % (ReplApplication.BOLD, item['name'], ReplApplication.NC)
+        result += 'ID: %s\n' % item['id']
+        result += 'Size: %s\n' % sizeof_fmt(item['size'])
+        result += 'Seeders: %s\n' % item['seeders']
+        result += 'Leechers: %s\n' % item['leechers']
+        result += 'URL: %s\n' % item['url']
+        result += '\n%sFiles%s\n' % (ReplApplication.BOLD, ReplApplication.NC)
+        for f in item['files']:
+            result += ' * %s\n' % f
+        result += '\n%sDescription%s\n' % (ReplApplication.BOLD, ReplApplication.NC)
+        result += item['description']
+        return result
+
+    def set_header(self, string):
+        if self.display_header:
+            print string.encode('utf-8')
+
+class TorrentListFormatter(IFormatter):
+    count = 0
+
+    def after_format(self, formatted):
+        print formatted.encode('utf-8')
+
+    def flush(self):
+        self.count = 0
+        pass
+
+    def format_dict(self, item):
+        self.count += 1
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['name'], backend, ReplApplication.NC)
+        else:
+            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
+        size = sizeof_fmt(item['size'])
+        result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
+        return result
+
+    def set_header(self, string):
+        if self.display_header:
+            print string.encode('utf-8')
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapTorrent
+    EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
+                        'torrent_info': TorrentInfoFormatter,
+                       }
+    COMMANDS_FORMATTERS = {'search':    'torrent_list',
+                           'info':      'torrent_info',
+                          }
+
+    torrents = []
+
+    def _complete_id(self):
+        return ['%s@%s' % (torrent.id, torrent.backend) for torrent in self.torrents]
+
+    def complete_info(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
+
+    def parse_id(self, id):
+        if self.interactive:
+            try:
+                torrent = self.torrents[int(id) - 1]
+            except (IndexError,ValueError):
+                pass
+            else:
+                id = '%s@%s' % (torrent.id, torrent.backend)
+        return ReplApplication.parse_id(self, id)
 
     def do_info(self, id):
         """
@@ -50,6 +132,11 @@ class Weboorrents(ReplApplication):
             print >>sys.stderr, 'Torrent "%s" not found' % id
         else:
             self.flush()
+
+    def complete_info(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
 
     def do_getfile(self, line):
         """
@@ -80,9 +167,11 @@ class Weboorrents(ReplApplication):
 
         Search torrents.
         """
+        self.torrents = []
         if not pattern:
             pattern = None
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
+            self.torrents.append(torrent)
             self.format(torrent)
         self.flush()
