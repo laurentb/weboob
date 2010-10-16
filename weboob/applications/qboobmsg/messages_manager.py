@@ -127,7 +127,7 @@ class MessagesManager(QWidget):
         self.ui.messagesTree.expandAll()
 
     def _insert_message(self, message, top):
-        item = QTreeWidgetItem(None, [message.title, message.sender,
+        item = QTreeWidgetItem(None, [message.title or '', message.sender or 'Unknown',
                                       time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple())])
         item.setData(0, Qt.UserRole, message)
 
