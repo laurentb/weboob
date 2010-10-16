@@ -19,6 +19,9 @@ import datetime
 import feedparser
 
 
+__all__ = ['Entry', 'Newsfeed']
+
+
 class Entry:
     def __init__(self, entry, url2id=None):
         if url2id:
@@ -50,7 +53,7 @@ class Entry:
             self.summary = entry["summary"]
         else:
             self.summary = None
-        
+
         self.content = []
         if entry.has_key("content"):
             for i in entry["content"]:
@@ -59,17 +62,11 @@ class Entry:
             self.content.append(self.summary)
         else:
             self.content = None
-                                        
-            
-
 
 class Newsfeed:
     def __init__(self, url, url2id=None):
         self.feed = feedparser.parse(url)
         self.url2id = url2id
-
-    
-        
 
     def iter_entries(self):
         for entry in self.feed['entries']:
@@ -79,4 +76,3 @@ class Newsfeed:
         for entry in self.feed['entries']:
             if entry.id == id:
                 return Entry(entry, self.url2id)
-            

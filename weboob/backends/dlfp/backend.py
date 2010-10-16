@@ -44,7 +44,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     BROWSER = DLFP
     RSS_TELEGRAMS= "https://linuxfr.org/backend/journaux/rss20.rss"
     RSS_NEWSPAPERS = "https://linuxfr.org/backend/news/rss20.rss"
-    
+
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
@@ -55,7 +55,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             whats.add(self.RSS_NEWSPAPERS)
         if self.config['get_telegrams']:
             whats.add(self.RSS_TELEGRAMS)
-            
+
 
         for what in whats:
             for article in Newsfeed(what, url2id).iter_entries():

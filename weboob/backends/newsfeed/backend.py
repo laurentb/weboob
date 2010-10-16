@@ -18,29 +18,29 @@
 
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, Message, Thread
-from weboob.tools.newsfeed import Newsfeed 
+from weboob.tools.newsfeed import Newsfeed
 
 
-    
+
 
 class NewsfeedBackend(BaseBackend, ICapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u"Clément Schreiner"
     EMAIL = "clemux@clemux.info"
-    VERSION = "0.1"
+    VERSION = "0.3"
     DESCRIPTION = "Loads RSS and Atom feeds from any websites"
     LICENSE = "GPLv3"
     CONFIG = {'url': BaseBackend.ConfigField(description="Atom/RSS feed's url"),}
     STORAGE = {'seen': []}
-    
-               
+
+
     def iter_threads(self):
         for article in Newsfeed(self.config["url"]).iter_entries():
             thread = Thread(article.id)
             thread.title = article.title
             yield thread
-            
-        
+
+
 
     def get_thread(self, id):
         if isinstance(id, Thread):
@@ -68,8 +68,8 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
                               children=[],
                               flags=flags)
         return thread
-                              
-        
+
+
 
     def iter_unread_messages(self, thread=None):
         for thread in self.iter_threads():
