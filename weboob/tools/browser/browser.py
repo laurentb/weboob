@@ -19,6 +19,7 @@ from __future__ import with_statement
 import mechanize
 import urllib
 import urllib2
+from httplib import BadStatusLine
 from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 import re
@@ -244,7 +245,7 @@ class BaseBrowser(mechanize.Browser):
         debug('Opening URL "%s", %s' % (args, kwargs))
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             if if_fail == 'raise':
                 raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
@@ -288,7 +289,7 @@ class BaseBrowser(mechanize.Browser):
         """
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
             raise BrowserHTTPError(e)
         except (mechanize.BrowserStateError, BrowserRetry), e:
@@ -301,7 +302,7 @@ class BaseBrowser(mechanize.Browser):
     def follow_link(self, *args, **kwargs):
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
             raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry), e:
@@ -329,7 +330,7 @@ class BaseBrowser(mechanize.Browser):
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
             raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
