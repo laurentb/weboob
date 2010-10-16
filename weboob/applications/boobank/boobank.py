@@ -29,6 +29,8 @@ class Boobank(ReplApplication):
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
+    DEFAULT_FORMATTER = 'table'
+    COMMANDS_FORMATTERS = {'transfer':    'multiline'}
 
     accounts = []
 
@@ -48,9 +50,11 @@ class Boobank(ReplApplication):
                 tot_coming += account.coming
             self.accounts.append(account)
         else:
-            self.format((('label', 'Total'),
+            self.format((('id',     ''),
+                         ('label', 'Total'),
                          ('balance', tot_balance),
                          ('coming', tot_coming)))
+        self.flush()
 
     def _complete_account(self, exclude=None):
         if exclude:

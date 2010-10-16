@@ -37,7 +37,7 @@ class Account(CapBaseObject):
         self.add_field('label', basestring)
         self.add_field('balance', float)
         self.add_field('coming', float)
-        self.add_field('link_id', basestring)
+        self.link_id = None
 
     def __repr__(self):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
