@@ -366,6 +366,8 @@ class BaseBrowser(mechanize.Browser):
             #    data = data.encode('utf-8')
             #print data
             warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
+            self.save_response(result)
+
             return
 
         debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
