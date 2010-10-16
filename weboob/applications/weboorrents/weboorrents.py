@@ -33,9 +33,6 @@ def sizeof_fmt(num):
         num /= 1024.0
 
 class TorrentInfoFormatter(IFormatter):
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
-
     def flush(self):
         pass
 
@@ -53,15 +50,8 @@ class TorrentInfoFormatter(IFormatter):
         result += item['description']
         return result
 
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')
-
 class TorrentListFormatter(IFormatter):
     count = 0
-
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
 
     def flush(self):
         self.count = 0
@@ -77,10 +67,6 @@ class TorrentListFormatter(IFormatter):
         size = sizeof_fmt(item['size'])
         result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
         return result
-
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'

@@ -16,6 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import os
+import sys
+
 from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
 
@@ -29,9 +32,27 @@ class IFormatter(object):
         self.display_header = display_header
         self.return_only = return_only
         self.interactive = False
+        self.print_lines = 0
+        self.termrows = 0
+        self.termcols = 0
+        if os.isatty(sys.stdout.fileno()):
+            size = os.popen('stty size', 'r').read().split()
+            self.termrows = int(size[0])
+            self.termcols = int(size[1])
 
     def after_format(self, formatted):
-        raise NotImplementedError()
+        for line in formatted.split('\n'):
+            if self.termrows and (self.print_lines + 1) >= self.termrows:
+                prompt = '--Press return to continue--'
+                sys.stdout.write(prompt)
+                sys.stdout.flush()
+                r = sys.stdin.readline()
+                self.print_lines = 0
+
+            if isinstance(line, unicode):
+                line = line.encode('utf-8')
+            print line
+            self.print_lines += 1
 
     def build_id(self, v, backend_name):
         return u'%s@%s' % (unicode(v), backend_name)
@@ -80,7 +101,8 @@ class IFormatter(object):
         raise NotImplementedError()
 
     def set_header(self, string):
-        raise NotImplementedError()
+        if self.display_header:
+            print string.encode('utf-8')
 
     def to_dict(self, obj, condition=None, selected_fields=None):
         def iter_select_and_decorate(d):

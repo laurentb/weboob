@@ -28,9 +28,6 @@ class SimpleFormatter(IFormatter):
         self.field_separator = field_separator
         self.key_value_separator = key_value_separator
 
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
-
     def flush(self):
         pass
 
@@ -38,7 +35,3 @@ class SimpleFormatter(IFormatter):
         return self.field_separator.join(u'%s%s' % (
             (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
             for k, v in item.iteritems())
-
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')

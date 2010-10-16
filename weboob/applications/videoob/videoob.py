@@ -29,9 +29,6 @@ __all__ = ['Videoob']
 class VideoListFormatter(IFormatter):
     count = 0
 
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
-
     def flush(self):
         self.count = 0
         pass
@@ -49,10 +46,6 @@ class VideoListFormatter(IFormatter):
         if item['rating'] is not NotLoaded:
             result += u' (%s/%s)' % (item['rating'], item['rating_max'])
         return result
-
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'

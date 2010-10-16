@@ -29,9 +29,6 @@ __all__ = ['Radioob']
 class RadioListFormatter(IFormatter):
     count = 0
 
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
-
     def flush(self):
         self.count = 0
         pass
@@ -47,10 +44,6 @@ class RadioListFormatter(IFormatter):
         if item['current'] is not NotLoaded:
             result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
         return result
-
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'

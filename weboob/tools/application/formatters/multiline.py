@@ -29,9 +29,6 @@ class MultilineFormatter(IFormatter):
         self.key_value_separator = key_value_separator
         self.after_item = after_item
 
-    def after_format(self, formatted):
-        print formatted.encode('utf-8')
-
     def flush(self):
         pass
 
