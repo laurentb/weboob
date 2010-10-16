@@ -25,9 +25,9 @@ class WikiEditPage(BasePage):
 
     def set_source(self, data, message):
         self.browser.select_form(nr=1)
-        self.browser['content[text]'] = data
+        self.browser['content[text]'] = data.encode('utf-8')
         if message:
-            self.browser['content[comments]'] = message
+            self.browser['content[comments]'] = message.encode('utf-8')
         self.browser.submit()
 
 class WikiPage(BasePage):
