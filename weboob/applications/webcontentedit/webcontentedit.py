@@ -33,6 +33,11 @@ class WebContentEdit(ReplApplication):
     CAPS = ICapContent
 
     def do_edit(self, id):
+        """
+        edit ID
+
+        Edit a content with $EDITOR, then push it on the website.
+        """
         _id, backend_name = self.parse_id(id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
@@ -50,7 +55,7 @@ class WebContentEdit(ReplApplication):
         tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
         if not os.path.isdir(tmpdir):
             os.makedirs(tmpdir)
-        fd, path = tempfile.mkstemp(prefix="webcontentedit", dir=tmpdir)
+        fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
         with os.fdopen(fd, 'w') as f:
             data = content.content
             if isinstance(data, unicode):
@@ -59,16 +64,20 @@ class WebContentEdit(ReplApplication):
         os.system("$EDITOR %s" % path)
 
         with open(path, 'r') as f:
-            data = f.read().decode('utf-8')
+            data = f.read()
+            try:
+                data = data.decode('utf-8')
+            except UnicodeError:
+                pass
 
         if data == content.content:
             print 'No changes. Abort.'
             return
 
+        message = self.ask('Enter a commit message', default='')
+
         if not self.ask('Do you want to push?', default=True):
             return
-
-        message = self.ask('Enter a commit message', default='')
 
         content.content = data
         backend = self.weboob.get_backend(content.backend)
