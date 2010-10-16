@@ -43,16 +43,20 @@ class RedmineBackend(BaseBackend, ICapContent):
     def create_default_browser(self):
         return self.create_browser(self.config['url'], self.config['username'], self.config['password'])
 
+    def id2path(self, id):
+        return id.split('/', 2)
+
     def get_content(self, id):
         if isinstance(id, basestring):
-            try:
-                project, _type, page = id.split('/', 2)
-            except ValueError:
-                return None
             content = Content(id)
         else:
             content = id
             id = content.id
+
+        try:
+            project, _type, page = self.id2path(id)
+        except ValueError:
+            return None
 
         with self.browser:
             data = self.browser.get_wiki_source(project, page)
@@ -60,5 +64,11 @@ class RedmineBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def push_content(self, content):
-        pass
+    def push_content(self, content, message=None):
+        try:
+            project, _type, page = self.id2path(content.id)
+        except ValueError:
+            return
+
+        with self.browser:
+            return self.browser.set_wiki_source(project, page, content.content, message)

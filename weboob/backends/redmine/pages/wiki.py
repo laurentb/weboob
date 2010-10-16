@@ -22,3 +22,13 @@ from weboob.tools.parsers.lxmlparser import select
 class WikiEditPage(BasePage):
     def get_source(self):
         return select(self.document.getroot(), 'textarea#content_text', 1).text
+
+    def set_source(self, data, message):
+        self.browser.select_form(nr=1)
+        self.browser['content[text]'] = data
+        if message:
+            self.browser['content[comments]'] = message
+        self.browser.submit()
+
+class WikiPage(BasePage):
+    pass

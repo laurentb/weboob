@@ -21,7 +21,7 @@ from urlparse import urlsplit
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.index import LoginPage, IndexPage, MyPage
-from .pages.wiki import WikiEditPage
+from .pages.wiki import WikiPage, WikiEditPage
 
 
 __all__ = ['RedmineBrowser']
@@ -34,6 +34,7 @@ class RedmineBrowser(BaseBrowser):
              '%s/login':                         LoginPage,
              '%s/my/page':                       MyPage,
              '%s/projects/\w+/wiki/\w+/edit':    WikiEditPage,
+             '%s/projects/\w+/wiki/\w*':         WikiPage,
             }
 
     is_logging = False
@@ -73,3 +74,7 @@ class RedmineBrowser(BaseBrowser):
     def get_wiki_source(self, project, page):
         self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
         return self.page.get_source()
+
+    def set_wiki_source(self, project, page, data, message):
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
+        self.page.set_source(data, message)
