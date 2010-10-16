@@ -32,53 +32,67 @@ class WebContentEdit(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapContent
 
-    def do_edit(self, id):
+    def do_edit(self, line):
         """
         edit ID
 
         Edit a content with $EDITOR, then push it on the website.
         """
-        _id, backend_name = self.parse_id(id)
-        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+        contents = []
+        for id in line.split():
+            _id, backend_name = self.parse_id(id)
+            backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
-        contents = [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
+            contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
             print >>sys.stderr, 'No content for the ID "%s"' % id
             return 1
-        elif len(contents) > 1:
-            print >>sys.stderr, 'Too much replies'
-            return 1
 
-        content = contents[0]
+        paths = {}
+        for content in contents:
+            tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
+            if not os.path.isdir(tmpdir):
+                os.makedirs(tmpdir)
+            fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
+            with os.fdopen(fd, 'w') as f:
+                data = content.content
+                if isinstance(data, unicode):
+                    data = data.encode('utf-8')
+                f.write(data)
+            paths[path] = content
+        os.system("$EDITOR -p %s" % ' '.join(paths.iterkeys()))
 
-        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
-        with os.fdopen(fd, 'w') as f:
-            data = content.content
-            if isinstance(data, unicode):
-                data = data.encode('utf-8')
-            f.write(data)
-        os.system("$EDITOR %s" % path)
+        for path, content in paths.iteritems():
+            with open(path, 'r') as f:
+                data = f.read()
+                try:
+                    data = data.decode('utf-8')
+                except UnicodeError:
+                    pass
+            if content.content != data:
+                content.content = data
+            else:
+                contents.remove(content)
 
-        with open(path, 'r') as f:
-            data = f.read()
-            try:
-                data = data.decode('utf-8')
-            except UnicodeError:
-                pass
-
-        if data == content.content:
+        if len(contents) == 0:
             print 'No changes. Abort.'
             return
 
-        message = self.ask('Enter a commit message', default='')
+        message = self.ask('Enter a commit message')
+
+        print 'Contents changed:\n%s' % ('\n'.join([' * %s' % content.id for content in contents]))
 
         if not self.ask('Do you want to push?', default=True):
             return
 
-        content.content = data
-        backend = self.weboob.get_backend(content.backend)
-        backend.push_content(content, message)
+        for content in contents:
+            sys.stdout.write('Pushing %s...' % content.id)
+            sys.stdout.flush()
+            try:
+                backend = self.weboob.get_backend(content.backend)
+                backend.push_content(content, message)
+            except Exception:
+                sys.stdout.write(' error\n')
+                raise
+            sys.stdout.write(' done\n')
