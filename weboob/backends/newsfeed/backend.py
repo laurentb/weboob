@@ -79,5 +79,5 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
 
 
     def set_message_read(self, message):
-        self.storage.get('seen', default=[]).append(message.id)
+        self.storage.get('seen', default=[]).append(message.thread.id)
         self.storage.save()
