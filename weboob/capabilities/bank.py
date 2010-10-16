@@ -34,10 +34,10 @@ class NotEnoughMoney(Exception):
 class Account(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
-        self.add_field('label', (str,unicode))
+        self.add_field('label', basestring)
         self.add_field('balance', float)
         self.add_field('coming', float)
-        self.add_field('link_id', (str,unicode))
+        self.add_field('link_id', basestring)
 
     def __repr__(self):
         return u"<Account id='%s' label='%s'>" % (self.id, self.label)
@@ -46,7 +46,7 @@ class Account(CapBaseObject):
 class Operation(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.add_field('date', (str,unicode,datetime))
+        self.add_field('date', (basestring,datetime))
         self.add_field('label', unicode)
         self.add_field('amount', float)
 

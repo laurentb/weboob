@@ -31,9 +31,9 @@ class ChatException(Exception):
 class ChatMessage(CapBaseObject):
     def __init__(self, id_from, id_to, message, date=None):
         CapBaseObject.__init__(self, '%s.%s' % (id_from, id_to))
-        self.add_field('id_from', (str,unicode), id_from)
-        self.add_field('id_to', (str,unicode), id_to)
-        self.add_field('message', (str,unicode), message)
+        self.add_field('id_from', basestring, id_from)
+        self.add_field('id_to', basestring, id_to)
+        self.add_field('message', basestring, message)
         self.add_field('date', datetime.datetime, date)
 
         if self.date is None:

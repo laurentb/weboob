@@ -27,7 +27,7 @@ __all__ = ['Departure', 'ICapTravel', 'Station']
 class Station(CapBaseObject):
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', (str,unicode), name)
+        self.add_field('name', basestring, name)
 
     def __repr__(self):
         return "<Station id=%r name=%r>" % (self.id, self.name)
@@ -37,13 +37,13 @@ class Departure(CapBaseObject):
     def __init__(self, id, _type, _time):
         CapBaseObject.__init__(self, id)
 
-        self.add_field('type', (str,unicode), _type)
+        self.add_field('type', basestring, _type)
         self.add_field('time', datetime, _time)
-        self.add_field('departure_station', (str,unicode))
-        self.add_field('arrival_station', (str,unicode))
+        self.add_field('departure_station', basestring)
+        self.add_field('arrival_station', basestring)
         self.add_field('late', time, time())
-        self.add_field('information', (str,unicode))
-        self.add_field('plateform', (str,unicode))
+        self.add_field('information', basestring)
+        self.add_field('plateform', basestring)
 
     def __repr__(self):
         return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (

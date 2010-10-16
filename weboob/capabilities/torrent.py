@@ -28,14 +28,14 @@ class Torrent(CapBaseObject):
                        seeders=NotLoaded, leechers=NotLoaded, files=NotLoaded,
                        description=NotLoaded):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', (str,unicode), name)
+        self.add_field('name', basestring, name)
         self.add_field('size', (int,long,float), size)
         self.add_field('date', datetime, date)
-        self.add_field('url', (str,unicode), url)
+        self.add_field('url', basestring, url)
         self.add_field('seeders', int, seeders)
         self.add_field('leechers', int, leechers)
         self.add_field('files', list, files)
-        self.add_field('description', (str,unicode), description)
+        self.add_field('description', basestring, description)
 
 class ICapTorrent(IBaseCap):
     def iter_torrents(self, pattern):

@@ -27,15 +27,15 @@ class IpLocation(CapBaseObject):
         CapBaseObject.__init__(self, ipaddr)
 
         self.ipaddr = ipaddr
-        self.add_field('city', (str,unicode))
-        self.add_field('region', (str,unicode))
-        self.add_field('zipcode', (str,unicode))
-        self.add_field('country', (str,unicode))
+        self.add_field('city', basestring)
+        self.add_field('region', basestring)
+        self.add_field('zipcode', basestring)
+        self.add_field('country', basestring)
         self.add_field('lt', float)
         self.add_field('lg', float)
-        self.add_field('host', (str,unicode))
-        self.add_field('tld', (str,unicode))
-        self.add_field('isp', (str,unicode))
+        self.add_field('host', basestring)
+        self.add_field('tld', basestring)
+        self.add_field('isp', basestring)
 
 class ICapGeolocIp(IBaseCap):
     def get_location(self, ipaddr):

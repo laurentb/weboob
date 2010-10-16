@@ -284,7 +284,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         with self.browser:
             if isinstance(contact, Contact):
                 _id = contact.id
-            elif isinstance(contact, (int,long,str,unicode)):
+            elif isinstance(contact, (int,long,basestring)):
                 _id = contact
             else:
                 raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)

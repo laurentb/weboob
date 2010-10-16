@@ -27,7 +27,7 @@ __all__ = ['BaseVideo', 'ICapVideo']
 class VideoThumbnail(CapBaseObject):
     def __init__(self, url):
         CapBaseObject.__init__(self, url)
-        self.add_field('url', (unicode,str), url.replace(' ', '%20'))
+        self.add_field('url', basestring, url.replace(' ', '%20'))
         self.add_field('data', str)
 
     def __str__(self):
@@ -45,9 +45,9 @@ class BaseVideo(CapBaseObject):
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('title', (str,unicode), title)
-        self.add_field('url', (str,unicode), url)
-        self.add_field('author', (str,unicode), author)
+        self.add_field('title', basestring, title)
+        self.add_field('url', basestring, url)
+        self.add_field('author', basestring, author)
         self.add_field('duration', (int,long,timedelta), duration)
         self.add_field('date', datetime, date)
         self.add_field('rating', (int,long,float), rating)

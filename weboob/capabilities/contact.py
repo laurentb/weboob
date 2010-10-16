@@ -36,11 +36,11 @@ class ProfileNode(object):
 class ContactPhoto(CapBaseObject):
     def __init__(self, name):
         CapBaseObject.__init__(self, name)
-        self.add_field('name', (str,unicode), name)
-        self.add_field('url', (str,unicode))
+        self.add_field('name', basestring, name)
+        self.add_field('url', basestring)
         self.add_field('data', str)
-        self.add_field('thumbnail_url', (str,unicode))
-        self.add_field('thumbnail_data', (str,unicode))
+        self.add_field('thumbnail_url', basestring)
+        self.add_field('thumbnail_data', basestring)
 
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
@@ -61,10 +61,10 @@ class Contact(CapBaseObject):
 
     def __init__(self, id, name, status):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', (str,unicode), name)
+        self.add_field('name', basestring, name)
         self.add_field('status', int, status)
-        self.add_field('status_msg', (str,unicode))
-        self.add_field('summary', (str,unicode))
+        self.add_field('status_msg', basestring)
+        self.add_field('summary', basestring)
         self.add_field('photos', dict, OrderedDict())
         self.add_field('profile', list)
 

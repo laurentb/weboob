@@ -43,13 +43,13 @@ class Message(CapBaseObject):
                        flags=0):
         CapBaseObject.__init__(self, id)
         self.add_field('thread', Thread, thread)
-        self.add_field('title', (str,unicode), title)
-        self.add_field('sender', (str,unicode), sender)
-        self.add_field('receiver', (str,unicode), receiver)
+        self.add_field('title', basestring, title)
+        self.add_field('sender', basestring, sender)
+        self.add_field('receiver', basestring, receiver)
         self.add_field('date', datetime.datetime, date)
         self.add_field('parent', Message, parent)
-        self.add_field('content', (str,unicode), content)
-        self.add_field('signature', (str,unicode), signature)
+        self.add_field('content', basestring, content)
+        self.add_field('signature', basestring, signature)
         self.add_field('children', list, children)
         self.add_field('flags', int, flags)
 
@@ -94,7 +94,7 @@ class Thread(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('root', Message)
-        self.add_field('title', (str,unicode))
+        self.add_field('title', basestring)
         self.add_field('date', datetime.datetime)
         self.add_field('nb_messages', int)
         self.add_field('nb_unread', int)

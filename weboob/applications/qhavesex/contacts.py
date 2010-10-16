@@ -244,7 +244,7 @@ class ContactProfile(QWidget):
         elif isinstance(node.value, tuple):
             value = QLabel(', '.join([unicode(s) for s in node.value]))
             value.setWordWrap(True)
-        elif isinstance(node.value, (str,unicode,int,long,float)):
+        elif isinstance(node.value, (basestring,int,long,float)):
             value = QLabel(unicode(node.value))
         else:
             logging.warning('Not supported value: %r' % node.value)
