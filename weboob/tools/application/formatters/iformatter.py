@@ -18,13 +18,32 @@
 
 import os
 import sys
+try:
+    import tty, termios
+except ImportError:
+    PROMPT = '--Press return to continue--'
+    def readch():
+        return sys.stdin.readline()
+else:
+    PROMPT = '--Press a key to continue--'
+    def readch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        tty.setraw(fd)
+        try:
+            c = sys.stdin.read(1)
+            # XXX do not read magic number
+            if c == '\x03':
+                raise KeyboardInterrupt()
+            return c
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['IFormatter']
-
 
 class IFormatter(object):
     def __init__(self, display_keys=True, display_header=True, return_only=False):
@@ -34,19 +53,16 @@ class IFormatter(object):
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
-        self.termcols = 0
         if os.isatty(sys.stdout.fileno()):
-            size = os.popen('stty size', 'r').read().split()
-            self.termrows = int(size[0])
-            self.termcols = int(size[1])
+            self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
     def after_format(self, formatted):
         for line in formatted.split('\n'):
             if self.termrows and (self.print_lines + 1) >= self.termrows:
-                prompt = '--Press return to continue--'
-                sys.stdout.write(prompt)
+                sys.stdout.write(PROMPT)
                 sys.stdout.flush()
-                r = sys.stdin.readline()
+                readch()
+                sys.stdout.write('\b \b' * len(PROMPT))
                 self.print_lines = 0
 
             if isinstance(line, unicode):
