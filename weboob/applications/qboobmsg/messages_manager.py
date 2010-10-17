@@ -18,7 +18,7 @@
 import time
 import logging
 
-from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox
+from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox, QBrush
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
@@ -130,6 +130,10 @@ class MessagesManager(QWidget):
         item = QTreeWidgetItem(None, [message.title or '', message.sender or 'Unknown',
                                       time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple())])
         item.setData(0, Qt.UserRole, message)
+        if message.flags & message.IS_UNREAD:
+            item.setForeground(0, QBrush(Qt.darkYellow))
+            item.setForeground(1, QBrush(Qt.darkYellow))
+            item.setForeground(2, QBrush(Qt.darkYellow))
 
         top.addChild(item)
 
@@ -139,9 +143,9 @@ class MessagesManager(QWidget):
     def _messageSelected(self, item, column):
         message = item.data(0, Qt.UserRole).toPyObject()
 
-        self.showMessage(message)
+        self.showMessage(message, item)
 
-    def showMessage(self, message):
+    def showMessage(self, message, item=None):
         backend = self.weboob.get_backend(message.thread.backend)
         if backend.has_caps(ICapMessagesPost):
             self.ui.replyButton.setEnabled(True)
@@ -171,6 +175,13 @@ class MessagesManager(QWidget):
                                     "%s"
                                     "<p>%s</p>"
                                     % (message.title, str(message.date), message.sender, extra, content))
+
+        if item and message.flags & message.IS_UNREAD:
+            backend.set_message_read(message)
+            message.flags &= ~message.IS_UNREAD
+            item.setForeground(0, QBrush())
+            item.setForeground(1, QBrush())
+            item.setForeground(2, QBrush())
 
     def displayReply(self):
         self.ui.replyButton.setText(self.tr('Cancel'))
