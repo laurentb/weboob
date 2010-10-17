@@ -19,6 +19,7 @@ import os
 import sys
 import tempfile
 
+from weboob.core.bcall import CallErrors
 from weboob.capabilities.content import ICapContent
 from weboob.tools.application.repl import ReplApplication
 
@@ -79,20 +80,26 @@ class WebContentEdit(ReplApplication):
             print 'No changes. Abort.'
             return
 
-        message = self.ask('Enter a commit message')
-
         print 'Contents changed:\n%s' % ('\n'.join([' * %s' % content.id for content in contents]))
+
+        message = self.ask('Enter a commit message')
 
         if not self.ask('Do you want to push?', default=True):
             return
 
+        errors = CallErrors([])
         for content in contents:
+            path = [path for path, c in paths.iteritems() if c == content][0]
             sys.stdout.write('Pushing %s...' % content.id)
             sys.stdout.flush()
             try:
-                backend = self.weboob.get_backend(content.backend)
-                backend.push_content(content, message)
-            except Exception:
-                sys.stdout.write(' error\n')
-                raise
-            sys.stdout.write(' done\n')
+                self.do('push_content', content, message, backends=[content.backend]).wait()
+            except CallErrors, e:
+                errors.errors += e.errors
+                sys.stdout.write(' error (content saved in %s)\n' % path)
+            else:
+                sys.stdout.write(' done\n')
+                os.unlink(path)
+
+        if len(errors.errors) > 0:
+            raise errors

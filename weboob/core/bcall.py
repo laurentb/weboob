@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 from copy import copy
-import logging
 from logging import debug
 from threading import Thread, Event, RLock, Timer
 
@@ -32,16 +31,11 @@ __all__ = ['BackendsCall', 'CallErrors']
 
 class CallErrors(Exception):
     def __init__(self, errors):
-        Exception.__init__(self, u'These errors have been raised in backend threads '\
-                           '(use --debug option to print backtraces):\n%s' % (
-            u'\n'.join((u' * %s: %s%s' % (backend.name, repr(error), backtrace.decode('utf-8') + '\n'
-                                          if logging.root.level == logging.DEBUG else ''))
-                       for backend, error, backtrace in errors)))
+        Exception.__init__(self, 'Errors during backend calls')
         self.errors = copy(errors)
 
     def __iter__(self):
         return self.errors.__iter__()
-
 
 class BackendsCall(object):
     def __init__(self, backends, function, *args, **kwargs):
