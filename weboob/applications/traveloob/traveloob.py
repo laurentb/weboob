@@ -30,6 +30,7 @@ class Traveloob(ReplApplication):
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapTravel
+    DEFAULT_FORMATTER = 'table'
 
     def do_stations(self, pattern):
         """
