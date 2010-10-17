@@ -21,7 +21,7 @@ import logging
 from PyQt4.QtGui import QWidget, QTreeWidgetItem, QListWidgetItem, QMessageBox
 from PyQt4.QtCore import SIGNAL, Qt
 
-from weboob.capabilities.messages import ICapMessages, Message
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
 from weboob.tools.application.qt import QtDo
 
 from .ui.messages_manager_ui import Ui_MessagesManager
@@ -142,7 +142,9 @@ class MessagesManager(QWidget):
         self.showMessage(message)
 
     def showMessage(self, message):
-        self.ui.replyButton.setEnabled(True)
+        backend = self.weboob.get_backend(message.thread.backend)
+        if backend.has_caps(ICapMessagesPost):
+            self.ui.replyButton.setEnabled(True)
         self.message = message
 
         if message.title.startswith('Re:'):
