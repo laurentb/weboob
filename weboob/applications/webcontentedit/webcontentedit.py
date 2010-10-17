@@ -62,7 +62,11 @@ class WebContentEdit(ReplApplication):
                     data = data.encode('utf-8')
                 f.write(data)
             paths[path] = content
-        os.system("$EDITOR -p %s" % ' '.join(paths.iterkeys()))
+
+        params = ''
+        if os.environ['EDITOR'] == 'vim':
+            params = '-p'
+        os.system("$EDITOR %s %s" % (params, ' '.join(paths.iterkeys())))
 
         for path, content in paths.iteritems():
             with open(path, 'r') as f:
