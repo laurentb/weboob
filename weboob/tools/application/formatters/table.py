@@ -18,6 +18,8 @@
 
 from prettytable import PrettyTable
 
+from weboob.capabilities.base import NotLoaded, NotAvailable
+
 from .iformatter import IFormatter
 
 
@@ -30,17 +32,32 @@ class TableFormatter(IFormatter):
     def __init__(self, display_keys=True, return_only=False):
         IFormatter.__init__(self, display_keys=display_keys, return_only=return_only)
         self.queue = []
+        self.keys = None
         self.header = None
-        self.column_headers = None
 
     def after_format(self, formatted):
-        if self.column_headers is None:
-            self.column_headers = formatted.keys()
+        if self.keys is None:
+            self.keys = formatted.keys()
         self.queue.append(formatted.values())
 
     def flush(self):
-        if self.column_headers is None:
-            return None
+        if len(self.queue) == 0:
+            return
+
+        queue = [() for i in xrange(len(self.queue))]
+        column_headers = []
+        # Do not display columns when all values are NotLoaded or NotAvailable
+        for i in xrange(len(self.keys)):
+            available = False
+            for line in self.queue:
+                if line[i] is not NotLoaded and line[i] is not NotAvailable:
+                    available = True
+                    break
+            if available:
+                column_headers.append(self.keys[i].capitalize().replace('_', ' '))
+                for j in xrange(len(self.queue)):
+                    queue[j] += (self.queue[j][i],)
+
         s = ''
         if self.display_header and self.header:
             if self.HTML:
@@ -48,17 +65,16 @@ class TableFormatter(IFormatter):
             else:
                 s += self.header
             s += "\n"
-        table = PrettyTable(list(self.column_headers))
-        for column_header in self.column_headers:
+        table = PrettyTable(list(column_headers))
+        for column_header in column_headers:
             table.set_field_align(column_header, 'l')
-        for line in self.queue:
+        for line in queue:
             table.add_row(line)
 
         if self.HTML:
             s += table.get_html_string()
         else:
             s += table.get_string()
-        self.queue = []
         if self.return_only:
             return s
         else:
