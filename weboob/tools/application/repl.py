@@ -64,7 +64,13 @@ class ReplApplication(Cmd, BaseApplication):
 
     def __init__(self):
         Cmd.__init__(self)
-        self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
+        # XXX can't use bold prompt because:
+        # 1. it causes problems when trying to get history (lines don't start
+        #    at the right place).
+        # 2. when typing a line longer than term width, cursor goes at start
+        #    of the same line instead of new line.
+        #self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
+        self.prompt = '%s> ' % self.APPNAME
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
                                 '%s' % self.COPYRIGHT,

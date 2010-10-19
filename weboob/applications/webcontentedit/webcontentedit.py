@@ -47,7 +47,7 @@ class WebContentEdit(ReplApplication):
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
-            print >>sys.stderr, 'No content for the ID "%s"' % id
+            print >>sys.stderr, 'No contents found'
             return 1
 
         paths = {}
