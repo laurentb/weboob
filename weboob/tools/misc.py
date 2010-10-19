@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from logging import warning
 from dateutil import tz
 import sys
 import traceback
@@ -60,6 +61,7 @@ try:
     h2t.SKIP_INTERNAL_LINKS = True
     html2text = h2t.html2text
 except ImportError:
+    warning('python-html is not present. HTML pages will not be converted into text.')
     def html2text(s):
         return s
 
