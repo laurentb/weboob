@@ -17,7 +17,7 @@
 
 from __future__ import with_statement
 
-from datetime import datetime
+import datetime
 from dateutil import tz
 from logging import warning, debug
 
@@ -50,6 +50,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
               'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
               'register':      BaseBackend.ConfigField(description='Register as new account?', default=False),
+              'sex':           BaseBackend.ConfigField(description='Sex of new the account owner', default='m',
+                                                       choices=('m', 'f')),
+              'age':           BaseBackend.ConfigField(description='Age of new the account owner', default=25),
+              'godfather':     BaseBackend.ConfigField(description='Godfather of new the account owner', default=''),
               'antispam':      BaseBackend.ConfigField(description='Enable anti-spam', default=False),
              }
     STORAGE = {'profiles_walker': {'viewed': []},
@@ -69,17 +73,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def create_default_browser(self):
         if self.config['register']:
             browser = None
+            birthday = datetime.datetime.now() - datetime.timedelta(int(self.config['age']) * 365)
             while not browser:
                 try:
                     browser = self.create_browser(self.config['username'])
                     browser.register(password=   self.config['password'],
-                                     sex=        0,
-                                     birthday_d= 1,
-                                     birthday_m= 1,
-                                     birthday_y= 1970,
+                                     sex=        0 if self.config['sex'] == 'm' else 1,
+                                     birthday_d= birthday.day,
+                                     birthday_m= birthday.month,
+                                     birthday_y= birthday.year,
                                      zipcode=    75001,
                                      country=    'fr',
-                                     godfather=  '')
+                                     godfather=  self.config['godfather'])
                 except CaptchaError:
                     debug('Unable to resolve captcha. Retrying...')
                     browser = None
@@ -268,7 +273,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def _get_slut(self, id):
         sluts = self.storage.get('sluts')
         if not sluts or not id in sluts:
-            slut = {'lastmsg': datetime(1970,1,1),
+            slut = {'lastmsg': datetime.datetime(1970,1,1),
                     'msgstatus': ''}
         else:
             slut = self.storage.get('sluts', id)

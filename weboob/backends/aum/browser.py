@@ -28,6 +28,7 @@ from weboob.tools.parsers.html5libparser import Html5libParser
 
 from weboob.backends.aum.exceptions import AdopteWait
 
+from weboob.backends.aum.pages.account import AccountPage
 from weboob.backends.aum.pages.home import HomePage
 from weboob.backends.aum.pages.contact_list import ContactListPage
 from weboob.backends.aum.pages.contact_thread import ContactThreadPage
@@ -74,6 +75,7 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/catalogue-hommes/(.*)/([0-9]+)': ProfilePage,
              'http://www.adopteunmec.com/view2.php': ProfilePage, # my own profile
              'http://www.adopteunmec.com/(\w+)': ProfilePage, # a custom profile url
+             'http://www.adopteunmec.com/account.php': AccountPage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -104,11 +106,14 @@ class AuMBrowser(BaseBrowser):
             return func(self, *args, **kwargs)
         return inner
 
-    def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=''):
+    def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=None):
         if not self.is_on_page(RegisterPage):
             self.location('http://www.adopteunmec.com/register2.php')
-
-        return self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country)
+        self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country)
+        if godfather:
+            if not self.is_on_page(AccountPage):
+                self.location('http://www.adopteunmec.com/account.php')
+            self.page.set_godfather(godfather)
 
     @pageaccess
     def add_photo(self, name, f):
