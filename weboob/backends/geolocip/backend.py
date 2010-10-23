@@ -29,7 +29,7 @@ __all__ = ['GeolocIpBackend']
 class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation"

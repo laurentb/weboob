@@ -43,7 +43,7 @@ __all__ = ['AuMBackend']
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"“Adopte un mec” french dating website"

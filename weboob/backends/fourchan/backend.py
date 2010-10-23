@@ -32,7 +32,7 @@ __all__ = ['FourChanBackend']
 class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"

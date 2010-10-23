@@ -27,7 +27,7 @@ __all__ = ['GazelleBackend']
 class GazelleBackend(BaseBackend, ICapTorrent):
     NAME = 'gazelle'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'

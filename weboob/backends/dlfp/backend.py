@@ -31,7 +31,7 @@ __all__ = ['DLFPBackend']
 class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"

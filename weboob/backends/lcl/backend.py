@@ -28,7 +28,7 @@ __all__ = ['LCLBackend']
 class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'

@@ -31,7 +31,7 @@ __all__ = ['ArteBackend']
 class ArteBackend(BaseBackend, ICapVideo):
     NAME = 'arte'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'

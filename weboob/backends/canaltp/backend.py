@@ -27,7 +27,7 @@ __all__ = ['CanalTPBackend']
 class CanalTPBackend(BaseBackend, ICapTravel):
     NAME = 'canaltp'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = "French trains"

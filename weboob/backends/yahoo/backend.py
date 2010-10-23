@@ -32,7 +32,7 @@ __all__ = ['YahooBackend']
 class YahooBackend(BaseBackend, ICapWeather):
     NAME = 'yahoo'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = 'Yahoo'
     LICENSE = 'GPLv3'

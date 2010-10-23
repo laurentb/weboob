@@ -30,7 +30,7 @@ __all__ = ['OuiFMBackend']
 class OuiFMBackend(BaseBackend, ICapRadio):
     NAME = 'ouifm'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = u'The Ouï FM french radio'
     LICENSE = 'GPLv3'

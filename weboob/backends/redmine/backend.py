@@ -30,7 +30,7 @@ __all__ = ['RedmineBackend']
 class RedmineBackend(BaseBackend, ICapContent):
     NAME = 'redmine'
     MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@peerfuse.org'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'GPLv3'
