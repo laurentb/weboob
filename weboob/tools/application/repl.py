@@ -340,6 +340,10 @@ class ReplApplication(Cmd, BaseApplication):
                     if not msg:
                         msg = 'website is unavailable.'
                     print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
+                elif isinstance(error, NotImplementedError):
+                    print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
+                    print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
+                    print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
                 else:
                     print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
                     if logging.root.level == logging.DEBUG:
