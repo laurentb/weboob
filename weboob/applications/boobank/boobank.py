@@ -19,9 +19,46 @@ from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['Boobank']
+
+class AccountListFormatter(IFormatter):
+    count = 0
+    tot_balance = 0
+    tot_coming = 0
+
+
+    def flush(self):
+        result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
+        result +=u'%s                                    Total   %8s   %8s' % (('-' * 15) if not self.interactive else '',
+                                                                               '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
+        self.after_format(result)
+        self.tot_balance = 0
+        self.tot_coming = 0
+        self.count = 0
+
+    def format_dict(self, item):
+        self.count += 1
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            id = '#%d (%s)' % (self.count, backend)
+        else:
+            id = item['id']
+
+        result = u''
+        if self.count == 1:
+            result += '               %s  Account                     Balance    Coming \n' % ((' ' * 15) if not self.interactive else '')
+            result += '------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
+        result += (u' %s%-' + (u'15' if self.interactive else '30') + u's%s %-25s  %8s   %8s') % \
+                             (ReplApplication.BOLD, id, ReplApplication.NC,
+                              item['label'], '%.2f' % item['balance'], '%.2f' % item['coming'])
+
+        self.tot_balance += item['balance']
+        if item['coming']:
+            self.tot_coming += item['coming']
+        return result
 
 
 class Boobank(ReplApplication):
@@ -29,8 +66,11 @@ class Boobank(ReplApplication):
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
+    EXTRA_FORMATTERS = {'account_list': AccountListFormatter}
     DEFAULT_FORMATTER = 'table'
-    COMMANDS_FORMATTERS = {'transfer':    'multiline'}
+    COMMANDS_FORMATTERS = {'transfer':    'multiline',
+                           'list':        'account_list',
+                          }
 
     accounts = []
 
@@ -49,11 +89,6 @@ class Boobank(ReplApplication):
             if account.coming:
                 tot_coming += account.coming
             self.accounts.append(account)
-        else:
-            self.format((('id',     ''),
-                         ('label', 'Total'),
-                         ('balance', tot_balance),
-                         ('coming', tot_coming)))
         self.flush()
 
     def _complete_account(self, exclude=None):
@@ -65,6 +100,16 @@ class Boobank(ReplApplication):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_account()
+
+    def parse_id(self, id):
+        if self.interactive:
+            try:
+                account = self.accounts[int(id) - 1]
+            except (IndexError,ValueError):
+                pass
+            else:
+                return account.id, account.backend
+        return ReplApplication.parse_id(self, id)
 
     def do_history(self, id):
         """
