@@ -26,17 +26,17 @@ __all__ = ['Boobank']
 
 class AccountListFormatter(IFormatter):
     count = 0
-    tot_balance = 0
-    tot_coming = 0
+    tot_balance = 0.0
+    tot_coming = 0.0
 
 
     def flush(self):
         result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
-        result +=u'%s                                    Total   %8s   %8s' % (('-' * 15) if not self.interactive else '',
+        result +=u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
                                                                                '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
         self.after_format(result)
-        self.tot_balance = 0
-        self.tot_coming = 0
+        self.tot_balance = 0.0
+        self.tot_coming = 0.0
         self.count = 0
 
     def format_dict(self, item):
@@ -53,7 +53,7 @@ class AccountListFormatter(IFormatter):
             result += '------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
         result += (u' %s%-' + (u'15' if self.interactive else '30') + u's%s %-25s  %8s   %8s') % \
                              (ReplApplication.BOLD, id, ReplApplication.NC,
-                              item['label'], '%.2f' % item['balance'], '%.2f' % item['coming'])
+                              item['label'], '%.2f' % item['balance'], '%.2f' % (item['coming'] or 0.0))
 
         self.tot_balance += item['balance']
         if item['coming']:
