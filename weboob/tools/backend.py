@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import re
 import os
 from threading import RLock
 from logging import debug
@@ -72,7 +71,7 @@ class BaseBackend(object):
     # Icon file path
     ICON = None
     # Configuration required for this backend.
-    # Values must be ConfigField objects.
+    # Values must be weboob.tools.value.Value objects.
     CONFIG = {}
     # Storage
     STORAGE = {}
@@ -84,14 +83,6 @@ class BaseBackend(object):
     # When the method is called, fields are only the one which are
     # NOT yet filled.
     OBJECTS = {}
-
-    class ConfigField(object):
-        def __init__(self, default=None, is_masked=False, regexp=None, description=None, choices=None):
-            self.default = default
-            self.is_masked = is_masked
-            self.regexp = regexp
-            self.description = description
-            self.choices = choices
 
     class ConfigError(Exception): pass
 
@@ -115,29 +106,20 @@ class BaseBackend(object):
         # Configuration of backend
         self.config = {}
         for name, field in self.CONFIG.iteritems():
-            value = config.get(name, field.default)
+            value = config.get(name, None)
 
             if value is None:
-                raise BaseBackend.ConfigError('Missing parameter "%s" (%s)' % (name, field.description))
+                if field.required:
+                    raise BaseBackend.ConfigError('Backend(%s): Configuration error: Missing parameter "%s" (%s)' % (self.name, name, field.description))
+                value = field.default
 
-            if field.regexp and not re.match(field.regexp, str(value)):
-                raise BaseBackend.ConfigError('Value of "%s" does not match regexp "%s"' % (name, field.regexp))
+            try:
+                field.set_value(value)
+            except ValueError, v:
+                raise BaseBackend.ConfigError('Backend(%s): Configuration error for field "%s": %s' % (self.name, name, v))
 
-            if not field.default is None:
-                if isinstance(field.default, bool) and not isinstance(value, bool):
-                    value = value.lower() in ('1', 'true', 'on', 'yes')
-                elif isinstance(field.default, int) and not isinstance(value, int):
-                    value = int(value)
-                elif isinstance(field.default, float) and not isinstance(value, float):
-                    value = float(value)
-
-            if field.choices:
-                if (isinstance(field.choices, (tuple,list)) and not value in field.choices) or \
-                   (isinstance(field.choices, dict) and not value in field.choices.iterkeys()):
-                    raise BaseBackend.ConfigError('Value of "%s" might be in this list: %s' % (name,
-                                                  ', '.join([s for s in (field.choices.iterkeys() if isinstance(field.choices, dict)
-                                                                                                  else field.choices)])))
-            self.config[name] = value
+            # field.value is a property which converts string to right type (bool/int/float)
+            self.config[name] = field.value
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
 

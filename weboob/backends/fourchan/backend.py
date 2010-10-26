@@ -22,6 +22,7 @@ from logging import warning
 
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import Value, ValuesDict
 
 from .browser import FourChan
 
@@ -36,8 +37,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
-    CONFIG = {'boards': BaseBackend.ConfigField(description='Boards'),
-             }
+    CONFIG = ValuesDict(Value('boards', label='Boards to fetch'))
     STORAGE = {'boards': {}}
     BROWSER = FourChan
 

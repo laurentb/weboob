@@ -19,6 +19,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import BPbrowser
 
@@ -29,9 +30,8 @@ class BPBackend(BaseBackend, ICapBank):
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'La banque postale, French bank'
-    CONFIG = {'login':  BaseBackend.ConfigField(description='Account ID'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True)
-             }
+    CONFIG = ValuesDict(Value('login',    label='Account ID'),
+                        Value('password', label='Password', masked=True))
     BROWSER = BPbrowser
 
     def create_default_browser(self):

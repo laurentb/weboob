@@ -19,8 +19,10 @@
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.newsfeed import Newsfeed
+from weboob.tools.value import Value, ValuesDict
 
 
+__all__ = ['NewsfeedBackend']
 
 
 class NewsfeedBackend(BaseBackend, ICapMessages):
@@ -30,7 +32,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     VERSION = "0.3"
     DESCRIPTION = "Loads RSS and Atom feeds from any websites"
     LICENSE = "GPLv3"
-    CONFIG = {'url': BaseBackend.ConfigField(description="Atom/RSS feed's url"),}
+    CONFIG = ValuesDict(Value('url', label="Atom/RSS feed's url"))
     STORAGE = {'seen': []}
 
 

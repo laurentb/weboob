@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 from weboob.capabilities.content import ICapContent, Content
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import RedmineBrowser
 
@@ -34,10 +35,9 @@ class RedmineBackend(BaseBackend, ICapContent):
     VERSION = '0.3'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'GPLv3'
-    CONFIG = {'url':      BaseBackend.ConfigField(description='URL of the Redmine'),
-              'username': BaseBackend.ConfigField(description='Login'),
-              'password': BaseBackend.ConfigField(description='Password', is_masked=True),
-             }
+    CONFIG = ValuesDict(Value('url',      label='URL of the Redmine website'),
+                        Value('username', label='Login'),
+                        Value('password', label='Password', masked=True))
     BROWSER = RedmineBrowser
 
     def create_default_browser(self):

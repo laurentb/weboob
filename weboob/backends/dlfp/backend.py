@@ -19,6 +19,7 @@ from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
+from weboob.tools.value import Value, ValueBool, ValuesDict
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import DLFP
@@ -35,11 +36,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
-    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website', regexp='.+'),
-              'password':      BaseBackend.ConfigField(description='Password of account', regexp='.+', is_masked=True),
-              'get_news':      BaseBackend.ConfigField(default=True, description='Get newspapers'),
-              'get_telegrams': BaseBackend.ConfigField(default=False, description='Get telegrams'),
-             }
+    CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
+                        Value('password',          label='Password', regexp='.+', masked=True),
+                        ValueBool('get_news',      label='Get newspapers', default=True),
+                        ValueBool('get_telegrams', label='Get telegrams', default=False))
     STORAGE = {'seen': {}}
     BROWSER = DLFP
     RSS_TELEGRAMS= "https://linuxfr.org/backend/journaux/rss20.rss"

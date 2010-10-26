@@ -18,6 +18,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import LCLBrowser
 
@@ -32,10 +33,9 @@ class LCLBackend(BaseBackend, ICapBank):
     VERSION = '0.3'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
-    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'agency':   BaseBackend.ConfigField(description='Agency code', regexp='^\d{1,3}$'),
-             }
+    CONFIG = ValuesDict(Value('login',    label='Account ID'),
+                        Value('password', label='Password of account', masked=True),
+                        Value('agency',   label='Agency code', regexp='^\d{1,3}$'))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):

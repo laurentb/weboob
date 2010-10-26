@@ -18,8 +18,12 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import Cragr
+
+
+__all__ = ['CragrBackend']
 
 
 class CragrBackend(BaseBackend, ICapBank):
@@ -29,10 +33,9 @@ class CragrBackend(BaseBackend, ICapBank):
     VERSION = '0.3'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
-    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'website':  BaseBackend.ConfigField(description='What website to use', default='m.lefil.com'),
-             }
+    CONFIG = ValuesDict(Value('website',  label='Website to use', default='m.lefil.com'),
+                        Value('login',    label='Account ID'),
+                        Value('password', label='Password', masked=True))
     BROWSER = Cragr
 
     def create_default_browser(self):

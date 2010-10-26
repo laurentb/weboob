@@ -21,6 +21,7 @@ from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.value import ValuesDict, Value
 
 
 __all__ = ['GeolocIpBackend']
@@ -33,9 +34,8 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation"
-    CONFIG = {'email':         BaseBackend.ConfigField(description='Username on website'),
-              'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
-             }
+    CONFIG = ValuesDict(Value('email',   label='Username'),
+                        Value('password',label='Password', masked=True))
     BROWSER = BaseBrowser
 
     def create_default_browser(self):

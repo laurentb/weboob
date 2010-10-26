@@ -18,6 +18,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import BNPorc
 
@@ -32,13 +33,12 @@ class BNPorcBackend(BaseBackend, ICapBank):
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = 'BNP Paribas french bank\' website'
-    CONFIG = {'login':    BaseBackend.ConfigField(description='Account ID'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'rotating_password': BaseBackend.ConfigField(
-                           description='Password to set when the allowed uses are exhausted (6 digits)',
-                           default='',
-                           regexp='^(\d{6}|)$'),
-             }
+    CONFIG = ValuesDict(Value('login',      label='Account ID'),
+                        Value('password',   label='Password', masked=True),
+                        Value('rotating_password',
+                              label='Password to set when the allowed uses are exhausted (6 digits)',
+                              default='',
+                              regexp='^(\d{6}|)$'))
     BROWSER = BNPorc
 
     def create_default_browser(self):

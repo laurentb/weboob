@@ -17,6 +17,7 @@
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.backend import BaseBackend
+from weboob.tools.value import ValuesDict, Value
 
 from .browser import GazelleBrowser
 
@@ -31,11 +32,10 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     VERSION = '0.3'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'
-    CONFIG = {'username': BaseBackend.ConfigField(description='Username on website'),
-              'password': BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'protocol': BaseBackend.ConfigField(description='Protocol to use', choices=('http', 'https')),
-              'domain': BaseBackend.ConfigField(description='Domain (example "ssl.what.cd")'),
-             }
+    CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
+                        Value('protocol', label='Protocol to use', choices=('http', 'https')),
+                        Value('username', label='Username'),
+                        Value('password', label='Password', masked=True))
     BROWSER = GazelleBrowser
 
     def create_default_browser(self):
