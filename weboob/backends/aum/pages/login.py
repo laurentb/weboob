@@ -18,7 +18,9 @@
 
 import re
 
+from weboob.tools.mech import ClientForm
 from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.capabilities.account import AccountRegisterError
 
 from .base import PageBase
 from ..captcha import Captcha
@@ -30,9 +32,6 @@ class LoginPage(PageBase):
         self.browser['password'] = password
 
         self.browser.submit()  # submit current form
-
-class RegisterError(Exception):
-    pass
 
 class RegisterPage(PageBase):
     def on_loaded(self):
@@ -52,7 +51,7 @@ class RegisterPage(PageBase):
                     for m in re.finditer('"(\w+)": "(.*)",', child.data):
                         errors.append(m.group(2))
 
-        raise RegisterError(u'Unable to register account: %s' % ', '.join(errors))
+        raise AccountRegisterError(u'Unable to register account: %s' % ', '.join(errors))
 
     def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country):
         """
@@ -77,11 +76,20 @@ Form name=register (#1)
         self.browser.select_form(name='register')
         self.browser.set_all_readonly(False)
 
-        self.browser['sex'] = [str(sex)]
-        self.browser['birthday0'] = [str(birthday_d)]
-        self.browser['birthday1'] = [str(birthday_m)]
-        self.browser['birthday2'] = [str(birthday_y)]
-        self.browser['country'] = [str(country)]
+        try:
+            self.browser['sex'] = [str(sex)]
+        except ClientForm.ItemNotFoundError:
+            raise AccountRegisterError('Please give a right sex! (1 or 0)')
+        try:
+            self.browser['birthday0'] = [str(birthday_d)]
+            self.browser['birthday1'] = [str(birthday_m)]
+            self.browser['birthday2'] = [str(birthday_y)]
+        except ClientForm.ItemNotFoundError:
+            raise AccountRegisterError('Please give a right birthday date!')
+        try:
+            self.browser['country'] = [str(country)]
+        except ClientForm.ItemNotFoundError:
+            raise AccountRegisterError('Please select a right country!')
         self.browser['zip'] = str(zipcode)
         self.browser['email'] = self.browser.username
         self.browser['pass'] = password

@@ -26,8 +26,10 @@ from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, StatusField
 from weboob.capabilities.contact import ICapContact, Contact, ProfileNode
+from weboob.capabilities.account import ICapAccount, Account
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
+from weboob.tools.value import Value, ValuesDict, ValueBool
 
 from .captcha import CaptchaError
 from .antispam import AntiSpam
@@ -40,22 +42,16 @@ from .optim.visibility import Visibility
 __all__ = ['AuMBackend']
 
 
-class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact):
+class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact, ICapAccount):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.3'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"“Adopte un mec” french dating website"
-    CONFIG = {'username':      BaseBackend.ConfigField(description='Username on website'),
-              'password':      BaseBackend.ConfigField(description='Password of account', is_masked=True),
-              'register':      BaseBackend.ConfigField(description='Register as new account?', default=False),
-              'sex':           BaseBackend.ConfigField(description='Sex of new the account owner', default='m',
-                                                       choices=('m', 'f')),
-              'age':           BaseBackend.ConfigField(description='Age of new the account owner', default=25),
-              'godfather':     BaseBackend.ConfigField(description='Godfather of new the account owner', default=''),
-              'antispam':      BaseBackend.ConfigField(description='Enable anti-spam', default=False),
-             }
+    CONFIG = ValuesDict(Value('username',     label='Username'),
+                        Value('password',     label='Password', masked=True),
+                        ValueBool('antispam', label='Enable anti-spam', default=False))
     STORAGE = {'profiles_walker': {'viewed': []},
                'sluts': {},
               }
@@ -71,33 +67,19 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             self.antispam = None
 
     def create_default_browser(self):
-        if self.config['register']:
-            browser = None
-            birthday = datetime.datetime.now() - datetime.timedelta(int(self.config['age']) * 365)
-            while not browser:
-                try:
-                    browser = self.create_browser(self.config['username'])
-                    browser.register(password=   self.config['password'],
-                                     sex=        0 if self.config['sex'] == 'm' else 1,
-                                     birthday_d= birthday.day,
-                                     birthday_m= birthday.month,
-                                     birthday_y= birthday.year,
-                                     zipcode=    75001,
-                                     country=    'fr',
-                                     godfather=  self.config['godfather'])
-                except CaptchaError:
-                    debug('Unable to resolve captcha. Retrying...')
-                    browser = None
-            browser.password = self.config['password']
-            return browser
-        else:
-            return self.create_browser(self.config['username'], self.config['password'])
+        return self.create_browser(self.config['username'], self.config['password'])
 
     def report_spam(self, id, suppr_id=None):
         if suppr_id:
             self.browser.delete_thread(suppr_id)
         self.browser.report_fake(id)
         pass
+
+    # ---- ICapDating methods ---------------------
+
+    def init_optimizations(self):
+        self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
+        self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
 
     def get_status(self):
         with self.browser:
@@ -109,6 +91,11 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                        )
             except AdopteWait:
                 return (StatusField('notice', '', u'<h3>You are currently waiting 1am to be able to connect with this account</h3>', StatusField.FIELD_HTML|StatusField.FIELD_TEXT))
+
+    # ---- ICapMessages methods ---------------------
+
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
 
     def iter_threads(self):
         with self.browser:
@@ -281,9 +268,26 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         slut['lastmsg'] = slut['lastmsg'].replace(tzinfo=tz.tzutc())
         return slut
 
+    # ---- ICapMessagesPost methods ---------------------
+
     def post_message(self, message):
         with self.browser:
             self.browser.post_mail(message.thread.id, message.content)
+
+    # ---- ICapContact methods ---------------------
+
+    def fill_contact(self, contact, fields):
+        if 'profile' in fields:
+            contact = self.get_contact(contact)
+        if contact and 'photos' in fields:
+            for name, photo in contact.photos.iteritems():
+                with self.browser:
+                    if photo.url:
+                        data = self.browser.openurl(photo.url).read()
+                        contact.set_photo(name, data=data)
+                    if photo.thumbnail_url:
+                        data = self.browser.openurl(photo.thumbnail_url).read()
+                        contact.set_photo(name, thumbnail_data=data)
 
     def get_contact(self, contact):
         with self.browser:
@@ -326,10 +330,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
             return contact
 
-    def init_optimizations(self):
-        self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
-        self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
-
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
             for contact in self.browser.iter_contacts():
@@ -352,6 +352,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
                 yield c
 
+    # ---- ICapChat methods ---------------------
+
     def iter_chat_messages(self, _id=None):
         with self.browser:
             return self.browser.iter_chat_messages(_id)
@@ -363,21 +365,56 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
 
-    def fill_contact(self, contact, fields):
-        if 'profile' in fields:
-            contact = self.get_contact(contact)
-        if contact and 'photos' in fields:
-            for name, photo in contact.photos.iteritems():
-                with self.browser:
-                    if photo.url:
-                        data = self.browser.openurl(photo.url).read()
-                        contact.set_photo(name, data=data)
-                    if photo.thumbnail_url:
-                        data = self.browser.openurl(photo.thumbnail_url).read()
-                        contact.set_photo(name, thumbnail_data=data)
+    # ---- ICapAccount methods ---------------------
 
-    def fill_thread(self, thread, fields):
-        return self.get_thread(thread)
+    ACCOUNT_REGISTER_PROPERTIES = ValuesDict(
+                Value('username', label='Email address', regexp='^[^ ]+@[^ ]+\.[^ ]+$'),
+                Value('password', label='Password', regexp='^[^ ]+$', masked=True),
+                Value('sex',      label='Sex', choices={'0': 'Male', '1': 'Female'}),
+                Value('birthday', label='Birthday', regexp='^\d+/\d+/\d+$'),
+                Value('zipcode',  label='Zipcode'),
+                Value('country',  label='Country', choices={'fr': 'France', 'be': 'Belgique', 'ch': 'Suisse', 'ca': 'Canada'}, default='fr'),
+                Value('godfather',label='Godfather', regexp='^\d*$', default=''),
+               )
+
+    @classmethod
+    def register_account(klass, account):
+        """
+        Register an account on website
+
+        This is a static method, it would be called even if the backend is
+        instancied.
+
+        @param account  an Account object which describe the account to create
+        """
+        browser = None
+        bday, bmonth, byear = account.properties['birthday'].value.split('/', 2)
+        while not browser:
+            try:
+                browser = klass.BROWSER(account.properties['username'].value)
+                browser.register(password=   account.properties['password'].value,
+                                 sex=        int(account.properties['sex'].value),
+                                 birthday_d= int(bday),
+                                 birthday_m= int(bmonth),
+                                 birthday_y= int(byear),
+                                 zipcode=    account.properties['zipcode'].value,
+                                 country=    account.properties['country'].value,
+                                 godfather=  account.properties['godfather'].value)
+            except CaptchaError:
+                debug('Unable to resolve captcha. Retrying...')
+                browser = None
+
+    def get_account(self):
+        """
+        Get the current account.
+        """
+        raise NotImplementedError()
+
+    def update_account(self, account):
+        """
+        Update the current account.
+        """
+        raise NotImplementedError()
 
     OBJECTS = {Thread: fill_thread,
                Contact: fill_contact}
