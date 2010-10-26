@@ -24,14 +24,15 @@ import getpass
 import logging
 from optparse import OptionGroup
 import os
-import re
 import sys
+from copy import deepcopy
 
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
 from weboob.tools.misc import iter_fields
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -181,11 +182,7 @@ class ReplApplication(Cmd, BaseApplication):
                 print 'Configuration of backend'
                 print '------------------------'
             if key not in params or edit:
-                params[key] = self.ask(' [%s] %s' % (key, value.description),
-                                       default=params[key] if (edit and key in params) else value.default,
-                                       masked=value.is_masked,
-                                       choices=value.choices,
-                                       regexp=value.regexp)
+                params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
             else:
                 print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
         if asked_config:
@@ -838,43 +835,61 @@ class ReplApplication(Cmd, BaseApplication):
         @param default  optional default value (str)
         @param masked  if True, do not show typed text (bool)
         @param regexp  text must match this regexp (str)
+        @param choices  choices to do (list)
         @return  entered text by user (str)
         """
 
-        is_bool = False
-
-        if choices:
-            question = u'%s (%s)' % (question, '/'.join(
-                [s for s in (choices.iterkeys() if isinstance(choices, dict) else choices)]))
-        if default is not None:
+        if isinstance(question, Value):
+            v = deepcopy(question)
+            if default:
+                v.default = default
+            if masked:
+                v.masked = masked
+            if regexp:
+                v.regexp = regexp
+            if choices:
+                v.choices = choices
+        else:
             if isinstance(default, bool):
-                question = u'%s (%s/%s)' % (question, 'Y' if default else 'y', 'n' if default else 'N')
-                choices = ('y', 'n', 'Y', 'N')
-                default = 'y' if default else 'n'
-                is_bool = True
+                klass = ValueBool
+            elif isinstance(default, float):
+                klass = ValueFloat
+            elif isinstance(default, (int,long)):
+                klass = ValueInt
             else:
-                question = u'%s [%s]' % (question, default)
+                klass = Value
 
-        if masked:
+            v = klass(label=question, default=default, masked=masked, regexp=regexp, choices=choices)
+
+        question = v.label
+
+        if isinstance(v, ValueBool):
+            question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
+        elif v.choices:
+            question = u'%s (%s)' % (question, '/'.join([(s.upper() if s == v.default else v) for s in (v.choices.iterkeys())]))
+        elif default is not None:
+            question = u'%s [%s]' % (question, v.default)
+
+        if v.masked:
             question = u'%s (hidden input)' % question
 
         question += ': '
 
-        correct = False
-        while not correct:
-            line = getpass.getpass(question) if masked else raw_input(question)
-            if not line and default is not None:
-                line = default
+        while True:
+            line = getpass.getpass(question) if v.masked else raw_input(question)
+            if not line and v.default is not None:
+                line = v.default
             if isinstance(line, str):
                 line = line.decode('utf-8')
-            correct = (not regexp or re.match(unicode(regexp), unicode(line))) and \
-                      (not choices or unicode(line) in
-                       [unicode(s) for s in (choices.iterkeys() if isinstance(choices, dict) else choices)])
 
-        if is_bool:
-            return line.lower() == 'y'
-        else:
-            return line
+            try:
+                v.set_value(line)
+            except ValueError, e:
+                print 'Error: %s' % e
+            else:
+                break
+
+        return v.value
 
     # formatting related methods
 

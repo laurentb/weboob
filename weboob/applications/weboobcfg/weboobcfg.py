@@ -73,7 +73,7 @@ class WeboobCfg(ReplApplication):
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend', name),
                                ('Configuration', ', '.join(
-                                   '%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].is_masked \
+                                   '%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].masked \
                                                     else value)) \
                                    for key, value in params.iteritems())),
                                ])
@@ -145,7 +145,7 @@ class WeboobCfg(ReplApplication):
         print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in backend.iter_caps()])
         first = True
         for key, field in backend.config.iteritems():
-            value = field.description
+            value = field.label
             if not field.default is None:
                 value += ' (default: %s)' % field.default
             if first:
