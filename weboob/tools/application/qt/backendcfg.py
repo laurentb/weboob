@@ -15,15 +15,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QLineEdit, QCheckBox, \
+from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
-                        QListWidgetItem, QTextDocument, QComboBox
+                        QListWidgetItem, QTextDocument, QVBoxLayout, \
+                        QDialogButtonBox
 from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
-import re
 from logging import warning
 
+from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
+from weboob.tools.ordereddict import OrderedDict
+from .qt import QtValue
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
@@ -68,6 +71,7 @@ class BackendCfg(QDialog):
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
         self.connect(self.ui.removeButton, SIGNAL('clicked()'), self.removeEvent)
+        self.connect(self.ui.registerButton, SIGNAL('clicked()'), self.registerEvent)
         self.connect(self.ui.configButtonBox, SIGNAL('accepted()'), self.acceptBackend)
         self.connect(self.ui.configButtonBox, SIGNAL('rejected()'), self.rejectBackend)
 
@@ -140,6 +144,7 @@ class BackendCfg(QDialog):
         self.loadConfiguredBackendsList()
 
     def editBackend(self, bname=None):
+        self.ui.registerButton.hide()
         self.ui.configFrame.show()
 
         if bname is not None:
@@ -164,18 +169,12 @@ class BackendCfg(QDialog):
             params.pop('_enabled', None)
 
             for key, value in params.iteritems():
-                l, widget = self.config_widgets[key]
-                if isinstance(widget, QLineEdit):
-                    widget.setText(unicode(value))
-                elif isinstance(widget, QCheckBox):
-                    widget.setChecked(value.lower() in ('1', 'true', 'yes', 'on'))
-                elif isinstance(widget, QComboBox):
-                    for i in xrange(widget.count()):
-                        if unicode(widget.itemData(i).toString()) == value:
-                            widget.setCurrentIndex(i)
-                            break
+                try:
+                    l, widget = self.config_widgets[key]
+                except KeyError:
+                    warning('Key "%s" is not found' % key)
                 else:
-                    warning('Unknown type field "%s": %s', key, widget)
+                    widget.set_data(value)
         else:
             self.ui.nameEdit.clear()
             self.ui.nameEdit.setEnabled(True)
@@ -201,44 +200,31 @@ class BackendCfg(QDialog):
             return
 
         params = {}
-        missing = []
 
         if not bname:
-            missing.append(self.tr('Name'))
+            QMessageBox.critical(self, self.tr('Missing field'),
+                                       self.tr('Please specify a backend name'))
+            return
 
         if self.ui.proxyBox.isChecked():
             params['_proxy'] = unicode(self.ui.proxyEdit.text())
             if not params['_proxy']:
-                missing.append(self.tr('Proxy'))
-
-        for key, field in backend.config.iteritems():
-            label, value = self.config_widgets[key]
-
-            if isinstance(value, QLineEdit):
-                params[key] = unicode(value.text())
-            elif isinstance(value, QCheckBox):
-                params[key] = '1' if value.isChecked() else '0'
-            elif isinstance(value, QComboBox):
-                params[key] = unicode(value.itemData(value.currentIndex()).toString())
-            else:
-                warning('Unknown type field "%s": %s', key, value)
-
-            if not params[key]:
-                params[key] = field.default
-
-            if not params[key]:
-                missing.append(field.description)
-            elif field.regexp and not re.match(field.regexp, params[key]):
-                QMessageBox.critical(self,
-                                     self.tr('Invalid value'),
-                                     unicode(self.tr('Invalid value for field "%s":\n\n%s')) % (field.description, params[key]))
+                QMessageBox.critical(self, self.tr('Missing field'),
+                                           self.tr('Please specify a proxy URL'))
                 return
 
-        if missing:
-            QMessageBox.critical(self,
-                                 self.tr('Missing fields'),
-                                 unicode(self.tr('Please set a value in this fields:\n%s')) % ('\n'.join(['- %s' % s for s in missing])))
-            return
+        for key, field in backend.config.iteritems():
+            label, qtvalue = self.config_widgets[key]
+
+            try:
+                value = qtvalue.get_value()
+            except ValueError, e:
+                QMessageBox.critical(self,
+                                     self.tr('Invalid value'),
+                                     unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (field.label, e))
+                return
+
+            params[key] = value.value
 
         self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
         self.to_load.add(bname)
@@ -287,27 +273,80 @@ class BackendCfg(QDialog):
                                       backend.description,
                                       ', '.join([cap.__name__ for cap in backend.iter_caps()])))
 
+        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled():
+            self.ui.registerButton.show()
+        else:
+            self.ui.registerButton.hide()
+
         for key, field in backend.config.iteritems():
-            label = QLabel(u'%s:' % field.description)
-            if isinstance(field.default, bool):
-                value = QCheckBox()
-                if field.default:
-                    value.setChecked(True)
-            elif field.choices:
-                value = QComboBox()
-                for k, l in (field.choices.iteritems() if isinstance(field.choices, dict) else ((k,k) for k in field.choices)):
-                    value.addItem(l, QVariant(k))
-            else:
-                value = QLineEdit()
-                if field.default is not None:
-                    value.setText(unicode(field.default))
-                if field.is_masked:
-                    value.setEchoMode(value.Password)
+            label = QLabel(u'%s:' % field.label)
+            value = QtValue(field)
             self.ui.configLayout.addRow(label, value)
             self.config_widgets[key] = (label, value)
 
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
+
+    def registerEvent(self):
+        selection = self.ui.backendsList.selectedItems()
+        if not selection:
+            return
+
+        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+
+        if not backend:
+            return
+
+        dialog = QDialog(self)
+        vbox = QVBoxLayout(dialog)
+        if backend.website:
+            website = 'on the website <b>%s</b>' % backend.website
+        else:
+            website = 'with the backend <b>%s</b>' % backend.name
+        vbox.addWidget(QLabel('To create an account %s, please give that informations:' % website))
+        formlayout = QFormLayout()
+        props_widgets = OrderedDict()
+        for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
+            widget = QtValue(prop)
+            formlayout.addRow(QLabel(u'%s:' % prop.label), widget)
+            props_widgets[prop.id] = widget
+
+        vbox.addLayout(formlayout)
+        buttonBox = QDialogButtonBox(dialog)
+        buttonBox.setStandardButtons(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        self.connect(buttonBox, SIGNAL("accepted()"), dialog.accept)
+        self.connect(buttonBox, SIGNAL("rejected()"), dialog.reject)
+        vbox.addWidget(buttonBox)
+
+        end = False
+        while not end:
+            end = True
+            if dialog.exec_():
+                account = Account()
+                account.properties = {}
+                for key, widget in props_widgets.iteritems():
+                    try:
+                        v = widget.get_value()
+                    except ValueError, e:
+                        QMessageBox.critical(self,
+                                             self.tr('Invalid value'),
+                                             unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (key, e))
+                        end = False
+                        break
+                    else:
+                        account.properties[key] = v
+                if end:
+                    try:
+                        backend.klass.register_account(account)
+                    except AccountRegisterError, e:
+                        QMessageBox.critical(self,
+                                             self.tr('Error during register'),
+                                             unicode(self.tr('Unable to register account %s:<br /><br />%s')) % (website, e))
+                        end = False
+                    else:
+                        for key, value in account.properties.iteritems():
+                            if key in self.config_widgets:
+                                self.config_widgets[key][1].set_data(value.value)
 
     def run(self):
         self.exec_()

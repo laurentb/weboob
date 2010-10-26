@@ -18,13 +18,16 @@
 import sys
 import logging
 import re
-from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize
+from copy import deepcopy
+from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
-                        QAbstractTextDocumentLayout, QPalette, QMessageBox
+                        QAbstractTextDocumentLayout, QPalette, QMessageBox, \
+                        QSpinBox, QLineEdit, QComboBox, QCheckBox
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
+from weboob.tools.value import ValueInt, ValueBool
 
 from ..base import BaseApplication
 
@@ -181,3 +184,82 @@ class HTMLDelegate(QStyledItemDelegate):
         doc.setTextWidth(optionV4.rect.width())
 
         return QSize(doc.idealWidth(), max(doc.size().height(), optionV4.decorationSize.height()))
+
+class _QtValueStr(QLineEdit):
+    def __init__(self, value):
+        QLineEdit.__init__(self)
+        self._value = value
+        if value.default:
+            self.setText(unicode(value.default))
+        if value.masked:
+            self.setEchoMode(self.Password)
+
+    def set_data(self, text):
+        self._value.set_value(unicode(text))
+        self.setText(self._value.value)
+
+    def get_value(self):
+        self._value.set_value(unicode(self.text()))
+        return self._value
+
+class _QtValueBool(QCheckBox):
+    def __init__(self, value):
+        QCheckBox.__init__(self)
+        self._value = value
+        if value.default:
+            self.setChecked(True)
+
+    def set_data(self, b):
+        self._value.set_value(b)
+        self.setChecked(self._value.value)
+
+    def get_value(self):
+        self._value.set_value(self.isChecked())
+        return self._value
+
+class _QtValueInt(QSpinBox):
+    def __init__(self, value):
+        QSpinBox.__init__(self)
+        self._value = value
+        if value.default:
+            self.setValue(int(value.default))
+
+    def set_data(self, i):
+        self._value.set_value(i)
+        self.setValue(self._value.value)
+
+    def get_value(self):
+        self._value.set_value(self.getValue())
+        return self._value
+
+class _QtValueChoices(QComboBox):
+    def __init__(self, value):
+        QComboBox.__init__(self)
+        self._value = value
+        for k, l in value.choices.iteritems():
+            self.addItem(l, QVariant(k))
+            if value.default == k:
+                self.setCurrentIndex(self.count()-1)
+
+    def set_data(self, c):
+        self._value.set_value(c)
+        for i in xrange(self.count()):
+            if unicode(self.itemData(i).toString()) == self._value.value:
+                self.setCurrentIndex(i)
+                return
+
+    def get_value(self):
+        self._value.set_value(unicode(self.itemData(self.currentIndex()).toString()))
+        return self._value
+
+def QtValue(value):
+    if isinstance(value, ValueBool):
+        klass = _QtValueBool
+    elif isinstance(value, ValueInt):
+        klass = _QtValueInt
+    elif value.choices is not None:
+        klass = _QtValueChoices
+    else:
+        klass = _QtValueStr
+
+    return klass(deepcopy(value))
