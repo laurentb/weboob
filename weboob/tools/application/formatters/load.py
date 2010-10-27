@@ -23,7 +23,7 @@ class FormatterLoadError(Exception):
     pass
 
 class FormattersLoader(object):
-    BUILTINS = ['htmltable', 'multiline', 'simple', 'table', 'webkit']
+    BUILTINS = ['htmltable', 'multiline', 'simple', 'table', 'csv', 'webkit']
 
     def __init__(self):
         self.formatters = {}
@@ -66,3 +66,6 @@ class FormattersLoader(object):
         elif name == 'webkit':
             from .webkit import WebkitGtkFormatter
             return WebkitGtkFormatter
+        elif name == 'csv':
+            from .csv import CSVFormatter
+            return CSVFormatter
