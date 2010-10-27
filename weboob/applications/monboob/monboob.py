@@ -28,7 +28,7 @@ import sys
 import logging
 import asyncore
 
-from weboob.core.ouiboube import Weboob
+from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
 from weboob.tools.application.repl import ReplApplication
@@ -203,9 +203,17 @@ class Monboob(ReplApplication):
         self.weboob.loop()
 
     def process(self):
-        for backend, message in self.weboob.do('iter_unread_messages'):
-            self.send_email(backend, message)
-            backend.set_message_read(message)
+        try:
+            for backend, message in self.weboob.do('iter_unread_messages'):
+                self.send_email(backend, message)
+                backend.set_message_read(message)
+        except CallErrors, e:
+            for backend, error, backtrace in e.errors:
+                print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+                if logging.root.level == logging.DEBUG:
+                    print >>sys.stderr, backtrace
+            if logging.root.level != logging.DEBUG:
+                print >>sys.stderr, 'Use --debug option to print backtraces.'
 
     def send_email(self, backend, mail):
         domain = self.config.get('domain')

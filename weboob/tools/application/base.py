@@ -22,7 +22,7 @@ import optparse
 from optparse import OptionGroup, OptionParser
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.core.ouiboube import Weboob
+from weboob.core import Weboob, CallErrors
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
 
@@ -318,5 +318,12 @@ class BaseApplication(object):
             except ConfigError, e:
                 print 'Configuration error: %s' % e
                 sys.exit(1)
+            except CallErrors, e:
+                for backend, error, backtrace in e.errors:
+                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+                    if logging.root.level == logging.DEBUG:
+                        print >>sys.stderr, backtrace
+                if logging.root.level != logging.DEBUG:
+                    print >>sys.stderr, 'Use --debug option to print backtraces.'
         finally:
             app.deinit()
