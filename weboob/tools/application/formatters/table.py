@@ -50,7 +50,7 @@ class TableFormatter(IFormatter):
         for i in xrange(len(self.keys)):
             available = False
             for line in self.queue:
-                if line[i] is not NotLoaded and line[i] is not NotAvailable:
+                if line[i] is not NotLoaded and line[i] is not NotAvailable and line[i] is not None:
                     available = True
                     break
             if available:
