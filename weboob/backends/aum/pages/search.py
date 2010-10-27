@@ -31,6 +31,7 @@ class SearchPage(ProfilesListBase):
         self.browser.set_field(kwargs, 'dist', is_list=True)
         self.browser.set_field(kwargs, 'nickname', field='pseudo')
         self.browser.set_field(kwargs, 'save', value='true')
-        self.browser['originsV[]'] = ['1'] # excludes niggers (it doesn't work :( )
+        # XXX ho, it doesn't work anymore :(
+        #self.browser['originsV[]'] = ['1'] # excludes niggers (it doesn't work :( )
 
         self.browser.submit()
