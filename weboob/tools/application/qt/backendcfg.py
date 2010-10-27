@@ -303,7 +303,7 @@ class BackendCfg(QDialog):
             website = 'on the website <b>%s</b>' % backend.website
         else:
             website = 'with the backend <b>%s</b>' % backend.name
-        vbox.addWidget(QLabel('To create an account %s, please give that informations:' % website))
+        vbox.addWidget(QLabel('To create an account %s, please give these informations:' % website))
         formlayout = QFormLayout()
         props_widgets = OrderedDict()
         for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():

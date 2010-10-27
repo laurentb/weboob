@@ -371,7 +371,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 Value('username', label='Email address', regexp='^[^ ]+@[^ ]+\.[^ ]+$'),
                 Value('password', label='Password', regexp='^[^ ]+$', masked=True),
                 Value('sex',      label='Sex', choices={'0': 'Male', '1': 'Female'}),
-                Value('birthday', label='Birthday', regexp='^\d+/\d+/\d+$'),
+                Value('birthday', label='Birthday (dd/mm/yyyy)', regexp='^\d+/\d+/\d+$'),
                 Value('zipcode',  label='Zipcode'),
                 Value('country',  label='Country', choices={'fr': 'France', 'be': 'Belgique', 'ch': 'Suisse', 'ca': 'Canada'}, default='fr'),
                 Value('godfather',label='Godfather', regexp='^\d*$', default=''),
