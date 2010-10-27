@@ -26,7 +26,7 @@ from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, StatusField
 from weboob.capabilities.contact import ICapContact, Contact, ProfileNode
-from weboob.capabilities.account import ICapAccount, Account
+from weboob.capabilities.account import ICapAccount
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool
