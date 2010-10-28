@@ -134,7 +134,11 @@ class ContactListPage(PageBase):
     def on_loaded(self):
         self.items = []
 
-        tags = self.document.getElementsByTagName('form')[0].childNodes[3].childNodes[1].childNodes
+        form = self.document.getElementsByTagName('form')
+        if not form:
+            return
+
+        tags = form[0].childNodes[3].childNodes[1].childNodes
 
         for tag in tags:
             if not hasattr(tag, 'tagName') or tag.tagName != u'tr':
