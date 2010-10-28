@@ -29,7 +29,7 @@ from .tools import id2url, id2threadid, id2contenttype
 class Parser(LxmlHtmlParser):
     def parse(self, data, encoding=None):
         # Want to kill templeet coders
-        data = StringIO(data.read().replace('<<', '<').replace('cite>', 'i>'))
+        data = StringIO(data.read().replace('<<', '<').replace('cite>', 'i>').replace('tt>', 'i>'))
         return LxmlHtmlParser.parse(self, data, encoding)
 
 # Browser
