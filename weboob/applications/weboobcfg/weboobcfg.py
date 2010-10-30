@@ -62,6 +62,14 @@ class WeboobCfg(ReplApplication):
 
         self.add_backend(name, params)
 
+    def do_register(self, line):
+        """
+        register NAME
+
+        Register a new account on a backend.
+        """
+        self.register_backend(line)
+
     def do_list(self, line):
         """
         list
