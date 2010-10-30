@@ -118,6 +118,12 @@ class CapBaseObject(object):
             for attrstr in self.FIELDS:
                 yield attrstr, getattr(self, attrstr)
 
+    def __eq__(self, obj):
+        if isinstance(obj, CapBaseObject):
+            return self.backend == obj.backend and self.id == obj.id
+        else:
+            return False
+
     class _AttribValue(object):
         def __init__(self, type, value):
             self.type = type

@@ -43,6 +43,9 @@ class ThreadMessage(QFrame):
         self.ui = Ui_ThreadMessage()
         self.ui.setupUi(self)
 
+        self.set_message(message)
+
+    def set_message(self, message):
         self.message = message
 
         self.ui.nameLabel.setText(message.sender)
@@ -57,6 +60,7 @@ class ThreadMessage(QFrame):
         else:
             content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
         self.ui.contentLabel.setText(content)
+
 
     def __eq__(self, m):
         return self.message == m.message
@@ -76,6 +80,7 @@ class ContactThread(QWidget):
         self.thread = None
         self.messages = []
         self.process_msg = None
+        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshMessages)
 
         if support_reply:
             self.connect(self.ui.sendButton, SIGNAL('clicked()'), self.postReply)
@@ -84,12 +89,12 @@ class ContactThread(QWidget):
 
         self.refreshMessages()
 
-    def refreshMessages(self):
+    def refreshMessages(self, fillobj=False):
         if self.process_msg:
             return
 
         self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError)
-        if self.thread:
+        if fillobj and self.thread:
             self.process_msg.do('fillobj', self.thread, ['root'], backends=self.contact.backend)
         else:
             self.process_msg.do('get_thread', self.contact.id, backends=self.contact.backend)
@@ -120,6 +125,9 @@ class ContactThread(QWidget):
     def _insert_message(self, message):
         widget = ThreadMessage(message)
         if widget in self.messages:
+            old_widget = self.messages[self.messages.index(widget)]
+            if old_widget.message.flags != widget.message.flags:
+                old_widget.set_message(widget.message)
             return
 
         for i, m in enumerate(self.messages):
@@ -148,7 +156,7 @@ class ContactThread(QWidget):
         button.hide()
         button.deleteLater()
 
-        self.refreshMessages()
+        self.refreshMessages(fillobj=True)
 
     def postReply(self):
         text = unicode(self.ui.textEdit.toPlainText())
@@ -306,7 +314,7 @@ class ContactsWidget(QWidget):
         self.ui.groupBox.setCurrentIndex(1)
 
         self.connect(self.ui.groupBox, SIGNAL('currentIndexChanged(int)'), self.groupChanged)
-        self.connect(self.ui.contactList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.contactChanged)
+        self.connect(self.ui.contactList, SIGNAL('itemClicked(QListWidgetItem*)'), self.contactChanged)
         self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshContactList)
 
     def load(self):
@@ -369,18 +377,17 @@ class ContactsWidget(QWidget):
 
         self.ui.contactList.addItem(item)
 
-    def contactChanged(self, current, previous):
-        self.ui.tabWidget.clear()
-        self.contact = None
-
+    def contactChanged(self, current):
         if not current:
             return
 
-        self.contact = current.data(Qt.UserRole).toPyObject()
+        contact = current.data(Qt.UserRole).toPyObject()
 
-        if not self.contact:
+        if not contact or contact == self.contact:
             return
 
+        self.ui.tabWidget.clear()
+        self.contact = contact
         backend = self.weboob.get_backend(self.contact.backend)
 
         self.ui.tabWidget.addTab(ContactProfile(self.weboob, self.contact), self.tr('Profile'))
