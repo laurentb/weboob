@@ -83,7 +83,8 @@ class Message(CapBaseObject):
             return '%s.%s' % (self.thread.id, self._parent_id)
 
     def __eq__(self, msg):
-        return self.thread.id == msg.thread.id and self.id == msg.id
+        return unicode(self.thread.id) == unicode(msg.thread.id) and \
+               unicode(self.id) == unicode(msg.id)
 
     def __repr__(self):
         result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
