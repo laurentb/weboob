@@ -330,8 +330,10 @@ class BaseBrowser(mechanize.Browser):
         keep_args = copy(args)
         keep_kwargs = kwargs.copy()
 
+        no_login = kwargs.pop('no_login', False)
+
         try:
-            self._change_location(mechanize.Browser.open(self, *args, **kwargs))
+            self._change_location(mechanize.Browser.open(self, *args, **kwargs), no_login=no_login)
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
                 self.location(keep_args, keep_kwargs)
@@ -345,7 +347,7 @@ class BaseBrowser(mechanize.Browser):
     def get_document(self, result):
         return self.parser.parse(result, self.ENCODING)
 
-    def _change_location(self, result):
+    def _change_location(self, result, no_login=False):
         """
         This function is called when we have moved to a page, to load a Page
         object.
@@ -386,7 +388,7 @@ class BaseBrowser(mechanize.Browser):
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
         self.page.on_loaded()
 
-        if self.password is not None and not self.is_logged():
+        if not no_login and self.password is not None and not self.is_logged():
             self.logger.debug('!! Relogin !!')
             self.login()
             return

@@ -37,8 +37,6 @@ class RedmineBrowser(BaseBrowser):
              '%s/projects/\w+/wiki/\w*':         WikiPage,
             }
 
-    is_logging = False
-
     def __init__(self, url, *args, **kwargs):
         v = urlsplit(url)
         self.PROTOCOL = v.scheme
@@ -55,19 +53,17 @@ class RedmineBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.is_logging or (self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1)
+        return self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        self.is_logging = True
         if not self.is_on_page(LoginPage):
-            self.location('%s/login' % self.BASEPATH)
+            self.location('%s/login' % self.BASEPATH, no_login=True)
 
         self.page.login(self.username, self.password)
 
-        self.is_logging = False
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
