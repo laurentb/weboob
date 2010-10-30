@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>482</width>
+    <width>478</width>
     <height>320</height>
    </rect>
   </property>
@@ -45,7 +45,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</normaloff>../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</iconset>
+             <normaloff>../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</normaloff>../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../usr/share/icons/oxygen/16x16/actions/view-refresh.png</iconset>
            </property>
           </widget>
          </item>
@@ -68,6 +68,32 @@
          <property name="selectionRectVisible">
           <bool>false</bool>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>From URL</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLineEdit" name="urlEdit"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QComboBox" name="backendsList"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="urlButton">
+              <property name="text">
+               <string>Display</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>

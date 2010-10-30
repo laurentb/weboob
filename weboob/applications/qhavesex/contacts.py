@@ -54,6 +54,7 @@ class ThreadMessage(QFrame):
             header += u' — <font color=#ff0000>Unread</font>'
         elif message.flags & message.IS_ACCUSED:
             header += u' — <font color=#00ff00>Read</font>'
+        header += ' (%s@%s)' % (message.id, message.thread.id)
         self.ui.headerLabel.setText(header)
         if message.flags & message.IS_HTML:
             content = message.content
@@ -197,10 +198,12 @@ class ContactProfile(QWidget):
 
         self.weboob = weboob
         self.contact = contact
+        self.loaded_profile = False
 
-        if self.gotProfile(self.weboob.get_backend(contact.backend), contact):
+        missing_fields = self.gotProfile(self.weboob.get_backend(contact.backend), contact)
+        if len(missing_fields) > 0:
             self.process_contact = QtDo(self.weboob, self.gotProfile, self.gotError)
-            self.process_contact.do('fillobj', self.contact, ['photos', 'profile'], backends=self.contact.backend)
+            self.process_contact.do('fillobj', self.contact, missing_fields, backends=self.contact.backend)
 
     def gotError(self, backend, error, backtrace):
         #self.process_contact.default_eb(backend, error, backtrace)
@@ -209,13 +212,24 @@ class ContactProfile(QWidget):
 
     def gotProfile(self, backend, contact):
         if not backend:
-            return
+            return []
 
+        missing_fields = set(['photos'])
         first = True
         for photo in contact.photos.itervalues():
             photo = contact.photos.values()[0]
-            if first and photo.data:
-                img = QImage.fromData(photo.data)
+            if photo.data:
+                data = photo.data
+                try:
+                    missing_fields.remove('photos')
+                except KeyError:
+                    pass
+            elif photo.thumbnail_data:
+                data = photo.thumbnail_data
+            else:
+                continue
+            if first:
+                img = QImage.fromData(data)
                 self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
                 first = False
             else:
@@ -224,19 +238,24 @@ class ContactProfile(QWidget):
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
-        self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % ('<i>Receiving...</i>' if contact.summary is NotLoaded else contact.summary.replace('\n', '<br />')))
+        if contact.summary is NotLoaded:
+            self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
+            missing_fields.add('summary')
+        else:
+            self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % contact.summary.replace('\n', '<br />'))
 
         if not contact.profile:
-            return True
+            missing_fields.add('profile')
+        elif not self.loaded_profile:
+            self.loaded_profile = True
+            for head in contact.profile:
+                if head.flags & head.HEAD:
+                    widget = self.ui.headFrame
+                else:
+                    widget = self.ui.profileTab
+                self.process_node(head, widget)
 
-        for head in contact.profile:
-            if head.flags & head.HEAD:
-                widget = self.ui.headFrame
-            else:
-                widget = self.ui.profileTab
-            self.process_node(head, widget)
-
-        return False
+        return missing_fields
 
     def process_node(self, node, widget):
         # Set the value widget
@@ -308,6 +327,9 @@ class ContactsWidget(QWidget):
         self.contact = None
         self.ui.contactList.setItemDelegate(HTMLDelegate())
 
+        self.url_process = None
+        self.photo_processes = {}
+
         self.ui.groupBox.addItem('All', MetaGroup(self.weboob, 'all', self.tr('All')))
         self.ui.groupBox.addItem('Onlines', MetaGroup(self.weboob, 'online', self.tr('Online')))
         self.ui.groupBox.addItem('Offlines', MetaGroup(self.weboob, 'offline', self.tr('Offline')))
@@ -316,9 +338,13 @@ class ContactsWidget(QWidget):
         self.connect(self.ui.groupBox, SIGNAL('currentIndexChanged(int)'), self.groupChanged)
         self.connect(self.ui.contactList, SIGNAL('itemClicked(QListWidgetItem*)'), self.contactChanged)
         self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshContactList)
+        self.connect(self.ui.urlButton, SIGNAL('clicked()'), self.urlClicked)
 
     def load(self):
         self.refreshContactList()
+        self.ui.backendsList.clear()
+        for backend in self.weboob.iter_backends():
+            self.ui.backendsList.addItem(backend.name)
 
     def groupChanged(self, i):
         self.refreshContactList()
@@ -333,6 +359,7 @@ class ContactsWidget(QWidget):
         if not contact:
             return
 
+        self.photo_processes.pop(contact.id, None)
         img = None
         for photo in contact.photos.itervalues():
             if photo.thumbnail_data:
@@ -369,6 +396,7 @@ class ContactsWidget(QWidget):
 
         process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
         process.do('fillobj', contact, ['photos'], backends=contact.backend)
+        self.photo_processes[contact.id] = process
 
         for i in xrange(self.ui.contactList.count()):
             if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:
@@ -382,7 +410,9 @@ class ContactsWidget(QWidget):
             return
 
         contact = current.data(Qt.UserRole).toPyObject()
+        self.setContact(contact)
 
+    def setContact(self, contact):
         if not contact or contact == self.contact:
             return
 
@@ -397,3 +427,29 @@ class ContactsWidget(QWidget):
             self.ui.tabWidget.addTab(QWidget(), self.tr('Chat'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Notes'))
+
+    def urlClicked(self):
+        url = unicode(self.ui.urlEdit.text())
+        if not url:
+            return
+
+        backend_name = unicode(self.ui.backendsList.currentText())
+        self.ui.urlButton.setEnabled(False)
+        self.url_process = QtDo(self.weboob, self.urlClicked_cb, self.urlClicked_eb)
+        self.url_process.do('get_contact', url, backends=backend_name)
+
+    def urlClicked_cb(self, backend, contact):
+        if not backend:
+            self.url_process = None
+            self.ui.urlButton.setEnabled(True)
+            return
+
+        self.ui.urlEdit.clear()
+        self.setContact(contact)
+
+    def urlClicked_eb(self, backend, error, backtrace):
+        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % backtrace
+        QMessageBox.critical(self, self.tr('Error while posting reply'),
+                             content, QMessageBox.Ok)
