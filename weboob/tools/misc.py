@@ -61,7 +61,7 @@ try:
     h2t.SKIP_INTERNAL_LINKS = True
     html2text = h2t.html2text
 except ImportError:
-    warning('python-html is not present. HTML pages will not be converted into text.')
+    warning('python-html2text is not present. HTML pages will not be converted into text.')
     def html2text(s):
         return s
 
