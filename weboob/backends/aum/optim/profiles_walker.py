@@ -58,7 +58,7 @@ class ProfilesWalker(Optimization):
             with self.browser:
                 profiles_to_visit = self.browser.search_profiles().difference(self.visited_profiles)
                 info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
-                self.profiles_queue.update(profiles_to_visit)
+                self.profiles_queue = set(profiles_to_visit)
             self.save()
         except BrowserUnavailable:
             return
