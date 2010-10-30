@@ -204,13 +204,13 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def get_thread_mails(self, id, full=False):
-        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id):
+        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id) or full:
             self.page.open_thread_page(id, full)
         return self.page.mails
 
     @pageaccess
     def post_mail(self, id, content):
-        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id):
+        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id) or full:
             self.page.open_thread_page(id)
         self.page.post(content)
 
