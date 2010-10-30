@@ -243,15 +243,10 @@ class BaseApplication(object):
         else:
             res = getattr(backend, function)(*args, **kwargs)
 
-        if selected_fields:
-            fields = selected_fields
-        else:
-            fields = None
-
         if hasattr(res, '__iter__'):
-            return self._do_complete_iter(backend, count, fields, res)
+            return self._do_complete_iter(backend, count, selected_fields, res)
         else:
-            return self._do_complete_obj(backend, fields, res)
+            return self._do_complete_obj(backend, selected_fields, res)
 
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)

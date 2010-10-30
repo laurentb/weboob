@@ -195,7 +195,7 @@ class BaseBackend(object):
 
     def fillobj(self, obj, fields=None):
         """
-        @param fields  which fields to fill; if None, only "direct" fields are filled (list)
+        @param fields  which fields to fill; if None, all fields are filled (list)
         """
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
@@ -205,6 +205,7 @@ class BaseBackend(object):
 
         missing_fields = []
         if fields is None:
+            # Select all fields
             if isinstance(obj, CapBaseObject):
                 fields = [item[0] for item in obj.iter_fields()]
             else:

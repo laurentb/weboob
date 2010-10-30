@@ -432,13 +432,8 @@ class ReplApplication(Cmd, BaseApplication):
         kwargs['backends'] = self.enabled_backends if backends is None else backends
         fields = self.selected_fields
         if fields == '$direct':
-            fields = None
+            fields = []
         elif fields == '$full':
-            # XXX IT ABSOLUTLY DOESN'T WORK, OBJ ISN'T EXISTANT.
-            # PLEASE REVIEW THIS CODE.
-            #fields = [k for k, v in iter_fields(obj)]
-            # TODO Perhaps this is the core goal to determine what fields to use,
-            # by creating a singleton AllFields.
             fields = None
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
