@@ -25,6 +25,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core import Weboob, CallErrors
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
+from weboob.tools.log import createColoredFormatter, getLogger
 
 
 __all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
@@ -120,6 +121,7 @@ class BaseApplication(object):
     # ------ BaseApplication methods -------------------------------
 
     def __init__(self, option_parser=None):
+        self.logger = getLogger(self.APPNAME)
         self.weboob = self.create_weboob()
         self.config = None
         self.options = None
@@ -265,6 +267,9 @@ class BaseApplication(object):
             from weboob.tools.browser import BaseBrowser
             BaseBrowser.SAVE_RESPONSES = True
 
+        for handler in logging.root.handlers:
+            logging.root.removeHandler(handler)
+
         if self.options.debug:
             level = logging.DEBUG
         elif self.options.verbose:
@@ -274,13 +279,35 @@ class BaseApplication(object):
         else:
             level = logging.WARNING
 
-        log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+        logging.root.setLevel(level)
+
+        # file logger
         if self.options.logging_file:
-            print self.options.logging_file
-            logging.basicConfig(filename=self.options.logging_file, level=level, format=log_format)
+            try:
+                stream = open(self.options.logging_file, 'w')
+            except IOError, e:
+                self.logger.error('Unable to create the logging file: %s' % e)
+                sys.exit(1)
+            else:
+                format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+                handler = logging.StreamHandler(stream)
+                handler.setLevel(level)
+                handler.setFormatter(logging.Formatter(format))
+                logging.root.addHandler(handler)
         else:
-            logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        logging.root.level = level
+            # stdout logger
+            format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(createColoredFormatter(sys.stdout, format))
+            handler.setLevel(level)
+            logging.root.addHandler(handler)
+
+        #log_format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
+        #if self.options.logging_file:
+        #    print self.options.logging_file
+        #    logging.basicConfig(filename=self.options.logging_file, level=level, format=log_format)
+        #else:
+        #    logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
 
         self._handle_options()
         self.handle_application_options()
