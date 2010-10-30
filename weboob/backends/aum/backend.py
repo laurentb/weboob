@@ -315,7 +315,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 contact.status = s
             else:
                 contact = Contact(_id, profile.get_name(), s)
-            contact.status_msg = u'%s old' % profile.table['details']['old']
+            contact.status_msg = profile.get_status()
             contact.summary = profile.description
             for photo in profile.photos:
                 contact.set_photo(photo.split('/')[-1], url=photo, thumbnail_url=photo.replace('image', 'thumb1_'))
