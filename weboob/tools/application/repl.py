@@ -27,6 +27,7 @@ import os
 import sys
 from copy import deepcopy
 
+from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
@@ -156,10 +157,58 @@ class ReplApplication(Cmd, BaseApplication):
                 return False
         return True
 
+    def register_backend(self, name, ask_add=True):
+        backend = self.weboob.modules_loader.get_or_load_module(name)
+        if not backend:
+            print 'Backend "%s" does not exist.' % name
+            return None
+
+        if not backend.has_caps(ICapAccount):
+            print 'You can\'t register a new account with %s' % name
+            return None
+
+        account = Account()
+        account.properties = {}
+        if backend.website:
+            website = 'on website %s' % backend.website
+        else:
+            website = 'with backend %s' % backend.name
+        while 1:
+            asked_config = False
+            for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
+                if not asked_config:
+                    asked_config = True
+                    print 'Configuration of new account %s' % website
+                    print '-----------------------------%s' % ('-' * len(website))
+                p = deepcopy(prop)
+                p.set_value(self.ask(prop, default=account.properties[key].value if (key in account.properties) else prop.default))
+                account.properties[key] = p
+            if asked_config:
+                print '-----------------------------%s' % ('-' * len(website))
+            try:
+                backend.klass.register_account(account)
+            except AccountRegisterError, e:
+                print u'%s' % e
+                if self.ask('Do you want to try again?', default=True):
+                    continue
+                else:
+                    return None
+            else:
+                break
+        backend_config = {}
+        for key, value in account.properties.iteritems():
+            if key in backend.config:
+                backend_config[key] = value.value
+
+        if ask_add and self.ask('Do you want to add the new register account?', default=True):
+            return self.add_backend(name, backend_config, ask_register=False)
+
+        return backend_config
+
     def edit_backend(self, name, params=None):
         return self.add_backend(name, params, True)
 
-    def add_backend(self, name, params=None, edit=False):
+    def add_backend(self, name, params=None, edit=False, ask_register=True):
         if params is None:
             params = {}
 
@@ -184,7 +233,7 @@ class ReplApplication(Cmd, BaseApplication):
             if key not in params or edit:
                 params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
             else:
-                print ' [%s] %s: %s' % (key, value.description, '(masked)' if value.is_masked else params[key])
+                print u' [%s] %s: %s' % (key, value.description, '(masked)' if value.masked else params[key])
         if asked_config:
             print '------------------------'
 
@@ -531,13 +580,14 @@ class ReplApplication(Cmd, BaseApplication):
         Select used backends.
 
         ACTION is one of the following (default: list):
-            * enable  enable given backends
-            * disable disable given backends
-            * only    enable given backends and disable the others
-            * list    display enabled and available backends
-            * add     add a backend
-            * edit    edit a backend
-            * remove  remove a backend
+            * enable    enable given backends
+            * disable   disable given backends
+            * only      enable given backends and disable the others
+            * list      display enabled and available backends
+            * add       add a backend
+            * register  register a new account on a website
+            * edit      edit a backend
+            * remove    remove a backend
         """
         line = line.strip()
         if line:
@@ -548,7 +598,7 @@ class ReplApplication(Cmd, BaseApplication):
         action = args[0]
         given_backend_names = args[1:]
 
-        if action != 'add':
+        if action not in ('add', 'register'):
             skipped_backend_names = []
             for backend_name in given_backend_names:
                 if backend_name not in [backend.name for backend in self.weboob.iter_backends()]:
@@ -557,7 +607,7 @@ class ReplApplication(Cmd, BaseApplication):
             for skipped_backend_name in skipped_backend_names:
                 given_backend_names.remove(skipped_backend_name)
 
-        if action in ('enable', 'disable', 'only', 'add', 'remove'):
+        if action in ('enable', 'disable', 'only', 'add', 'register', 'remove'):
             if not given_backend_names:
                 print 'Please give at least a backend name.'
                 return
@@ -588,6 +638,11 @@ class ReplApplication(Cmd, BaseApplication):
                 instname = self.add_backend(name)
                 if instname:
                     self.load_backends(names=[instname])
+        elif action == 'register':
+            for name in given_backend_names:
+                instname = self.register_backend(name)
+                if isinstance(instname, basestring):
+                    self.load_backends(names=[instname])
         elif action == 'edit':
             for backend in given_backends:
                 enabled = backend in self.enabled_backends
@@ -609,7 +664,7 @@ class ReplApplication(Cmd, BaseApplication):
 
     def complete_backends(self, text, line, begidx, endidx):
         choices = []
-        commands = ['enable', 'disable', 'only', 'list', 'add', 'edit', 'remove']
+        commands = ['enable', 'disable', 'only', 'list', 'add', 'register', 'edit', 'remove']
         available_backends_names = set(backend.name for backend in self.weboob.iter_backends())
         enabled_backends_names = set(backend.name for backend in self.enabled_backends)
 
@@ -623,7 +678,7 @@ class ReplApplication(Cmd, BaseApplication):
                 choices = sorted(available_backends_names)
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
-            elif args[1] == 'add' and len(args) == 3:
+            elif args[1] in ('add', 'register') and len(args) == 3:
                 self.weboob.modules_loader.load_all()
                 for name, module in sorted(self.weboob.modules_loader.loaded.iteritems()):
                     if not self.CAPS or self.caps_included(module.iter_caps(), self.CAPS.__name__):
@@ -862,12 +917,14 @@ class ReplApplication(Cmd, BaseApplication):
             v = klass(label=question, default=default, masked=masked, regexp=regexp, choices=choices)
 
         question = v.label
+        if v.id:
+            question = u'[%s] %s' % (v.id, question)
 
         if isinstance(v, ValueBool):
             question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
         elif v.choices:
-            question = u'%s (%s)' % (question, '/'.join([(s.upper() if s == v.default else v) for s in (v.choices.iterkeys())]))
-        elif default is not None:
+            question = u'%s (%s)' % (question, '/'.join([(s.upper() if s == v.default else s) for s in (v.choices.iterkeys())]))
+        elif default is not None and not v.masked:
             question = u'%s [%s]' % (question, v.default)
 
         if v.masked:
