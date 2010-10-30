@@ -299,6 +299,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
 
             profile = self.browser.get_profile(_id)
+            if not profile:
+                return None
+
+            _id = profile.id
 
             if profile.is_online():
                 s = Contact.STATUS_ONLINE

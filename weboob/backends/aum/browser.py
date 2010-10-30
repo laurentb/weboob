@@ -260,8 +260,10 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def get_profile(self, link):
-        if isinstance(link, basestring) and link.startswith('/'):
-            link = link[1:]
+        if isinstance(link, basestring):
+            link = link.replace('http://www.adopteunmec.com/', '')
+            if link.startswith('/'):
+                link = link[1:]
         self.location('/%s' % link)
         return self.page
 
