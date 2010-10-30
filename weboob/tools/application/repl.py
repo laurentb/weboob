@@ -121,7 +121,7 @@ class ReplApplication(Cmd, BaseApplication):
         formatting_options = OptionGroup(self._parser, 'Formatting Options')
         available_formatters = self.formatters_loader.get_available_formatters()
         formatting_options.add_option('-f', '--formatter', choices=available_formatters,
-                                      help='select output formatter (%s)' % u','.join(available_formatters))
+                                      help='select output formatter (%s)' % u', '.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)

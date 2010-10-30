@@ -138,6 +138,7 @@ class BaseApplication(object):
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
+        logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
@@ -251,6 +252,36 @@ class BaseApplication(object):
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
 
+        if self.options.shell_completion:
+            items = set()
+            for option in self._parser.option_list:
+                if not option.help is optparse.SUPPRESS_HELP:
+                    items.update(str(option).split('/'))
+            items.update(self._get_completions())
+            print ' '.join(items)
+            sys.exit(0)
+
+        if self.options.save_responses:
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.SAVE_RESPONSES = True
+
+        if self.options.debug:
+            level = logging.DEBUG
+        elif self.options.verbose:
+            level = logging.INFO
+        elif self.options.quiet:
+            level = logging.ERROR
+        else:
+            level = logging.WARNING
+
+        log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+        if self.options.logging_file:
+            print self.options.logging_file
+            logging.basicConfig(filename=self.options.logging_file, level=level, format=log_format)
+        else:
+            logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
+        logging.root.level = level
+
         self._handle_options()
         self.handle_application_options()
 
@@ -276,31 +307,6 @@ class BaseApplication(object):
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
         args = app.parse_args(args)
-
-        if app.options.shell_completion:
-            items = set()
-            for option in app._parser.option_list:
-                if not option.help is optparse.SUPPRESS_HELP:
-                    items.update(str(option).split('/'))
-            items.update(app._get_completions())
-            print ' '.join(items)
-            sys.exit(0)
-
-        if app.options.save_responses:
-            from weboob.tools.browser import BaseBrowser
-            BaseBrowser.SAVE_RESPONSES = True
-
-        if app.options.debug:
-            level = logging.DEBUG
-        elif app.options.verbose:
-            level = logging.INFO
-        elif app.options.quiet:
-            level = logging.ERROR
-        else:
-            level = logging.WARNING
-        log_format = '%(asctime)s:%(levelname)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
-        logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-        logging.root.level = level
 
         try:
             try:
