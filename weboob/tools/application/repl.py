@@ -31,7 +31,6 @@ from weboob.capabilities.account import ICapAccount, Account, AccountRegisterErr
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
-from weboob.tools.misc import iter_fields
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
