@@ -23,8 +23,8 @@ from weboob.tools.misc import to_unicode
 class CanalTP(BaseBrowser):
     DOMAIN = 'widget.canaltp.fr'
 
-    def __init__(self):
-        BaseBrowser.__init__(self, '')
+    def __init__(self, **kwargs):
+        BaseBrowser.__init__(self, '', **kwargs)
 
     def iter_station_search(self, pattern):
         url = u'http://widget.canaltp.fr/Prochains_departs_15122009/dev/gare.php?txtrech=%s' % unicode(pattern)

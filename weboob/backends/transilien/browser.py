@@ -118,8 +118,9 @@ class Transilien(BaseBrowser):
              'http://www\.transilien\.com/web/ITProchainsTrains\.do\?.*': RoutePage
             }
 
-    def __init__(self):
-        BaseBrowser.__init__(self, '', parser=Parser())
+    def __init__(self, **kwargs):
+        kwargs['parser'] = Parser()
+        BaseBrowser.__init__(self, '', **kwargs)
 
     def iter_station_search(self, pattern):
         pass
