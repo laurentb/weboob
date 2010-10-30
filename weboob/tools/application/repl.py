@@ -396,7 +396,10 @@ class ReplApplication(Cmd, BaseApplication):
                     else:
                         ask_debug_mode = True
             if ask_debug_mode:
-                print >>sys.stderr, 'Use --debug option to print backtraces.'
+                if self.interactive:
+                    print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
+                else:
+                    print >>sys.stderr, 'Use --debug option to print backtraces.'
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
         except (KeyboardInterrupt,EOFError):
@@ -714,10 +717,14 @@ class ReplApplication(Cmd, BaseApplication):
 
         levels = dict(levels)
         try:
-            logging.root.setLevel(levels[args[0]])
+            level = levels[args[0]]
         except KeyError:
             print >>sys.stderr, 'Level "%s" does not exist.' % args[0]
             print >>sys.stderr, 'Availables: %s' % ' '.join(levels.iterkeys())
+        else:
+            logging.root.setLevel(level)
+            for handler in logging.root.handlers:
+                handler.setLevel(level)
 
     def complete_logging(self, text, line, begidx, endidx):
         levels = ('debug', 'info', 'warning', 'error', 'quiet', 'default')
