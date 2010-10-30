@@ -19,7 +19,6 @@ from __future__ import with_statement
 
 import datetime
 from dateutil import tz
-from logging import warning, debug
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
@@ -30,6 +29,7 @@ from weboob.capabilities.account import ICapAccount
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool
+from weboob.tools.log import getLogger
 
 from .captcha import CaptchaError
 from .antispam import AntiSpam
@@ -105,7 +105,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             if not contact.get_id():
                 continue
             if self.antispam and not self.antispam.check(contact):
-                debug('Skipped a spam-thread from %s' % contact.get_name())
+                self.logger.debug('Skipped a spam-thread from %s' % contact.get_name())
                 self.report_spam(contact.get_id(), contact.get_suppr_id())
                 continue
             thread = Thread(contact.get_id())
@@ -141,7 +141,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         for mail in mails:
             flags = 0
             if self.antispam and not self.antispam.check(mail):
-                debug('Skipped a spam-mail from %s' % mail.sender)
+                self.logger.debug('Skipped a spam-mail from %s' % mail.sender)
                 self.report_spam(thread.id, contact and contact.get_suppr_id())
                 break
 
@@ -152,7 +152,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     with self.browser:
                         profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
                 if self.antispam and not self.antispam.check(profiles[mail.profile_link]):
-                    debug('Skipped a spam-mail-profile from %s' % mail.sender)
+                    self.logger.debug('Skipped a spam-mail-profile from %s' % mail.sender)
                     self.report_spam(thread.id, contact and contact.get_suppr_id())
                     break
                 mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
@@ -203,7 +203,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 if not contact.get_id():
                     continue
                 if self.antispam and not self.antispam.check(contact):
-                    debug('Skipped a spam-unread-thread from %s' % contact.get_name())
+                    self.logger.debug('Skipped a spam-unread-thread from %s' % contact.get_name())
                     self.report_spam(contact.get_id(), contact.get_suppr_id())
                     continue
                 slut = self._get_slut(contact.get_id())
@@ -224,7 +224,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         new_baskets -= 1
                         profile = self.browser.get_profile(ids[new_baskets])
                         if self.antispam and not self.antispam.check(profile):
-                            debug('Skipped a spam-basket from %s' % profile.get_name())
+                            self.logger.debug('Skipped a spam-basket from %s' % profile.get_name())
                             self.report_spam(profile.get_id())
                             continue
 
@@ -242,7 +242,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                                               flags=Message.IS_UNREAD)
                         yield thread.root
         except BrowserUnavailable, e:
-            debug('No messages, browser is unavailable: %s' % e)
+            self.logger.debug('No messages, browser is unavailable: %s' % e)
             pass # don't care about waiting
 
     def set_message_read(self, message):
@@ -345,7 +345,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 elif contact['cat'] == 2:
                     s = Contact.STATUS_AWAY
                 else:
-                    warning('Unknown AuM contact status: %s' % contact['cat'])
+                    self.logger.warning('Unknown AuM contact status: %s' % contact['cat'])
 
                 if not status & s or ids and contact['id'] in ids:
                     continue
@@ -405,7 +405,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                                  country=    account.properties['country'].value,
                                  godfather=  account.properties['godfather'].value)
             except CaptchaError:
-                debug('Unable to resolve captcha. Retrying...')
+                getLogger('aum').debug('Unable to resolve captcha. Retrying...')
                 browser = None
 
     def get_account(self):

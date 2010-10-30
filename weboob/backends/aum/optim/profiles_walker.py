@@ -18,11 +18,11 @@
 
 from __future__ import with_statement
 
-from logging import info
 from random import randint
 
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
+from weboob.tools.log import getLogger
 
 
 __all__ = ['ProfilesWalker']
@@ -33,9 +33,10 @@ class ProfilesWalker(Optimization):
         self.sched = sched
         self.storage = storage
         self.browser = browser
+        self.logger = getLogger('walker', browser.logger)
 
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
-        info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
+        self.logger.info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
         self.profiles_queue = set()
 
     def save(self):
@@ -57,7 +58,7 @@ class ProfilesWalker(Optimization):
         try:
             with self.browser:
                 profiles_to_visit = self.browser.search_profiles().difference(self.visited_profiles)
-                info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
+                self.logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
                 self.profiles_queue = set(profiles_to_visit)
             self.save()
         except BrowserUnavailable:
@@ -73,7 +74,7 @@ class ProfilesWalker(Optimization):
             try:
                 with self.browser:
                     profile = self.browser.get_profile(id)
-                info(u'Visited profile %s (%s)' % (profile.get_name(), id))
+                self.logger.info(u'Visited profile %s (%s)' % (profile.get_name(), id))
 
                 # Get score from the aum_score module
                 #d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)

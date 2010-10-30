@@ -19,11 +19,11 @@
 from __future__ import with_statement
 
 from copy import copy
-from logging import debug
 from threading import Thread, Event, RLock, Timer
 
 from weboob.capabilities.base import CapBaseObject
 from weboob.tools.misc import get_backtrace
+from weboob.tools.log import getLogger
 
 
 __all__ = ['BackendsCall', 'CallErrors']
@@ -44,6 +44,7 @@ class BackendsCall(object):
         @param function  backends' method name, or callable object
         @param args, kwargs  arguments given to called functions
         """
+        self.logger = getLogger('bcall')
         # Store if a backend is finished
         self.backends = {}
         for backend in backends:
@@ -64,7 +65,7 @@ class BackendsCall(object):
         # Create jobs for each backend
         with self.mutex:
             for backend in backends:
-                debug('Creating a new thread for %s' % backend)
+                self.logger.debug('Creating a new thread for %s' % backend)
                 self.threads.append(Timer(0, self._caller, (backend, function, args, kwargs)).start())
             if not backends:
                 self.finish_event.set()
@@ -82,21 +83,21 @@ class BackendsCall(object):
             self.response_event.set()
 
     def _caller(self, backend, function, args, kwargs):
-        debug('%s: Thread created successfully' % backend)
+        self.logger.debug('%s: Thread created successfully' % backend)
         with backend:
             try:
                 # Call method on backend
                 try:
-                    debug('%s: Calling function %s' % (backend, function))
+                    self.logger.debug('%s: Calling function %s' % (backend, function))
                     if callable(function):
                         result = function(backend, *args, **kwargs)
                     else:
                         result = getattr(backend, function)(*args, **kwargs)
                 except Exception, error:
-                    debug('%s: Called function %s raised an error: %r' % (backend, function, error))
+                    self.logger.debug('%s: Called function %s raised an error: %r' % (backend, function, error))
                     self._store_error(backend, error)
                 else:
-                    debug('%s: Called function %s returned: %r' % (backend, function, result))
+                    self.logger.debug('%s: Called function %s returned: %r' % (backend, function, result))
 
                     if hasattr(result, '__iter__') and not isinstance(result, basestring):
                         # Loop on iterator

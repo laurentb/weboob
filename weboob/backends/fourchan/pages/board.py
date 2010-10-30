@@ -18,7 +18,6 @@
 from datetime import datetime
 
 import re
-from logging import warning
 
 from weboob.tools.browser import BasePage
 
@@ -53,7 +52,7 @@ class BoardPage(BasePage):
         if m:
             self.board = m.group(1)
         else:
-            warning('Unable to find board')
+            self.logger.warning('Unable to find board')
             self.board = 'unknown'
 
         forms = self.document.getroot().cssselect('form')
@@ -65,7 +64,7 @@ class BoardPage(BasePage):
                 break
 
         if form is None:
-            warning('No delform :(')
+            self.logger.warning('No delform :(')
 
         article = None
         for div in form.getchildren():

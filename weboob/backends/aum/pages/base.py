@@ -17,7 +17,6 @@
 
 
 import re
-from logging import error, warning
 from weboob.tools.browser import BasePage, BrowserUnavailable
 
 class PageBase(BasePage):
@@ -61,7 +60,7 @@ class PageBase(BasePage):
                 child = tag.childNodes[0].childNodes[0].childNodes[3]
                 return int(child.childNodes[0].childNodes[1].data.replace(' ', '').strip())
 
-        error("Error: I can't find the score :(")
+        self.logger.error("Error: I can't find the score :(")
         return '0'
 
     def __get_indicator(self, elementName):
@@ -74,14 +73,14 @@ class PageBase(BasePage):
 
                 if not hasattr(child, 'data'):
                     if child.tagName != u'blink':
-                        warning("Warning: %s counter isn't a blink and hasn't data" % elementName)
+                        self.logger.warning("Warning: %s counter isn't a blink and hasn't data" % elementName)
                     child = child.childNodes[0]
                 if not hasattr(child, 'data'):
                     break
 
                 return int(child.data)
 
-        error("Error: I can't find the %s counter :(" % elementName)
+        self.logger.error("Error: I can't find the %s counter :(" % elementName)
         return 0
 
     MYNAME_REGEXP = re.compile("Bonjour (.*)")
@@ -95,7 +94,7 @@ class PageBase(BasePage):
                 if m:
                     return m.group(1)
 
-        warning('Warning: Unable to fetch name')
+        self.logger.warning('Warning: Unable to fetch name')
         return '?'
 
     def nb_new_mails(self):

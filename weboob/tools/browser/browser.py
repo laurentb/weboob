@@ -24,7 +24,7 @@ from weboob.tools.mech import ClientForm
 ControlNotFoundError = ClientForm.ControlNotFoundError
 import re
 import time
-from logging import warning, debug
+from logging import warning
 from copy import copy
 from threading import RLock
 import os
@@ -32,6 +32,7 @@ import tempfile
 
 from weboob.tools.parsers import get_parser
 from weboob.tools.decorators import retry
+from weboob.tools.log import getLogger
 
 # Try to load cookies
 try:
@@ -91,12 +92,13 @@ class BasePage(object):
     """
     Base page
     """
-    def __init__(self, browser, document, url='', groups=None, group_dict=None):
+    def __init__(self, browser, document, url='', groups=None, group_dict=None, logger=None):
         self.browser = browser
         self.document = document
         self.url = url
         self.groups = groups
         self.group_dict = group_dict
+        self.logger = getLogger('page', logger)
 
     def on_loaded(self):
         """
@@ -156,7 +158,7 @@ class BaseBrowser(mechanize.Browser):
     default_features.remove('_robots')
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
-                 parser=None, history=NoHistory(), proxy=None):
+                 parser=None, history=NoHistory(), proxy=None, logger=None):
         """
         Constructor of Browser.
 
@@ -167,8 +169,11 @@ class BaseBrowser(mechanize.Browser):
         @param parser [IParser]  parser to use on HTML files.
         @param hisory [object]  History manager. Default value is an object
                                 which does not keep history.
+        @param proxy [str]  proxy URL to use.
         """
         mechanize.Browser.__init__(self, history=history)
+        self.logger = getLogger('browser', logger)
+
         self.addheaders = [
                 ['User-agent', self.USER_AGENT]
             ]
@@ -242,7 +247,7 @@ class BaseBrowser(mechanize.Browser):
         Open an URL but do not create a Page object.
         """
         if_fail = kwargs.pop('if_fail', 'raise')
-        debug('Opening URL "%s", %s' % (args, kwargs))
+        self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
@@ -280,7 +285,7 @@ class BaseBrowser(mechanize.Browser):
         fd, path = tempfile.mkstemp(prefix="response", dir=tmpdir)
         with os.fdopen(fd, 'w') as f:
             f.write(result.read())
-        debug("Response saved to %s" % path)
+        self.logger.debug("Response saved to %s" % path)
         result.seek(0)
 
     def submit(self, *args, **kwargs):
@@ -366,23 +371,23 @@ class BaseBrowser(mechanize.Browser):
             #if isinstance(data, unicode):
             #    data = data.encode('utf-8')
             #print data
-            warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
+            self.logger.warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
             self.save_response(result)
 
             return
 
-        debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
+        self.logger.debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
         self.last_update = time.time()
 
         if self.SAVE_RESPONSES:
             self.save_response(result)
 
         document = self.get_document(result)
-        self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict)
+        self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
         self.page.on_loaded()
 
         if self.password is not None and not self.is_logged():
-            debug('!! Relogin !!')
+            self.logger.debug('!! Relogin !!')
             self.login()
             return
 

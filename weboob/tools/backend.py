@@ -18,10 +18,10 @@
 
 import os
 from threading import RLock
-from logging import debug
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound, IBaseCap, NotLoaded
 from weboob.tools.misc import iter_fields
+from weboob.tools.log import getLogger
 
 
 __all__ = ['BaseBackend', 'ObjectNotAvailable']
@@ -95,7 +95,8 @@ class BaseBackend(object):
     def __repr__(self):
         return u"<Backend '%s'>" % self.name
 
-    def __init__(self, weboob, name, config, storage):
+    def __init__(self, weboob, name, config, storage, logger=None):
+        self.logger = getLogger(self.NAME, parent=logger)
         self.weboob = weboob
         self.name = name
         self.lock = RLock()
@@ -143,7 +144,7 @@ class BaseBackend(object):
         try:
             import xdg.IconTheme
         except ImportError:
-            debug(u'Python xdg module was not found. Please install it to read icon files.')
+            self.logger.debug(u'Python xdg module was not found. Please install it to read icon files.')
         else:
             return xdg.IconTheme.getIconPath(self.NAME)
 
@@ -178,6 +179,7 @@ class BaseBackend(object):
             kwargs['proxy'] = self._private_config['_proxy']
         elif 'HTTP_PROXY' in os.environ:
             kwargs['proxy'] = os.environ['HTTP_PROXY']
+        kwargs['logger'] = self.logger
 
         return self.BROWSER(*args, **kwargs)
 
@@ -235,5 +237,5 @@ class BaseBackend(object):
 
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
-                debug(u'Fill %r with fields: %s' % (obj, missing_fields))
+                self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 return value(self, obj, missing_fields) or obj

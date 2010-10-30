@@ -362,7 +362,7 @@ class ProfilePage(PageBase):
                 try:
                     fields[label1].put_value(d, value2)
                 except KeyError:
-                    warning('Unable to find "%s" (%s)' % (label1, repr(label1)))
+                    self.logger.warning('Unable to find "%s" (%s)' % (label1, repr(label1)))
             elif label1 and label2:
                 # two titles, so there will have a list of value in
                 # next lines on each columns

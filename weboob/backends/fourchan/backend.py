@@ -18,8 +18,6 @@
 
 from __future__ import with_statement
 
-from logging import warning
-
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import Value, ValuesDict
@@ -52,7 +50,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
             id = thread.id
 
         if not '.' in id:
-            warning('Malformated ID (%s)' % id)
+            self.logger.warning('Malformated ID (%s)' % id)
             return
 
         board, thread_id = self._splitid(id)

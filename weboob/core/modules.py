@@ -19,12 +19,12 @@
 from __future__ import with_statement
 
 import logging
-from logging import debug, error, exception
 import os
 import re
 
 from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
+from weboob.tools.log import getLogger
 
 
 __all__ = ['Module', 'ModulesLoader']
@@ -32,6 +32,7 @@ __all__ = ['Module', 'ModulesLoader']
 
 class Module(object):
     def __init__(self, package):
+        self.logger = getLogger('backend')
         self.package = package
         self.klass = None
         for attrname in dir(self.package):
@@ -89,14 +90,15 @@ class Module(object):
         return False
 
     def create_instance(self, weboob, instance_name, config, storage):
-        backend_instance = self.klass(weboob, instance_name, config, storage)
-        debug(u'Created backend instance "%s" for backend "%s"' % (instance_name, self.name))
+        backend_instance = self.klass(weboob, instance_name, config, storage, self.logger)
+        self.logger.debug(u'Created backend instance "%s" for backend "%s"' % (instance_name, self.name))
         return backend_instance
 
 
 class ModulesLoader(object):
     def __init__(self):
         self.loaded = {}
+        self.logger = getLogger('modules')
 
     def get_or_load_module(self, module_name):
         if module_name not in self.loaded:
@@ -129,13 +131,13 @@ class ModulesLoader(object):
         except ImportError, e:
             msg = u'Unable to load module "%s": %s' % (module_name, e)
             if logging.root.level == logging.DEBUG:
-                exception(msg)
+                self.logger.exception(msg)
                 return
             else:
-                error(msg)
+                self.logger.error(msg)
                 return
         if module.name in self.loaded:
-            debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
+            self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
             return
         self.loaded[module.name] = module
-        debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))
+        self.logger.debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))

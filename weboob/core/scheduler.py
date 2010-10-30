@@ -18,8 +18,8 @@
 
 from __future__ import with_statement
 
-import logging
 from threading import Timer, Event, RLock
+from weboob.tools.log import getLogger
 
 
 __all__ = ['Scheduler']
@@ -40,6 +40,7 @@ class IScheduler(object):
 
 class Scheduler(IScheduler):
     def __init__(self):
+        self.logger = getLogger('scheduler')
         self.mutex = RLock()
         self.stop_event = Event()
         self.count = 0
@@ -51,7 +52,7 @@ class Scheduler(IScheduler):
 
         with self.mutex:
             self.count += 1
-            logging.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
+            self.logger.debug('function "%s" will be called in %s seconds' % (function.__name__, interval))
             timer = Timer(interval, self._callback, (self.count, function, args))
             self.queue[self.count] = timer
             timer.start()

@@ -18,7 +18,6 @@
 
 from __future__ import with_statement
 
-import logging
 import sys
 
 import weboob
@@ -97,7 +96,7 @@ class HaveSex(ReplApplication):
                 found = 1
 
         if not found:
-            logging.error(u'Profile not found')
+            self.logger.error(u'Profile not found')
 
         return True
 
@@ -116,7 +115,7 @@ class HaveSex(ReplApplication):
             except weboob.core.CallErrors, errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
-                        logging.error(u'Optimization "%s" not found' % optim)
+                        self.logger.error(u'Optimization "%s" not found' % optim)
 
     def do_start(self, *optims):
         """

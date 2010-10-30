@@ -18,7 +18,6 @@
 
 import datetime
 import time
-from logging import warning
 import random
 import simplejson
 import urllib
@@ -225,20 +224,20 @@ class AuMBrowser(BaseBrowser):
     @pageaccess
     def send_charm(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        warning('Charm: %s' % result)
+        self.logger.warning('Charm: %s' % result)
         return result.find('noMoreFlashes') < 0
 
     @pageaccess
     def add_basket(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        warning('Basket: %s' % result)
+        self.logger.warning('Basket: %s' % result)
         # TODO check if it works (but it should)
         return True
 
     @pageaccess
     def deblock(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id).read()
-        warning('Deblock: %s' % result)
+        self.logger.warning('Deblock: %s' % result)
         return True
 
     @pageaccess

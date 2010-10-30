@@ -18,7 +18,6 @@
 
 from __future__ import with_statement
 
-from logging import warning
 import os
 
 from weboob.core.bcall import BackendsCall
@@ -26,6 +25,7 @@ from weboob.core.modules import ModulesLoader
 from weboob.core.backendscfg import BackendsConfig
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
+from weboob.tools.log import getLogger
 
 
 __all__ = ['Weboob']
@@ -36,6 +36,7 @@ class Weboob(object):
     BACKENDS_FILENAME = 'backends'
 
     def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None, storage=None):
+        self.logger = getLogger('weboob')
         self.workdir = workdir
         self.backend_instances = {}
 
@@ -48,7 +49,7 @@ class Weboob(object):
         if not os.path.exists(self.workdir):
             os.mkdir(self.workdir, 0700)
         elif not os.path.isdir(self.workdir):
-            warning(u'"%s" is not a directory' % self.workdir)
+            self.logger.warning(u'"%s" is not a directory' % self.workdir)
 
         # Backends loader
         self.modules_loader = ModulesLoader()
@@ -96,15 +97,15 @@ class Weboob(object):
                 continue
             module = self.modules_loader.get_or_load_module(module_name)
             if module is None:
-                warning(u'Backend "%s" is referenced in ~/.weboob/backends '
-                        'configuration file, but was not found. '
-                        'Hint: is it installed?' % module_name)
+                self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
+                                     'configuration file, but was not found. '
+                                     'Hint: is it installed?' % module_name)
                 continue
             if caps is not None and not module.has_caps(caps):
                 continue
 
             if instance_name in self.backend_instances:
-                warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
+                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
                 self.unload_backends(instance_name)
 
             try:
@@ -186,7 +187,7 @@ class Weboob(object):
                     else:
                         backends.append(backend)
             else:
-                warning(u'The "backends" value isn\'t supported: %r' % _backends)
+                self.logger.warning(u'The "backends" value isn\'t supported: %r' % _backends)
 
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
