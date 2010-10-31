@@ -80,7 +80,11 @@ class BoobankMuninPlugin(object):
         except IOError:
             return False
 
-        last = int(f.readline().strip())
+        try:
+            last = int(f.readline().strip())
+        except ValueError:
+            return False
+
         if (last + self.cache_expire) < time.time():
             return False
 
