@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import ICapBank, AccountNotFound, Account
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -67,16 +67,33 @@ class BNPorcBackend(BaseBackend, ICapBank):
         except ValueError:
             raise AccountNotFound()
         else:
-            account = self.browser.get_account(_id)
+            with self.browser:
+                account = self.browser.get_account(_id)
             if account:
                 return account
             else:
                 raise AccountNotFound()
 
     def iter_history(self, account):
-        for history in self.browser.get_history(account):
-            yield history
+        with self.browser:
+            for history in self.browser.get_history(account):
+                yield history
 
     def iter_operations(self, account):
-        for coming in self.browser.get_coming_operations(account):
-            yield coming
+        with self.browser:
+            for coming in self.browser.get_coming_operations(account):
+                yield coming
+
+    def transfer(self, account, to, amount, reason=None):
+        if isinstance(account, Account):
+            account = account.id
+
+        try:
+            account = long(account)
+            to = long(to)
+            amount = float(amount)
+        except ValueError:
+            raise AccountNotFound()
+
+        with self.browser:
+            return self.browser.transfer(account, to, amount, reason)

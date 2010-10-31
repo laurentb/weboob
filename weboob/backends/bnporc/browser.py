@@ -16,9 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from datetime import datetime
 from logging import warning
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.capabilities.bank import TransferError, Transfer
 from weboob.backends.bnporc import pages
 from .errors import PasswordExpired
 
@@ -35,6 +37,9 @@ class BNPorc(BaseBrowser):
              '.*Action=SAF_CHM.*':                          pages.ChangePasswordPage,
              '.*NS_AVEET.*':                                pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
+             '.*NS_VIRDF.*':                                pages.TransferPage,
+             '.*NS_VIRDC.*':                                pages.TransferConfirmPage,
+             '.*/NS_VIRDA\?stp=(?P<id>\d+).*':              pages.TransferCompletePage,
              '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
              '.*type=homeconnex.*':                         pages.LoginPage,
              '.*layout=HomeConnexion.*':                    pages.ConfirmPage,
@@ -120,3 +125,19 @@ class BNPorc(BaseBrowser):
         if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
             self.location('/NS_AVEET?ch4=%s' % account.link_id)
         return self.page.get_operations()
+
+    def transfer(self, from_id, to_id, amount, reason=None):
+        if not self.is_on_page(pages.TransferPage):
+            self.location('/NS_VIRDF')
+
+        self.page.transfer(from_id, to_id, amount, reason)
+
+        if not self.is_on_page(pages.TransferCompletePage):
+            raise TransferError('An error occured during transfer')
+
+        transfer = Transfer(self.page.get_id())
+        transfer.amount = amount
+        transfer.origin = from_id
+        transfer.recipient = to_id
+        transfer.date = datetime.now()
+        return transfer
