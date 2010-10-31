@@ -17,12 +17,27 @@
 
 from __future__ import with_statement
 
+import sys
+
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['Boobank']
+
+
+class TransferFormatter(IFormatter):
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result = u'------- Transfer %s -------\n' % item['id']
+        result += u'Date:       %s\n' % item['date']
+        result += u'Origin:     %s\n' % item['origin']
+        result += u'Recipient:  %s\n' % item['recipient']
+        result += u'Amount:     %.2f\n' % item['amount']
+        return result
 
 class AccountListFormatter(IFormatter):
     count = 0
@@ -66,10 +81,12 @@ class Boobank(ReplApplication):
     VERSION = '0.3'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
-    EXTRA_FORMATTERS = {'account_list': AccountListFormatter}
+    EXTRA_FORMATTERS = {'account_list': AccountListFormatter,
+                        'transfer':     TransferFormatter,
+                       }
     DEFAULT_FORMATTER = 'table'
-    COMMANDS_FORMATTERS = {'transfer':    'multiline',
-                           'list':        'account_list',
+    COMMANDS_FORMATTERS = {'list':        'account_list',
+                           'transfer':    'transfer',
                           }
 
     accounts = []
@@ -159,26 +176,40 @@ class Boobank(ReplApplication):
 
     def do_transfer(self, line):
         """
-        transfer FROM TO AMOUNT
+        transfer ACCOUNT [TO AMOUNT [REASON]]
 
         Make a transfer beetwen two account
+        - ACCOUNT the source account
+        - TO      the recipient
+        - AMOUNT  amount to transfer
+        - REASON  reason of transfer
+
+        If you give only the ACCOUNT parameter, it lists all the
+        available recipients for this account.
         """
-        id_from, id_to, amount = self.parseargs(line, 3, 3)
+        id_from, id_to, amount, reason = self.parseargs(line, 4, 1)
 
         id_from, backend_name_from = self.parse_id(id_from)
+        if not id_to:
+            print >>sys.stderr, 'Error: listing recipient is not implemented yet'
+            return
+
         id_to, backend_name_to = self.parse_id(id_to)
 
+        try:
+            amount = float(amount)
+        except (TypeError,ValueError):
+            print >>sys.stderr, 'Error: please give a decimal amount to transfer'
+            return 1
+
         if backend_name_from != backend_name_to:
-            print "Transfer between different backend is not implemented"
+            print >>sys.stderr, "Transfer between different backends is not implemented"
             return
         else:
             backend_name = backend_name_from
 
         names = (backend_name,) if backend_name is not None else None
 
-        def do(backend):
-            return backend.transfer(id_from, id_to, float(amount))
-
-        for backend, id_transfer in self.do(do, backends=names):
-            self.format((('Transfer', str(id_transfer)),))
+        for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
+            self.format(transfer)
         self.flush()
