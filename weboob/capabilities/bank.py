@@ -21,15 +21,17 @@ from datetime import datetime
 from .base import IBaseCap, CapBaseObject
 
 
-__all__ = ['Account', 'AccountNotFound', 'NotEnoughMoney', 'ICapBank', 'Operation']
+__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 'Operation']
 
 
 class AccountNotFound(Exception):
-    pass
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = 'Account not found'
+        Exception.__init__(self, msg)
 
-class NotEnoughMoney(Exception):
+class TransferError(Exception):
     pass
-
 
 class Account(CapBaseObject):
     def __init__(self):
@@ -53,6 +55,14 @@ class Operation(CapBaseObject):
     def __repr__(self):
         return "<Operation date='%s' label='%s' amount=%s>" % (self.date, self.label, self.amount)
 
+class Transfer(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.add_field('amount', float)
+        self.add_field('date', (basestring,datetime))
+        self.add_field('origin', (int,long,basestring))
+        self.add_field('recipient', (int,long,basestring))
+
 class ICapBank(IBaseCap):
     def iter_accounts(self):
         raise NotImplementedError()
@@ -63,8 +73,17 @@ class ICapBank(IBaseCap):
     def iter_operations(self, account):
         raise NotImplementedError()
 
-    def iter_history(self, id):
+    def iter_history(self, account):
         raise NotImplementedError()
 
-    def transfer(self, id_from, id_to, amount):
-		raise NotImplementedError()
+    def transfer(self, account, to, amount, reason=None):
+        """
+        Make a transfer from an account to a recipient.
+
+        @param account [Account]  account to take money
+        @param to [Account]  account to send money
+        @param amount [float]  amount
+        @param reason [str]  reason of transfer
+        @return [Transfer]  a Transfer object
+        """
+        raise NotImplementedError()

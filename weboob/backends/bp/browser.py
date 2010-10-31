@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #    MA 02110-1301, USA.
 
+from datetime import datetime
 import mechanize
 import hashlib
 import re
@@ -25,6 +26,7 @@ import re
 from weboob.tools.parsers import get_parser
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transfer
 
 def remove_html_tags(data):
     p = re.compile(r'<.*?>')
@@ -71,12 +73,12 @@ class BPbrowser(object):
         self.Browser.open("https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers")
 
         process = lambda i: md5(
-        
+
         self.Browser.retrieve(("https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?imgid=%d&0.25122230781963073" % i ))[0])
         Keypad = [ process(i) for i in range(10)]
-      
+
         correspondance = [ Keypad.index(i) for i in LOCAL_HASH]
-            
+
 
         Newpassword = "".join([str(correspondance[int(c)]) for c in self.pwd])
 
@@ -201,10 +203,15 @@ class BPbrowser(object):
         # TODO: verifier que tout c'est bien passe
         rep = self.Browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
         html = rep.get_data()
-        
+
         pattern = "Votre virement N.+ ([0-9]+) "
-        
+
         regex = re.compile(pattern)
         match = regex.search(html)
         id_transfer = match.groups()[0]
-        return id_transfer
+        transfer = Transfer(id_transfer)
+        transfer.amount = amount
+        transfer.origin = from_account.label
+        transfer.recipient = to_account.label
+        transfer.date = datetime.now()
+        return transfer
