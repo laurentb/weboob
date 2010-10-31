@@ -32,6 +32,7 @@ class BoobankMuninPlugin(object):
             self.monitored_accounts = os.environ['boobank_monitored'].split(' ')
         self.cache_expire = long(os.environ.get('boobank_cache_expire', 3600))
         self.add_coming = int(os.environ.get('boobank_add_coming', 1))
+        self.cache = None
 
     def display_help(self):
         print 'boobank-munin is a plugin for munin'
@@ -55,17 +56,69 @@ class BoobankMuninPlugin(object):
         print '# If enabled, coming operations are added to the value of accounts\''
         print '# balance.'
         print 'env.boobank_add_coming 1'
+        print ''
+        print 'When you change configuration, you can use this command to reset cache:'
+        print '$ boobank-munin --reset'
+
+    def clear_cache(self):
+        for name in ('boobank-munin', 'boobank-munin-config'):
+            try:
+                os.unlink(self.temppath(name))
+            except IOError:
+                pass
+
+    def temppath(self, name):
+        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+
+        return os.path.join(tmpdir, name)
+
+    def check_cache(self, name):
+        try:
+            f = open(self.temppath(name), 'r')
+        except IOError:
+            return False
+
+        last = int(f.readline().strip())
+        if (last + self.cache_expire) < time.time():
+            return False
+
+        for line in f.xreadlines():
+            sys.stdout.write(line)
+        return True
+
+    def new_cache(self, name):
+        os.umask(0077)
+        filename = self.temppath(name)
+        try:
+            f = open(filename, 'w')
+        except IOError, e:
+            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
+            return
+
+        self.cache = f
+        self.cache.write('%d\n' % time.time())
+
+    def write_output(self, line):
+        sys.stdout.write('%s\n' % line)
+        if self.cache:
+            self.cache.write('%s\n' % line)
 
     def config(self):
-        print 'graph_title Bank accounts'
-        print 'graph_vlabel balance'
-        print 'graph_category weboob'
-        print 'graph_args -l 0'
+        if self.check_cache('boobank-munin-config'):
+            return
+
+        self.new_cache('boobank-munin-config')
+        self.write_output('graph_title Bank accounts')
+        self.write_output('graph_vlabel balance')
+        self.write_output('graph_category weboob')
+        self.write_output('graph_args -l 0')
         self.weboob.load_backends(ICapBank)
         for backend, account in self.weboob.do('iter_accounts'):
             if self.monitored(account):
                 id = self.account2id(account)
-                print '%s.label %s' % (id, account.label.encode('iso-8859-15'))
+                self.write_output('%s.label %s' % (id, account.label.encode('iso-8859-15')))
 
     def monitored(self, account):
         return not self.monitored_accounts or ('%s@%s' % (account.id, account.backend)) in self.monitored_accounts
@@ -74,44 +127,20 @@ class BoobankMuninPlugin(object):
         return '%s_%s' % (account.backend, account.id)
 
     def execute(self):
-        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
+        if self.check_cache('boobank-munin'):
+            return
 
-        filename = os.path.join(tmpdir, 'boobank-munin')
-
-        try:
-            f = open(filename, 'r')
-        except IOError:
-            pass
-        else:
-            last = int(f.readline().strip())
-            if (last + self.cache_expire) > time.time():
-                for line in f.xreadlines():
-                    sys.stdout.write(line)
-                return
-
-        os.umask(0077)
-        try:
-            f = open(filename, 'w')
-            f.write('%d\n' % time.time())
-        except IOError, e:
-            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
-            f = None
-
+        self.new_cache('boobank-munin')
         self.weboob.load_backends(ICapBank)
         for backend, account in self.weboob.do('iter_accounts'):
             if self.monitored(account):
                 balance = account.balance
                 if account.coming and self.add_coming:
                     balance += account.coming
-                res = '%s.value %d' % (self.account2id(account), balance)
-                print res
-                if f:
-                    f.write('%s\n' % res)
+                self.write_output('%s.value %d' % (self.account2id(account), balance))
 
     def run(self):
-        cmd = ((len(sys.argv) > 1) and sys.argv[1]) or "execute"
+        cmd = (len(sys.argv) > 1 and sys.argv[1]) or "execute"
         if cmd == 'execute':
             self.execute()
         elif cmd == 'config':
@@ -123,6 +152,13 @@ class BoobankMuninPlugin(object):
             sys.exit(1)
         elif cmd == 'help' or cmd == '-h' or cmd == '--help':
             self.display_help()
+        elif cmd == 'reload' or cmd == '--reload' or \
+             cmd == 'reset' or cmd == '--reset':
+            self.clear_cache()
+
+        if self.cache:
+            self.cache.close()
+
         sys.exit(0)
 
 if __name__ == '__main__':
