@@ -20,7 +20,7 @@ from weboob.tools.mech import ClientForm
 import urllib
 from logging import error
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.backends.bnporc.captcha import Captcha, TileError
 
 
@@ -29,7 +29,12 @@ __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
 
 class LoginPage(BasePage):
     def on_loaded(self):
-        pass
+        for td in self.document.getroot().cssselect('td.LibelleErreur'):
+            if td.text is None:
+                continue
+            msg = td.text.strip()
+            if 'indisponible' in msg:
+                raise BrowserUnavailable(msg)
 
     def login(self, login, password):
         img = Captcha(self.browser.openurl('/NSImgGrille'))

@@ -41,8 +41,6 @@ class BNPorc(BaseBrowser):
              '.*SAF_CHM_VALID.*':                           pages.ConfirmPage,
             }
 
-    is_logging = False
-
     def __init__(self, *args, **kwargs):
         self.rotating_password = kwargs.pop('rotating_password', None)
         self.password_changed_cb = kwargs.pop('password_changed_cb', None)
@@ -52,7 +50,7 @@ class BNPorc(BaseBrowser):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage) or self.is_logging
+        return not self.is_on_page(pages.LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -62,13 +60,11 @@ class BNPorc(BaseBrowser):
         if not self.is_on_page(pages.LoginPage):
             self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
 
-        self.is_logging = True
         self.page.login(self.username, self.password)
-        self.location('/NSFR?Action=DSP_VGLOBALE')
+        self.location('/NSFR?Action=DSP_VGLOBALE', no_login=True)
 
         if self.is_on_page(pages.LoginPage):
             raise BrowserIncorrectPassword()
-        self.is_logging = False
 
     def change_password(self, new_password):
         assert new_password.isdigit() and len(new_password) == 6
