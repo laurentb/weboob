@@ -216,7 +216,7 @@ class BaseApplication(object):
         version = None
         if self.VERSION:
             if self.COPYRIGHT:
-                version = '%s v%s (%s)' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
+                version = '%s v%s %s' % (self.APPNAME, self.VERSION, self.COPYRIGHT)
             else:
                 version = '%s v%s' % (self.APPNAME, self.VERSION)
         return version

@@ -51,6 +51,7 @@ class BoobankMuninPlugin(object):
         print 'graph_title Bank accounts'
         print 'graph_vlabel balance'
         print 'graph_category weboob'
+        print 'graph_args -l 0'
         self.weboob.load_backends(ICapBank)
         for backend, account in self.weboob.do('iter_accounts'):
             if self.monitored(account):
