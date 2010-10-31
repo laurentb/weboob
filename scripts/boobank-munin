@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
+
+# Copyright(C) 2010  Romain Bignon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+import os
+import sys
+import time
+import tempfile
+from weboob.core import Weboob
+from weboob.capabilities.bank import ICapBank
+
+class BoobankMuninPlugin(object):
+    def __init__(self):
+        self.weboob = Weboob()
+        self.monitored_accounts = None
+        if 'boobank_monitored' in os.environ:
+            self.monitored_accounts = os.environ['boobank_monitored'].split(' ')
+        self.cache_expire = long(os.environ.get('boobank_cache_expire', 3600))
+
+    def display_help(self):
+        print 'boobank-munin is a plugin for munin'
+        print ''
+        print 'Copyright(C) 2010 Romain Bignon'
+        print ''
+        print 'To use it, create a symlink /etc/munin/plugins/boobank to this script'
+        print 'and add this section in /etc/munin/plugin-conf.d/munin-node:'
+        print ''
+        print '[boobank]'
+        print 'user romain'
+        print 'group romain'
+        print 'env.HOME /home/romain/'
+        print 'env.boobank_monitored 0125XXXXXXXXXXXX@bnporc 0125XXXXXXXXXXXX@bnporc'
+        print 'env.boobank_cache_expire 3600'
+
+    def config(self):
+        print 'graph_title Bank accounts'
+        print 'graph_vlabel balance'
+        print 'graph_category weboob'
+        self.weboob.load_backends(ICapBank)
+        for backend, account in self.weboob.do('iter_accounts'):
+            if self.monitored(account):
+                id = self.account2id(account)
+                print '%s.label %s' % (id, account.label.encode('iso-8859-15'))
+
+    def monitored(self, account):
+        return not self.monitored_accounts or ('%s@%s' % (account.id, account.backend)) in self.monitored_accounts
+
+    def account2id(self, account):
+        return '%s_%s' % (account.backend, account.id)
+
+    def execute(self):
+        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+
+        filename = os.path.join(tmpdir, 'boobank-munin')
+
+        try:
+            f = open(filename, 'r')
+        except IOError:
+            pass
+        else:
+            last = int(f.readline().strip())
+            if (last + self.cache_expire) > time.time():
+                for line in f.xreadlines():
+                    sys.stdout.write(line)
+                return
+
+        os.umask(0077)
+        try:
+            f = open(filename, 'w')
+            f.write('%d\n' % time.time())
+        except IOError, e:
+            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
+            f = None
+
+        self.weboob.load_backends(ICapBank)
+        for backend, account in self.weboob.do('iter_accounts'):
+            if self.monitored(account):
+                balance = account.balance
+                if account.coming:
+                    balance += account.coming
+                res = '%s.value %d' % (self.account2id(account), balance)
+                print res
+                if f:
+                    f.write('%s\n' % res)
+
+    def run(self):
+        cmd = ((len(sys.argv) > 1) and sys.argv[1]) or "execute"
+        if cmd == 'execute':
+            self.execute()
+        elif cmd == 'config':
+            self.config()
+        elif cmd == 'autoconf':
+            print 'no'
+            sys.exit(1)
+        elif cmd == 'suggest':
+            sys.exit(1)
+        elif cmd == '-h' or cmd == '--help':
+            self.display_help()
+        sys.exit(0)
+
+if __name__ == '__main__':
+    BoobankMuninPlugin().run()
