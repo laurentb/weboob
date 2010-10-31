@@ -31,6 +31,7 @@ class BoobankMuninPlugin(object):
         if 'boobank_monitored' in os.environ:
             self.monitored_accounts = os.environ['boobank_monitored'].split(' ')
         self.cache_expire = long(os.environ.get('boobank_cache_expire', 3600))
+        self.add_coming = int(os.environ.get('boobank_add_coming', 1))
 
     def display_help(self):
         print 'boobank-munin is a plugin for munin'
@@ -43,9 +44,17 @@ class BoobankMuninPlugin(object):
         print '[boobank]'
         print 'user romain'
         print 'group romain'
+        print '# Useful for weboob to find its config files.'
         print 'env.HOME /home/romain/'
+        print '# Monitored accounts. If this parameter is missing, all accounts'
+        print '# will be displayed.'
         print 'env.boobank_monitored 0125XXXXXXXXXXXX@bnporc 0125XXXXXXXXXXXX@bnporc'
+        print '# To prevent mass connections to bank websites, results are cached.'
+        print '# You can set here the expiration delay (in seconds).'
         print 'env.boobank_cache_expire 3600'
+        print '# If enabled, coming operations are added to the value of accounts\''
+        print '# balance.'
+        print 'env.boobank_add_coming 1'
 
     def config(self):
         print 'graph_title Bank accounts'
@@ -94,7 +103,7 @@ class BoobankMuninPlugin(object):
         for backend, account in self.weboob.do('iter_accounts'):
             if self.monitored(account):
                 balance = account.balance
-                if account.coming:
+                if account.coming and self.add_coming:
                     balance += account.coming
                 res = '%s.value %d' % (self.account2id(account), balance)
                 print res
@@ -112,7 +121,7 @@ class BoobankMuninPlugin(object):
             sys.exit(1)
         elif cmd == 'suggest':
             sys.exit(1)
-        elif cmd == '-h' or cmd == '--help':
+        elif cmd == 'help' or cmd == '-h' or cmd == '--help':
             self.display_help()
         sys.exit(0)
 
