@@ -54,7 +54,6 @@ class ThreadMessage(QFrame):
             header += u' — <font color=#ff0000>Unread</font>'
         elif message.flags & message.IS_ACCUSED:
             header += u' — <font color=#00ff00>Read</font>'
-        header += ' (%s@%s)' % (message.id, message.thread.id)
         self.ui.headerLabel.setText(header)
         if message.flags & message.IS_HTML:
             content = message.content
