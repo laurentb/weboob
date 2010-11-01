@@ -1,3 +1,97 @@
+Weboob 0.3 (2010-11-01)
+	General
+	* New backend: LCL (CapBank) -- unfinished.
+	* New backend: OuiFM (CapRadio).
+	* New backend: Newsfeed (CapMessages).
+	* New backend: Redmine (CapContent).
+	* New application: radioob (CapRadio).
+	* New application: webcontentedit (CapContent).
+	* New application: boobank-munin is a plugin for munin (CapBank).
+	* New tests.
+	* New global parameter --logging-file to log into a file instead of
+	  stdout.
+	* Logging is now colorized when printed on stdout (depending on level).
+
+	Console Applications
+	* Formatters management have been rewritten. Now each command can set its
+	  own default formatter, and user can redefine them.
+	* If output exceed the height of term, ask user to press a key for each
+	  page.
+	* Do not display columns when all of these values are NotLoaded or
+	  NotAvailable.
+	* Add a CSV formatter (#350).
+	* Command 'backends register' to register a new account (#294).
+	* Can use '$full' and '$direct' selectors.
+
+	Backend: Arte
+	* Fix: fall-back when the wanted quality is not available.
+
+	Backend: AuM
+	* New anti-spam feature to detect, block and report spambots (#313).
+	* Implements the capability CapAccount to register new accounts (#389).
+	* In profile walker, when reloading sluts list from search page, do not
+	  keep the previous queue to prevent visiting sluts who have been added
+	  a long time before and who are now disconnected.
+	* Contact status is now 'connected'/'not connected since ... hours'.
+	* Fix: do not crash if contact list is empty.
+
+	Backend: BNPorc
+	* If password is expired, switch with the value of the new
+	  'rotating_password' backend setting.
+	* Support transfers (#416).
+	* Fix: don't crash when accounts don't support 'coming' (#401).
+	* Fix: when website is not available, raise BrowserUnavailable instead of
+	  BrowserIncorrectPassword.
+
+	Backend: DLFP
+	* Replace 'cite>' and 'tt>' to 'i>' in read messages.
+
+	Application: boobank
+	* Use 'table' as default formatter.
+	* Output for the 'list' command is more readable (#410).
+	* When a transfer is made, display all information instead of ID.
+	* Fix: do not load backends twice (#405).
+
+	Application: QBoobMsg
+	* Support threads display and answers.
+	* Support sending answers (plaintext or HTML).
+	* Unread messages are in yellow in list, and set message as read when
+	  one is selected.
+	* Fix: correctly reload when backends have been changed.
+
+	Application: QHaveSex
+	* Ability to display a profile from URL.
+
+	Application: QVideoob
+	* Fix: search on youtube was unlimited, so QVideoob freezed.
+
+	Application: traveloob
+	* Use 'table' as default formatter.
+
+	Application: videoob
+	* Output for the 'search' command is more readable.
+
+	Application: weboob-config
+	* Add a 'register' command (#294).
+
+	Application: weboob-config-qt
+	* Add a 'Register' button to register a new account on a backend (#390).
+
+	Application: weboorrents
+	* Output for the 'search' and 'info' commands is more readable.
+
+	Core
+	* Weboob.load_backends() takes a new 'errors' argument.
+	* CapBaseObject has a new method 'add_field' to add a field property which
+	  forces a specific type and is set to NotLoaded by default.
+	* Browser.readurl() can take same arguments than Browser.openurl().
+	* If a page is not recognized by the Browser instance, save response even
+	  if -a is not supplied.
+	* Introduce 'Value' classes to replace BaseBackend.ConfigField and is
+	  used by ReplApplication.ask().
+	* Use several loggers for parts of weboob.
+	* Fix: crash when HTTP server returns shit (#406).
+
 Weboob 0.2 (2010-10-01)
 	* Backend 'yweather' renamed to 'yahoo'.
 	* New capability: ICapGeolocIp to geolocalise IP addresses.
