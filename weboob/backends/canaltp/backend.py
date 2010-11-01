@@ -28,7 +28,7 @@ class CanalTPBackend(BaseBackend, ICapTravel):
     NAME = 'canaltp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3'
+    VERSION = '0.4'
     LICENSE = 'GPLv3'
     DESCRIPTION = "French trains"
     BROWSER = CanalTP

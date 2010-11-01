@@ -29,7 +29,7 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     NAME = 'gazelle'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3'
+    VERSION = '0.4'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),

@@ -40,7 +40,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.3'
+    VERSION = '0.4'
     DESCRIPTION = 'Youtube videos website'
     LICENSE = 'GPLv3'
     BROWSER = YoutubeBrowser

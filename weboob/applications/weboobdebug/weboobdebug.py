@@ -23,7 +23,7 @@ from weboob.tools.application.repl import ReplApplication
 
 class WeboobDebug(ReplApplication):
     APPNAME = 'weboobdebug'
-    VERSION = '0.3'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
 
     def load_default_backends(self):

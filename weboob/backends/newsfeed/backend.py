@@ -29,7 +29,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u"Clément Schreiner"
     EMAIL = "clemux@clemux.info"
-    VERSION = "0.3"
+    VERSION = '0.4'
     DESCRIPTION = "Loads RSS and Atom feeds from any websites"
     LICENSE = "GPLv3"
     CONFIG = ValuesDict(Value('url', label="Atom/RSS feed's url"))

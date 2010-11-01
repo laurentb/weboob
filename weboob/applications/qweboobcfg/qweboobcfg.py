@@ -23,7 +23,7 @@ from weboob.tools.application.qt import BackendCfg, QtApplication
 
 class QWeboobCfg(QtApplication):
     APPNAME = 'qweboobcfg'
-    VERSION = '0.3'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
 
     def main(self, argv):
