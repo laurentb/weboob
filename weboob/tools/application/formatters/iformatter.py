@@ -107,7 +107,8 @@ class IFormatter(object):
 
     def format_dict(self, item):
         """
-        Format an dict to be human-readable. The dict is already simplified if user provides selected fields.
+        Format a dict to be human-readable. The dict is already simplified
+        if user provides selected fields.
         Called by format().
         This method has to be overridden in child classes.
 
@@ -121,7 +122,7 @@ class IFormatter(object):
             print string.encode('utf-8')
 
     def to_dict(self, obj, condition=None, selected_fields=None):
-        def iter_select_and_decorate(d):
+        def iter_select(d):
             if selected_fields is None or '*' in selected_fields:
                 fields = d.iterkeys()
             else:
@@ -133,12 +134,16 @@ class IFormatter(object):
                 except KeyError:
                     raise FieldNotFound(obj, key)
 
+                yield key, value
+
+        def iter_decorate(d):
+            for key, value in d:
                 if key == 'id' and obj.backend is not None:
                     value = self.build_id(value, obj.backend)
                 yield key, value
 
         fields_iterator = obj.iter_fields()
-        d = OrderedDict(fields_iterator)
+        d = OrderedDict(iter_decorate(fields_iterator))
         if condition is not None and not condition.is_valid(d):
             return None
-        return OrderedDict([(k, v) for k, v in iter_select_and_decorate(d)])
+        return OrderedDict([(k, v) for k, v in iter_select(d)])

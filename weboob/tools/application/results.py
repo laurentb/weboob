@@ -71,16 +71,16 @@ class ResultsCondition(object):
     condition_str = None
 
     def __init__(self, condition_str):
-        condition_str = condition_str.replace('OR', 'or') \
-                                     .replace('AND', 'and') \
-                                     .replace('NOT', 'not')
+        condition_str = condition_str.replace(' OR ', ' or ') \
+                                     .replace(' AND ', ' and ') \
+                                     .replace(' NOT ', ' not ')
         or_list = []
-        for _or in condition_str.split('or'):
+        for _or in condition_str.split(' or '):
             and_dict = {}
-            for _and in _or.split('and'):
+            for _and in _or.split(' and '):
                 if '!=' in _and:
                     k, v = _and.split('!=')
-                    k += '!'
+                    k = k.strip() + '!'
                 elif '=' in _and:
                     k, v = _and.split('=')
                 else:
