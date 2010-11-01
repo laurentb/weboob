@@ -16,6 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+# python2.5 compatibility
+from __future__ import with_statement
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
