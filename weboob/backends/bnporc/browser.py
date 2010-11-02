@@ -35,7 +35,7 @@ class BNPorc(BaseBrowser):
     PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
              '.*SAF_ROP.*':                                 pages.AccountHistory,
              '.*Action=SAF_CHM.*':                          pages.ChangePasswordPage,
-             '.*NS_AVEET.*':                                pages.AccountComing,
+             '.*NS_AVEDT.*':                                pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*NS_VIRDF.*':                                pages.TransferPage,
              '.*NS_VIRDC.*':                                pages.TransferConfirmPage,
@@ -123,7 +123,7 @@ class BNPorc(BaseBrowser):
 
     def get_coming_operations(self, account):
         if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
-            self.location('/NS_AVEET?ch4=%s' % account.link_id)
+            self.location('/NS_AVEDT?ch4=%s' % account.link_id)
         return self.page.get_operations()
 
     def transfer(self, from_id, to_id, amount, reason=None):
