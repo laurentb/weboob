@@ -56,7 +56,8 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
                 tab[key] = value
 
             if 'erreur' in tab and tab['erreur'][0] == '1':
-                raise Exception(tab['erreur'][1:].replace('<p>', '').replace('<br />', '\n'))
+                raise Exception(tab['erreur'][1:].replace('<p>', '').replace('</p>', '').replace('<br />', '\n')\
+                                .strip().decode('iso-8859-1'))
 
             iploc = IpLocation(ipaddr)
             iploc.city = tab['ville'].decode('iso-8859-15')
