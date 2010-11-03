@@ -2,7 +2,7 @@
 Name=QBoobmsg
 Comment=Send and receive messages from various websites
 Exec=qboobmsg
-# Icon=qboobmsg
+Icon=qboobmsg
 Terminal=false
 Type=Application
 StartupNotify=true
