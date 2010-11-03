@@ -6,4 +6,4 @@ Icon=masstransit
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Network;Gtk;
+Categories=Network;GTK;
