@@ -2,8 +2,8 @@
 Name=QVideoob
 Comment=Search for videos on many websites, and get info about them
 Exec=qvideoob
-# Icon=qvideoob
+Icon=qvideoob
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Video;Qt;
+Categories=AudioVideo;Qt;
