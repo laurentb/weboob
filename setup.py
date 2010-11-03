@@ -67,9 +67,10 @@ if '--xdg' in args and '--no-xdg' in args:
     print '--xdg and --no-xdg options are incompatible'
     sys.exit(1)
 
-if '--hildon' in args:
+if '--hildon' in args or os.environ.get('HILDON') == 'true':
     options.hildon = True
-    args.remove('--hildon')
+    if '--hildon' in args:
+        args.remove('--hildon')
 elif '--no-hildon' in args:
     options.hildon = False
     args.remove('--no-hildon')
