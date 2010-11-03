@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Masstransit
+Comment=Search for train stations and departure times
+Exec=masstransit
+Icon=masstransit
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Gtk;
