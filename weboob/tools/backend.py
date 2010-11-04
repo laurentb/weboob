@@ -140,13 +140,13 @@ class BaseBackend(object):
                 return self.fget(objtype)
 
     @classprop
-    def ICON(self):
+    def ICON(klass):
         try:
             import xdg.IconTheme
         except ImportError:
-            self.logger.debug(u'Python xdg module was not found. Please install it to read icon files.')
+            getLogger(klass.NAME).debug(u'Python xdg module was not found. Please install it to read icon files.')
         else:
-            return xdg.IconTheme.getIconPath(self.NAME)
+            return xdg.IconTheme.getIconPath(klass.NAME)
 
     @property
     def browser(self):
