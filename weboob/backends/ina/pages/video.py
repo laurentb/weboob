@@ -55,7 +55,7 @@ class VideoPage(BasePage):
 
     def get_date_and_duration(self):
         duration_regexp = re.compile('(.+) - (.+)min(.+)s')
-        el = self.document.getroot().cssselect('.bloc-video-edito h3')[0]
+        el = self.document.getroot().cssselect('div.bloc-produit-haut p.date')[0]
         if el is not None:
             m = duration_regexp.match(el.text.strip())
             if m:
@@ -67,7 +67,7 @@ class VideoPage(BasePage):
             return None
 
     def get_title(self):
-        el = self.document.getroot().cssselect('.bloc-video-edito h2')[0]
+        el = self.document.getroot().cssselect('div.bloc-produit-haut h1')[0]
         if el is not None:
             return unicode(el.text.strip())
         else:
