@@ -30,7 +30,7 @@ class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('website',  label='Website to use', default='m.lefil.com'),

@@ -30,7 +30,7 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('login',    label='Account ID'),

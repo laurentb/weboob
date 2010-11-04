@@ -31,7 +31,7 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation"
     CONFIG = ValuesDict(Value('email',   label='Username'),
