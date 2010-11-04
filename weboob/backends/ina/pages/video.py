@@ -44,6 +44,7 @@ class VideoPage(BasePage):
         video.url = self.get_url()
         video.date = date
         video.duration = duration
+        video.description = self.get_description()
         return video
 
     def get_id(self):
@@ -52,6 +53,11 @@ class VideoPage(BasePage):
             return unicode(m.group(1))
         warning('Unable to parse ID')
         return 0
+
+    def get_description(self):
+        el = self.document.getroot().cssselect('div.bloc-produit-haut div.contenu p')[0]
+        if el is not None:
+            return el.text.strip()
 
     def get_date_and_duration(self):
         duration_regexp = re.compile('(.+) - (.+)min(.+)s')

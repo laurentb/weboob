@@ -48,6 +48,7 @@ class BaseVideo(CapBaseObject):
         self.add_field('title', basestring, title)
         self.add_field('url', basestring, url)
         self.add_field('author', basestring, author)
+        self.add_field('description', basestring)
         self.add_field('duration', (int,long,timedelta), duration)
         self.add_field('date', datetime, date)
         self.add_field('rating', (int,long,float), rating)
