@@ -34,6 +34,7 @@ class BoobankMuninPlugin(object):
             self.monitored_accounts = os.environ['boobank_monitored'].split(' ')
         self.cache_expire = long(os.environ.get('boobank_cache_expire', 3600))
         self.add_coming = int(os.environ.get('boobank_add_coming', 1))
+        self.cumulate = int(os.environ.get('boobank_cumulate', 1))
         self.cache = None
 
     def display_help(self):
@@ -58,6 +59,8 @@ class BoobankMuninPlugin(object):
         print '# If enabled, coming operations are added to the value of accounts\''
         print '# balance.'
         print 'env.boobank_add_coming 1'
+        print '# Cumulate accounts values'
+        print 'env.boobank_cumulate 1'
         print ''
         print 'When you change configuration, you can use this command to reset cache:'
         print '$ boobank-munin --reset'
@@ -132,10 +135,31 @@ class BoobankMuninPlugin(object):
         self.write_output('graph_category weboob')
         self.write_output('graph_args -l 0')
         try:
-            for backend, account in self.weboob.do('iter_accounts'):
-                if self.monitored(account):
-                    id = self.account2id(account)
-                    self.write_output('%s.label %s' % (id, account.label.encode('iso-8859-15')))
+            accounts = []
+            if self.monitored_accounts is not None:
+                d = {}
+                for backend, account in self.weboob.do('iter_accounts'):
+                    if self.monitored(account):
+                        d['%s@%s' % (account.id, account.backend)] = account
+
+                for id in self.monitored_accounts:
+                    try:
+                        accounts.append(d[id])
+                    except KeyError:
+                        pass
+            else:
+                accounts = reversed([a for b, a in self.weboob.do('iter_accounts')])
+
+            first = True
+            for account in accounts:
+                id = self.account2id(account)
+                type = 'STACK'
+                if first:
+                    type = 'AREA'
+                    first = False
+                self.write_output('%s.label %s' % (id, account.label.encode('iso-8859-15')))
+                if self.cumulate:
+                    self.write_output('%s.draw %s' % (id, type))
         except CallErrors:
             self.print_cache('boobank-munin-config')
         else:
