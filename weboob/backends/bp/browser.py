@@ -45,7 +45,7 @@ ENCODING = 'utf-8'
 class BPbrowser(object):
 
 
-    def __init__(self, login, pwd):
+    def __init__(self, login, pwd, **kwargs):
 
         self.is_logged = False
 
