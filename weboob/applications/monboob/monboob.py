@@ -103,7 +103,7 @@ class Monboob(ReplApplication):
 
     def get_email_address_ident(self, msg, header):
         s = msg.get(header)
-        m = re.match('.*<(.*)@(.*)>', s)
+        m = re.match('.*<([^@]*)@(.*)>', s)
         if m:
             return m.group(1)
         else:
