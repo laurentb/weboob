@@ -76,7 +76,7 @@ class LxmlHtmlParser(IParser):
         if encoding is None:
             parser = None
         else:
-            parser = lxml.html.HTMLParser(encoding=encoding)
+            parser = lxml.html.HTMLParser(encoding=encoding, strip_cdata=False)
         return lxml.html.parse(data, parser)
 
     def tostring(self, element):
