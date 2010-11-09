@@ -22,12 +22,10 @@ __all__ = ['VideoPage']
 class VideoPage(BasePage):
     def on_loaded(self):
         pass
-        
+
     def get_video(self, video, quality):
         if not video:
             video = CanalplusVideo(self.group_dict['id'])
-        print quality
-        print video.id
         for vid in self.document.getchildren():
             url = None
             lastest = None

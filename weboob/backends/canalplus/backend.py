@@ -44,12 +44,13 @@ class CanalplusBackend(BaseBackend, ICapVideo):
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.iter_search_results(pattern)
-            
+
     def get_video(self, _id):
         with self.browser:
             return self.browser.get_video(_id)
-            
+
     def fill_video(self, video, fields):
-        return self.browser.get_video(CanalplusVideo.id2url(video.id))
-            
+        with self.browser:
+            return self.browser.get_video(CanalplusVideo.id2url(video.id), video)
+
     OBJECTS = {CanalplusVideo: fill_video}
