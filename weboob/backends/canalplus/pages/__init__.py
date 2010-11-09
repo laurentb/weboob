@@ -16,8 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .initpage import InitPage
-from .searchresultpage import SearchResultPage
 from .video import CanalplusVideo
 from .videopage import VideoPage
 
-__all__ = ['InitPage', 'SearchResultPage', 'VideoPage',  'CanalplusVideo']
+__all__ = ['InitPage', 'VideoPage',  'CanalplusVideo']

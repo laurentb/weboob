@@ -32,7 +32,7 @@ class CanalplusBackend(BaseBackend, ICapVideo):
     NAME = 'canalplus'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.1'
+    VERSION = '0.4'
     DESCRIPTION = 'Canal plus french TV'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
@@ -50,7 +50,14 @@ class CanalplusBackend(BaseBackend, ICapVideo):
             return self.browser.get_video(_id)
 
     def fill_video(self, video, fields):
-        with self.browser:
-            return self.browser.get_video(CanalplusVideo.id2url(video.id), video)
+        if fields != ['thumbnail']:
+            # if we don't want only the thumbnail, we probably want also every fields
+            with self.browser:
+                video = self.browser.get_video(CanalplusVideo.id2url(video.id), video)
+        if 'thumbnail' in fields:
+            with self.browser:
+                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+
+        return video
 
     OBJECTS = {CanalplusVideo: fill_video}
