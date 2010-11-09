@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import sys
+
 from weboob.capabilities.radio import ICapRadio
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
@@ -58,7 +60,7 @@ class Radioob(ReplApplication):
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
         try:
-            self.player = MediaPlayer()
+            self.player = MediaPlayer(self.logger)
         except OSError:
             self.player = None
 
@@ -98,7 +100,7 @@ class Radioob(ReplApplication):
 
         radio = self._get_radio(_id, ['streams'])
         if not radio:
-            print 'Radio not found: ', _id
+            print >>sys.stderr, 'Radio not found: ' % _id
             return
 
         if self.player:
@@ -125,7 +127,7 @@ class Radioob(ReplApplication):
 
         radio = self._get_radio(_id)
         if not radio:
-            print 'radio not found:', _id
+            print 'Radio not found:', _id
             return
         self.format(radio)
         self.flush()

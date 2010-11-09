@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import sys
+
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
@@ -40,7 +42,7 @@ class VideoListFormatter(IFormatter):
             result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
         else:
             result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
-        result += '            %s' % item['duration']
+        result += '            %s' % (item['duration'] if item['duration'] else item['date'])
         if item['author'] is not NotLoaded:
             result += ' - %s' % item['author']
         if item['rating'] is not NotLoaded:
@@ -61,7 +63,7 @@ class Videoob(ReplApplication):
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
         try:
-            self.player = MediaPlayer()
+            self.player = MediaPlayer(self.logger)
         except OSError:
             self.player = None
 
@@ -101,7 +103,7 @@ class Videoob(ReplApplication):
 
         video = self._get_video(_id, ['url'])
         if not video:
-            print 'Video not found: ', _id
+            print 'Video not found: %s' %  _id
             return
 
         if self.player:
@@ -128,7 +130,7 @@ class Videoob(ReplApplication):
 
         video = self._get_video(_id)
         if not video:
-            print 'Video not found:', _id
+            print >>sys.stderr, 'Video not found: %s' %  _id
             return
         self.format(video)
         self.flush()
