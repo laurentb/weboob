@@ -27,6 +27,7 @@ import re
 import sys
 import logging
 import asyncore
+import subprocess
 
 from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
@@ -83,6 +84,7 @@ class Monboob(ReplApplication):
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
+              'pipe':      '',
               'html':      0}
     CAPS = ICapMessages
     DISABLE_REPL = True
@@ -285,10 +287,21 @@ class Monboob(ReplApplication):
         if reply_id:
             msg['In-Reply-To'] = reply_id
 
-        # Send the message via SMTP to localhost:25
-        smtp = SMTP(self.config.get('smtp'))
-        print 'Send mail from <%s> to <%s>' % (sender, recipient)
-        smtp.sendmail(sender, recipient, msg.as_string())
-        smtp.quit()
+        self.logger.info('Send mail from <%s> to <%s>' % (sender, recipient))
+        if len(self.config.get('pipe')) > 0:
+            p = subprocess.Popen(self.config.get('pipe'),
+                                 shell=True,
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            p.stdin.write(msg.as_string())
+            p.stdin.close()
+            if p.wait() != 0:
+                self.logger.error('Unable to deliver mail: %s' % p.stdout.read().strip())
+        else:
+            # Send the message via SMTP to localhost:25
+            smtp = SMTP(self.config.get('smtp'))
+            smtp.sendmail(sender, recipient, msg.as_string())
+            smtp.quit()
 
         return msg['Message-Id']
