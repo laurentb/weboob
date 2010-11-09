@@ -117,7 +117,7 @@ class BPbrowser(object):
             account.label = tp.text
             account.link_id = tp.get("href")
             account.id = compte.xpath("./td")[1].text
-            account.balance = ''.join( compte.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() )
+            account.balance = float(''.join( compte.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() ))
             self.Account_List.append(account)
 
         #Parse epargne
@@ -130,7 +130,7 @@ class BPbrowser(object):
             account.label = tp.text
             account.link_id = tp.get("href")
             account.id = epargne.xpath("./td")[1].text
-            account.balance = ''.join( epargne.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() )
+            account.balance = float(''.join( epargne.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() ) )
             self.Account_List.append(account)
 
         return self.Account_List
