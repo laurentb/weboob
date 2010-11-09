@@ -16,11 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import errno
-import logging
 import os
 from subprocess import Popen, PIPE
 
+from weboob.tools.log import getLogger
 
 __all__ = ['MediaPlayer']
 
@@ -41,6 +40,9 @@ class MediaPlayer():
         ('vlc', '-'),
         ('xine', 'stdin:/'),
     ]
+
+    def __init__(self, logger=None):
+        self.logger = getLogger('mediaplayer', logger)
 
     def get_player_name(self, preferred=None):
         player_names = preferred if preferred else [player[0] for player in self.PLAYERS]
@@ -79,7 +81,8 @@ class MediaPlayer():
         """
 
         if not self._find_in_path(os.environ['PATH'], 'rtmpdump'):
-            raise OSError(errno.ENOENT, '"rtmpdump" binary not found')
+            self.logger.warning('"rtmpdump" binary not found')
+            return self._play_default(media)
 
         media_url = media.url
         try:
@@ -87,10 +90,10 @@ class MediaPlayer():
             rtmp = 'rtmpdump -r %s --swfVfy %s' % (media_url, player_url)
 
         except AttributeError:
-            logging.warning('Your media object does not have a "swf_player" attribute. SWF verification will be '
-                            'disabled and may prevent correct media playback.')
+            self.logger.warning('Your media object does not have a "swf_player" attribute. SWF verification will be '
+                                'disabled and may prevent correct media playback.')
 
-            rtmp = 'rtmpdump -r %s' % media_url
+            return self._play_default(media)
 
         rtmp += ' --quiet'
 
