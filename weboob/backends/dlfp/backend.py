@@ -61,6 +61,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             for article in Newsfeed(what, url2id).iter_entries():
                 thread = Thread(article.id)
                 thread.title = article.title
+                if article.datetime:
+                    thread.date = article.datetime
                 yield thread
 
     def get_thread(self, id):
