@@ -207,8 +207,8 @@ class Monboob(ReplApplication):
     def process(self):
         try:
             for backend, message in self.weboob.do('iter_unread_messages'):
-                self.send_email(backend, message)
-                backend.set_message_read(message)
+                if self.send_email(backend, message):
+                    backend.set_message_read(message)
         except CallErrors, e:
             for backend, error, backtrace in e.errors:
                 print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
@@ -298,10 +298,16 @@ class Monboob(ReplApplication):
             p.stdin.close()
             if p.wait() != 0:
                 self.logger.error('Unable to deliver mail: %s' % p.stdout.read().strip())
+                return False
         else:
             # Send the message via SMTP to localhost:25
-            smtp = SMTP(self.config.get('smtp'))
-            smtp.sendmail(sender, recipient, msg.as_string())
-            smtp.quit()
+            try:
+                smtp = SMTP(self.config.get('smtp'))
+                smtp.sendmail(sender, recipient, msg.as_string())
+            except Exception, e:
+                self.logger.error('Unable to deliver mail: %s' % e)
+                return False
+            else:
+                smtp.quit()
 
-        return msg['Message-Id']
+        return True
