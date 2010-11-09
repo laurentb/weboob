@@ -222,7 +222,11 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     ids = self.browser.get_baskets()
                     while new_baskets > 0 and len(ids) > new_baskets:
                         new_baskets -= 1
+                        if ids[new_baskets] == '-1':
+                            continue
                         profile = self.browser.get_profile(ids[new_baskets])
+                        if not profile or profile.get_id() == 0:
+                            continue
                         if self.antispam and not self.antispam.check(profile):
                             self.logger.debug('Skipped a spam-basket from %s' % profile.get_name())
                             self.report_spam(profile.get_id())
