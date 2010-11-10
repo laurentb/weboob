@@ -14,11 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+
+
+from weboob.tools.browser import BaseBrowser#, BrowserIncorrectPassword
 
 from .pages import LoginPage, CookiePage, AccountList, AccountHistory
 
+
 __all__ = ['BPbrowser']
+
 
 class BPbrowser(BaseBrowser):
     DOMAIN = 'voscomptesenligne.labanquepostale.fr'
@@ -29,42 +33,35 @@ class BPbrowser(BaseBrowser):
               r'.*voscomptes/canalXHTML/releve/liste_comptes.jsp':              AccountList,
               r'.*canalXHTML/relevesCCP/.*':                                    AccountHistory,
               r'.*canalXHTML/relevesEpargnes/.*':                               AccountHistory,
-              
-              
+
+
             }
-    def __init__(self, *args, **kwargs):
-        self.inlogin = False
-        BaseBrowser.__init__(self, *args, **kwargs)
-    
+
     def home(self):
         self.location("https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers")
-      
+
     def is_logged(self):
-        if self.inlogin:
-            return True
         return not self.is_on_page(LoginPage)
 
     def login(self):
-        self.inlogin = True
         if not self.is_on_page(LoginPage):
-            self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers')
-            
+            self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers', no_login=True)
+
         self.page.login(self.username, self.password)
-        self.inlogin = False
-        
+
     def get_accounts_list(self):
         self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/authentification/liste_contrat_atos.ea")
         self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/releve/liste_comptes.jsp")
         return self.page.get_accounts_list()
-    
+
     def get_account(self, id):
-        
+
         if not self.is_on_page(AccountList):
             self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/authentification/liste_contrat_atos.ea")
             self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/releve/liste_comptes.jsp")
         return self.page.get_account(id)
-     
-     
+
+
     def get_history(self, Account):
         self.location(Account.link_id)
         return self.page.get_history()
