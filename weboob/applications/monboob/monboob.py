@@ -151,10 +151,18 @@ class Monboob(ReplApplication):
                             content += unicode(s, charset)
                         else:
                             content += unicode(s)
-                    except:
+                    except UnicodeError, e:
+                        self.logger.warning('Unicode error: %s' % e)
+                        continue
+                    except Exception, e:
+                        self.logger.exception(e)
                         continue
                     else:
                         break
+
+        if len(content) == 0:
+            print >>sys.stderr, 'Unable to send an empty message'
+            return 1
 
         # remove signature
         content = content.split(u'\n-- \n')[0]
