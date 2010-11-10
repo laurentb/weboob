@@ -46,7 +46,7 @@ class YahooBackend(BaseBackend, ICapWeather):
         dom = minidom.parse(handler)
         handler.close()
         if not dom.getElementsByTagName('yweather:condition'):
-            raise CityNotFound()
+            raise CityNotFound('City not found: %s' % city_id)
 
         return dom
 

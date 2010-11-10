@@ -48,16 +48,9 @@ class WetBoobs(ReplApplication):
 
         Get current weather.
         """
-        try:
-            for backend, current in self.do('get_current', city):
-                self.format(current)
-            self.flush()
-        except CallErrors, e:
-            for error in e:
-                if isinstance(error, CityNotFound):
-                    print >>sys.stderr, 'City "%s" not found' % city
-                else:
-                    raise error
+        for backend, current in self.do('get_current', city):
+            self.format(current)
+        self.flush()
 
     def do_forecasts(self, city):
         """
@@ -65,13 +58,6 @@ class WetBoobs(ReplApplication):
 
         Get forecasts.
         """
-        try:
-            for backend, forecast in self.do('iter_forecast', city):
-                self.format(forecast)
-            self.flush()
-        except CallErrors, e:
-            for error in e:
-                if isinstance(error, CityNotFound):
-                    print >>sys.stderr, 'City "%s" not found' % city
-                else:
-                    raise error
+        for backend, forecast in self.do('iter_forecast', city):
+            self.format(forecast)
+        self.flush()
