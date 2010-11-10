@@ -145,7 +145,10 @@ class Monboob(ReplApplication):
                 charsets = part.get_charsets() + msg.get_charsets()
                 for charset in charsets:
                     try:
-                        content += unicode(s, charset)
+                        if charset is not None:
+                            content += unicode(s, charset)
+                        else:
+                            content += unicode(s)
                     except:
                         continue
                     else:
