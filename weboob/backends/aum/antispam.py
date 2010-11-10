@@ -48,6 +48,8 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if re.match('^#\d+$', profile.get_name()):
             return False
+        if profile.get_name().strip().lower() == 'ajoute moi':
+            return False
         # This pattern in bad french is in several spambots description.
         if re.match('.*chercher? un m.c tres ch..d.*', profile.description):
             return False
@@ -69,6 +71,8 @@ class AntiSpam(object):
             return False
         if profile.description.find('une fille tres chaud') >= 0:
             return False
+        if profile.description.find('sa va bb') == 0:
+            return False
         if profile.description.startswith('msn\n\n'):
             return False
         if profile.description.endswith('Moi la bonne jeune fille gaie'):
@@ -81,6 +85,8 @@ class AntiSpam(object):
             return False
         # Strange thing...
         if re.match('.*je suis tres cho\w+d.*', profile.description):
+            return False
+        if re.match('.*je suis tr.s chaud', profile.description):
             return False
         # Strange thing...
         if re.match('.*ma croissance de \d+ sm.*', profile.description):
