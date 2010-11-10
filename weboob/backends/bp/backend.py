@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-#
-#      backend.py
-#
-#      Copyright 2010 nicolas <nicolas@jombi.fr>
+
+# Copyright(C) 2010  Nicolas Duhamel
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,10 +50,3 @@ class BPBackend(BaseBackend, ICapBank):
         for history in self.browser.get_history(account):
             yield history
 
-    def transfer(self, id_from, id_to, amount, reason=None):
-        from_account = self.get_account(id_from)
-        to_account = self.get_account(id_to)
-
-        #TODO: retourner le numero du virement
-        #TODO: support the 'reason' parameter
-        return self.browser.make_transfer(from_account, to_account, amount)
