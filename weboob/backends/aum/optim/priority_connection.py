@@ -61,8 +61,8 @@ class PriorityConnection(Optimization):
         if self.config is None:
             return False
 
-        self.check_cron = self.sched.repeat(self.config['interval'], self.check_godchilds)
-        self.activity_cron = self.sched.repeat(300, self.activity_fakes)
+        self.check_cron = self.sched.repeat(int(self.config['interval']), self.check_godchilds)
+        self.activity_cron = self.sched.repeat(600, self.activity_fakes)
         return True
 
     def stop(self):
