@@ -242,8 +242,7 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def deblock(self, id):
-        result = self.openurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id).read()
-        self.logger.warning('Deblock: %s' % result)
+        self.readurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id)
         return True
 
     @pageaccess
@@ -252,9 +251,7 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def rate(self, id, what, rating):
-        print 'rate "%s"' % id, what, rating
         result = self.openurl('http://www.adopteunmec.com/fajax_vote.php', 'member=%s&what=%s&rating=%s' % (id, what, rating)).read()
-        print result
         return float(result)
 
     @pageaccess

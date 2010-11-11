@@ -50,7 +50,8 @@ class PriorityConnection(Optimization):
         if self.config == {}:
             self.config = None
 
-        self.cron = None
+        self.check_cron = None
+        self.activity_cron = None
 
     def save(self):
         self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
@@ -60,16 +61,19 @@ class PriorityConnection(Optimization):
         if self.config is None:
             return False
 
-        self.cron = self.sched.repeat(self.config['interval'], self.check_godchilds)
+        self.check_cron = self.sched.repeat(self.config['interval'], self.check_godchilds)
+        self.activity_cron = self.sched.repeat(300, self.activity_fakes)
         return True
 
     def stop(self):
-        self.sched.cancel(self.cron)
-        self.cron = None
+        self.sched.cancel(self.check_cron)
+        self.check_cron = None
+        self.sched.cancel(self.activity_cron)
+        self.activity_cron = None
         return True
 
     def is_running(self):
-        return self.cron is not None
+        return self.check_cron is not None
 
     def set_config(self, params):
         self.config = params
@@ -102,6 +106,9 @@ class PriorityConnection(Optimization):
                 nb_godchilds = self.browser.nb_godchilds()
             except AdopteWait:
                 nb_godchilds = 0
+            except BrowserUnavailable:
+                # We'll check later
+                return
 
         missing_godchilds = self.config['minimal'] - nb_godchilds
         if missing_godchilds <= 0:
@@ -115,7 +122,7 @@ class PriorityConnection(Optimization):
                 name = self.generate_name()
                 password = self.generate_password()
 
-                browser = AuMBrowser('%s@%s' % (name, self.config['domain']))
+                browser = AuMBrowser('%s@%s' % (name, self.config['domain']), proxy=self.browser.proxy)
                 try:
                     browser.register(password=   password,
                                      sex=        1, #slut
@@ -131,9 +138,40 @@ class PriorityConnection(Optimization):
                     self.logger.warning('Unable to solve captcha... Retrying')
                 else:
                     registered = True
+
+                    # set nickname
                     browser.set_nickname(name.strip('_').capitalize())
+                    # rate my own profile with good score
+                    for i in xrange(4):
+                        browser.rate(my_id, i, 5.0)
+
+                    # save fake in storage
                     fake = {'username': browser.username,
                             'password': password}
                     self.storage.set('priority_connection', 'fakes', name, fake)
                     self.storage.save()
                     self.logger.info('Fake account "%s" created (godfather=%s)' % (name, my_id))
+
+    def activity_fakes(self):
+        fakes = self.storage.get('priority_connection', 'fakes', default={})
+        while 1:
+            name = random.choice(fakes.keys())
+            fake = fakes[name]
+            try:
+                browser = AuMBrowser(fake['username'], fake['password'], proxy=self.browser.proxy)
+            except (AdopteBanned,BrowserIncorrectPassword), e:
+                self.warning('Fake %s can\'t login: %s' % (name, e))
+                continue
+
+            profiles = browser.search_profiles(country="fr",
+                                               dist='10',
+                                               save=True)
+
+            id = profiles.pop()
+            profile = browser.get_profile(id)
+            # bad rate
+            for i in xrange(4):
+                browser.rate(profile.get_id(), i, 0.6)
+            # deblock
+            browser.deblock(profile.get_id())
+            return
