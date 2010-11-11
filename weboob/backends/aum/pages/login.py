@@ -19,7 +19,8 @@
 import re
 
 from weboob.tools.mech import ClientForm
-from weboob.tools.browser import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.backends.aum.exceptions import AdopteBanned
 from weboob.capabilities.account import AccountRegisterError
 
 from .base import PageBase
@@ -114,7 +115,7 @@ class RedirectPage(PageBase):
 
 class BanPage(PageBase):
     def on_loaded(self):
-        raise BrowserUnavailable('Your IP address is banned.')
+        raise AdopteBanned('Your IP address is banned.')
 
 class ShopPage(PageBase):
     pass
