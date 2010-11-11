@@ -132,8 +132,20 @@ class Weboob(object):
 
         return unloaded
 
-    def get_backend(self, name):
-        return self.backend_instances[name]
+    def get_backend(self, name, **kwargs):
+        """
+        Get a backend from its name.
+
+        It raises a KeyError if not found. If you set the 'default' parameter,
+        the default value is returned instead.
+        """
+        try:
+            return self.backend_instances[name]
+        except KeyError:
+            if 'default' in kwargs:
+                return kwargs['default']
+            else:
+                raise
 
     def count_backends(self):
         return len(self.backend_instances)
