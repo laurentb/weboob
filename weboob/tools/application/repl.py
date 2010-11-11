@@ -335,7 +335,7 @@ class ReplApplication(Cmd, BaseApplication):
 
     def parseargs(self, line, nb, req_n=None):
         args = line.strip().split(' ', nb - 1)
-        if req_n is not None and len(args) < req_n:
+        if req_n is not None and (len(args) < req_n or req_n < 2 and line == ''):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
         if len(args) < nb:

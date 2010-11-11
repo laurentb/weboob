@@ -129,7 +129,7 @@ class HaveSex(ReplApplication):
                     backends_optims[backend.name] = optim
             for backend_name, optim in backends_optims.iteritems():
                 if len(optim.CONFIG) == 0:
-                    print 'Nothing to do for %s.%s' % (backend_name, optim_name)
+                    print '%s.%s does not require configuration.' % (backend_name, optim_name)
                     continue
 
                 was_running = optim.is_running()
@@ -228,7 +228,7 @@ class HaveSex(ReplApplication):
         * edit       configure an optimization service for a backend
         * stop       stop optimization services on a backend
         """
-        cmd, backend_name, optims = self.parseargs(line, 3, 1)
+        cmd, backend_name, optims_names = self.parseargs(line, 3, 1)
 
         if backend_name == '*':
             backend_name = None
@@ -237,16 +237,21 @@ class HaveSex(ReplApplication):
             return 1
 
         if cmd == 'start':
-            return self.optims('start', backend_name, optims)
+            return self.optims('start', backend_name, optims_names)
         if cmd == 'stop':
-            return self.optims('stop', backend_name, optims)
+            return self.optims('stop', backend_name, optims_names)
         if cmd == 'edit':
-            self.edit_optims(backend_name, optims, stop=True)
+            self.edit_optims(backend_name, optims_names, stop=True)
             return
         if cmd == 'list':
+            if optims_names is not None:
+                optims_names = optims_names.split()
+
             optims = {}
             backends = set()
             for backend, (name, optim) in self.do('iter_optimizations', backends=backend_name):
+                if optims_names is not None and not name in optims_names:
+                    continue
                 if optim.is_running():
                     status = 'RUNNING'
                 else:
