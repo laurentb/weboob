@@ -47,6 +47,12 @@ class ICapAccount(IBaseCap):
         """
         raise NotImplementedError()
 
+    def confirm_account(self, mail):
+        """
+        From an email go to the confirm link.
+        """
+        raise NotImplementedError()
+
     def get_account(self):
         """
         Get the current account.

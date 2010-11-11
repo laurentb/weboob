@@ -17,9 +17,11 @@
 
 
 import os
+import sys
 import subprocess
 import re
 
+from weboob.capabilities.account import ICapAccount
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
 
@@ -69,6 +71,35 @@ class WeboobCfg(ReplApplication):
         Register a new account on a backend.
         """
         self.register_backend(line)
+
+    def do_confirm(self, backend_name):
+        """
+        confirm BACKEND
+
+        For a backend which support CapAccount, parse a confirmation mail
+        after using the 'register' command to automatically confirm the
+        subscribe.
+
+        It take mail from stdin. Use it with postfix for example.
+        """
+        # Do not use the ReplApplication.load_backends() method because we
+        # don't want to prompt user to create backend.
+        self.weboob.load_backends(names=[backend_name])
+        try:
+            backend = self.weboob.get_backend(backend_name)
+        except KeyError:
+            print >>sys.stderr, 'Error: backend "%s" not found.' % backend_name
+            return 1
+
+        if not backend.has_caps(ICapAccount):
+            print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
+            return 1
+
+        mail = sys.stdin.read()
+        if not backend.confirm_account(mail):
+            print >>sys.stderr, 'Error: Unable to confirm account creation'
+            return 1
+        return 0
 
     def do_list(self, line):
         """

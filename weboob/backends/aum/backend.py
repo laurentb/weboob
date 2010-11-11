@@ -17,6 +17,8 @@
 
 from __future__ import with_statement
 
+import email
+import re
 import datetime
 from dateutil import tz
 
@@ -409,8 +411,31 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                                  country=    account.properties['country'].value,
                                  godfather=  account.properties['godfather'].value)
             except CaptchaError:
-                getLogger('aum').debug('Unable to resolve captcha. Retrying...')
+                getLogger('aum').info('Unable to resolve captcha. Retrying...')
                 browser = None
+
+    REGISTER_REGEXP = re.compile('.*http://www.adopteunmec.com/register4.php\?([^\' ]*)\'')
+    def confirm_account(self, mail):
+        msg = email.message_from_string(mail)
+
+        content = u''
+        for part in msg.walk():
+            s = part.get_payload(decode=True)
+            content += unicode(s, 'iso-8859-15')
+
+        url = None
+        for s in content.split():
+            m = self.REGISTER_REGEXP.match(s)
+            if m:
+                url = '/register4.php?' + m.group(1)
+                break
+
+        if url:
+            browser = self.BROWSER('')
+            browser.openurl(url)
+            return True
+
+        return False
 
     def get_account(self):
         """
