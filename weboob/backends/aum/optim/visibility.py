@@ -36,8 +36,9 @@ class Visibility(Optimization):
         return True
 
     def stop(self):
-        # TODO
-        return False
+        self.sched.cancel(self.cron)
+        self.cron = None
+        return True
 
     def is_running(self):
         return self.cron is not None
