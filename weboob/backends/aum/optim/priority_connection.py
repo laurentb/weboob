@@ -20,14 +20,14 @@ from __future__ import with_statement
 
 import random
 
-#from weboob.tools.browser import BrowserUnavailable
+from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.capabilities.dating import Optimization
 from weboob.capabilities.account import AccountRegisterError
 from weboob.tools.log import getLogger
 from weboob.tools.value import Value, ValuesDict, ValueInt
 
 from weboob.backends.aum.captcha import CaptchaError
-from weboob.backends.aum.exceptions import AdopteWait
+from weboob.backends.aum.exceptions import AdopteWait, AdopteBanned
 from weboob.backends.aum.browser import AuMBrowser
 
 
