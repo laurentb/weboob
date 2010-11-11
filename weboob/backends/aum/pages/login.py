@@ -19,7 +19,7 @@
 import re
 
 from weboob.tools.mech import ClientForm
-from weboob.tools.browser import BrowserIncorrectPassword
+from weboob.tools.browser import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.account import AccountRegisterError
 
 from .base import PageBase
@@ -113,7 +113,8 @@ class RedirectPage(PageBase):
         self.browser.location('/wait.php')
 
 class BanPage(PageBase):
-    pass
+    def on_loaded(self):
+        raise BrowserUnavailable('Your IP address is banned.')
 
 class ShopPage(PageBase):
     pass
