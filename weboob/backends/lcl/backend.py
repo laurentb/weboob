@@ -33,9 +33,9 @@ class LCLBackend(BaseBackend, ICapBank):
     VERSION = '0.4'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
-    CONFIG = ValuesDict(Value('login',    label='Account ID'),
+    CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,6}\w$'),
                         Value('password', label='Password of account', masked=True),
-                        Value('agency',   label='Agency code', regexp='^\d{1,3}$'))
+                        Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):

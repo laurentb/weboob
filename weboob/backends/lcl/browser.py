@@ -48,7 +48,7 @@ class LCLBrowser(BaseBrowser):
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.home()
+            self.location('https://particuliers.secure.lcl.fr/', no_login=True)
 
         self.page.login(self.agency, self.username, self.password)
 
