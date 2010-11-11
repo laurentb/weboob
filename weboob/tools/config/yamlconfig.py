@@ -93,3 +93,15 @@ class YamlConfig(IConfig):
                 raise ConfigError()
 
         v[args[-2]] = args[-1]
+
+    def delete(self, *args):
+        v = self.values
+        for a in args[:-1]:
+            try:
+                v = v[a]
+            except KeyError:
+                return
+            except TypeError:
+                raise ConfigError()
+
+        v.pop(args[-1], None)

@@ -40,6 +40,10 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.set('backends', self.name, *args)
 
+    def delete(self, *args):
+        if self.storage:
+            return self.storage.delete('backends', self.name, *args)
+
     def get(self, *args, **kwargs):
         if self.storage:
             return self.storage.get('backends', self.name, *args, **kwargs)

@@ -98,3 +98,11 @@ class INIConfig(IConfig):
                 v[k] = {}
             v = v[k]
         v[args[-2]] = args[-1]
+
+    def delete(self, *args):
+        v = self.values
+        for k in args[:-1]:
+            if k not in v:
+                return
+            v = v[k]
+        v.pop(args[-1], None)

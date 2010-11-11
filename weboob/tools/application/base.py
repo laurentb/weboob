@@ -44,6 +44,10 @@ class ApplicationStorage(object):
         if self.storage:
             return self.storage.set('applications', self.name, *args)
 
+    def delete(self, *args):
+        if self.storage:
+            return self.storage.delete('applications', self.name, *args)
+
     def get(self, *args, **kwargs):
         if self.storage:
             return self.storage.get('applications', self.name, *args, **kwargs)
