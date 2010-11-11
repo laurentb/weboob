@@ -18,7 +18,7 @@
 
 from weboob.tools.browser import BaseBrowser#, BrowserIncorrectPassword
 
-from .pages import LoginPage, CookiePage, AccountList, AccountHistory
+from .pages import LoginPage, LoggedPage, CookiePage, AccountList, AccountHistory
 
 
 __all__ = ['BPbrowser']
@@ -29,6 +29,7 @@ class BPbrowser(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = { r'.*wsost/OstBrokerWeb/loginform.*':                              LoginPage,
+              r'.*voscomptes/canalXHTML/identif.ea':                            LoggedPage,
               r'.*voscomptes/canalXHTML/releve/syntheseAssurancesEtComptes.ea': CookiePage,
               r'.*voscomptes/canalXHTML/releve/liste_comptes.jsp':              AccountList,
               r'.*canalXHTML/relevesCCP/.*':                                    AccountHistory,

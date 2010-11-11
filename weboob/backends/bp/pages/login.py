@@ -19,8 +19,8 @@ import hashlib
 
 from weboob.tools.browser import BasePage
 
-__all__ = ['LoginPage']
 
+__all__ = ['LoginPage', 'LoggedPage']
 
 
 def md5(file):
@@ -33,15 +33,15 @@ def md5(file):
 class LoginPage(BasePage):
     def on_loaded(self):
         pass
-    
+
     def login(self, login, pwd):
         LOCAL_HASH = ['a02574d7bf67677d2a86b7bfc5e864fe', 'eb85e1cc45dd6bdb3cab65c002d7ac8a', '596e6fbd54d5b111fe5df8a4948e80a4', '9cdc989a4310554e7f5484d0d27a86ce', '0183943de6c0e331f3b9fc49c704ac6d', '291b9987225193ab1347301b241e2187', '163279f1a46082408613d12394e4042a', 'b0a9c740c4cada01eb691b4acda4daea', '3c4307ee92a1f3b571a3c542eafcb330', 'dbccecfa2206bfdb4ca891476404cc68']
         process = lambda i: md5(self.browser.retrieve(("https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?imgid=%d&0.25122230781963073" % i ))[0])
         Keypad = [ process(i) for i in range(10)]
-        
 
-        
-        
+
+
+
         correspondance = [ Keypad.index(i) for i in LOCAL_HASH]
         Newpassword = "".join([str(correspondance[int(c)]) for c in pwd])
 
@@ -50,3 +50,6 @@ class LoginPage(BasePage):
         self.browser["password"] = Newpassword
         self.browser["username"] = login
         self.browser.submit()
+
+class LoggedPage(BasePage):
+    pass
