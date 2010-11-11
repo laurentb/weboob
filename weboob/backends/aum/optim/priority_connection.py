@@ -37,7 +37,7 @@ __all__ = ['PriorityConnection']
 class PriorityConnection(Optimization):
     CONFIG = ValuesDict(ValueInt('minimal', label='Minimal of godchilds', default=5),
                         Value('domain', label='Domain to use for fake accounts emails', default='aum.example.com'),
-                        Value('interval', label='Interval of checks (seconds)', default=3600)
+                        ValueInt('interval', label='Interval of checks (seconds)', default=3600)
                        )
 
     def __init__(self, sched, storage, browser):
@@ -110,7 +110,7 @@ class PriorityConnection(Optimization):
                 # We'll check later
                 return
 
-        missing_godchilds = self.config['minimal'] - nb_godchilds
+        missing_godchilds = int(self.config['minimal']) - nb_godchilds
         if missing_godchilds <= 0:
             return
 
@@ -128,7 +128,7 @@ class PriorityConnection(Optimization):
                                      sex=        1, #slut
                                      birthday_d= random.randint(1,28),
                                      birthday_m= random.randint(1,12),
-                                     birthday_y= random.randint(1970, 1990),
+                                     birthday_y= random.randint(1975, 1990),
                                      zipcode=    75001,
                                      country=    'fr',
                                      godfather=  my_id)
@@ -153,25 +153,31 @@ class PriorityConnection(Optimization):
                     self.logger.info('Fake account "%s" created (godfather=%s)' % (name, my_id))
 
     def activity_fakes(self):
-        fakes = self.storage.get('priority_connection', 'fakes', default={})
-        while 1:
-            name = random.choice(fakes.keys())
-            fake = fakes[name]
-            try:
-                browser = AuMBrowser(fake['username'], fake['password'], proxy=self.browser.proxy)
-            except (AdopteBanned,BrowserIncorrectPassword), e:
-                self.warning('Fake %s can\'t login: %s' % (name, e))
-                continue
+        try:
+            fakes = self.storage.get('priority_connection', 'fakes', default={})
+            if len(fakes) == 0:
+                return
+            while 1:
+                name = random.choice(fakes.keys())
+                fake = fakes[name]
+                try:
+                    browser = AuMBrowser(fake['username'], fake['password'], proxy=self.browser.proxy)
+                except (AdopteBanned,BrowserIncorrectPassword), e:
+                    self.warning('Fake %s can\'t login: %s' % (name, e))
+                    continue
 
-            profiles = browser.search_profiles(country="fr",
-                                               dist='10',
-                                               save=True)
+                profiles = browser.search_profiles(country="fr",
+                                                   dist='10',
+                                                   save=True)
 
-            id = profiles.pop()
-            profile = browser.get_profile(id)
-            # bad rate
-            for i in xrange(4):
-                browser.rate(profile.get_id(), i, 0.6)
-            # deblock
-            browser.deblock(profile.get_id())
-            return
+                id = profiles.pop()
+                profile = browser.get_profile(id)
+                # bad rate
+                for i in xrange(4):
+                    browser.rate(profile.get_id(), i, 0.6)
+                # deblock
+                browser.deblock(profile.get_id())
+                return
+        except BrowserUnavailable:
+            # don't care
+            pass
