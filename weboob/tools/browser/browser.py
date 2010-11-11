@@ -274,7 +274,7 @@ class BaseBrowser(mechanize.Browser):
         else:
             return None
 
-    def save_response(self, result):
+    def save_response(self, result, warning=False):
         """
         Save a stream to a temporary file, and log its name.
         The stream is rewinded after saving.
@@ -285,7 +285,13 @@ class BaseBrowser(mechanize.Browser):
         fd, path = tempfile.mkstemp(prefix="response", dir=tmpdir)
         with os.fdopen(fd, 'w') as f:
             f.write(result.read())
-        self.logger.debug("Response saved to %s" % path)
+
+        msg = u"Response saved to %s" % path
+        if warning:
+            self.logger.warning(msg)
+        else:
+            self.logger.info(msg)
+
         result.seek(0)
 
     def submit(self, *args, **kwargs):
@@ -369,13 +375,8 @@ class BaseBrowser(mechanize.Browser):
         # Not found
         if not pageCls:
             self.page = None
-            #data = result.read()
-            #if isinstance(data, unicode):
-            #    data = data.encode('utf-8')
-            #print data
             self.logger.warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
-            self.save_response(result)
-
+            self.save_response(result, warning=True)
             return
 
         self.logger.debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))
