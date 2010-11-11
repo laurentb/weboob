@@ -29,6 +29,7 @@ class Visibility(Optimization):
     def __init__(self, sched, browser):
         self.sched = sched
         self.browser = browser
+        self.cron = None
 
     def start(self):
         self.cron = self.sched.repeat(60*5, self.reconnect)
@@ -37,6 +38,9 @@ class Visibility(Optimization):
     def stop(self):
         # TODO
         return False
+
+    def is_running(self):
+        return self.cron is not None
 
     def reconnect(self):
         try:

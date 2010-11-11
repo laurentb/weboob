@@ -27,12 +27,23 @@ class OptimizationNotFound(Exception):
 
 
 class Optimization(object):
+    # Configuration of optim can be made by Value*s in this dict.
+    CONFIG = {}
+
     def start(self):
         raise NotImplementedError()
 
     def stop(self):
         raise NotImplementedError()
 
+    def is_running(self):
+        raise NotImplementedError()
+
+    def get_config(self):
+        return None
+
+    def set_config(self, params):
+        raise NotImplementedError()
 
 class StatusField(object):
     FIELD_TEXT    = 0x001     # the value is a long text
@@ -52,33 +63,25 @@ class ICapDating(IBaseCap):
         """
         raise NotImplementedError()
 
-    OPTIM_PROFILE_WALKER = None
-    OPTIM_VISIBILITY = None
-    OPTIM_PRIORITY_CONNECTION = None
-
     def init_optimizations(self):
         raise NotImplementedError()
 
-    def _get_optim(self, optim):
+    def add_optimization(self, name, optim):
+        setattr(self, 'OPTIM_%s' % name, optim)
+
+    def iter_optimizations(self, *optims):
+        for attr_name in dir(self):
+            if not attr_name.startswith('OPTIM_'):
+                continue
+            attr = getattr(self, attr_name)
+            if attr is None:
+                continue
+
+            yield attr_name[6:], attr
+
+    def get_optimization(self, optim):
         optim = optim.upper()
         if not hasattr(self, 'OPTIM_%s' % optim):
             raise OptimizationNotFound()
 
         return getattr(self, 'OPTIM_%s' % optim)
-
-    def start_optimization(self, optim):
-        optim = self._get_optim(optim)
-        if not optim:
-            return False
-
-        return optim.start()
-
-    def stop_optimization(self, optim):
-        optim = self._get_optim(optim)
-        if not optim:
-            return False
-
-        return optim.stop()
-
-    def list_optimizations(self):
-        pass

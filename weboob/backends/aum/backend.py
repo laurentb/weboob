@@ -78,8 +78,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     # ---- ICapDating methods ---------------------
 
     def init_optimizations(self):
-        self.OPTIM_PROFILE_WALKER = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
-        self.OPTIM_VISIBILITY = Visibility(self.weboob.scheduler, self.browser)
+        self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
+        self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
 
     def get_status(self):
         with self.browser:

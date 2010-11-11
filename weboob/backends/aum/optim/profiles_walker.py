@@ -35,6 +35,8 @@ class ProfilesWalker(Optimization):
         self.browser = browser
         self.logger = getLogger('walker', browser.logger)
 
+        self.walk_cron = None
+        self.view_cron = None
         self.visited_profiles = set(storage.get('profiles_walker', 'viewed'))
         self.logger.info(u'Loaded %d already visited profiles from storage.' % len(self.visited_profiles))
         self.profiles_queue = set()
@@ -53,6 +55,9 @@ class ProfilesWalker(Optimization):
         # self.event.cancel(self.event)
         # self.event = None
         return False
+
+    def is_running(self):
+        return self.walk_cron is not None
 
     def enqueue_profiles(self):
         try:
