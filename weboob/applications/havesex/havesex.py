@@ -17,7 +17,6 @@
 
 
 import sys
-import logging
 
 import weboob
 from weboob.tools.application.repl import ReplApplication
@@ -86,7 +85,10 @@ class HaveSex(ReplApplication):
     def main(self, argv):
         self.load_config()
 
-        self.do('init_optimizations').wait()
+        try:
+            self.do('init_optimizations').wait()
+        except weboob.core.CallErrors, e:
+            self.bcall_errors_handler(e)
 
         optimizations = self.storage.get('optims')
         for optim, backends in optimizations.iteritems():
@@ -116,6 +118,10 @@ class HaveSex(ReplApplication):
         return True
 
     def edit_optims(self, backend_names, optims_names, stop=False):
+        if optims_names is None:
+            print >>sys.stderr, 'Error: missing parameters.'
+            return 1
+
         for optim_name in optims_names.split():
             backends_optims = {}
             for backend, optim in self.do('get_optimization', optim_name, backends=backend_names):
@@ -181,9 +187,7 @@ class HaveSex(ReplApplication):
                     if isinstance(error, OptimizationNotFound):
                         self.logger.error(u'Error(%s): Optimization "%s" not found' % (backend.name, optim_name))
                     else:
-                        self.logger.error(u'Error(%s): %s' % (backend.name, error))
-                        if logging.root.level == logging.DEBUG:
-                            self.logger.error(backtrace)
+                        self.bcall_error_handler(backend, error, backtrace)
             if store:
                 if len(storage_optim) > 0:
                     self.storage.set('optims', optim_name, list(storage_optim))

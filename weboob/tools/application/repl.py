@@ -351,6 +351,52 @@ class ReplApplication(Cmd, BaseApplication):
             stop = None
         return stop
 
+    def bcall_error_handler(self, backend, error, backtrace):
+        """
+        Handler for an exception inside the CallErrors exception.
+
+        This method can be overrided to support more exceptions types.
+        """
+        if isinstance(error, BrowserIncorrectPassword):
+            msg = unicode(error)
+            if not msg:
+                msg = 'invalid login/password.'
+            print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+            if self.ask('Do you want to reconfigure this backend?', default=True):
+                self.unload_backends(names=[backend.name])
+                self.edit_backend(backend.name)
+                self.load_backends(names=[backend.name])
+        elif isinstance(error, BrowserUnavailable):
+            msg = unicode(error)
+            if not msg:
+                msg = 'website is unavailable.'
+            print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
+        elif isinstance(error, NotImplementedError):
+            print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
+            print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
+            print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
+        else:
+            print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+            if logging.root.level == logging.DEBUG:
+                print >>sys.stderr, backtrace
+            else:
+                return True
+
+    def bcall_errors_handler(self, errors):
+        """
+        Handler for the CallErrors exception.
+        """
+        ask_debug_mode = False
+        for backend, error, backtrace in errors.errors:
+            if self.bcall_error_handler(backend, error, backtrace):
+                ask_debug_mode = True
+
+        if ask_debug_mode:
+            if self.interactive:
+                print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
+            else:
+                print >>sys.stderr, 'Use --debug option to print backtraces.'
+
     def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.
@@ -367,37 +413,7 @@ class ReplApplication(Cmd, BaseApplication):
         try:
             return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
-            ask_debug_mode = False
-            for backend, error, backtrace in e.errors:
-                if isinstance(error, BrowserIncorrectPassword):
-                    msg = unicode(error)
-                    if not msg:
-                        msg = 'invalid login/password.'
-                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
-                    if self.ask('Do you want to reconfigure this backend?', default=True):
-                        self.unload_backends(names=[backend.name])
-                        self.edit_backend(backend.name)
-                        self.load_backends(names=[backend.name])
-                elif isinstance(error, BrowserUnavailable):
-                    msg = unicode(error)
-                    if not msg:
-                        msg = 'website is unavailable.'
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
-                elif isinstance(error, NotImplementedError):
-                    print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
-                    print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
-                    print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
-                else:
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                    if logging.root.level == logging.DEBUG:
-                        print >>sys.stderr, backtrace
-                    else:
-                        ask_debug_mode = True
-            if ask_debug_mode:
-                if self.interactive:
-                    print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
-                else:
-                    print >>sys.stderr, 'Use --debug option to print backtraces.'
+            self.bcall_error_handler(e)
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
         except (KeyboardInterrupt,EOFError):

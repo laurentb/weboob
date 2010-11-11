@@ -255,6 +255,25 @@ class BaseApplication(object):
         else:
             return self._do_complete_obj(backend, selected_fields, res)
 
+    def bcall_error_handler(self, backend, error, backtrace):
+        """
+        Handler for an exception inside the CallErrors exception.
+
+        This method can be overrided to support more exceptions types.
+        """
+        print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+        if logging.root.level == logging.DEBUG:
+            print >>sys.stderr, backtrace
+
+    def bcall_errors_handler(self, errors):
+        """
+        Handler for the CallErrors exception.
+        """
+        for backend, error, backtrace in errors.errors:
+            self.bcall_error_handler(backend, error, backtrace)
+        if logging.root.level != logging.DEBUG:
+            print >>sys.stderr, 'Use --debug option to print backtraces.'
+
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
 
@@ -351,11 +370,7 @@ class BaseApplication(object):
                 print 'Configuration error: %s' % e
                 sys.exit(1)
             except CallErrors, e:
-                for backend, error, backtrace in e.errors:
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                    if logging.root.level == logging.DEBUG:
-                        print >>sys.stderr, backtrace
-                if logging.root.level != logging.DEBUG:
-                    print >>sys.stderr, 'Use --debug option to print backtraces.'
+                app.bcall_errors_handler(e)
+                sys.exit(1)
         finally:
             app.deinit()

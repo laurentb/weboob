@@ -221,12 +221,7 @@ class Monboob(ReplApplication):
                 if self.send_email(backend, message):
                     backend.set_message_read(message)
         except CallErrors, e:
-            for backend, error, backtrace in e.errors:
-                print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                if logging.root.level == logging.DEBUG:
-                    print >>sys.stderr, backtrace
-            if logging.root.level != logging.DEBUG:
-                print >>sys.stderr, 'Use --debug option to print backtraces.'
+            self.bcall_errors_handler(e)
 
     def send_email(self, backend, mail):
         domain = self.config.get('domain')
