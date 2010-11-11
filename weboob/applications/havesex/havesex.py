@@ -17,6 +17,7 @@
 
 
 import sys
+import logging
 
 import weboob
 from weboob.tools.application.repl import ReplApplication

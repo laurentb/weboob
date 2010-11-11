@@ -16,10 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import sys
-
-from weboob.core import CallErrors
-from weboob.capabilities.weather import ICapWeather, CityNotFound
+from weboob.capabilities.weather import ICapWeather
 from weboob.tools.application.repl import ReplApplication
 
 
