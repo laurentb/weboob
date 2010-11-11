@@ -101,8 +101,8 @@ class PriorityConnection(Optimization):
 
     def check_godchilds(self):
         with self.browser:
-            my_id = self.browser.get_my_id()
             try:
+                my_id = self.browser.get_my_id()
                 nb_godchilds = self.browser.nb_godchilds()
             except AdopteWait:
                 nb_godchilds = 0

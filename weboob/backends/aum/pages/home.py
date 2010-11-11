@@ -19,10 +19,8 @@
 import re
 
 from weboob.backends.aum.pages.base import PageBase
-from logging import error, warning
 
 class HomePage(PageBase):
-
     MYID_REGEXP = re.compile("http://www.adopteunmec.com/\?mid=(\d+)")
 
     def get_my_id(self):
@@ -32,11 +30,10 @@ class HomePage(PageBase):
             if m:
                 return m.group(1)
 
-        error("Error: Unable to find my ID")
+        self.browser.logger.error("Error: Unable to find my ID")
         return 0
 
     def __get_home_indicator(self, pos, what):
-
         tables = self.document.getElementsByTagName('table')
         for table in tables:
             if table.hasAttribute('style') and table.getAttribute('style') == 'background-color:black;background-image:url(http://s.adopteunmec.com/img/barmec.gif);background-repeat:no-repeat':
@@ -47,7 +44,7 @@ class HomePage(PageBase):
                         i += 1
                         if i == pos:
                             return int(font.firstChild.data)
-        warning(u'Could not parse number of %s' % what)
+        self.browser.logger.error(u'Could not parse number of %s' % what)
         return 0
 
     def nb_available_charms(self):

@@ -34,8 +34,10 @@ from weboob.backends.aum.pages.contact_thread import ContactThreadPage
 from weboob.backends.aum.pages.baskets import BasketsPage
 from weboob.backends.aum.pages.profile import ProfilePage
 from weboob.backends.aum.pages.search import SearchPage
-from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, RegisterWaitPage, RegisterConfirmPage, ShopPage
-from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
+from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, \
+                                            RegisterWaitPage, RegisterConfirmPage, ShopPage, InvitePage
+from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, \
+                                           EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
 from weboob.capabilities.chat import ChatException, ChatMessage
@@ -54,6 +56,7 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/bans.php.*': BanPage,
              'http://www.adopteunmec.com/redirect.php\?action=login': RedirectPage,
              'http://www.adopteunmec.com/wait.php': WaitPage,
+             'http://www.adopteunmec.com/invits.php': InvitePage,
              'http://www.adopteunmec.com/register2.php': RegisterPage,
              'http://www.adopteunmec.com/register3.php.*': RegisterWaitPage,
              'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
@@ -155,8 +158,12 @@ class AuMBrowser(BaseBrowser):
         if self.my_id:
             return self.my_id
 
-        if not self.is_on_page(HomePage):
-            self.home()
+        try:
+            if not self.is_on_page(HomePage):
+                self.home()
+        except AdopteWait:
+            self.location('/invits.php')
+
         self.my_id = self.page.get_my_id()
         return self.my_id
 

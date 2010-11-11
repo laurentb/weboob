@@ -123,3 +123,16 @@ class ShopPage(PageBase):
 class ErrPage(PageBase):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Incorrect login/password')
+
+class InvitePage(PageBase):
+    MYID_REGEXP = re.compile("http://www.adopteunmec.com/\?mid=(\d+)")
+
+    def get_my_id(self):
+        fonts = self.document.getElementsByTagName('font')
+        for font in fonts:
+            m = self.MYID_REGEXP.match(font.firstChild.data)
+            if m:
+                return m.group(1)
+
+        self.browser.logger.error("Error: Unable to find my ID")
+        return 0
