@@ -39,6 +39,7 @@ from .browser import AuMBrowser
 from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
 from .optim.visibility import Visibility
+from .optim.priority_connection import PriorityConnection
 
 
 __all__ = ['AuMBackend']
@@ -55,6 +56,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         Value('password',     label='Password', masked=True),
                         ValueBool('antispam', label='Enable anti-spam', default=False))
     STORAGE = {'profiles_walker': {'viewed': []},
+               'priority_connection': {'config': {}, 'fakes': {}},
                'sluts': {},
               }
     BROWSER = AuMBrowser
@@ -82,6 +84,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
+        self.add_optimization('PRIORITY_CONNECTION', PriorityConnection(self.weboob.scheduler, self.storage, self.browser))
 
     def get_status(self):
         with self.browser:
@@ -107,7 +110,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             if not contact.get_id():
                 continue
             if self.antispam and not self.antispam.check(contact):
-                self.logger.debug('Skipped a spam-thread from %s' % contact.get_name())
+                self.logger.info('Skipped a spam-thread from %s' % contact.get_name())
                 self.report_spam(contact.get_id(), contact.get_suppr_id())
                 continue
             thread = Thread(contact.get_id())
@@ -143,7 +146,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         for mail in mails:
             flags = 0
             if self.antispam and not self.antispam.check(mail):
-                self.logger.debug('Skipped a spam-mail from %s' % mail.sender)
+                self.logger.info('Skipped a spam-mail from %s' % mail.sender)
                 self.report_spam(thread.id, contact and contact.get_suppr_id())
                 break
 
@@ -154,7 +157,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     with self.browser:
                         profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
                 if self.antispam and not self.antispam.check(profiles[mail.profile_link]):
-                    self.logger.debug('Skipped a spam-mail-profile from %s' % mail.sender)
+                    self.logger.info('Skipped a spam-mail-profile from %s' % mail.sender)
                     self.report_spam(thread.id, contact and contact.get_suppr_id())
                     break
                 mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
@@ -205,7 +208,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 if not contact.get_id():
                     continue
                 if self.antispam and not self.antispam.check(contact):
-                    self.logger.debug('Skipped a spam-unread-thread from %s' % contact.get_name())
+                    self.logger.info('Skipped a spam-unread-thread from %s' % contact.get_name())
                     self.report_spam(contact.get_id(), contact.get_suppr_id())
                     continue
                 slut = self._get_slut(contact.get_id())
@@ -230,7 +233,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         if not profile or profile.get_id() == 0:
                             continue
                         if self.antispam and not self.antispam.check(profile):
-                            self.logger.debug('Skipped a spam-basket from %s' % profile.get_name())
+                            self.logger.info('Skipped a spam-basket from %s' % profile.get_name())
                             self.report_spam(profile.get_id())
                             continue
 

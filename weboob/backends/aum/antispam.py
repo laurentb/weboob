@@ -59,6 +59,8 @@ class AntiSpam(object):
             return False
         if profile.description.find('belle dans la cam') >= 0:
             return False
+        if profile.description.find('pour montre ma cam') >= 0:
+            return False
         if profile.description.find('show sex') >= 0:
             return False
         if profile.description.find('un mec tres chaude') >= 0:
@@ -70,6 +72,8 @@ class AntiSpam(object):
         if profile.description.find('cc moi  ') >= 0:
             return False
         if profile.description.find('une fille tres chaud') >= 0:
+            return False
+        if profile.description.find(u'tré chau') == 0:
             return False
         if profile.description.find('sa va bb') == 0:
             return False

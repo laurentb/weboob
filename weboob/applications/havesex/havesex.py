@@ -140,7 +140,7 @@ class HaveSex(ReplApplication):
                 if params is None:
                     params = {}
                 print 'Configuration of %s.%s' % (backend_name, optim_name)
-                print '-----------------%s.%s' % ('-' * len(backend_name), '-' * len(optim_name))
+                print '-----------------%s-%s' % ('-' * len(backend_name), '-' * len(optim_name))
                 for key, value in optim.CONFIG.iteritems():
                     params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
 
@@ -170,11 +170,13 @@ class HaveSex(ReplApplication):
                         if function == 'start' and len(optim.CONFIG) > 0 and optim.get_config() is None:
                             self.edit_optims(backend.name, optim_name)
 
-                        getattr(optim, function)()
+                        ret = getattr(optim, function)()
                         sys.stdout.write(' ' + backend.name)
+                        if not ret:
+                            sys.stdout.write('(failed)')
                         sys.stdout.flush()
                         if store:
-                            if function == 'start':
+                            if function == 'start' and ret:
                                 storage_optim.add(backend.name)
                             elif function == 'stop':
                                 try:
@@ -228,7 +230,7 @@ class HaveSex(ReplApplication):
         * edit       configure an optimization service for a backend
         * stop       stop optimization services on a backend
         """
-        cmd, backend_name, optims_names = self.parseargs(line, 3, 1)
+        cmd, backend_name, optims_names = self.parseargs(line, 3)
 
         if backend_name == '*':
             backend_name = None
@@ -243,7 +245,7 @@ class HaveSex(ReplApplication):
         if cmd == 'edit':
             self.edit_optims(backend_name, optims_names, stop=True)
             return
-        if cmd == 'list':
+        if cmd == 'list' or cmd is None:
             if optims_names is not None:
                 optims_names = optims_names.split()
 

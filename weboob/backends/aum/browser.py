@@ -185,6 +185,12 @@ class AuMBrowser(BaseBrowser):
         return self.page.nb_available_charms()
 
     @pageaccess
+    def nb_godchilds(self, reload=False):
+        if reload or not self.is_on_page(HomePage):
+            self.home()
+        return self.page.nb_godchilds()
+
+    @pageaccess
     def get_baskets(self):
         self.location('/mails.php?type=1')
         return self.page.get_profiles_ids_list()
