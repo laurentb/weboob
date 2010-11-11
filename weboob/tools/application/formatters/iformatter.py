@@ -53,7 +53,8 @@ class IFormatter(object):
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
-        if os.isatty(sys.stdout.fileno()):
+        # XXX if stdin is not a tty, it seems that the command fails.
+        if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
     def after_format(self, formatted):
