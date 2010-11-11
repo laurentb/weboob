@@ -431,7 +431,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 break
 
         if url:
-            browser = self.BROWSER('')
+            browser = self.create_browser('')
             browser.openurl(url)
             return True
 
