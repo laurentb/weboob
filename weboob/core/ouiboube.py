@@ -194,7 +194,7 @@ class Weboob(object):
                     if isinstance(backend, basestring):
                         try:
                             backends.append(self.backend_instances[backend])
-                        except ValueError:
+                        except (ValueError,KeyError):
                             pass
                     else:
                         backends.append(backend)
