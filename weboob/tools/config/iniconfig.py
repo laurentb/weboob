@@ -62,7 +62,7 @@ class INIConfig(IConfig):
     def save(self):
         def save_section(values, root_section=None):
             for k, v in values.iteritems():
-                if isinstance(v, (int, float, str, unicode)):
+                if isinstance(v, (int, float, basestring)):
                     if root_section is not None and not self.config.has_section(root_section):
                         self.config.add_section(root_section)
                     self.config.set(root_section, k, unicode(v))

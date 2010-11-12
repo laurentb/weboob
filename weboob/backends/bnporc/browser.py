@@ -104,7 +104,7 @@ class BNPorc(BaseBrowser):
         return self.page.get_list()
 
     def get_account(self, id):
-        assert isinstance(id, (str, unicode))
+        assert isinstance(id, basestring)
 
         if not self.is_on_page(pages.AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
