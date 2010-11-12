@@ -111,10 +111,11 @@ class PriorityConnection(Optimization):
                 return
 
         missing_godchilds = int(self.config['minimal']) - nb_godchilds
-        if missing_godchilds <= 0:
-            return
 
         self.logger.info('Missing godchilds: %s' % missing_godchilds)
+
+        if missing_godchilds <= 0:
+            return
 
         for i in xrange(missing_godchilds):
             registered = False
