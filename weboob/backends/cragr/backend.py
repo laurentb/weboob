@@ -28,8 +28,8 @@ __all__ = ['CragrBackend']
 
 class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
-    MAINTAINER = 'Laurent Bachelier'
-    EMAIL = 'laurent@bachelier.name'
+    MAINTAINER = 'Xavier Guerrin'
+    EMAIL = 'xavier@tuxfamily.org'
     VERSION = '0.4'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
