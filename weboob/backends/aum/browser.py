@@ -19,8 +19,12 @@
 import datetime
 import time
 import random
-import simplejson
 import urllib
+try:
+    import simplejson
+except ImportError:
+    # Python 2.6+ has a module similar to simplejson
+    import json as simplejson
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.parsers.html5libparser import Html5libParser
@@ -303,7 +307,7 @@ class AuMBrowser(BaseBrowser):
     def _get_chat_infos(self):
         try:
             json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
-        except simplejson.JSONDecodeError:
+        except ValueError:
             raise BrowserUnavailable()
 
         if json['error']:
