@@ -417,7 +417,7 @@ class ReplApplication(Cmd, BaseApplication):
         try:
             return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
-            self.bcall_error_handler(e)
+            self.bcall_errors_handler(e)
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: no enough arguments.'
         except (KeyboardInterrupt,EOFError):
