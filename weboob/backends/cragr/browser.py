@@ -32,6 +32,7 @@ class Cragr(BaseBrowser):
         self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
                       'https://%s/.*\.c.*'       % website:   pages.AccountsList,
                       'https://%s/login/process' % website:   pages.AccountsList,
+                      'https://%s/accounting/listOperations' % website: pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -74,10 +75,20 @@ class Cragr(BaseBrowser):
 
         l = self.get_accounts_list()
         for a in l:
-            if a.id == id:
+            if a.id == ('%s' % id):
                 return a
 
         return None
+
+    def get_history(self, account):
+        page_url = account.link_id
+        operations_count = 0
+        while (page_url):
+            self.location('https://%s%s' % (self.DOMAIN, page_url))
+            for page_operation in self.page.get_history(operations_count):
+                operations_count += 1
+                yield page_operation
+            page_url = self.page.next_page_url()
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
