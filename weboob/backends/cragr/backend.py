@@ -54,10 +54,6 @@ class CragrBackend(BaseBackend, ICapBank):
         else:
             raise AccountNotFound()
 
-    def iter_operations(self, account):
-        """ TODO Not supported yet """
-        return iter([])
-
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
