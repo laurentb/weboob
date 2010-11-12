@@ -61,7 +61,7 @@ class LCLBrowser(BaseBrowser):
         return self.page.get_list()
 
     def get_account(self, id):
-        assert isinstance(id, (int, long))
+        assert isinstance(id, (str, unicode))
 
         l = self.get_accounts_list()
         for a in l:

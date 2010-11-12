@@ -65,17 +65,14 @@ class BNPorcBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        try:
-            _id = long(_id)
-        except ValueError:
+        if not _id.isdigit():
             raise AccountNotFound()
+        with self.browser:
+            account = self.browser.get_account(_id)
+        if account:
+            return account
         else:
-            with self.browser:
-                account = self.browser.get_account(_id)
-            if account:
-                return account
-            else:
-                raise AccountNotFound()
+            raise AccountNotFound()
 
     def iter_history(self, account):
         with self.browser:
@@ -92,10 +89,10 @@ class BNPorcBackend(BaseBackend, ICapBank):
             account = account.id
 
         try:
-            account = long(account)
-            to = long(to)
+            assert account.isdigit()
+            assert to.isdigit()
             amount = float(amount)
-        except ValueError:
+        except (AssertionError, ValueError):
             raise AccountNotFound()
 
         with self.browser:

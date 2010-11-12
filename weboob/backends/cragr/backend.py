@@ -46,16 +46,13 @@ class CragrBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        try:
-            _id = long(_id)
-        except ValueError:
+        if not _id.isdigit():
             raise AccountNotFound()
+        account = self.browser.get_account(_id)
+        if account:
+            return account
         else:
-            account = self.browser.get_account(_id)
-            if account:
-                return account
-            else:
-                raise AccountNotFound()
+            raise AccountNotFound()
 
     def iter_operations(self, account):
         """ TODO Not supported yet """
