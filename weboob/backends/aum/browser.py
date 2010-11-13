@@ -157,7 +157,6 @@ class AuMBrowser(BaseBrowser):
             self.home()
         return self.page.get_my_name()
 
-    @pageaccess
     def get_my_id(self):
         if self.my_id:
             return self.my_id
