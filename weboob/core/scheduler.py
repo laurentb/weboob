@@ -96,7 +96,7 @@ class Scheduler(IScheduler):
             except KeyError:
                 return False
             e.cancel()
-            self.logger.debug('scheduled function "%s" is canceled' % e.function)
+            self.logger.debug('scheduled function "%s" is canceled' % e.function.__name__)
             return True
 
     def _wait_to_stop(self):
