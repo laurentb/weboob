@@ -28,7 +28,7 @@ from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
 
 
-__all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
+__all__ = ['BackendNotFound', 'BaseApplication']
 
 
 class BackendNotFound(Exception):
@@ -356,10 +356,10 @@ class BaseApplication(object):
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
-        args = app.parse_args(args)
 
         try:
             try:
+                args = app.parse_args(args)
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
                 print 'Program killed by SIGINT'
