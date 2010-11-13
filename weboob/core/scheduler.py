@@ -82,8 +82,12 @@ class Scheduler(IScheduler):
     def _repeat_callback(self, count, interval, function, args):
         function(*args)
         with self.mutex:
-            e = self.queue[count]
-            self.logger.debug('function "%s" will be called in %s seconds' % (function.__name__, e.interval))
+            try:
+                e = self.queue[count]
+            except KeyError:
+                return
+            else:
+                self.logger.debug('function "%s" will be called in %s seconds' % (function.__name__, e.interval))
 
     def cancel(self, ev):
         with self.mutex:
