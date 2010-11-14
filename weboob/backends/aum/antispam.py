@@ -91,7 +91,7 @@ class AntiSpam(object):
             return False
         # Her 'Shopping-list' begins with 'hummm'
         if profile.description.endswith('Sa shopping-list :\nhummm') or \
-           profile.description.endswith('Sa shopping-list :\nhummmm')
+           profile.description.endswith('Sa shopping-list :\nhummmm'):
             return False
         if profile.description.strip().endswith('Sa shopping-list :\nEMAIL:'):
             return False
