@@ -18,10 +18,11 @@
 
 from __future__ import with_statement
 
-from ConfigParser import SafeConfigParser
+from ConfigParser import RawConfigParser, DEFAULTSECT
 import logging
 import os
 
+from weboob.tools.ordereddict import OrderedDict
 from .iconfig import IConfig
 
 
@@ -31,27 +32,29 @@ __all__ = ['INIConfig']
 class INIConfig(IConfig):
     def __init__(self, path):
         self.path = path
-        self.values = {}
-        self.config = SafeConfigParser()
+        self.values = OrderedDict()
+        self.config = RawConfigParser()
 
     def load(self, default={}):
-        def load_section(section):
-            sections = section.split(':')
-            if len(sections) > 1:
-                result = {}
-                for s in sections:
-                    result[s] = load_section(s)
-                return result
-            else:
-                return {section: dict(self.config.items(section))}
-
-        self.values = default.copy()
+        self.values = OrderedDict(default)
 
         if os.path.exists(self.path):
             self.config.read(self.path)
             for section in self.config.sections():
-                self.values = load_section(section)
-            self.values.update(self.config.items('DEFAULT'))
+                args = section.split(':')
+                if args[0] == 'ROOT':
+                    args.pop(0)
+                for key, value in self.config.items(section):
+                    self.set(*(args + [key, value]))
+            # retro compatibility
+            if len(self.config.sections()) == 0:
+                first = True
+                for key, value in self.config.items('DEFAULT'):
+                    if first:
+                        logging.warning('The configuration file "%s" uses an old-style' % self.path)
+                        logging.warning('Please rename the DEFAULT section to ROOT')
+                        first = False
+                    self.set(key, value)
             logging.debug(u'Application configuration file loaded: %s.' % self.path)
         else:
             self.save()
@@ -60,14 +63,14 @@ class INIConfig(IConfig):
         return self.values
 
     def save(self):
-        def save_section(values, root_section=None):
+        def save_section(values, root_section='ROOT'):
             for k, v in values.iteritems():
                 if isinstance(v, (int, float, basestring)):
-                    if root_section is not None and not self.config.has_section(root_section):
+                    if not self.config.has_section(root_section):
                         self.config.add_section(root_section)
                     self.config.set(root_section, k, unicode(v))
                 elif isinstance(v, dict):
-                    new_section = ':'.join((root_section, k)) if root_section else k
+                    new_section = ':'.join((root_section, k)) if (root_section != 'ROOT' or k == 'ROOT') else k
                     if not self.config.has_section(new_section):
                         self.config.add_section(new_section)
                     save_section(v, new_section)
@@ -95,7 +98,7 @@ class INIConfig(IConfig):
         v = self.values
         for k in args[:-2]:
             if k not in v:
-                v[k] = {}
+                v[k] = OrderedDict()
             v = v[k]
         v[args[-2]] = args[-1]
 
