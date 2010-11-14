@@ -16,10 +16,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-__all__ = ['ResultsCondition', 'ResultsConditionException']
+from weboob.core.bcall import IResultsCondition, ResultsConditionError
 
 
-class ResultsCondition(object):
+__all__ = ['ResultsCondition', 'ResultsConditionError']
+
+
+class ResultsCondition(IResultsCondition):
     condition_str = None
 
     def __init__(self, condition_str):
@@ -36,13 +39,14 @@ class ResultsCondition(object):
                 elif '=' in _and:
                     k, v = _and.split('=')
                 else:
-                    raise ResultsConditionException(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                    raise ResultsConditionError(u'Could not find = or != operator in sub-expression "%s"' % _and)
                 and_dict[k.strip()] = v.strip()
             or_list.append(and_dict)
         self.condition = or_list
         self.condition_str = condition_str
 
-    def is_valid(self, d):
+    def is_valid(self, obj):
+        d = dict(obj.iter_fields())
         for _or in self.condition:
             for k, v in _or.iteritems():
                 if k.endswith('!'):
@@ -58,7 +62,7 @@ class ResultsCondition(object):
                         if d[k] != v:
                             return False
                 else:
-                    raise ResultsConditionException(u'Field "%s" is not valid.' % k)
+                    raise ResultsConditionError(u'Field "%s" is not valid.' % k)
         return True
 
     def __str__(self):
@@ -66,7 +70,3 @@ class ResultsCondition(object):
 
     def __unicode__(self):
         return self.condition_str
-
-
-class ResultsConditionException(Exception):
-    pass

@@ -34,7 +34,7 @@ from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
-from .results import ResultsCondition, ResultsConditionException
+from .results import ResultsCondition, ResultsConditionError
 
 
 __all__ = ['ReplApplication', 'NotEnoughArguments']
@@ -375,6 +375,8 @@ class ReplApplication(Cmd, BaseApplication):
             if not msg:
                 msg = 'website is unavailable.'
             print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
+        elif isinstance(error, ResultsConditionError):
+            print >>sys.stderr, u'Error(%s): condition error: %s' % (backend.name, error)
         elif isinstance(error, NotImplementedError):
             print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
             print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
@@ -787,8 +789,8 @@ class ReplApplication(Cmd, BaseApplication):
             else:
                 try:
                     self.condition = ResultsCondition(line)
-                except ResultsConditionException, e:
-                    print e
+                except ResultsConditionError, e:
+                    print >>sys.stderr, '%s' % e
         else:
             if self.condition is None:
                 print 'No condition is set.'

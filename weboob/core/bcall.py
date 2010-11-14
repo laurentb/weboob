@@ -26,7 +26,7 @@ from weboob.tools.misc import get_backtrace
 from weboob.tools.log import getLogger
 
 
-__all__ = ['BackendsCall', 'CallErrors']
+__all__ = ['BackendsCall', 'CallErrors', 'IResultsCondition', 'ResultsConditionError']
 
 
 class CallErrors(Exception):
@@ -37,18 +37,28 @@ class CallErrors(Exception):
     def __iter__(self):
         return self.errors.__iter__()
 
+class IResultsCondition(object):
+    def is_valid(self, obj):
+        raise NotImplementedError()
+
+class ResultsConditionError(Exception):
+    pass
+
 class BackendsCall(object):
-    def __init__(self, backends, function, *args, **kwargs):
+    def __init__(self, backends, condition, function, *args, **kwargs):
         """
-        @param backends  list of backends to call
-        @param function  backends' method name, or callable object
-        @param args, kwargs  arguments given to called functions
+        @param backends  list of backends to call.
+        @param condition  a IResultsCondition object. Can be None.
+        @param function  backends' method name, or callable object.
+        @param args, kwargs  arguments given to called functions.
         """
         self.logger = getLogger('bcall')
         # Store if a backend is finished
         self.backends = {}
         for backend in backends:
             self.backends[backend.name] = False
+        # Condition
+        self.condition = condition
         # Global mutex on object
         self.mutex = RLock()
         # Event set when every backends have give their data
@@ -78,6 +88,8 @@ class BackendsCall(object):
     def _store_result(self, backend, result):
         with self.mutex:
             if isinstance(result, CapBaseObject):
+                if self.condition and not self.condition.is_valid(result):
+                    return
                 result.backend = backend.name
             self.responses.append((backend, result))
             self.response_event.set()
