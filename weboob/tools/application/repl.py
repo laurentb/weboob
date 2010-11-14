@@ -80,7 +80,7 @@ class ReplApplication(Cmd, BaseApplication):
                                 'Type "help" to display available commands.',
                                 '',
                                ))
-        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit']
+        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
 
         self.formatters_loader = FormattersLoader()
@@ -1015,3 +1015,33 @@ class ReplApplication(Cmd, BaseApplication):
         except ValueError:
             backend_name = None
         return _id, backend_name
+
+    def do_inspect(self, line):
+        """
+        inspect BACKEND_NAME
+        """
+        backend_name = line.strip()
+        if not backend_name:
+            print 'Please specify a backend name.'
+            return
+        backends = set(backend for backend in self.enabled_backends if backend.name == backend_name)
+        if not backends:
+            print 'No backend found for "%s"' % backend_name
+            return
+        backend = backends.pop()
+        if not hasattr(backend, '_browser'):
+            print 'No browser created for backend "%s" yet. Please invoke a command before.' % backend.name
+            return
+        browser = backend._browser
+        data = browser.parser.tostring(browser.page.document)
+        try:
+            from webkit_mechanize_browser.browser import Browser
+            from webkit_mechanize_browser.page import Page
+        except ImportError:
+            print data
+        else:
+            page = Page(core=browser, data=data, uri=browser._response.geturl())
+            browser = Browser(view=page.view)
+
+    def complete_inspect(self, text, line, begidx, endidx):
+        return sorted(set(backend.name for backend in self.enabled_backends))
