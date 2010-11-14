@@ -567,6 +567,21 @@ class ReplApplication(Cmd, BaseApplication):
     def completenames(self, text, *ignored):
         return [name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
 
+    def path_completer(self, arg):
+        dirname = os.path.dirname(arg)
+        try:
+            childs = os.listdir(dirname or '.')
+        except OSError:
+            return ()
+        l = []
+        for child in childs:
+            path = os.path.join(dirname, child)
+            if os.path.isdir(path):
+                child += '/'
+            l.append(child)
+        return l
+
+
     def complete(self, text, state):
         """
         Override of the Cmd.complete() method to:
@@ -584,9 +599,13 @@ class ReplApplication(Cmd, BaseApplication):
             self.completion_matches = [choice for choice in self.completion_matches if choice.startswith(text)]
 
         try:
-            return '%s ' % self.completion_matches[state]
+            match = self.completion_matches[state]
         except IndexError:
             return None
+        else:
+            if match[-1] != '/':
+                return '%s ' % match
+            return match
 
     def do_backends(self, line):
         """
