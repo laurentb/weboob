@@ -241,7 +241,7 @@ class ReplApplication(Cmd, BaseApplication):
         except BackendAlreadyExists:
             print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             while self.ask('Add new instance of "%s" backend?' % name, default=False):
-                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=u'^[\d\w_-]+$')
+                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=r'^[\w\-_]+$')
                 try:
                     self.weboob.backends_config.add_backend(new_name, name, params)
                     print 'Backend "%s" successfully added.' % new_name

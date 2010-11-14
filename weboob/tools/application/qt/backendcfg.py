@@ -21,6 +21,7 @@ from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QDialogButtonBox
 from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
+import re
 from logging import warning
 
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
@@ -204,6 +205,11 @@ class BackendCfg(QDialog):
         if not bname:
             QMessageBox.critical(self, self.tr('Missing field'),
                                        self.tr('Please specify a backend name'))
+            return
+
+        if self.ui.nameEdit.isEnabled() and not re.match(r'^[\w\-_]+$', bname):
+            QMessageBox.critical(self, self.tr('Invalid value'),
+                                       self.tr('The backend name can only contain letters and digits'))
             return
 
         if self.ui.proxyBox.isChecked():
