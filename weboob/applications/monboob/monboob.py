@@ -80,7 +80,7 @@ class Monboob(ReplApplication):
     APPNAME = 'monboob'
     VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-    CONFIG = {'interval':  15,
+    CONFIG = {'interval':  300,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
