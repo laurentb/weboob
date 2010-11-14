@@ -30,6 +30,8 @@ __all__ = ['INIConfig']
 
 
 class INIConfig(IConfig):
+    ROOTSECT = 'ROOT'
+
     def __init__(self, path):
         self.path = path
         self.values = OrderedDict()
@@ -42,17 +44,17 @@ class INIConfig(IConfig):
             self.config.read(self.path)
             for section in self.config.sections():
                 args = section.split(':')
-                if args[0] == 'ROOT':
+                if args[0] == self.ROOTSECT:
                     args.pop(0)
                 for key, value in self.config.items(section):
                     self.set(*(args + [key, value]))
             # retro compatibility
             if len(self.config.sections()) == 0:
                 first = True
-                for key, value in self.config.items('DEFAULT'):
+                for key, value in self.config.items(DEFAULTSECT):
                     if first:
                         logging.warning('The configuration file "%s" uses an old-style' % self.path)
-                        logging.warning('Please rename the DEFAULT section to ROOT')
+                        logging.warning('Please rename the %s section to %s' % (DEFAULTSECT, self.ROOTSECT))
                         first = False
                     self.set(key, value)
             logging.debug(u'Application configuration file loaded: %s.' % self.path)
@@ -63,14 +65,14 @@ class INIConfig(IConfig):
         return self.values
 
     def save(self):
-        def save_section(values, root_section='ROOT'):
+        def save_section(values, root_section=self.ROOTSECT):
             for k, v in values.iteritems():
                 if isinstance(v, (int, float, basestring)):
                     if not self.config.has_section(root_section):
                         self.config.add_section(root_section)
                     self.config.set(root_section, k, unicode(v))
                 elif isinstance(v, dict):
-                    new_section = ':'.join((root_section, k)) if (root_section != 'ROOT' or k == 'ROOT') else k
+                    new_section = ':'.join((root_section, k)) if (root_section != self.ROOTSECT or k == self.ROOTSECT) else k
                     if not self.config.has_section(new_section):
                         self.config.add_section(new_section)
                     save_section(v, new_section)
