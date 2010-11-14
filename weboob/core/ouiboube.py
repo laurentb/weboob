@@ -179,6 +179,7 @@ class Weboob(object):
         @param function  backend's method name, or callable object
         @param backends  list of backends to iterate on
         @param caps  iterate on backends with this caps
+        @param condition  a condition to validate to keep the result
         @return  an iterator of results
         """
         backends = self.backend_instances.values()
@@ -204,8 +205,14 @@ class Weboob(object):
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
             backends = [backend for backend in backends if backend.has_caps(caps)]
-
-        return BackendsCall(backends, function, *args, **kwargs)
+        condition = kwargs.pop('condition', None)
+        for backend, result in BackendsCall(backends, function, *args, **kwargs):
+            d = dict(result.iter_fields())
+            if condition:
+                if condition.is_valid(d):
+                    yield backend, result
+            else:
+                yield backend, result
 
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)

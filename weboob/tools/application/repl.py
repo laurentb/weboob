@@ -450,6 +450,7 @@ class ReplApplication(Cmd, BaseApplication):
         """
         backends = kwargs.pop('backends', None)
         kwargs['backends'] = self.enabled_backends if backends is None else backends
+        kwargs['condition'] = self.condition
         fields = self.selected_fields
         if fields == '$direct':
             fields = []
@@ -1019,10 +1020,8 @@ class ReplApplication(Cmd, BaseApplication):
         if fields in ('$direct', '$full'):
             fields = None
         try:
-            self.formatter.format(obj=result, selected_fields=fields, condition=self.condition)
+            self.formatter.format(obj=result, selected_fields=fields)
         except FieldNotFound, e:
-            print e
-        except ResultsConditionException, e:
             print e
 
     def flush(self):

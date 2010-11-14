@@ -77,17 +77,15 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, selected_fields=None, condition=None):
+    def format(self, obj, selected_fields=None):
         """
         Format an object to be human-readable.
-        An object has fields which can be selected, and the objects
-        can be filtered using a condition (like SELECT and WHERE in SQL).
+        An object has fields which can be selected.
         If the object provides an iter_fields() method, the formatter will
         call it. It can be used to specify the fields order.
 
         @param obj  [object] object to format
         @param selected_fields  [tuple] fields to display. If None, all fields are selected
-        @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """
         assert isinstance(obj, (dict, CapBaseObject, tuple))
@@ -97,7 +95,7 @@ class IFormatter(object):
         elif isinstance(obj, tuple):
             item = OrderedDict([(k, v) for k, v in obj])
         else:
-            item = self.to_dict(obj, condition, selected_fields)
+            item = self.to_dict(obj, selected_fields)
 
         if item is None:
             return None
@@ -122,7 +120,7 @@ class IFormatter(object):
         if self.display_header:
             print string.encode('utf-8')
 
-    def to_dict(self, obj, condition=None, selected_fields=None):
+    def to_dict(self, obj, selected_fields=None):
         def iter_select(d):
             if selected_fields is None or '*' in selected_fields:
                 fields = d.iterkeys()
@@ -145,6 +143,4 @@ class IFormatter(object):
 
         fields_iterator = obj.iter_fields()
         d = OrderedDict(iter_decorate(fields_iterator))
-        if condition is not None and not condition.is_valid(d):
-            return None
-        return OrderedDict([(k, v) for k, v in iter_select(d)])
+        return OrderedDict((k, v) for k, v in iter_select(d))
