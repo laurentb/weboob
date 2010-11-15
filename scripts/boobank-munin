@@ -20,6 +20,7 @@
 import os
 import sys
 import time
+import logging
 from weboob.core import Weboob, CallErrors
 from weboob.capabilities.bank import ICapBank
 
@@ -160,7 +161,8 @@ class BoobankMuninPlugin(object):
                 self.write_output('%s.label %s' % (id, account.label.encode('iso-8859-15')))
                 if self.cumulate:
                     self.write_output('%s.draw %s' % (id, type))
-        except CallErrors:
+        except CallErrors, errors:
+            self.print_errors(errors)
             self.print_cache('boobank-munin-config')
         else:
             self.flush_cache()
@@ -170,6 +172,10 @@ class BoobankMuninPlugin(object):
 
     def account2id(self, account):
         return '%s_%s' % (account.backend, account.id)
+
+    def print_errors(self, errors):
+        for backend, err, backtrace in errors:
+            print >>sys.stderr, '%s(%s): %s' % (type(err).__name__, backend.name, err)
 
     def execute(self):
         if self.check_cache('boobank-munin'):
@@ -184,7 +190,8 @@ class BoobankMuninPlugin(object):
                     if account.coming and self.add_coming:
                         balance += account.coming
                     self.write_output('%s.value %d' % (self.account2id(account), balance))
-        except CallErrors:
+        except CallErrors, errors:
+            self.print_errors(errors)
             self.print_cache('boobank-munin')
         else:
             self.flush_cache()
@@ -212,4 +219,5 @@ class BoobankMuninPlugin(object):
         sys.exit(0)
 
 if __name__ == '__main__':
+    logging.basicConfig()
     BoobankMuninPlugin().run()

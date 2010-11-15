@@ -325,13 +325,6 @@ class BaseApplication(object):
             handler.setLevel(level)
             logging.root.addHandler(handler)
 
-        #log_format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
-        #if self.options.logging_file:
-        #    print self.options.logging_file
-        #    logging.basicConfig(filename=self.options.logging_file, level=level, format=log_format)
-        #else:
-        #    logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
-
         self._handle_options()
         self.handle_application_options()
 
