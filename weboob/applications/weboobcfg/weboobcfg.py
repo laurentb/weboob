@@ -168,9 +168,10 @@ class WeboobCfg(ReplApplication):
         if not line:
             print 'No backend name was specified.'
             return
-        try:
-            backend = self.weboob.modules_loader.get_or_load_module(line)
-        except KeyError:
+
+        backend = self.weboob.modules_loader.get_or_load_module(line)
+
+        if not backend:
             print 'No such backend: "%s"' % line
             return 1
 
