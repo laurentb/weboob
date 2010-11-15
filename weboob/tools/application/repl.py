@@ -54,8 +54,8 @@ class ReplApplication(Cmd, BaseApplication):
     DISABLE_REPL = False
 
     # shell escape strings
-    BOLD   = '[37;1m'
-    NC     = '[37;0m'    # no color
+    BOLD   = '[1m'
+    NC     = '[0m'    # no color
 
     EXTRA_FORMATTERS = {}
     DEFAULT_FORMATTER = 'multiline'
