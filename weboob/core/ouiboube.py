@@ -180,7 +180,7 @@ class Weboob(object):
         @param backends  list of backends to iterate on
         @param caps  iterate on backends with this caps
         @param condition  a condition to validate to keep the result
-        @return  the BackendsCall object (iteratable)
+        @return  the BackendsCall object (iterable)
         """
         backends = self.backend_instances.values()
         _backends = kwargs.pop('backends', None)
