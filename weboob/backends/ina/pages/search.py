@@ -32,7 +32,10 @@ class SearchPage(BasePage):
     URL_REGEXP = re.compile('/video/(.+).html')
 
     def iter_videos(self):
-        ul = select(self.document.getroot(), 'div.container-videos ul', 1)
+        try:
+            ul = select(self.document.getroot(), 'div.container-videos ul', 1)
+        except SelectElementException:
+            return
         for li in ul.findall('li'):
             id = re.sub(r'/video/(.+)\.html', r'\1', li.find('a').attrib['href'])
 
