@@ -117,6 +117,17 @@ class HaveSex(ReplApplication):
 
         return True
 
+    def do_query(self, id):
+        """
+        query ID
+
+        Send a query to someone.
+        """
+        _id, backend_name = self.parse_id(id)
+
+        for backend, query in self.do('send_query', _id, backends=backend_name):
+            print '%s' % query.message
+
     def edit_optims(self, backend_names, optims_names, stop=False):
         if optims_names is None:
             print >>sys.stderr, 'Error: missing parameters.'
