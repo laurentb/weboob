@@ -124,20 +124,6 @@ class ReplApplication(Cmd, BaseApplication):
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
 
-        try:
-            import readline
-        except ImportError:
-            pass
-        else:
-            history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
-            try:
-                readline.read_history_file(history_filepath)
-            except IOError:
-                pass
-            def savehist():
-                readline.write_history_file(history_filepath)
-            atexit.register(savehist)
-
         self._interactive = False
         self.enabled_backends = set()
 
@@ -442,6 +428,20 @@ class ReplApplication(Cmd, BaseApplication):
             self._parser.print_help()
             self._parser.exit()
         else:
+            try:
+                import readline
+            except ImportError:
+                pass
+            else:
+                history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
+                try:
+                    readline.read_history_file(history_filepath)
+                except IOError:
+                    pass
+                def savehist():
+                    readline.write_history_file(history_filepath)
+                atexit.register(savehist)
+
             self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             self._interactive = True
             self.cmdloop()
