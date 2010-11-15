@@ -55,7 +55,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     DESCRIPTION = u"“Adopte un mec” french dating website"
     CONFIG = ValuesDict(Value('username',     label='Username'),
                         Value('password',     label='Password', masked=True),
-                        ValueBool('antispam', label='Enable anti-spam', default=False))
+                        ValueBool('antispam', label='Enable anti-spam', default=False),
+                        ValueBool('baskets',  label='Get baskets with new messages', default=True))
     STORAGE = {'profiles_walker': {'viewed': []},
                'priority_connection': {'config': {}, 'fakes': {}},
                'queries_queue': {'queue': []},
@@ -220,6 +221,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     for m in thread.iter_all_messages():
                         if m.flags & m.IS_UNREAD:
                             yield m
+
+            if not self.config['baskets']:
+                return
 
             # Send mail when someone added me in her basket.
             # XXX possibly race condition if a slut adds me in her basket
