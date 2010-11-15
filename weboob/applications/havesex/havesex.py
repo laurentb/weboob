@@ -115,8 +115,6 @@ class HaveSex(ReplApplication):
         else:
             self.flush()
 
-        return True
-
     def do_query(self, id):
         """
         query ID
