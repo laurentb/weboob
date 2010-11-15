@@ -78,6 +78,11 @@ class BNPorc(BaseBrowser):
         assert self.is_on_page(pages.ChangePasswordPage)
 
         self.page.change_password(self.password, new_password)
+
+        if not self.is_on_page(pages.ConfirmPage):
+            self.logger.error('Oops, unable to change password')
+            return
+
         self.password, self.rotating_password = (new_password, self.password)
 
         if self.password_changed_cb:
