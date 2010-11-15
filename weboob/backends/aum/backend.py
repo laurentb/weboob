@@ -25,8 +25,8 @@ from dateutil import tz
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-from weboob.capabilities.dating import ICapDating, StatusField
-from weboob.capabilities.contact import ICapContact, Contact, ProfileNode
+from weboob.capabilities.dating import ICapDating, StatusField, OptimizationNotFound
+from weboob.capabilities.contact import ICapContact, Contact, ProfileNode, Query, QueryError
 from weboob.capabilities.account import ICapAccount
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
@@ -40,6 +40,7 @@ from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
 from .optim.visibility import Visibility
 from .optim.priority_connection import PriorityConnection
+from .optim.queries_queue import QueriesQueue
 
 
 __all__ = ['AuMBackend']
@@ -57,6 +58,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         ValueBool('antispam', label='Enable anti-spam', default=False))
     STORAGE = {'profiles_walker': {'viewed': []},
                'priority_connection': {'config': {}, 'fakes': {}},
+               'queries_queue': {'queue': []},
                'sluts': {},
               }
     BROWSER = AuMBrowser
@@ -85,6 +87,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
         self.add_optimization('PRIORITY_CONNECTION', PriorityConnection(self.weboob.scheduler, self.storage, self.browser))
+        self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
 
     def get_status(self):
         with self.browser:
@@ -364,6 +367,27 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 c.status_msg = u'%s old' % contact['birthday']
                 c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
                 yield c
+
+    def send_query(self, id):
+        if isinstance(id, Contact):
+            id = id.id
+
+        queries_queue = None
+        try:
+            queries_queue = self.get_optimization('QUERIES_QUEUE')
+        except OptimizationNotFound:
+            pass
+
+        if queries_queue and queries_queue.is_running():
+            if queries_queue.enqueue_query(id):
+                return Query(id, 'A charm has been sent')
+            else:
+                return Query(id, 'Unable to send charm: it has been enqueued')
+        else:
+            with self.browser:
+                if not self.browser.send_charm(id):
+                    raise QueryError('No enough charms available')
+                return Query(id, 'A charm has been sent')
 
     # ---- ICapChat methods ---------------------
 

@@ -240,13 +240,13 @@ class AuMBrowser(BaseBrowser):
     @pageaccess
     def send_charm(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.warning('Charm: %s' % result)
+        self.logger.debug('Charm: %s' % result)
         return result.find('noMoreFlashes') < 0
 
     @pageaccess
     def add_basket(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.warning('Basket: %s' % result)
+        self.logger.debug('Basket: %s' % result)
         # TODO check if it works (but it should)
         return True
 

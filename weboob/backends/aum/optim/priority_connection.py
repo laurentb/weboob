@@ -44,7 +44,7 @@ class PriorityConnection(Optimization):
         self.sched = sched
         self.storage = storage
         self.browser = browser
-        self.logger = getLogger('walker', browser.logger)
+        self.logger = getLogger('priorityconn', browser.logger)
 
         self.config = storage.get('priority_connection', 'config', default=None)
         if self.config == {}:
@@ -52,10 +52,6 @@ class PriorityConnection(Optimization):
 
         self.check_cron = None
         self.activity_cron = None
-
-    def save(self):
-        self.storage.set('profiles_walker', 'viewed', list(self.visited_profiles))
-        self.storage.save()
 
     def start(self):
         if self.config is None:
