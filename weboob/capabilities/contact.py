@@ -76,6 +76,14 @@ class Contact(CapBaseObject):
         for key, value in kwargs.iteritems():
             setattr(photo, key, value)
 
+class QueryError(Exception):
+    pass
+
+class Query(CapBaseObject):
+    def __init__(self, id, message):
+        CapBaseObject.__init__(self, id)
+        self.add_field('message', basestring, message)
+
 class ICapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         """
@@ -104,3 +112,13 @@ class ICapContact(IBaseCap):
             return l[0]
         except IndexError:
             return None
+
+    def send_query(self, id):
+        """
+        Send a query to a contact
+
+        @param id  the ID of contact
+        @return  a Query object
+        @except QueryError
+        """
+        raise NotImplementedError()
