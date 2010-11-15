@@ -20,7 +20,7 @@ import hashlib
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['LoginPage', 'LoggedPage']
+__all__ = ['LoginPage', 'LoggedPage', 'BadLoginPage', 'AccountDesactivate']
 
 
 def md5(file):
@@ -52,4 +52,9 @@ class LoginPage(BasePage):
         self.browser.submit()
 
 class LoggedPage(BasePage):
+    pass
+
+class BadLoginPage(BasePage):
+    pass
+class AccountDesactivate(BasePage):
     pass

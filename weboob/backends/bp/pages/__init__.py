@@ -15,9 +15,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from .login import LoginPage, LoggedPage
+from .login import LoginPage, LoggedPage, BadLoginPage, AccountDesactivate
 from .cookie import CookiePage
 from .accountlist import AccountList
 from .accounthistory import AccountHistory
 
-__all__ = ['LoginPage', 'LoggedPage', 'CookiePage', "AccountList", 'AccountHistory']
+from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
+
+__all__ = ['LoginPage', 'LoggedPage', 'CookiePage', "AccountList", 'AccountHistory', 'BadLoginPage', 'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary']

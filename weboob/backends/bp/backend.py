@@ -49,4 +49,12 @@ class BPBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
+   
+    def transfer(self, id_from, id_to, amount, reason=None):
+        from_account = self.get_account(id_from)
+        to_account = self.get_account(id_to)
+
+        #TODO: retourner le numero du virement
+        #TODO: support the 'reason' parameter
+        return self.browser.make_transfer(from_account, to_account, amount)
 
