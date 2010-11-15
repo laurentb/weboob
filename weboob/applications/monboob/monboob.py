@@ -196,9 +196,9 @@ class Monboob(ReplApplication):
             backend.post_message(message)
         except Exception, e:
             content = u'Unable to send message to %s:\n' % thread_id
-            content += '\n\t%s\n' % e
+            content += u'\n\t%s\n' % e
             if logging.root.level == logging.DEBUG:
-                content += '\n%s\n' % get_backtrace(e)
+                content += u'\n%s\n' % get_backtrace(e)
             self.send_email(backend, Message(thread,
                                              0,
                                              title='Unable to send message',
