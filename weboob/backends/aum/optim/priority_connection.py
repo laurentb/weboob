@@ -160,7 +160,7 @@ class PriorityConnection(Optimization):
                 try:
                     browser = AuMBrowser(fake['username'], fake['password'], proxy=self.browser.proxy)
                 except (AdopteBanned,BrowserIncorrectPassword), e:
-                    self.warning('Fake %s can\'t login: %s' % (name, e))
+                    self.logger.warning('Fake %s can\'t login: %s' % (name, e))
                     continue
 
                 profiles = browser.search_profiles(country="fr",
