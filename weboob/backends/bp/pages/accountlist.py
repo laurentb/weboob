@@ -25,9 +25,9 @@ __all__ = ['AccountList']
 class AccountList(BasePage):
     def on_loaded(self):
         self.Account_List = []
-            
+
     def get_accounts_list(self):
-        
+
         #Parse CCP
         compte_table = self.document.xpath("//table[@id='comptes']", smart_strings=False)[0]
         compte_ligne = compte_table.xpath("./tbody/tr")
@@ -57,15 +57,10 @@ class AccountList(BasePage):
         return self.Account_List
 
     def get_account(self, id):
-        if self.Account_List:
-            for account in self.Account_List:
-                if account.id == id:
-                    return account
-            return AccountNotFound()
-
-        self.get_accounts_list()
+        if not self.Account_List:
+            self.get_accounts_list()
 
         for account in self.Account_List:
                 if account.id == id:
                     return account
-        return AccountNotFound()
+        raise AccountNotFound('Unable to find account: %s' % id)
