@@ -29,7 +29,7 @@ class LCLBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'particuliers.secure.lcl.fr'
     ENCODING = 'utf-8'
-    USER_AGENT = 'Wget/1.11.4'
+    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
              'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
              'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage

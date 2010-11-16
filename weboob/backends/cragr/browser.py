@@ -23,7 +23,7 @@ from weboob.backends.cragr import pages
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = 'Wget/1.11.4'
+    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
 
     is_logging = False
 
