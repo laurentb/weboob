@@ -18,6 +18,7 @@
 
 from weboob.capabilities.bank import TransferError
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import to_unicode
 
 import re
 
@@ -46,20 +47,22 @@ class TransferConfirm(BasePage):
         self.browser.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
 
 class TransferSummary(BasePage):
+    OK_PATTERN = re.compile("Votre virement N.+ ([0-9]+) ")
+    ERROR_PATTERN = re.compile('Votre virement n\'a pas pu')
 
     def get_transfer_id(self):
-        pattern = "Votre virement N.+ ([0-9]+) "
-        regex = re.compile(pattern)
-        #HACK for deal with bad encoding ...
-        try:
-            text = self.document.xpath("//form/div/p")[0].text
-        except UnicodeDecodeError, error:
-            text = error.object
-        match = regex.search(text)
-        if not match:
-            self.browser.logger.error('Unable to parse the text result: %r' % text)
-            raise TransferError('Unable to process transfer: %r' % text)
+        p = self.document.xpath("//form/div/p")[0]
+        text = to_unicode(p.text)
 
-        id_transfer = match.groups()[0]
-        return id_transfer
+        match = self.OK_PATTERN.search(text)
+        if match:
+            id_transfer = match.groups()[0]
+            return id_transfer
 
+        match = self.ERROR_PATTERN.search(text)
+        if match and p.find('br'):
+            errmsg = to_unicode(p.find('br').tail).strip()
+            raise TransferError('Unable to process transfer: %s' % errmsg)
+
+        self.browser.logger.error('Unable to parse the text result: %r' % text)
+        raise TransferError('Unable to process transfer: %r' % text)
