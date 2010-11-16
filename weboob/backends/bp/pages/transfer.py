@@ -57,7 +57,7 @@ class TransferSummary(BasePage):
             return id_transfer
 
         if text.startswith(u"Votre virement n'a pas pu"):
-            if p.find('br'):
+            if p.find('br') is not None:
                 errmsg = to_unicode(p.find('br').tail).strip()
                 raise TransferError('Unable to process transfer: %s' % errmsg)
             else:
