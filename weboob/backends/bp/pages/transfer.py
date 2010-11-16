@@ -47,22 +47,23 @@ class TransferConfirm(BasePage):
         self.browser.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
 
 class TransferSummary(BasePage):
-    OK_PATTERN = re.compile("Votre virement N.+ ([0-9]+) ")
-    ERROR_PATTERN = re.compile('Votre virement n\'a pas pu')
+    OK_PATTERN = re.compile()
 
     def get_transfer_id(self):
         p = self.document.xpath("//form/div/p")[0]
-        text = to_unicode(p.text)
+        text = to_unicode(p.text).strip()
 
-        match = self.OK_PATTERN.search(text)
+        match = re.search("Votre virement N.+ ([0-9]+) ", text)
         if match:
             id_transfer = match.groups()[0]
             return id_transfer
 
-        match = self.ERROR_PATTERN.search(text)
-        if match and p.find('br'):
-            errmsg = to_unicode(p.find('br').tail).strip()
-            raise TransferError('Unable to process transfer: %s' % errmsg)
+        if text.startswith(u"Votre virement n'a pas pu"):
+            if p.find('br'):
+                errmsg = to_unicode(p.find('br').tail).strip()
+                raise TransferError('Unable to process transfer: %s' % errmsg)
+            else:
+                self.browser.logger.warning('Unable to find the error reason')
 
         self.browser.logger.error('Unable to parse the text result: %r' % text)
         raise TransferError('Unable to process transfer: %r' % text)
