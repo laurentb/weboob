@@ -134,6 +134,9 @@ class Boobank(ReplApplication):
         Display old operations.
         """
         id, backend_name = self.parse_id(id)
+        if not id:
+            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            return 1
         names = (backend_name,) if backend_name is not None else None
 
         def do(backend):
