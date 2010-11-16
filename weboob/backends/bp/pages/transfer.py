@@ -47,8 +47,6 @@ class TransferConfirm(BasePage):
         self.browser.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
 
 class TransferSummary(BasePage):
-    OK_PATTERN = re.compile()
-
     def get_transfer_id(self):
         p = self.document.xpath("//form/div/p")[0]
         text = to_unicode(p.text).strip()
