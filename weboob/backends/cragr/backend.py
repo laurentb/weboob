@@ -33,7 +33,11 @@ class CragrBackend(BaseBackend, ICapBank):
     VERSION = '0.4'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
-    CONFIG = ValuesDict(Value('website',  label='Website to use', default='m.lefil.com'),
+    website_choices = dict((k, u'%s (%s)' % (v, k)) for k, v in {
+        'm.lefil.com': u'Pyrénées Gascogne',
+        'm.ca-pca.fr': u'Provence Alpes Côte d\'Azur',
+        }.iteritems())
+    CONFIG = ValuesDict(Value('website',  label='Website to use', choices=website_choices),
                         Value('login',    label='Account ID'),
                         Value('password', label='Password', masked=True))
     BROWSER = Cragr
