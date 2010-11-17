@@ -35,7 +35,10 @@ class ModuleLoadError(Exception):
         self.original_backtrace = original_backtrace
 
     def __str__(self):
-        return '%s\n%s' % (Exception.__str__(self), self.original_backtrace)
+        s = Exception.__str__(self)
+        if logging.root.level == logging.DEBUG:
+            s += '\n' + self.original_backtrace
+        return s
 
 
 class Module(object):
