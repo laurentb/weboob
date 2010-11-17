@@ -407,7 +407,7 @@ class ReplApplication(Cmd, BaseApplication):
         except CallErrors, e:
             self.bcall_errors_handler(e)
         except NotEnoughArguments, e:
-            print >>sys.stderr, 'Error: no enough arguments.'
+            print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
         except (KeyboardInterrupt,EOFError):
             # ^C during a command process doesn't exit application.
             print '\nAborted.'
