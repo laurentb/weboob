@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import logging
+import sys
 
 from weboob.tools.application.repl import ReplApplication
 
@@ -38,7 +38,7 @@ class WeboobDebug(ReplApplication):
         try:
             backend = self.weboob.load_backends(names=[backend_name])[backend_name]
         except KeyError:
-            logging.error(u'Unable to load backend "%s"' % backend_name)
+            print >>sys.stderr, u'Unable to load backend "%s"' % backend_name
             return 1
         browser = backend.browser
         from IPython.Shell import IPShellEmbed
