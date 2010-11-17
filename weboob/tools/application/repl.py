@@ -964,7 +964,8 @@ class ReplApplication(Cmd, BaseApplication):
         if isinstance(v, ValueBool):
             question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
         elif v.choices:
-            question = u'%s (%s)' % (question, '/'.join([(s.upper() if s == v.default else s) for s in (v.choices.iterkeys())]))
+            question = u'%s (%s)' % (question, ' / '.join((s.upper() if s == v.default else s)
+                                                          for s in (v.choices.iterkeys())))
         elif default not in (None, '') and not v.masked:
             question = u'%s [%s]' % (question, v.default)
 
