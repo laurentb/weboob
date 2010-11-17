@@ -153,7 +153,7 @@ class CantSendMessage(Exception):
 class ICapMessagesPost(IBaseCap):
     def post_message(self, message):
         """
-        Post a reply.
+        Post a message.
 
         @param message  Message object
         @return
