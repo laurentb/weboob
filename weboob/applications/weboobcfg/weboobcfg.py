@@ -173,11 +173,10 @@ class WeboobCfg(ReplApplication):
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
             return
 
-        backend = None
         try:
             backend = self.weboob.modules_loader.get_or_load_module(line)
-        except ModuleLoadError, e:
-            self.logger.debug(e)
+        except ModuleLoadError:
+            backend = None
 
         if not backend:
             print 'Backend "%s" does not exist.' % line

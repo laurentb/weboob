@@ -24,6 +24,7 @@ from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 import re
 from logging import warning
 
+from weboob.core.modules import ModuleLoadError
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.ordereddict import OrderedDict
@@ -79,7 +80,11 @@ class BackendCfg(QDialog):
     def loadConfiguredBackendsList(self):
         self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            backend = self.weboob.modules_loader.get_or_load_module(name)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(name)
+            except ModuleLoadError:
+                backend = None
+
             if not backend or self.caps and not backend.has_caps(*self.caps):
                 continue
 
@@ -193,7 +198,10 @@ class BackendCfg(QDialog):
                                        self.tr('Please select a backend'))
             return
 
-        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        except ModuleLoadError:
+            backend = None
 
         if not backend:
             QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
@@ -298,7 +306,10 @@ class BackendCfg(QDialog):
         if not selection:
             return
 
-        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        except ModuleLoadError:
+            backend = None
 
         if not backend:
             return

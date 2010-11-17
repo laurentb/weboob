@@ -23,23 +23,15 @@ import re
 from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
-from weboob.tools.misc import get_backtrace
 
 
 __all__ = ['Module', 'ModulesLoader', 'ModuleLoadError']
 
 
 class ModuleLoadError(Exception):
-    def __init__(self, module_name, original_backtrace):
-        Exception.__init__(self, u'Unable to load module "%s"' % module_name)
-        self.original_backtrace = original_backtrace
-
-    def __str__(self):
-        s = Exception.__str__(self)
-        if logging.root.level == logging.DEBUG:
-            s += '\n' + self.original_backtrace
-        return s
-
+    def __init__(self, module_name, msg):
+        Exception.__init__(self, u'Unable to load module "%s": %s' % (module_name, msg))
+        self.module = module_name
 
 class Module(object):
     def __init__(self, package):
@@ -133,14 +125,19 @@ class ModulesLoader(object):
 
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
-            self.load_module(existing_module_name)
+            try:
+                self.load_module(existing_module_name)
+            except ModuleLoadError, e:
+                self.logger.warning(e)
 
     def load_module(self, module_name):
         try:
             package_name = 'weboob.backends.%s' % module_name
             module = Module(__import__(package_name, fromlist=[str(package_name)]))
         except ImportError, e:
-            raise ModuleLoadError(module_name, get_backtrace())
+            if self.logger.level == logging.DEBUG:
+                self.logger.exception(e)
+            raise ModuleLoadError(module_name, e)
         if module.name in self.loaded:
             self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
             return

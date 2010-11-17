@@ -142,11 +142,10 @@ class ReplApplication(Cmd, BaseApplication):
         return True
 
     def register_backend(self, name, ask_add=True):
-        backend = None
         try:
             backend = self.weboob.modules_loader.get_or_load_module(name)
         except ModuleLoadError, e:
-            self.logger.debug(e)
+            backend = None
 
         if not backend:
             print 'Backend "%s" does not exist.' % name
@@ -201,18 +200,17 @@ class ReplApplication(Cmd, BaseApplication):
         if params is None:
             params = {}
 
-        backend = None
         if not edit:
             try:
                 backend = self.weboob.modules_loader.get_or_load_module(name)
             except ModuleLoadError, e:
-                self.logger.debug(e)
+                backend = None
         else:
             bname, items = self.weboob.backends_config.get_backend(name)
             try:
                 backend = self.weboob.modules_loader.get_or_load_module(bname)
-            except ModuleLoadError, e:
-                self.logger.debug(e)
+            except ModuleLoadError:
+                backend = None
             items.update(params)
             params = items
         if not backend:
@@ -1053,9 +1051,9 @@ class ReplApplication(Cmd, BaseApplication):
     def do_inspect(self, line):
         """
         inspect BACKEND_NAME
-        
+
         Display the HTML string of the current page of the specified backend's browser.
-        
+
         If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
         """
         if len(self.enabled_backends) == 1:

@@ -99,7 +99,7 @@ class Weboob(object):
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
             except ModuleLoadError, e:
-                self.logger.debug(e)
+                self.logger.error(e)
             if module is None:
                 self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
                                      'configuration file, but was not found. '
