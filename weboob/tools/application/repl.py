@@ -196,10 +196,10 @@ class ReplApplication(Cmd, BaseApplication):
             params = {}
 
         if not edit:
-            backend = self.weboob.modules_loader.get_or_load_module(name)
+            backend = self.weboob.modules_loader.get_or_load_module(name, quiet=True)
         else:
             bname, items = self.weboob.backends_config.get_backend(name)
-            backend = self.weboob.modules_loader.get_or_load_module(bname)
+            backend = self.weboob.modules_loader.get_or_load_module(bname, quiet=True)
             items.update(params)
             params = items
         if not backend:

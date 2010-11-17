@@ -98,9 +98,9 @@ class ModulesLoader(object):
         self.loaded = {}
         self.logger = getLogger('modules')
 
-    def get_or_load_module(self, module_name):
+    def get_or_load_module(self, module_name, quiet=False):
         if module_name not in self.loaded:
-            self.load_module(module_name)
+            self.load_module(module_name, quiet)
         if module_name in self.loaded:
             return self.loaded[module_name]
         else:
@@ -122,7 +122,7 @@ class ModulesLoader(object):
         for existing_module_name in self.iter_existing_module_names():
             self.load_module(existing_module_name)
 
-    def load_module(self, module_name):
+    def load_module(self, module_name, quiet=False):
         try:
             package_name = 'weboob.backends.%s' % module_name
             module = Module(__import__(package_name, fromlist=[str(package_name)]))
@@ -132,7 +132,8 @@ class ModulesLoader(object):
                 self.logger.exception(msg)
                 return
             else:
-                self.logger.error(msg)
+                if not quiet:
+                    self.logger.error(msg)
                 return
         if module.name in self.loaded:
             self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
