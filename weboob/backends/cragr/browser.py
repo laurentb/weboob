@@ -46,9 +46,6 @@ class Cragr(BaseBrowser):
         """
         return True
 
-    def home(self):
-        self.location('https://%s/' % self.DOMAIN)
-
     def is_logged(self):
         return self.page and self.page.is_logged() or self.is_logging
 
