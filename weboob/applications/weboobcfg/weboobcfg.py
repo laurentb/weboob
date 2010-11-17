@@ -22,6 +22,7 @@ import subprocess
 import re
 
 from weboob.capabilities.account import ICapAccount
+from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
 
@@ -169,13 +170,17 @@ class WeboobCfg(ReplApplication):
         Display information about a backend.
         """
         if not line:
-            print 'No backend name was specified.'
+            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
             return
 
-        backend = self.weboob.modules_loader.get_or_load_module(line)
+        backend = None
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(line)
+        except ModuleLoadError, e:
+            self.logger.debug(e)
 
         if not backend:
-            print 'No such backend: "%s"' % line
+            print 'Backend "%s" does not exist.' % line
             return 1
 
         print '.------------------------------------------------------------------------------.'

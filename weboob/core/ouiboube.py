@@ -21,7 +21,7 @@ from __future__ import with_statement
 import os
 
 from weboob.core.bcall import BackendsCall
-from weboob.core.modules import ModulesLoader
+from weboob.core.modules import ModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
@@ -95,7 +95,11 @@ class Weboob(object):
                names is not None and instance_name not in names or \
                modules is not None and module_name not in modules:
                 continue
-            module = self.modules_loader.get_or_load_module(module_name)
+            module = None
+            try:
+                module = self.modules_loader.get_or_load_module(module_name)
+            except ModuleLoadError, e:
+                self.logger.debug(e)
             if module is None:
                 self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
                                      'configuration file, but was not found. '

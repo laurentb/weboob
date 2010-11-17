@@ -28,6 +28,7 @@ from copy import deepcopy
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
+from weboob.core.modules import ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
@@ -141,7 +142,12 @@ class ReplApplication(Cmd, BaseApplication):
         return True
 
     def register_backend(self, name, ask_add=True):
-        backend = self.weboob.modules_loader.get_or_load_module(name)
+        backend = None
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(name)
+        except ModuleLoadError, e:
+            self.logger.debug(e)
+
         if not backend:
             print 'Backend "%s" does not exist.' % name
             return None
@@ -195,15 +201,22 @@ class ReplApplication(Cmd, BaseApplication):
         if params is None:
             params = {}
 
+        backend = None
         if not edit:
-            backend = self.weboob.modules_loader.get_or_load_module(name, quiet=True)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(name)
+            except ModuleLoadError, e:
+                self.logger.debug(e)
         else:
             bname, items = self.weboob.backends_config.get_backend(name)
-            backend = self.weboob.modules_loader.get_or_load_module(bname, quiet=True)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(bname)
+            except ModuleLoadError, e:
+                self.logger.debug(e)
             items.update(params)
             params = items
         if not backend:
-            print 'Backend "%s" does not exist.' % name
+            print 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
             return None
 
         # ask for params non-specified on command-line arguments

@@ -23,9 +23,19 @@ import re
 from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
+from weboob.tools.misc import get_backtrace
 
 
-__all__ = ['Module', 'ModulesLoader']
+__all__ = ['Module', 'ModulesLoader', 'ModuleLoadError']
+
+
+class ModuleLoadError(Exception):
+    def __init__(self, module_name, original_backtrace):
+        Exception.__init__(self, u'Unable to load module "%s"' % module_name)
+        self.original_backtrace = original_backtrace
+
+    def __str__(self):
+        return '%s\n%s' % (Exception.__str__(self), self.original_backtrace)
 
 
 class Module(object):
@@ -98,9 +108,9 @@ class ModulesLoader(object):
         self.loaded = {}
         self.logger = getLogger('modules')
 
-    def get_or_load_module(self, module_name, quiet=False):
+    def get_or_load_module(self, module_name):
         if module_name not in self.loaded:
-            self.load_module(module_name, quiet)
+            self.load_module(module_name)
         if module_name in self.loaded:
             return self.loaded[module_name]
         else:
@@ -122,19 +132,12 @@ class ModulesLoader(object):
         for existing_module_name in self.iter_existing_module_names():
             self.load_module(existing_module_name)
 
-    def load_module(self, module_name, quiet=False):
+    def load_module(self, module_name):
         try:
             package_name = 'weboob.backends.%s' % module_name
             module = Module(__import__(package_name, fromlist=[str(package_name)]))
         except ImportError, e:
-            msg = u'Unable to load module "%s": %s' % (module_name, e)
-            if logging.root.level == logging.DEBUG:
-                self.logger.exception(msg)
-                return
-            else:
-                if not quiet:
-                    self.logger.error(msg)
-                return
+            raise ModuleLoadError(module_name, get_backtrace())
         if module.name in self.loaded:
             self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
             return
