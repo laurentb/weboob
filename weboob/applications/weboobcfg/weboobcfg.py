@@ -46,6 +46,9 @@ class WeboobCfg(ReplApplication):
 
         Add a configured backend.
         """
+        if not line:
+            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
+            return
         name, options = self.parseargs(line, 2, 1)
         if options:
             options = options.split(' ')
