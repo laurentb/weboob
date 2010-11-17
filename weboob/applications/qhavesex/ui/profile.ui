@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>320</height>
+    <width>576</width>
+    <height>647</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,8 +33,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>460</width>
-        <height>320</height>
+        <width>576</width>
+        <height>647</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -113,6 +113,9 @@
                 <string>status</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="contactURLEdit"/>
              </item>
              <item>
               <spacer name="verticalSpacer">

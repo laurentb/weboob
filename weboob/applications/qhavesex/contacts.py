@@ -237,6 +237,7 @@ class ContactProfile(QWidget):
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
+        self.ui.contactURLEdit.setText('%s' % contact.url)
         if contact.summary is NotLoaded:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
             missing_fields.add('summary')
