@@ -89,6 +89,9 @@ class AuMBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
         self.my_id = 0
 
+    def id2url(self, _id):
+        return u'%s://%s/%s' % (self.PROTOCOL, self.DOMAIN, _id)
+
     def login(self):
         if not self.is_on_page(LoginPage):
             self.home()

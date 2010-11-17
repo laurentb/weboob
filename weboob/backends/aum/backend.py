@@ -330,7 +330,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 contact.name = profile.get_name()
                 contact.status = s
             else:
-                contact = Contact(_id, profile.get_name(), s)
+                contact = Contact(_id, profile.get_name(), s, self.browser.id2url(_id))
             contact.status_msg = profile.get_status()
             contact.summary = profile.description
             for photo in profile.photos:
@@ -367,7 +367,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     continue
 
                 # TODO age in contact['birthday']
-                c = Contact(contact['id'], contact['pseudo'], s)
+                c = Contact(contact['id'], contact['pseudo'], s, self.browser.id2url(contact['id']))
                 c.status_msg = u'%s old' % contact['birthday']
                 c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
                 yield c

@@ -59,10 +59,11 @@ class Contact(CapBaseObject):
     STATUS_OFFLINE = 0x004
     STATUS_ALL =     0xfff
 
-    def __init__(self, id, name, status):
+    def __init__(self, id, name, status, url):
         CapBaseObject.__init__(self, id)
         self.add_field('name', basestring, name)
         self.add_field('status', int, status)
+        self.add_field('url', basestring, url)
         self.add_field('status_msg', basestring)
         self.add_field('summary', basestring)
         self.add_field('photos', dict, OrderedDict())
