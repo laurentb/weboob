@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Romain Bignon, Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,8 +34,39 @@ class CragrBackend(BaseBackend, ICapBank):
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
     website_choices = dict((k, u'%s (%s)' % (v, k)) for k, v in {
+        'm.ca-alpesprovence.fr': u'Alpes Provence',
+        'm.ca-anjou-maine.fr': u'Anjou Maine',
+        'm.ca-atlantique-vendee.fr': u'Atlantique Vendée',
+        'm.ca-aquitaine.fr': u'Aquitaine',
+        'm.ca-briepicardie.fr': u'Brie Picardie',
+        'm.ca-centrefrance.fr': u'Centre France',
+        'm.ca-centreloire.fr': u'Centre Loire',
+        'm.ca-centreouest.fr': u'Centre Ouest',
+        'm.ca-cb.fr': u'Champagne Bourgogne',
+        'm.ca-charente-perigord.fr': u'Charente Périgord',
+        'm.ca-cmds.fr': u'Charente-Maritime Deux-Sèvres',
+        'm.ca-corse.fr': u'Corse',
+        'm.ca-cotesdarmor.fr': u'Côtes d\'Armor',
+        'm.ca-des-savoie.fr': u'Des Savoie',
+        'm.ca-finistere.fr': u'Finistere',
+        'm.ca-paris.fr': u'Ile-de-France',
+        'm.ca-illeetvilaine.fr': u'Ille-et-Vilaine',
+        'm.ca-languedoc.fr': u'Languedoc',
+        'm.ca-loirehauteloire.fr': u'Loire Haute Loire',
+        'm.ca-martinique.fr': u'Martinique Guyane',
+        'm.ca-morbihan.fr': u'Morbihan',
+        'm.ca-norddefrance.fr': u'Nord de France',
+        'm.ca-nord-est.fr': u'Nord Est',
+        'm.ca-nmp.fr': u'Nord Midi-Pyrénées',
+        'm.ca-normandie.fr': u'Normandie',
+        'm.ca-normandie-seine.fr': u'Normandie Seine',
+        'm.ca-pca.fr': u'Provence Côte d\'Azur',
         'm.lefil.com': u'Pyrénées Gascogne',
-        'm.ca-pca.fr': u'Provence Alpes Côte d\'Azur',
+        'm.ca-reunion.fr': u'Réunion',
+        'm.sudrhonealpes.fr': u'Sud Rhône Alpes',
+        'm.sudmed.fr': u'Sud Méditerranée',
+        'm.toulousain.fr': u'Toulouse 31',
+        'm.tourrainepoitou.fr': u'Tourraine Poitou',
         }.iteritems())
     CONFIG = ValuesDict(Value('website',  label='Website to use', choices=website_choices),
                         Value('login',    label='Account ID'),
