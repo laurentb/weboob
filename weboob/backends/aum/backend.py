@@ -368,7 +368,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     continue
 
                 # TODO age in contact['birthday']
-                c = Contact(contact['id'], contact['pseudo'], s, self.browser.id2url(contact['id']))
+                c = Contact(contact['id'], contact['pseudo'], s)
+                c.url = self.browser.id2url(contact['id'])
                 c.status_msg = u'%s old' % contact['birthday']
                 c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
                 yield c
