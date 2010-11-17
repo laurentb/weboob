@@ -32,6 +32,7 @@ class Cragr(BaseBrowser):
         self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
                       'https://%s/.*\.c.*'       % website:   pages.AccountsList,
                       'https://%s/login/process' % website:   pages.AccountsList,
+                      'https://%s/accounting/listAccounts' % website: pages.AccountsList,
                       'https://%s/accounting/listOperations' % website: pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
