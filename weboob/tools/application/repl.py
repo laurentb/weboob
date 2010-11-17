@@ -1053,16 +1053,23 @@ class ReplApplication(Cmd, BaseApplication):
     def do_inspect(self, line):
         """
         inspect BACKEND_NAME
+        
+        Display the HTML string of the current page of the specified backend's browser.
+        
+        If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
         """
-        backend_name = line.strip()
-        if not backend_name:
-            print 'Please specify a backend name.'
-            return
-        backends = set(backend for backend in self.enabled_backends if backend.name == backend_name)
-        if not backends:
-            print 'No backend found for "%s"' % backend_name
-            return
-        backend = backends.pop()
+        if len(self.enabled_backends) == 1:
+            backend = list(self.enabled_backends)[0]
+        else:
+            backend_name = line.strip()
+            if not backend_name:
+                print 'Please specify a backend name.'
+                return
+            backends = set(backend for backend in self.enabled_backends if backend.name == backend_name)
+            if not backends:
+                print 'No backend found for "%s"' % backend_name
+                return
+            backend = backends.pop()
         if not hasattr(backend, '_browser'):
             print 'No browser created for backend "%s" yet. Please invoke a command before.' % backend.name
             return
@@ -1070,7 +1077,7 @@ class ReplApplication(Cmd, BaseApplication):
         data = browser.parser.tostring(browser.page.document)
         try:
             from webkit_mechanize_browser.browser import Browser
-            from webkit_mechanize_browser.page import Page
+            from weboob.tools.inspect import Page
         except ImportError:
             print data
         else:
