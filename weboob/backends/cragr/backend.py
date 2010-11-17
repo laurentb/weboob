@@ -18,6 +18,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
+from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValuesDict, Value
 
 from .browser import Cragr
@@ -33,7 +34,7 @@ class CragrBackend(BaseBackend, ICapBank):
     VERSION = '0.4'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
     LICENSE = 'GPLv3'
-    website_choices = dict((k, u'%s (%s)' % (v, k)) for k, v in {
+    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'm.ca-alpesprovence.fr': u'Alpes Provence',
         'm.ca-anjou-maine.fr': u'Anjou Maine',
         'm.ca-atlantique-vendee.fr': u'Atlantique Vendée',
@@ -67,7 +68,7 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.sudmed.fr': u'Sud Méditerranée',
         'm.toulousain.fr': u'Toulouse 31',
         'm.tourrainepoitou.fr': u'Tourraine Poitou',
-        }.iteritems())
+        }.iteritems())])
     CONFIG = ValuesDict(Value('website',  label='Website to use', choices=website_choices),
                         Value('login',    label='Account ID'),
                         Value('password', label='Password', masked=True))
