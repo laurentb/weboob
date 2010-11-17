@@ -412,7 +412,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     ACCOUNT_REGISTER_PROPERTIES = ValuesDict(
                 Value('username', label='Email address', regexp='^[^ ]+@[^ ]+\.[^ ]+$'),
                 Value('password', label='Password', regexp='^[^ ]+$', masked=True),
-                Value('sex',      label='Sex', choices={'0': 'Male', '1': 'Female'}),
+                Value('sex',      label='Sex', choices={'m': 'Male', 'f': 'Female'}),
                 Value('birthday', label='Birthday (dd/mm/yyyy)', regexp='^\d+/\d+/\d+$'),
                 Value('zipcode',  label='Zipcode'),
                 Value('country',  label='Country', choices={'fr': 'France', 'be': 'Belgique', 'ch': 'Suisse', 'ca': 'Canada'}, default='fr'),
@@ -435,7 +435,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             try:
                 browser = klass.BROWSER(account.properties['username'].value)
                 browser.register(password=   account.properties['password'].value,
-                                 sex=        int(account.properties['sex'].value),
+                                 sex=        (0 if account.properties['sex'].value == 'm' else 1),
                                  birthday_d= int(bday),
                                  birthday_m= int(bmonth),
                                  birthday_y= int(byear),
