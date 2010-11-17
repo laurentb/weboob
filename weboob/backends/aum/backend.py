@@ -330,7 +330,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 contact.name = profile.get_name()
                 contact.status = s
             else:
-                contact = Contact(_id, profile.get_name(), s, self.browser.id2url(_id))
+                contact = Contact(_id, profile.get_name(), s)
+            contact.url = self.browser.id2url(_id)
             contact.status_msg = profile.get_status()
             contact.summary = profile.description
             for photo in profile.photos:
