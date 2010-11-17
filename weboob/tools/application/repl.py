@@ -203,7 +203,7 @@ class ReplApplication(Cmd, BaseApplication):
         if not edit:
             try:
                 backend = self.weboob.modules_loader.get_or_load_module(name)
-            except ModuleLoadError, e:
+            except ModuleLoadError:
                 backend = None
         else:
             bname, items = self.weboob.backends_config.get_backend(name)
@@ -293,7 +293,7 @@ class ReplApplication(Cmd, BaseApplication):
                                 loaded = 2
                             else:
                                 loaded += 1
-                    print '%s%d)%s [%s] %s%-15s%s (%s)' % (self.BOLD, len(backends), self.NC, loaded,
+                    print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
                                                            self.BOLD, name, self.NC, backend.description)
                 print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
                 r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
@@ -972,11 +972,24 @@ class ReplApplication(Cmd, BaseApplication):
         if v.id:
             question = u'[%s] %s' % (v.id, question)
 
+        aliases = {}
         if isinstance(v, ValueBool):
             question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
         elif v.choices:
-            question = u'%s (%s)' % (question, ' / '.join((s.upper() if s == v.default else s)
-                                                          for s in (v.choices.iterkeys())))
+            tiny = True
+            for key in v.choices.iterkeys():
+                if len(key) > 5 or ' ' in key:
+                    tiny = False
+                    break
+
+            if tiny:
+                question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
+                                                            for s in (v.choices.iterkeys())))
+            else:
+                for n, (key, value) in enumerate(v.choices.iteritems()):
+                    print '%s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
+                    aliases[str(n + 1)] = key
+                question = u'%s (choose in list)' % question
         elif default not in (None, '') and not v.masked:
             question = u'%s [%s]' % (question, v.default)
 
@@ -986,11 +999,24 @@ class ReplApplication(Cmd, BaseApplication):
         question += ': '
 
         while True:
-            line = getpass.getpass(question) if v.masked else raw_input(question)
+            if v.masked:
+                line = getpass.getpass(question)
+            else:
+                self.stdout.write(question)
+                self.stdout.flush()
+                line = self.stdin.readline()
+                if len(line) == 0:
+                    raise EOFError()
+                else:
+                    line = line.rstrip('\r\n')
+
             if not line and v.default is not None:
                 line = v.default
             if isinstance(line, str):
                 line = line.decode('utf-8')
+
+            if line in aliases:
+                line = aliases[line]
 
             try:
                 v.set_value(line)
