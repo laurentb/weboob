@@ -34,7 +34,6 @@ class LCLBrowser(BaseBrowser):
              'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
              'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage
             }
-    is_logging = False
 
     def __init__(self, agency, *args, **kwargs):
         self.agency = agency
