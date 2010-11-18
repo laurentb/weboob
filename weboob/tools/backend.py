@@ -152,6 +152,8 @@ class BaseBackend(object):
         else:
             return xdg.IconTheme.getIconPath(klass.NAME)
 
+    _browser = None
+
     @property
     def browser(self):
         """
@@ -160,7 +162,7 @@ class BaseBackend(object):
 
         Note that the 'create_default_browser' method is called to create it.
         """
-        if not hasattr(self, '_browser'):
+        if self._browser is None:
             self._browser = self.create_default_browser()
         return self._browser
 

@@ -50,6 +50,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         return self.create_browser(self.config['username'], self.config['password'])
 
     def deinit(self):
+        # don't need to logout if the browser hasn't been used.
+        if not self._browser:
+            return
+
         with self.browser:
             self.browser.close_session()
 
