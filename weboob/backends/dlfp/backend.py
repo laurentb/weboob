@@ -49,6 +49,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
 
+    def deinit(self):
+        with self.browser:
+            self.browser.close_session()
+
     def iter_threads(self):
         whats = set()
         if self.config['get_news']:

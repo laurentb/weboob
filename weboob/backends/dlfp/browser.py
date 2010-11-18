@@ -109,3 +109,6 @@ class DLFP(BaseBrowser):
     def is_logged(self):
         return (self.page and self.page.is_logged())
 
+    def close_session(self):
+        self.openurl('/close_session.html')
+
