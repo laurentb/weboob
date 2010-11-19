@@ -167,6 +167,9 @@ class PriorityConnection(Optimization):
                                                    dist='10',
                                                    save=True)
 
+                if not profiles:
+                    continue
+
                 id = profiles.pop()
                 profile = browser.get_profile(id)
                 # bad rate
