@@ -301,7 +301,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     if photo.url:
                         data = self.browser.openurl(photo.url).read()
                         contact.set_photo(name, data=data)
-                    if photo.thumbnail_url:
+                    elif photo.thumbnail_url:
                         data = self.browser.openurl(photo.thumbnail_url).read()
                         contact.set_photo(name, thumbnail_data=data)
 
@@ -335,7 +335,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             contact.status_msg = profile.get_status()
             contact.summary = profile.description
             for photo in profile.photos:
-                contact.set_photo(photo.split('/')[-1], url=photo, thumbnail_url=photo.replace('image', 'thumb1_'))
+                contact.set_photo(photo['url'].split('/')[-1], url=photo['url'],
+                                  thumbnail_url=photo['url'].replace('image', 'thumb1_'), shown=photo['shown'])
             contact.profile = []
 
             stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
