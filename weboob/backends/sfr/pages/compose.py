@@ -19,7 +19,11 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['ComposePage', 'ConfirmPage']
+__all__ = ['ClosePage', 'ComposePage', 'ConfirmPage', 'SentPage']
+
+
+class ClosePage(BasePage):
+    pass
 
 
 class ComposePage(BasePage):
@@ -31,4 +35,10 @@ class ComposePage(BasePage):
 
 
 class ConfirmPage(BasePage):
+    def confirm(self):
+        self.browser.select_form(nr=0)
+        self.browser.submit()
+
+
+class SentPage(BasePage):
     pass

@@ -18,9 +18,10 @@
 
 import urllib
 
-from .pages.compose import ComposePage, ConfirmPage
+from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage
 
+from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 
@@ -30,9 +31,11 @@ __all__ = ['SfrBrowser']
 class SfrBrowser(BaseBrowser):
     DOMAIN = 'www.sfr.fr'
     PAGES = {
+        'http://messagerie-.+.sfr.fr/webmail/close_xms_tab.html': ClosePage,
         'http://www.sfr.fr/xmscomposer/index.html\?todo=compose': ComposePage,
         'http://www.sfr.fr/xmscomposer/mc/envoyer-texto-mms/confirm.html': ConfirmPage,
         'https://www.sfr.fr/cas/login\?service=.*': LoginPage,
+        'http://www.sfr.fr/xmscomposer/mc/envoyer-texto-mms/send.html': SentPage,
         }
 
     def home(self):
@@ -52,3 +55,7 @@ class SfrBrowser(BaseBrowser):
         if not self.is_on_page(ComposePage):
             self.location('http://www.sfr.fr/xmscomposer/index.html\?todo=compose')
         self.page.post_message(message)
+        if self.is_on_page(ConfirmPage):
+            self.page.confirm()
+        if self.is_on_page(ClosePage):
+            raise CantSendMessage('Invalid receiver.')

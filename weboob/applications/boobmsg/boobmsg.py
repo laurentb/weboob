@@ -18,7 +18,8 @@
 
 import sys
 
-from weboob.capabilities.messages import ICapMessagesPost, Message
+from weboob.core import CallErrors
+from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost, Message
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -37,6 +38,7 @@ class Boobmsg(ReplApplication):
         post TO
 
         Post a message to the specified receiver.
+        The receiver can have multiple comma-separated values.
         The content of message is read on stdin.
         """
         if not line:
@@ -48,6 +50,13 @@ class Boobmsg(ReplApplication):
             print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
         content = sys.stdin.read()
         message = Message(thread=None, id=None, content=content, receiver=receiver)
-        self.do('post_message', message, backends=names)
+        try:
+            self.do('post_message', message, backends=names).wait()
+        except CallErrors, errors:
+            for backend, error, backtrace in errors:
+                if isinstance(error, CantSendMessage):
+                    print >>sys.stderr, 'Error: %s' % error
+                else:
+                    self.bcall_error_handler(backend, error, backtrace)
         if self.interactive:
             print 'Message sucessfully sent.'
