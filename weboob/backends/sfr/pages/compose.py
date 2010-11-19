@@ -19,13 +19,16 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['LoginPage']
+__all__ = ['ComposePage', 'ConfirmPage']
 
 
-class LoginPage(BasePage):
-    def login(self, login, password):
+class ComposePage(BasePage):
+    def post_message(self, message):
         self.browser.select_form(nr=0)
-        self.browser['username'] = login
-        self.browser['password'] = password
-        self.browser['remember-me'] = ['on']
+        self.browser['msisdns'] = message.receiver
+        self.browser['textMessage'] = message.content
         self.browser.submit()
+
+
+class ConfirmPage(BasePage):
+    pass

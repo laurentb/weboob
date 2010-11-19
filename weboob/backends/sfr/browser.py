@@ -18,9 +18,10 @@
 
 import urllib
 
+from .pages.compose import ComposePage, ConfirmPage
 from .pages.login import LoginPage
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 
 __all__ = ['SfrBrowser']
@@ -29,20 +30,25 @@ __all__ = ['SfrBrowser']
 class SfrBrowser(BaseBrowser):
     DOMAIN = 'www.sfr.fr'
     PAGES = {
+        'http://www.sfr.fr/xmscomposer/index.html\?todo=compose': ComposePage,
+        'http://www.sfr.fr/xmscomposer/mc/envoyer-texto-mms/confirm.html': ConfirmPage,
         'https://www.sfr.fr/cas/login\?service=.*': LoginPage,
         }
 
-    is_logging = False
-
     def home(self):
-        pass
+        self.location('http://www.sfr.fr/xmscomposer/index.html?todo=compose')
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage) or self.is_logging
+        return 'loginForm' not in [form.name for form in self.forms()]
 
     def login(self):
-        self.is_logging = True
         service_url = 'http://www.sfr.fr/xmscomposer/j_spring_cas_security_check'
-        self.location('https://www.sfr.fr/cas/login?service=%s' % urllib.quote_plus(service_url))
+        self.location('https://www.sfr.fr/cas/login?service=%s' % urllib.quote_plus(service_url), no_login=True)
         self.page.login(self.username, self.password)
-        self.is_logging = False
+        if not self.is_logged():
+            raise BrowserIncorrectPassword()
+
+    def post_message(self, message):
+        if not self.is_on_page(ComposePage):
+            self.location('http://www.sfr.fr/xmscomposer/index.html\?todo=compose')
+        self.page.post_message(message)

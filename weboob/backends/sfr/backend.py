@@ -41,3 +41,8 @@ class SfrBackend(BaseBackend, ICapMessagesPost):
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'], self.config['password'])
+
+    # ICapMessagesPost methods
+
+    def post_message(self, message):
+        self.browser.post_message(message)
