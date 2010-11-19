@@ -69,7 +69,7 @@ class Message(CapBaseObject):
 
     @property
     def full_id(self):
-        return '%s.%s' % (self.thread.id, self.id) if thread else self.id
+        return '%s.%s' % (self.thread.id, self.id) if self.thread else self.id
 
     @property
     def full_parent_id(self):
@@ -80,7 +80,7 @@ class Message(CapBaseObject):
         elif self._parent_id is NotLoaded:
             return NotLoaded
         else:
-            return '%s.%s' % (self.thread.id, self._parent_id) if thread else self._parent_id
+            return '%s.%s' % (self.thread.id, self._parent_id) if self.thread else self._parent_id
 
     def __eq__(self, msg):
         if self.thread:
