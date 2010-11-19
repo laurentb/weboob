@@ -26,7 +26,7 @@ from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import NotLoaded, NotLoadedMeta
 
 from .ui.contacts_ui import Ui_Contacts
 from .ui.contact_thread_ui import Ui_ContactThread
@@ -190,10 +190,16 @@ class ContactThread(QWidget):
         self.process_reply = None
 
 class ContactProfile(QWidget):
+
+    displayed_photo_idx = 0
+
     def __init__(self, weboob, contact, parent=None):
         QWidget.__init__(self, parent)
         self.ui = Ui_Profile()
         self.ui.setupUi(self)
+
+        self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
+        self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
 
         self.weboob = weboob
         self.contact = contact
@@ -214,26 +220,19 @@ class ContactProfile(QWidget):
             return []
 
         missing_fields = set(['photos'])
-        first = True
-        for photo in contact.photos.itervalues():
-            photo = contact.photos.values()[0]
-            if photo.data:
-                data = photo.data
-                try:
-                    missing_fields.remove('photos')
-                except KeyError:
-                    pass
-            elif photo.thumbnail_data:
-                data = photo.thumbnail_data
-            else:
-                continue
-            if first:
-                img = QImage.fromData(data)
-                self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
-                first = False
-            else:
-                # TODO display thumbnails
+        photo = contact.photos.values()[0]
+        data = None
+        if photo.data:
+            self.displayed_photo_idx = 0
+            data = photo.data
+            try:
+                missing_fields.remove('photos')
+            except KeyError:
                 pass
+        elif photo.thumbnail_data:
+            data = photo.thumbnail_data
+        if data:
+            self.display_photo(photo, data)
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
@@ -288,6 +287,22 @@ class ContactProfile(QWidget):
             widget.layout().addWidget(value)
         else:
             logging.warning('Not supported widget: %r' % widget)
+
+    def previousClicked(self):
+        self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.contact.photos)
+        self.display_photo(self.contact.photos.values()[self.displayed_photo_idx])
+
+    def nextClicked(self):
+        self.displayed_photo_idx = (self.displayed_photo_idx + 1) % len(self.contact.photos)
+        self.display_photo(self.contact.photos.values()[self.displayed_photo_idx])
+
+    def display_photo(self, photo, data=None):
+        img = QImage.fromData(data if data else photo.data)
+        self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
+        if not isinstance(photo.url, NotLoadedMeta):
+            self.ui.photoURLEdit.setText(photo.url)
+            self.ui.shownLabel.setText('' if photo.shown else 'Hidden photo')
+
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
