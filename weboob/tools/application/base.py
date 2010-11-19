@@ -213,7 +213,7 @@ class BaseApplication(object):
             names = self.options.backends.split(',')
         loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
         if not loaded:
-            logging.warning(u'No backend loaded')
+            logging.info(u'No backend loaded')
         return loaded
 
     def _get_optparse_version(self):
