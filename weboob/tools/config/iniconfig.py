@@ -41,6 +41,7 @@ class INIConfig(IConfig):
         self.values = OrderedDict(default)
 
         if os.path.exists(self.path):
+            logging.debug(u'Loading application configuration file: %s.' % self.path)
             self.config.read(self.path)
             for section in self.config.sections():
                 args = section.split(':')

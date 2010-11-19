@@ -37,6 +37,7 @@ class YamlConfig(IConfig):
     def load(self, default={}):
         self.values = default.copy()
 
+        logging.debug(u'Loading application configuration file: %s.' % self.path)
         try:
             with open(self.path, 'r') as f:
                 self.values = yaml.load(f)
