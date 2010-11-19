@@ -69,7 +69,7 @@ class Message(CapBaseObject):
 
     @property
     def full_id(self):
-        return '%s.%s' % (self.thread.id, self.id)
+        return '%s.%s' % (self.thread.id, self.id) if thread else self.id
 
     @property
     def full_parent_id(self):
@@ -80,11 +80,14 @@ class Message(CapBaseObject):
         elif self._parent_id is NotLoaded:
             return NotLoaded
         else:
-            return '%s.%s' % (self.thread.id, self._parent_id)
+            return '%s.%s' % (self.thread.id, self._parent_id) if thread else self._parent_id
 
     def __eq__(self, msg):
-        return unicode(self.thread.id) == unicode(msg.thread.id) and \
-               unicode(self.id) == unicode(msg.id)
+        if self.thread:
+            return unicode(self.thread.id) == unicode(msg.thread.id) and \
+                   unicode(self.id) == unicode(msg.id)
+        else:
+            return unicode(self.id) == unicode(msg.id)
 
     def __repr__(self):
         result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
