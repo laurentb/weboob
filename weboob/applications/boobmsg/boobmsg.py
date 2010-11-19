@@ -33,6 +33,15 @@ class Boobmsg(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     CAPS = ICapMessagesPost
 
+    def do_info(self, line):
+        """
+        info
+
+        Display information about a backend.
+        """
+        for backend, field in self.do('get_status'):
+            print '%s: %s = %s' % (backend.name, field.label, field.value)
+
     def do_post(self, line):
         """
         post TO
