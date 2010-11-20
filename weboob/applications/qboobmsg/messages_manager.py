@@ -159,7 +159,7 @@ class MessagesManager(QWidget):
         if message.flags & message.IS_HTML:
             content = message.content
         else:
-            content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />').replace('\n', '<br />')
+            content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
 
         extra = u''
         if message.flags & message.IS_NOT_ACCUSED:
