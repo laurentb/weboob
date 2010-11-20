@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost
+from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -44,7 +44,13 @@ class SfrBackend(BaseBackend, ICapMessagesPost):
 
     # ICapMessagesPost methods
 
+    def get_status(self):
+        with self.browser:
+            return (StatusField('nb_remaining_free_sms', 'Number of remaining free SMS',
+                                self.browser.get_nb_remaining_free_sms()),)
+
     def post_message(self, message):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
-        self.browser.post_message(message)
+        with self.browser:
+            self.browser.post_message(message)

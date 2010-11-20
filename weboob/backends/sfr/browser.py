@@ -37,6 +37,11 @@ class SfrBrowser(BaseBrowser):
         'http://www.sfr.fr/xmscomposer/mc/envoyer-texto-mms/send.html': SentPage,
         }
 
+    def get_nb_remaining_free_sms(self):
+        if not self.is_on_page(ComposePage):
+            self.home()
+        return self.page.get_nb_remaining_free_sms()
+
     def home(self):
         self.location('http://www.sfr.fr/xmscomposer/index.html?todo=compose')
 
@@ -52,7 +57,7 @@ class SfrBrowser(BaseBrowser):
 
     def post_message(self, message):
         if not self.is_on_page(ComposePage):
-            self.location('http://www.sfr.fr/xmscomposer/index.html\?todo=compose')
+            self.home()
         self.page.post_message(message)
         if self.is_on_page(ConfirmPage):
             self.page.confirm()

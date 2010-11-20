@@ -20,6 +20,7 @@ import re
 
 from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
 
 
 __all__ = ['ClosePage', 'ComposePage', 'ConfirmPage', 'SentPage']
@@ -31,6 +32,11 @@ class ClosePage(BasePage):
 
 class ComposePage(BasePage):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
+
+    def get_nb_remaining_free_sms(self):
+        remaining_regex = re.compile(u'Il vous reste (?P<nb>.+) Texto gratuits vers les numéros SFR à envoyer aujourd\'hui')
+        text = select(self.document.getroot(), '#smsReminder', 1).text.strip()
+        return remaining_regex.match(text).groupdict().get('nb')
 
     def post_message(self, message):
         receiver_list = [receiver.strip() for receiver in message.receiver.split(',')]

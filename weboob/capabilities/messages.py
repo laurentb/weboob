@@ -116,6 +116,14 @@ class Thread(CapBaseObject):
                 for m in self._iter_all_messages(child):
                     yield m
 
+
+class StatusField(object):
+    def __init__(self, key, label, value):
+        self.key = key
+        self.label = label
+        self.value = value
+
+
 class ICapMessages(IBaseCap):
     def iter_threads(self):
         """
@@ -154,6 +162,12 @@ class CantSendMessage(Exception):
     pass
 
 class ICapMessagesPost(IBaseCap):
+    def get_status(self):
+        """
+        Get a list of fields
+        """
+        raise NotImplementedError()
+
     def post_message(self, message):
         """
         Post a message.
