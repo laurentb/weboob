@@ -32,8 +32,21 @@ class Account(CapBaseObject):
         self.add_field('password', basestring)
         self.add_field('properties', dict)
 
+class StatusField(object):
+    FIELD_TEXT    = 0x001     # the value is a long text
+    FIELD_HTML    = 0x002     # the value is HTML formated
+
+    def __init__(self, key, label, value, flags=0):
+        self.key = key
+        self.label = label
+        self.value = value
+        self.flags = flags
+
+
 class ICapAccount(IBaseCap):
-    ACCOUNT_REGISTER_PROPERTIES = []
+    # This class constant may be a list of Value* objects. If the value remains
+    # None, weboob considers that register_account() isn't supported.
+    ACCOUNT_REGISTER_PROPERTIES = None
 
     @staticmethod
     def register_account(account):
@@ -62,5 +75,13 @@ class ICapAccount(IBaseCap):
     def update_account(self, account):
         """
         Update the current account.
+        """
+        raise NotImplementedError()
+
+    def get_account_status(self):
+        """
+        Get status of the current account.
+
+        @return a list of fields
         """
         raise NotImplementedError()

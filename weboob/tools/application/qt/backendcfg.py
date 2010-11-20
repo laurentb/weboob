@@ -287,7 +287,7 @@ class BackendCfg(QDialog):
                                       backend.description,
                                       ', '.join([cap.__name__ for cap in backend.iter_caps()])))
 
-        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled():
+        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()
         else:
             self.ui.registerButton.hide()

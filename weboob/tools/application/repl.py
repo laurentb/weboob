@@ -151,7 +151,7 @@ class ReplApplication(Cmd, BaseApplication):
             print 'Backend "%s" does not exist.' % name
             return None
 
-        if not backend.has_caps(ICapAccount):
+        if not backend.has_caps(ICapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
             print 'You can\'t register a new account with %s' % name
             return None
 

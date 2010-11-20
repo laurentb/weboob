@@ -18,7 +18,8 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost, StatusField
+from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
+from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -28,7 +29,7 @@ from .browser import SfrBrowser
 __all__ = ['SfrBackend']
 
 
-class SfrBackend(BaseBackend, ICapMessagesPost):
+class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -38,13 +39,14 @@ class SfrBackend(BaseBackend, ICapMessagesPost):
     CONFIG = ValuesDict(Value('login', label='Login'),
                         Value('password', label='Password', masked=True))
     BROWSER = SfrBrowser
+    ACCOUNT_REGISTER_PROPERTIES = None
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'], self.config['password'])
 
     # ICapMessagesPost methods
 
-    def get_status(self):
+    def get_account_status(self):
         with self.browser:
             return (StatusField('nb_remaining_free_sms', 'Number of remaining free SMS',
                                 self.browser.get_nb_remaining_free_sms()),)

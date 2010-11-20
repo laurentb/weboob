@@ -16,9 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
+from PyQt4.QtGui import QScrollArea, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QImage, QPixmap
 
-from weboob.capabilities.dating import StatusField
+from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.application.qt import QtDo
 
 class Account(QFrame):
@@ -31,12 +31,14 @@ class Account(QFrame):
         self.weboob = weboob
         self.backend = backend
         self.setLayout(QVBoxLayout())
+        self.timer = None
 
         head = QHBoxLayout()
         headw = QWidget()
         headw.setLayout(head)
 
         self.title = QLabel(u'<h1>%s — %s</h1>' % (backend.name, backend.DESCRIPTION))
+        self.body = QLabel()
 
         if backend.ICON:
             self.icon = QLabel()
@@ -47,18 +49,23 @@ class Account(QFrame):
         head.addWidget(self.title)
         head.addStretch()
 
-        self.body = QLabel(u'<i>Waiting...</i>')
-
         self.layout().addWidget(headw)
-        self.layout().addWidget(self.body)
 
-        self.weboob.repeat(60, self.updateStats)
+        if backend.has_caps(ICapAccount):
+            self.body.setText(u'<i>Waiting...</i>')
+            self.layout().addWidget(self.body)
+
+            self.timer = self.weboob.repeat(60, self.updateStats)
+
+    def deinit(self):
+        if self.timer is not None:
+            self.weboob.stop(self.timer)
 
     def updateStats(self):
         self.process = QtDo(self.weboob, self.updateStats_cb, self.updateStats_eb)
         self.process.body = u''
         self.process.in_p = False
-        self.process.do('get_status', backends=self.backend)
+        self.process.do('get_account_status', backends=self.backend)
 
     def updateStats_cb(self, backend, field):
         if not field:
@@ -93,23 +100,30 @@ class Account(QFrame):
         self.body.setText(u'<b>Unable to connect:</b> %s' % unicode(err))
         self.title.setText(u'<font color=#ff0000>%s</font>' % unicode(self.title.text()))
 
-class AccountsStatus(QWidget):
+class AccountsStatus(QScrollArea):
     def __init__(self, weboob, parent=None):
-        QWidget.__init__(self, parent)
+        QScrollArea.__init__(self, parent)
 
         self.weboob = weboob
 
-        self.setLayout(QVBoxLayout())
+        self.setFrameShadow(self.Plain)
+        self.setFrameShape(self.NoFrame)
+        self.setWidgetResizable(True)
+
+        widget = QWidget(self)
+        widget.setLayout(QVBoxLayout())
+        widget.show()
+        self.setWidget(widget)
 
     def load(self):
-        while self.layout().count() > 0:
-            item = self.layout().takeAt(0)
+        while self.widget().layout().count() > 0:
+            item = self.widget().layout().takeAt(0)
             if item.widget():
                 item.widget().hide()
                 item.widget().deleteLater()
 
         for backend in self.weboob.iter_backends():
             account = Account(self.weboob, backend)
-            self.layout().addWidget(account)
+            self.widget().layout().addWidget(account)
 
-        self.layout().addStretch()
+        self.widget().layout().addStretch()

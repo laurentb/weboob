@@ -45,24 +45,7 @@ class Optimization(object):
     def set_config(self, params):
         raise NotImplementedError()
 
-class StatusField(object):
-    FIELD_TEXT    = 0x001     # the value is a long text
-    FIELD_HTML    = 0x002     # the value is HTML formated
-
-    def __init__(self, key, label, value, flags=0):
-        self.key = key
-        self.label = label
-        self.value = value
-        self.flags = flags
-
-
 class ICapDating(IBaseCap):
-    def get_status(self):
-        """
-        Get a list of fields
-        """
-        raise NotImplementedError()
-
     def init_optimizations(self):
         raise NotImplementedError()
 

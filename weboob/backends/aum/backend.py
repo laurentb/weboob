@@ -25,9 +25,9 @@ from dateutil import tz
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-from weboob.capabilities.dating import ICapDating, StatusField, OptimizationNotFound
+from weboob.capabilities.dating import ICapDating, OptimizationNotFound
 from weboob.capabilities.contact import ICapContact, Contact, ContactPhoto, ProfileNode, Query, QueryError
-from weboob.capabilities.account import ICapAccount
+from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool
@@ -89,17 +89,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
         self.add_optimization('PRIORITY_CONNECTION', PriorityConnection(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
-
-    def get_status(self):
-        with self.browser:
-            try:
-                return (
-                        StatusField('myname', 'My name', self.browser.get_my_name()),
-                        StatusField('score', 'Score', self.browser.score()),
-                        StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
-                       )
-            except AdopteWait:
-                return (StatusField('notice', '', u'<h3>You are currently waiting 1am to be able to connect with this account</h3>', StatusField.FIELD_HTML|StatusField.FIELD_TEXT))
 
     # ---- ICapMessages methods ---------------------
 
@@ -494,6 +483,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         Update the current account.
         """
         raise NotImplementedError()
+
+    def get_account_status(self):
+        with self.browser:
+            try:
+                return (
+                        StatusField('myname', 'My name', self.browser.get_my_name()),
+                        StatusField('score', 'Score', self.browser.score()),
+                        StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
+                        StatusField('godchilds', 'Number of godchilds', self.browser.nb_godchilds()),
+                       )
+            except AdopteWait:
+                return (StatusField('notice', '', u'<h3>You are currently waiting 1am to be able to connect with this account</h3>', StatusField.FIELD_HTML|StatusField.FIELD_TEXT))
 
     OBJECTS = {Thread: fill_thread,
                Contact: fill_contact,
