@@ -16,6 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import re
+
+from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
 
 
@@ -27,7 +30,13 @@ class ClosePage(BasePage):
 
 
 class ComposePage(BasePage):
+    phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
+
     def post_message(self, message):
+        receiver_list = [receiver.strip() for receiver in message.receiver.split(',')]
+        for receiver in receiver_list:
+            if self.phone_regex.match(receiver) is None:
+                raise CantSendMessage(u'Invalid receiver: %s' % receiver)
         self.browser.select_form(nr=0)
         self.browser['msisdns'] = message.receiver
         self.browser['textMessage'] = message.content

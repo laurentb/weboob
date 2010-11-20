@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.messages import ICapMessagesPost
+from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -45,4 +45,6 @@ class SfrBackend(BaseBackend, ICapMessagesPost):
     # ICapMessagesPost methods
 
     def post_message(self, message):
+        if not message.content.strip():
+            raise CantSendMessage(u'Message content is empty.')
         self.browser.post_message(message)

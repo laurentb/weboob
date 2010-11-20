@@ -21,7 +21,6 @@ import urllib
 from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage
 
-from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 
@@ -57,5 +56,4 @@ class SfrBrowser(BaseBrowser):
         self.page.post_message(message)
         if self.is_on_page(ConfirmPage):
             self.page.confirm()
-        if self.is_on_page(ClosePage):
-            raise CantSendMessage('Invalid receiver.')
+        assert self.is_on_page(ClosePage) or self.is_on_page(SentPage)
