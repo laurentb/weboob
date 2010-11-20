@@ -16,23 +16,24 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
+
+from copy import copy
+from httplib import BadStatusLine
+from logging import warning
 import mechanize
+import os
+import re
+import tempfile
+from threading import RLock
+import time
 import urllib
 import urllib2
-from httplib import BadStatusLine
-from weboob.tools.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-import re
-import time
-from logging import warning
-from copy import copy
-from threading import RLock
-import os
-import tempfile
 
-from weboob.tools.parsers import get_parser
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
+from weboob.tools.parsers import get_parser
 
 # Try to load cookies
 try:
@@ -124,6 +125,8 @@ class BaseBrowser(mechanize.Browser):
     }
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
+    responses_dir = None
+    responses_count = 0
 
     # ------ Abstract methods --------------------------------------
 
@@ -280,20 +283,22 @@ class BaseBrowser(mechanize.Browser):
         Save a stream to a temporary file, and log its name.
         The stream is rewinded after saving.
         """
-        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        fd, path = tempfile.mkstemp(prefix="response", dir=tmpdir)
-        with os.fdopen(fd, 'w') as f:
+        if self.responses_dir is None:
+            self.responses_dir = tempfile.mkdtemp(prefix='weboob/session_')
+        response_filepath = os.path.join(self.responses_dir, unicode(self.responses_count))
+        with open(response_filepath, 'w') as f:
             f.write(result.read())
+        result.seek(0)
+        match_filepath = os.path.join(self.responses_dir, 'url_response_match.txt')
+        with open(match_filepath, 'a') as f:
+            f.write('%s\t%s\n' % (result.geturl(), response_filepath))
+        self.responses_count += 1
 
-        msg = u"Response saved to %s" % path
+        msg = u'Response saved to %s' % response_filepath
         if warning:
             self.logger.warning(msg)
         else:
             self.logger.info(msg)
-
-        result.seek(0)
 
     def submit(self, *args, **kwargs):
         """
