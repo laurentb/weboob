@@ -223,6 +223,9 @@ class Weboob(object):
     def repeat(self, interval, function, *args):
         return self.scheduler.repeat(interval, function, *args)
 
+    def cancel(self, ev):
+        return self.scheduler.cancel(ev)
+
     def want_stop(self):
         return self.scheduler.want_stop()
 
