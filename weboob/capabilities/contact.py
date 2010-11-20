@@ -41,7 +41,7 @@ class ContactPhoto(CapBaseObject):
         self.add_field('data', str)
         self.add_field('thumbnail_url', basestring)
         self.add_field('thumbnail_data', basestring)
-        self.add_field('shown', bool)
+        self.add_field('hidden', bool, False)
 
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))

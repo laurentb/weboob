@@ -273,14 +273,14 @@ class ProfilePage(PageBase):
                 m = self.PHOTO_REGEXP.match(div.getAttribute('background'))
                 if m:
                     self.photos.append(dict(url=re.sub(u'thumb[0-2]_', u'image', div.getAttribute('background')),
-                                            shown=True))
+                                            hidden=False))
                     photo_regex = re.compile('(?P<base_url>http://.+\.adopteunmec\.com/.+/)image(?P<id>.+)\.jpg')
                     photo_max_id = max(int(photo_regex.match(photo['url']).groupdict()['id']) for photo in self.photos)
                     base_url = photo_regex.match(self.photos[0]['url']).groupdict()['base_url']
                     for id in xrange(1, photo_max_id + 1):
                         url = '%simage%s.jpg' % (base_url, id)
                         if not url in [photo['url'] for photo in self.photos]:
-                            self.photos.append(dict(url=url, shown=False))
+                            self.photos.append(dict(url=url, hidden=True))
             if div.hasAttribute('width') and str(div.getAttribute('width')) == '226':
                 trs = div.getElementsByTagName('tr')
                 for tr in trs:

@@ -343,8 +343,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             contact.status_msg = profile.get_status()
             contact.summary = profile.description
             for photo in profile.photos:
-                contact.set_photo(photo['url'].split('/')[-1], url=photo['url'],
-                                  thumbnail_url=photo['url'].replace('image', 'thumb1_'), shown=photo['shown'])
+                contact.set_photo(photo['url'].split('/')[-1],
+                                  url=photo['url'],
+                                  thumbnail_url=photo['url'].replace('image', 'thumb1_'),
+                                  hidden=photo['hidden'])
             contact.profile = []
 
             stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
