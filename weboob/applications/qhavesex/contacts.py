@@ -236,7 +236,7 @@ class ContactProfile(QWidget):
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
         self.ui.statusLabel.setText('%s' % contact.status_msg)
-        self.ui.contactURLEdit.setText('%s' % contact.url)
+        self.ui.contactUrlLabel.setText('<b>URL:</b> <a href="%s">%s</a>' % (contact.url, contact.url))
         if contact.summary is NotLoaded:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
             missing_fields.add('summary')
@@ -249,7 +249,7 @@ class ContactProfile(QWidget):
             self.loaded_profile = True
             for head in contact.profile:
                 if head.flags & head.HEAD:
-                    widget = self.ui.headFrame
+                    widget = self.ui.headWidget
                 else:
                     widget = self.ui.profileTab
                 self.process_node(head, widget)
@@ -284,6 +284,7 @@ class ContactProfile(QWidget):
             label = QLabel(u'<b>%s:</b> ' % node.label)
             widget.layout().addRow(label, value)
         elif isinstance(widget.layout(), QVBoxLayout):
+            widget.layout().addWidget(QLabel(u'<h3>%s</h3>' % node.label))
             widget.layout().addWidget(value)
         else:
             logging.warning('Not supported widget: %r' % widget)
@@ -297,12 +298,13 @@ class ContactProfile(QWidget):
         self.display_photo(self.contact.photos.values()[self.displayed_photo_idx])
 
     def display_photo(self, photo, data=None):
-        img = QImage.fromData(data if data else photo.data)
+        img = QImage.fromData(data if data else photo.data).scaledToWidth(self.width()/3)
         self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
         if not isinstance(photo.url, NotLoadedMeta):
-            self.ui.photoURLEdit.setText(photo.url)
-            self.ui.shownLabel.setText('' if photo.shown else 'Hidden photo')
-
+            text = '<a href="%s">%s</a>' % (photo.url, photo.url)
+            if not photo.shown:
+                text += '<br /><font color=#ff0000><i>(Hidden photo)</i></font>'
+            self.ui.photoUrlLabel.setText(text)
 
 class IGroup(object):
     def __init__(self, weboob, id, name):

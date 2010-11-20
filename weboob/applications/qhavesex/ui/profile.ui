@@ -71,19 +71,47 @@
              <item>
               <widget class="QLabel" name="nicknameLabel">
                <property name="text">
-                <string>&lt;h1&gt;Nickname&lt;/h1&gt;</string>
+                <string>&lt;h1&gt;Loading...&lt;/h1&gt;</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="statusLabel">
                <property name="text">
-                <string>status</string>
+                <string/>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="contactURLEdit"/>
+              <widget class="QLabel" name="contactUrlLabel">
+               <property name="text">
+                <string>&lt;b&gt;URL:&lt;/b&gt;</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="headWidget" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>9</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+               </layout>
+              </widget>
              </item>
              <item>
               <spacer name="verticalSpacer">
@@ -114,41 +142,64 @@
               <layout class="QHBoxLayout" name="horizontalLayout">
                <item>
                 <widget class="QPushButton" name="previousButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>Previous</string>
+                  <string>&lt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="photoLabel">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="nextButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>Next</string>
+                  <string>&gt;</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_3">
-               <item>
-                <widget class="QLineEdit" name="photoURLEdit"/>
-               </item>
-               <item>
-                <widget class="QLabel" name="shownLabel">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 0, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="photoLabel">
+              <widget class="QLabel" name="photoUrlLabel">
                <property name="text">
-                <string>&lt;i&gt;Receiving...&lt;/i&gt;</string>
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
                </property>
               </widget>
              </item>
@@ -160,7 +211,7 @@
                <property name="sizeHint" stdset="0">
                 <size>
                  <width>13</width>
-                 <height>13</height>
+                 <height>0</height>
                 </size>
                </property>
               </spacer>
