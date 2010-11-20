@@ -251,12 +251,13 @@ class ProfilePage(PageBase):
         self.id = 0
         self.photos = []
         self.status = ''
-        self.stats = {'score':   0,
-                      'visits':  0,
-                      'charms':  0,
-                      'baskets': 0,
-                      'mails':   0,
-                     }
+        self.stats = OrderedDict((
+                      ('score',   0),
+                      ('visits',  0),
+                      ('charms',  0),
+                      ('baskets', 0),
+                      ('mails',   0),
+                     ))
 
         divs = self.document.getElementsByTagName('td')
         for div in divs:

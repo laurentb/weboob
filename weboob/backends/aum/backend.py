@@ -26,7 +26,7 @@ from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, StatusField, OptimizationNotFound
-from weboob.capabilities.contact import ICapContact, Contact, ProfileNode, Query, QueryError
+from weboob.capabilities.contact import ICapContact, Contact, ContactPhoto, ProfileNode, Query, QueryError
 from weboob.capabilities.account import ICapAccount
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BrowserUnavailable
@@ -298,12 +298,20 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         if contact and 'photos' in fields:
             for name, photo in contact.photos.iteritems():
                 with self.browser:
-                    if photo.url:
+                    if photo.url and not photo.data:
                         data = self.browser.openurl(photo.url).read()
                         contact.set_photo(name, data=data)
-                    elif photo.thumbnail_url:
+                    if photo.thumbnail_url and not photo.thumbnail_data:
                         data = self.browser.openurl(photo.thumbnail_url).read()
                         contact.set_photo(name, thumbnail_data=data)
+
+    def fill_photo(self, photo, fields):
+        with self.browser:
+            if 'data' in fields and photo.url and not photo.data:
+                photo.data = self.browser.readurl(photo.url)
+            if 'thumbnail_data' in fields and photo.thumbnail_url and not photo.thumbnail_data:
+                photo.thumbnail_data = self.browser.readurl(photo.thumbnail_url)
+        return photo
 
     def get_contact(self, contact):
         with self.browser:
@@ -372,7 +380,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 c = Contact(contact['id'], contact['pseudo'], s)
                 c.url = self.browser.id2url(contact['id'])
                 c.status_msg = u'%s old' % contact['birthday']
-                c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'), thumbnail_url=contact['cover'])
+                c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'),
+                            url=contact['cover'].replace('thumb0_', 'image'),
+                            thumbnail_url=contact['cover'])
                 yield c
 
     def send_query(self, id):
@@ -484,4 +494,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         raise NotImplementedError()
 
     OBJECTS = {Thread: fill_thread,
-               Contact: fill_contact}
+               Contact: fill_contact,
+               ContactPhoto: fill_photo
+              }

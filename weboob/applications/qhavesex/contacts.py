@@ -26,7 +26,7 @@ from weboob.tools.application.qt import QtDo, HTMLDelegate
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
-from weboob.capabilities.base import NotLoaded, NotLoadedMeta
+from weboob.capabilities.base import NotLoaded
 
 from .ui.contacts_ui import Ui_Contacts
 from .ui.contact_thread_ui import Ui_ContactThread
@@ -191,8 +191,6 @@ class ContactThread(QWidget):
 
 class ContactProfile(QWidget):
 
-    displayed_photo_idx = 0
-
     def __init__(self, weboob, contact, parent=None):
         QWidget.__init__(self, parent)
         self.ui = Ui_Profile()
@@ -204,6 +202,8 @@ class ContactProfile(QWidget):
         self.weboob = weboob
         self.contact = contact
         self.loaded_profile = False
+        self.displayed_photo_idx = 0
+        self.process_photo = {}
 
         missing_fields = self.gotProfile(self.weboob.get_backend(contact.backend), contact)
         if len(missing_fields) > 0:
@@ -219,23 +219,21 @@ class ContactProfile(QWidget):
         if not backend:
             return []
 
-        missing_fields = set(['photos'])
-        photo = contact.photos.values()[0]
-        data = None
-        if photo.data:
-            self.displayed_photo_idx = 0
-            data = photo.data
-            try:
-                missing_fields.remove('photos')
-            except KeyError:
-                pass
-        elif photo.thumbnail_data:
-            data = photo.thumbnail_data
-        if data:
-            self.display_photo(photo, data)
+        missing_fields = set()
+
+        self.display_photo()
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
-        self.ui.statusLabel.setText('%s' % contact.status_msg)
+        if contact.status == Contact.STATUS_ONLINE:
+            status_color = 0x00aa00
+        elif contact.status == Contact.STATUS_OFFLINE:
+            status_color = 0xff0000
+        elif contact.status == Contact.STATUS_AWAY:
+            status_color = 0xffad16
+        else:
+            status_color = 0xaaaaaa
+
+        self.ui.statusLabel.setText('<font color="#%06X">%s</font>' % (status_color, contact.status_msg))
         self.ui.contactUrlLabel.setText('<b>URL:</b> <a href="%s">%s</a>' % (contact.url, contact.url))
         if contact.summary is NotLoaded:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
@@ -291,16 +289,41 @@ class ContactProfile(QWidget):
 
     def previousClicked(self):
         self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.contact.photos)
-        self.display_photo(self.contact.photos.values()[self.displayed_photo_idx])
+        self.display_photo()
 
     def nextClicked(self):
         self.displayed_photo_idx = (self.displayed_photo_idx + 1) % len(self.contact.photos)
-        self.display_photo(self.contact.photos.values()[self.displayed_photo_idx])
+        self.display_photo()
 
-    def display_photo(self, photo, data=None):
-        img = QImage.fromData(data if data else photo.data).scaledToWidth(self.width()/3)
+    def display_photo(self):
+        if self.displayed_photo_idx >= len(self.contact.photos):
+            self.displayed_photo_idx = len(self.contact.photos) - 1
+        if self.displayed_photo_idx < 0:
+            self.ui.photoLabel.setPixmap(None)
+            self.ui.photoUrlLabel.setText('')
+            return
+
+        photo = self.contact.photos.values()[self.displayed_photo_idx]
+        if photo.data:
+            data = photo.data
+            if photo.id in self.process_photo:
+                self.process_photo.pop(photo.id)
+        else:
+            self.process_photo[photo.id] = QtDo(self.weboob, lambda b,p: self.display_photo())
+            self.process_photo[photo.id].do('fillobj', photo, ['data'], backends=self.contact.backend)
+
+            if photo.thumbnail_data:
+                data = photo.thumbnail_data
+            else:
+                self.ui.photoLabel.setPixmap(None)
+                self.ui.photoLabel.setText('<i>Loading...</i>')
+                return
+
+        img = QImage.fromData(data)
+        img = img.scaledToWidth(self.width()/3)
+
         self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
-        if not isinstance(photo.url, NotLoadedMeta):
+        if photo.url is not NotLoaded:
             text = '<a href="%s">%s</a>' % (photo.url, photo.url)
             if not photo.shown:
                 text += '<br /><font color=#ff0000><i>(Hidden photo)</i></font>'
@@ -374,9 +397,13 @@ class ContactsWidget(QWidget):
 
     def setPhoto(self, contact, item):
         if not contact:
-            return
+            return False
 
-        self.photo_processes.pop(contact.id, None)
+        try:
+            self.photo_processes.pop(contact.id, None)
+        except KeyError:
+            pass
+
         img = None
         for photo in contact.photos.itervalues():
             if photo.thumbnail_data:
@@ -385,6 +412,9 @@ class ContactsWidget(QWidget):
 
         if img:
             item.setIcon(QIcon(QPixmap.fromImage(img)))
+            return True
+
+        return False
 
     def addContact(self, contact):
         if not contact:
@@ -411,9 +441,16 @@ class ContactsWidget(QWidget):
         item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend))
         item.setData(Qt.UserRole, contact)
 
-        process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
-        process.do('fillobj', contact, ['photos'], backends=contact.backend)
-        self.photo_processes[contact.id] = process
+        if contact.photos is NotLoaded:
+            process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+            process.do('fillobj', contact, ['photos'], backends=contact.backend)
+            self.photo_processes[contact.id] = process
+        elif len(contact.photos) > 0:
+            if not self.setPhoto(contact, item):
+                photo = contact.photos.values()[0]
+                process = QtDo(self.weboob, lambda b, p: self.setPhoto(contact, item))
+                process.do('fillobj', photo, ['thumbnail_data'], backends=contact.backend)
+                self.photo_processes[contact.id] = process
 
         for i in xrange(self.ui.contactList.count()):
             if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:
