@@ -299,7 +299,6 @@ class ContactProfile(QWidget):
         if self.displayed_photo_idx >= len(self.contact.photos):
             self.displayed_photo_idx = len(self.contact.photos) - 1
         if self.displayed_photo_idx < 0:
-            self.ui.photoLabel.setPixmap(None)
             self.ui.photoUrlLabel.setText('')
             return
 
@@ -315,8 +314,6 @@ class ContactProfile(QWidget):
             if photo.thumbnail_data:
                 data = photo.thumbnail_data
             else:
-                self.ui.photoLabel.setPixmap(None)
-                self.ui.photoLabel.setText('<i>Loading...</i>')
                 return
 
         img = QImage.fromData(data)
@@ -325,7 +322,7 @@ class ContactProfile(QWidget):
         self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
         if photo.url is not NotLoaded:
             text = '<a href="%s">%s</a>' % (photo.url, photo.url)
-            if not photo.shown:
+            if photo.hidden:
                 text += '<br /><font color=#ff0000><i>(Hidden photo)</i></font>'
             self.ui.photoUrlLabel.setText(text)
 
