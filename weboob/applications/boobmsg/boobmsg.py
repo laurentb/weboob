@@ -19,9 +19,11 @@
 import sys
 
 from weboob.core import CallErrors
-from weboob.capabilities.messages import CantSendMessage, ICapMessagesPost, Message
+from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost, Message
+from weboob.capabilities.account import ICapAccount
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.misc import html2text
 
 
 __all__ = ['Boobmsg']
@@ -31,16 +33,35 @@ class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
-    CAPS = ICapMessagesPost
+    CAPS = ICapMessages
 
-    def do_info(self, line):
+    def do_status(self, line):
         """
-        info
+        status
 
-        Display information about a backend.
+        Display status information about a backend.
         """
-        for backend, field in self.do('get_status'):
-            print '%s: %s = %s' % (backend.name, field.label, field.value)
+        if len(line) > 0:
+            backend_name = line
+        else:
+            backend_name = None
+
+        results = {}
+        for backend, field in self.do('get_account_status', backends=backend_name, caps=ICapAccount):
+            if backend.name in results:
+                results[backend.name].append(field)
+            else:
+                results[backend.name] = [field]
+
+        for name, fields in results.iteritems():
+            print ':: %s ::' % name
+            for f in fields:
+                if f.flags & f.FIELD_HTML:
+                    value = html2text(f.value)
+                else:
+                    value = f.value
+                print '%s: %s' % (f.label, value)
+            print ''
 
     def do_post(self, line):
         """
