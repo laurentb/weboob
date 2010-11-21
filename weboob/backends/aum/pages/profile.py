@@ -419,7 +419,7 @@ class ProfilePage(PageBase):
         if self.photos:
             body += u'\nPhotos:'
             for photo in self.photos:
-                body += u'\n\t\t%s' % unicode(photo)
+                body += u'\n\t\t%s%s' % (unicode(photo['url']), (' (hidden)' if photo['hidden'] else ''))
         body += u'\nStats:'
         for label, value in self.get_stats().iteritems():
             body += u'\n\t\t%-15s %s' % (label + ':', value)
