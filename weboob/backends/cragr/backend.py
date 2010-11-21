@@ -64,10 +64,10 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.ca-pca.fr': u'Provence Côte d\'Azur',
         'm.lefil.com': u'Pyrénées Gascogne',
         'm.ca-reunion.fr': u'Réunion',
-        'm.sudrhonealpes.fr': u'Sud Rhône Alpes',
-        'm.sudmed.fr': u'Sud Méditerranée',
-        'm.toulousain.fr': u'Toulouse 31',
-        'm.tourrainepoitou.fr': u'Tourraine Poitou',
+        'm.ca-sudrhonealpes.fr': u'Sud Rhône Alpes',
+        'm.ca-sudmed.fr': u'Sud Méditerranée',
+        'm.ca-toulouse31.fr': u'Toulouse 31', # m.ca-toulousain.fr redirects here
+        'm.ca-tourainepoitou.fr': u'Tourraine Poitou',
         }.iteritems())])
     CONFIG = ValuesDict(Value('website',  label='Website to use', choices=website_choices),
                         Value('login',    label='Account ID'),
