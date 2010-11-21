@@ -35,6 +35,9 @@ class Boobmsg(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     CAPS = ICapMessages
 
+    def add_application_options(self, group):
+        group.add_option('-e', '--skip-empty', action='store_true', help='Don\'t send messages with an empty body.')
+
     def do_status(self, line):
         """
         status
@@ -79,6 +82,8 @@ class Boobmsg(ReplApplication):
         if self.interactive:
             print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
         content = sys.stdin.read()
+        if self.options.skip_empty and not content.strip():
+            return
         message = Message(thread=None, id=None, content=content, receiver=receiver)
         try:
             self.do('post_message', message, backends=names).wait()
