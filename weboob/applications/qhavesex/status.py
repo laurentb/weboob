@@ -119,6 +119,7 @@ class AccountsStatus(QScrollArea):
         while self.widget().layout().count() > 0:
             item = self.widget().layout().takeAt(0)
             if item.widget():
+                item.widget().deinit()
                 item.widget().hide()
                 item.widget().deleteLater()
 

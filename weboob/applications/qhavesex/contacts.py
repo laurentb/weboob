@@ -93,6 +93,7 @@ class ContactThread(QWidget):
         if self.process_msg:
             return
 
+        self.ui.refreshButton.setEnabled(False)
         self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError)
         if fillobj and self.thread:
             self.process_msg.do('fillobj', self.thread, ['root'], backends=self.contact.backend)
@@ -102,6 +103,7 @@ class ContactThread(QWidget):
     def gotError(self, backend, error, backtrace):
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
+        self.ui.refreshButton.setEnabled(True)
 
     def gotThread(self, backend, thread):
         if not thread:
@@ -113,6 +115,7 @@ class ContactThread(QWidget):
 
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
+        self.ui.refreshButton.setEnabled(True)
 
         self.thread = thread
 
@@ -388,6 +391,7 @@ class ContactsWidget(QWidget):
 
     def refreshContactList(self):
         self.ui.contactList.clear()
+        self.ui.refreshButton.setEnabled(False)
         i = self.ui.groupBox.currentIndex()
         group = self.ui.groupBox.itemData(i).toPyObject()
         group.iter_contacts(self.addContact)
@@ -415,6 +419,7 @@ class ContactsWidget(QWidget):
 
     def addContact(self, contact):
         if not contact:
+            self.ui.refreshButton.setEnabled(True)
             return
 
         status = ''
@@ -499,8 +504,8 @@ class ContactsWidget(QWidget):
         self.setContact(contact)
 
     def urlClicked_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        content = unicode(self.tr('Unable to get contact:\n%s\n')) % error
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % backtrace
-        QMessageBox.critical(self, self.tr('Error while posting reply'),
+        QMessageBox.critical(self, self.tr('Error while getting contact'),
                              content, QMessageBox.Ok)
