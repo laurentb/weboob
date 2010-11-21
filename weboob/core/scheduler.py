@@ -43,7 +43,7 @@ class IScheduler(object):
 
 class RepeatedTimer(_Timer):
     def run(self):
-        while not self.finished.is_set():
+        while not self.finished.isSet():
             self.function(*self.args, **self.kwargs)
             self.finished.wait(self.interval)
         self.finished.set()
@@ -63,7 +63,7 @@ class Scheduler(IScheduler):
         return self._schedule(RepeatedTimer, interval, self._repeat_callback, function, *args)
 
     def _schedule(self, klass, interval, meta_func, function, *args):
-        if self.stop_event.is_set():
+        if self.stop_event.isSet():
             return
 
         with self.mutex:
