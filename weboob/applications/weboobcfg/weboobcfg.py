@@ -84,7 +84,7 @@ class WeboobCfg(ReplApplication):
         after using the 'register' command to automatically confirm the
         subscribe.
 
-        It take mail from stdin. Use it with postfix for example.
+        It takes mail from stdin. Use it with postfix for example.
         """
         # Do not use the ReplApplication.load_backends() method because we
         # don't want to prompt user to create backend.
