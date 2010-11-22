@@ -290,7 +290,7 @@ class BaseBrowser(mechanize.Browser):
         result.seek(0)
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
-            f.write('%s\t%s\n' % (result.geturl(), response_filepath))
+            f.write('%s\t%s\n' % (result.geturl(), os.path.basename(response_filepath)))
         self.responses_count += 1
 
         msg = u'Response saved to %s' % response_filepath
