@@ -20,7 +20,7 @@ import re
 
 from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.parsers.lxmlparser import select
 
 
 __all__ = ['ClosePage', 'ComposePage', 'ConfirmPage', 'SentPage']

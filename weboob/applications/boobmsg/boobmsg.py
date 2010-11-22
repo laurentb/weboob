@@ -19,10 +19,9 @@
 import sys
 
 from weboob.core import CallErrors
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost, Message
+from weboob.capabilities.messages import CantSendMessage, ICapMessages, Message
 from weboob.capabilities.account import ICapAccount
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
 
