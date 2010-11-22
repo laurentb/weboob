@@ -283,7 +283,9 @@ class BaseBrowser(mechanize.Browser):
         Save a stream to a temporary file, and log its name.
         The stream is rewinded after saving.
         """
-        assert self.responses_dirname is not None
+        if self.responses_dirname is None:
+            self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
+            print 'Debug data will be saved in this directory: %s' % self.responses_dirname
         response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
         with open(response_filepath, 'w') as f:
             f.write(result.read())
