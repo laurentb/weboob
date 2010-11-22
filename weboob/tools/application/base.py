@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import sys, os
 import logging
 import optparse
 from optparse import OptionGroup, OptionParser
+import os
+import sys
+import tempfile
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core import Weboob, CallErrors
@@ -286,14 +288,7 @@ class BaseApplication(object):
             print ' '.join(items)
             sys.exit(0)
 
-        if self.options.save_responses:
-            from weboob.tools.browser import BaseBrowser
-            BaseBrowser.SAVE_RESPONSES = True
-
-        for handler in logging.root.handlers:
-            logging.root.removeHandler(handler)
-
-        if self.options.debug:
+        if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
         elif self.options.verbose:
             level = logging.INFO
@@ -304,31 +299,40 @@ class BaseApplication(object):
 
         logging.root.setLevel(level)
 
+        if self.options.save_responses:
+            responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
+            print 'Debug data will be saved in this directory: %s' % responses_dirname
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.SAVE_RESPONSES = True
+            BaseBrowser.responses_dirname = responses_dirname
+            self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))
+
         # file logger
         if self.options.logging_file:
-            try:
-                stream = open(self.options.logging_file, 'w')
-            except IOError, e:
-                self.logger.error('Unable to create the logging file: %s' % e)
-                sys.exit(1)
-            else:
-                format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
-                handler = logging.StreamHandler(stream)
-                handler.setLevel(level)
-                handler.setFormatter(logging.Formatter(format))
-                logging.root.addHandler(handler)
+            self.add_logging_file_handler(self.options.logging_file)
         else:
             # stdout logger
             format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(createColoredFormatter(sys.stdout, format))
-            handler.setLevel(level)
             logging.root.addHandler(handler)
 
         self._handle_options()
         self.handle_application_options()
 
         return args
+
+    def add_logging_file_handler(self, filename):
+        try:
+            stream = open(filename, 'w')
+        except IOError, e:
+            self.logger.error('Unable to create the logging file: %s' % e)
+            sys.exit(1)
+        else:
+            format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+            handler = logging.StreamHandler(stream)
+            handler.setFormatter(logging.Formatter(format))
+            logging.root.addHandler(handler)
 
     @classmethod
     def run(klass, args=None):

@@ -125,7 +125,7 @@ class BaseBrowser(mechanize.Browser):
     }
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
-    responses_dir = None
+    responses_dirname = None
     responses_count = 0
 
     # ------ Abstract methods --------------------------------------
@@ -283,13 +283,12 @@ class BaseBrowser(mechanize.Browser):
         Save a stream to a temporary file, and log its name.
         The stream is rewinded after saving.
         """
-        if self.responses_dir is None:
-            self.responses_dir = tempfile.mkdtemp(prefix='weboob/session_')
-        response_filepath = os.path.join(self.responses_dir, unicode(self.responses_count))
+        assert self.responses_dirname is not None
+        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
         with open(response_filepath, 'w') as f:
             f.write(result.read())
         result.seek(0)
-        match_filepath = os.path.join(self.responses_dir, 'url_response_match.txt')
+        match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
             f.write('%s\t%s\n' % (result.geturl(), response_filepath))
         self.responses_count += 1
