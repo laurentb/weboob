@@ -219,7 +219,7 @@ class MessagesManager(QWidget):
                     id=0,
                     title=title,
                     sender=None,
-                    receiver=None,
+                    receivers=None,
                     content=text,
                     parent=self.message,
                     flags=flags)

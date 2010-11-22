@@ -63,7 +63,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
                               id=0,
                               title=entry.title,
                               sender=entry.author,
-                              receiver=None,
+                              receivers=None,
                               date=entry.datetime,
                               parent=None,
                               content=content,

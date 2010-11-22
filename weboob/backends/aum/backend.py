@@ -168,7 +168,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                           id=mail.message_id,
                           title=mail.title,
                           sender=mail.sender,
-                          receiver=mail.name if mail.sender == my_name else my_name, # TODO: me
+                          receivers=[mail.name if mail.sender == my_name else my_name], # TODO: me
                           date=mail.date,
                           content=mail.content,
                           signature=mail.signature,
@@ -239,7 +239,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                                               id=self.MAGIC_ID_BASKET,
                                               title=thread.title,
                                               sender=profile.get_name(),
-                                              receiver=self.browser.get_my_name(),
+                                              receivers=[self.browser.get_my_name()],
                                               date=None, # now
                                               content='You are taken in her basket!',
                                               signature=profile.get_profile_text(),

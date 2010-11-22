@@ -189,7 +189,7 @@ class Monboob(ReplApplication):
                           0,
                           title=title,
                           sender=None,
-                          receiver=None,
+                          receivers=None,
                           parent=Message(thread, msg_id),
                           content=content)
         try:

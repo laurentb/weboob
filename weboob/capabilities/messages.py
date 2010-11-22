@@ -34,7 +34,7 @@ class Message(CapBaseObject):
     def __init__(self, thread, id,
                        title=NotLoaded,
                        sender=NotLoaded,
-                       receiver=NotLoaded,
+                       receivers=NotLoaded,
                        date=None,
                        parent=NotLoaded,
                        content=NotLoaded,
@@ -45,7 +45,7 @@ class Message(CapBaseObject):
         self.add_field('thread', Thread, thread)
         self.add_field('title', basestring, title)
         self.add_field('sender', basestring, sender)
-        self.add_field('receiver', basestring, receiver)
+        self.add_field('receivers', list, receivers)
         self.add_field('date', datetime.datetime, date)
         self.add_field('parent', Message, parent)
         self.add_field('content', basestring, content)

@@ -69,7 +69,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
                               id=0, # root message
                               title=_thread.filename,
                               sender=_thread.author,
-                              receiver=None,
+                              receivers=None,
                               date=_thread.datetime,
                               parent=None,
                               content=_thread.text,
@@ -87,7 +87,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
                         id=comment.id,
                         title=_thread.filename,
                         sender=comment.author,
-                        receiver=None,
+                        receivers=None,
                         date=comment.datetime,
                         parent=parent,
                         content=comment.text,

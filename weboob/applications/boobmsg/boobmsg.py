@@ -68,30 +68,45 @@ class Boobmsg(ReplApplication):
 
     def do_post(self, line):
         """
-        post TO
+        post TO...
 
-        Post a message to the specified receiver.
-        The receiver can have multiple comma-separated values.
+        Post a message to the specified receivers.
+        Multiple receivers are separated by a comma.
         The content of message is read on stdin.
         """
+        def post_message(receivers, backends=None):
+            message = Message(thread=None, id=None, content=content, receivers=receivers)
+            try:
+                self.do('post_message', message, backends=backends).wait()
+            except CallErrors, errors:
+                for backend, error, backtrace in errors:
+                    if isinstance(error, CantSendMessage):
+                        print >>sys.stderr, 'Error: %s' % error
+                        self.logger.debug(backtrace)
+                    else:
+                        self.bcall_error_handler(backend, error, backtrace)
+            if self.interactive:
+                print 'Message sent sucessfully to %s' % ','.join(receivers)
+
         if not line:
-            print >>sys.stderr, 'You must give a receiver.'
+            print >>sys.stderr, 'You must give at least a receiver.'
             return
-        receiver, backend_name = self.parse_id(line.strip())
-        names = (backend_name,) if backend_name is not None else None
+        receivers_by_backend = {}
+        receivers_without_backend = []
+        for receiver in [receiver.strip() for receiver in line.strip().split(',')]:
+            receiver, backend_name = self.parse_id(receiver)
+            if backend_name:
+                if backend_name in receivers_by_backend:
+                    receivers_by_backend[backend_name] = [backend_name]
+                else:
+                    receivers_by_backend[backend_name].append(backend_name)
+            else:
+                receivers_without_backend.append(receiver)
         if self.interactive:
             print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
         content = sys.stdin.read()
         if self.options.skip_empty and not content.strip():
             return
-        message = Message(thread=None, id=None, content=content, receiver=receiver)
-        try:
-            self.do('post_message', message, backends=names).wait()
-        except CallErrors, errors:
-            for backend, error, backtrace in errors:
-                if isinstance(error, CantSendMessage):
-                    print >>sys.stderr, 'Error: %s' % error
-                else:
-                    self.bcall_error_handler(backend, error, backtrace)
-        if self.interactive:
-            print 'Message sucessfully sent.'
+        for backend_name, receivers in receivers_by_backend.iteritems():
+            post_message(receivers, [backend_name])
+        post_message(receivers_without_backend)

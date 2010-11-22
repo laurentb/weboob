@@ -169,7 +169,7 @@ class ContactThread(QWidget):
                     id=0,
                     title=u'',
                     sender=None,
-                    receiver=None,
+                    receivers=None,
                     content=text,
                     parent=self.messages[0].message if len(self.messages) > 0 else None)
         self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)

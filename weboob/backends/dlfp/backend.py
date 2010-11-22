@@ -98,7 +98,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                               id=0, # root message
                               title=content.title,
                               sender=content.author,
-                              receiver=None,
+                              receivers=None,
                               date=thread.date, #TODO XXX WTF this is None
                               parent=None,
                               content=''.join([content.body, content.part2]),
@@ -123,7 +123,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                           id=com.id,
                           title=com.title,
                           sender=com.author,
-                          receiver=None,
+                          receivers=None,
                           date=com.date,
                           parent=parent,
                           content=com.body,
