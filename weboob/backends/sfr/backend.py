@@ -18,6 +18,8 @@
 
 from __future__ import with_statement
 
+import re
+
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
 from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
@@ -54,5 +56,6 @@ class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     def post_message(self, message):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
+        message.receiver = ','.join(re.sub(' +', '', receiver) for receiver in message.receiver.split(','))
         with self.browser:
             self.browser.post_message(message)
