@@ -65,7 +65,7 @@ class FieldOld(FieldBase):
             print str(e)
 
 class FieldLocation(FieldBase):
-    location = re.compile('(.*) \(([0-9]{5})\), (.*)')
+    location = re.compile('(?P<location>.+?)( \((?P<zipcode>[0-9]{5})\))?, (?P<country>.*)')
 
     def __init__(self):
         FieldBase.__init__(self, '')
@@ -73,9 +73,8 @@ class FieldLocation(FieldBase):
         # TODO: determine distance, or something like
         m = self.location.match(value)
         if m:
-            d['location'] = m.group(1)
-            d['zipcode'] = int(m.group(2))
-            d['country'] = m.group(3)
+            for field in ('country', 'location', 'zipcode'):
+                d[field] = m.groupdict().get(field)
         else:
             warning('Unable to parse the location "%s"' % value)
             d['location'] = unicode(value)
