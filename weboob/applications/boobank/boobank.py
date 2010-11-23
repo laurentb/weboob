@@ -27,6 +27,8 @@ __all__ = ['Boobank']
 
 
 class TransferFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
+
     def flush(self):
         pass
 
@@ -38,7 +40,10 @@ class TransferFormatter(IFormatter):
         result += u'Amount:     %.2f\n' % item['amount']
         return result
 
+
 class AccountListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
+
     count = 0
     tot_balance = 0.0
     tot_coming = 0.0

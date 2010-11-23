@@ -43,9 +43,18 @@ from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['IFormatter']
+__all__ = ['IFormatter', 'MandatoryFieldsNotFound']
+
+
+class MandatoryFieldsNotFound(Exception):
+    def __init__(self, missing_fields):
+        Exception.__init__(self, u'Mandatory fields not found: %s.' % ','.join(missing_fields))
+
 
 class IFormatter(object):
+
+    MANDATORY_FIELDS = None
+
     def __init__(self, display_keys=True, display_header=True, return_only=False):
         self.display_keys = display_keys
         self.display_header = display_header
@@ -99,6 +108,12 @@ class IFormatter(object):
 
         if item is None:
             return None
+
+        if self.MANDATORY_FIELDS:
+            missing_fields = set(self.MANDATORY_FIELDS) - set(item.keys())
+            if missing_fields:
+                raise MandatoryFieldsNotFound(missing_fields)
+
         formatted = self.format_dict(item=item)
         if formatted:
             self.after_format(formatted)

@@ -29,6 +29,8 @@ __all__ = ['Videoob']
 
 
 class VideoListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'duration', 'date')
+
     count = 0
 
     def flush(self):

@@ -26,13 +26,17 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 
 __all__ = ['Weboorrents']
 
+
 def sizeof_fmt(num):
     for x in ['bytes','KB','MB','GB','TB']:
         if num < 1024.0:
             return "%-4.1f%s" % (num, x)
         num /= 1024.0
 
+
 class TorrentInfoFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers', 'url', 'files', 'description')
+
     def flush(self):
         pass
 
@@ -50,7 +54,10 @@ class TorrentInfoFormatter(IFormatter):
         result += item['description']
         return result
 
+
 class TorrentListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers')
+
     count = 0
 
     def flush(self):
@@ -67,6 +74,7 @@ class TorrentListFormatter(IFormatter):
         size = sizeof_fmt(item['size'])
         result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
         return result
+
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'

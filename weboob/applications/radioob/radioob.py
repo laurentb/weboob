@@ -29,6 +29,8 @@ __all__ = ['Radioob']
 
 
 class RadioListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'description')
+
     count = 0
 
     def flush(self):
@@ -46,6 +48,7 @@ class RadioListFormatter(IFormatter):
         if item['current'] is not NotLoaded:
             result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
         return result
+
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'

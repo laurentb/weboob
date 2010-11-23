@@ -30,6 +30,7 @@ from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
 from weboob.core.modules import ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
+from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
@@ -1063,6 +1064,8 @@ class ReplApplication(Cmd, BaseApplication):
             self.formatter.format(obj=result, selected_fields=fields)
         except FieldNotFound, e:
             print e
+        except MandatoryFieldsNotFound, e:
+            print '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
 
     def flush(self):
         self.formatter.flush()
