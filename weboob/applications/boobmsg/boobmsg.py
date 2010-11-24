@@ -96,9 +96,9 @@ class Boobmsg(ReplApplication):
             receiver, backend_name = self.parse_id(receiver)
             if backend_name:
                 if backend_name in receivers_by_backend:
-                    receivers_by_backend[backend_name] = [backend_name]
+                    receivers_by_backend[backend_name].append(receiver)
                 else:
-                    receivers_by_backend[backend_name].append(backend_name)
+                    receivers_by_backend[backend_name] = [receiver]
             else:
                 receivers_without_backend.append(receiver)
         if self.interactive:
