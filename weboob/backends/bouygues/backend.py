@@ -19,7 +19,7 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-from weboob.capabilities.account import ICapAccount, StatusField
+#from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -29,7 +29,7 @@ from .browser import BouyguesBrowser
 __all__ = ['BouyguesBackend']
 
 
-class BouyguesBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
+class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
