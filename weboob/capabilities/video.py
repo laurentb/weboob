@@ -71,9 +71,6 @@ class BaseVideo(CapBaseObject):
 
 
 class ICapVideo(IBaseCap):
-    def iter_page_urls(self, mozaic_url):
-        raise NotImplementedError()
-
     (SEARCH_RELEVANCE,
      SEARCH_RATING,
      SEARCH_VIEWS,
