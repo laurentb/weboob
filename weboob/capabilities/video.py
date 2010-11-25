@@ -41,6 +41,10 @@ class VideoThumbnail(CapBaseObject):
 
 
 class BaseVideo(CapBaseObject):
+    """
+    Represents a video.
+    This object has to be inherited to specify how to calculate the URL of the video from its ID.
+    """
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         CapBaseObject.__init__(self, unicode(_id))
@@ -71,6 +75,9 @@ class BaseVideo(CapBaseObject):
 
 
 class ICapVideo(IBaseCap):
+    """
+    This capability represents the ability for a website backend to provide videos.
+    """
     (SEARCH_RELEVANCE,
      SEARCH_RATING,
      SEARCH_VIEWS,
