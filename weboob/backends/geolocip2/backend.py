@@ -18,10 +18,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.value import ValuesDict, Value
 
 
 __all__ = ['GeolocIp2Backend']
