@@ -174,11 +174,12 @@ class Weboob(object):
         threads.
 
         This function has two modes:
+
         - If 'function' is a string, it calls the method with this name on
           each backends with the specified arguments;
         - If 'function' is a callable, it calls it in a separated thread with
-          the locked backend instance at first arguments, and *args and
-          **kwargs.
+          the locked backend instance at first arguments, and \*args and
+          \*\*kwargs.
 
         @param function  backend's method name, or callable object
         @param backends  list of backends to iterate on
