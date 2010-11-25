@@ -63,7 +63,7 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
                         elif "Hostname :" in line:
                             tab['hostname'] = line.split('Hostname : ')[1].split('<')[0]
                 iploc = IpLocation(ipaddr)
-                iploc.city = tab['City']
+                iploc.city = tab['City'].decode('utf-8')
                 iploc.region = tab['Region']
                 iploc.zipcode = 'NA'
                 iploc.country = tab['Country name']
