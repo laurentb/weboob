@@ -18,7 +18,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, OperationsPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -32,7 +32,8 @@ class CreditMutuelBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
              'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
-         'https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi': AccountsPage
+         'https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi': AccountsPage,
+         'https://www.creditmutuel.fr/cmdv/fr/banque/mouvements.cgi.*' : OperationsPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -67,6 +68,19 @@ class CreditMutuelBrowser(BaseBrowser):
                 return a
 
         return None
+
+    def get_history(self, account):
+        page_url = account.link_id
+        #operations_count = 0
+        while (page_url):
+            self.location('https://%s/cmdv/fr/banque/%s' % (self.DOMAIN, page_url))
+            #for page_operation in self.page.get_history(operations_count):
+            #    operations_count += 1
+            #    yield page_operation
+            for op in self.page.get_history():
+                yield op
+            page_url = self.page.next_page_url()
+
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:

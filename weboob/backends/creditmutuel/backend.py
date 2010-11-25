@@ -59,5 +59,5 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
         return iter([])
 
     def iter_history(self, account):
-        """ TODO Not supported yet """
-        return iter([])
+        for history in self.browser.get_history(account):
+            yield history

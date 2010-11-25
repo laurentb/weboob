@@ -18,6 +18,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Operation
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
@@ -51,3 +52,38 @@ class AccountsPage(BasePage):
                 l.append(account)
             #raise NotImplementedError()
         return l
+
+    def next_page_url(self):
+        """ TODO pouvoir passer à la page des comptes suivante """
+        return 0
+
+class OperationsPage(BasePage):
+    def get_history(self):
+        index = 0
+        for tr in self.document.getiterator('tr'):
+            first_td = tr.getchildren()[0]
+            if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
+                operation = Operation(index)
+                index += 1
+                operation.date = first_td.text
+                operation.label = tr.getchildren()[2].text.replace('\n',' ')
+                if len(tr.getchildren()[3].text) > 2:
+                    s = tr.getchildren()[3].text
+                elif len(tr.getchildren()[4].text) > 2:
+                    s = tr.getchildren()[4].text
+                else:
+                    s = "0"
+                print "s"+s+"::"+operation.label+"::"
+                balance = u''
+                for c in s:
+                    if c.isdigit() or c == "-":
+                        balance += c
+                    if c == ',':
+                        balance += '.'
+                operation.amount = float(balance)
+                yield operation
+
+    def next_page_url(self):
+        """ TODO pouvoir passer à la page des opérations suivantes """
+        return 0
+
