@@ -31,7 +31,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.4'
-    DESCRIPTION = 'Crédit Mutuel french bank'
+    DESCRIPTION = u'Crédit Mutuel french bank'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,13}\w$'),
                         Value('password', label='Password of account', masked=True))
@@ -55,7 +55,6 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
 
     def iter_operations(self, account):
         """ TODO Not supported yet """
-    #print "not supppppp"
         return iter([])
 
     def iter_history(self, account):
