@@ -13,10 +13,18 @@ Weboob is written in Python and is distributed under the GPLv3 license.
 Why using Weboob?
 -----------------
 
-* you get essential information faster
+* you get essential information from websites faster
 * you can write scripts using weboob to automate tasks
-* it extends websites features
+* you can extend websites features
 * it helps blind people using crappy websites
+
+Architecture
+------------
+
+.. warning::
+   This diagram has to be redrawn.
+
+.. image:: _static/architecture.png
 
 Capabilities
 ------------
@@ -42,3 +50,9 @@ Applications
 ------------
 
 Applications are toolkit-agnostic. They can use Gtk, Qt or just be text-only, more adapted to reuse data through pipes.
+
+Reporting a bug
+---------------
+
+When you report a bug on the tracker, it's important to correctly set the category as specific as possible.
+Also, don't forget to give information about your version of Weboob, OS, implicated libraries.
