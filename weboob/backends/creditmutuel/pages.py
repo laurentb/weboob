@@ -73,7 +73,6 @@ class OperationsPage(BasePage):
                     s = tr.getchildren()[4].text
                 else:
                     s = "0"
-                print "s"+s+"::"+operation.label+"::"
                 balance = u''
                 for c in s:
                     if c.isdigit() or c == "-":
