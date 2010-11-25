@@ -38,6 +38,3 @@ Scripts are copied to /usr/bin too.
 
 To uninstall, remove the egg-link from the Python system-wide packages directory
 and remove the weboob_dev line in easy-install.pth.
-
-
-# ./setup.py develop
