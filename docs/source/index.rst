@@ -1,15 +1,22 @@
-.. Weboob documentation master file, created by
-   sphinx-quickstart on Thu Nov 25 11:56:52 2010.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Weboob
+======
 
-Welcome to Weboob's documentation!
-==================================
+This is the developer documentation.
+
+.. warning::
+   This documentation is being written.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   overview
+   install
+   backends
+   applications
+   guides/index
+   api/index
 
 Indices and tables
 ==================
