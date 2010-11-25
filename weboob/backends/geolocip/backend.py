@@ -49,6 +49,16 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
                    }
             content = self.browser.readurl(self.browser.buildurl('http://www.geolocalise-ip.com/api.php', **args))
             tab = {}
+            tab['ville'] = NotAvailable
+            tab['region'] = NotAvailable
+            tab['cp'] = NotAvailable
+            tab['pays'] = NotAvailable
+            tab['lt'] = NotAvailable
+            tab['lg'] = NotAvailable
+            tab['host'] = NotAvailable
+            tab['tld'] = NotAvailable
+            tab['fai'] = NotAvailable
+
             for line in content.split('&'):
                 if not '=' in line:
                     continue
@@ -60,7 +70,9 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
                                 .strip().decode('iso-8859-1'))
 
             iploc = IpLocation(ipaddr)
-            iploc.city = tab['ville'].decode('iso-8859-15')
+
+            if tab['ville'] != NotAvailable:
+                iploc.city = tab['ville'].decode('iso-8859-15')
             iploc.region = tab['region']
             iploc.zipcode = tab['cp']
             iploc.country = tab['pays']
