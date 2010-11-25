@@ -49,7 +49,13 @@ class TransferConfirm(BasePage):
 class TransferSummary(BasePage):
     def get_transfer_id(self):
         p = self.document.xpath("//form/div/p")[0]
-        text = to_unicode(p.text).strip()
+
+        #HACK for deal with bad encoding ...
+        try:
+            text = p.text
+        except UnicodeDecodeError, error:
+            text = error.object.strip()
+
 
         match = re.search("Votre virement N.+ ([0-9]+) ", text)
         if match:
