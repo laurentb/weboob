@@ -72,14 +72,25 @@ class CreditMutuelBrowser(BaseBrowser):
     def get_history(self, account):
         page_url = account.link_id
         #operations_count = 0
+        l_ret = []
         while (page_url):
             self.location('https://%s/cmdv/fr/banque/%s' % (self.DOMAIN, page_url))
             #for page_operation in self.page.get_history(operations_count):
             #    operations_count += 1
             #    yield page_operation
+            
+            ## FONCTIONNE
+            #for op in self.page.get_history():
+            #    yield op
+
+            ## FONTIONNE
+            #return self.page.get_history()
+            
             for op in self.page.get_history():
-                yield op
+                l_ret.append(op)
             page_url = self.page.next_page_url()
+
+        return l_ret
 
 
     #def get_coming_operations(self, account):
