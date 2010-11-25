@@ -33,7 +33,7 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.4'
     LICENSE = 'GPLv3'
-    DESCRIPTION = u"IP Adresses geolocalisation"
+    DESCRIPTION = u"IP Adresses geolocalisation with the API of the site www.geolocalise-ip.com "
     CONFIG = ValuesDict(Value('email',   label='Username'),
                         Value('password',label='Password', masked=True))
     BROWSER = BaseBrowser
