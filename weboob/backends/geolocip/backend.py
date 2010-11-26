@@ -48,16 +48,15 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
                     'ip':        str(ipaddr)
                    }
             content = self.browser.readurl(self.browser.buildurl('http://www.geolocalise-ip.com/api.php', **args))
-            tab = {}
-            tab['ville'] = NotAvailable
-            tab['region'] = NotAvailable
-            tab['cp'] = NotAvailable
-            tab['pays'] = NotAvailable
-            tab['lt'] = NotAvailable
-            tab['lg'] = NotAvailable
-            tab['host'] = NotAvailable
-            tab['tld'] = NotAvailable
-            tab['fai'] = NotAvailable
+            tab = {'ville' : NotAvailable ,\
+                    'region' : NotAvailable ,\
+                    'cp' : NotAvailable ,\
+                    'pays' : NotAvailable ,\
+                    'lt' : NotAvailable ,\
+                    'lg' : NotAvailable ,\
+                    'host' : NotAvailable ,\
+                    'tld' : NotAvailable ,\
+                    'fai' : NotAvailable}
 
             for line in content.split('&'):
                 if not '=' in line:

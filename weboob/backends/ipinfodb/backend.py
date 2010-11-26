@@ -46,7 +46,13 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
                 """ exception"""
                 raise Exception('Bad parameter')
             else:
-                tab = {}
+                tab = {'City' : 'NA' ,\
+                        'Country name' : 'NA' ,\
+                        'Region' : 'NA' ,\
+                        'Latitude' : 'NA' ,\
+                        'Longitude' : 'NA' ,\
+                        'hostname' : 'NA' ,\
+                        'zipcode' : 'NA'}
                 line = ''
                 for line in content.split('\n'):
                     if '<li>' in line:
@@ -65,7 +71,7 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
                 iploc = IpLocation(ipaddr)
                 iploc.city = tab['City'].decode('utf-8')
                 iploc.region = tab['Region']
-                iploc.zipcode = 'NA'
+                iploc.zipcode = tab['zipcode']
                 iploc.country = tab['Country name']
                 iploc.lt = float(tab['Latitude'])
                 iploc.lg = float(tab['Longitude'])
