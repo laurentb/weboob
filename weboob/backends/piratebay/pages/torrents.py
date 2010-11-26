@@ -29,19 +29,14 @@ __all__ = ['TorrentsPage']
 
 
 class TorrentsPage(BasePage):
-    #TORRENTID_REGEXP = re.compile('torrents\.php\?action=download&id=(\d+)')
     def unit(self, n, u):
         m = {'KB': 1024,
              'MB': 1024*1024,
              'GB': 1024*1024*1024,
              'TB': 1024*1024*1024*1024,
             }
-        return float(n.replace(',', '')) * m.get(u, 1)
-
-    #def format_url(self, url):
-    #    return '%s://%s/%s' % (self.browser.PROTOCOL,
-    #                           self.browser.DOMAIN,
-    #                           url)
+        #return float(n.replace(',', '')) * m.get(u, 1)
+        return float(n*m[u])
 
     def iter_torrents(self):
 
@@ -73,11 +68,12 @@ class TorrentsPage(BasePage):
                         torrent = Torrent(idt,
                                           title,
                                           url=url,
-                                          size=self.unit(size.replace('.',','),u),
+                                          size=self.unit(float(size),u),
                                           seeders=int(seed),
                                           leechers=int(leech))
                         yield torrent
 
+class TorrentPage(BasePage):
     def get_torrent(self, id):
         table = self.document.getroot().cssselect('div.thin')
         if not table:

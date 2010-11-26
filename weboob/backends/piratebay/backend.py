@@ -52,4 +52,4 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
         return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):
-        return self.browser.iter_torrents(pattern)
+        return self.browser.iter_torrents(pattern.replace(' ','+'))

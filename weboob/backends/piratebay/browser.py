@@ -19,7 +19,7 @@
 from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage
-from .pages.torrents import TorrentsPage
+from .pages.torrents import TorrentsPage, TorrentPage
 
 
 __all__ = ['PiratebayBrowser']
@@ -27,10 +27,11 @@ __all__ = ['PiratebayBrowser']
 
 class PiratebayBrowser(BaseBrowser):
     PROTOCOL = 'https'
+    ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://thepiratebay.org' : IndexPage,
              'https://thepiratebay.org/search/.*/0/7/0' : TorrentsPage,
-             #'https://thepiratebay.org/torrent/.*' : TorrentPage
+             'https://thepiratebay.org/torrent/.*' : TorrentPage
              }
 
     def __init__(self, *args, **kwargs):
@@ -59,12 +60,13 @@ class PiratebayBrowser(BaseBrowser):
 
     def iter_torrents(self, pattern):
         #self.location(self.buildurl('/torrents.php', searchstr=pattern))
-        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern, '')
+        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern)
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
+        print 'goto:'+id
         self.location('https://thepiratebay.org/torrent/%s/' % id)
 
         assert self.is_on_page(TorrentPage)
