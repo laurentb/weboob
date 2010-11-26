@@ -17,7 +17,6 @@
 
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
 
 from .browser import PiratebayBrowser
 

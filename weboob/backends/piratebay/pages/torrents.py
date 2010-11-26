@@ -16,13 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import re
-from logging import warning, debug
 
-from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotLoaded
 
 
 __all__ = ['TorrentsPage']
