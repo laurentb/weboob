@@ -66,7 +66,6 @@ class PiratebayBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        print 'goto:'+id
         self.location('https://thepiratebay.org/torrent/%s/' % id)
 
         assert self.is_on_page(TorrentPage)
