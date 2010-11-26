@@ -108,4 +108,9 @@ class Boobmsg(ReplApplication):
             return
         for backend_name, receivers in receivers_by_backend.iteritems():
             post_message(receivers, [backend_name])
-        post_message(receivers_without_backend)
+        if receivers_without_backend:
+            if len(self.enabled_backends) > 1:
+                self.logger.warning(u'No backend specified for receivers (%s): message will be sent with all the '
+                    'enabled backends (%s)' % (','.join(receivers_without_backend),
+                    ','.join(backend.name for backend in self.enabled_backends)))
+            post_message(receivers_without_backend)
