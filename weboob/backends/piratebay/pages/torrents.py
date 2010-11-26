@@ -50,30 +50,33 @@ class TorrentsPage(BasePage):
                 raise Exception('You''re in serious troubles!')
             else:
                 for tr in table.getiterator('tr'):
-                    td = tr.getchildren()[1]
-                    div = td.getchildren()[0]
-                    link = div.find('a').attrib('href')
-                    title = div.find('a').text
-                    idt = link.split('/')[2]
+                    if tr.get('class','') != "header":
+                        td = tr.getchildren()[1]
+                        div = td.getchildren()[0]
+                        link = div.find('a').attrib['href']
+                        title = div.find('a').text
+                        idt = link.split('/')[2]
 
-                    a = td.getchildren()[1]
-                    url = a.attrib('href')
+                        a = td.getchildren()[1]
+                        url = a.attrib['href']
 
-                    size = td.find('font').text.split(',')[1]
-                    size = size.split(' ')[2]
-                    u = size[-3:].replace('i','')
-                    size = size[:-3]
-                    
-                    seed = tr.getchildren()[2].text
-                    leech = tr.getchildren()[3].text
+                        size = td.find('font').text.split(',')[1]
+                        size = size.split(' ')[2]
+                        u = size[-3:].replace('i','')
+                        print "u:"+u
+                        size = size[:-3]
+                        print 'size:'+size
+                        
+                        seed = tr.getchildren()[2].text
+                        leech = tr.getchildren()[3].text
 
-                    torrent = Torrent(idt,
-                                      title,
-                                      url=url,
-                                      size=size,
-                                      seeders=seeders,
-                                      leechers=leechers)
-                    yield torrent
+                        torrent = Torrent(idt,
+                                          title,
+                                          url=url,
+                                          size=self.unit(size.replace('.',','),u),
+                                          seeders=int(seed),
+                                          leechers=int(leech))
+                        yield torrent
 
     def get_torrent(self, id):
         table = self.document.getroot().cssselect('div.thin')

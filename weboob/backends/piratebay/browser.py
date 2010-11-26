@@ -26,6 +26,8 @@ __all__ = ['PiratebayBrowser']
 
 
 class PiratebayBrowser(BaseBrowser):
+    PROTOCOL = 'https'
+    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://thepiratebay.org' : IndexPage,
              'https://thepiratebay.org/search/.*/0/7/0' : TorrentsPage,
              #'https://thepiratebay.org/torrent/.*' : TorrentPage
@@ -34,7 +36,7 @@ class PiratebayBrowser(BaseBrowser):
     def __init__(self, *args, **kwargs):
         #self.DOMAIN = domain
         #self.PROTOCOL = protocol
-        self.PAGES = {}
+        #self.PAGES = {}
         #for key, value in PiratebayBrowser.PAGES.iteritems():
         #    self.PAGES[key % domain] = value
 
@@ -57,7 +59,7 @@ class PiratebayBrowser(BaseBrowser):
 
     def iter_torrents(self, pattern):
         #self.location(self.buildurl('/torrents.php', searchstr=pattern))
-        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern)
+        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern, '')
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
