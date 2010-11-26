@@ -318,6 +318,7 @@ class ProfilePage(PageBase):
         photo_max_id = max(int(photo_regex.match(photo['url']).groupdict()['id']) for photo in self.photos)
         base_url = photo_regex.match(self.photos[0]['url']).groupdict()['base_url']
         for id in xrange(1, photo_max_id + 1):
+            url = '%simage%s.jpg' % (base_url, id)
             if not url in [photo['url'] for photo in self.photos]:
                 self.photos.append(dict(url=url, hidden=True))
 
