@@ -94,3 +94,7 @@ class CragrBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
+
+
+    def transfer(self, account, to, amount, reason=None):
+        return self.browser.do_transfer(account, to, amount, reason)

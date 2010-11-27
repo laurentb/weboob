@@ -53,6 +53,15 @@ class AccountsList(CragrBasePage):
                 l.append(account)
         return l
 
+    def is_accounts_list(self):
+        """
+            Returns True if the current page appears to be the page dedicated to
+            list the accounts.
+        """
+        # we check for the presence of a "mes comptes titres" link_id
+        link = self.document.xpath('/html/body//a[contains(text(), "comptes titres")]')
+        return bool(link)
+
     def is_account_page(self):
         """
             Returns True if the current page appears to be a page dedicated to list
@@ -66,6 +75,39 @@ class AccountsList(CragrBasePage):
                 return True
         return False
 
+    def is_transfer_page(self):
+        """
+            Returns True if the current page appears to be the page dedicated to
+            order transfers between accounts.
+        """
+        source_account_select_field = self.document.xpath('/html/body//form//select[@name="numCompteEmetteur"]')
+        target_account_select_field  = self.document.xpath('/html/body//form//select[@name="numCompteBeneficiaire"]')
+        return bool(source_account_select_field) and bool(target_account_select_field)
+
+    def get_transfer_accounts(self, select_name):
+        """
+            Returns the accounts proposed for a transfer in a select field.
+            This method assumes the current page is the one dedicated to transfers.
+            select_name is the name of the select field to analyze
+        """
+        if not self.is_transfer_page():
+          return False
+        source_accounts = {}
+        source_account_options = self.document.xpath('/html/body//form//select[@name="%s"]/option' % select_name)
+        for option in source_account_options:
+            source_account_value = option.get('value', -1)
+            if (source_account_value != -1):
+                matches = re.findall('^[A-Z0-9]+.*([0-9]{11}).*$', self.extract_text(option))
+                if matches:
+                    source_accounts[source_account_value] = matches[0]
+        return source_accounts
+
+    def get_transfer_source_accounts(self):
+        return self.get_transfer_accounts('numCompteEmetteur')
+
+    def get_transfer_target_accounts(self):
+        return self.get_transfer_accounts('numCompteBeneficiaire')
+
     def next_page_url(self):
         """
             When on a page dedicated to list the history of a specific account (see
@@ -78,6 +120,22 @@ class AccountsList(CragrBasePage):
             return False
         else:
             return a[0].get('href', '')
+
+    def operations_page_url(self):
+        """
+            Returns the link to the "Opérations" page. This function assumes the
+            current page is the accounts list (see is_accounts_list)
+        """
+        link = self.document.xpath(u'/html/body//a[contains(text(), "Opérations")]')
+        return link[0].get('href')
+
+    def transfer_page_url(self):
+        """
+            Returns the link to the "Virements" page. This function assumes the
+            current page is the operations list (see operations_page_url)
+        """
+        link = self.document.xpath('/html/body//a[@accesskey=1]/@href')
+        return link[0]
 
     def is_right_aligned_div(self, div_elmt):
         """

@@ -17,7 +17,10 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.capabilities.bank import AccountNotFound, Transfer, TransferError
 from weboob.backends.cragr import pages
+import mechanize
+from datetime import datetime
 
 # Browser
 class Cragr(BaseBrowser):
@@ -87,6 +90,103 @@ class Cragr(BaseBrowser):
                 operations_count += 1
                 yield page_operation
             page_url = self.page.next_page_url()
+
+    def dict_find_value(self, dictionary, value):
+        """
+            Returns the first key pointing on the given value, or None if none
+            is found.
+        """
+        for k, v in dictionary.iteritems():
+            if v == value:
+                return k
+        return None
+
+    def do_transfer(self, account, to, amount, reason=None):
+        """
+            Transfer the given amount of money from an account to another,
+            tagging the transfer with the given reason.
+        """
+        # access the transfer page
+        transfer_page_unreachable_message = u'Could not reach the transfer page.'
+        self.home()
+        if not self.page.is_accounts_list():
+            raise TransferError(transfer_page_unreachable_message)
+
+        operations_url = self.page.operations_page_url()
+
+        self.location('https://%s%s' % (self.DOMAIN, operations_url))
+        transfer_url = self.page.transfer_page_url()
+
+        abs_transfer_url = 'https://%s%s' % (self.DOMAIN, transfer_url)
+        self.location(abs_transfer_url)
+        if not self.page.is_transfer_page():
+            raise TransferError(transfer_page_unreachable_message)
+
+        source_accounts = self.page.get_transfer_source_accounts()
+        target_accounts = self.page.get_transfer_target_accounts()
+
+        # check that the given source account can be used
+        if not account in source_accounts.values():
+            raise TransferError('You cannot use account %s as a source account.' % account)
+
+        # check that the given source account can be used
+        if not to in target_accounts.values():
+            raise TransferError('You cannot use account %s as a target account.' % to)
+
+        # separate euros from cents
+        amount_euros = int(amount)
+        amount_cents = int((amount - amount_euros) * 100)
+
+        # let's circumvent https://github.com/jjlee/mechanize/issues/closed#issue/17
+        # using http://wwwsearch.sourceforge.net/mechanize/faq.html#usage
+        adjusted_response = self.response().get_data().replace('<br/>', '<br />')
+        response = mechanize.make_response(adjusted_response, [('Content-Type', 'text/html')], abs_transfer_url, 200, 'OK')
+        self.set_response(response)
+
+        # fill the form
+        self.select_form(nr=0)
+        self['numCompteEmetteur']     = ['%s' % self.dict_find_value(source_accounts, account)]
+        self['numCompteBeneficiaire'] = ['%s' % self.dict_find_value(target_accounts, to)]
+        self['montantPartieEntiere']  = '%s' % amount_euros
+        self['montantPartieDecimale'] = '%s' % amount_cents
+        self['libelle']               = reason
+        self.submit()
+
+        # look for known errors
+        content = unicode(self.response().get_data(), 'utf-8')
+        insufficient_amount_message     = u'Montant insuffisant.'
+        maximum_allowed_balance_message = u'Solde maximum autorisé dépassé.'
+
+        if content.find(insufficient_amount_message) != -1:
+            raise TransferError('The amount you tried to transfer is too low.')
+
+        if content.find(maximum_allowed_balance_message) != -1:
+            raise TransferError('The maximum allowed balance for the target account has been / would be reached.')
+
+        # look for the known "all right" message
+        ready_for_transfer_message = u'Vous allez effectuer un virement'
+        if not content.find(ready_for_transfer_message):
+            raise TransferError('The expected message "%s" was not found.' % ready_for_transfer_message)
+
+        # submit the last form
+        self.select_form(nr=0)
+        submit_date = datetime.now()
+        self.submit()
+
+        # look for the known "everything went well" message
+        content = unicode(self.response().get_data(), 'utf-8')
+        transfer_ok_message = u'Vous venez d\'effectuer un virement du compte'
+        if not content.find(transfer_ok_message):
+            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
+
+        # We now have to return a Transfer object
+        # the final page does not provide any transfer id, so we'll use the submit date
+        transfer = Transfer(submit_date.strftime('%Y%m%d%H%M%S'))
+        transfer.amount = amount
+        transfer.origin = account
+        transfer.recipient = to
+        transfer.date = submit_date
+        return transfer
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
