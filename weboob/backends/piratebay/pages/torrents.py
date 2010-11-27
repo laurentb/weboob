@@ -71,13 +71,18 @@ class TorrentPage(BasePage):
     def get_torrent(self, id):
         for div in self.document.getiterator('div'):
             if div.attrib.get('id','') == 'title':
-                title = div.text
+                title = div.text.strip()
             elif div.attrib.get('class','') == 'download':
                 url = div.getchildren()[0].attrib.get('href','')
             elif div.attrib.get('id','') == 'details':
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
-                seed = div.getchildren()[1].getchildren()[7].text
-                leech = div.getchildren()[1].getchildren()[9].text
+                if len(div.getchildren()) > 1 \
+                        and div.getchildren()[1].attrib.get('class','') == 'col2' :
+                    seed = div.getchildren()[1].getchildren()[7].text
+                    leech = div.getchildren()[1].getchildren()[9].text
+                else:
+                    seed = div.getchildren()[0].getchildren()[24].text
+                    leech = div.getchildren()[0].getchildren()[26].text
             elif div.attrib.get('class','') == 'nfo':
                 description = div.getchildren()[0].text
         torrent = Torrent(id, title)
