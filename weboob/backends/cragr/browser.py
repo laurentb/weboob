@@ -17,7 +17,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.capabilities.bank import AccountNotFound, Transfer, TransferError
+from weboob.capabilities.bank import Transfer, TransferError
 from weboob.backends.cragr import pages
 import mechanize
 from datetime import datetime
