@@ -55,7 +55,7 @@ class TorrentsPage(BasePage):
                         size = size.split(' ')[2]
                         u = size[-3:].replace('i','')
                         size = size[:-3]
-                        
+
                         seed = tr.getchildren()[2].text
                         leech = tr.getchildren()[3].text
 
@@ -76,8 +76,8 @@ class TorrentPage(BasePage):
                 url = div.getchildren()[0].attrib.get('href','')
             elif div.attrib.get('id','') == 'details':
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
-                seed = div.getchildren()[0].getchildren()[24].text
-                leech = div.getchildren()[0].getchildren()[26].text
+                seed = div.getchildren()[1].getchildren()[7].text
+                leech = div.getchildren()[1].getchildren()[9].text
             elif div.attrib.get('class','') == 'nfo':
                 description = div.getchildren()[0].text
         torrent = Torrent(id, title)
