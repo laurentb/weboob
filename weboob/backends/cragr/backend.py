@@ -54,6 +54,7 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.ca-illeetvilaine.fr': u'Ille-et-Vilaine',
         'm.ca-languedoc.fr': u'Languedoc',
         'm.ca-loirehauteloire.fr': u'Loire Haute Loire',
+        'm.ca-lorraine.fr': u'Lorraine',
         'm.ca-martinique.fr': u'Martinique Guyane',
         'm.ca-morbihan.fr': u'Morbihan',
         'm.ca-norddefrance.fr': u'Nord de France',
