@@ -18,7 +18,6 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage
 
 
@@ -26,6 +25,7 @@ __all__ = ['KickassBrowser']
 
 
 class KickassBrowser(BaseBrowser):
+    DOMAIN = 'kickasstorrents.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
@@ -56,7 +56,7 @@ class KickassBrowser(BaseBrowser):
     #    return True
 
     def home(self):
-        return self.location('http://fr.kickasstorrents.com/')
+        return self.location('http://kickasstorrents.com')
 
     def iter_torrents(self, pattern):
         #self.location(self.buildurl('/torrents.php', searchstr=pattern))

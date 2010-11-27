@@ -31,7 +31,6 @@ class TorrentsPage(BasePage):
              'GB': 1024*1024*1024,
              'TB': 1024*1024*1024*1024,
             }
-        #return float(n.replace(',', '')) * m.get(u, 1)
         return float(n*m[u])
 
     def iter_torrents(self):
@@ -39,6 +38,13 @@ class TorrentsPage(BasePage):
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class','') == 'odd' or tr.attrib.get('class','') == ' even':
                 title = tr.getchildren()[0].getchildren()[1].getchildren()[1].text
+                if not title:
+                    title = ''
+                for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
+                    if red.text:
+                        title += red.text
+                    if red.tail:
+                        title += red.tail
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href','').replace('/','').replace('.html','')
                 url = tr.getchildren()[0].getchildren()[0].getchildren()[0].getchildren()[0].attrib.get('href','')
                 size = tr.getchildren()[1].text
@@ -57,29 +63,47 @@ class TorrentsPage(BasePage):
                 yield torrent
 
 class TorrentPage(BasePage):
+    def unit(self, n, u):
+        m = {'KB': 1024,
+             'MB': 1024*1024,
+             'GB': 1024*1024*1024,
+             'TB': 1024*1024*1024*1024,
+            }
+        return float(n*m[u])
+
     def get_torrent(self, id):
+
+        description = "No description"
         for div in self.document.getiterator('div'):
-            if div.attrib.get('id','') == 'title':
-                title = div.text.strip()
-            elif div.attrib.get('class','') == 'download':
-                url = div.getchildren()[0].attrib.get('href','')
-            elif div.attrib.get('id','') == 'details':
-                size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
-                if len(div.getchildren()) > 1 \
-                        and div.getchildren()[1].attrib.get('class','') == 'col2' :
-                    seed = div.getchildren()[1].getchildren()[7].text
-                    leech = div.getchildren()[1].getchildren()[9].text
-                else:
-                    seed = div.getchildren()[0].getchildren()[24].text
-                    leech = div.getchildren()[0].getchildren()[26].text
-            elif div.attrib.get('class','') == 'nfo':
-                description = div.getchildren()[0].text
+            if div.attrib.get('id','') == 'desc':
+                description = div.text.strip()
+        for td in self.document.getiterator('td'):
+            if td.attrib.get('class','') == 'hreview-aggregate':
+                seed = int(td.getchildren()[2].getchildren()[0].getchildren()[0].text)
+                leech = int(td.getchildren()[2].getchildren()[1].getchildren()[0].text)
+                url = td.getchildren()[3].getchildren()[0].attrib.get('href')
+                title = td.getchildren()[1].getchildren()[0].getchildren()[0].text
+
+        size = 0
+        for span in self.document.getiterator('span'):
+            if span.attrib.get('class','') == "folder" or span.attrib.get('class','') == "folderopen":
+                size = span.getchildren()[1].tail
+                u = size.split(' ')[-1].split(')')[0]
+                size = float(size.split(': ')[1].split(' ')[0].replace(',','.'))
+
+        files = []
+        for td in self.document.getiterator('td'):
+            if td.attrib.get('class','') == 'torFileName':
+                files.append(td.text)
+
+
+        torrent = Torrent(id, title)
         torrent = Torrent(id, title)
         torrent.url = url
-        torrent.size = size
+        torrent.size = self.unit(size,u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
         torrent.description = description
-        torrent.files = ['NYI']
-
+        torrent.files = files
+                    
         return torrent

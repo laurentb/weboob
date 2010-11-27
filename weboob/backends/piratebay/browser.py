@@ -26,6 +26,7 @@ __all__ = ['PiratebayBrowser']
 
 
 class PiratebayBrowser(BaseBrowser):
+    DOMAIN = 'thepiratebay.org'
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
