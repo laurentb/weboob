@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010  Julien Veyssier
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.value import ValuesDict, Value
 
 
 __all__ = ['GeolocIpBackend']
@@ -29,58 +27,45 @@ __all__ = ['GeolocIpBackend']
 
 class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
-    MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@weboob.org'
+    MAINTAINER = 'Julien Veyssier'
+    EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.4'
     LICENSE = 'GPLv3'
-    DESCRIPTION = u"IP Adresses geolocalisation with the API of the site www.geolocalise-ip.com "
-    CONFIG = ValuesDict(Value('email',   label='Username'),
-                        Value('password',label='Password', masked=True))
+    DESCRIPTION = u"IP Adresses geolocalisation with the site www.geolocip.com"
     BROWSER = BaseBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['email'], self.config['password'])
+        return self.create_browser()
 
     def get_location(self, ipaddr):
         with self.browser:
-            args = {'email':     self.config['email'],
-                    'pass':      self.config['password'],
-                    'ip':        str(ipaddr)
-                   }
-            content = self.browser.readurl(self.browser.buildurl('http://www.geolocalise-ip.com/api.php', **args))
-            tab = {'ville' : NotAvailable ,\
-                    'region' : NotAvailable ,\
-                    'cp' : NotAvailable ,\
-                    'pays' : NotAvailable ,\
-                    'lt' : NotAvailable ,\
-                    'lg' : NotAvailable ,\
-                    'host' : NotAvailable ,\
-                    'tld' : NotAvailable ,\
-                    'fai' : NotAvailable}
 
-            for line in content.split('&'):
-                if not '=' in line:
-                    continue
-                key, value = line.split('=', 1)
-                tab[key] = value
+            content = self.browser.readurl('http://www.geolocip.com/?s[ip]=%s&commit=locate+IP!' % str(ipaddr))
 
-            if 'erreur' in tab and tab['erreur'][0] == '1':
-                raise Exception(tab['erreur'][1:].replace('<p>', '').replace('</p>', '').replace('<br />', '\n')\
-                                .strip().decode('iso-8859-1'))
-
+            tab = {}
+            last_line = ''
+            line = ''
+            for line in content.split('\n'):
+                if len(line.split('<dd>')) > 1:
+                    key = last_line.split('<dt>')[1].split('</dt>')[0][0:-2]
+                    value = line.split('<dd>')[1].split('</dd>')[0]
+                    tab[key] = value
+                last_line = line
             iploc = IpLocation(ipaddr)
-
-            if tab['ville'] != NotAvailable:
-                iploc.city = tab['ville'].decode('iso-8859-15')
-            iploc.region = tab['region']
-            iploc.zipcode = tab['cp']
-            iploc.country = tab['pays']
-            iploc.lt = float(tab['lt'])
-            iploc.lg = float(tab['lg'])
-            iploc.host = tab['host']
-            iploc.tld = tab['tld']
-            if 'fai' in tab:
-                iploc.isp = tab['fai']
+            iploc.city = tab['City']
+            iploc.region = tab['Region']
+            iploc.zipcode = tab['Postal code']
+            iploc.country = tab['Country name']
+            if tab['Latitude'] != '':
+                iploc.lt = float(tab['Latitude'])
             else:
-                iploc.isp = NotAvailable
+                iploc.lt = 0.0
+            if tab['Longitude'] != '':
+                iploc.lg = float(tab['Longitude'])
+            else:
+                iploc.lg = 0.0
+            #iploc.host = 'NA'
+            #iploc.tld = 'NA'
+            #iploc.isp = 'NA'
+
             return iploc
