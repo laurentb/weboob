@@ -23,6 +23,9 @@ from weboob.capabilities.bank import Operation
 
 class AccountsList(CragrBasePage):
     def get_list(self):
+        """
+            Returns the list of available bank accounts
+        """
         l = []
 
         for div in self.document.getiterator('div'):
@@ -51,6 +54,10 @@ class AccountsList(CragrBasePage):
         return l
 
     def is_account_page(self):
+        """
+            Returns True if the current page appears to be a page dedicated to list
+            the history of a specific account.
+        """
         # tested on CA Lorraine, Paris, Toulouse
         title_spans = self.document.xpath('/html/body/div[@class="dv"]/span')
         for title_span in title_spans:
@@ -60,6 +67,11 @@ class AccountsList(CragrBasePage):
         return False
 
     def next_page_url(self):
+        """
+            When on a page dedicated to list the history of a specific account (see
+            is_account_page), returns the link to the next page, or False if the
+            link is not present.
+        """
         # tested on CA Lorraine, Paris, Toulouse
         a = self.document.xpath('/html/body//div[@class="navlink"]//a[contains(text(), "Suite")]')
         if not a:
@@ -68,9 +80,15 @@ class AccountsList(CragrBasePage):
             return a[0].get('href', '')
 
     def is_right_aligned_div(self, div_elmt):
+        """
+            Returns True if the given div element is right-aligned
+        """
         return(re.match('.*text-align: ?right.*', div_elmt.get('style', '')))
 
     def extract_text(self, xml_elmt):
+        """
+            Given an XML element, returns its inner text in a reasonably readable way
+        """
         data = u''
         for text in xml_elmt.itertext():
             data = data + u'%s ' % text
@@ -78,6 +96,10 @@ class AccountsList(CragrBasePage):
         return data
 
     def get_history(self, start_index = 0):
+        """
+            Returns the history of a specific account. Note that this function
+            expects the current page page to be the one dedicated to this history.
+        """
         # tested on CA Lorraine, Paris, Toulouse
         # avoir parsing the page as an account-dedicated page if it is not the case
         if not self.is_account_page():
