@@ -192,8 +192,9 @@ class Weboob(object):
         if _backends is not None:
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
-            elif isinstance(_backends, basestring) and _backends:
-                backends = [self.backend_instances[_backends]]
+            elif isinstance(_backends, basestring):
+                if _backends:
+                    backends = [self.backend_instances[_backends]]
             elif isinstance(_backends, (list, tuple, set)):
                 backends = []
                 for backend in _backends:
