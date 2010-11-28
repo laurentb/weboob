@@ -21,7 +21,7 @@ import sys
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.media_player import MediaPlayer
+from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
@@ -51,23 +51,25 @@ class VideoListFormatter(IFormatter):
             result += u' (%s/%s)' % (item['rating'], item['rating_max'])
         return result
 
+
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
-    COMMANDS_FORMATTERS = {'search':    'video_list'}
+    COMMANDS_FORMATTERS = {'search': 'video_list'}
 
     nsfw = True
     videos = []
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
-        try:
-            self.player = MediaPlayer(self.logger)
-        except OSError:
-            self.player = None
+        self.player = MediaPlayer(self.logger)
+
+    def main(self, argv):
+        self.load_config()
+        return ReplApplication.main(self, argv)
 
     def _get_video(self, _id, fields=None):
         if self.interactive:
@@ -107,13 +109,14 @@ class Videoob(ReplApplication):
         if not video:
             print 'Video not found: %s' %  _id
             return
-
-        if self.player:
-            self.player.play(video)
-        else:
-            print 'No player has been found on this system.'
-            print 'The URL of this video is:'
-            print '  %s' % video.url
+        try:
+            player_name = self.config.get('media_player')
+            if not player_name:
+                self.logger.debug(u'You can set the media_player key to the player you prefer in the videoob '
+                                  'configuration file.')
+            self.player.play(video, player_name=player_name)
+        except (InvalidMediaPlayer, MediaPlayerNotFound), e:
+            print '%s\nVideo URL: %s' % (e, video.url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')

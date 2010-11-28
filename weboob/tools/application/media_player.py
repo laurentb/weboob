@@ -21,10 +21,32 @@ from subprocess import Popen, PIPE
 
 from weboob.tools.log import getLogger
 
-__all__ = ['MediaPlayer']
+
+__all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
-class MediaPlayer():
+PLAYERS = (
+    ('parole', 'fd://0'),
+    ('totem', 'fd://0'),
+    ('mplayer', '-really-quiet -'),
+    ('vlc', '-'),
+    ('xine', 'stdin:/'),
+)
+
+
+class MediaPlayerNotFound(Exception):
+    def __init__(self):
+        Exception.__init__(self, u'No media player found on this system. Please install one of them: %s.' % \
+            ', '.join(player[0] for player in PLAYERS))
+
+
+class InvalidMediaPlayer(Exception):
+    def __init__(self, player_name):
+        Exception.__init__(self, u'Invalid media player: %s. Valid media players: %s.' % (
+            player_name, ', '.join(player[0] for player in PLAYERS)))
+
+
+class MediaPlayer(object):
     """
     Black magic invoking a media player to this world.
 
@@ -32,45 +54,45 @@ class MediaPlayer():
     world, the media player used is chosen from a static list of
     programs. See PLAYERS for more information.
     """
-
-    PLAYERS = [
-        ('parole', 'fd://0'),
-        ('totem', 'fd://0'),
-        ('mplayer', '-really-quiet -'),
-        ('vlc', '-'),
-        ('xine', 'stdin:/'),
-    ]
-
     def __init__(self, logger=None):
         self.logger = getLogger('mediaplayer', logger)
 
-    def get_player_name(self, preferred=None):
-        player_names = preferred if preferred else [player[0] for player in self.PLAYERS]
-        for player_name in player_names:
+    def guess_player_name(self):
+        for player_name in [player[0] for player in PLAYERS]:
             if self._find_in_path(os.environ['PATH'], player_name):
                 return player_name
+        return None
 
-    def play(self, media):
+    def play(self, media, player_name=None):
         """
         Play a media object, using programs from the PLAYERS list.
 
         This function dispatch calls to either _play_default or
         _play_rtmp for special rtmp streams using SWF verification.
         """
-        if media.url.find('rtmp') == 0:
-            self._play_rtmp(media)
+        player_names = [player[0] for player in PLAYERS]
+        if player_name:
+            if player_name not in player_names:
+                raise InvalidMediaPlayer(player_name)
         else:
-            self._play_default(media)
+            self.logger.debug(u'No media player given. Using the first available from: %s.' % \
+                ', '.join(player_names))
+            player_name = self.guess_player_name()
+            if player_name is None:
+                raise MediaPlayerNotFound()
+        if media.url.find('rtmp') == 0:
+            self._play_rtmp(media, player_name)
+        else:
+            self._play_default(media, player_name)
 
-    def _play_default(self, media):
+    def _play_default(self, media, player_name):
         """
         Play media.url with the media player.
         """
-        player_name = self.get_player_name()
         print 'Invoking "%s %s".' % (player_name, media.url)
         os.spawnlp(os.P_NOWAIT, player_name, player_name, media.url)
 
-    def _play_rtmp(self, media):
+    def _play_rtmp(self, media, player_name):
         """
         Download data with rtmpdump and pipe them to a media player.
 
@@ -79,27 +101,22 @@ class MediaPlayer():
         from the server. The last one is retrieved from the non-standard
         non-API compliant 'swf_player' attribute of the 'media' object.
         """
-
         if not self._find_in_path(os.environ['PATH'], 'rtmpdump'):
             self.logger.warning('"rtmpdump" binary not found')
             return self._play_default(media)
-
         media_url = media.url
         try:
             player_url = media.swf_player
             rtmp = 'rtmpdump -r %s --swfVfy %s' % (media_url, player_url)
-
         except AttributeError:
             self.logger.warning('Your media object does not have a "swf_player" attribute. SWF verification will be '
                                 'disabled and may prevent correct media playback.')
-
             return self._play_default(media)
 
         rtmp += ' --quiet'
 
-        player_name = self.get_player_name()
         args = None
-        for (binary, stdin_args) in self.PLAYERS:
+        for (binary, stdin_args) in PLAYERS:
             if binary == player_name:
                 args = stdin_args
         assert args is not None

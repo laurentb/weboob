@@ -21,7 +21,7 @@ import sys
 from weboob.capabilities.radio import ICapRadio
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.media_player import MediaPlayer
+from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
@@ -62,10 +62,11 @@ class Radioob(ReplApplication):
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
-        try:
-            self.player = MediaPlayer(self.logger)
-        except OSError:
-            self.player = None
+        self.player = MediaPlayer(self.logger)
+
+    def main(self, argv):
+        self.load_config()
+        return ReplApplication.main(self, argv)
 
     def _get_radio(self, _id, fields=None):
         if self.interactive:
@@ -105,13 +106,14 @@ class Radioob(ReplApplication):
         if not radio:
             print >>sys.stderr, 'Radio not found: ' % _id
             return
-
-        if self.player:
-            self.player.play(radio.streams[0])
-        else:
-            print 'No player has been found on this system.'
-            print 'The URL of this radio is:'
-            print '  %s' % radio.streams[0].url
+        try:
+            player_name = self.config.get('media_player')
+            if not player_name:
+                self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
+                                  'configuration file.')
+            self.player.play(radio.streams[0], player_name=player_name)
+        except (InvalidMediaPlayer, MediaPlayerNotFound), e:
+            print '%s\nVideo URL: %s' % (e, radio.streams[0].url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
