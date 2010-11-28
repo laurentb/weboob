@@ -85,13 +85,27 @@ class MessagesListFormatter(IFormatter):
         if not message:
             return u''
         self.count += 1
+
+        flags = '['
+        if message.flags & message.IS_UNREAD:
+            flags += 'N'
+        else:
+            flags += '-'
+        if message.flags & message.IS_NOT_ACCUSED:
+            flags += 'U'
+        elif message.flags & message.IS_ACCUSED:
+            flags += 'R'
+        else:
+            flags += '-'
+        flags += ']'
+
         if self.interactive:
-            result = u'%s%s* (%d)%s <%s> %s (%s)\n' % (depth * '  ', ReplApplication.BOLD, self.count,
-                                                       ReplApplication.NC, message.sender, message.title,
+            result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ', ReplApplication.BOLD, self.count,
+                                                       ReplApplication.NC, flags, message.sender, message.title,
                                                        backend)
         else:
-            result = u'%s%s* (%s@%s)%s <%s> %s\n' % (depth * '  ', ReplApplication.BOLD, message.id, backend,
-                                                       ReplApplication.NC, message.sender, message.title)
+            result = u'%s%s* (%s@%s)%s %s <%s> %s\n' % (depth * '  ', ReplApplication.BOLD, message.id, backend,
+                                                       flags, ReplApplication.NC, message.sender, message.title)
         if message.children:
             if depth >= 0:
                 depth += 1
@@ -114,6 +128,9 @@ class Boobmsg(ReplApplication):
 
     def add_application_options(self, group):
         group.add_option('-e', '--skip-empty', action='store_true', help='Don\'t send messages with an empty body.')
+
+    def load_default_backends(self):
+        self.load_backends(ICapMessages, storage=self.create_storage())
 
     def do_status(self, line):
         """
@@ -246,6 +263,7 @@ class Boobmsg(ReplApplication):
             id, backend_name = self.parse_id(arg)
         else:
             self.format(message)
+            self.weboob.do('set_message_read', message, backends=message.backend)
             return
 
         if not self.interactive:
