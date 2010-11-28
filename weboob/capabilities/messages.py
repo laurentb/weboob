@@ -95,6 +95,9 @@ class Message(CapBaseObject):
         return result.encode('utf-8')
 
 class Thread(CapBaseObject):
+    IS_THREADS =    0x001
+    IS_DISCUSSION = 0x002
+
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('root', Message)
@@ -102,6 +105,7 @@ class Thread(CapBaseObject):
         self.add_field('date', datetime.datetime)
         self.add_field('nb_messages', int)
         self.add_field('nb_unread', int)
+        self.add_field('flags', int, self.IS_THREADS)
 
     def iter_all_messages(self):
         if self.root:

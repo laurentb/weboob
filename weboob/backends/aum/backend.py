@@ -107,6 +107,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 self.report_spam(contact.get_id(), contact.get_suppr_id())
                 continue
             thread = Thread(contact.get_id())
+            thread.flags = Thread.IS_DISCUSSION
             thread.title = 'Discussion with %s' % contact.get_name()
             yield thread
 
@@ -123,6 +124,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
         if not thread:
             thread = Thread(id)
+            thread.flags = Thread.IS_DISCUSSION
             full = False
         else:
             full = True
