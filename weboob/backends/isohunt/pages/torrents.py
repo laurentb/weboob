@@ -77,7 +77,6 @@ class TorrentPage(BasePage):
 
     def get_torrent(self, id):
         title = ''
-        description = 'No description'
         url = 'https://isohunt.com/download/%s/%s.torrent' % (id , id)
         for a in self.document.getiterator('a'):
             if 'Search more torrents of' in a.attrib.get('title',''):
@@ -85,9 +84,23 @@ class TorrentPage(BasePage):
         for span in self.document.getiterator('span'):
             if span.attrib.get('style','') == 'color:green;' and ('ShowTip' in span.attrib.get('onmouseover','')):
                 seed = span.tail.split(' ')[1]
-                break
-        leech = 0
+                tip_id = span.attrib.get('onmouseover','').split("'")[1]
+                for div in self.document.getiterator('div'):
+                    # find the corresponding super tip which appears on super mouse hover!
+                    if div.attrib.get('class','') == 'dirs ydsf' and tip_id in div.attrib.get('id',''):
+                        leech = div.getchildren()[0].getchildren()[1].tail.split(' ')[2]
+                    # the <b> with the size in it doesn't have a distinction
+                    # have to get it by higher
+                    elif div.attrib.get('id','') == 'torrent_details':
+                        size = div.getchildren()[6].getchildren()[0].getchildren()[0].text
+                        u = size[-2:]
+                        size = float(size[:-3])
 
+                # all the thing we get in that loop are unique, no need to go on looping
+                break
+
+        # files and description (uploader's comment)
+        description = 'No description'
         files = []
         count_p_found = 0
         for p in self.document.getiterator('p'):
@@ -101,25 +114,16 @@ class TorrentPage(BasePage):
                     else:
                         files.append(p.getchildren()[0].tail.strip())
 
-        # TODO marche pas
         for td in self.document.getiterator('td'):
-            print td.attrib.get('class')
+            #print td.attrib.get('class')
             if td.attrib.get('class','') == 'fileRows':
-                #files.append(td.text)
                 filename = td.text
-                print "len"+str(len(td.getchildren()))
+                #print "len"+str(len(td.getchildren()))
                 for slash in td.getchildren():
                     filename += '/'
                     filename += slash.tail
                 files.append(filename)
 
-
-                
-        # TODO leechers
-
-
-        size = 0
-        u = 'MB'
                 
         #--------------------------TODO
 
