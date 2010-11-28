@@ -87,16 +87,33 @@ class TorrentPage(BasePage):
                 seed = span.tail.split(' ')[1]
                 break
         leech = 0
+
+        files = []
+        count_p_found = 0
         for p in self.document.getiterator('p'):
             if p.attrib.get('style','') == "line-height:1.2em;margin-top:1.8em":
-                description = p.getchildren()[1].tail
-                break
+                count_p_found += 1
+                if count_p_found == 1:
+                    description = p.getchildren()[1].tail
+                if count_p_found == 2:
+                    if p.getchildren()[0].text == 'Directory:':
+                        files.append(p.getchildren()[0].tail.strip()+'/')
+                    else:
+                        files.append(p.getchildren()[0].tail.strip())
+
         # TODO marche pas
-        files = []
         for td in self.document.getiterator('td'):
             print td.attrib.get('class')
             if td.attrib.get('class','') == 'fileRows':
-                files.append(td.text)
+                #files.append(td.text)
+                filename = td.text
+                print "len"+str(len(td.getchildren()))
+                for slash in td.getchildren():
+                    filename += '/'
+                    filename += slash.tail
+                files.append(filename)
+
+
                 
         # TODO leechers
 
