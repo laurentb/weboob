@@ -128,6 +128,8 @@ class BaseBrowser(mechanize.Browser):
     responses_dirname = None
     responses_count = 0
 
+    debug_http = False
+
     # ------ Abstract methods --------------------------------------
 
     def home(self):
@@ -217,6 +219,12 @@ class BaseBrowser(mechanize.Browser):
             except BrowserUnavailable:
                 pass
 
+        if self.debug_http:
+            # Enable log messages from mechanize.Browser
+            self.set_debug_redirects(True)
+            self.set_debug_responses(True)
+            self.set_debug_http(True)
+
     def __enter__(self):
         self.lock.acquire()
 
@@ -252,6 +260,13 @@ class BaseBrowser(mechanize.Browser):
         """
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
+
+        if self.debug_http:
+            # Enable log messages from mechanize.Browser
+            self.set_debug_redirects(True)
+            self.set_debug_responses(True)
+            self.set_debug_http(True)
+
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
