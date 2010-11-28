@@ -58,12 +58,12 @@ class Captcha:
         return s
 
     def build_tiles(self):
-        y = 0
-        ty = 0
-        while y < self.ny:
-            x = 0
-            tx = 0
-            while x < self.nx:
+        for ty in xrange(0, self.nbc):
+            y = ty * 23
+
+            for tx in xrange(0, self.nbr):
+                x = tx * 24
+
                 tile = self.tiles[tx][ty]
 
                 for yy in xrange(y, y + 23):
@@ -75,11 +75,6 @@ class Captcha:
                     tile.valid = True
                     self.map[num] = tile
 
-                x += 24
-                tx += 1
-
-            y += 23
-            ty += 1
 
 class Tile:
     hash = {'ff1441b2c5f90703ef04e688e399aca5': 1,
