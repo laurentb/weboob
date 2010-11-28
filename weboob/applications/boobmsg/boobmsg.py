@@ -19,20 +19,98 @@
 import sys
 
 from weboob.core import CallErrors
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, Message
+from weboob.capabilities.messages import CantSendMessage, ICapMessages, Message, Thread
 from weboob.capabilities.account import ICapAccount
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
 
 __all__ = ['Boobmsg']
 
 
+class MessageFormatter(IFormatter):
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['title'])
+        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['date'])
+        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['sender'])
+        result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, ', '.join(item['receivers']))
+
+        result += '\n%s' % item['content']
+        return result
+
+class MessagesListFormatter(IFormatter):
+    MANDATORY_FIELDS = ()
+    count = 0
+    _list_messages = False
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        if not self._list_messages:
+            return self.format_dict_thread(item)
+        else:
+            return self.format_dict_messages(item)
+
+    def format_dict_thread(self, item):
+        self.count += 1
+        if item['nb_unread'] and item['nb_unread'] > 0:
+            unread = '[N]'
+        else:
+            unread = '   '
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD, self.count, unread, item['title'], backend, ReplApplication.NC)
+        else:
+            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'], unread, item['title'], ReplApplication.NC)
+        if item['date']:
+            result += u'\n             %s' % item['date']
+        return result
+
+    def format_dict_messages(self, item):
+        backend = item['id'].split('@', 1)[1]
+        if item['flags'] == Thread.IS_THREADS:
+            depth = 0
+        else:
+            depth = -1
+
+        result = self.format_message(backend, item['root'], depth)
+        return result
+
+    def format_message(self, backend, message, depth=0):
+        if not message:
+            return u''
+        self.count += 1
+        if self.interactive:
+            result = u'%s%s* (%d)%s <%s> %s (%s)\n' % (depth * '  ', ReplApplication.BOLD, self.count,
+                                                       ReplApplication.NC, message.sender, message.title,
+                                                       backend)
+        else:
+            result = u'%s%s* (%s@%s)%s <%s> %s\n' % (depth * '  ', ReplApplication.BOLD, message.id, backend,
+                                                       ReplApplication.NC, message.sender, message.title)
+        if message.children:
+            if depth >= 0:
+                depth += 1
+            for m in message.children:
+                result += self.format_message(backend, m, depth)
+        return result
+
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     CAPS = ICapMessages
+    EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
+                        'msg':     MessageFormatter,
+                       }
+    COMMANDS_FORMATTERS = {'list':      'msglist',
+                           'show':      'msg',
+                          }
+
 
     def add_application_options(self, group):
         group.add_option('-e', '--skip-empty', action='store_true', help='Don\'t send messages with an empty body.')
@@ -114,3 +192,63 @@ class Boobmsg(ReplApplication):
                     'enabled backends (%s)' % (','.join(receivers_without_backend),
                     ','.join(backend.name for backend in self.enabled_backends)))
             post_message(receivers_without_backend)
+
+    threads = []
+    messages = []
+
+    def do_list(self, arg):
+        """
+        list
+
+        Display all threads.
+        """
+        if len(arg) > 0:
+            try:
+                thread = self.threads[int(arg) - 1]
+            except (IndexError,ValueError):
+                id, backend_name = self.parse_id(arg)
+            else:
+                id = thread.id
+                backend_name = thread.backend
+
+            self.messages = []
+            cmd = self.do('get_thread', id, backends=backend_name)
+            self.formatter._list_messages = True
+        else:
+            self.threads = []
+            cmd = self.do('iter_threads')
+            self.formatter._list_messages = False
+
+        for backend, thread in cmd:
+            if len(arg) > 0:
+                for m in thread.iter_all_messages():
+                    if not m.backend:
+                        m.backend = thread.backend
+                    self.messages.append(m)
+            else:
+                self.threads.append(thread)
+            self.format(thread)
+        self.flush()
+
+    def do_show(self, arg):
+        """
+        show MESSAGE
+
+        Read a message
+        """
+        if len(arg) == 0:
+            print 'Please give a message ID.'
+            return
+
+        try:
+            message = self.messages[int(arg) - 1]
+        except (IndexError,ValueError):
+            id, backend_name = self.parse_id(arg)
+        else:
+            self.format(message)
+            return
+
+        if not self.interactive:
+            print 'Oops, you need to be in interactive mode to read messages'
+        else:
+            print 'Message not found'
