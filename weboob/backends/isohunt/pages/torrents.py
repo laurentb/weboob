@@ -39,6 +39,7 @@ class TorrentsPage(BasePage):
 
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class','') == 'hlRow':
+                # TODO à corriger
                 atitle = tr.getchildren()[2].getchildren()[1]
                 title = atitle.text
                 if not title:
@@ -75,37 +76,36 @@ class TorrentPage(BasePage):
         return float(n*m[u])
 
     def get_torrent(self, id):
-        url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % id
+        title = ''
+        description = 'No description'
+        url = 'https://isohunt.com/download/%s/%s.torrent' % (id , id)
         for a in self.document.getiterator('a'):
             if 'Search more torrents of' in a.attrib.get('title',''):
                 title = a.tail
-        #--------------------------TODO
-
-        description = "No description"
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('id','') == 'desc':
-                description = div.text.strip()
-        for td in self.document.getiterator('td'):
-            if td.attrib.get('class','') == 'hreview-aggregate':
-                seed = int(td.getchildren()[2].getchildren()[0].getchildren()[0].text)
-                leech = int(td.getchildren()[2].getchildren()[1].getchildren()[0].text)
-                url = td.getchildren()[3].getchildren()[0].attrib.get('href')
-                title = td.getchildren()[1].getchildren()[0].getchildren()[0].text
-
-        size = 0
         for span in self.document.getiterator('span'):
-            if span.attrib.get('class','') == "folder" or span.attrib.get('class','') == "folderopen":
-                size = span.getchildren()[1].tail
-                u = size.split(' ')[-1].split(')')[0]
-                size = float(size.split(': ')[1].split(' ')[0].replace(',','.'))
-
+            if span.attrib.get('style','') == 'color:green;' and ('ShowTip' in span.attrib.get('onmouseover','')):
+                seed = span.tail.split(' ')[1]
+                break
+        leech = 0
+        for p in self.document.getiterator('p'):
+            if p.attrib.get('style','') == "line-height:1.2em;margin-top:1.8em":
+                description = p.getchildren()[1].tail
+                break
+        # TODO marche pas
         files = []
         for td in self.document.getiterator('td'):
-            if td.attrib.get('class','') == 'torFileName':
+            print td.attrib.get('class')
+            if td.attrib.get('class','') == 'fileRows':
                 files.append(td.text)
+                
+        # TODO leechers
 
 
-        torrent = Torrent(id, title)
+        size = 0
+        u = 'MB'
+                
+        #--------------------------TODO
+
         torrent = Torrent(id, title)
         torrent.url = url
         torrent.size = self.unit(size,u)

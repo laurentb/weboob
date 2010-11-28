@@ -31,7 +31,7 @@ class IsohuntBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
              'https://isohunt.com/torrents/.*iht=-1&ihp=1&ihs1=2&iho1=d' : TorrentsPage,
-             'http://isohunt.com/torrent_details.*tab=summary' : TorrentPage
+             'https://isohunt.com/torrent_details.*tab=summary' : TorrentPage
              }
 
     def __init__(self, *args, **kwargs):
