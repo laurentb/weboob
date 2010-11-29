@@ -125,10 +125,10 @@ class BaseBrowser(mechanize.Browser):
     }
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
+    DEBUG_HTTP = False
+
     responses_dirname = None
     responses_count = 0
-
-    debug_http = False
 
     # ------ Abstract methods --------------------------------------
 
@@ -219,7 +219,7 @@ class BaseBrowser(mechanize.Browser):
             except BrowserUnavailable:
                 pass
 
-        if self.debug_http:
+        if self.DEBUG_HTTP:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
             self.set_debug_responses(True)
@@ -261,7 +261,7 @@ class BaseBrowser(mechanize.Browser):
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
 
-        if self.debug_http:
+        if self.DEBUG_HTTP:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
             self.set_debug_responses(True)
