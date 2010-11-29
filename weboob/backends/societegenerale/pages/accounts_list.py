@@ -19,9 +19,7 @@
 import re
 
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
-from lxml import etree
 
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")

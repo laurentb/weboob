@@ -17,7 +17,6 @@
 
 
 import hashlib
-import sys
 import Image
 
 class TileError(Exception):

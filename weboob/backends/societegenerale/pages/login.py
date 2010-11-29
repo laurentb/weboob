@@ -16,8 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from weboob.tools.mech import ClientForm
-import urllib
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
