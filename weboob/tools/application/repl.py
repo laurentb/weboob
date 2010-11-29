@@ -33,6 +33,7 @@ from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
+from weboob.tools.misc import to_unicode
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -405,6 +406,7 @@ class ReplApplication(Cmd, BaseApplication):
         """
         This REPL method is overrided to catch some particular exceptions.
         """
+        line = to_unicode(line)
         cmd, arg, ignored = self.parseline(line)
 
         # Set the right formatter for the command.
