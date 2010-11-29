@@ -18,7 +18,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, OperationsPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, OperationsPage, InfoPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -33,7 +33,8 @@ class CreditMutuelBrowser(BaseBrowser):
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
              'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
          'https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi': AccountsPage,
-         'https://www.creditmutuel.fr/cmdv/fr/banque/mouvements.cgi.*' : OperationsPage
+         'https://www.creditmutuel.fr/cmdv/fr/banque/mouvements.cgi.*' : OperationsPage,
+         'https://www.creditmutuel.fr/cmdv/fr/banque/BAD.*' : InfoPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -41,6 +42,10 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage)
+
+    def home(self):
+        return self.location('https://www.creditmutuel.fr/groupe/fr/index.html')
+
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -56,7 +61,7 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.home()
+            self.location('https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi')
         return self.page.get_list()
 
     def get_account(self, id):
