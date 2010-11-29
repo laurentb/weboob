@@ -193,8 +193,11 @@ class Weboob(object):
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
             elif isinstance(_backends, basestring):
-                if _backends:
-                    backends = [self.backend_instances[_backends]]
+                if len(_backends) > 0:
+                    try:
+                        backends = [self.backend_instances[_backends]]
+                    except (ValueError,KeyError):
+                        backends = []
             elif isinstance(_backends, (list, tuple, set)):
                 backends = []
                 for backend in _backends:
