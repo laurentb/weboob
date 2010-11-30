@@ -73,23 +73,35 @@ class TorrentPage(BasePage):
 
     def get_torrent(self, id):
 
+        seed = 0
+        leech = 0
         description = "No description"
+        url = 'No Url found'
         for div in self.document.getiterator('div'):
             if div.attrib.get('id','') == 'desc':
                 description = div.text.strip()
-        for td in self.document.getiterator('td'):
-            if td.attrib.get('class','') == 'hreview-aggregate':
-                seed = int(td.getchildren()[2].getchildren()[0].getchildren()[0].text)
-                leech = int(td.getchildren()[2].getchildren()[1].getchildren()[0].text)
-                url = td.getchildren()[3].getchildren()[0].attrib.get('href')
-                title = td.getchildren()[1].getchildren()[0].getchildren()[0].text
+                for ch in div.getchildren():
+                    if ch.tail != None:
+                        description += ' '+ch.tail.strip()
+            if div.attrib.get('class','') == 'seedBlock':
+                seed = int(div.getchildren()[1].text)
+            if div.attrib.get('class','') == 'leechBlock':
+                leech = int(div.getchildren()[1].text)
+
+        for h in self.document.getiterator('h1'):
+            if h.attrib.get('class','') == 'torrentName':
+                title = h.getchildren()[0].getchildren()[0].text
+
+        for a in self.document.getiterator('a'):
+            if ('Download' in a.attrib.get('title','')) and ('torrent file' in a.attrib.get('title','')):
+                url = a.attrib.get('href','')
 
         size = 0
         for span in self.document.getiterator('span'):
             if span.attrib.get('class','') == "folder" or span.attrib.get('class','') == "folderopen":
                 size = span.getchildren()[1].tail
-                u = size.split(' ')[-1].split(')')[0]
-                size = float(size.split(': ')[1].split(' ')[0].replace(',','.'))
+                u = span.getchildren()[2].text
+                size = float(size.split(': ')[1].replace(',','.'))
 
         files = []
         for td in self.document.getiterator('td'):
