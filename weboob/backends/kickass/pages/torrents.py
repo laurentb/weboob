@@ -48,8 +48,8 @@ class TorrentsPage(BasePage):
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href','').replace('/','').replace('.html','')
                 url = tr.getchildren()[0].getchildren()[0].getchildren()[0].getchildren()[0].attrib.get('href','')
                 size = tr.getchildren()[1].text
-                u = size[-2:]
-                size = size = size[:-3].replace(',','.')
+                u = tr.getchildren()[1].getchildren()[0].text
+                size = size = size.replace(',','.')
                 size = float(size)
                 seed = tr.getchildren()[4].text
                 leech = tr.getchildren()[5].text
