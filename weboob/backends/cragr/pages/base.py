@@ -35,7 +35,5 @@ class CragrBasePage(BasePage):
                 raise BrowserUnavailable()
 
     def is_logged(self):
-        for form in self.document.xpath('/html/body//form//input[@name = "code"]'):
-            return False
-
-        return True
+        return not self.document.xpath('/html/body//form//input[@name = "code"]') and \
+           not self.document.xpath('/html/body//form//input[@name = "userPassword"]')
