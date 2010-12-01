@@ -37,9 +37,15 @@ class MessageFormatter(IFormatter):
         result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['title'])
         result += u'%sDate:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['date'])
         result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['sender'])
-        result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, ', '.join(item['receivers']))
+        if item['receivers']:
+            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, ', '.join(item['receivers']))
 
-        result += '\n%s' % item['content']
+        if item['flags'] & Message.IS_HTML:
+            content = html2text(item['content'])
+        else:
+            content = item['content']
+
+        result += '\n%s' % content
         return result
 
 class MessagesListFormatter(IFormatter):
