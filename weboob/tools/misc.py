@@ -38,7 +38,10 @@ def to_unicode(text):
     if isinstance(text, unicode):
         return text
     if not isinstance(text, str):
-        text = str(text)
+        try:
+            text = str(text)
+        except UnicodeError:
+            return unicode(text)
     try:
         return unicode(text, "utf8")
     except UnicodeError:

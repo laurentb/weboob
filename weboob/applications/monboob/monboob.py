@@ -33,7 +33,7 @@ from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.misc import html2text, get_backtrace, utc2local
+from weboob.tools.misc import html2text, get_backtrace, utc2local, to_unicode
 
 
 __all__ = ['Monboob']
@@ -196,9 +196,9 @@ class Monboob(ReplApplication):
             backend.post_message(message)
         except Exception, e:
             content = u'Unable to send message to %s:\n' % thread_id
-            content += u'\n\t%s\n' % e
+            content += u'\n\t%s\n' % to_unicode(e)
             if logging.root.level == logging.DEBUG:
-                content += u'\n%s\n' % get_backtrace(e)
+                content += u'\n%s\n' % to_unicode(get_backtrace(e))
             self.send_email(backend, Message(thread,
                                              0,
                                              title='Unable to send message',
