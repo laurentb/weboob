@@ -1,3 +1,33 @@
+Weboob 0.3.1 (2010-12-01)
+	General
+	* Fix: error with logger on backends.
+
+	Backend: Boobank
+	* Fix: display of coming operations.
+
+	Backend: BP
+	* Fix: initialization of backend.
+	* Fix: parsing of accounts.
+
+	Backend: GeolocIp
+	* Fix: encoding error.
+
+	Backend: INA
+	* Fix: parse of date, duration and title.
+	* Fix: when there are no results.
+
+	Backend: Yahoo
+	* Fix: correctly handle errors.
+
+	Application: boobank-munin
+	* Save cache in .weboob/munin/.
+	* Fix: handle errors.
+
+	Application: monboob
+	* Fix: do not crash when domain contains a '@'.
+	* Fix: parsing of incoming mails when no charset is supplied.
+	* Fix: print errors when no message can be found.
+
 Weboob 0.3 (2010-11-01)
 	General
 	* New backend: LCL (CapBank) -- unfinished.
