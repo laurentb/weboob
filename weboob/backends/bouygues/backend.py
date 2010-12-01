@@ -33,7 +33,7 @@ class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
     DESCRIPTION = 'Bouygues french mobile phone provider'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('login', label='Login'),

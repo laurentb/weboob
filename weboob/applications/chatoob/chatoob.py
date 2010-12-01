@@ -28,7 +28,7 @@ __all__ = ['Chatoob']
 
 class Chatoob(ReplApplication):
     APPNAME = 'chatoob'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     CAPS = ICapChat
 

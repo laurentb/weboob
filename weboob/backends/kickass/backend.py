@@ -28,7 +28,7 @@ class KickassBackend(BaseBackend, ICapTorrent):
     NAME = 'kickass'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
     DESCRIPTION = 'kickasstorrent.com bittorrent tracker'
     LICENSE = 'GPLv3'
     #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),

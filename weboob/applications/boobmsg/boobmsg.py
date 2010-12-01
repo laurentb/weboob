@@ -121,7 +121,7 @@ class MessagesListFormatter(IFormatter):
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,

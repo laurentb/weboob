@@ -28,7 +28,7 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
     NAME = 'isohunt'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
     DESCRIPTION = 'isohunt.com bittorrent tracker'
     LICENSE = 'GPLv3'
     #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
