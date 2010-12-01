@@ -21,8 +21,10 @@ from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QDialogButtonBox
 from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
+import re
 from logging import warning
 
+from weboob.core.modules import ModuleLoadError
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.ordereddict import OrderedDict
@@ -78,7 +80,11 @@ class BackendCfg(QDialog):
     def loadConfiguredBackendsList(self):
         self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            backend = self.weboob.modules_loader.get_or_load_module(name)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(name)
+            except ModuleLoadError:
+                backend = None
+
             if not backend or self.caps and not backend.has_caps(*self.caps):
                 continue
 
@@ -192,7 +198,10 @@ class BackendCfg(QDialog):
                                        self.tr('Please select a backend'))
             return
 
-        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        except ModuleLoadError:
+            backend = None
 
         if not backend:
             QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
@@ -204,6 +213,11 @@ class BackendCfg(QDialog):
         if not bname:
             QMessageBox.critical(self, self.tr('Missing field'),
                                        self.tr('Please specify a backend name'))
+            return
+
+        if self.ui.nameEdit.isEnabled() and not re.match(r'^[\w\-_]+$', bname):
+            QMessageBox.critical(self, self.tr('Invalid value'),
+                                       self.tr('The backend name can only contain letters and digits'))
             return
 
         if self.ui.proxyBox.isChecked():
@@ -271,9 +285,9 @@ class BackendCfg(QDialog):
                                       backend.license,
                                       (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
                                       backend.description,
-                                      ', '.join([cap.__name__ for cap in backend.iter_caps()])))
+                                      ', '.join(sorted([cap.__name__.replace('ICap', '') for cap in backend.iter_caps()]))))
 
-        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled():
+        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()
         else:
             self.ui.registerButton.hide()
@@ -292,7 +306,10 @@ class BackendCfg(QDialog):
         if not selection:
             return
 
-        backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        except ModuleLoadError:
+            backend = None
 
         if not backend:
             return

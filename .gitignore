@@ -5,3 +5,5 @@ Session.vim
 build
 dist
 *.egg-info
+*~
+tags

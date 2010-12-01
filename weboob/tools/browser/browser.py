@@ -16,23 +16,24 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
+
+from copy import copy
+from httplib import BadStatusLine
+from logging import warning
 import mechanize
+import os
+import re
+import tempfile
+from threading import RLock
+import time
 import urllib
 import urllib2
-from httplib import BadStatusLine
-from weboob.tools.mech import ClientForm
-ControlNotFoundError = ClientForm.ControlNotFoundError
-import re
-import time
-from logging import warning
-from copy import copy
-from threading import RLock
-import os
-import tempfile
 
-from weboob.tools.parsers import get_parser
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
+from weboob.tools.parsers import get_parser
 
 # Try to load cookies
 try:
@@ -120,9 +121,14 @@ class BaseBrowser(mechanize.Browser):
     USER_AGENTS = {
         'desktop_firefox': 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/2008111318 Ubuntu/8.10 (intrepid) Firefox/3.0.3',
         'android': 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17',
+        'wget': 'Wget/1.11.4',
     }
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
+    DEBUG_HTTP = False
+
+    responses_dirname = None
+    responses_count = 0
 
     # ------ Abstract methods --------------------------------------
 
@@ -213,6 +219,12 @@ class BaseBrowser(mechanize.Browser):
             except BrowserUnavailable:
                 pass
 
+        if self.DEBUG_HTTP:
+            # Enable log messages from mechanize.Browser
+            self.set_debug_redirects(True)
+            self.set_debug_responses(True)
+            self.set_debug_http(True)
+
     def __enter__(self):
         self.lock.acquire()
 
@@ -248,6 +260,13 @@ class BaseBrowser(mechanize.Browser):
         """
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
+
+        if self.DEBUG_HTTP:
+            # Enable log messages from mechanize.Browser
+            self.set_debug_redirects(True)
+            self.set_debug_responses(True)
+            self.set_debug_http(True)
+
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
@@ -274,19 +293,28 @@ class BaseBrowser(mechanize.Browser):
         else:
             return None
 
-    def save_response(self, result):
+    def save_response(self, result, warning=False):
         """
         Save a stream to a temporary file, and log its name.
         The stream is rewinded after saving.
         """
-        tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        fd, path = tempfile.mkstemp(prefix="response", dir=tmpdir)
-        with os.fdopen(fd, 'w') as f:
+        if self.responses_dirname is None:
+            self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
+            print 'Debug data will be saved in this directory: %s' % self.responses_dirname
+        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
+        with open(response_filepath, 'w') as f:
             f.write(result.read())
-        self.logger.debug("Response saved to %s" % path)
         result.seek(0)
+        match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
+        with open(match_filepath, 'a') as f:
+            f.write('%s\t%s\n' % (result.geturl(), os.path.basename(response_filepath)))
+        self.responses_count += 1
+
+        msg = u'Response saved to %s' % response_filepath
+        if warning:
+            self.logger.warning(msg)
+        else:
+            self.logger.info(msg)
 
     def submit(self, *args, **kwargs):
         """
@@ -369,13 +397,8 @@ class BaseBrowser(mechanize.Browser):
         # Not found
         if not pageCls:
             self.page = None
-            #data = result.read()
-            #if isinstance(data, unicode):
-            #    data = data.encode('utf-8')
-            #print data
             self.logger.warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
-            self.save_response(result)
-
+            self.save_response(result, warning=True)
             return
 
         self.logger.debug('[user_id=%s] Went on %s' % (self.username, result.geturl()))

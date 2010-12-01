@@ -29,12 +29,11 @@ class LCLBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'particuliers.secure.lcl.fr'
     ENCODING = 'utf-8'
-    USER_AGENT = 'Wget/1.11.4'
+    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
              'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
              'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage
             }
-    is_logging = False
 
     def __init__(self, agency, *args, **kwargs):
         self.agency = agency
@@ -48,7 +47,7 @@ class LCLBrowser(BaseBrowser):
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.home()
+            self.location('https://particuliers.secure.lcl.fr/', no_login=True)
 
         self.page.login(self.agency, self.username, self.password)
 
@@ -61,7 +60,7 @@ class LCLBrowser(BaseBrowser):
         return self.page.get_list()
 
     def get_account(self, id):
-        assert isinstance(id, (int, long))
+        assert isinstance(id, basestring)
 
         l = self.get_accounts_list()
         for a in l:

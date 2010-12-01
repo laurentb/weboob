@@ -27,6 +27,8 @@ __all__ = ['Boobank']
 
 
 class TransferFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
+
     def flush(self):
         pass
 
@@ -38,7 +40,10 @@ class TransferFormatter(IFormatter):
         result += u'Amount:     %.2f\n' % item['amount']
         return result
 
+
 class AccountListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
+
     count = 0
     tot_balance = 0.0
     tot_coming = 0.0
@@ -77,7 +82,7 @@ class AccountListFormatter(IFormatter):
 
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
     EXTRA_FORMATTERS = {'account_list': AccountListFormatter,
@@ -134,6 +139,9 @@ class Boobank(ReplApplication):
         Display old operations.
         """
         id, backend_name = self.parse_id(id)
+        if not id:
+            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            return 1
         names = (backend_name,) if backend_name is not None else None
 
         def do(backend):

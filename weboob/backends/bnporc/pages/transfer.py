@@ -33,7 +33,7 @@ class TransferPage(BasePage):
             if table.attrib.get('cellspacing') == '2':
                 for tr in table.cssselect('tr.hdoc1, tr.hdotc1'):
                     tds = tr.findall('td')
-                    id = long(tds[1].text.replace(u'\xa0', u''))
+                    id = tds[1].text.replace(u'\xa0', u'')
                     if id == from_id:
                         if tds[4].find('input') is None:
                             raise TransferError("Unable to make a transfer from %s" % from_id)

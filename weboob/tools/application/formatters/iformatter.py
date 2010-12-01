@@ -43,9 +43,18 @@ from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['IFormatter']
+__all__ = ['IFormatter', 'MandatoryFieldsNotFound']
+
+
+class MandatoryFieldsNotFound(Exception):
+    def __init__(self, missing_fields):
+        Exception.__init__(self, u'Mandatory fields not found: %s.' % ','.join(missing_fields))
+
 
 class IFormatter(object):
+
+    MANDATORY_FIELDS = None
+
     def __init__(self, display_keys=True, display_header=True, return_only=False):
         self.display_keys = display_keys
         self.display_header = display_header
@@ -53,7 +62,8 @@ class IFormatter(object):
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
-        if os.isatty(sys.stdout.fileno()):
+        # XXX if stdin is not a tty, it seems that the command fails.
+        if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
     def after_format(self, formatted):
@@ -76,17 +86,15 @@ class IFormatter(object):
     def flush(self):
         raise NotImplementedError()
 
-    def format(self, obj, selected_fields=None, condition=None):
+    def format(self, obj, selected_fields=None):
         """
         Format an object to be human-readable.
-        An object has fields which can be selected, and the objects
-        can be filtered using a condition (like SELECT and WHERE in SQL).
+        An object has fields which can be selected.
         If the object provides an iter_fields() method, the formatter will
         call it. It can be used to specify the fields order.
 
         @param obj  [object] object to format
         @param selected_fields  [tuple] fields to display. If None, all fields are selected
-        @param condition  [Condition] condition to objects to display
         @return  a string of the formatted object
         """
         assert isinstance(obj, (dict, CapBaseObject, tuple))
@@ -96,10 +104,16 @@ class IFormatter(object):
         elif isinstance(obj, tuple):
             item = OrderedDict([(k, v) for k, v in obj])
         else:
-            item = self.to_dict(obj, condition, selected_fields)
+            item = self.to_dict(obj, selected_fields)
 
         if item is None:
             return None
+
+        if self.MANDATORY_FIELDS:
+            missing_fields = set(self.MANDATORY_FIELDS) - set(item.keys())
+            if missing_fields:
+                raise MandatoryFieldsNotFound(missing_fields)
+
         formatted = self.format_dict(item=item)
         if formatted:
             self.after_format(formatted)
@@ -121,7 +135,7 @@ class IFormatter(object):
         if self.display_header:
             print string.encode('utf-8')
 
-    def to_dict(self, obj, condition=None, selected_fields=None):
+    def to_dict(self, obj, selected_fields=None):
         def iter_select(d):
             if selected_fields is None or '*' in selected_fields:
                 fields = d.iterkeys()
@@ -144,6 +158,4 @@ class IFormatter(object):
 
         fields_iterator = obj.iter_fields()
         d = OrderedDict(iter_decorate(fields_iterator))
-        if condition is not None and not condition.is_valid(d):
-            return None
-        return OrderedDict([(k, v) for k, v in iter_select(d)])
+        return OrderedDict((k, v) for k, v in iter_select(d))

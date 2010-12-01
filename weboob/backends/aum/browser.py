@@ -19,8 +19,12 @@
 import datetime
 import time
 import random
-import simplejson
 import urllib
+try:
+    import simplejson
+except ImportError:
+    # Python 2.6+ has a module similar to simplejson
+    import json as simplejson
 
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 from weboob.tools.parsers.html5libparser import Html5libParser
@@ -34,8 +38,10 @@ from weboob.backends.aum.pages.contact_thread import ContactThreadPage
 from weboob.backends.aum.pages.baskets import BasketsPage
 from weboob.backends.aum.pages.profile import ProfilePage
 from weboob.backends.aum.pages.search import SearchPage
-from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, RegisterWaitPage, RegisterConfirmPage, ShopPage
-from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, EditDescriptionPage, EditSexPage, EditPersonalityPage
+from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, \
+                                            RegisterWaitPage, RegisterConfirmPage, ShopPage, InvitePage
+from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, \
+                                           EditDescriptionPage, EditSexPage, EditPersonalityPage
 from weboob.backends.aum.pages.wait import WaitPage
 
 from weboob.capabilities.chat import ChatException, ChatMessage
@@ -54,6 +60,7 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/bans.php.*': BanPage,
              'http://www.adopteunmec.com/redirect.php\?action=login': RedirectPage,
              'http://www.adopteunmec.com/wait.php': WaitPage,
+             'http://www.adopteunmec.com/invits.php': InvitePage,
              'http://www.adopteunmec.com/register2.php': RegisterPage,
              'http://www.adopteunmec.com/register3.php.*': RegisterWaitPage,
              'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
@@ -81,6 +88,9 @@ class AuMBrowser(BaseBrowser):
         kwargs['parser'] = Html5libParser(api='dom')
         BaseBrowser.__init__(self, *args, **kwargs)
         self.my_id = 0
+
+    def id2url(self, _id):
+        return u'%s://%s/%s' % (self.PROTOCOL, self.DOMAIN, _id)
 
     def login(self):
         if not self.is_on_page(LoginPage):
@@ -150,13 +160,16 @@ class AuMBrowser(BaseBrowser):
             self.home()
         return self.page.get_my_name()
 
-    @pageaccess
     def get_my_id(self):
         if self.my_id:
             return self.my_id
 
-        if not self.is_on_page(HomePage):
-            self.home()
+        try:
+            if not self.is_on_page(HomePage):
+                self.home()
+        except AdopteWait:
+            self.location('/invits.php')
+
         self.my_id = self.page.get_my_id()
         return self.my_id
 
@@ -183,6 +196,12 @@ class AuMBrowser(BaseBrowser):
         if reload or not self.is_on_page(HomePage):
             self.home()
         return self.page.nb_available_charms()
+
+    @pageaccess
+    def nb_godchilds(self, reload=False):
+        if reload or not self.is_on_page(HomePage):
+            self.home()
+        return self.page.nb_godchilds()
 
     @pageaccess
     def get_baskets(self):
@@ -224,20 +243,19 @@ class AuMBrowser(BaseBrowser):
     @pageaccess
     def send_charm(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.warning('Charm: %s' % result)
+        self.logger.debug('Charm: %s' % result)
         return result.find('noMoreFlashes') < 0
 
     @pageaccess
     def add_basket(self, id):
         result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.warning('Basket: %s' % result)
+        self.logger.debug('Basket: %s' % result)
         # TODO check if it works (but it should)
         return True
 
     @pageaccess
     def deblock(self, id):
-        result = self.openurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id).read()
-        self.logger.warning('Deblock: %s' % result)
+        self.readurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id)
         return True
 
     @pageaccess
@@ -246,9 +264,7 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def rate(self, id, what, rating):
-        print 'rate "%s"' % id, what, rating
         result = self.openurl('http://www.adopteunmec.com/fajax_vote.php', 'member=%s&what=%s&rating=%s' % (id, what, rating)).read()
-        print result
         return float(result)
 
     @pageaccess
@@ -293,7 +309,7 @@ class AuMBrowser(BaseBrowser):
     def _get_chat_infos(self):
         try:
             json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
-        except simplejson.JSONDecodeError:
+        except ValueError:
             raise BrowserUnavailable()
 
         if json['error']:

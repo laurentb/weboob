@@ -30,5 +30,8 @@ class IConfig:
     def set(self, *args):
         raise NotImplementedError()
 
+    def delete(self, *args):
+        raise NotImplementedError()
+
     def get(self, *args, **kwargs):
         raise NotImplementedError()

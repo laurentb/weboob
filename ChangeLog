@@ -1,32 +1,104 @@
-Weboob 0.3.1 (2010-12-01)
+Weboob 0.4 (2010-12-01)
 	General
-	* Fix: error with logger on backends.
+	* New backend: Bouygues (CapMessagesPost).
+	* New backend: CanalPlus (CapVideo).
+	* New backend: CreditMutuel (CapBank).
+	* New backend: IPInfoDB (CapGeolocIp).
+	* New backend: IsoHunt (CapTorrent).
+	* New backend: KickAss (CapTorrent).
+	* New backend: PirateBay (CapTorrent).
+	* New backend: SFR (CapMessagesPost).
+	* New backend: SocieteGenerale (CapBank).
+	* New application: boobmsg (CapMessages, CapMessagesPost).
 
-	Backend: Boobank
+	Console applications:
+	* New command 'inspect' to open a graphical webkit browser with the
+	  current page (to help debugging). If it is not available, the page
+	  source is displayed on stdout.
+	* In question prompts, display a bullet list when there are too many
+	  choices.
+	* The --save-responses (-a) parameter stores now pages in a directory
+	  and save here a debug log and a list of visited URLs associated to the
+	  files.
+	* Fix unicode issues (#436).
+
+	Backend: AuM:
+	* Do not send baskets messages from left sluts.
+	* Anti-spam is updated.
+	* Raise an error when user is banned.
+	* New optimization PRIORITY_CONNECTION to create fake godchilds to allow
+	  user access to website between 18h and 1h. (#319)
+	* New optimization QUERIES_QUEUE to enqueue queries in case no charms are
+	  available.
+	* New backend parameter 'baskets' to enable getting baskets messages.
+	* In profiles, look for hidden photos.
+
+	Backend: BNPorc
 	* Fix: display of coming operations.
+	* Fix: check if the password rotation has been succeed.
 
 	Backend: BP
-	* Fix: initialization of backend.
+	* Backend has been rewritten to use BaseBrowser (#422).
+	* Fix: backend initialization.
 	* Fix: parsing of accounts.
+	* Fix: handle of transfers errors.
 
-	Backend: GeolocIp
-	* Fix: encoding error.
+	Backend: CrAgr
+	* Support of history operations.
+	* Support monay transfers.
+	* Choose the agency website in a list instead of giving URL.
+
+	Backend: DLFP
+	* Store datetime from newsfeed in the Thread object (#419).
+	* Now the session is closed at deinit.
+	* Fix: when posting a comment, send right parameters to immediately
+	  display it.
+
+	Backend: GeolocIP
+	* Use the website www.geolocip.com instead of www.geolocalise-ip.com. It
+	  prevents authentication and limits.
 
 	Backend: INA
-	* Fix: parse of date, duration and title.
-	* Fix: when there are no results.
-
-	Backend: Yahoo
-	* Fix: correctly handle errors.
+	* Fix: parsing date, duration and title.
 
 	Application: boobank-munin
-	* Save cache in .weboob/munin/.
-	* Fix: handle errors.
+	* Save cache in .weboob/munin/ and handle errors.
+	* New option 'boobank_cumulate' to display graph as areas instead of
+	  plots.
+
+	Application: havesex
+	* The optimizations management has been rewritten.
+	* New command 'query' to send a query to a contact (like a charm or a
+	  poke).
+	* Fix: do not exist after displaying a profile in interactive mode.
 
 	Application: monboob
-	* Fix: do not crash when domain contains a '@'.
-	* Fix: parsing of incoming mails when no charset is supplied.
-	* Fix: print errors when no message can be found.
+	* New option to pipe mails to an external process instead of sending it
+	  to a SMTP server.
+	* Fix: when domain in In-Reply-To contains a '@'.
+	* Fix: parsing incoming mails when no charset is supplied.
+	* Fix: unicode issues.
+
+	Application: QHaveSex
+	* Display URL of contacts.
+	* Contacts list is now sorted.
+	* Have a photos caroussel on profile page.
+
+	Application: weboob-config
+	* New command 'confirm'. It takes an email in stdin and call corresponding
+	  backend to go on the confirm address. It is useful to automatically
+	  confirm account register.
+
+	Application: weboorrents
+	* Ability to complete paths.
+
+	Core:
+	* The 'repeat' scheduler has been rewritten.
+	* Ability to cancel a scheduled task.
+	* Fix parsing of path-like in INI config.
+	* Conditions are now treated by BackendsCall instead by formatters (#372).
+	* Backends name can now contain only letters and digits.
+	* Add a tool to generate manpages.
 
 Weboob 0.3 (2010-11-01)
 	General

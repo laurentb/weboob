@@ -32,7 +32,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     LICENSE = 'GPLv3'
     DESCRIPTION = "4chan website"
     CONFIG = ValuesDict(Value('boards', label='Boards to fetch'))
@@ -69,7 +69,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
                               id=0, # root message
                               title=_thread.filename,
                               sender=_thread.author,
-                              receiver=None,
+                              receivers=None,
                               date=_thread.datetime,
                               parent=None,
                               content=_thread.text,
@@ -87,7 +87,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
                         id=comment.id,
                         title=_thread.filename,
                         sender=comment.author,
-                        receiver=None,
+                        receivers=None,
                         date=comment.datetime,
                         parent=parent,
                         content=comment.text,

@@ -35,6 +35,7 @@ class SearchPage(BasePage):
         try:
             ul = select(self.document.getroot(), 'div.container-videos ul', 1)
         except SelectElementException:
+            # It means there are no results.
             return
         for li in ul.findall('li'):
             id = re.sub(r'/video/(.+)\.html', r'\1', li.find('a').attrib['href'])

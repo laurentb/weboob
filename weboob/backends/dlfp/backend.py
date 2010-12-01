@@ -33,7 +33,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
@@ -49,6 +49,14 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
 
+    def deinit(self):
+        # don't need to logout if the browser hasn't been used.
+        if not self._browser:
+            return
+
+        with self.browser:
+            self.browser.close_session()
+
     def iter_threads(self):
         whats = set()
         if self.config['get_news']:
@@ -61,6 +69,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             for article in Newsfeed(what, url2id).iter_entries():
                 thread = Thread(article.id)
                 thread.title = article.title
+                if article.datetime:
+                    thread.date = article.datetime
                 yield thread
 
     def get_thread(self, id):
@@ -88,7 +98,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                               id=0, # root message
                               title=content.title,
                               sender=content.author,
-                              receiver=None,
+                              receivers=None,
                               date=thread.date, #TODO XXX WTF this is None
                               parent=None,
                               content=''.join([content.body, content.part2]),
@@ -113,7 +123,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                           id=com.id,
                           title=com.title,
                           sender=com.author,
-                          receiver=None,
+                          receivers=None,
                           date=com.date,
                           parent=parent,
                           content=com.body,

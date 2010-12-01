@@ -22,7 +22,7 @@ import gtk
 import webkit
 
 from weboob.tools.application.javascript import get_javascript
-from ..table import TableFormatter
+from ..table import HTMLTableFormatter
 
 
 __all__ = ['WebkitGtkFormatter']
@@ -40,12 +40,12 @@ class WebBrowser(gtk.Window):
         self.show_all()
 
 
-class WebkitGtkFormatter(TableFormatter):
+class WebkitGtkFormatter(HTMLTableFormatter):
     def __init__(self):
-        TableFormatter.__init__(self, return_only=True, result_funcname='get_html_string')
+        HTMLTableFormatter.__init__(self, return_only=True)
 
     def flush(self):
-        table_string = TableFormatter.flush(self)
+        table_string = HTMLTableFormatter.flush(self)
         js_filepaths = []
         js_filepaths.append(get_javascript('jquery'))
         js_filepaths.append(get_javascript('tablesorter'))

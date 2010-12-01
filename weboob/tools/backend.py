@@ -40,6 +40,10 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.set('backends', self.name, *args)
 
+    def delete(self, *args):
+        if self.storage:
+            return self.storage.delete('backends', self.name, *args)
+
     def get(self, *args, **kwargs):
         if self.storage:
             return self.storage.get('backends', self.name, *args, **kwargs)
@@ -96,7 +100,7 @@ class BaseBackend(object):
         return u"<Backend '%s'>" % self.name
 
     def __init__(self, weboob, name, config, storage, logger=None):
-        self.logger = getLogger(self.NAME, parent=logger)
+        self.logger = getLogger(name, parent=logger)
         self.weboob = weboob
         self.name = name
         self.lock = RLock()
@@ -148,6 +152,8 @@ class BaseBackend(object):
         else:
             return xdg.IconTheme.getIconPath(klass.NAME)
 
+    _browser = None
+
     @property
     def browser(self):
         """
@@ -156,7 +162,7 @@ class BaseBackend(object):
 
         Note that the 'create_default_browser' method is called to create it.
         """
-        if not hasattr(self, '_browser'):
+        if self._browser is None:
             self._browser = self.create_default_browser()
         return self._browser
 

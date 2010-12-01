@@ -37,6 +37,7 @@ class YamlConfig(IConfig):
     def load(self, default={}):
         self.values = default.copy()
 
+        logging.debug(u'Loading application configuration file: %s.' % self.path)
         try:
             with open(self.path, 'r') as f:
                 self.values = yaml.load(f)
@@ -93,3 +94,15 @@ class YamlConfig(IConfig):
                 raise ConfigError()
 
         v[args[-2]] = args[-1]
+
+    def delete(self, *args):
+        v = self.values
+        for a in args[:-1]:
+            try:
+                v = v[a]
+            except KeyError:
+                return
+            except TypeError:
+                raise ConfigError()
+
+        v.pop(args[-1], None)

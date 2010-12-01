@@ -17,6 +17,7 @@
 
 
 from weboob.backends.aum.pages.base import PageBase
+from weboob.tools.ordereddict import OrderedDict
 
 from copy import deepcopy
 from logging import warning
@@ -64,7 +65,7 @@ class FieldOld(FieldBase):
             print str(e)
 
 class FieldLocation(FieldBase):
-    location = re.compile('(.*) \(([0-9]{5})\), (.*)')
+    location = re.compile('(?P<location>.+?)( \((?P<zipcode>[0-9]{5})\))?, (?P<country>.*)')
 
     def __init__(self):
         FieldBase.__init__(self, '')
@@ -72,9 +73,8 @@ class FieldLocation(FieldBase):
         # TODO: determine distance, or something like
         m = self.location.match(value)
         if m:
-            d['location'] = m.group(1)
-            d['zipcode'] = int(m.group(2))
-            d['country'] = m.group(3)
+            for field in ('country', 'location', 'zipcode'):
+                d[field] = m.groupdict().get(field)
         else:
             warning('Unable to parse the location "%s"' % value)
             d['location'] = unicode(value)
@@ -124,51 +124,56 @@ class FieldParticularSignes(FieldBase):
                 d['freckle'] = True
 
 class ProfilePage(PageBase):
-    empty_table = {'details':      {'old':           0,
-                                    'birthday':      (0,0,0),
-                                    'zipcode':       0,
-                                    'location':      '',
-                                    'country':       '',
-                                    'eyes':          '',
-                                    'hairs':         [],
-                                    'height':        0,
-                                    'weight':        0,
-                                    'BMI':           0,
-                                    'fat':           '',
-                                    'from':          '',
-                                    'tatoos':        False,
-                                    'piercing':      False,
-                                    'freckle':       False,
-                                    'glasses':       False,
-                                    'job':           '',
-                                    'style':         '',
-                                    'alimentation':  '',
-                                    'alcool':        '',
-                                    'tabac':         '',
-                                   },
-                   'liking':       {'activities':    '',
-                                    'music':         [],
-                                    'cinema':        [],
-                                    'books':         [],
-                                    'tv':            [],
-                                   },
-                   'sex':          {'underwear':     [],
-                                    'top':           [],
-                                    'bottom':        [],
-                                    'interval':      '',
-                                    'favorite':      [],
-                                    'practices':     [],
-                                    'toys':          [],
-                                   },
-                   'personality':  {'snap':          '',
-                                    'exciting':      '',
-                                    'hate':          '',
-                                    'vices':         '',
-                                    'assets':        '',
-                                    'fantasies':     '',
-                                    'is':            [],
-                                   },
-                }
+    empty_table = OrderedDict((
+                    ('details',    OrderedDict((
+                                    ('old',           0),
+                                    ('birthday',      (0,0,0)),
+                                    ('zipcode',       0),
+                                    ('location',      ''),
+                                    ('country',       ''),
+                                    ('eyes',          ''),
+                                    ('hairs',         []),
+                                    ('height',        0),
+                                    ('weight',        0),
+                                    ('BMI',           0),
+                                    ('fat',           ''),
+                                    ('from',          ''),
+                                    ('tatoos',        False),
+                                    ('piercing',      False),
+                                    ('freckle',       False),
+                                    ('glasses',       False),
+                                    ('job',           ''),
+                                    ('style',         ''),
+                                    ('alimentation',  ''),
+                                    ('alcool',        ''),
+                                    ('tabac',         ''),
+                                   ))),
+                    ('liking',      OrderedDict((
+                                    ('activities',    ''),
+                                    ('music',         []),
+                                    ('cinema',        []),
+                                    ('books',         []),
+                                    ('tv',            []),
+                                   ))),
+                    ('sex',         OrderedDict((
+                                    ('underwear',     []),
+                                    ('top',           []),
+                                    ('bottom',        []),
+                                    ('interval',      ''),
+                                    ('favorite',      []),
+                                    ('practices',     []),
+                                    ('toys',          []),
+                                   ))),
+                   ('personality', OrderedDict((
+                                    ('snap',          ''),
+                                    ('exciting',      ''),
+                                    ('hate',          ''),
+                                    ('vices',         ''),
+                                    ('assets',        ''),
+                                    ('fantasies',     ''),
+                                    ('is',            []),
+                                   ))),
+                ))
 
     tables = {'tab_0': 'details',
               'tab_1': 'liking',
@@ -245,12 +250,13 @@ class ProfilePage(PageBase):
         self.id = 0
         self.photos = []
         self.status = ''
-        self.stats = {'score':   0,
-                      'visits':  0,
-                      'charms':  0,
-                      'baskets': 0,
-                      'mails':   0,
-                     }
+        self.stats = OrderedDict((
+                      ('score',   0),
+                      ('visits',  0),
+                      ('charms',  0),
+                      ('baskets', 0),
+                      ('mails',   0),
+                     ))
 
         divs = self.document.getElementsByTagName('td')
         for div in divs:
@@ -265,7 +271,8 @@ class ProfilePage(PageBase):
             if div.hasAttribute('background'):
                 m = self.PHOTO_REGEXP.match(div.getAttribute('background'))
                 if m:
-                    self.photos += [re.sub(u'thumb[0-2]_', u'image', div.getAttribute('background'))]
+                    self.photos.append(dict(url=re.sub(u'thumb[0-2]_', u'image', div.getAttribute('background')),
+                                            hidden=False))
             if div.hasAttribute('width') and str(div.getAttribute('width')) == '226':
                 trs = div.getElementsByTagName('tr')
                 for tr in trs:
@@ -302,6 +309,18 @@ class ProfilePage(PageBase):
                         break
             if self.id:
                 break
+
+        if len(self.photos) == 0:
+            return
+
+        # find hidden photos.
+        photo_regex = re.compile('(?P<base_url>http://.+\.adopteunmec\.com/.+/)image(?P<id>.+)\.jpg')
+        photo_max_id = max(int(photo_regex.match(photo['url']).groupdict()['id']) for photo in self.photos)
+        base_url = photo_regex.match(self.photos[0]['url']).groupdict()['base_url']
+        for id in xrange(1, photo_max_id + 1):
+            url = '%simage%s.jpg' % (base_url, id)
+            if not url in [photo['url'] for photo in self.photos]:
+                self.photos.append(dict(url=url, hidden=True))
 
     def parse_description(self, div):
         # look for description
@@ -404,7 +423,7 @@ class ProfilePage(PageBase):
         if self.photos:
             body += u'\nPhotos:'
             for photo in self.photos:
-                body += u'\n\t\t%s' % unicode(photo)
+                body += u'\n\t\t%s%s' % (unicode(photo['url']), (' (hidden)' if photo['hidden'] else ''))
         body += u'\nStats:'
         for label, value in self.get_stats().iteritems():
             body += u'\n\t\t%-15s %s' % (label + ':', value)

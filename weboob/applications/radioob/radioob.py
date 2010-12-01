@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import sys
+
 from weboob.capabilities.radio import ICapRadio
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.media_player import MediaPlayer
+from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
@@ -27,6 +29,8 @@ __all__ = ['Radioob']
 
 
 class RadioListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'description')
+
     count = 0
 
     def flush(self):
@@ -45,9 +49,10 @@ class RadioListFormatter(IFormatter):
             result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
         return result
 
+
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
@@ -57,10 +62,11 @@ class Radioob(ReplApplication):
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
-        try:
-            self.player = MediaPlayer()
-        except OSError:
-            self.player = None
+        self.player = MediaPlayer(self.logger)
+
+    def main(self, argv):
+        self.load_config()
+        return ReplApplication.main(self, argv)
 
     def _get_radio(self, _id, fields=None):
         if self.interactive:
@@ -98,15 +104,16 @@ class Radioob(ReplApplication):
 
         radio = self._get_radio(_id, ['streams'])
         if not radio:
-            print 'Radio not found: ', _id
+            print >>sys.stderr, 'Radio not found: ' % _id
             return
-
-        if self.player:
-            self.player.play(radio.streams[0])
-        else:
-            print 'No player has been found on this system.'
-            print 'The URL of this radio is:'
-            print '  %s' % radio.streams[0].url
+        try:
+            player_name = self.config.get('media_player')
+            if not player_name:
+                self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
+                                  'configuration file.')
+            self.player.play(radio.streams[0], player_name=player_name)
+        except (InvalidMediaPlayer, MediaPlayerNotFound), e:
+            print '%s\nVideo URL: %s' % (e, radio.streams[0].url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -125,7 +132,7 @@ class Radioob(ReplApplication):
 
         radio = self._get_radio(_id)
         if not radio:
-            print 'radio not found:', _id
+            print 'Radio not found:', _id
             return
         self.format(radio)
         self.flush()

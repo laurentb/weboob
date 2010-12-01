@@ -41,6 +41,7 @@ class ContactPhoto(CapBaseObject):
         self.add_field('data', str)
         self.add_field('thumbnail_url', basestring)
         self.add_field('thumbnail_data', basestring)
+        self.add_field('hidden', bool, False)
 
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
@@ -63,6 +64,7 @@ class Contact(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.add_field('name', basestring, name)
         self.add_field('status', int, status)
+        self.add_field('url', basestring)
         self.add_field('status_msg', basestring)
         self.add_field('summary', basestring)
         self.add_field('photos', dict, OrderedDict())
@@ -75,6 +77,14 @@ class Contact(CapBaseObject):
         photo = self.photos[name]
         for key, value in kwargs.iteritems():
             setattr(photo, key, value)
+
+class QueryError(Exception):
+    pass
+
+class Query(CapBaseObject):
+    def __init__(self, id, message):
+        CapBaseObject.__init__(self, id)
+        self.add_field('message', basestring, message)
 
 class ICapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
@@ -104,3 +114,13 @@ class ICapContact(IBaseCap):
             return l[0]
         except IndexError:
             return None
+
+    def send_query(self, id):
+        """
+        Send a query to a contact
+
+        @param id  the ID of contact
+        @return  a Query object
+        @except QueryError
+        """
+        raise NotImplementedError()

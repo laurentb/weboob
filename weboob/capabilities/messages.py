@@ -34,7 +34,7 @@ class Message(CapBaseObject):
     def __init__(self, thread, id,
                        title=NotLoaded,
                        sender=NotLoaded,
-                       receiver=NotLoaded,
+                       receivers=NotLoaded,
                        date=None,
                        parent=NotLoaded,
                        content=NotLoaded,
@@ -45,7 +45,7 @@ class Message(CapBaseObject):
         self.add_field('thread', Thread, thread)
         self.add_field('title', basestring, title)
         self.add_field('sender', basestring, sender)
-        self.add_field('receiver', basestring, receiver)
+        self.add_field('receivers', list, receivers)
         self.add_field('date', datetime.datetime, date)
         self.add_field('parent', Message, parent)
         self.add_field('content', basestring, content)
@@ -69,7 +69,7 @@ class Message(CapBaseObject):
 
     @property
     def full_id(self):
-        return '%s.%s' % (self.thread.id, self.id)
+        return '%s.%s' % (self.thread.id, self.id) if self.thread else self.id
 
     @property
     def full_parent_id(self):
@@ -80,11 +80,14 @@ class Message(CapBaseObject):
         elif self._parent_id is NotLoaded:
             return NotLoaded
         else:
-            return '%s.%s' % (self.thread.id, self._parent_id)
+            return '%s.%s' % (self.thread.id, self._parent_id) if self.thread else self._parent_id
 
     def __eq__(self, msg):
-        return unicode(self.thread.id) == unicode(msg.thread.id) and \
-               unicode(self.id) == unicode(msg.id)
+        if self.thread:
+            return unicode(self.thread.id) == unicode(msg.thread.id) and \
+                   unicode(self.id) == unicode(msg.id)
+        else:
+            return unicode(self.id) == unicode(msg.id)
 
     def __repr__(self):
         result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
@@ -92,6 +95,9 @@ class Message(CapBaseObject):
         return result.encode('utf-8')
 
 class Thread(CapBaseObject):
+    IS_THREADS =    0x001
+    IS_DISCUSSION = 0x002
+
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('root', Message)
@@ -99,6 +105,7 @@ class Thread(CapBaseObject):
         self.add_field('date', datetime.datetime)
         self.add_field('nb_messages', int)
         self.add_field('nb_unread', int)
+        self.add_field('flags', int, self.IS_THREADS)
 
     def iter_all_messages(self):
         if self.root:
@@ -112,6 +119,7 @@ class Thread(CapBaseObject):
                 yield child
                 for m in self._iter_all_messages(child):
                     yield m
+
 
 class ICapMessages(IBaseCap):
     def iter_threads(self):
@@ -153,7 +161,7 @@ class CantSendMessage(Exception):
 class ICapMessagesPost(IBaseCap):
     def post_message(self, message):
         """
-        Post a reply.
+        Post a message.
 
         @param message  Message object
         @return

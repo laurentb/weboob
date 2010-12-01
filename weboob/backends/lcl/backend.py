@@ -30,12 +30,12 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
-    CONFIG = ValuesDict(Value('login',    label='Account ID'),
+    CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,6}\w$'),
                         Value('password', label='Password of account', masked=True),
-                        Value('agency',   label='Agency code', regexp='^\d{1,3}$'))
+                        Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
@@ -46,16 +46,13 @@ class LCLBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        try:
-            _id = long(_id)
-        except ValueError:
+        if not _id.isdigit():
             raise AccountNotFound()
+        account = self.browser.get_account(_id)
+        if account:
+            return account
         else:
-            account = self.browser.get_account(_id)
-            if account:
-                return account
-            else:
-                raise AccountNotFound()
+            raise AccountNotFound()
 
     def iter_operations(self, account):
         """ TODO Not supported yet """

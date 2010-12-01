@@ -47,6 +47,5 @@ class Html5libParser(HTMLParser, IParser):
     def parse(self, data, encoding):
         return HTMLParser.parse(self, data, encoding=encoding)
 
-    def tostring(self, elem):
-        # TODO
-        raise NotImplementedError()
+    def tostring(self, element):
+        return element.toxml()

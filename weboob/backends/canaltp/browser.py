@@ -18,6 +18,7 @@
 
 from datetime import datetime, date, time
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.parsers.lxmlparser import SelectElementException
 from weboob.tools.misc import to_unicode
 
 class CanalTP(BaseBrowser):
@@ -43,6 +44,8 @@ class CanalTP(BaseBrowser):
         result = result
         departure = ''
         for line in result.split('&'):
+            if not '=' in line:
+                raise SelectElementException('Unable to parse result: %s' % line)
             key, value = line.split('=', 1)
             if key == 'nomgare':
                 departure = value

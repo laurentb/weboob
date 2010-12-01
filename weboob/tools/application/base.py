@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import sys, os
 import logging
 import optparse
 from optparse import OptionGroup, OptionParser
+import os
+import sys
+import tempfile
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core import Weboob, CallErrors
@@ -28,7 +30,7 @@ from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
 
 
-__all__ = ['BackendNotFound', 'BaseApplication', 'ConfigError']
+__all__ = ['BackendNotFound', 'BaseApplication']
 
 
 class BackendNotFound(Exception):
@@ -43,6 +45,10 @@ class ApplicationStorage(object):
     def set(self, *args):
         if self.storage:
             return self.storage.set('applications', self.name, *args)
+
+    def delete(self, *args):
+        if self.storage:
+            return self.storage.delete('applications', self.name, *args)
 
     def get(self, *args, **kwargs):
         if self.storage:
@@ -209,7 +215,7 @@ class BaseApplication(object):
             names = self.options.backends.split(',')
         loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
         if not loaded:
-            logging.warning(u'No backend loaded')
+            logging.info(u'No backend loaded')
         return loaded
 
     def _get_optparse_version(self):
@@ -251,6 +257,25 @@ class BaseApplication(object):
         else:
             return self._do_complete_obj(backend, selected_fields, res)
 
+    def bcall_error_handler(self, backend, error, backtrace):
+        """
+        Handler for an exception inside the CallErrors exception.
+
+        This method can be overrided to support more exceptions types.
+        """
+        print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+        if logging.root.level == logging.DEBUG:
+            print >>sys.stderr, backtrace
+
+    def bcall_errors_handler(self, errors):
+        """
+        Handler for the CallErrors exception.
+        """
+        for backend, error, backtrace in errors.errors:
+            self.bcall_error_handler(backend, error, backtrace)
+        if logging.root.level != logging.DEBUG:
+            print >>sys.stderr, 'Use --debug option to print backtraces.'
+
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
 
@@ -263,14 +288,7 @@ class BaseApplication(object):
             print ' '.join(items)
             sys.exit(0)
 
-        if self.options.save_responses:
-            from weboob.tools.browser import BaseBrowser
-            BaseBrowser.SAVE_RESPONSES = True
-
-        for handler in logging.root.handlers:
-            logging.root.removeHandler(handler)
-
-        if self.options.debug:
+        if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
         elif self.options.verbose:
             level = logging.INFO
@@ -281,38 +299,40 @@ class BaseApplication(object):
 
         logging.root.setLevel(level)
 
+        if self.options.save_responses:
+            responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
+            print 'Debug data will be saved in this directory: %s' % responses_dirname
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.SAVE_RESPONSES = True
+            BaseBrowser.responses_dirname = responses_dirname
+            self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))
+
         # file logger
         if self.options.logging_file:
-            try:
-                stream = open(self.options.logging_file, 'w')
-            except IOError, e:
-                self.logger.error('Unable to create the logging file: %s' % e)
-                sys.exit(1)
-            else:
-                format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
-                handler = logging.StreamHandler(stream)
-                handler.setLevel(level)
-                handler.setFormatter(logging.Formatter(format))
-                logging.root.addHandler(handler)
+            self.add_logging_file_handler(self.options.logging_file)
         else:
             # stdout logger
             format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(createColoredFormatter(sys.stdout, format))
-            handler.setLevel(level)
             logging.root.addHandler(handler)
-
-        #log_format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
-        #if self.options.logging_file:
-        #    print self.options.logging_file
-        #    logging.basicConfig(filename=self.options.logging_file, level=level, format=log_format)
-        #else:
-        #    logging.basicConfig(stream=sys.stdout, level=level, format=log_format)
 
         self._handle_options()
         self.handle_application_options()
 
         return args
+
+    def add_logging_file_handler(self, filename):
+        try:
+            stream = open(filename, 'w')
+        except IOError, e:
+            self.logger.error('Unable to create the logging file: %s' % e)
+            sys.exit(1)
+        else:
+            format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+            handler = logging.StreamHandler(stream)
+            handler.setFormatter(logging.Formatter(format))
+            logging.root.addHandler(handler)
 
     @classmethod
     def run(klass, args=None):
@@ -333,10 +353,10 @@ class BaseApplication(object):
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
         app = klass()
-        args = app.parse_args(args)
 
         try:
             try:
+                args = app.parse_args(args)
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
                 print 'Program killed by SIGINT'
@@ -347,11 +367,7 @@ class BaseApplication(object):
                 print 'Configuration error: %s' % e
                 sys.exit(1)
             except CallErrors, e:
-                for backend, error, backtrace in e.errors:
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                    if logging.root.level == logging.DEBUG:
-                        print >>sys.stderr, backtrace
-                if logging.root.level != logging.DEBUG:
-                    print >>sys.stderr, 'Use --debug option to print backtraces.'
+                app.bcall_errors_handler(e)
+                sys.exit(1)
         finally:
             app.deinit()

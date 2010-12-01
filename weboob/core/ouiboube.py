@@ -21,7 +21,7 @@ from __future__ import with_statement
 import os
 
 from weboob.core.bcall import BackendsCall
-from weboob.core.modules import ModulesLoader
+from weboob.core.modules import ModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
@@ -95,7 +95,11 @@ class Weboob(object):
                names is not None and instance_name not in names or \
                modules is not None and module_name not in modules:
                 continue
-            module = self.modules_loader.get_or_load_module(module_name)
+            module = None
+            try:
+                module = self.modules_loader.get_or_load_module(module_name)
+            except ModuleLoadError, e:
+                self.logger.error(e)
             if module is None:
                 self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
                                      'configuration file, but was not found. '
@@ -132,8 +136,20 @@ class Weboob(object):
 
         return unloaded
 
-    def get_backend(self, name):
-        return self.backend_instances[name]
+    def get_backend(self, name, **kwargs):
+        """
+        Get a backend from its name.
+
+        It raises a KeyError if not found. If you set the 'default' parameter,
+        the default value is returned instead.
+        """
+        try:
+            return self.backend_instances[name]
+        except KeyError:
+            if 'default' in kwargs:
+                return kwargs['default']
+            else:
+                raise
 
     def count_backends(self):
         return len(self.backend_instances)
@@ -158,31 +174,37 @@ class Weboob(object):
         threads.
 
         This function has two modes:
+
         - If 'function' is a string, it calls the method with this name on
           each backends with the specified arguments;
         - If 'function' is a callable, it calls it in a separated thread with
-          the locked backend instance at first arguments, and *args and
-          **kwargs.
+          the locked backend instance at first arguments, and \*args and
+          \*\*kwargs.
 
         @param function  backend's method name, or callable object
         @param backends  list of backends to iterate on
         @param caps  iterate on backends with this caps
-        @return  an iterator of results
+        @param condition  a condition to validate to keep the result
+        @return  the BackendsCall object (iterable)
         """
         backends = self.backend_instances.values()
         _backends = kwargs.pop('backends', None)
         if _backends is not None:
             if isinstance(_backends, BaseBackend):
                 backends = [_backends]
-            elif isinstance(_backends, basestring) and _backends:
-                backends = [self.backend_instances[_backends]]
+            elif isinstance(_backends, basestring):
+                if len(_backends) > 0:
+                    try:
+                        backends = [self.backend_instances[_backends]]
+                    except (ValueError,KeyError):
+                        backends = []
             elif isinstance(_backends, (list, tuple, set)):
                 backends = []
                 for backend in _backends:
                     if isinstance(backend, basestring):
                         try:
                             backends.append(self.backend_instances[backend])
-                        except ValueError:
+                        except (ValueError,KeyError):
                             pass
                     else:
                         backends.append(backend)
@@ -192,14 +214,22 @@ class Weboob(object):
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
             backends = [backend for backend in backends if backend.has_caps(caps)]
+        condition = kwargs.pop('condition', None)
 
-        return BackendsCall(backends, function, *args, **kwargs)
+        # The return value MUST BE the BackendsCall instance. Please never iterate
+        # here on this object, because caller might want to use other methods, like
+        # wait() on callback_thread().
+        # Thanks a lot.
+        return BackendsCall(backends, condition, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):
         return self.scheduler.schedule(interval, function, *args)
 
     def repeat(self, interval, function, *args):
         return self.scheduler.repeat(interval, function, *args)
+
+    def cancel(self, ev):
+        return self.scheduler.cancel(ev)
 
     def want_stop(self):
         return self.scheduler.want_stop()

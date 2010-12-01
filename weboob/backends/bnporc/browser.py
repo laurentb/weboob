@@ -78,6 +78,11 @@ class BNPorc(BaseBrowser):
         assert self.is_on_page(pages.ChangePasswordPage)
 
         self.page.change_password(self.password, new_password)
+
+        if not self.is_on_page(pages.ConfirmPage):
+            self.logger.error('Oops, unable to change password')
+            return
+
         self.password, self.rotating_password = (new_password, self.password)
 
         if self.password_changed_cb:
@@ -104,14 +109,14 @@ class BNPorc(BaseBrowser):
         return self.page.get_list()
 
     def get_account(self, id):
-        assert isinstance(id, (int, long))
+        assert isinstance(id, basestring)
 
         if not self.is_on_page(pages.AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
 
         l = self.page.get_list()
         for a in l:
-            if long(a.id) == id:
+            if a.id == id:
                 return a
 
         return None

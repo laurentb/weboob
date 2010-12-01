@@ -42,7 +42,7 @@ class Account(CapBaseObject):
         self.link_id = None
 
     def __repr__(self):
-        return u"<Account id='%s' label='%s'>" % (self.id, self.label)
+        return u"<Account id=%r label=%r>" % (self.id, self.label)
 
 
 class Operation(CapBaseObject):

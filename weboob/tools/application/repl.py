@@ -28,13 +28,16 @@ from copy import deepcopy
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.capabilities.base import FieldNotFound
 from weboob.core import CallErrors
+from weboob.core.modules import ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig, BackendAlreadyExists
+from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
+from weboob.tools.misc import to_unicode
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
-from .results import ResultsCondition, ResultsConditionException
+from .results import ResultsCondition, ResultsConditionError
 
 
 __all__ = ['ReplApplication', 'NotEnoughArguments']
@@ -54,8 +57,8 @@ class ReplApplication(Cmd, BaseApplication):
     DISABLE_REPL = False
 
     # shell escape strings
-    BOLD   = '[37;1m'
-    NC     = '[37;0m'    # no color
+    BOLD   = '[1m'
+    NC     = '[0m'    # no color
 
     EXTRA_FORMATTERS = {}
     DEFAULT_FORMATTER = 'multiline'
@@ -80,7 +83,7 @@ class ReplApplication(Cmd, BaseApplication):
                                 'Type "help" to display available commands.',
                                 '',
                                ))
-        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit']
+        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit']
         self.hidden_commands = set(['EOF'])
 
         self.formatters_loader = FormattersLoader()
@@ -124,20 +127,6 @@ class ReplApplication(Cmd, BaseApplication):
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
         self._parser.add_option_group(formatting_options)
 
-        try:
-            import readline
-        except ImportError:
-            pass
-        else:
-            history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
-            try:
-                readline.read_history_file(history_filepath)
-            except IOError:
-                pass
-            def savehist():
-                readline.write_history_file(history_filepath)
-            atexit.register(savehist)
-
         self._interactive = False
         self.enabled_backends = set()
 
@@ -155,12 +144,16 @@ class ReplApplication(Cmd, BaseApplication):
         return True
 
     def register_backend(self, name, ask_add=True):
-        backend = self.weboob.modules_loader.get_or_load_module(name)
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(name)
+        except ModuleLoadError, e:
+            backend = None
+
         if not backend:
             print 'Backend "%s" does not exist.' % name
             return None
 
-        if not backend.has_caps(ICapAccount):
+        if not backend.has_caps(ICapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
             print 'You can\'t register a new account with %s' % name
             return None
 
@@ -210,14 +203,20 @@ class ReplApplication(Cmd, BaseApplication):
             params = {}
 
         if not edit:
-            backend = self.weboob.modules_loader.get_or_load_module(name)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(name)
+            except ModuleLoadError:
+                backend = None
         else:
             bname, items = self.weboob.backends_config.get_backend(name)
-            backend = self.weboob.modules_loader.get_or_load_module(bname)
+            try:
+                backend = self.weboob.modules_loader.get_or_load_module(bname)
+            except ModuleLoadError:
+                backend = None
             items.update(params)
             params = items
         if not backend:
-            print 'Backend "%s" does not exist.' % name
+            print 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
             return None
 
         # ask for params non-specified on command-line arguments
@@ -241,7 +240,7 @@ class ReplApplication(Cmd, BaseApplication):
         except BackendAlreadyExists:
             print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             while self.ask('Add new instance of "%s" backend?' % name, default=False):
-                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=u'^[\d\w_-]+$')
+                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=r'^[\w\-_]+$')
                 try:
                     self.weboob.backends_config.add_backend(new_name, name, params)
                     print 'Backend "%s" successfully added.' % new_name
@@ -296,7 +295,7 @@ class ReplApplication(Cmd, BaseApplication):
                                 loaded = 2
                             else:
                                 loaded += 1
-                    print '%s%d)%s [%s] %s%-15s%s (%s)' % (self.BOLD, len(backends), self.NC, loaded,
+                    print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
                                                            self.BOLD, name, self.NC, backend.description)
                 print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
                 r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
@@ -334,8 +333,12 @@ class ReplApplication(Cmd, BaseApplication):
             logging.error(e)
 
     def parseargs(self, line, nb, req_n=None):
-        args = line.strip().split(' ', nb - 1)
-        if req_n is not None and len(args) < req_n:
+        if line.strip() == '':
+            # because ''.split() = ['']
+            args = []
+        else:
+            args = line.strip().split(' ', nb - 1)
+        if req_n is not None and (len(args) < req_n):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
         if len(args) < nb:
@@ -351,10 +354,59 @@ class ReplApplication(Cmd, BaseApplication):
             stop = None
         return stop
 
+    def bcall_error_handler(self, backend, error, backtrace):
+        """
+        Handler for an exception inside the CallErrors exception.
+
+        This method can be overrided to support more exceptions types.
+        """
+        if isinstance(error, BrowserIncorrectPassword):
+            msg = unicode(error)
+            if not msg:
+                msg = 'invalid login/password.'
+            print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+            if self.ask('Do you want to reconfigure this backend?', default=True):
+                self.unload_backends(names=[backend.name])
+                self.edit_backend(backend.name)
+                self.load_backends(names=[backend.name])
+        elif isinstance(error, BrowserUnavailable):
+            msg = unicode(error)
+            if not msg:
+                msg = 'website is unavailable.'
+            print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
+        elif isinstance(error, ResultsConditionError):
+            print >>sys.stderr, u'Error(%s): condition error: %s' % (backend.name, error)
+        elif isinstance(error, NotImplementedError):
+            print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
+            print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
+            print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
+        else:
+            print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+            if logging.root.level == logging.DEBUG:
+                print >>sys.stderr, backtrace
+            else:
+                return True
+
+    def bcall_errors_handler(self, errors):
+        """
+        Handler for the CallErrors exception.
+        """
+        ask_debug_mode = False
+        for backend, error, backtrace in errors.errors:
+            if self.bcall_error_handler(backend, error, backtrace):
+                ask_debug_mode = True
+
+        if ask_debug_mode:
+            if self.interactive:
+                print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
+            else:
+                print >>sys.stderr, 'Use --debug option to print backtraces.'
+
     def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.
         """
+        line = to_unicode(line)
         cmd, arg, ignored = self.parseline(line)
 
         # Set the right formatter for the command.
@@ -367,39 +419,9 @@ class ReplApplication(Cmd, BaseApplication):
         try:
             return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
-            ask_debug_mode = False
-            for backend, error, backtrace in e.errors:
-                if isinstance(error, BrowserIncorrectPassword):
-                    msg = unicode(error)
-                    if not msg:
-                        msg = 'invalid login/password.'
-                    print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
-                    if self.ask('Do you want to reconfigure this backend?', default=True):
-                        self.unload_backends(names=[backend.name])
-                        self.edit_backend(backend.name)
-                        self.load_backends(names=[backend.name])
-                elif isinstance(error, BrowserUnavailable):
-                    msg = unicode(error)
-                    if not msg:
-                        msg = 'website is unavailable.'
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, msg)
-                elif isinstance(error, NotImplementedError):
-                    print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
-                    print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
-                    print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
-                else:
-                    print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                    if logging.root.level == logging.DEBUG:
-                        print >>sys.stderr, backtrace
-                    else:
-                        ask_debug_mode = True
-            if ask_debug_mode:
-                if self.interactive:
-                    print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
-                else:
-                    print >>sys.stderr, 'Use --debug option to print backtraces.'
+            self.bcall_errors_handler(e)
         except NotEnoughArguments, e:
-            print >>sys.stderr, 'Error: no enough arguments.'
+            print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
         except (KeyboardInterrupt,EOFError):
             # ^C during a command process doesn't exit application.
             print '\nAborted.'
@@ -420,6 +442,20 @@ class ReplApplication(Cmd, BaseApplication):
             self._parser.print_help()
             self._parser.exit()
         else:
+            try:
+                import readline
+            except ImportError:
+                pass
+            else:
+                history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
+                try:
+                    readline.read_history_file(history_filepath)
+                except IOError:
+                    pass
+                def savehist():
+                    readline.write_history_file(history_filepath)
+                atexit.register(savehist)
+
             self.intro += '\nLoaded backends: %s\n' % ', '.join(sorted(backend.name for backend in self.weboob.iter_backends()))
             self._interactive = True
             self.cmdloop()
@@ -430,6 +466,7 @@ class ReplApplication(Cmd, BaseApplication):
         """
         backends = kwargs.pop('backends', None)
         kwargs['backends'] = self.enabled_backends if backends is None else backends
+        kwargs['condition'] = self.condition
         fields = self.selected_fields
         if fields == '$direct':
             fields = []
@@ -547,6 +584,21 @@ class ReplApplication(Cmd, BaseApplication):
     def completenames(self, text, *ignored):
         return [name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
 
+    def path_completer(self, arg):
+        dirname = os.path.dirname(arg)
+        try:
+            childs = os.listdir(dirname or '.')
+        except OSError:
+            return ()
+        l = []
+        for child in childs:
+            path = os.path.join(dirname, child)
+            if os.path.isdir(path):
+                child += '/'
+            l.append(child)
+        return l
+
+
     def complete(self, text, state):
         """
         Override of the Cmd.complete() method to:
@@ -564,9 +616,13 @@ class ReplApplication(Cmd, BaseApplication):
             self.completion_matches = [choice for choice in self.completion_matches if choice.startswith(text)]
 
         try:
-            return '%s ' % self.completion_matches[state]
+            match = self.completion_matches[state]
         except IndexError:
             return None
+        else:
+            if match[-1] != '/':
+                return '%s ' % match
+            return match
 
     def do_backends(self, line):
         """
@@ -747,8 +803,8 @@ class ReplApplication(Cmd, BaseApplication):
             else:
                 try:
                     self.condition = ResultsCondition(line)
-                except ResultsConditionException, e:
-                    print e
+                except ResultsConditionError, e:
+                    print >>sys.stderr, '%s' % e
         else:
             if self.condition is None:
                 print 'No condition is set.'
@@ -919,10 +975,24 @@ class ReplApplication(Cmd, BaseApplication):
         if v.id:
             question = u'[%s] %s' % (v.id, question)
 
+        aliases = {}
         if isinstance(v, ValueBool):
             question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
         elif v.choices:
-            question = u'%s (%s)' % (question, '/'.join([(s.upper() if s == v.default else s) for s in (v.choices.iterkeys())]))
+            tiny = True
+            for key in v.choices.iterkeys():
+                if len(key) > 5 or ' ' in key:
+                    tiny = False
+                    break
+
+            if tiny:
+                question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
+                                                            for s in (v.choices.iterkeys())))
+            else:
+                for n, (key, value) in enumerate(v.choices.iteritems()):
+                    print '%s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
+                    aliases[str(n + 1)] = key
+                question = u'%s (choose in list)' % question
         elif default not in (None, '') and not v.masked:
             question = u'%s [%s]' % (question, v.default)
 
@@ -932,11 +1002,24 @@ class ReplApplication(Cmd, BaseApplication):
         question += ': '
 
         while True:
-            line = getpass.getpass(question) if v.masked else raw_input(question)
+            if v.masked:
+                line = getpass.getpass(question)
+            else:
+                self.stdout.write(question)
+                self.stdout.flush()
+                line = self.stdin.readline()
+                if len(line) == 0:
+                    raise EOFError()
+                else:
+                    line = line.rstrip('\r\n')
+
             if not line and v.default is not None:
                 line = v.default
             if isinstance(line, str):
                 line = line.decode('utf-8')
+
+            if line in aliases:
+                line = aliases[line]
 
             try:
                 v.set_value(line)
@@ -980,11 +1063,11 @@ class ReplApplication(Cmd, BaseApplication):
         if fields in ('$direct', '$full'):
             fields = None
         try:
-            self.formatter.format(obj=result, selected_fields=fields, condition=self.condition)
+            self.formatter.format(obj=result, selected_fields=fields)
         except FieldNotFound, e:
             print e
-        except ResultsConditionException, e:
-            print e
+        except MandatoryFieldsNotFound, e:
+            print '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
 
     def flush(self):
         self.formatter.flush()
@@ -995,3 +1078,40 @@ class ReplApplication(Cmd, BaseApplication):
         except ValueError:
             backend_name = None
         return _id, backend_name
+
+    def do_inspect(self, line):
+        """
+        inspect BACKEND_NAME
+
+        Display the HTML string of the current page of the specified backend's browser.
+
+        If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
+        """
+        if len(self.enabled_backends) == 1:
+            backend = list(self.enabled_backends)[0]
+        else:
+            backend_name = line.strip()
+            if not backend_name:
+                print 'Please specify a backend name.'
+                return
+            backends = set(backend for backend in self.enabled_backends if backend.name == backend_name)
+            if not backends:
+                print 'No backend found for "%s"' % backend_name
+                return
+            backend = backends.pop()
+        if not hasattr(backend, '_browser'):
+            print 'No browser created for backend "%s" yet. Please invoke a command before.' % backend.name
+            return
+        browser = backend._browser
+        data = browser.parser.tostring(browser.page.document)
+        try:
+            from webkit_mechanize_browser.browser import Browser
+            from weboob.tools.inspect import Page
+        except ImportError:
+            print data
+        else:
+            page = Page(core=browser, data=data, uri=browser._response.geturl())
+            browser = Browser(view=page.view)
+
+    def complete_inspect(self, text, line, begidx, endidx):
+        return sorted(set(backend.name for backend in self.enabled_backends))

@@ -31,6 +31,9 @@ class IStorage:
     def set(self, what, name, *args):
         raise NotImplementedError()
 
+    def delete(self, what, name, *args):
+        raise NotImplementedError()
+
     def get(self, what, name, *args, **kwargs):
         raise NotImplementedError()
 
@@ -55,6 +58,9 @@ class StandardStorage(IStorage):
 
     def set(self, what, name, *args):
         self.config.set(what, name, *args)
+
+    def delete(self, what, name, *args):
+        self.config.delete(what, name, *args)
 
     def get(self, what, name, *args, **kwargs):
         return self.config.get(what, name, *args, **kwargs)

@@ -23,6 +23,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
 from weboob.tools.application.qt import QtDo
+from weboob.tools.misc import to_unicode
 
 from .ui.messages_manager_ui import Ui_MessagesManager
 
@@ -159,7 +160,7 @@ class MessagesManager(QWidget):
         if message.flags & message.IS_HTML:
             content = message.content
         else:
-            content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
 
         extra = u''
         if message.flags & message.IS_NOT_ACCUSED:
@@ -219,7 +220,7 @@ class MessagesManager(QWidget):
                     id=0,
                     title=title,
                     sender=None,
-                    receiver=None,
+                    receivers=None,
                     content=text,
                     parent=self.message,
                     flags=flags)
@@ -242,9 +243,9 @@ class MessagesManager(QWidget):
         self.refreshThreadMessages(backend.name, self.thread.id)
 
     def _postReply_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
-            content += '\n%s\n' % backtrace
+            content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.ui.backendsList.setEnabled(True)

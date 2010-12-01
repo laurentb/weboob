@@ -40,7 +40,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     DESCRIPTION = 'Youtube videos website'
     LICENSE = 'GPLv3'
     BROWSER = YoutubeBrowser
@@ -62,6 +62,8 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         while True:
             query = gdata.youtube.service.YouTubeVideoQuery()
             if pattern is not None:
+                if isinstance(pattern, unicode):
+                    pattern = pattern.encode('utf-8')
                 query.vq = pattern
             query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
             query.racy = 'include' if nsfw else 'exclude'

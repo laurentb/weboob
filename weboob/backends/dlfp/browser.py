@@ -57,10 +57,26 @@ class DLFP(BaseBrowser):
     def post_reply(self, thread, reply_id, title, message, is_html=False):
         content_type = id2contenttype(thread)
         thread_id = id2threadid(thread)
+        thread_url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread))
         reply_id = int(reply_id)
 
         if not content_type or not thread_id:
             return False
+
+        url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL,
+                                                              self.DOMAIN,
+                                                              thread_id,
+                                                              reply_id,
+                                                              content_type)
+
+        timestamp = ''
+        if content_type == 1:
+            res = self.openurl(url).read()
+            const = 'name="timestamp" value="'
+            i = res.find(const)
+            if i >= 0:
+                res = res[i + len(const):]
+                timestamp = res[:res.find('"/>')]
 
         if is_html:
             format = 1
@@ -70,9 +86,9 @@ class DLFP(BaseBrowser):
         # Define every data fields
         data = {'news_id': thread_id,
                 'com_parent': reply_id,
-                'timestamp': '',
+                'timestamp': timestamp,
                 'res_type': content_type,
-                'referer': '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread)),
+                'referer': thread_url,
                 'subject': unicode(title).encode('utf-8'),
                 'body': unicode(message).encode('utf-8'),
                 'format': format,
@@ -82,6 +98,8 @@ class DLFP(BaseBrowser):
         url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL, self.DOMAIN, thread_id, reply_id, content_type)
 
         request = self.request_class(url, urllib.urlencode(data), {'Referer': url})
+        result = self.openurl(request)
+        request = self.request_class(thread_url, None, {'Referer': result.geturl()})
         self.openurl(request).read()
         return None
 
@@ -90,4 +108,7 @@ class DLFP(BaseBrowser):
 
     def is_logged(self):
         return (self.page and self.page.is_logged())
+
+    def close_session(self):
+        self.openurl('/close_session.html')
 

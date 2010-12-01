@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-#
-#      backend.py
-#
-#      Copyright 2010 nicolas <nicolas@jombi.fr>
+
+# Copyright(C) 2010  Nicolas Duhamel
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +25,7 @@ class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'La banque postale, French bank'
     CONFIG = ValuesDict(Value('login',    label='Account ID'),
@@ -51,7 +49,7 @@ class BPBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
-
+   
     def transfer(self, id_from, id_to, amount, reason=None):
         from_account = self.get_account(id_from)
         to_account = self.get_account(id_to)
@@ -59,3 +57,4 @@ class BPBackend(BaseBackend, ICapBank):
         #TODO: retourner le numero du virement
         #TODO: support the 'reason' parameter
         return self.browser.make_transfer(from_account, to_account, amount)
+

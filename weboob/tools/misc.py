@@ -40,10 +40,12 @@ def to_unicode(text):
     if not isinstance(text, str):
         text = str(text)
     try:
-        return unicode(text, "utf8")
+        return unicode(text, 'utf-8')
     except UnicodeError:
-        pass
-    return unicode(text, "ISO-8859-1")
+        try:
+            return unicode(text, 'iso-8859-1')
+        except UnicodeError:
+            return unicode(text, 'windows-1252')
 
 def local2utc(d):
     d = d.replace(tzinfo=tz.tzlocal())

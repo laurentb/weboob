@@ -17,9 +17,12 @@
 
 
 import os
+import sys
 import subprocess
 import re
 
+from weboob.capabilities.account import ICapAccount
+from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
 
@@ -29,7 +32,7 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
@@ -44,6 +47,9 @@ class WeboobCfg(ReplApplication):
 
         Add a configured backend.
         """
+        if not line:
+            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
+            return
         name, options = self.parseargs(line, 2, 1)
         if options:
             options = options.split(' ')
@@ -69,6 +75,35 @@ class WeboobCfg(ReplApplication):
         Register a new account on a backend.
         """
         self.register_backend(line)
+
+    def do_confirm(self, backend_name):
+        """
+        confirm BACKEND
+
+        For a backend which support CapAccount, parse a confirmation mail
+        after using the 'register' command to automatically confirm the
+        subscribe.
+
+        It takes mail from stdin. Use it with postfix for example.
+        """
+        # Do not use the ReplApplication.load_backends() method because we
+        # don't want to prompt user to create backend.
+        self.weboob.load_backends(names=[backend_name])
+        try:
+            backend = self.weboob.get_backend(backend_name)
+        except KeyError:
+            print >>sys.stderr, 'Error: backend "%s" not found.' % backend_name
+            return 1
+
+        if not backend.has_caps(ICapAccount):
+            print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
+            return 1
+
+        mail = sys.stdin.read()
+        if not backend.confirm_account(mail):
+            print >>sys.stderr, 'Error: Unable to confirm account creation'
+            return 1
+        return 0
 
     def do_list(self, line):
         """
@@ -135,12 +170,16 @@ class WeboobCfg(ReplApplication):
         Display information about a backend.
         """
         if not line:
-            print 'No backend name was specified.'
+            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
             return
+
         try:
             backend = self.weboob.modules_loader.get_or_load_module(line)
-        except KeyError:
-            print 'No such backend: "%s"' % line
+        except ModuleLoadError:
+            backend = None
+
+        if not backend:
+            print 'Backend "%s" does not exist.' % line
             return 1
 
         print '.------------------------------------------------------------------------------.'

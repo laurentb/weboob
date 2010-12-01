@@ -26,13 +26,17 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 
 __all__ = ['Weboorrents']
 
+
 def sizeof_fmt(num):
     for x in ['bytes','KB','MB','GB','TB']:
         if num < 1024.0:
             return "%-4.1f%s" % (num, x)
         num /= 1024.0
 
+
 class TorrentInfoFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers', 'url', 'files', 'description')
+
     def flush(self):
         pass
 
@@ -50,7 +54,10 @@ class TorrentInfoFormatter(IFormatter):
         result += item['description']
         return result
 
+
 class TorrentListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers')
+
     count = 0
 
     def flush(self):
@@ -68,9 +75,10 @@ class TorrentListFormatter(IFormatter):
         result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
         return result
 
+
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapTorrent
     EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
@@ -119,10 +127,12 @@ class Weboorrents(ReplApplication):
         else:
             self.flush()
 
-    def complete_info(self, text, line, *ignored):
-        args = line.split(' ')
+    def complete_getfile(self, text, line, *ignored):
+        args = line.split(' ', 2)
         if len(args) == 2:
             return self._complete_id()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
 
     def do_getfile(self, line):
         """
@@ -141,8 +151,12 @@ class Weboorrents(ReplApplication):
                 if dest == '-':
                     print buf
                 else:
-                    with open(dest, 'w') as f:
-                        f.write(buf)
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(buf)
+                    except IOError, e:
+                        print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                        return 1
                 return
 
         print >>sys.stderr, 'Torrent "%s" not found' % id

@@ -25,8 +25,13 @@ from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
 
 
-__all__ = ['Module', 'ModulesLoader']
+__all__ = ['Module', 'ModulesLoader', 'ModuleLoadError']
 
+
+class ModuleLoadError(Exception):
+    def __init__(self, module_name, msg):
+        Exception.__init__(self, u'Unable to load module "%s": %s' % (module_name, msg))
+        self.module = module_name
 
 class Module(object):
     def __init__(self, package):
@@ -120,20 +125,19 @@ class ModulesLoader(object):
 
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
-            self.load_module(existing_module_name)
+            try:
+                self.load_module(existing_module_name)
+            except ModuleLoadError, e:
+                self.logger.warning(e)
 
     def load_module(self, module_name):
         try:
             package_name = 'weboob.backends.%s' % module_name
             module = Module(__import__(package_name, fromlist=[str(package_name)]))
         except ImportError, e:
-            msg = u'Unable to load module "%s": %s' % (module_name, e)
-            if logging.root.level == logging.DEBUG:
-                self.logger.exception(msg)
-                return
-            else:
-                self.logger.error(msg)
-                return
+            if self.logger.level == logging.DEBUG:
+                self.logger.exception(e)
+            raise ModuleLoadError(module_name, e)
         if module.name in self.loaded:
             self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
             return

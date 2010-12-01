@@ -48,6 +48,12 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if re.match('^#\d+$', profile.get_name()):
             return False
+        if profile.get_name().strip().lower() in ('ajoute moi', 'a jeute moi', 'ajouter moi'):
+            return False
+        if profile.description.find('h o t m a i l') >= 0:
+            return False
+        if profile.description.find('l i v e f r') >= 0:
+            return False
         # This pattern in bad french is in several spambots description.
         if re.match('.*chercher? un m.c tres ch..d.*', profile.description):
             return False
@@ -57,30 +63,45 @@ class AntiSpam(object):
             return False
         if profile.description.find('belle dans la cam') >= 0:
             return False
+        if profile.description.find('pour montre ma cam') >= 0:
+            return False
         if profile.description.find('show sex') >= 0:
             return False
-        if profile.description.find('un mec tres chaude') >= 0:
+        if profile.description.find('un mec tres chaud') >= 0:
             return False
         if profile.description.find('bale chatt') >= 0:
             return False
         if profile.description.find('slt tt les mec chaud') >= 0:
             return False
+        if profile.description.find('tres choud') >= 0:
+            return False
+        if profile.description.find('plan cam') == 0:
+            return False
         if profile.description.find('cc moi  ') >= 0:
             return False
         if profile.description.find('une fille tres chaud') >= 0:
+            return False
+        if profile.description.find(u'tré chau') == 0:
+            return False
+        if profile.description.find('sa va bb') == 0:
             return False
         if profile.description.startswith('msn\n\n'):
             return False
         if profile.description.endswith('Moi la bonne jeune fille gaie'):
             return False
         # Her 'Shopping-list' begins with 'hummm'
-        if profile.description.endswith('Sa shopping-list :\nhummm'):
+        if profile.description.endswith('Sa shopping-list :\nhummm') or \
+           profile.description.endswith('Sa shopping-list :\nhummmm'):
+            return False
+        if profile.description.strip().endswith('Sa shopping-list :\nEMAIL:'):
             return False
         # Part of an email address (camiliasexy1live.fr)
         if profile.description.find('sexy1live') >= 0:
             return False
         # Strange thing...
         if re.match('.*je suis tres cho\w+d.*', profile.description):
+            return False
+        if re.match('.*je suis tr.s chaud', profile.description):
             return False
         # Strange thing...
         if re.match('.*ma croissance de \d+ sm.*', profile.description):
@@ -95,6 +116,8 @@ class AntiSpam(object):
             return False
         # "ajouter  moi :  alussiahotmail.fr"
         if re.match('^ajouter  moi :\s+\w+\.\w+\n', profile.description):
+            return False
+        if profile.description.find('ajouter moi Oki') >= 0:
             return False
         return True
 

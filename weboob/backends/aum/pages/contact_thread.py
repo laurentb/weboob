@@ -257,14 +257,14 @@ class ContactThreadPage(PageBase):
 
             self.browser.submit()  # submit current form
         except FormNotFoundError, e:
-            error = 'Unknown error (%s)' % e
+            error = u'Unknown error (%s)' % e
             p_list = self.document.getElementsByTagName('p')
             for p in p_list:
                 if p.hasAttribute('align') and p.getAttribute('align') == 'center':
                     error = p.firstChild.data
                     break
 
-            raise AdopteCantPostMail(error)
+            raise AdopteCantPostMail(error.encode('utf-8'))
 
 
     """

@@ -1,0 +1,58 @@
+Overview
+========
+
+Weboob (Web Out Of Browsers) provides:
+
+* :doc:`applications` to interact with websites
+* :doc:`backends`, each one handles a specific website
+* a :doc:`core library <api/core/index>` providing all the features needed by backends
+* :doc:`tools <api/tools/index>` to help develop backends and applications
+
+Weboob is written in Python and is distributed under the GPLv3 license.
+
+Why using Weboob?
+-----------------
+
+* you get essential information from websites faster
+* you can write scripts using weboob to automate tasks
+* you can extend websites features
+* it helps blind people using crappy websites
+
+Architecture
+------------
+
+.. warning::
+   This diagram has to be redrawn.
+
+.. image:: _static/architecture.png
+
+Capabilities
+------------
+
+The core library defines capabilities. They represent features common to various websites.
+For example, http://www.youtube.com and http://www.dailymotion.com are both videos
+providers: Weboob defines the ``ICapVideo`` capability.
+
+Each backend interfaces a website and implements one or many of these
+capabilities. Backends can be configured, which means that the end-user can
+provide personal information to access the underlaying website (login/password
+for example).
+
+Multi-backend call
+------------------
+
+The core library provides a mechanism allowing applications to call many backends in
+parallel, in a multi-threaded way.
+
+For example, one could search a video on many providers websites.
+
+Applications
+------------
+
+Applications are toolkit-agnostic. They can use Gtk, Qt or just be text-only, more adapted to reuse data through pipes.
+
+Reporting a bug
+---------------
+
+When you report a bug on the tracker, it's important to correctly set the category as specific as possible.
+Also, don't forget to give information about your version of Weboob, OS, implicated libraries.

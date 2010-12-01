@@ -23,6 +23,7 @@ from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, \
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
+from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
@@ -93,6 +94,7 @@ class ContactThread(QWidget):
         if self.process_msg:
             return
 
+        self.ui.refreshButton.setEnabled(False)
         self.process_msg = QtDo(self.weboob, self.gotThread, self.gotError)
         if fillobj and self.thread:
             self.process_msg.do('fillobj', self.thread, ['root'], backends=self.contact.backend)
@@ -102,6 +104,7 @@ class ContactThread(QWidget):
     def gotError(self, backend, error, backtrace):
         self.ui.textEdit.setEnabled(False)
         self.ui.sendButton.setEnabled(False)
+        self.ui.refreshButton.setEnabled(True)
 
     def gotThread(self, backend, thread):
         if not thread:
@@ -113,6 +116,7 @@ class ContactThread(QWidget):
 
         self.ui.textEdit.setEnabled(True)
         self.ui.sendButton.setEnabled(True)
+        self.ui.refreshButton.setEnabled(True)
 
         self.thread = thread
 
@@ -166,7 +170,7 @@ class ContactThread(QWidget):
                     id=0,
                     title=u'',
                     sender=None,
-                    receiver=None,
+                    receivers=None,
                     content=text,
                     parent=self.messages[0].message if len(self.messages) > 0 else None)
         self.process_reply = QtDo(self.weboob, self._postReply_cb, self._postReply_eb)
@@ -182,22 +186,28 @@ class ContactThread(QWidget):
         self.process_reply = None
 
     def _postReply_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
-            content += '\n%s\n' % backtrace
+            content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.process_reply = None
 
 class ContactProfile(QWidget):
+
     def __init__(self, weboob, contact, parent=None):
         QWidget.__init__(self, parent)
         self.ui = Ui_Profile()
         self.ui.setupUi(self)
 
+        self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
+        self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
+
         self.weboob = weboob
         self.contact = contact
         self.loaded_profile = False
+        self.displayed_photo_idx = 0
+        self.process_photo = {}
 
         missing_fields = self.gotProfile(self.weboob.get_backend(contact.backend), contact)
         if len(missing_fields) > 0:
@@ -205,38 +215,29 @@ class ContactProfile(QWidget):
             self.process_contact.do('fillobj', self.contact, missing_fields, backends=self.contact.backend)
 
     def gotError(self, backend, error, backtrace):
-        #self.process_contact.default_eb(backend, error, backtrace)
         self.ui.frame_photo.hide()
-        self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % error)
+        self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % to_unicode(error))
 
     def gotProfile(self, backend, contact):
         if not backend:
             return []
 
-        missing_fields = set(['photos'])
-        first = True
-        for photo in contact.photos.itervalues():
-            photo = contact.photos.values()[0]
-            if photo.data:
-                data = photo.data
-                try:
-                    missing_fields.remove('photos')
-                except KeyError:
-                    pass
-            elif photo.thumbnail_data:
-                data = photo.thumbnail_data
-            else:
-                continue
-            if first:
-                img = QImage.fromData(data)
-                self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
-                first = False
-            else:
-                # TODO display thumbnails
-                pass
+        missing_fields = set()
+
+        self.display_photo()
 
         self.ui.nicknameLabel.setText('<h1>%s</h1>' % contact.name)
-        self.ui.statusLabel.setText('%s' % contact.status_msg)
+        if contact.status == Contact.STATUS_ONLINE:
+            status_color = 0x00aa00
+        elif contact.status == Contact.STATUS_OFFLINE:
+            status_color = 0xff0000
+        elif contact.status == Contact.STATUS_AWAY:
+            status_color = 0xffad16
+        else:
+            status_color = 0xaaaaaa
+
+        self.ui.statusLabel.setText('<font color="#%06X">%s</font>' % (status_color, contact.status_msg))
+        self.ui.contactUrlLabel.setText('<b>URL:</b> <a href="%s">%s</a>' % (contact.url, contact.url))
         if contact.summary is NotLoaded:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
             missing_fields.add('summary')
@@ -249,7 +250,7 @@ class ContactProfile(QWidget):
             self.loaded_profile = True
             for head in contact.profile:
                 if head.flags & head.HEAD:
-                    widget = self.ui.headFrame
+                    widget = self.ui.headWidget
                 else:
                     widget = self.ui.profileTab
                 self.process_node(head, widget)
@@ -284,9 +285,49 @@ class ContactProfile(QWidget):
             label = QLabel(u'<b>%s:</b> ' % node.label)
             widget.layout().addRow(label, value)
         elif isinstance(widget.layout(), QVBoxLayout):
+            widget.layout().addWidget(QLabel(u'<h3>%s</h3>' % node.label))
             widget.layout().addWidget(value)
         else:
             logging.warning('Not supported widget: %r' % widget)
+
+    def previousClicked(self):
+        self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.contact.photos)
+        self.display_photo()
+
+    def nextClicked(self):
+        self.displayed_photo_idx = (self.displayed_photo_idx + 1) % len(self.contact.photos)
+        self.display_photo()
+
+    def display_photo(self):
+        if self.displayed_photo_idx >= len(self.contact.photos):
+            self.displayed_photo_idx = len(self.contact.photos) - 1
+        if self.displayed_photo_idx < 0:
+            self.ui.photoUrlLabel.setText('')
+            return
+
+        photo = self.contact.photos.values()[self.displayed_photo_idx]
+        if photo.data:
+            data = photo.data
+            if photo.id in self.process_photo:
+                self.process_photo.pop(photo.id)
+        else:
+            self.process_photo[photo.id] = QtDo(self.weboob, lambda b,p: self.display_photo())
+            self.process_photo[photo.id].do('fillobj', photo, ['data'], backends=self.contact.backend)
+
+            if photo.thumbnail_data:
+                data = photo.thumbnail_data
+            else:
+                return
+
+        img = QImage.fromData(data)
+        img = img.scaledToWidth(self.width()/3)
+
+        self.ui.photoLabel.setPixmap(QPixmap.fromImage(img))
+        if photo.url is not NotLoaded:
+            text = '<a href="%s">%s</a>' % (photo.url, photo.url)
+            if photo.hidden:
+                text += '<br /><font color=#ff0000><i>(Hidden photo)</i></font>'
+            self.ui.photoUrlLabel.setText(text)
 
 class IGroup(object):
     def __init__(self, weboob, id, name):
@@ -350,15 +391,20 @@ class ContactsWidget(QWidget):
 
     def refreshContactList(self):
         self.ui.contactList.clear()
+        self.ui.refreshButton.setEnabled(False)
         i = self.ui.groupBox.currentIndex()
         group = self.ui.groupBox.itemData(i).toPyObject()
         group.iter_contacts(self.addContact)
 
     def setPhoto(self, contact, item):
         if not contact:
-            return
+            return False
 
-        self.photo_processes.pop(contact.id, None)
+        try:
+            self.photo_processes.pop(contact.id, None)
+        except KeyError:
+            pass
+
         img = None
         for photo in contact.photos.itervalues():
             if photo.thumbnail_data:
@@ -367,9 +413,13 @@ class ContactsWidget(QWidget):
 
         if img:
             item.setIcon(QIcon(QPixmap.fromImage(img)))
+            return True
+
+        return False
 
     def addContact(self, contact):
         if not contact:
+            self.ui.refreshButton.setEnabled(True)
             return
 
         status = ''
@@ -393,9 +443,16 @@ class ContactsWidget(QWidget):
         item.setText('<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, contact.backend))
         item.setData(Qt.UserRole, contact)
 
-        process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
-        process.do('fillobj', contact, ['photos'], backends=contact.backend)
-        self.photo_processes[contact.id] = process
+        if contact.photos is NotLoaded:
+            process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+            process.do('fillobj', contact, ['photos'], backends=contact.backend)
+            self.photo_processes[contact.id] = process
+        elif len(contact.photos) > 0:
+            if not self.setPhoto(contact, item):
+                photo = contact.photos.values()[0]
+                process = QtDo(self.weboob, lambda b, p: self.setPhoto(contact, item))
+                process.do('fillobj', photo, ['thumbnail_data'], backends=contact.backend)
+                self.photo_processes[contact.id] = process
 
         for i in xrange(self.ui.contactList.count()):
             if self.ui.contactList.item(i).data(Qt.UserRole).toPyObject().status > contact.status:
@@ -447,8 +504,8 @@ class ContactsWidget(QWidget):
         self.setContact(contact)
 
     def urlClicked_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        content = unicode(self.tr('Unable to get contact:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
-            content += '\n%s\n' % backtrace
-        QMessageBox.critical(self, self.tr('Error while posting reply'),
+            content += u'\n%s\n' % to_unicode(backtrace)
+        QMessageBox.critical(self, self.tr('Error while getting contact'),
                              content, QMessageBox.Ok)

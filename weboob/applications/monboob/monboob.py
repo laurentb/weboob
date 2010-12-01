@@ -27,12 +27,13 @@ import re
 import sys
 import logging
 import asyncore
+import subprocess
 
 from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Thread, Message
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.misc import html2text, get_backtrace, utc2local
+from weboob.tools.misc import html2text, get_backtrace, utc2local, to_unicode
 
 
 __all__ = ['Monboob']
@@ -77,12 +78,13 @@ class MonboobScheduler(Scheduler):
 
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
-    VERSION = '0.3.1'
+    VERSION = '0.4'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
-    CONFIG = {'interval':  15,
+    CONFIG = {'interval':  300,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
               'smtp':      'localhost',
+              'pipe':      '',
               'html':      0}
     CAPS = ICapMessages
     DISABLE_REPL = True
@@ -187,16 +189,16 @@ class Monboob(ReplApplication):
                           0,
                           title=title,
                           sender=None,
-                          receiver=None,
+                          receivers=None,
                           parent=Message(thread, msg_id),
                           content=content)
         try:
             backend.post_message(message)
         except Exception, e:
             content = u'Unable to send message to %s:\n' % thread_id
-            content += '\n\t%s\n' % e
+            content += u'\n\t%s\n' % to_unicode(e)
             if logging.root.level == logging.DEBUG:
-                content += '\n%s\n' % get_backtrace(e)
+                content += u'\n%s\n' % to_unicode(get_backtrace(e))
             self.send_email(backend, Message(thread,
                                              0,
                                              title='Unable to send message',
@@ -216,15 +218,10 @@ class Monboob(ReplApplication):
     def process(self):
         try:
             for backend, message in self.weboob.do('iter_unread_messages'):
-                self.send_email(backend, message)
-                backend.set_message_read(message)
+                if self.send_email(backend, message):
+                    backend.set_message_read(message)
         except CallErrors, e:
-            for backend, error, backtrace in e.errors:
-                print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
-                if logging.root.level == logging.DEBUG:
-                    print >>sys.stderr, backtrace
-            if logging.root.level != logging.DEBUG:
-                print >>sys.stderr, 'Use --debug option to print backtraces.'
+            self.bcall_errors_handler(e)
 
     def send_email(self, backend, mail):
         domain = self.config.get('domain')
@@ -296,10 +293,27 @@ class Monboob(ReplApplication):
         if reply_id:
             msg['In-Reply-To'] = reply_id
 
-        # Send the message via SMTP to localhost:25
-        smtp = SMTP(self.config.get('smtp'))
-        print 'Send mail from <%s> to <%s>' % (sender, recipient)
-        smtp.sendmail(sender, recipient, msg.as_string())
-        smtp.quit()
+        self.logger.info('Send mail from <%s> to <%s>' % (sender, recipient))
+        if len(self.config.get('pipe')) > 0:
+            p = subprocess.Popen(self.config.get('pipe'),
+                                 shell=True,
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            p.stdin.write(msg.as_string())
+            p.stdin.close()
+            if p.wait() != 0:
+                self.logger.error('Unable to deliver mail: %s' % p.stdout.read().strip())
+                return False
+        else:
+            # Send the message via SMTP to localhost:25
+            try:
+                smtp = SMTP(self.config.get('smtp'))
+                smtp.sendmail(sender, recipient, msg.as_string())
+            except Exception, e:
+                self.logger.error('Unable to deliver mail: %s' % e)
+                return False
+            else:
+                smtp.quit()
 
-        return msg['Message-Id']
+        return True
