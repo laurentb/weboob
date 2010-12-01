@@ -52,7 +52,7 @@ class RadioListFormatter(IFormatter):
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.4'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}

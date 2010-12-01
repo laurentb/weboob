@@ -78,7 +78,7 @@ class MonboobScheduler(Scheduler):
 
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
-    VERSION = '0.4'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CONFIG = {'interval':  300,
               'domain':    'weboob.example.org',
