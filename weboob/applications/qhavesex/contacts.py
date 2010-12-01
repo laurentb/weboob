@@ -23,6 +23,7 @@ from PyQt4.QtGui import QWidget, QListWidgetItem, QImage, QIcon, QPixmap, \
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
+from weboob.tools.misc import to_unicode
 from weboob.capabilities.contact import ICapContact, Contact
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
@@ -185,9 +186,9 @@ class ContactThread(QWidget):
         self.process_reply = None
 
     def _postReply_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to send message:\n%s\n')) % error
+        content = unicode(self.tr('Unable to send message:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
-            content += '\n%s\n' % backtrace
+            content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.process_reply = None
@@ -214,9 +215,8 @@ class ContactProfile(QWidget):
             self.process_contact.do('fillobj', self.contact, missing_fields, backends=self.contact.backend)
 
     def gotError(self, backend, error, backtrace):
-        #self.process_contact.default_eb(backend, error, backtrace)
         self.ui.frame_photo.hide()
-        self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % error)
+        self.ui.descriptionEdit.setText('<h1>Unable to show profile</h1><p>%s</p>' % to_unicode(error))
 
     def gotProfile(self, backend, contact):
         if not backend:
@@ -504,8 +504,8 @@ class ContactsWidget(QWidget):
         self.setContact(contact)
 
     def urlClicked_eb(self, backend, error, backtrace):
-        content = unicode(self.tr('Unable to get contact:\n%s\n')) % error
+        content = unicode(self.tr('Unable to get contact:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
-            content += '\n%s\n' % backtrace
+            content += u'\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while getting contact'),
                              content, QMessageBox.Ok)
