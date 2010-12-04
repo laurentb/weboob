@@ -26,11 +26,12 @@ __all__ = ['TorrentsPage']
 
 class TorrentsPage(BasePage):
     def unit(self, n, u):
-        m = {'KB': 1024,
-             'MB': 1024*1024,
-             'GB': 1024*1024*1024,
-             'TB': 1024*1024*1024*1024,
-            }
+        m = {'bytes': 1,
+                'KB': 1024,
+                'MB': 1024*1024,
+                'GB': 1024*1024*1024,
+                'TB': 1024*1024*1024*1024,
+                }
         return float(n*m[u])
 
     def iter_torrents(self):
@@ -64,11 +65,12 @@ class TorrentsPage(BasePage):
 
 class TorrentPage(BasePage):
     def unit(self, n, u):
-        m = {'KB': 1024,
-             'MB': 1024*1024,
-             'GB': 1024*1024*1024,
-             'TB': 1024*1024*1024*1024,
-            }
+        m = {'bytes': 1,
+                'KB': 1024,
+                'MB': 1024*1024,
+                'GB': 1024*1024*1024,
+                'TB': 1024*1024*1024*1024,
+                }
         return float(n*m[u])
 
     def get_torrent(self, id):
