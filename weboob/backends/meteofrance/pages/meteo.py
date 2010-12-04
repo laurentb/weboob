@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Julien Veyssier
+# Copyright(C) 2010  Cedric Defortis
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,18 +22,23 @@ from weboob.capabilities.weather import ICapWeather, Forecast, Current, City
 
 import datetime
 
-
 __all__ = ['WeatherPage', 'CityResultPage']
 
 
 class WeatherPage(BasePage):
+    def get_temp_without_unit(self, temp_str):
+        # It seems that the mechanize module give us some old style
+        # ISO character
+        return temp_str.replace(u"\xb0C", "")
+
     def iter_forecast(self):
         for div in self.document.getiterator('div'):
             if div.attrib.has_key("id") and div.attrib.get('id').find("jour") != -1:
                 for em in div.getiterator('em'):
                     templist = em.text_content().split("/")
-                    t_low = templist[0].replace(u"\xb0C", "").strip()
-                    t_high = templist[1].replace(u"\xb0C", "").strip()
+
+                    t_low = self.get_temp_without_unit(templist[0]).strip()
+                    t_high = self.get_temp_without_unit(templist[1]).strip()
                     break
                 for strong in div.getiterator("strong"):
                     mdate = strong.text_content()
@@ -47,7 +52,7 @@ class WeatherPage(BasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.has_key("id") and div.attrib.get('id') == "blocDetails0":
                 for em in div.getiterator('em'):
-                    temp = em.text_content()
+                    temp = self.get_temp_without_unit(em.text_content()).strip()
                     break
                 for img in div.getiterator("img"):
                     mtxt = img.attrib["title"]
