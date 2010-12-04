@@ -78,30 +78,3 @@ class CityPage(BasePage):
                         city_id = children.attrib.get("href").split("/")[-1]
                     mcity = City( city_id, city_name)
                     yield mcity
-
-    def plop(self):
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('id','') == 'column1':
-                title = div.text.strip()
-            elif div.attrib.get('class','') == 'download':
-                url = div.getchildren()[0].attrib.get('href','')
-            elif div.attrib.get('id','') == 'details':
-                size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
-                if len(div.getchildren()) > 1 \
-                        and div.getchildren()[1].attrib.get('class','') == 'col2' :
-                    seed = div.getchildren()[1].getchildren()[7].text
-                    leech = div.getchildren()[1].getchildren()[9].text
-                else:
-                    seed = div.getchildren()[0].getchildren()[24].text
-                    leech = div.getchildren()[0].getchildren()[26].text
-            elif div.attrib.get('class','') == 'nfo':
-                description = div.getchildren()[0].text
-        torrent = Torrent(id, title)
-        torrent.url = url
-        torrent.size = size
-        torrent.seeders = int(seed)
-        torrent.leechers = int(leech)
-        torrent.description = description
-        torrent.files = ['NYI']
-
-        return torrent

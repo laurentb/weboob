@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Julien Veyssier
+# Copyright(C) 2010  Cedric Defortis
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ __all__ = ['MeteofranceBackend']
 
 class MeteofranceBackend(BaseBackend, ICapWeather):
     NAME = 'meteofrance'
-    MAINTAINER = 'Cedric D.'
+    MAINTAINER = 'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'
     VERSION = '0.1'
-    DESCRIPTION = 'MeteoFrance'
+    DESCRIPTION = 'Get forecasts from the MeteoFrance website'
     LICENSE = 'GPLv3'
     #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
     #                    Value('protocol', label='Protocol to use', choices=('http', 'https')),
