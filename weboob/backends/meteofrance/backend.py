@@ -40,8 +40,11 @@ class MeteofranceBackend(BaseBackend, ICapWeather):
     def create_default_browser(self):
         return self.create_browser()
 
-    def get_weather(self, city_id):
-        return self.browser.get_weather(city_id)
+    def get_current(self, city_id):
+        return self.browser.get_current(city_id.split("@")[0])
+
+    def iter_forecast(self, city_id):
+        return self.browser.iter_forecast(city_id.split("@")[0])
 
     def iter_city_search(self, pattern):
         return self.browser.iter_city_search(pattern.replace(' ','+'))

@@ -35,7 +35,8 @@ class MeteofranceBrowser(BaseBrowser):
     PAGES = {
              WEATHER_URL.format(cityid=".*") : WeatherPage,
              CITY_SEARCH_URL.format(city_pattern=".*") : CityPage,
-             "http://france.meteofrance.com/france/accueil/resultat.*" : CityPage
+             "http://france.meteofrance.com/france/accueil/resultat.*" : CityPage,
+             "http://france.meteofrance.com/france/meteo.*" : WeatherPage
             }
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -50,10 +51,16 @@ class MeteofranceBrowser(BaseBrowser):
         else:
             # Case 2: there is only one result, and the website send directly
             # the browser on the forecast page:
-            raise NotImplementedError("Will come soon")
+            return self.page.get_city()
 
-    def get_weather(self, city_id):
+    def iter_forecast(self, city_id):
         self.location(self.WEATHER_URL.format(cityid=city_id))
 
         assert self.is_on_page(WeatherPage)
-        return self.page.get_weather()
+        return self.page.iter_forecast()
+
+    def get_current(self, city_id):
+        self.location(self.WEATHER_URL.format(cityid=city_id))
+
+        assert self.is_on_page(WeatherPage)
+        return self.page.get_current()

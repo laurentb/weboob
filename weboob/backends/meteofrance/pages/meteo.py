@@ -20,49 +20,53 @@
 from weboob.tools.browser import BasePage
 from weboob.capabilities.weather import ICapWeather, Forecast, Current, City
 
-import pdb
+import datetime
 
 
 __all__ = ['WeatherPage', 'CityResultPage']
 
 
 class WeatherPage(BasePage):
-    def get_weather(self):
-        return "5"
+    def iter_forecast(self):
+        for div in self.document.getiterator('div'):
+            if div.attrib.has_key("id") and div.attrib.get('id').find("jour") != -1:
+                for em in div.getiterator('em'):
+                    templist = em.text_content().split("/")
+                    t_low = templist[0].replace(u"\xb0C", "").strip()
+                    t_high = templist[1].replace(u"\xb0C", "").strip()
+                    break
+                for strong in div.getiterator("strong"):
+                    mdate = strong.text_content()
+                    break
+                for img in div.getiterator("img"):
+                    mtxt = img.attrib["title"]
+                    break
+                yield Forecast(mdate, t_low, t_high, mtxt, "C")
+
+    def get_current(self):
+        for div in self.document.getiterator('div'):
+            if div.attrib.has_key("id") and div.attrib.get('id') == "blocDetails0":
+                for em in div.getiterator('em'):
+                    temp = em.text_content()
+                    break
+                for img in div.getiterator("img"):
+                    mtxt = img.attrib["title"]
+                    break
+                mdate = str(datetime.datetime.now())
+                yield Current(mdate, temp, mtxt, "C")
 
 
-    #def iter_forecast(self):
-    #    return "6"
-    #    for table in self.document.getiterator('table'):
-    #        if table.attrib.get('id','') != 'searchResult':
-    #            raise Exception('You''re in serious troubles!')
-    #        else:
-    #            for tr in table.getiterator('tr'):
-    #                if tr.get('class','') != "header":
-    #                    td = tr.getchildren()[1]
-    #                    div = td.getchildren()[0]
-    #                    link = div.find('a').attrib['href']
-    #                    title = div.find('a').text
-    #                    idt = link.split('/')[2]
+    def get_city(self):
+        """Return the city from the forecastpage
+        """
+        for div in self.document.getiterator('div'):
+            if div.attrib.has_key("class") and div.attrib.get("class") == "choix":
+                for strong in div.getiterator("strong"):
+                    city_name=strong.text +" "+ strong.tail.replace("(","").replace(")","")
+                    city_id=self.url.split("/")[-1]
 
-    #                    a = td.getchildren()[1]
-    #                    url = a.attrib['href']
+                    return City( city_id, city_name)
 
-    #                    size = td.find('font').text.split(',')[1]
-    #                    size = size.split(' ')[2]
-    #                    u = size[-3:].replace('i','')
-    #                    size = size[:-3]
-
-    #                    seed = tr.getchildren()[2].text
-    #                    leech = tr.getchildren()[3].text
-
-    #                    torrent = Torrent(idt,
-    #                                      title,
-    #                                      url=url,
-    #                                      size=self.unit(float(size),u),
-    #                                      seeders=int(seed),
-    #                                      leechers=int(leech))
-    #                    yield torrent
 
 class CityPage(BasePage):
     def iter_city_search(self):
