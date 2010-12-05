@@ -26,11 +26,12 @@ __all__ = ['TorrentsPage']
 
 class TorrentsPage(BasePage):
     def unit(self, n, u):
-        m = {'KB': 1024,
-             'MB': 1024*1024,
-             'GB': 1024*1024*1024,
-             'TB': 1024*1024*1024*1024,
-            }
+        m = {'B': 1,
+                'KB': 1024,
+                'MB': 1024*1024,
+                'GB': 1024*1024*1024,
+                'TB': 1024*1024*1024*1024,
+                }
         #return float(n.replace(',', '')) * m.get(u, 1)
         return float(n*m[u])
 
@@ -51,10 +52,9 @@ class TorrentsPage(BasePage):
                         a = td.getchildren()[1]
                         url = a.attrib['href']
 
-                        size = td.find('font').text.split(',')[1]
-                        size = size.split(' ')[2]
-                        u = size[-3:].replace('i','')
-                        size = size[:-3]
+                        size = td.find('font').text.split(',')[1].strip()
+                        u = size.split(' ')[1].split(u'\xa0')[1].replace('i','')
+                        size = size.split(' ')[1].split(u'\xa0')[0]
 
                         seed = tr.getchildren()[2].text
                         leech = tr.getchildren()[3].text
