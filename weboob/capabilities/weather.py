@@ -37,8 +37,8 @@ class Current(CapBaseObject):
     def __init__(self, date, temp, text, unit):
         CapBaseObject.__init__(self, date)
         self.add_field('date', (basestring,datetime), date)
-        self.add_field('temp', (int,float), temp)
         self.add_field('text', basestring, text)
+        self.add_field('temp', (int,float), temp)
         self.add_field('unit', basestring, unit)
 
 class City(CapBaseObject):

@@ -57,7 +57,7 @@ class WeatherPage(BasePage):
                 for img in div.getiterator("img"):
                     mtxt = img.attrib["title"]
                     break
-                mdate = str(datetime.datetime.now())
+                mdate = datetime.datetime.now()
                 yield Current(mdate, temp, mtxt, "C")
 
 

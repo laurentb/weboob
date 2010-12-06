@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from datetime import datetime
 
 from weboob.capabilities.weather import ICapWeather
 from weboob.tools.application.repl import ReplApplication
@@ -35,6 +36,25 @@ class ForecastsFormatter(IFormatter):
             result += ' %s' % item['text']
         return result
 
+class CurrentFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'temp')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        if isinstance(item['date'], datetime):
+            date = item['date'].strftime('%y-%m-%d %H:%M:%S')
+        else:
+            date = item['date']
+
+        result = u'%s%s%s: %s' % (ReplApplication.BOLD, date, ReplApplication.NC, item['temp'])
+        if 'unit' in item and item['unit']:
+            result += u'°%s' % item['unit']
+        if 'text' in item and item['text']:
+            result += u' - %s' % item['text']
+        return result
+
 class CitiesFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'name')
     count = 0
@@ -48,7 +68,7 @@ class CitiesFormatter(IFormatter):
             backend = item['id'].split('@', 1)[1]
             result = u'%s* (%d) %s (%s)%s' % (ReplApplication.BOLD, self.count, item['name'], backend, ReplApplication.NC)
         else:
-            result = u'%s* (%d) %s%s' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
         return result
 
 class WetBoobs(ReplApplication):
@@ -57,9 +77,11 @@ class WetBoobs(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapWeather
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
+                        'current':   CurrentFormatter,
                         'forecasts': ForecastsFormatter,
                        }
     COMMANDS_FORMATTERS = {'search':    'cities',
+                           'current':   'current',
                            'forecasts': 'forecasts',
                           }
 
