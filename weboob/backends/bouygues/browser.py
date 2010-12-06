@@ -17,7 +17,7 @@
 
 
 from .pages.compose import ComposeFrame, ComposePage, ConfirmPage, SentPage
-from .pages.login import LoginPage
+from .pages.login import LoginPage, LoginSASPage
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
@@ -32,6 +32,7 @@ class BouyguesBrowser(BaseBrowser):
         'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml': ComposeFrame,
         'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml': ConfirmPage,
         'https://www.espaceclient.bouyguestelecom.fr/ECF/jsf/submitLogin.jsf': LoginPage,
+        'https://www.espaceclient.bouyguestelecom.fr/ECF/SasUnifie': LoginSASPage,
         'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml': SentPage,
         }
 
@@ -44,6 +45,8 @@ class BouyguesBrowser(BaseBrowser):
     def login(self):
         self.location('https://www.espaceclient.bouyguestelecom.fr/ECF/jsf/submitLogin.jsf', no_login=True)
         self.page.login(self.username, self.password)
+        assert self.is_on_page(LoginSASPage)
+        self.page.login()
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 

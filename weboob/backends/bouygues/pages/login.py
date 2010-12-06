@@ -19,7 +19,7 @@
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['LoginPage']
+__all__ = ['LoginPage', 'LoginSASPage']
 
 
 class LoginPage(BasePage):
@@ -27,4 +27,10 @@ class LoginPage(BasePage):
         self.browser.select_form(name='code')
         self.browser['j_username'] = login
         self.browser['j_password'] = password
+        self.browser.submit()
+
+
+class LoginSASPage(BasePage):
+    def login(self):
+        self.browser.select_form(name='redirect')
         self.browser.submit()
