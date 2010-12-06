@@ -29,7 +29,7 @@ class WeatherPage(BasePage):
     def get_temp_without_unit(self, temp_str):
         # It seems that the mechanize module give us some old style
         # ISO character
-        return temp_str.replace(u"\xb0C", "")
+        return int(temp_str.replace(u"\xb0C", "").strip())
 
     def iter_forecast(self):
         for div in self.document.getiterator('div'):
@@ -37,8 +37,8 @@ class WeatherPage(BasePage):
                 for em in div.getiterator('em'):
                     templist = em.text_content().split("/")
 
-                    t_low = self.get_temp_without_unit(templist[0]).strip()
-                    t_high = self.get_temp_without_unit(templist[1]).strip()
+                    t_low = self.get_temp_without_unit(templist[0])
+                    t_high = self.get_temp_without_unit(templist[1])
                     break
                 for strong in div.getiterator("strong"):
                     mdate = strong.text_content()
@@ -52,13 +52,13 @@ class WeatherPage(BasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.has_key("id") and div.attrib.get('id') == "blocDetails0":
                 for em in div.getiterator('em'):
-                    temp = self.get_temp_without_unit(em.text_content()).strip()
+                    temp = self.get_temp_without_unit(em.text_content())
                     break
                 for img in div.getiterator("img"):
                     mtxt = img.attrib["title"]
                     break
                 mdate = datetime.datetime.now()
-                yield Current(mdate, temp, mtxt, "C")
+                return Current(mdate, temp, mtxt, "C")
 
 
     def get_city(self):
@@ -70,7 +70,7 @@ class WeatherPage(BasePage):
                     city_name=strong.text +" "+ strong.tail.replace("(","").replace(")","")
                     city_id=self.url.split("/")[-1]
 
-                    return City( city_id, city_name)
+                    return City(city_id, city_name)
 
 
 class CityPage(BasePage):
