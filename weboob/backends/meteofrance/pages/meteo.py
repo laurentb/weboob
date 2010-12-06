@@ -18,11 +18,11 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.weather import ICapWeather, Forecast, Current, City
+from weboob.capabilities.weather import Forecast, Current, City
 
 import datetime
 
-__all__ = ['WeatherPage', 'CityResultPage']
+__all__ = ['WeatherPage', 'CityPage']
 
 
 class WeatherPage(BasePage):
