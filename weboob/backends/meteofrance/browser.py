@@ -16,9 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import urllib
+
 from weboob.tools.browser import BaseBrowser
 
-#from .pages.index import 
 from .pages.meteo import WeatherPage, CityPage
 
 
@@ -42,7 +43,7 @@ class MeteofranceBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def iter_city_search(self, pattern):
-        searchurl = self.CITY_SEARCH_URL.format( city_pattern=pattern )
+        searchurl = self.CITY_SEARCH_URL.format(city_pattern=urllib.quote_plus(pattern))
         self.location(searchurl)
 
         if self.is_on_page(CityPage):
