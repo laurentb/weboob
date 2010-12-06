@@ -28,7 +28,7 @@ class MeteofranceBackend(BaseBackend, ICapWeather):
     NAME = 'meteofrance'
     MAINTAINER = 'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'
-    VERSION = '0.1'
+    VERSION = '0.5'
     DESCRIPTION = 'Get forecasts from the MeteoFrance website'
     LICENSE = 'GPLv3'
     #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
