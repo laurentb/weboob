@@ -18,16 +18,52 @@
 
 from weboob.capabilities.weather import ICapWeather
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['WetBoobs']
 
+class ForecastsFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'low', 'high', 'unit')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (ReplApplication.BOLD, '%s:' % item['date'], ReplApplication.NC, item['low'], item['unit'], item['high'], item['unit'])
+        if 'text' in item and item['text']:
+            result += ' %s' % item['text']
+        return result
+
+class CitiesFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name')
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        self.count += 1
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            result = u'%s* (%d) %s (%s)%s' % (ReplApplication.BOLD, self.count, item['name'], backend, ReplApplication.NC)
+        else:
+            result = u'%s* (%d) %s%s' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
+        return result
 
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     CAPS = ICapWeather
+    EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
+                        'forecasts': ForecastsFormatter,
+                       }
+    COMMANDS_FORMATTERS = {'search':    'cities',
+                           'forecasts': 'forecasts',
+                          }
+
+    cities = []
 
     def do_search(self, pattern):
         """
@@ -35,9 +71,29 @@ class WetBoobs(ReplApplication):
 
         Search cities.
         """
+        self.cities = []
         for backend, city in self.do('iter_city_search', pattern):
             self.format(city)
+            self.cities.append(city)
         self.flush()
+
+    def parse_id(self, id):
+        if self.interactive:
+            try:
+                city = self.cities[int(id) - 1]
+            except (IndexError,ValueError):
+                pass
+            else:
+                id = '%s@%s' % (city.id, city.backend)
+        return ReplApplication.parse_id(self, id)
+
+    def _complete_id(self):
+        return ['%s@%s' % (city.id, city.backend) for city in self.cities]
+
+    def complete_current(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
 
     def do_current(self, city):
         """
@@ -45,9 +101,15 @@ class WetBoobs(ReplApplication):
 
         Get current weather.
         """
-        for backend, current in self.do('get_current', city):
+        _id, backend_name = self.parse_id(city)
+        for backend, current in self.do('get_current', _id, backends=backend_name):
             self.format(current)
         self.flush()
+
+    def complete_forecasts(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
 
     def do_forecasts(self, city):
         """
@@ -55,6 +117,7 @@ class WetBoobs(ReplApplication):
 
         Get forecasts.
         """
-        for backend, forecast in self.do('iter_forecast', city):
+        _id, backend_name = self.parse_id(city)
+        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name):
             self.format(forecast)
         self.flush()
