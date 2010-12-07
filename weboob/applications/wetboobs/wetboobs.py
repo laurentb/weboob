@@ -117,15 +117,17 @@ class WetBoobs(ReplApplication):
         if len(args) == 2:
             return self._complete_id()
 
-    def do_current(self, city):
+    def do_current(self, line):
         """
         current CITY
 
         Get current weather.
         """
+        city, = self.parseargs(line, 1, 1)
         _id, backend_name = self.parse_id(city)
         for backend, current in self.do('get_current', _id, backends=backend_name):
-            self.format(current)
+            if current:
+                self.format(current)
         self.flush()
 
     def complete_forecasts(self, text, line, *ignored):
@@ -133,12 +135,13 @@ class WetBoobs(ReplApplication):
         if len(args) == 2:
             return self._complete_id()
 
-    def do_forecasts(self, city):
+    def do_forecasts(self, line):
         """
         forecasts CITY
 
         Get forecasts.
         """
+        city, = self.parseargs(line, 1, 1)
         _id, backend_name = self.parse_id(city)
         for backend, forecast in self.do('iter_forecast', _id, backends=backend_name):
             self.format(forecast)
