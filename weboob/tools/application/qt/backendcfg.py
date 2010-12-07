@@ -36,6 +36,8 @@ class BackendCfg(QDialog):
         self.ui = Ui_BackendCfg()
         self.ui.setupUi(self)
 
+        self.ui.configuredBackendsList.sortByColumn(0, Qt.AscendingOrder)
+
         self.to_unload = set()
         self.to_load = set()
 
