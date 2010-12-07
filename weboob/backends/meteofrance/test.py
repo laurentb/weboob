@@ -30,4 +30,4 @@ class MeteoFranceTest(BackendTest):
         self.assertTrue(current.temp > -20 and current.temp < 50)
 
         forecasts = list(self.backend.iter_forecast(city.id))
-        self.assertTrue(len(l) > 0)
+        self.assertTrue(len(forecasts) > 0)
