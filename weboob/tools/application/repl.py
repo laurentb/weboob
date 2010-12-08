@@ -353,7 +353,7 @@ class ReplApplication(Cmd, BaseApplication):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
         if len(args) < nb:
-            args += tuple([None for i in xrange(nb - len(args))])
+            args += tuple(None for i in xrange(nb - len(args)))
         return args
 
     def postcmd(self, stop, line):

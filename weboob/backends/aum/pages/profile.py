@@ -433,7 +433,7 @@ class ProfilePage(PageBase):
             for key, value in d.items():
                 key = '%s:' % key
                 if isinstance(value, list):
-                    body += u'\t\t%-15s %s\n' % (key, u', '.join([unicode(s) for s in value]))
+                    body += u'\t\t%-15s %s\n' % (key, u', '.join(unicode(s) for s in value))
                 elif isinstance(value, float):
                     body += u'\t\t%-15s %.2f\n' % (key, value)
                 else:

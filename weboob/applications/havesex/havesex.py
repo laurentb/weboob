@@ -40,7 +40,7 @@ class ProfileFormatter(IFormatter):
                 result += self.print_node(sub, level+1)
         else:
             if isinstance(node.value, (tuple,list)):
-                value = ','.join([unicode(v) for v in node.value])
+                value = ','.join(unicode(v) for v in node.value)
             else:
                 value = node.value
             result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)

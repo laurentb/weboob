@@ -88,7 +88,7 @@ class WebContentEdit(ReplApplication):
             print 'No changes. Abort.'
             return
 
-        print 'Contents changed:\n%s' % ('\n'.join([' * %s' % content.id for content in contents]))
+        print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
         message = self.ask('Enter a commit message', default='')
 

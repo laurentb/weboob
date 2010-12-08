@@ -106,7 +106,7 @@ class BaseBackend(object):
         self.lock = RLock()
 
         # Private fields (which start with '_')
-        self._private_config = dict([(key, value) for key, value in config.iteritems() if key.startswith('_')])
+        self._private_config = dict((key, value) for key, value in config.iteritems() if key.startswith('_'))
 
         # Configuration of backend
         self.config = {}

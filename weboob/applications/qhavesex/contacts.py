@@ -266,10 +266,10 @@ class ContactProfile(QWidget):
             for sub in node.value:
                 self.process_node(sub, value)
         elif isinstance(node.value, list):
-            value = QLabel('<br />'.join([unicode(s) for s in node.value]))
+            value = QLabel('<br />'.join(unicode(s) for s in node.value))
             value.setWordWrap(True)
         elif isinstance(node.value, tuple):
-            value = QLabel(', '.join([unicode(s) for s in node.value]))
+            value = QLabel(', '.join(unicode(s) for s in node.value))
             value.setWordWrap(True)
         elif isinstance(node.value, (basestring,int,long,float)):
             value = QLabel(unicode(node.value))

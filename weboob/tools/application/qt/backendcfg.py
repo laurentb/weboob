@@ -287,7 +287,7 @@ class BackendCfg(QDialog):
                                       backend.license,
                                       (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
                                       backend.description,
-                                      ', '.join(sorted([cap.__name__.replace('ICap', '') for cap in backend.iter_caps()]))))
+                                      ', '.join(sorted(cap.__name__.replace('ICap', '') for cap in backend.iter_caps()))))
 
         if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()

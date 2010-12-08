@@ -75,7 +75,7 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
     def format_option_strings(self, option):
         opts = optparse.HelpFormatter.format_option_strings(self, option).split(", ")
 
-        return ".TP\n"+", ".join(["\\fB%s\\fR" % opt for opt in opts])
+        return ".TP\n"+", ".join("\\fB%s\\fR" % opt for opt in opts)
 
 
 def main():

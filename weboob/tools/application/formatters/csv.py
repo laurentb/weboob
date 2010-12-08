@@ -36,5 +36,5 @@ class CSVFormatter(IFormatter):
         if self.count == 0:
             result += self.field_separator.join(item.iterkeys()) + '\n'
         self.count += 1
-        result += self.field_separator.join([unicode(v) for v in item.itervalues()])
+        result += self.field_separator.join(unicode(v) for v in item.itervalues())
         return result
