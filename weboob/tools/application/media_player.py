@@ -103,7 +103,7 @@ class MediaPlayer(object):
         """
         if not self._find_in_path(os.environ['PATH'], 'rtmpdump'):
             self.logger.warning('"rtmpdump" binary not found')
-            return self._play_default(media)
+            return self._play_default(media, player_name)
         media_url = media.url
         try:
             player_url = media.swf_player
@@ -111,7 +111,7 @@ class MediaPlayer(object):
         except AttributeError:
             self.logger.warning('Your media object does not have a "swf_player" attribute. SWF verification will be '
                                 'disabled and may prevent correct media playback.')
-            return self._play_default(media)
+            return self._play_default(media, player_name)
 
         rtmp += ' --quiet'
 
