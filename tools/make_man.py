@@ -37,6 +37,41 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
     def format_heading(self, heading):
         return ".SH %s\n" % heading.upper()
 
+    def format_usage(self, usage):
+        txt = ''
+        for line in usage.split('\n'):
+            line = line.lstrip().split(' ', 1)
+            if len(txt) > 0:
+                txt += '.br\n'
+            txt += '.B %s\n' % line[0]
+
+            arg_re = re.compile(r'([\[\s])([\w_]+)')
+            args = re.sub(arg_re, r"\1\\fI\2\\fR", line[1])
+            txt += args
+            txt += '\n'
+        return '.SH SYNOPSIS\n%s' % txt
+
+    def format_description(self, description):
+        return '.SH DESCRIPTION\n.LP\n\n%s\n' % description
+
+    def format_commands(self, commands):
+        s = u''
+        for section, cmds in commands.iteritems():
+            s += '.SH %s COMMANDS\n' % section.upper()
+            for cmd in cmds:
+                s += '.TP\n'
+                h = cmd.split('\n')
+                if ' ' in h[0]:
+                    cmdname, args = h[0].split(' ', 1)
+                    arg_re = re.compile(r'([A-Z_]+)')
+                    args = re.sub(arg_re, r"\\fI\1\\fR", args)
+
+                    s += '\\fB%s\\fR %s' % (cmdname, args)
+                else:
+                    s += '\\fB%s\\fR' % h[0]
+                s += '%s\n' % '\n.br\n'.join(h[1:])
+        return s
+
     def format_option_strings(self, option):
         opts = optparse.HelpFormatter.format_option_strings(self, option).split(", ")
 
@@ -81,24 +116,41 @@ def main():
 def format_title(title):
     return re.sub(r'^(.+):$', r'.SH \1\n.TP', title.group().upper())
 
+# XXX useful because the PyQt QApplication destructor crashes sometimes. By
+# keeping every applications until program end, it prevents to stop before
+# every manpages have been generated. If it crashes at exit, it's not a
+# really a problem.
+applications = []
 def analyze_application(app, script_name):
     formatter = ManpageHelpFormatter()
     application = app()
+    applications.append(application)
 
     # patch the application
-    application._parser.prog = ".B %s\n" % script_name
+    application._parser.prog = "%s" % script_name
+    application._parser.formatter = formatter
     helptext = application._parser.format_help(formatter)
 
     cmd_re = re.compile(r'^.+ Commands:$', re.MULTILINE)
     helptext = re.sub(cmd_re, format_title, helptext)
-    usg_re = re.compile(r'^\s*Usage:\s+', re.MULTILINE)
-    helptext = re.sub(usg_re, ".SH SYNOPSIS\n", helptext)
     helptext = helptext.replace("-", r"\-")
-    header = '.TH %s 1 "%s"' % (script_name.upper(), time.strftime("%d %B %Y").upper())
+    header = '.TH %s 1 "%s"' % (script_name.upper(), time.strftime("%d %B %Y"))
     name = ".SH NAME\n%s" % script_name
-    mantext = "%s\n%s\n%s" % (header, name, helptext)
+    footer = """.SH COPYRIGHT
+%s
+.LP
+For full COPYRIGHT see COPYING file with weboob package.
+.LP
+.RE
+.SH FILES
+ "~/.weboob/backends" """ % application.COPYRIGHT
+    if len(app.CONFIG) > 0:
+        footer += '\n\n "~/.weboob/%s"' % app.APPNAME
+
+    mantext = "%s\n%s\n%s\n%s" % (header, name, helptext, footer)
     with open(os.path.join(BASE_PATH, "man2", "%s.1" % script_name), 'w+') as manfile:
-        manfile.write(mantext)
+        for line in mantext.split('\n'):
+            manfile.write('%s\n' % line.lstrip())
     print "wrote man2/%s.1" % script_name
 
 if __name__ == '__main__':
