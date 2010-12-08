@@ -39,12 +39,11 @@ class ComposePage(BasePage):
         return remaining_regex.match(text).groupdict().get('nb')
 
     def post_message(self, message):
-        receiver_list = [re.sub(' +', '', receiver) for receiver in message.receivers]
-        for receiver in receiver_list:
-            if self.phone_regex.match(receiver) is None:
-                raise CantSendMessage(u'Invalid receiver: %s' % receiver)
+        receiver = message.thread.id
+        if self.phone_regex.match(receiver) is None:
+            raise CantSendMessage(u'Invalid receiver: %s' % receiver)
         self.browser.select_form(nr=0)
-        self.browser['msisdns'] = ','.join(receiver_list)
+        self.browser['msisdns'] = receiver
         self.browser['textMessage'] = message.content
         self.browser.submit()
 
