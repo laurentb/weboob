@@ -166,7 +166,6 @@ class Monboob(ReplApplication):
         content = content.split(u'\n-- \n')[0]
 
         parent_id = None
-        receivers = None
         if reply_to is None:
             # This is a new message
             if '.' in to:
@@ -201,7 +200,7 @@ class Monboob(ReplApplication):
                           0,
                           title=title,
                           sender=sender,
-                          receivers=receivers,
+                          receivers=[to],
                           parent=Message(thread, parent_id) if parent_id else None,
                           content=content)
         try:
