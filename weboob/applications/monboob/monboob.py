@@ -125,10 +125,8 @@ class Monboob(ReplApplication):
 
     def process_incoming_mail(self, msg):
         to = self.get_email_address_ident(msg, 'To')
+        sender = msg.get('From')
         reply_to = self.get_email_address_ident(msg, 'In-Reply-To')
-        if not reply_to:
-            print >>sys.stderr, 'This is not a reply (no Reply-To field)'
-            return 1
 
         title = msg.get('Subject')
         if title:
@@ -167,11 +165,26 @@ class Monboob(ReplApplication):
         # remove signature
         content = content.split(u'\n-- \n')[0]
 
-        bname, id = reply_to.split('.', 1)
+        parent_id = None
+        receivers = None
+        if reply_to is None:
+            # This is a new message
+            if '.' in to:
+                bname, thread_id = to.split('.', 1)
+            else:
+                bname = to
+                thread_id = None
+        else:
+            # This is a reply
+            try:
+                bname, thread_id, parent_id = reply_to.split('.', 2)
+            except ValueError:
+                print >>sys.stderr, 'In-Reply-To header might be in form <backend.thread_id.message_id>'
+                return 1
 
-        # Default use the To header field to know the backend to use.
-        if to and bname != to:
-            bname = to
+            # Default use the To header field to know the backend to use.
+            if to and bname != to:
+                bname = to
 
         try:
             backend = self.weboob.backend_instances[bname]
@@ -183,14 +196,13 @@ class Monboob(ReplApplication):
             print >>sys.stderr, 'The backend %s does not implement ICapMessagesPost' % bname
             return 1
 
-        thread_id, msg_id = id.rsplit('.', 1)
         thread = Thread(thread_id)
         message = Message(thread,
                           0,
                           title=title,
-                          sender=None,
-                          receivers=None,
-                          parent=Message(thread, msg_id),
+                          sender=sender,
+                          receivers=receivers,
+                          parent=Message(thread, parent_id) if parent_id else None,
                           content=content)
         try:
             backend.post_message(message)
@@ -203,7 +215,7 @@ class Monboob(ReplApplication):
                                              0,
                                              title='Unable to send message',
                                              sender='Monboob',
-                                             parent=Message(thread, msg_id),
+                                             parent=Message(thread, parent_id) if parent_id else None,
                                              content=content))
 
     def do_run(self, line):
