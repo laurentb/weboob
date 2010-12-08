@@ -19,7 +19,7 @@
 import sys
 
 from weboob.core import CallErrors
-from weboob.capabilities.messages import CantSendMessage, ICapMessages, Message, Thread
+from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.capabilities.account import ICapAccount
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
@@ -168,53 +168,50 @@ class Boobmsg(ReplApplication):
 
     def do_post(self, line):
         """
-        post TO...
+        post RECEIVER@BACKEND[,RECEIVER@BACKEND[...]] [TEXT]
 
         Post a message to the specified receivers.
         Multiple receivers are separated by a comma.
-        The content of message is read on stdin.
-        """
-        def post_message(receivers, backends=None):
-            message = Message(thread=None, id=None, content=content, receivers=receivers)
-            try:
-                self.do('post_message', message, backends=backends).wait()
-            except CallErrors, errors:
-                for backend, error, backtrace in errors:
-                    if isinstance(error, CantSendMessage):
-                        print >>sys.stderr, 'Error: %s' % error
-                        self.logger.debug(backtrace)
-                    else:
-                        self.bcall_error_handler(backend, error, backtrace)
-            if self.interactive:
-                print 'Message sent sucessfully to %s' % ','.join(receivers)
 
-        if not line:
-            print >>sys.stderr, 'You must give at least a receiver.'
+        If no text is supplied on command line, the content of message is read on stdin.
+        """
+        receivers, text = self.parseargs(line, 2, 1)
+        if text is None:
+            if self.interactive:
+                print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
+            text = sys.stdin.read()
+
+        if self.options.skip_empty and not text.strip():
             return
-        receivers_by_backend = {}
-        receivers_without_backend = []
-        for receiver in [receiver.strip() for receiver in line.strip().split(',')]:
-            receiver, backend_name = self.parse_id(receiver)
-            if backend_name:
-                if backend_name in receivers_by_backend:
-                    receivers_by_backend[backend_name].append(receiver)
-                else:
-                    receivers_by_backend[backend_name] = [receiver]
-            else:
-                receivers_without_backend.append(receiver)
-        if self.interactive:
-            print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
-        content = sys.stdin.read()
-        if self.options.skip_empty and not content.strip():
-            return
-        for backend_name, receivers in receivers_by_backend.iteritems():
-            post_message(receivers, [backend_name])
-        if receivers_without_backend:
-            if len(self.enabled_backends) > 1:
-                self.logger.warning(u'No backend specified for receivers (%s): message will be sent with all the '
-                    'enabled backends (%s)' % (','.join(receivers_without_backend),
+
+        for receiver in receivers.strip().split(','):
+            receiver, backend_name = self.parse_id(receiver.strip())
+            if not backend_name and len(self.enabled_backends) > 1:
+                self.logger.warning(u'No backend specified for receiver "%s": message will be sent with all the '
+                    'enabled backends (%s)' % (receiver,
                     ','.join(backend.name for backend in self.enabled_backends)))
-            post_message(receivers_without_backend)
+
+            if '.' in receiver:
+                # It's a reply
+                thread_id, parent_id = receiver.split('.', 1)
+            else:
+                # It's an original message
+                thread_id = receiver
+                parent_id = None
+
+            thread = Thread(thread_id)
+            message = Message(thread,
+                              0,
+                              parent=Message(thread, parent_id) if parent_id else None,
+                              content=text)
+
+            try:
+                self.do('post_message', message, backends=backend_name).wait()
+            except CallErrors, errors:
+                self.bcall_errors_handler(errors)
+            else:
+                if self.interactive:
+                    print 'Message sent sucessfully to %s' % receiver
 
     threads = []
     messages = []
