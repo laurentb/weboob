@@ -56,6 +56,7 @@ class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
+    DESCRIPTION = 'Search and get information about videos'
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
     COMMANDS_FORMATTERS = {'search': 'video_list'}
