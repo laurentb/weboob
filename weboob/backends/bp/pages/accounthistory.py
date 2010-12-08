@@ -15,17 +15,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 import re
 
 from weboob.capabilities.bank import Operation
 
 from weboob.tools.browser import BasePage
 
+
 __all__ = ['AccountHistory']
+
 
 def remove_html_tags(data):
     p = re.compile(r'<.*?>')
     return p.sub(' ', data)
+
 
 def remove_extra_spaces(data):
     p = re.compile(r'\s+')
@@ -34,9 +38,10 @@ def remove_extra_spaces(data):
 
 class AccountHistory(BasePage):
     def on_loaded(self):
-        if self.document.docinfo.doctype == '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">':
+        if self.document.docinfo.doctype == '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" '
+            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">':
             self.browser.follow_link(url_regex="releve", tag="a")
-                
+
     def get_history(self):
         mvt_table = self.document.xpath("//table[@id='mouvements']", smart_strings=False)[0]
         mvt_ligne = mvt_table.xpath("./tbody/tr")
@@ -48,7 +53,6 @@ class AccountHistory(BasePage):
             operation.date = mvt.xpath("./td")[0].text
             tp = mvt.xpath("./td")[1]
             operation.label = remove_extra_spaces(remove_html_tags(self.browser.parser.tostring(tp)))
-
 
             r = re.compile(r'\d+')
             tp = mvt.xpath("./td/span")

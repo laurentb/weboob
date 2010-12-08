@@ -16,17 +16,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import re
+
 from weboob.capabilities.bank import TransferError
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
 
-import re
 
 __all__ = ['TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary']
 
 
 class TransferChooseAccounts(BasePage):
-
     def set_accouts(self, from_account, to_account):
         self.browser.select_form(name="AiguillageForm")
         self.browser["idxCompteEmetteur"] = [from_account.id]
@@ -35,16 +35,17 @@ class TransferChooseAccounts(BasePage):
 
 
 class CompleteTransfer(BasePage):
-
     def complete_transfer(self, amount):
         self.browser.select_form(name="VirementNationalForm")
         self.browser["montant"] = str(amount)
         self.browser.submit()
 
-class TransferConfirm(BasePage):
 
+class TransferConfirm(BasePage):
     def confirm(self):
-        self.browser.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/virementnational/4-virementNational.ea")
+        self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/'
+            'virementnational/4-virementNational.ea')
+
 
 class TransferSummary(BasePage):
     def get_transfer_id(self):
@@ -55,7 +56,6 @@ class TransferSummary(BasePage):
             text = p.text
         except UnicodeDecodeError, error:
             text = error.object.strip()
-
 
         match = re.search("Votre virement N.+ ([0-9]+) ", text)
         if match:

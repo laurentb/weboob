@@ -20,14 +20,15 @@ from weboob.capabilities.bank import Account, AccountNotFound
 
 from weboob.tools.browser import BasePage
 
+
 __all__ = ['AccountList']
+
 
 class AccountList(BasePage):
     def on_loaded(self):
-        self.Account_List = []
+        self.account_list = []
 
     def get_accounts_list(self):
-
         #Parse CCP
         compte_table = self.document.xpath("//table[@id='comptes']", smart_strings=False)[0]
         compte_ligne = compte_table.xpath("./tbody/tr")
@@ -38,8 +39,8 @@ class AccountList(BasePage):
             account.label = tp.text
             account.link_id = tp.get("href")
             account.id = compte.xpath("./td")[1].text
-            account.balance = float(''.join( compte.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() ))
-            self.Account_List.append(account)
+            account.balance = float(''.join(compte.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
+            self.account_list.append(account)
 
         #Parse epargne
         epargne_table = self.document.xpath("//table[@id='comptesEpargne']", smart_strings=False)[0]
@@ -51,16 +52,16 @@ class AccountList(BasePage):
             account.label = tp.text
             account.link_id = tp.get("href")
             account.id = epargne.xpath("./td")[1].text
-            account.balance = float(''.join( epargne.xpath("./td/span")[0].text.replace('.','').replace(',','.').split() ) )
-            self.Account_List.append(account)
+            account.balance = float(''.join(epargne.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
+            self.account_list.append(account)
 
-        return self.Account_List
+        return self.account_list
 
     def get_account(self, id):
-        if not self.Account_List:
+        if not self.account_list:
             self.get_accounts_list()
 
-        for account in self.Account_List:
-                if account.id == id:
-                    return account
+        for account in self.account_list:
+            if account.id == id:
+                return account
         raise AccountNotFound('Unable to find account: %s' % id)

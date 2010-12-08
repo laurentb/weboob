@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-
 from weboob.tools.browser import BasePage
+
 
 __all__ = ['CookiePage']
 
+
 class CookiePage(BasePage):
-    def on_loaded(self):
-        pass
+    pass

@@ -15,11 +15,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
-from .browser import BPbrowser
+from .browser import BPBrowser
+
 
 class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
@@ -30,7 +32,7 @@ class BPBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'La banque postale, French bank'
     CONFIG = ValuesDict(Value('login',    label='Account ID'),
                         Value('password', label='Password', masked=True))
-    BROWSER = BPbrowser
+    BROWSER = BPBrowser
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'], self.config['password'])
@@ -57,4 +59,3 @@ class BPBackend(BaseBackend, ICapBank):
         #TODO: retourner le numero du virement
         #TODO: support the 'reason' parameter
         return self.browser.make_transfer(from_account, to_account, amount)
-
