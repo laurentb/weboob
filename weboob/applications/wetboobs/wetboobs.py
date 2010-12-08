@@ -119,9 +119,10 @@ class WetBoobs(ReplApplication):
 
     def do_current(self, line):
         """
-        current CITY
+        current CITY_ID
 
-        Get current weather.
+        Get current weather for specified city. Use the 'search' command to find
+        its ID.
         """
         city, = self.parseargs(line, 1, 1)
         _id, backend_name = self.parse_id(city)
@@ -137,9 +138,10 @@ class WetBoobs(ReplApplication):
 
     def do_forecasts(self, line):
         """
-        forecasts CITY
+        forecasts CITY_ID
 
-        Get forecasts.
+        Get forecasts for specified city. Use the 'search' command to find
+        its ID.
         """
         city, = self.parseargs(line, 1, 1)
         _id, backend_name = self.parse_id(city)
