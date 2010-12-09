@@ -38,7 +38,7 @@ def remove_extra_spaces(data):
 
 class AccountHistory(BasePage):
     def on_loaded(self):
-        if self.document.docinfo.doctype == '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" '
+        if self.document.docinfo.doctype == '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" ' \
             '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">':
             self.browser.follow_link(url_regex="releve", tag="a")
 
