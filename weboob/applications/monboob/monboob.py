@@ -178,7 +178,8 @@ class Monboob(ReplApplication):
         else:
             # This is a reply
             try:
-                bname, thread_id, parent_id = reply_to.split('.', 2)
+                bname, id = reply_to.split('.', 1)
+                thread_id, parent_id = id.rsplit('.', 1)
             except ValueError:
                 print >>sys.stderr, 'In-Reply-To header might be in form <backend.thread_id.message_id>'
                 return 1
