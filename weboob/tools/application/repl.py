@@ -443,7 +443,7 @@ class ReplApplication(Cmd, BaseApplication):
             if cmd_args[0] == 'help':
                 self._parser.print_help()
                 self._parser.exit()
-            cmd_line = ' '.join(cmd_args)
+            cmd_line = u' '.join(cmd_args)
             cmds = cmd_line.split(';')
             for cmd in cmds:
                 ret = self.onecmd(cmd)
@@ -534,6 +534,8 @@ class ReplApplication(Cmd, BaseApplication):
             return None
         if doc:
             doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
+            if not doc.startswith(command):
+                doc = '%s\n\n%s' % (command, doc)
             return doc
 
     def get_commands_doc(self):
@@ -549,8 +551,9 @@ class ReplApplication(Cmd, BaseApplication):
                 d[appname].append(self.get_command_help(cmd))
             else:
                 d[appname].append(cmd)
-        for cmd in self.weboob_commands:
-            d['Weboob'].append(self.get_command_help(cmd))
+        if not self.DISABLE_REPL:
+            for cmd in self.weboob_commands:
+                d['Weboob'].append(self.get_command_help(cmd))
 
         return d
 
