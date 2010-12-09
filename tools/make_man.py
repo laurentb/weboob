@@ -149,7 +149,8 @@ def analyze_application(app, script_name):
     cmd_re = re.compile(r'^.+ Commands:$', re.MULTILINE)
     helptext = re.sub(cmd_re, format_title, helptext)
     helptext = helptext.replace("-", r"\-")
-    header = '.TH %s 1 "%s"' % (script_name.upper(), time.strftime("%d %B %Y"))
+    header = '.TH %s 1 "%s" "%s %s"' % (script_name.upper(), time.strftime("%d %B %Y"),
+                                        script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s" % script_name
     footer = """.SH COPYRIGHT
 %s
@@ -166,7 +167,7 @@ For full COPYRIGHT see COPYING file with weboob package.
     if not '-' in application.APPNAME:
         footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/%s" % application.APPNAME.capitalize()
 
-    mantext = "%s\n%s\n%s\n%s" % (header, name, helptext, footer)
+    mantext = u"%s\n%s\n%s\n%s" % (header, name, helptext, footer)
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
             manfile.write('%s\n' % line.lstrip().encode('utf-8'))
