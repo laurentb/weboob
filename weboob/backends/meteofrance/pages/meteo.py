@@ -22,6 +22,7 @@ from weboob.capabilities.weather import Forecast, Current, City
 
 import datetime
 
+
 __all__ = ['WeatherPage', 'CityPage']
 
 
@@ -60,16 +61,15 @@ class WeatherPage(BasePage):
                 mdate = datetime.datetime.now()
                 return Current(mdate, temp, mtxt, "C")
 
-
     def get_city(self):
-        """Return the city from the forecastpage
+        """
+        Return the city from the forecastpage.
         """
         for div in self.document.getiterator('div'):
             if div.attrib.has_key("class") and div.attrib.get("class") == "choix":
                 for strong in div.getiterator("strong"):
                     city_name=strong.text +" "+ strong.tail.replace("(","").replace(")","")
                     city_id=self.url.split("/")[-1]
-
                     return City(city_id, city_name)
 
 

@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 import re
 
 from weboob.tools.browser import BasePage
@@ -56,6 +57,7 @@ class TransferPage(BasePage):
             self.browser['T5'] = reason
         self.browser.submit()
 
+
 class TransferConfirmPage(BasePage):
     def on_loaded(self):
         for td in self.document.getroot().cssselect('td#size2'):
@@ -66,6 +68,7 @@ class TransferConfirmPage(BasePage):
             if m:
                 self.browser.location('/NS_VIRDA?stp=%s' % m.group(1))
                 return
+
 
 class TransferCompletePage(BasePage):
     def get_id(self):

@@ -23,6 +23,9 @@ from weboob.tools.value import ValuesDict, Value
 from .browser import BPBrowser
 
 
+__all__ = ['BPBackend']
+
+
 class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
     MAINTAINER = 'Nicolas Duhamel'

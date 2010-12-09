@@ -30,43 +30,19 @@ class KickassBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-             'http://fr.kickasstorrents.com/new/.*field=seeders&sorder=desc' : TorrentsPage,
-             'http://fr.kickasstorrents.com/.*.html' : TorrentPage
-             }
-
-    def __init__(self, *args, **kwargs):
-        #self.DOMAIN = domain
-        #self.PROTOCOL = protocol
-        #self.PAGES = {}
-        #for key, value in PiratebayBrowser.PAGES.iteritems():
-        #    self.PAGES[key % domain] = value
-
-        BaseBrowser.__init__(self, *args, **kwargs)
-
-    #def login(self):
-    #    if not self.is_on_page(LoginPage):
-    #        self.home()
-    #    self.page.login(self.username, self.password)
-
-    #def is_logged(self):
-    #    if not self.page or self.is_on_page(LoginPage):
-    #        return False
-    #    if self.is_on_page(IndexPage):
-    #        return self.page.is_logged()
-    #    return True
+        'http://fr.kickasstorrents.com/new/.*field=seeders&sorder=desc': TorrentsPage,
+        'http://fr.kickasstorrents.com/.*.html': TorrentPage,
+        }
 
     def home(self):
         return self.location('http://kickasstorrents.com')
 
     def iter_torrents(self, pattern):
-        #self.location(self.buildurl('/torrents.php', searchstr=pattern))
         self.location('http://fr.kickasstorrents.com/new/?q=%s&field=seeders&sorder=desc' % pattern)
-
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
         self.location('http://fr.kickasstorrents.com/%s.html' % id)
-
         assert self.is_on_page(TorrentPage)
         return self.page.get_torrent(id)

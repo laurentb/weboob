@@ -31,14 +31,16 @@ class MeteofranceBrowser(BaseBrowser):
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    WEATHER_URL = "{0}://{1}/france/meteo?PREVISIONS_PORTLET.path=previsionsville/{{cityid}}".format(PROTOCOL, DOMAIN)
-    CITY_SEARCH_URL="{0}://{1}/france/accueil/resultat?RECHERCHE_RESULTAT_PORTLET.path=rechercheresultat&query={{city_pattern}}&type=PREV_FRANCE&satellite=france".format(PROTOCOL, DOMAIN)
+    WEATHER_URL = '{0}://{1}/france/meteo?PREVISIONS_PORTLET.path=previsionsville/{{cityid}}'.format(PROTOCOL, DOMAIN)
+    CITY_SEARCH_URL = '{0}://{1}/france/accueil/resultat?RECHERCHE_RESULTAT_PORTLET.path=rechercheresultat&' \
+        'query={{city_pattern}}&type=PREV_FRANCE&satellite=france'.format(PROTOCOL, DOMAIN)
     PAGES = {
-             WEATHER_URL.format(cityid=".*") : WeatherPage,
-             CITY_SEARCH_URL.format(city_pattern=".*") : CityPage,
-             "http://france.meteofrance.com/france/accueil/resultat.*" : CityPage,
-             "http://france.meteofrance.com/france/meteo.*" : WeatherPage
-            }
+        WEATHER_URL.format(cityid=".*"): WeatherPage,
+        CITY_SEARCH_URL.format(city_pattern=".*"): CityPage,
+        'http://france.meteofrance.com/france/accueil/resultat.*': CityPage,
+        'http://france.meteofrance.com/france/meteo.*': WeatherPage,
+        }
+
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 

@@ -25,6 +25,7 @@ from weboob.tools.value import ValuesDict, Value
 from .browser import CanalplusBrowser
 from .pages import CanalplusVideo
 
+
 __all__ = ['CanalplusBackend']
 
 
@@ -57,7 +58,6 @@ class CanalplusBackend(BaseBackend, ICapVideo):
         if 'thumbnail' in fields:
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
-
         return video
 
     OBJECTS = {CanalplusVideo: fill_video}

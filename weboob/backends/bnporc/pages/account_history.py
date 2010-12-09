@@ -24,7 +24,6 @@ __all__ = ['AccountHistory']
 
 
 class AccountHistory(BasePage):
-
     def on_loaded(self):
         self.operations = []
 

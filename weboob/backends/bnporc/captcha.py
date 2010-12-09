@@ -25,7 +25,8 @@ class TileError(Exception):
         Exception.__init__(self, msg)
         self.tile = tile
 
-class Captcha:
+
+class Captcha(object):
     def __init__(self, file):
         self.inim = Image.open(file)
         self.nx,self.ny = self.inim.size
@@ -77,7 +78,8 @@ class Captcha:
             y += 25
             ty += 1
 
-class Tile:
+
+class Tile(object):
     hash = {'b2d25ae11efaaaec6dd6a4c00f0dfc29': 1,
             '600873fa288e75ca6cca092ae95bf129': 2,
             'da24ac28930feee169adcbc9bad4acaf': 3,
@@ -117,4 +119,3 @@ class Tile:
             for pxl in pxls:
                 sys.stdout.write('%02d' % pxl)
             sys.stdout.write('\n')
-

@@ -36,7 +36,8 @@ class ArteBackend(BaseBackend, ICapVideo):
     VERSION = '0.5'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'
-    CONFIG = ValuesDict(Value('lang',    label='Lang of videos', choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
+    CONFIG = ValuesDict(Value('lang', label='Lang of videos',
+                              choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
                         Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
     BROWSER = ArteBrowser
 

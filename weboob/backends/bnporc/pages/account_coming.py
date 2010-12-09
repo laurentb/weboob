@@ -24,7 +24,6 @@ __all__ = ['AccountComing']
 
 
 class AccountComing(BasePage):
-
     def on_loaded(self):
         self.operations = []
 

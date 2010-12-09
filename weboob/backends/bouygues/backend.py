@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-#from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 

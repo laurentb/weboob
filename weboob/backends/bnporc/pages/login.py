@@ -55,8 +55,10 @@ class LoginPage(BasePage):
         self.browser['ch5'] = img.get_codes(password)
         self.browser.submit()
 
+
 class ConfirmPage(BasePage):
     pass
+
 
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):

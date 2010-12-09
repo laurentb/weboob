@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from weboob.capabilities.weather import ICapWeather
 from weboob.tools.backend import BaseBackend
 
@@ -31,10 +32,6 @@ class MeteofranceBackend(BaseBackend, ICapWeather):
     VERSION = '0.5'
     DESCRIPTION = 'Get forecasts from the MeteoFrance website'
     LICENSE = 'GPLv3'
-    #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
-    #                    Value('protocol', label='Protocol to use', choices=('http', 'https')),
-    #                    Value('username', label='Username'),
-    #                    Value('password', label='Password', masked=True))
     BROWSER = MeteofranceBrowser
 
     def create_default_browser(self):

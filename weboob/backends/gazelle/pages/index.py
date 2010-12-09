@@ -26,6 +26,7 @@ class IndexPage(BasePage):
     def is_logged(self):
         return 'id' in self.document.find('body').attrib
 
+
 class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(nr=0)
