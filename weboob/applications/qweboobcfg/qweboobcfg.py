@@ -25,6 +25,8 @@ class QWeboobCfg(QtApplication):
     APPNAME = 'qweboobcfg'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "weboob-config-qt is a graphical application to add/edit/remove backends, " \
+                  "and to register new website accounts."
 
     def main(self, argv):
         self.load_backends()

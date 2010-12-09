@@ -85,6 +85,8 @@ class Boobank(ReplApplication):
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
+    DESCRIPTION = "Boobank is a console application to get bank accounts, " \
+                  "display history and do transfer operations."
     EXTRA_FORMATTERS = {'account_list': AccountListFormatter,
                         'transfer':     TransferFormatter,
                        }

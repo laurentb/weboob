@@ -34,6 +34,8 @@ class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
+    DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
+                  "and to register new website accounts."
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
                            }

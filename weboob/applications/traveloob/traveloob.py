@@ -29,6 +29,7 @@ class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Traveloob is a console application to get timelines."
     CAPS = ICapTravel
     DEFAULT_FORMATTER = 'table'
 

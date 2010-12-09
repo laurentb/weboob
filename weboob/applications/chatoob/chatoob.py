@@ -30,6 +30,7 @@ class Chatoob(ReplApplication):
     APPNAME = 'chatoob'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
+    DESCRIPTION = 'Chatoob is a console application to chat with contacts.'
     CAPS = ICapChat
 
     def on_new_chat_message(self, message):

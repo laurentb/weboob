@@ -56,7 +56,8 @@ class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon, John Obbele'
-    DESCRIPTION = 'Search and get information about videos'
+    DESCRIPTION = "Videoob is a console application to search videos on supported websites " \
+                  "and to play them or get informations."
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
     COMMANDS_FORMATTERS = {'search': 'video_list'}

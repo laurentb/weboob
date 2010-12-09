@@ -72,6 +72,7 @@ class HaveSex(ReplApplication):
     APPNAME = 'havesex'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Havesex is a console application to interact with dating websites and to help you to seduce women."
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
     CAPS = ICapDating

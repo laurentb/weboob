@@ -54,6 +54,8 @@ class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Radioob is a console application to list radios, play them and get " \
+                  "informations like the current song."
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
     COMMANDS_FORMATTERS = {'list':    'radio_list'}

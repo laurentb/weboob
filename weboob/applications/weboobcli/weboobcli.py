@@ -30,6 +30,8 @@ class WeboobCli(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] capability method [arguments..]\n'
     SYNOPSIS += '       %prog [--help] [--version]'
+    DESCRIPTION = "Weboob-Cli is a console application to call a specific method on backends " \
+                  "which implement the given capability."
     DISABLE_REPL = True
 
     def load_default_backends(self):

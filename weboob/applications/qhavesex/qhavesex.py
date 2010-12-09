@@ -25,6 +25,9 @@ class QHaveSex(QtApplication):
     APPNAME = 'qhavesex'
     VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "QHaveSex is a graphical application to interact with dating websites " \
+                  "and help you to seduce women."
+    CAPS = ICapDating
     STORAGE_FILENAME = 'dating.storage'
 
     def main(self, argv):
