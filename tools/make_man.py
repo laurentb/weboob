@@ -25,14 +25,17 @@ import time
 from weboob.tools.application.base import BaseApplication
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), os.pardir)
+DEST_DIR = 'man'
 
 class ManpageHelpFormatter(optparse.HelpFormatter):
     def __init__ (self,
+            app,
             indent_increment=0,
             max_help_position=0,
             width=80,
             short_first=1):
         optparse.HelpFormatter.__init__(self, indent_increment, max_help_position, width, short_first)
+        self.app = app
 
     def format_heading(self, heading):
         return ".SH %s\n" % heading.upper()
@@ -52,11 +55,22 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
         return '.SH SYNOPSIS\n%s' % txt
 
     def format_description(self, description):
-        return '.SH DESCRIPTION\n.LP\n\n%s\n' % description
+        desc = u'.SH DESCRIPTION\n.LP\n\n%s\n' % description
+        if hasattr(self.app, 'CAPS'):
+            desc += u'\n.SS Supported websites:\n'
+            self.app.weboob.modules_loader.load_all()
+            backends = []
+            for name, backend in self.app.weboob.modules_loader.loaded.iteritems():
+                if backend.has_caps(self.app.CAPS):
+                    backends.append(u'* %s (%s)' % (name, backend.description))
+            desc += u'\n.br\n'.join(sorted(backends))
+        return desc
 
     def format_commands(self, commands):
         s = u''
         for section, cmds in commands.iteritems():
+            if len(cmds) == 0:
+                continue
             s += '.SH %s COMMANDS\n' % section.upper()
             for cmd in cmds:
                 s += '.TP\n'
@@ -122,9 +136,10 @@ def format_title(title):
 # really a problem.
 applications = []
 def analyze_application(app, script_name):
-    formatter = ManpageHelpFormatter()
     application = app()
     applications.append(application)
+
+    formatter = ManpageHelpFormatter(application)
 
     # patch the application
     application._parser.prog = "%s" % script_name
@@ -147,11 +162,15 @@ For full COPYRIGHT see COPYING file with weboob package.
     if len(app.CONFIG) > 0:
         footer += '\n\n "~/.weboob/%s"' % app.APPNAME
 
+    # Skip internal applications.
+    if not '-' in application.APPNAME:
+        footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/%s" % application.APPNAME.capitalize()
+
     mantext = "%s\n%s\n%s\n%s" % (header, name, helptext, footer)
-    with open(os.path.join(BASE_PATH, "man2", "%s.1" % script_name), 'w+') as manfile:
+    with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
-            manfile.write('%s\n' % line.lstrip())
-    print "wrote man2/%s.1" % script_name
+            manfile.write('%s\n' % line.lstrip().encode('utf-8'))
+    print "wrote %s/%s.1" % (DEST_DIR, script_name)
 
 if __name__ == '__main__':
     sys.exit(main())
