@@ -1,21 +1,30 @@
-.TH WEBOOB-CONFIG-QT 1 "02 August 2010"
+.TH WEBOOB-CONFIG-QT 1 "09 December 2010"
 .SH NAME
-weboob-config-qt \- Weboob configuration (Qt Application)
+weboob-config-qt
 .SH SYNOPSIS
-.B weboob-config-qt
-[\-dqv]
+.B weboob\-config\-qt
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
-.B weboob-config-qt
-[\-\-version] [\-\-help]
+.B weboob\-config\-qt
+[\-\-help] [\-\-version]
+
 .SH DESCRIPTION
 .LP
-Weboob provides several applications to interact with a lot of websites.
 
-This graphical application is used to configure weboob. You can list backends,
-and add/list/remove configured backends.
+weboob\-config\-qt is a graphical application to add/edit/remove backends, and to register new website accounts.
 
 .SH OPTIONS
-.SS Logging options
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -25,13 +34,12 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -40,4 +48,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Qweboobcfg

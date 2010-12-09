@@ -1,33 +1,25 @@
-.TH CHATOOB 1 "09 December 2010"
+.TH WEBOOB-DEBUG 1 "09 December 2010"
 .SH NAME
-chatoob
+weboob-debug
 .SH SYNOPSIS
-.B chatoob
+.B weboob\-debug
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B chatoob
+.B weboob\-debug
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Chatoob is a console application to chat with contacts.
+Weboob\-Debug is a console application to debug backends.
 
 .SS Supported websites:
-* aum (“Adopte un mec” french dating website)
-.SH CHATOOB COMMANDS
+
+.SH WEBOOBDEBUG COMMANDS
 .TP
-\fBlist\fR
+\fBshell\fR \fIBACKEND\fR
 .br
-List all contacts.
-.TP
-\fBmessages\fR
-.br
-Get messages.
-.TP
-\fBsend\fR \fICONTACT\fR \fIMESSAGE\fR
-.br
-Send a message to the specified contact.
+Debug a backend.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -198,4 +190,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Chatoob
+Home page: http://weboob.org/Weboobdebug

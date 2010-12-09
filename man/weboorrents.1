@@ -1,53 +1,165 @@
-.TH WEBOORRENTS 1 "02 August 2010"
+.TH WEBOORRENTS 1 "09 December 2010"
 .SH NAME
-weboorrents \- Torrents search and get
+weboorrents
 .SH SYNOPSIS
 .B weboorrents
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIcommand\fR [arguments..]
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
 .B weboorrents
-[\-\-version] [\-\-help]
+[\-\-help] [\-\-version]
+
 .SH DESCRIPTION
 .LP
-Weboob provides several applications to interact with a lot of websites.
 
-This console application can be used to search torrents on support trackers
-and to display information about them, and get the \fB.torrent\fR file.
+Weboorrents is a console application to search torrents on supported trackers and to download .torrent files.
 
-.SH COMMANDS
+.SS Supported websites:
+* gazelle (gazelle bittorrent tracker)
+.br
+* isohunt (isohunt.com bittorrent tracker)
+.br
+* kickass (kickasstorrent.com bittorrent tracker)
+.br
+* piratebay (the pirate bay bittorrent tracker)
+.SH WEBOORRENTS COMMANDS
 .TP
-\fBsearch\fR \fIpattern\fR
-search torrents on the selected backends which match the specified pattern
+\fBgetfile\fR \fIID\fR \fIFILENAME\fR
+.br
+Get the .torrent file.
+.br
+FILENAME is where to write the file. If FILENAME is '\-',
+.br
+the file is written to stdout.
 .TP
-\fBinfo\fR \fIid\fR
-get information about a torrent
+\fBinfo\fR \fIID\fR
+.br
+Get information about a torrent.
 .TP
-\fBgetfile\fR \fIid\fR \fIdest\fR
-get the \fB.torrent\fR file of the specific torrent
+\fBsearch\fR [\fIPATTERN\fR]
+.br
+Search torrents.
+.SH WEBOOB COMMANDS
+.TP
+\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
+.br
+Select used backends.
+.br
 
-the file is sent to output if \fIdest\fR is '-'
+.br
+ACTION is one of the following (default: list):
+.br
+* enable    enable given backends
+.br
+* disable   disable given backends
+.br
+* only      enable given backends and disable the others
+.br
+* list      display enabled and available backends
+.br
+* add       add a backend
+.br
+* register  register a new account on a website
+.br
+* edit      edit a backend
+.br
+* remove    remove a backend
+.TP
+\fBcondition\fR [\fIEXPRESSION\fR | off]
+.br
+If an argument is given, set the condition expression used to filter the results.
+.br
+If the "off" value is given, conditional filtering is disabled.
+.br
+
+.br
+If no argument is given, print the current condition expression.
+.TP
+\fBcount\fR [\fINUMBER\fR | off]
+.br
+If an argument is given, set the maximum number of results fetched.
+.br
+NUMBER must be at least 1.
+.br
+"off" value disables counting, and allows infinite searches.
+.br
+
+.br
+If no argument is given, print the current count value.
+.TP
+\fBformatter\fR [list | \fIFORMATTER\fR [\fICOMMAND\fR] | option \fIOPTION_NAME\fR [on | off]]
+.br
+If a FORMATTER is given, set the formatter to use.
+.br
+You can add a COMMAND to apply the formatter change only to
+.br
+a given command.
+.br
+
+.br
+If the argument is "list", print the available formatters.
+.br
+
+.br
+If the argument is "option", set the formatter options.
+.br
+Valid options are: header, keys.
+.br
+If on/off value is given, set the value of the option.
+.br
+If not, print the current value for the option.
+.br
+
+.br
+If no argument is given, print the current formatter.
+.TP
+\fBinspect\fR \fIBACKEND_NAME\fR
+.br
+Display the HTML string of the current page of the specified backend's browser.
+.br
+
+.br
+If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
+.TP
+\fBlogging\fR [\fILEVEL\fR]
+.br
+Set logging level.
+.br
+
+.br
+Availables: debug, info, warning, error.
+.br
+* quiet is an alias for error
+.br
+* default is an alias for warning
+.TP
+\fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
+.br
+If an argument is given, set the selected fields.
+.br
+$direct selects all fields loaded in one http request.
+.br
+$full selects all fields using as much http requests as necessary.
+.br
+
+.br
+If no argument is given, print the currently selected fields.
+.TP
+\fBquit\fR
+.br
+Quit the application.
 
 .SH OPTIONS
-.SS Results options
 .TP
-\fB\-c\fR, \fB\-\-condition\fR \fICONDITION\fR
-filter result items to display given a boolean condition
+\fB\-\-version\fR
+show program's version number and exit
 .TP
-\fB\-n\fR, \fB\-\-count\fR \fICOUNT\fR
-get a maximum number of results (all backends merged)
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
 .TP
-\fB\-f\fR, \fB\-\-formatter\fR \fIFORMATTER\fR
-select the output formatter (htmltable,multiline,simple,table,webkit)
-.TP
-\fB\-s\fR, \fB\-\-select\fR \fIFIELDS\fR
-select return field keys to display (comma separated)
-.TP
-\fB\-\-no-header\fR
-do not display header
-.TP
-\fB\-\-no-keys\fR
-do not display field keys
-.SS Logging options
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -57,16 +169,35 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH RESULTS OPTIONS
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
+filter result items to display given a boolean expression
+.TP
+\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
+select result item keys to display (comma separated)
+
+.SH FORMATTING OPTIONS
+.TP
+\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
+select output formatter (csv, htmltable, multiline, simple, table, torrent_info,
+torrent_list, webkit)
+.TP
+\fB\-\-no\-header\fR
+do not display header
+.TP
+\fB\-\-no\-keys\fR
+do not display item keys
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -75,4 +206,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Weboorrents

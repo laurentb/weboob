@@ -1,33 +1,25 @@
-.TH CHATOOB 1 "09 December 2010"
+.TH WEBCONTENTEDIT 1 "09 December 2010"
 .SH NAME
-chatoob
+webcontentedit
 .SH SYNOPSIS
-.B chatoob
+.B webcontentedit
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B chatoob
+.B webcontentedit
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Chatoob is a console application to chat with contacts.
+Webcontentedit is a console application to display and edit contents on supported websites.
 
 .SS Supported websites:
-* aum (“Adopte un mec” french dating website)
-.SH CHATOOB COMMANDS
+* redmine (The Redmine project management web application)
+.SH WEBCONTENTEDIT COMMANDS
 .TP
-\fBlist\fR
+\fBedit\fR \fIID\fR
 .br
-List all contacts.
-.TP
-\fBmessages\fR
-.br
-Get messages.
-.TP
-\fBsend\fR \fICONTACT\fR \fIMESSAGE\fR
-.br
-Send a message to the specified contact.
+Edit a content with $EDITOR, then push it on the website.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -189,7 +181,7 @@ do not display header
 do not display item keys
 
 .SH COPYRIGHT
-Copyright(C) 2010 Christophe Benz
+Copyright(C) 2010 Romain Bignon
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -198,4 +190,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Chatoob
+Home page: http://weboob.org/Webcontentedit

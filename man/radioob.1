@@ -1,33 +1,37 @@
-.TH CHATOOB 1 "09 December 2010"
+.TH RADIOOB 1 "09 December 2010"
 .SH NAME
-chatoob
+radioob
 .SH SYNOPSIS
-.B chatoob
+.B radioob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B chatoob
+.B radioob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Chatoob is a console application to chat with contacts.
+Radioob is a console application to list radios, play them and get informations like the current song.
 
 .SS Supported websites:
-* aum (“Adopte un mec” french dating website)
-.SH CHATOOB COMMANDS
+* ouifm (The Ouï FM french radio)
+.SH RADIOOB COMMANDS
 .TP
-\fBlist\fR
+\fBinfo\fR \fIID\fR
 .br
-List all contacts.
+Get information about a radio.
 .TP
-\fBmessages\fR
+\fBlist\fR [\fIPATTERN\fR]
 .br
-Get messages.
+List radios matching a PATTERN.
+.br
+
+.br
+If PATTERN is not given, this command will list all the radios.
 .TP
-\fBsend\fR \fICONTACT\fR \fIMESSAGE\fR
+\fBplay\fR \fIID\fR
 .br
-Send a message to the specified contact.
+Play a radio with a found player.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -180,7 +184,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, multiline, radio_list, simple, table,
+webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -189,7 +194,7 @@ do not display header
 do not display item keys
 
 .SH COPYRIGHT
-Copyright(C) 2010 Christophe Benz
+Copyright(C) 2010 Romain Bignon
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -198,4 +203,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Chatoob
+Home page: http://weboob.org/Radioob

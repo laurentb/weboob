@@ -1,22 +1,32 @@
-.TH QHAVESEX 1 "02 August 2010"
+.TH QHAVESEX 1 "09 December 2010"
 .SH NAME
-qhavesex \- View messages and reply (Qt Application)
+qhavesex
 .SH SYNOPSIS
 .B qhavesex
-[\-dqv] [\-b \fIbackends\fR]
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
 .B qhavesex
-[\-\-version] [\-\-help]
+[\-\-help] [\-\-version]
+
 .SH DESCRIPTION
 .LP
-Weboob provides several applications to interact with a lot of websites.
 
-This graphical application interacts with dating websites to help you to
-drag girls, to send and receive messages, to chat with them, to plan
-dating, provides a calendar and some sexual statistics.
+QHaveSex is a graphical application to interact with dating websites and help you to seduce women.
 
+.SS Supported websites:
+* aum (“Adopte un mec” french dating website)
 .SH OPTIONS
-.SS Logging options
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -26,16 +36,12 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
-.TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -44,4 +50,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Qhavesex

@@ -1,33 +1,55 @@
-.TH CHATOOB 1 "09 December 2010"
+.TH BOOBMSG 1 "09 December 2010"
 .SH NAME
-chatoob
+boobmsg
 .SH SYNOPSIS
-.B chatoob
+.B boobmsg
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B chatoob
+.B boobmsg
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Chatoob is a console application to chat with contacts.
+Boobmsg is a console application to send messages on supported websites and to display messages threads and contents.
 
 .SS Supported websites:
 * aum (“Adopte un mec” french dating website)
-.SH CHATOOB COMMANDS
+.br
+* bouygues (Bouygues french mobile phone provider)
+.br
+* dlfp (Da Linux French Page)
+.br
+* fourchan (4chan website)
+.br
+* newsfeed (Loads RSS and Atom feeds from any website)
+.br
+* orange (Orange french mobile phone provider)
+.br
+* sfr (SFR french mobile phone provider)
+.SH BOOBMSG COMMANDS
 .TP
 \fBlist\fR
 .br
-List all contacts.
+Display all threads.
 .TP
-\fBmessages\fR
+\fBpost\fR \fIRECEIVER\fR@\fIBACKEND\fR[,\fIRECEIVER\fR@\fIBACKEND\fR[...]] [\fITEXT\fR]
 .br
-Get messages.
+Post a message to the specified receivers.
+.br
+Multiple receivers are separated by a comma.
+.br
+
+.br
+If no text is supplied on command line, the content of message is read on stdin.
 .TP
-\fBsend\fR \fICONTACT\fR \fIMESSAGE\fR
+\fBshow\fR \fIMESSAGE\fR
 .br
-Send a message to the specified contact.
+Read a message
+.TP
+\fBstatus\fR
+.br
+Display status information about a backend.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -149,6 +171,11 @@ show this help message and exit
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
 
+.SH BOOBMSG OPTIONS
+.TP
+\fB\-e\fR, \fB\-\-skip\-empty\fR
+Don't send messages with an empty body.
+
 .SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
@@ -180,7 +207,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, msg, msglist, multiline, simple, table,
+webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -198,4 +226,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Chatoob
+Home page: http://weboob.org/Boobmsg

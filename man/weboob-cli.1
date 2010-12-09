@@ -1,41 +1,20 @@
-.TH MONBOOB 1 "09 December 2010"
+.TH WEBOOB-CLI 1 "09 December 2010"
 .SH NAME
-monboob
+weboob-cli
 .SH SYNOPSIS
-.B monboob
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
+.B weboob\-cli
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIcapability\fR \fImethod\fR [\fIarguments\fR..]
 .br
-.B monboob
+.B weboob\-cli
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Monboob is a daemon to send messages on supported website by email, and can be used to send replies.
+Weboob\-Cli is a console application to call a specific method on backends which implement the given capability.
 
 .SS Supported websites:
-* aum (“Adopte un mec” french dating website)
-.br
-* bouygues (Bouygues french mobile phone provider)
-.br
-* dlfp (Da Linux French Page)
-.br
-* fourchan (4chan website)
-.br
-* newsfeed (Loads RSS and Atom feeds from any website)
-.br
-* orange (Orange french mobile phone provider)
-.br
-* sfr (SFR french mobile phone provider)
-.SH MONBOOB COMMANDS
-.TP
-\fBpost\fR
-.br
-Pipe with a mail to post message.
-.TP
-\fBrun\fR
-.br
-Run the fetching daemon.
+
 
 .SH OPTIONS
 .TP
@@ -47,11 +26,6 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
-
-.SH MONBOOB OPTIONS
-.TP
-\fB\-S SMTPD\fR, \fB\-\-smtpd=SMTPD\fR
-run a fake smtpd server and set the port
 
 .SH LOGGING OPTIONS
 .TP
@@ -100,8 +74,3 @@ For full COPYRIGHT see COPYING file with weboob package.
 .RE
 .SH FILES
 "~/.weboob/backends" 
-
-"~/.weboob/monboob"
-
-.SH SEE ALSO
-Home page: http://weboob.org/Monboob
