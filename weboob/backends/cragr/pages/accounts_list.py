@@ -208,7 +208,7 @@ class AccountsList(CragrBasePage):
             for body_elmt in interesting_divs:
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount
-                    data = self.extract_text(body_elmt).replace(',', '.').replace(' ', '')
+                    data = self.extract_text(body_elmt).replace(',', '.').replace(' ', '').replace(u'\xa0', '')
                     matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
                     operation.amount = float(matches[0]) if (matches) else 0.0
                     yield operation
@@ -229,7 +229,7 @@ class AccountsList(CragrBasePage):
                 operation = Operation(index)
                 index += 1
                 # amount
-                data = self.extract_text(interesting_divs[(i*3)+1]).replace(',', '.').replace(' ', '')
+                data = self.extract_text(interesting_divs[(i*3)+1]).replace(',', '.').replace(' ', '').replace(u'\xa0', '')
                 matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
                 operation.amount = float(matches[0]) if (matches) else 0.0
                 # date
