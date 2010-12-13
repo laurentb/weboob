@@ -44,8 +44,13 @@ from .results import ResultsCondition, ResultsConditionError
 __all__ = ['ReplApplication', 'NotEnoughArguments']
 
 
+class BackendNotGiven(Exception):
+    pass
+
+
 class NotEnoughArguments(Exception):
     pass
+
 
 class ReplOptionParser(OptionParser):
     def format_option_help(self, formatter=None):
@@ -321,7 +326,7 @@ class ReplApplication(Cmd, BaseApplication):
                         inst = self.add_backend(name)
                         if inst:
                             self.load_backends(names=[inst])
-                    except (KeyboardInterrupt,EOFError):
+                    except (KeyboardInterrupt, EOFError):
                         print '\nAborted.'
 
             print 'Right right!'
@@ -431,9 +436,11 @@ class ReplApplication(Cmd, BaseApplication):
             return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
             self.bcall_errors_handler(e)
+        except BackendNotGiven, e:
+            print >>sys.stderr, 'Error: %s' % str(e)
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
-        except (KeyboardInterrupt,EOFError):
+        except (KeyboardInterrupt, EOFError):
             # ^C during a command process doesn't exit application.
             print '\nAborted.'
 
@@ -604,7 +611,6 @@ class ReplApplication(Cmd, BaseApplication):
                 child += '/'
             l.append(child)
         return l
-
 
     def complete(self, text, state):
         """
@@ -1079,11 +1085,33 @@ class ReplApplication(Cmd, BaseApplication):
     def flush(self):
         self.formatter.flush()
 
-    def parse_id(self, _id):
+    def parse_id(self, _id, unique_backend=False):
         try:
             _id, backend_name = _id.rsplit('@', 1)
         except ValueError:
             backend_name = None
+        if unique_backend and not backend_name:
+            backends = []
+            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
+                if self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__):
+                    continue
+                backends.append((name, backend))
+            if self.interactive:
+                while not backend_name:
+                    print 'This command works with a unique backend. Availables:'
+                    for index, (name, backend) in enumerate(backends):
+                        print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
+                            backend.description)
+                    response = self.ask('Select a backend to proceed', regexp='^\d+$')
+                    if response.isdigit():
+                        i = int(response) - 1
+                        if i < 0 or i >= len(backends):
+                            print 'Error: %s is not a valid choice' % response
+                            continue
+                        backend_name = backends[i][0]
+            else:
+                raise BackendNotGiven('Please specify a backend to use for this argument (%s@backend_name). '
+                    'Availables: %s.' % (_id, ', '.join(name for name, backend in backends)))
         return _id, backend_name
 
     def do_inspect(self, line):
