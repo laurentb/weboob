@@ -527,7 +527,7 @@ class ReplApplication(Cmd, BaseApplication):
         print
         return self.do_quit(arg)
 
-    def get_command_help(self, command):
+    def get_command_help(self, command, short=False):
         try:
             doc = getattr(self, 'do_' + command).__doc__
         except AttributeError:
@@ -536,6 +536,11 @@ class ReplApplication(Cmd, BaseApplication):
             doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
             if not doc.startswith(command):
                 doc = '%s\n\n%s' % (command, doc)
+            if short:
+                doc = doc.split('\n')[0]
+                if not doc.startswith(command):
+                    doc = command
+
             return doc
 
     def get_commands_doc(self):
