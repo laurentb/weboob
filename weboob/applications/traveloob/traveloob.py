@@ -49,7 +49,7 @@ class Traveloob(ReplApplication):
 
         List all departures for a given station.
         """
-        station, arrival = self.parse_args(line, 2, 1)
+        station, arrival = self.parse_command_args(line, 2, 1)
 
         station_id, backend_name = self.parse_id(station)
         if arrival:

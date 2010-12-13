@@ -196,7 +196,7 @@ class Boobank(ReplApplication):
         If you give only the ACCOUNT parameter, it lists all the
         available recipients for this account.
         """
-        id_from, id_to, amount, reason = self.parse_args(line, 4, 1)
+        id_from, id_to, amount, reason = self.parse_command_args(line, 4, 1)
 
         id_from, backend_name_from = self.parse_id(id_from)
         if not id_to:

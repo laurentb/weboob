@@ -52,7 +52,7 @@ class WeboobCfg(ReplApplication):
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
             return
-        name, options = self.parse_args(line, 2, 1)
+        name, options = self.parse_command_args(line, 2, 1)
         if options:
             options = options.split(' ')
         else:

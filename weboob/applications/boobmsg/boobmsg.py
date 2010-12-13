@@ -48,6 +48,7 @@ class MessageFormatter(IFormatter):
         result += '\n%s' % content
         return result
 
+
 class MessagesListFormatter(IFormatter):
     MANDATORY_FIELDS = ()
     count = 0
@@ -119,6 +120,7 @@ class MessagesListFormatter(IFormatter):
                 result += self.format_message(backend, m, depth)
         return result
 
+
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.5'
@@ -177,7 +179,7 @@ class Boobmsg(ReplApplication):
 
         If no text is supplied on command line, the content of message is read on stdin.
         """
-        receivers, text = self.parse_args(line, 2, 1)
+        receivers, text = self.parse_command_args(line, 2, 1)
         if text is None:
             if self.interactive:
                 print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
@@ -187,7 +189,7 @@ class Boobmsg(ReplApplication):
             return
 
         for receiver in receivers.strip().split(','):
-            receiver, backend_name = self.parse_id(receiver.strip())
+            receiver, backend_name = self.parse_id(receiver.strip(), unique_backend=True)
             if not backend_name and len(self.enabled_backends) > 1:
                 self.logger.warning(u'No backend specified for receiver "%s": message will be sent with all the '
                     'enabled backends (%s)' % (receiver,
