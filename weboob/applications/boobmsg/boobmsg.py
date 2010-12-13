@@ -177,7 +177,7 @@ class Boobmsg(ReplApplication):
 
         If no text is supplied on command line, the content of message is read on stdin.
         """
-        receivers, text = self.parseargs(line, 2, 1)
+        receivers, text = self.parse_args(line, 2, 1)
         if text is None:
             if self.interactive:
                 print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'

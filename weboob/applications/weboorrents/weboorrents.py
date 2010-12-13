@@ -144,7 +144,7 @@ class Weboorrents(ReplApplication):
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
         """
-        id, dest = self.parseargs(line, 2, 2)
+        id, dest = self.parse_args(line, 2, 2)
 
         _id, backend_name = self.parse_id(id)
 

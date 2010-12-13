@@ -240,7 +240,7 @@ class HaveSex(ReplApplication):
         * edit       configure an optimization service for a backend
         * stop       stop optimization services on a backend
         """
-        cmd, backend_name, optims_names = self.parseargs(line, 3)
+        cmd, backend_name, optims_names = self.parse_args(line, 3)
 
         if backend_name == '*':
             backend_name = None

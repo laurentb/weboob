@@ -62,7 +62,7 @@ class Chatoob(ReplApplication):
 
         Send a message to the specified contact.
         """
-        _id, message = self.parseargs(line, 2, 2)
+        _id, message = self.parse_args(line, 2, 2)
         for backend, result in self.do('send_chat_message', _id, message):
             if not result:
                 logging.error(u'Failed to send message to contact id="%s" on backend "%s"' % (_id, backend.name))

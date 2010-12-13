@@ -343,7 +343,7 @@ class ReplApplication(Cmd, BaseApplication):
         except BackendNotFound, e:
             logging.error(e)
 
-    def parseargs(self, line, nb, req_n=None):
+    def parse_args(self, line, nb, req_n=None):
         if line.strip() == '':
             # because ''.split() = ['']
             args = []
@@ -758,7 +758,7 @@ class ReplApplication(Cmd, BaseApplication):
         * quiet is an alias for error
         * default is an alias for warning
         """
-        args = self.parseargs(line, 1, 0)
+        args = self.parse_args(line, 1, 0)
         levels = (('debug',   logging.DEBUG),
                   ('info',    logging.INFO),
                   ('warning', logging.WARNING),
