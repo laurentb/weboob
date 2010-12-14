@@ -28,30 +28,32 @@ class TorrentsPage(BasePage):
     def iter_torrents(self):
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class', '') == 'hlRow':
-                # TODO à corriger
-                atitle = tr.getchildren()[2].getchildren()[1]
-                title = atitle.text
-                if not title:
-                    title = ''
-                for bold in atitle.getchildren():
-                    if bold.text:
-                        title += bold.text
-                    if bold.tail:
-                        title += bold.tail
-                idt = tr.getchildren()[2].getchildren()[0].attrib.get('href','')
-                idt = idt.split('/')[2]
-                size = tr.getchildren()[3].text
-                u = size[-2:]
-                size = float(size[:-3])
-                seed = tr.getchildren()[4].text
-                leech = tr.getchildren()[5].text
-                url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
-                yield Torrent(idt,
-                              title,
-                              url=url,
-                              size=get_bytes_size(size, u),
-                              seeders=int(seed),
-                              leechers=int(leech))
+                # sometimes the first tr also has the attribute hlRow
+                # i use that to ditinct it from the others
+                if tr.attrib.has_key('onmouseout'):
+                    atitle = tr.getchildren()[2].getchildren()[1]
+                    title = atitle.text
+                    if not title:
+                        title = ''
+                    for bold in atitle.getchildren():
+                        if bold.text:
+                            title += bold.text
+                        if bold.tail:
+                            title += bold.tail
+                    idt = tr.getchildren()[2].getchildren()[0].attrib.get('href','')
+                    idt = idt.split('/')[2]
+                    size = tr.getchildren()[3].text
+                    u = size[-2:]
+                    size = float(size[:-3])
+                    seed = tr.getchildren()[4].text
+                    leech = tr.getchildren()[5].text
+                    url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
+                    yield Torrent(idt,
+                                  title,
+                                  url=url,
+                                  size=get_bytes_size(size, u),
+                                  seeders=int(seed),
+                                  leechers=int(leech))
 
 
 class TorrentPage(BasePage):
