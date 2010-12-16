@@ -34,7 +34,7 @@ class ComposeFrame(BasePage):
             raise CantSendMessage(u'Invalid receiver: %s' % receiver)
         self.browser.select_form(nr=0)
         self.browser['fieldMsisdn'] = receiver
-        self.browser['fieldMessage'] = message.content
+        self.browser['fieldMessage'] = message.content.encode('utf-8')
         self.browser.submit()
 
 

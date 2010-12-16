@@ -63,5 +63,5 @@ class ComposePage(BasePage):
         self.browser["destToKeep"] = listetel
         self.browser["NUMTEL"] = sender
         self.browser["autorize"] = "1"
-        self.browser["msg"] = message.content
+        self.browser["msg"] = message.content.encode('utf-8')
         self.browser.submit()

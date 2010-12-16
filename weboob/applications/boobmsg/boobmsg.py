@@ -183,7 +183,7 @@ class Boobmsg(ReplApplication):
         if text is None:
             if self.interactive:
                 print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
-            text = sys.stdin.read()
+            text = sys.stdin.read().decode(sys.stdin.encoding)
 
         if self.options.skip_empty and not text.strip():
             return

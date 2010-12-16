@@ -44,7 +44,7 @@ class ComposePage(BasePage):
             raise CantSendMessage(u'Invalid receiver: %s' % receiver)
         self.browser.select_form(nr=0)
         self.browser['msisdns'] = receiver
-        self.browser['textMessage'] = message.content
+        self.browser['textMessage'] = message.content.encode('utf-8')
         self.browser.submit()
 
 
