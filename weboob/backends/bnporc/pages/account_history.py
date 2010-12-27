@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from datetime import date
+
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Operation
 
@@ -32,8 +34,7 @@ class AccountHistory(BasePage):
                 tds = tr.findall('td')
                 if len(tds) != 4:
                     continue
-                date = u''
-                date = tds[0].text
+                d = date(*reversed([int(x) for x in tds[0].text.split('/')]))
                 label = u''
                 label += tds[1].text
                 label = label.replace(u'\xa0', u'')
@@ -51,7 +52,7 @@ class AccountHistory(BasePage):
                 else:
                     operation.amount = - float(amount)
 
-                operation.date = date
+                operation.date = d
                 operation.label = label
                 self.operations.append(operation)
 

@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from datetime import datetime
+from datetime import datetime, date
 
 from .base import IBaseCap, CapBaseObject
 
@@ -48,7 +48,7 @@ class Account(CapBaseObject):
 class Operation(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.add_field('date', (basestring,datetime))
+        self.add_field('date', (basestring,datetime,date))
         self.add_field('label', unicode)
         self.add_field('amount', float)
 
@@ -59,7 +59,7 @@ class Transfer(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('amount', float)
-        self.add_field('date', (basestring,datetime))
+        self.add_field('date', (basestring,datetime,date))
         self.add_field('origin', (int,long,basestring))
         self.add_field('recipient', (int,long,basestring))
 

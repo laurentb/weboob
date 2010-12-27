@@ -16,6 +16,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+import re
+from datetime import date
+
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Operation
 
@@ -24,6 +27,12 @@ __all__ = ['AccountComing']
 
 
 class AccountComing(BasePage):
+    LABEL_PATTERNS = [('^FACTURECARTEDU(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})(?P<text>.*)',
+                          u'CB %(yy)s-%(mm)s-%(dd)s: %(text)s'),
+                      ('^PRELEVEMENT(?P<text>.*)', 'Order: %(text)s'),
+                      ('^ECHEANCEPRET(?P<text>.*)', u'Loan payment n°%(text)s'),
+                     ]
+
     def on_loaded(self):
         self.operations = []
 
@@ -32,7 +41,8 @@ class AccountComing(BasePage):
                 tds = tr.findall('td')
                 if len(tds) != 3:
                     continue
-                date = tds[0].getchildren()[0].attrib.get('name', '')
+                d = tds[0].getchildren()[0].attrib.get('name', '')
+                d = date(int(d[0:4]), int(d[4:6]), int(d[6:8]))
                 label = u''
                 label += tds[1].text or u''
                 label = label.replace(u'\xa0', u'')
@@ -41,10 +51,16 @@ class AccountComing(BasePage):
                     if child.tail: label += child.tail
                 if tds[1].tail: label += tds[1].tail
                 label = label.strip()
+
+                for pattern, text in self.LABEL_PATTERNS:
+                    m = re.match(pattern, label)
+                    if m:
+                        label = text % m.groupdict()
+
                 amount = tds[2].text.replace('.', '').replace(',', '.')
 
                 operation = Operation(len(self.operations))
-                operation.date = date
+                operation.date = d
                 operation.label = label
                 operation.amount = float(amount)
                 self.operations.append(operation)
