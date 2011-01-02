@@ -54,7 +54,7 @@ class MeteofranceBrowser(BaseBrowser):
         else:
             # Case 2: there is only one result, and the website send directly
             # the browser on the forecast page:
-            return self.page.get_city()
+            return [self.page.get_city()]
 
     def iter_forecast(self, city_id):
         self.location(self.WEATHER_URL.format(cityid=city_id))
