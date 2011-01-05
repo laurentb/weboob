@@ -48,7 +48,7 @@ __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
 
 class MandatoryFieldsNotFound(Exception):
     def __init__(self, missing_fields):
-        Exception.__init__(self, u'Mandatory fields not found: %s.' % ','.join(missing_fields))
+        Exception.__init__(self, u'Mandatory fields not found: %s.' % ', '.join(missing_fields))
 
 
 class IFormatter(object):
