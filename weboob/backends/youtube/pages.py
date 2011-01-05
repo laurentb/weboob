@@ -44,29 +44,4 @@ class VerifyAgePage(BasePage):
 
 
 class VideoPage(BasePage):
-    VIDEO_SIGNATURE_REGEX = re.compile(r'&t=([^ ,&]*)')
-
-    def get_video(self, video=None):
-        if video is None:
-            video = YoutubeVideo(self.group_dict['id'])
-        video.title = self.get_title()
-        video.url = self.get_url(video.id)
-        video.author = self.get_author()
-        return video
-
-    def get_author(self):
-        element = select(self.document.getroot(), 'a.watch-description-username strong', 1)
-        return element.text.strip()
-
-    def get_title(self):
-        element = select(self.document.getroot(), 'meta[name=title]', 1)
-        return to_unicode(element.attrib['content'].strip())
-
-    def get_url(self, _id):
-        video_signature = None
-        for data in self.document.getiterator('script'):
-            if not data.text:
-                continue
-            for m in re.finditer(self.VIDEO_SIGNATURE_REGEX, data.text):
-                video_signature = m.group(1)
-        return u'http://www.youtube.com/get_video?video_id=%s&t=%s&eurl=&el=&ps=&asv=&fmt=18' % (_id, video_signature)
+    pass
