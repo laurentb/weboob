@@ -23,4 +23,5 @@ class KickassTest(BackendTest):
     def test_torrent(self):
         l = list(self.backend.iter_torrents('debian'))
         if len(l) > 0:
+            assert l[0].url.endswith('.torrent')
             self.backend.get_torrent_file(l[0].id)

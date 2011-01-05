@@ -38,7 +38,13 @@ class TorrentsPage(BasePage):
                         title += red.tail
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
                     .replace('.html', '')
-                url = tr.getchildren()[0].getchildren()[0].getchildren()[0].getchildren()[0].attrib.get('href', '')
+
+                # look for url
+                child = tr.getchildren()[0]
+                while child.attrib.get('href', None) is None and len(child.getchildren()) > 0:
+                    child = child.getchildren()[0]
+                url = child.get('href', '')
+
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
                 size = size = size.replace(',', '.')
