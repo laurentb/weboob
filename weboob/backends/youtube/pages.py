@@ -16,13 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-import re
-
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select
-from weboob.tools.misc import to_unicode
-
-from .video import YoutubeVideo
 
 
 __all__ = ['ForbiddenVideo', 'ForbiddenVideoPage', 'VerifyAgePage', 'VideoPage']

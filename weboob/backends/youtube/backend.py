@@ -23,11 +23,10 @@ import gdata.youtube.service
 import urllib
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend, ObjectNotAvailable
+from weboob.tools.backend import BaseBackend
 from weboob.tools.misc import to_unicode
 
 from .browser import YoutubeBrowser
-from .pages import ForbiddenVideo
 from .video import YoutubeVideo
 
 
