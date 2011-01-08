@@ -33,7 +33,7 @@ class CanalplusBackend(BaseBackend, ICapVideo):
     NAME = 'canalplus'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     DESCRIPTION = 'Canal plus french TV'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))

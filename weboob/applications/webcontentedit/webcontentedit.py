@@ -33,7 +33,7 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
     DESCRIPTION = "Webcontentedit is a console application to display and " \
                   "edit contents on supported websites."

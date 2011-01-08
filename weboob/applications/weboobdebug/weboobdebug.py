@@ -23,7 +23,7 @@ from weboob.tools.application.repl import ReplApplication
 
 class WeboobDebug(ReplApplication):
     APPNAME = 'weboobdebug'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
     DESCRIPTION = "Weboob-Debug is a console application to debug backends."
 

@@ -29,7 +29,7 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
     NAME = 'ipinfodb'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation with the site ipinfodb.com"
     BROWSER = BaseBrowser

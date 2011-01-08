@@ -32,7 +32,7 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
