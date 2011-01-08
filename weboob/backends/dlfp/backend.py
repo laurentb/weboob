@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from __future__ import with_statement
 
 from weboob.tools.backend import BaseBackend
@@ -33,7 +34,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
@@ -144,7 +145,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                     yield m
 
     def set_message_read(self, message):
-        self.storage.set('seen', message.thread.id, 'comments', self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
+        self.storage.set('seen', message.thread.id, 'comments',
+            self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
 
     def post_message(self, message):

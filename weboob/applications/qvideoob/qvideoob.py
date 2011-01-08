@@ -23,8 +23,10 @@ from .main_window import MainWindow
 
 class QVideoob(QtApplication):
     APPNAME = 'qvideoob'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "QVideoob is a graphical application to search videos on supported websites and play them."
+    CAPS = ICapVideo
     CONFIG = {'settings': {'nsfw': 1,
                            'sfw': 1,
                            'sortby': 0,

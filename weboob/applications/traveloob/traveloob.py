@@ -27,8 +27,9 @@ __all__ = ['Traveloob']
 
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Traveloob is a console application to get timelines."
     CAPS = ICapTravel
     DEFAULT_FORMATTER = 'table'
 
@@ -48,7 +49,7 @@ class Traveloob(ReplApplication):
 
         List all departures for a given station.
         """
-        station, arrival = self.parseargs(line, 2, 1)
+        station, arrival = self.parse_command_args(line, 2, 1)
 
         station_id, backend_name = self.parse_id(station)
         if arrival:

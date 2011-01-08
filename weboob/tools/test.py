@@ -36,9 +36,12 @@ class BackendTest(TestCase):
             self.backend = choice(self.weboob.backend_instances.values())
 
     def run(self, result):
-        if not self.backend:
-            result.startTest(self)
-            result.stopTest(self)
-            raise SkipTest()
+        try:
+            if not self.backend:
+                result.startTest(self)
+                result.stopTest(self)
+                raise SkipTest()
 
-        return TestCase.run(self, result)
+            return TestCase.run(self, result)
+        finally:
+            self.weboob.deinit()

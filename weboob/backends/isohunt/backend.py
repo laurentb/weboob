@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.backend import BaseBackend
 
@@ -28,13 +29,9 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
     NAME = 'isohunt'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     DESCRIPTION = 'isohunt.com bittorrent tracker'
     LICENSE = 'GPLv3'
-    #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
-    #                    Value('protocol', label='Protocol to use', choices=('http', 'https')),
-    #                    Value('username', label='Username'),
-    #                    Value('password', label='Password', masked=True))
     BROWSER = IsohuntBrowser
 
     def create_default_browser(self):
@@ -47,7 +44,6 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
         torrent = self.browser.get_torrent(id)
         if not torrent:
             return None
-
         return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):

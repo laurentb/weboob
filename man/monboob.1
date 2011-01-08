@@ -1,4 +1,4 @@
-.TH MONBOOB 1 "08 January 2011" "monboob 0\&.4\&.1"
+.TH MONBOOB 1 "08 January 2011" "monboob 0\&.5"
 .SH NAME
 monboob
 .SH SYNOPSIS
@@ -8,11 +8,34 @@ monboob
 .B monboob
 [\-\-help] [\-\-version]
 
+.SH DESCRIPTION
+.LP
+
+Monboob is a daemon to send messages on supported website by email, and can be used to send replies.
+
+.SS Supported websites:
+* aum (“Adopte un mec” french dating website)
+.br
+* bouygues (Bouygues french mobile phone provider)
+.br
+* dlfp (Da Linux French Page)
+.br
+* fourchan (4chan website)
+.br
+* newsfeed (Loads RSS and Atom feeds from any website)
+.br
+* orange (Orange french mobile phone provider)
+.br
+* sfr (SFR french mobile phone provider)
 .SH MONBOOB COMMANDS
 .TP
-post
-run
-
+\fBpost\fR
+.br
+Pipe with a mail to post message.
+.TP
+\fBrun\fR
+.br
+Run the fetching daemon.
 
 .SH OPTIONS
 .TP

@@ -25,6 +25,7 @@ from weboob.tools.value import ValuesDict, Value
 from .browser import CanalplusBrowser
 from .pages import CanalplusVideo
 
+
 __all__ = ['CanalplusBackend']
 
 
@@ -32,7 +33,7 @@ class CanalplusBackend(BaseBackend, ICapVideo):
     NAME = 'canalplus'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     DESCRIPTION = 'Canal plus french TV'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
@@ -57,7 +58,6 @@ class CanalplusBackend(BaseBackend, ICapVideo):
         if 'thumbnail' in fields:
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
-
         return video
 
     OBJECTS = {CanalplusVideo: fill_video}

@@ -16,14 +16,68 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from logging import warning
 from dateutil import tz
+from logging import warning
 import sys
 import traceback
 import types
 
 
-__all__ = ['to_unicode', 'local2utc', 'html2text', 'get_backtrace', 'iter_fields']
+__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields', 'local2utc', 'to_unicode', 'utc2local']
+
+
+def get_backtrace(empty="Empty backtrace."):
+    """
+    Try to get backtrace as string.
+    Returns "Error while trying to get backtrace" on failure.
+    """
+    try:
+        info = sys.exc_info()
+        trace = traceback.format_exception(*info)
+        sys.exc_clear()
+        if trace[0] != "None\n":
+            return "".join(trace)
+    except:
+        # No i18n here (imagine if i18n function calls error...)
+        return "Error while trying to get backtrace"
+    return empty
+
+
+def get_bytes_size(size, unit_name):
+    unit_data = {
+        'bytes': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024,
+        }
+    return float(size * unit_data[unit_name])
+
+
+try:
+    import html2text as h2t
+    h2t.UNICODE_SNOB = 1
+    h2t.SKIP_INTERNAL_LINKS = True
+    html2text = h2t.html2text
+except ImportError:
+    warning('python-html2text is not present. HTML pages will not be converted into text.')
+    def html2text(s):
+        return s
+
+
+def iter_fields(obj):
+    for attribute_name in dir(obj):
+        if attribute_name.startswith('_'):
+            continue
+        attribute = getattr(obj, attribute_name)
+        if not isinstance(attribute, types.MethodType):
+            yield attribute_name, attribute
+
+
+def local2utc(d):
+    d = d.replace(tzinfo=tz.tzlocal())
+    d = d.astimezone(tz.tzutc())
+    return d
 
 
 def to_unicode(text):
@@ -47,57 +101,8 @@ def to_unicode(text):
         except UnicodeError:
             return unicode(text, 'windows-1252')
 
-def local2utc(d):
-    d = d.replace(tzinfo=tz.tzlocal())
-    d = d.astimezone(tz.tzutc())
-    return d
 
 def utc2local(d):
     d = d.replace(tzinfo=tz.tzutc())
     d = d.astimezone(tz.tzlocal())
     return d
-
-try:
-    import html2text as h2t
-    h2t.UNICODE_SNOB = 1
-    h2t.SKIP_INTERNAL_LINKS = True
-    html2text = h2t.html2text
-except ImportError:
-    warning('python-html2text is not present. HTML pages will not be converted into text.')
-    def html2text(s):
-        return s
-
-def get_backtrace(empty="Empty backtrace."):
-    """
-    Try to get backtrace as string.
-    Returns "Error while trying to get backtrace" on failure.
-    """
-    try:
-        info = sys.exc_info()
-        trace = traceback.format_exception(*info)
-        sys.exc_clear()
-        if trace[0] != "None\n":
-            return "".join(trace)
-    except:
-        # No i18n here (imagine if i18n function calls error...)
-        return "Error while trying to get backtrace"
-    return empty
-
-def iter_fields(obj):
-    for attribute_name in dir(obj):
-        if attribute_name.startswith('_'):
-            continue
-        attribute = getattr(obj, attribute_name)
-        if not isinstance(attribute, types.MethodType):
-            yield attribute_name, attribute
-
-def iternb(it, nb=0):
-    """
-    Iter 'nb' times on the generator
-    """
-    i = 0
-    for v in it:
-        if i >= nb:
-            raise StopIteration()
-        yield v
-        i += 1

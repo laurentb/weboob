@@ -1,12 +1,15 @@
-Weboob 0.4.1 (2011-01-08)
-	Backend: BP
-	* Fix: encoding error.
+Weboob 0.5 (2011-01-08)
+	General
+	* New backend: MeteoFrance (CapWeather).
+	* New backend: Orange (CapMessages, CapMessagesPost).
+	* A new tool, make_man.py, is used to generate manpages.
 
 	Backend: Bouygues
 	* Fix: logging issues (#444).
 
-	Backend: DLFP
-	* Fix: crash when author is unknown
+	Backend: CrAgr
+	* Fix: do not keep accounts list in cache.
+	* Fix: extraction of amounts >999€ and negative amounts.
 
 	Backend: KickAss
 	* Fix: website changes (#457).
@@ -15,11 +18,21 @@ Weboob 0.4.1 (2011-01-08)
 	Backend: PirateBay
 	* Fix: size parsing.
 
+	Backend: Yahoo
+	* The 'search' command is implemented.
+
 	Backend: Youtube
 	* Fix: website changes (#450).
 
+	Application: boobmsg
+	* The 'post' command can take message from command-line instead of stdin.
+	* Fix: encoding problems.
+
 	Application: videoob
 	* Fix: playing videos in some cases (#446).
+
+	Application: wetboobs
+	* Rewrite of application to use formatters.
 
 Weboob 0.4 (2010-12-01)
 	General
@@ -34,7 +47,7 @@ Weboob 0.4 (2010-12-01)
 	* New backend: SocieteGenerale (CapBank).
 	* New application: boobmsg (CapMessages, CapMessagesPost).
 
-	Console applications:
+	Console applications
 	* New command 'inspect' to open a graphical webkit browser with the
 	  current page (to help debugging). If it is not available, the page
 	  source is displayed on stdout.
@@ -45,7 +58,7 @@ Weboob 0.4 (2010-12-01)
 	  files.
 	* Fix unicode issues (#436).
 
-	Backend: AuM:
+	Backend: AuM
 	* Do not send baskets messages from left sluts.
 	* Anti-spam is updated.
 	* Raise an error when user is banned.
@@ -115,7 +128,7 @@ Weboob 0.4 (2010-12-01)
 	Application: weboorrents
 	* Ability to complete paths.
 
-	Core:
+	Core
 	* The 'repeat' scheduler has been rewritten.
 	* Ability to cancel a scheduled task.
 	* Fix parsing of path-like in INI config.

@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from datetime import datetime
+
 from .base import IBaseCap, CapBaseObject
 
 
@@ -25,31 +27,27 @@ __all__ = ['City', 'CityNotFound', 'Current', 'Forecast', 'ICapWeather']
 class Forecast(CapBaseObject):
     def __init__(self, date, low, high, text, unit):
         CapBaseObject.__init__(self, date)
-        self.date = date
-        self.low = low
-        self.high = high
-        self.text = text
-        self.unit = unit
-
+        self.add_field('date', (basestring,datetime), date)
+        self.add_field('low', (int,float), low)
+        self.add_field('high', (int,float), high)
+        self.add_field('text', basestring, text)
+        self.add_field('unit', basestring, unit)
 
 class Current(CapBaseObject):
     def __init__(self, date, temp, text, unit):
         CapBaseObject.__init__(self, date)
-        self.date = date
-        self.temp = temp
-        self.text = text
-        self.unit = unit
-
+        self.add_field('date', (basestring,datetime), date)
+        self.add_field('text', basestring, text)
+        self.add_field('temp', (int,float), temp)
+        self.add_field('unit', basestring, unit)
 
 class City(CapBaseObject):
     def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
+        CapBaseObject.__init__(self, id)
+        self.add_field('name', basestring, name)
 
 class CityNotFound(Exception):
     pass
-
 
 class ICapWeather(IBaseCap):
     def iter_city_search(self, pattern):

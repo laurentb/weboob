@@ -1,4 +1,4 @@
-.TH BOOBANK 1 "08 January 2011" "boobank 0\&.4\&.1"
+.TH BOOBANK 1 "08 January 2011" "boobank 0\&.5"
 .SH NAME
 boobank
 .SH SYNOPSIS
@@ -8,23 +8,163 @@ boobank
 .B boobank
 [\-\-help] [\-\-version]
 
+.SH DESCRIPTION
+.LP
+
+Boobank is a console application to get bank accounts, display history and do transfer operations.
+
+.SS Supported websites:
+* bnporc (BNP Paribas french bank' website)
+.br
+* bp (La banque postale, French bank)
+.br
+* cragr (Credit Agricole french bank's website)
+.br
+* creditmutuel (Crédit Mutuel french bank)
+.br
+* lcl (Le Credit Lyonnais crappy french bank)
+.br
+* societegenerale (Société Générale french bank' website)
 .SH BOOBANK COMMANDS
 .TP
-coming ID
-history ID
-list
-transfer ACCOUNT [TO AMOUNT [REASON]]
+\fBcoming\fR \fIID\fR
+.br
+Display all future operations.
+.TP
+\fBhistory\fR \fIID\fR
+.br
+Display old operations.
+.TP
+\fBlist\fR
+.br
+List every available accounts.
+.TP
+\fBtransfer\fR \fIACCOUNT\fR [\fITO\fR \fIAMOUNT\fR [\fIREASON\fR]]
+.br
+Make a transfer beetwen two account
+.br
+\- ACCOUNT the source account
+.br
+\- TO      the recipient
+.br
+\- AMOUNT  amount to transfer
+.br
+\- REASON  reason of transfer
+.br
 
+.br
+If you give only the ACCOUNT parameter, it lists all the
+.br
+available recipients for this account.
 .SH WEBOOB COMMANDS
 .TP
-backends [ACTION] [BACKEND_NAME]...
-condition [EXPRESSION | off]
-count [NUMBER | off]
-formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
-inspect BACKEND_NAME
-logging [LEVEL]
-select [FIELD_NAME]... | "$direct" | "$full"
-quit
+\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
+.br
+Select used backends.
+.br
+
+.br
+ACTION is one of the following (default: list):
+.br
+* enable    enable given backends
+.br
+* disable   disable given backends
+.br
+* only      enable given backends and disable the others
+.br
+* list      display enabled and available backends
+.br
+* add       add a backend
+.br
+* register  register a new account on a website
+.br
+* edit      edit a backend
+.br
+* remove    remove a backend
+.TP
+\fBcondition\fR [\fIEXPRESSION\fR | off]
+.br
+If an argument is given, set the condition expression used to filter the results.
+.br
+If the "off" value is given, conditional filtering is disabled.
+.br
+
+.br
+If no argument is given, print the current condition expression.
+.TP
+\fBcount\fR [\fINUMBER\fR | off]
+.br
+If an argument is given, set the maximum number of results fetched.
+.br
+NUMBER must be at least 1.
+.br
+"off" value disables counting, and allows infinite searches.
+.br
+
+.br
+If no argument is given, print the current count value.
+.TP
+\fBformatter\fR [list | \fIFORMATTER\fR [\fICOMMAND\fR] | option \fIOPTION_NAME\fR [on | off]]
+.br
+If a FORMATTER is given, set the formatter to use.
+.br
+You can add a COMMAND to apply the formatter change only to
+.br
+a given command.
+.br
+
+.br
+If the argument is "list", print the available formatters.
+.br
+
+.br
+If the argument is "option", set the formatter options.
+.br
+Valid options are: header, keys.
+.br
+If on/off value is given, set the value of the option.
+.br
+If not, print the current value for the option.
+.br
+
+.br
+If no argument is given, print the current formatter.
+.TP
+\fBinspect\fR \fIBACKEND_NAME\fR
+.br
+Display the HTML string of the current page of the specified backend's browser.
+.br
+
+.br
+If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
+.TP
+\fBlogging\fR [\fILEVEL\fR]
+.br
+Set logging level.
+.br
+
+.br
+Availables: debug, info, warning, error.
+.br
+* quiet is an alias for error
+.br
+* default is an alias for warning
+.TP
+\fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
+.br
+If an argument is given, set the selected fields.
+.br
+$direct selects all fields loaded in one http request.
+.br
+$full selects all fields using as much http requests as necessary.
+.br
+
+.br
+If no argument is given, print the currently selected fields.
+.TP
+\fBquit\fR
+.br
+Quit the application.
 
 .SH OPTIONS
 .TP

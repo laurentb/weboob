@@ -100,11 +100,13 @@ class Tile:
 
     @property
     def letter(self):
+        checksum = self.checksum()
         try:
-            return self.hash[self.checksum()]
+            return self.hash[checksum]
         except KeyError:
             print 'Unable te resolve:'
             self.display()
+            print 'hash: %s' % checksum
             raise CaptchaError()
 
 class Captcha:

@@ -17,9 +17,14 @@
 
 
 from datetime import datetime, date, time
+
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.parsers.lxmlparser import SelectElementException
 from weboob.tools.misc import to_unicode
+from weboob.tools.parsers.lxmlparser import SelectElementException
+
+
+__all__ = ['CanalTP']
+
 
 class CanalTP(BaseBrowser):
     DOMAIN = 'widget.canaltp.fr'

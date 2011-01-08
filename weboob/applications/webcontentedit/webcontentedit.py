@@ -33,8 +33,10 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Webcontentedit is a console application to display and " \
+                  "edit contents on supported websites."
     CAPS = ICapContent
 
     def do_edit(self, line):
@@ -88,7 +90,7 @@ class WebContentEdit(ReplApplication):
             print 'No changes. Abort.'
             return
 
-        print 'Contents changed:\n%s' % ('\n'.join([' * %s' % content.id for content in contents]))
+        print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
         message = self.ask('Enter a commit message', default='')
 

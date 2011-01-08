@@ -82,9 +82,11 @@ class AccountListFormatter(IFormatter):
 
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
+    DESCRIPTION = "Boobank is a console application to get bank accounts, " \
+                  "display history and do transfer operations."
     EXTRA_FORMATTERS = {'account_list': AccountListFormatter,
                         'transfer':     TransferFormatter,
                        }
@@ -194,7 +196,7 @@ class Boobank(ReplApplication):
         If you give only the ACCOUNT parameter, it lists all the
         available recipients for this account.
         """
-        id_from, id_to, amount, reason = self.parseargs(line, 4, 1)
+        id_from, id_to, amount, reason = self.parse_command_args(line, 4, 1)
 
         id_from, backend_name_from = self.parse_id(id_from)
         if not id_to:

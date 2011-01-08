@@ -20,7 +20,7 @@ import atexit
 from cmd import Cmd
 import getpass
 import logging
-from optparse import OptionGroup
+from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 from copy import deepcopy
@@ -34,6 +34,7 @@ from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFou
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 from weboob.tools.misc import to_unicode
+from weboob.tools.ordereddict import OrderedDict
 
 from .base import BackendNotFound, BaseApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -43,8 +44,33 @@ from .results import ResultsCondition, ResultsConditionError
 __all__ = ['ReplApplication', 'NotEnoughArguments']
 
 
+class BackendNotGiven(Exception):
+    pass
+
+
 class NotEnoughArguments(Exception):
     pass
+
+
+class ReplOptionParser(OptionParser):
+    def format_option_help(self, formatter=None):
+        if not formatter:
+            formatter = self.formatter
+
+        return '%s\n%s' % (formatter.format_commands(self.commands),
+                           OptionParser.format_option_help(self, formatter))
+
+class ReplOptionFormatter(IndentedHelpFormatter):
+    def format_commands(self, commands):
+        s = u''
+        for section, cmds in commands.iteritems():
+            if len(s) > 0:
+                s += '\n'
+            s += '%s Commands:\n' % section
+            for c in cmds:
+                c = c.split('\n')[0]
+                s += '    %s\n' % c
+        return s
 
 class ReplApplication(Cmd, BaseApplication):
     """
@@ -93,24 +119,14 @@ class ReplApplication(Cmd, BaseApplication):
         self.commands_formatters = self.COMMANDS_FORMATTERS.copy()
 
         try:
-            BaseApplication.__init__(self)
+            BaseApplication.__init__(self, ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
         except BackendsConfig.WrongPermissions, e:
             print e
             sys.exit(1)
 
-        self._parser.format_description = lambda x: self._parser.description
-
-        if self._parser.description is None:
-            self._parser.description = ''
-
-        help_str = u''
-
-        app_cmds, weboob_cmds, undoc_cmds = self.get_commands_doc()
-        if len(app_cmds) > 0 or len(undoc_cmds) > 0:
-            help_str += '%s Commands:\n%s\n\n' % (self.APPNAME.capitalize(), '\n'.join(' %s' % cmd for cmd in sorted(app_cmds + undoc_cmds)))
-        if not self.DISABLE_REPL:
-            help_str +='Weboob Commands:\n%s\n' % '\n'.join(' %s' % cmd for cmd in weboob_cmds)
-        self._parser.description += help_str
+        commands_help = self.get_commands_doc()
+        self._parser.commands = commands_help
+        self._parser.formatter = ReplOptionFormatter()
 
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean expression')
@@ -310,7 +326,7 @@ class ReplApplication(Cmd, BaseApplication):
                         inst = self.add_backend(name)
                         if inst:
                             self.load_backends(names=[inst])
-                    except (KeyboardInterrupt,EOFError):
+                    except (KeyboardInterrupt, EOFError):
                         print '\nAborted.'
 
             print 'Right right!'
@@ -332,7 +348,7 @@ class ReplApplication(Cmd, BaseApplication):
         except BackendNotFound, e:
             logging.error(e)
 
-    def parseargs(self, line, nb, req_n=None):
+    def parse_command_args(self, line, nb, req_n=None):
         if line.strip() == '':
             # because ''.split() = ['']
             args = []
@@ -342,7 +358,7 @@ class ReplApplication(Cmd, BaseApplication):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
         if len(args) < nb:
-            args += tuple([None for i in xrange(nb - len(args))])
+            args += tuple(None for i in xrange(nb - len(args)))
         return args
 
     def postcmd(self, stop, line):
@@ -420,9 +436,11 @@ class ReplApplication(Cmd, BaseApplication):
             return super(ReplApplication, self).onecmd(line)
         except CallErrors, e:
             self.bcall_errors_handler(e)
+        except BackendNotGiven, e:
+            print >>sys.stderr, 'Error: %s' % str(e)
         except NotEnoughArguments, e:
             print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
-        except (KeyboardInterrupt,EOFError):
+        except (KeyboardInterrupt, EOFError):
             # ^C during a command process doesn't exit application.
             print '\nAborted.'
 
@@ -432,7 +450,7 @@ class ReplApplication(Cmd, BaseApplication):
             if cmd_args[0] == 'help':
                 self._parser.print_help()
                 self._parser.exit()
-            cmd_line = ' '.join(cmd_args)
+            cmd_line = u' '.join(cmd_args)
             cmds = cmd_line.split(';')
             for cmd in cmds:
                 ret = self.onecmd(cmd)
@@ -523,30 +541,33 @@ class ReplApplication(Cmd, BaseApplication):
             return None
         if doc:
             doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
+            if not doc.startswith(command):
+                doc = '%s\n\n%s' % (command, doc)
             if short:
                 doc = doc.split('\n')[0]
                 if not doc.startswith(command):
                     doc = command
+
             return doc
 
     def get_commands_doc(self):
         names = set(name for name in self.get_names() if name.startswith('do_'))
-        application_cmds_doc = []
-        weboob_cmds_doc = []
-        cmds_undoc = []
+        appname = self.APPNAME.capitalize()
+        d = OrderedDict(((appname, []), ('Weboob', [])))
+
         for name in sorted(names):
             cmd = name[3:]
             if cmd in self.hidden_commands.union(self.weboob_commands).union(['help']):
                 continue
             elif getattr(self, name).__doc__:
-                short_help = '    %s' % self.get_command_help(cmd, short=True)
-                application_cmds_doc.append(short_help)
+                d[appname].append(self.get_command_help(cmd))
             else:
-                cmds_undoc.append(cmd)
-        for cmd in self.weboob_commands:
-            short_help = '    %s' % self.get_command_help(cmd, short=True)
-            weboob_cmds_doc.append(short_help)
-        return application_cmds_doc, weboob_cmds_doc, cmds_undoc
+                d[appname].append(cmd)
+        if not self.DISABLE_REPL:
+            for cmd in self.weboob_commands:
+                d['Weboob'].append(self.get_command_help(cmd))
+
+        return d
 
     def do_help(self, arg=None):
         if arg:
@@ -560,15 +581,8 @@ class ReplApplication(Cmd, BaseApplication):
             else:
                 print 'Unknown command: "%s"' % arg
         else:
-            application_cmds_doc, weboob_cmds_doc, undoc_cmds_doc = self.get_commands_doc()
-
-            application_cmds_header = '%s commands' % self.APPNAME.capitalize()
-            self.stdout.write('%s\n%s\n' % (application_cmds_header, '-' * len(application_cmds_header)))
-            self.stdout.write('\n'.join(application_cmds_doc) + '\n\n')
-            weboob_cmds_header = 'Generic Weboob commands'
-            self.stdout.write('%s\n%s\n' % (weboob_cmds_header, '-' * len(weboob_cmds_header)))
-            self.stdout.write('\n'.join(weboob_cmds_doc) + '\n\n')
-            self.print_topics(self.undoc_header, undoc_cmds_doc, 15,80)
+            cmds = self._parser.formatter.format_commands(self._parser.commands)
+            self.stdout.write('%s\n' % cmds)
             self.stdout.write('Type "help <command>" for more info about a command.\n')
 
     def emptyline(self):
@@ -597,7 +611,6 @@ class ReplApplication(Cmd, BaseApplication):
                 child += '/'
             l.append(child)
         return l
-
 
     def complete(self, text, state):
         """
@@ -751,7 +764,7 @@ class ReplApplication(Cmd, BaseApplication):
         * quiet is an alias for error
         * default is an alias for warning
         """
-        args = self.parseargs(line, 1, 0)
+        args = self.parse_command_args(line, 1, 0)
         levels = (('debug',   logging.DEBUG),
                   ('info',    logging.INFO),
                   ('warning', logging.WARNING),
@@ -1072,11 +1085,33 @@ class ReplApplication(Cmd, BaseApplication):
     def flush(self):
         self.formatter.flush()
 
-    def parse_id(self, _id):
+    def parse_id(self, _id, unique_backend=False):
         try:
             _id, backend_name = _id.rsplit('@', 1)
         except ValueError:
             backend_name = None
+        if unique_backend and not backend_name:
+            backends = []
+            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
+                if self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__):
+                    continue
+                backends.append((name, backend))
+            if self.interactive:
+                while not backend_name:
+                    print 'This command works with a unique backend. Availables:'
+                    for index, (name, backend) in enumerate(backends):
+                        print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
+                            backend.description)
+                    response = self.ask('Select a backend to proceed', regexp='^\d+$')
+                    if response.isdigit():
+                        i = int(response) - 1
+                        if i < 0 or i >= len(backends):
+                            print 'Error: %s is not a valid choice' % response
+                            continue
+                        backend_name = backends[i][0]
+            else:
+                raise BackendNotGiven('Please specify a backend to use for this argument (%s@backend_name). '
+                    'Availables: %s.' % (_id, ', '.join(name for name, backend in backends)))
         return _id, backend_name
 
     def do_inspect(self, line):

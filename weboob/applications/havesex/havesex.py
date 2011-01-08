@@ -40,7 +40,7 @@ class ProfileFormatter(IFormatter):
                 result += self.print_node(sub, level+1)
         else:
             if isinstance(node.value, (tuple,list)):
-                value = ','.join([unicode(v) for v in node.value])
+                value = ','.join(unicode(v) for v in node.value)
             else:
                 value = node.value
             result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
@@ -70,8 +70,9 @@ class ProfileFormatter(IFormatter):
 
 class HaveSex(ReplApplication):
     APPNAME = 'havesex'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Havesex is a console application to interact with dating websites and to help you to seduce women."
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
     CAPS = ICapDating
@@ -239,7 +240,7 @@ class HaveSex(ReplApplication):
         * edit       configure an optimization service for a backend
         * stop       stop optimization services on a backend
         """
-        cmd, backend_name, optims_names = self.parseargs(line, 3)
+        cmd, backend_name, optims_names = self.parse_command_args(line, 3)
 
         if backend_name == '*':
             backend_name = None

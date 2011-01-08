@@ -28,13 +28,9 @@ class KickassBackend(BaseBackend, ICapTorrent):
     NAME = 'kickass'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     DESCRIPTION = 'kickasstorrent.com bittorrent tracker'
     LICENSE = 'GPLv3'
-    #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
-    #                    Value('protocol', label='Protocol to use', choices=('http', 'https')),
-    #                    Value('username', label='Username'),
-    #                    Value('password', label='Password', masked=True))
     BROWSER = KickassBrowser
 
     def create_default_browser(self):

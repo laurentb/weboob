@@ -32,8 +32,10 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Christophe Benz, Romain Bignon'
+    DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
+                  "and to register new website accounts."
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
                            }
@@ -50,7 +52,7 @@ class WeboobCfg(ReplApplication):
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
             return
-        name, options = self.parseargs(line, 2, 1)
+        name, options = self.parse_command_args(line, 2, 1)
         if options:
             options = options.split(' ')
         else:

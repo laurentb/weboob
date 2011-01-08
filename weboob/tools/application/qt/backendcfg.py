@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
                         QListWidgetItem, QTextDocument, QVBoxLayout, \
@@ -30,11 +31,14 @@ from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.ordereddict import OrderedDict
 from .qt import QtValue
 
+
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
         QDialog.__init__(self, parent)
         self.ui = Ui_BackendCfg()
         self.ui.setupUi(self)
+
+        self.ui.configuredBackendsList.sortByColumn(0, Qt.AscendingOrder)
 
         self.to_unload = set()
         self.to_load = set()
@@ -67,8 +71,10 @@ class BackendCfg(QDialog):
 
         self.loadConfiguredBackendsList()
 
-        self.connect(self.ui.configuredBackendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self.configuredBackendClicked)
-        self.connect(self.ui.configuredBackendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'), self.configuredBackendEnabled)
+        self.connect(self.ui.configuredBackendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
+            self.configuredBackendClicked)
+        self.connect(self.ui.configuredBackendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
+            self.configuredBackendEnabled)
         self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self.backendSelectionChanged)
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
@@ -89,7 +95,8 @@ class BackendCfg(QDialog):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
-            item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true') else Qt.Unchecked)
+            item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true') \
+                else Qt.Unchecked)
 
             if backend.icon_path:
                 img = QImage(backend.icon_path)
@@ -134,8 +141,8 @@ class BackendCfg(QDialog):
 
         bname = unicode(item.text(0))
         reply = QMessageBox.question(self, self.tr('Remove a backend'),
-                                     unicode(self.tr("Are you sure you want to remove the backend '%s'?")) % bname,
-                                     QMessageBox.Yes|QMessageBox.No)
+            unicode(self.tr("Are you sure you want to remove the backend '%s'?")) % bname,
+            QMessageBox.Yes|QMessageBox.No)
 
         if reply != QMessageBox.Yes:
             return
@@ -195,7 +202,7 @@ class BackendCfg(QDialog):
 
         if not selection:
             QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                                       self.tr('Please select a backend'))
+                self.tr('Please select a backend'))
             return
 
         try:
@@ -205,26 +212,24 @@ class BackendCfg(QDialog):
 
         if not backend:
             QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                                       self.tr('The selected backend does not exist.'))
+                self.tr('The selected backend does not exist.'))
             return
 
         params = {}
 
         if not bname:
-            QMessageBox.critical(self, self.tr('Missing field'),
-                                       self.tr('Please specify a backend name'))
+            QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a backend name'))
             return
 
         if self.ui.nameEdit.isEnabled() and not re.match(r'^[\w\-_]+$', bname):
             QMessageBox.critical(self, self.tr('Invalid value'),
-                                       self.tr('The backend name can only contain letters and digits'))
+                self.tr('The backend name can only contain letters and digits'))
             return
 
         if self.ui.proxyBox.isChecked():
             params['_proxy'] = unicode(self.ui.proxyEdit.text())
             if not params['_proxy']:
-                QMessageBox.critical(self, self.tr('Missing field'),
-                                           self.tr('Please specify a proxy URL'))
+                QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a proxy URL'))
                 return
 
         for key, field in backend.config.iteritems():
@@ -233,9 +238,8 @@ class BackendCfg(QDialog):
             try:
                 value = qtvalue.get_value()
             except ValueError, e:
-                QMessageBox.critical(self,
-                                     self.tr('Invalid value'),
-                                     unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (field.label, e))
+                QMessageBox.critical(self, self.tr('Invalid value'),
+                    unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (field.label, e))
                 return
 
             params[key] = value.value
@@ -268,26 +272,28 @@ class BackendCfg(QDialog):
 
         if backend.icon_path:
             img = QImage(backend.icon_path)
-            self.ui.backendInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'), QVariant(img))
+            self.ui.backendInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'),
+                QVariant(img))
 
         self.ui.backendInfo.setText(unicode(self.tr(
-                                   '<h1>%s Backend %s</h1>'
-                                   '<b>Version</b>: %s<br />'
-                                   '<b>Maintainer</b>: %s<br />'
-                                   '<b>License</b>: %s<br />'
-                                   '%s'
-                                   '<b>Description</b>: %s<br />'
-                                   '<b>Capabilities</b>: %s<br />'))
-                                   % ('<img src="mydata://logo.png" />' if backend.icon_path else '',
-                                      backend.name.capitalize(),
-                                      backend.version,
-                                      backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
-                                      backend.license,
-                                      (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
-                                      backend.description,
-                                      ', '.join(sorted([cap.__name__.replace('ICap', '') for cap in backend.iter_caps()]))))
+           '<h1>%s Backend %s</h1>'
+           '<b>Version</b>: %s<br />'
+           '<b>Maintainer</b>: %s<br />'
+           '<b>License</b>: %s<br />'
+           '%s'
+           '<b>Description</b>: %s<br />'
+           '<b>Capabilities</b>: %s<br />'))
+           % ('<img src="mydata://logo.png" />' if backend.icon_path else '',
+              backend.name.capitalize(),
+              backend.version,
+              backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
+              backend.license,
+              (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
+              backend.description,
+              ', '.join(sorted(cap.__name__.replace('ICap', '') for cap in backend.iter_caps()))))
 
-        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
+        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and \
+            backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()
         else:
             self.ui.registerButton.hide()
@@ -345,9 +351,8 @@ class BackendCfg(QDialog):
                     try:
                         v = widget.get_value()
                     except ValueError, e:
-                        QMessageBox.critical(self,
-                                             self.tr('Invalid value'),
-                                             unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (key, e))
+                        QMessageBox.critical(self, self.tr('Invalid value'),
+                            unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (key, e))
                         end = False
                         break
                     else:
@@ -356,9 +361,8 @@ class BackendCfg(QDialog):
                     try:
                         backend.klass.register_account(account)
                     except AccountRegisterError, e:
-                        QMessageBox.critical(self,
-                                             self.tr('Error during register'),
-                                             unicode(self.tr('Unable to register account %s:<br /><br />%s')) % (website, e))
+                        QMessageBox.critical(self, self.tr('Error during register'),
+                            unicode(self.tr('Unable to register account %s:<br /><br />%s')) % (website, e))
                         end = False
                     else:
                         for key, value in account.properties.iteritems():

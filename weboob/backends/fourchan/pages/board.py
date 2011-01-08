@@ -15,11 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from datetime import datetime
 
 import re
 
+from datetime import datetime
+
 from weboob.tools.browser import BasePage
+
+
+__all__ = ['BoardPage']
+
 
 class Message(object):
     def __init__(self, browser, board, id, filename=u'', url=u''):
@@ -41,6 +46,7 @@ class Message(object):
 
     def __repr__(self):
         return '<Message id=%s filename=%s url=%s comments=%d>' % (self.id, self.filename, self.url, len(self.comments))
+
 
 class BoardPage(BasePage):
     URL_REGEXP = re.compile('http://boards.4chan.org/(\w+)/')

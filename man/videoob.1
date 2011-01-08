@@ -1,4 +1,4 @@
-.TH VIDEOOB 1 "08 January 2011" "videoob 0\&.4\&.1"
+.TH VIDEOOB 1 "08 January 2011" "videoob 0\&.5"
 .SH NAME
 videoob
 .SH SYNOPSIS
@@ -8,23 +8,157 @@ videoob
 .B videoob
 [\-\-help] [\-\-version]
 
+.SH DESCRIPTION
+.LP
+
+Videoob is a console application to search videos on supported websites and to play them or get informations.
+
+.SS Supported websites:
+* arte (Arte french TV)
+.br
+* canalplus (Canal plus french TV)
+.br
+* ina (INA french video archives)
+.br
+* youjizz (Youjizz videos website)
+.br
+* youporn (Youporn videos website)
+.br
+* youtube (Youtube videos website)
 .SH VIDEOOB COMMANDS
 .TP
-info ID
-nsfw [on | off]
-play ID
-search [PATTERN]
+\fBinfo\fR \fIID\fR
+.br
+Get information about a video.
+.TP
+\fBnsfw\fR [on | off]
+.br
+If argument is given, enable or disable the non\-suitable for work behavior.
+.br
 
+.br
+If no argument is given, print the current behavior.
+.TP
+\fBplay\fR \fIID\fR
+.br
+Play a video with a found player.
+.TP
+\fBsearch\fR [\fIPATTERN\fR]
+.br
+Search for videos matching a PATTERN.
+.br
+
+.br
+If PATTERN is not given, this command will search for the latest videos.
 .SH WEBOOB COMMANDS
 .TP
-backends [ACTION] [BACKEND_NAME]...
-condition [EXPRESSION | off]
-count [NUMBER | off]
-formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
-inspect BACKEND_NAME
-logging [LEVEL]
-select [FIELD_NAME]... | "$direct" | "$full"
-quit
+\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
+.br
+Select used backends.
+.br
+
+.br
+ACTION is one of the following (default: list):
+.br
+* enable    enable given backends
+.br
+* disable   disable given backends
+.br
+* only      enable given backends and disable the others
+.br
+* list      display enabled and available backends
+.br
+* add       add a backend
+.br
+* register  register a new account on a website
+.br
+* edit      edit a backend
+.br
+* remove    remove a backend
+.TP
+\fBcondition\fR [\fIEXPRESSION\fR | off]
+.br
+If an argument is given, set the condition expression used to filter the results.
+.br
+If the "off" value is given, conditional filtering is disabled.
+.br
+
+.br
+If no argument is given, print the current condition expression.
+.TP
+\fBcount\fR [\fINUMBER\fR | off]
+.br
+If an argument is given, set the maximum number of results fetched.
+.br
+NUMBER must be at least 1.
+.br
+"off" value disables counting, and allows infinite searches.
+.br
+
+.br
+If no argument is given, print the current count value.
+.TP
+\fBformatter\fR [list | \fIFORMATTER\fR [\fICOMMAND\fR] | option \fIOPTION_NAME\fR [on | off]]
+.br
+If a FORMATTER is given, set the formatter to use.
+.br
+You can add a COMMAND to apply the formatter change only to
+.br
+a given command.
+.br
+
+.br
+If the argument is "list", print the available formatters.
+.br
+
+.br
+If the argument is "option", set the formatter options.
+.br
+Valid options are: header, keys.
+.br
+If on/off value is given, set the value of the option.
+.br
+If not, print the current value for the option.
+.br
+
+.br
+If no argument is given, print the current formatter.
+.TP
+\fBinspect\fR \fIBACKEND_NAME\fR
+.br
+Display the HTML string of the current page of the specified backend's browser.
+.br
+
+.br
+If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
+.TP
+\fBlogging\fR [\fILEVEL\fR]
+.br
+Set logging level.
+.br
+
+.br
+Availables: debug, info, warning, error.
+.br
+* quiet is an alias for error
+.br
+* default is an alias for warning
+.TP
+\fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
+.br
+If an argument is given, set the selected fields.
+.br
+$direct selects all fields loaded in one http request.
+.br
+$full selects all fields using as much http requests as necessary.
+.br
+
+.br
+If no argument is given, print the currently selected fields.
+.TP
+\fBquit\fR
+.br
+Quit the application.
 
 .SH OPTIONS
 .TP

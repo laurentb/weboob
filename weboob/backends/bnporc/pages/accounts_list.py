@@ -24,6 +24,10 @@ from weboob.tools.browser import BasePage
 
 from ..errors import PasswordExpired
 
+
+__all__ = ['AccountsList']
+
+
 class AccountsList(BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 

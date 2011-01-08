@@ -19,7 +19,6 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-#from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -33,7 +32,7 @@ class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'bouygues'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     DESCRIPTION = 'Bouygues french mobile phone provider'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('login', label='Login'),

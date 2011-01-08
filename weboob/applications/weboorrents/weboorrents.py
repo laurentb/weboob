@@ -78,8 +78,10 @@ class TorrentListFormatter(IFormatter):
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.4.1'
+    VERSION = '0.5'
     COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    DESCRIPTION = "Weboorrents is a console application to search torrents on supported trackers " \
+                  "and to download .torrent files."
     CAPS = ICapTorrent
     EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,
@@ -142,7 +144,7 @@ class Weboorrents(ReplApplication):
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
         """
-        id, dest = self.parseargs(line, 2, 2)
+        id, dest = self.parse_command_args(line, 2, 2)
 
         _id, backend_name = self.parse_id(id)
 

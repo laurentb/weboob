@@ -29,13 +29,12 @@ class ComposeFrame(BasePage):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def post_message(self, message):
-        receiver_list = [re.sub(' +', '', receiver) for receiver in message.receivers]
-        for receiver in receiver_list:
-            if self.phone_regex.match(receiver) is None:
-                raise CantSendMessage(u'Invalid receiver: %s' % receiver)
+        receiver = message.thread.id
+        if self.phone_regex.match(receiver) is None:
+            raise CantSendMessage(u'Invalid receiver: %s' % receiver)
         self.browser.select_form(nr=0)
-        self.browser['fieldMsisdn'] = ','.join(receiver_list)
-        self.browser['fieldMessage'] = message.content
+        self.browser['fieldMsisdn'] = receiver
+        self.browser['fieldMessage'] = message.content.encode('utf-8')
         self.browser.submit()
 
 

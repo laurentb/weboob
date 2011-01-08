@@ -48,7 +48,7 @@ __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
 
 class MandatoryFieldsNotFound(Exception):
     def __init__(self, missing_fields):
-        Exception.__init__(self, u'Mandatory fields not found: %s.' % ','.join(missing_fields))
+        Exception.__init__(self, u'Mandatory fields not found: %s.' % ', '.join(missing_fields))
 
 
 class IFormatter(object):
@@ -97,7 +97,7 @@ class IFormatter(object):
         @param selected_fields  [tuple] fields to display. If None, all fields are selected
         @return  a string of the formatted object
         """
-        assert isinstance(obj, (dict, CapBaseObject, tuple))
+        assert isinstance(obj, (dict, CapBaseObject, tuple)), 'Object is unexpected type "%r"' % obj
 
         if isinstance(obj, dict):
             item = obj

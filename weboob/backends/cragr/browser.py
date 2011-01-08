@@ -67,8 +67,7 @@ class Cragr(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        if not self.is_on_page(pages.AccountsList) or self.page.is_account_page():
-            self.home()
+        self.home()
         return self.page.get_list()
 
     def get_account(self, id):

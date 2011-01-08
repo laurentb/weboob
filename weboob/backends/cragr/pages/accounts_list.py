@@ -21,7 +21,18 @@ from weboob.capabilities.bank import Account
 from .base import CragrBasePage
 from weboob.capabilities.bank import Operation
 
+def clean_amount(amount):
+    """
+        Removes weird characters and converts to a float
+        >>> clean_amount(u'1 000,00 $')
+        1000.0
+    """
+    data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
+    matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
+    return float(matches[0]) if (matches) else 0.0
+
 class AccountsList(CragrBasePage):
+
     def get_list(self):
         """
             Returns the list of available bank accounts
@@ -43,13 +54,7 @@ class AccountsList(CragrBasePage):
                     account.link_id = div.find('a').get('href', '')
                     account.id = div.findall('br')[1].tail.strip()
                     s = div.find('div').find('span').find('b').text
-                balance = u''
-                for c in s:
-                    if c.isdigit():
-                        balance += c
-                    if c == ',':
-                        balance += '.'
-                account.balance = float(balance)
+                account.balance = clean_amount(s)
                 l.append(account)
         return l
 
@@ -208,9 +213,7 @@ class AccountsList(CragrBasePage):
             for body_elmt in interesting_divs:
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount
-                    data = self.extract_text(body_elmt).replace(',', '.').replace(' ', '')
-                    matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-                    operation.amount = float(matches[0]) if (matches) else 0.0
+                    operation.amount = clean_amount(self.extract_text(body_elmt))
                     yield operation
                 else:
                     # this is the first line of an operation entry, displaying the date and label
@@ -229,9 +232,7 @@ class AccountsList(CragrBasePage):
                 operation = Operation(index)
                 index += 1
                 # amount
-                data = self.extract_text(interesting_divs[(i*3)+1]).replace(',', '.').replace(' ', '')
-                matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-                operation.amount = float(matches[0]) if (matches) else 0.0
+                operation.amount = clean_amount(self.extract_text(interesting_divs[(i*3)+1]))
                 # date
                 data = self.extract_text(interesting_divs[i*3])
                 matches = re.findall('^([012][0-9]|3[01])/(0[1-9]|1[012])', data)

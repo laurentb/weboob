@@ -30,10 +30,11 @@ class LCLBrowser(BaseBrowser):
     DOMAIN = 'particuliers.secure.lcl.fr'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    PAGES = {'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
-             'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
-             'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage
-            }
+    PAGES = {
+        'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
+        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
+        'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
+        }
 
     def __init__(self, agency, *args, **kwargs):
         self.agency = agency
