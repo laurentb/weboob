@@ -1,55 +1,36 @@
-.TH MONBOOB 1 "02 August 2010"
+.TH MONBOOB 1 "08 January 2011" "monboob 0\&.4\&.1"
 .SH NAME
-monboob \- Get messages in your Mail User Agent and answer
+monboob
 .SH SYNOPSIS
 .B monboob
-[\-dqv] [\-b \fIbackends\fR] [\-S \fIport\fR] \fIcommand\fR [arguments..]
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
 .B monboob
-[\-\-version] [\-\-help]
-.SH DESCRIPTION
-.LP
-Weboob provides several applications to interact with a lot of websites.
+[\-\-help] [\-\-version]
 
-Monboob is a daemon application which retrieves every X seconds new messages
-and send them to an email address.
-
-Use the \fB-S\fR option to launch a SMTP server which relays mails to the backend
-as a reply.
-
-The \fBpost\fR command can also be called to answer to a specific message.
-
-.SH COMMANDS
+.SH MONBOOB COMMANDS
 .TP
-\fBrun\fR
-run the process (it does NOT put monboob in background)
-.TP
-\fBpost\fR
-pipe a mail with this command to parse it and post the reply to the equivalent backend
+post
+run
 
-.SH CONFIGURATION
-The file \fI~/.weboob/monboob\fR is the configuration of \fBmonboob\fR:
-
-.nf
-[DEFAULT]
-# Interval to check new messages
-interval = 300
-# Domain of the *From:* email address
-domain = weboob.example.com
-# Recipient of emails
-recipient = romain@example.com
-# SMTP server to use
-smtp = mail.example.org
-# Send emails in HTML or in plaintext
-html = 0
-.fi
 
 .SH OPTIONS
-.SS Monboob options
 .TP
-\fB\-S\fR, \fB\-\-smtpd\fR \fI[bind:]port\fR
-run a SMTP server which relays each received mails to the backend
-.SS Logging options
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH MONBOOB OPTIONS
+.TP
+\fB\-S SMTPD\fR, \fB\-\-smtpd=SMTPD\fR
+run a fake smtpd server and set the port
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -59,16 +40,34 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH RESULTS OPTIONS
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
+filter result items to display given a boolean expression
+.TP
+\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
+select result item keys to display (comma separated)
+
+.SH FORMATTING OPTIONS
+.TP
+\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
+select output formatter (csv, htmltable, multiline, simple, table, webkit)
+.TP
+\fB\-\-no\-header\fR
+do not display header
+.TP
+\fB\-\-no\-keys\fR
+do not display item keys
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -77,5 +76,9 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
- "~/.weboob/monboob"
+"~/.weboob/backends" 
+
+"~/.weboob/monboob"
+
+.SH SEE ALSO
+Home page: http://weboob.org/Monboob

@@ -1,3 +1,26 @@
+Weboob 0.4.1 (2011-01-08)
+	Backend: BP
+	* Fix: encoding error.
+
+	Backend: Bouygues
+	* Fix: logging issues (#444).
+
+	Backend: DLFP
+	* Fix: crash when author is unknown
+
+	Backend: KickAss
+	* Fix: website changes (#457).
+	* Fix: size parsing.
+
+	Backend: PirateBay
+	* Fix: size parsing.
+
+	Backend: Youtube
+	* Fix: website changes (#450).
+
+	Application: videoob
+	* Fix: playing videos in some cases (#446).
+
 Weboob 0.4 (2010-12-01)
 	General
 	* New backend: Bouygues (CapMessagesPost).

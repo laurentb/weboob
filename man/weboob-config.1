@@ -1,57 +1,47 @@
-.TH WEBOOB-CONFIG 1 "02 August 2010"
+.TH WEBOOB-CONFIG 1 "08 January 2011" "weboob-config 0\&.4\&.1"
 .SH NAME
-weboob-config \- Weboob configuration
+weboob-config
 .SH SYNOPSIS
-.B weboob-config
-[\-dqv] \fIcommand\fR [arguments..]
+.B weboob\-config
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B weboob-config
-[\-\-version] [\-\-help]
-.SH DESCRIPTION
-.LP
-Weboob provides several applications to interact with a lot of websites.
+.B weboob\-config
+[\-\-help] [\-\-version]
 
-This application is used to configure weboob. You can list backends, and
-add/list/remove configured backends.
+.SH WEBOOB\-CONFIG COMMANDS
+.TP
+add NAME [OPTIONS ...]
+applications
+confirm BACKEND
+edit
+info NAME
+list
+register NAME
+remove NAME
 
-.SH COMMANDS
+.SH WEBOOB COMMANDS
 .TP
-\fBadd\fR \fIbackend_name\fR \fI[options..]\fR
-add a configured backend. \fIbackend_name\fR is the name of the backend to add.
-To list available backends, use the \fIbackends\fR command.
-
-The options are specific to the backend. Use the \fIinfo\fR command to list
-them for a backend.
-
-If you don't specify any options, \fBweboob-config\fR prompts you for each
-available options.
-.TP
-\fBlistconfigured\fR
-list every configured backends.
-.TP
-\fBremove\fR \fIinstance_name\fR
-remove a configured backend, by giving its instance name.
-.TP
-\fBedit\fR
-edit the configuration files of instanced backends with your favorite editor
-(default is vim)
-.TP
-\fBbackends\fR \fI[caps..]\fR
-list every available backends. You can filter by capabilities.
-
-Example:
-.nf
-$ weboob-config backends ICapDating ICapMessages
-.fi
-.TP
-\fBinfo\fR \fIname\fR
-display information about a backend (name, author, descriptions, options, etc.)
-.TP
-\fBapplications\fR \fI[caps..]\fR
-list every weboob applications. You can filter by capabilities.
+backends [CAPS ...]
+condition [EXPRESSION | off]
+count [NUMBER | off]
+formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
+inspect BACKEND_NAME
+logging [LEVEL]
+select [FIELD_NAME]... | "$direct" | "$full"
+quit
 
 .SH OPTIONS
-.SS Logging options
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -61,13 +51,34 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH RESULTS OPTIONS
+.TP
+\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
+filter result items to display given a boolean expression
+.TP
+\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
+select result item keys to display (comma separated)
+
+.SH FORMATTING OPTIONS
+.TP
+\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
+select output formatter (csv, htmltable, multiline, simple, table, webkit)
+.TP
+\fB\-\-no\-header\fR
+do not display header
+.TP
+\fB\-\-no\-keys\fR
+do not display item keys
 
 .SH COPYRIGHT
 Copyright(C) 2010 Christophe Benz, Romain Bignon
@@ -76,4 +87,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 

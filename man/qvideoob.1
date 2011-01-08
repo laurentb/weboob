@@ -1,22 +1,25 @@
-.TH QVIDEOOB 1 "02 August 2010"
+.TH QVIDEOOB 1 "08 January 2011" "qvideoob 0\&.4\&.1"
 .SH NAME
-qvideoob \- Search and play videos
+qvideoob
 .SH SYNOPSIS
 .B qvideoob
-[\-dqv] [\-b \fIbackends\fR]
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
 .B qvideoob
-[\-\-version] [\-\-help]
-.SH DESCRIPTION
-.LP
-Weboob provides several applications to interact with a lot of websites.
-
-This graphical application can be used to search videos on \fIICapVideo\fR
-backends, and to get their meta data, including their direct URL, or to play
-them in an embedded frame.
+[\-\-help] [\-\-version]
 
 .SH OPTIONS
-.SS Logging options
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -26,16 +29,12 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
-.TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -44,4 +43,9 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+"~/.weboob/qvideoob"
+
+.SH SEE ALSO
+Home page: http://weboob.org/Qvideoob

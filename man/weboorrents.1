@@ -1,53 +1,42 @@
-.TH WEBOORRENTS 1 "02 August 2010"
+.TH WEBOORRENTS 1 "08 January 2011" "weboorrents 0\&.4\&.1"
 .SH NAME
-weboorrents \- Torrents search and get
+weboorrents
 .SH SYNOPSIS
 .B weboorrents
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIcommand\fR [arguments..]
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
 .B weboorrents
-[\-\-version] [\-\-help]
-.SH DESCRIPTION
-.LP
-Weboob provides several applications to interact with a lot of websites.
+[\-\-help] [\-\-version]
 
-This console application can be used to search torrents on support trackers
-and to display information about them, and get the \fB.torrent\fR file.
+.SH WEBOORRENTS COMMANDS
+.TP
+getfile ID FILENAME
+info ID
+search [PATTERN]
 
-.SH COMMANDS
+.SH WEBOOB COMMANDS
 .TP
-\fBsearch\fR \fIpattern\fR
-search torrents on the selected backends which match the specified pattern
-.TP
-\fBinfo\fR \fIid\fR
-get information about a torrent
-.TP
-\fBgetfile\fR \fIid\fR \fIdest\fR
-get the \fB.torrent\fR file of the specific torrent
-
-the file is sent to output if \fIdest\fR is '-'
+backends [ACTION] [BACKEND_NAME]...
+condition [EXPRESSION | off]
+count [NUMBER | off]
+formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
+inspect BACKEND_NAME
+logging [LEVEL]
+select [FIELD_NAME]... | "$direct" | "$full"
+quit
 
 .SH OPTIONS
-.SS Results options
 .TP
-\fB\-c\fR, \fB\-\-condition\fR \fICONDITION\fR
-filter result items to display given a boolean condition
+\fB\-\-version\fR
+show program's version number and exit
 .TP
-\fB\-n\fR, \fB\-\-count\fR \fICOUNT\fR
-get a maximum number of results (all backends merged)
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
 .TP
-\fB\-f\fR, \fB\-\-formatter\fR \fIFORMATTER\fR
-select the output formatter (htmltable,multiline,simple,table,webkit)
-.TP
-\fB\-s\fR, \fB\-\-select\fR \fIFIELDS\fR
-select return field keys to display (comma separated)
-.TP
-\fB\-\-no-header\fR
-do not display header
-.TP
-\fB\-\-no-keys\fR
-do not display field keys
-.SS Logging options
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -57,16 +46,35 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH RESULTS OPTIONS
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
+filter result items to display given a boolean expression
+.TP
+\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
+select result item keys to display (comma separated)
+
+.SH FORMATTING OPTIONS
+.TP
+\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
+select output formatter (csv, htmltable, multiline, simple, table, torrent_info,
+torrent_list, webkit)
+.TP
+\fB\-\-no\-header\fR
+do not display header
+.TP
+\fB\-\-no\-keys\fR
+do not display item keys
 
 .SH COPYRIGHT
 Copyright(C) 2010 Romain Bignon
@@ -75,4 +83,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Weboorrents

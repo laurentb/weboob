@@ -1,28 +1,12 @@
-.TH TRAVELOOB 1 "08 January 2011" "traveloob 0\&.4\&.1"
+.TH WEBOOB-CLI 1 "08 January 2011" "weboob-cli 0\&.4\&.1"
 .SH NAME
-traveloob
+weboob-cli
 .SH SYNOPSIS
-.B traveloob
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
+.B weboob\-cli
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIcapability\fR \fImethod\fR [\fIarguments\fR..]
 .br
-.B traveloob
+.B weboob\-cli
 [\-\-help] [\-\-version]
-
-.SH TRAVELOOB COMMANDS
-.TP
-departures STATION [ARRIVAL]
-stations PATTERN
-
-.SH WEBOOB COMMANDS
-.TP
-backends [ACTION] [BACKEND_NAME]...
-condition [EXPRESSION | off]
-count [NUMBER | off]
-formatter [list | FORMATTER [COMMAND] | option OPTION_NAME [on | off]]
-inspect BACKEND_NAME
-logging [LEVEL]
-select [FIELD_NAME]... | "$direct" | "$full"
-quit
 
 .SH OPTIONS
 .TP
@@ -82,6 +66,3 @@ For full COPYRIGHT see COPYING file with weboob package.
 .RE
 .SH FILES
 "~/.weboob/backends" 
-
-.SH SEE ALSO
-Home page: http://weboob.org/Traveloob

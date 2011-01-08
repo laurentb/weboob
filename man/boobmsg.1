@@ -1,17 +1,19 @@
-.TH TRAVELOOB 1 "08 January 2011" "traveloob 0\&.4\&.1"
+.TH BOOBMSG 1 "08 January 2011" "boobmsg 0\&.4\&.1"
 .SH NAME
-traveloob
+boobmsg
 .SH SYNOPSIS
-.B traveloob
+.B boobmsg
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B traveloob
+.B boobmsg
 [\-\-help] [\-\-version]
 
-.SH TRAVELOOB COMMANDS
+.SH BOOBMSG COMMANDS
 .TP
-departures STATION [ARRIVAL]
-stations PATTERN
+list
+post TO...
+show MESSAGE
+status
 
 .SH WEBOOB COMMANDS
 .TP
@@ -34,6 +36,11 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+
+.SH BOOBMSG OPTIONS
+.TP
+\fB\-e\fR, \fB\-\-skip\-empty\fR
+Don't send messages with an empty body.
 
 .SH LOGGING OPTIONS
 .TP
@@ -66,7 +73,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, msg, msglist, multiline, simple, table,
+webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -75,7 +83,7 @@ do not display header
 do not display item keys
 
 .SH COPYRIGHT
-Copyright(C) 2010 Romain Bignon
+Copyright(C) 2010 Christophe Benz
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -84,4 +92,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Traveloob
+Home page: http://weboob.org/Boobmsg

@@ -1,17 +1,18 @@
-.TH TRAVELOOB 1 "08 January 2011" "traveloob 0\&.4\&.1"
+.TH RADIOOB 1 "08 January 2011" "radioob 0\&.4\&.1"
 .SH NAME
-traveloob
+radioob
 .SH SYNOPSIS
-.B traveloob
+.B radioob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B traveloob
+.B radioob
 [\-\-help] [\-\-version]
 
-.SH TRAVELOOB COMMANDS
+.SH RADIOOB COMMANDS
 .TP
-departures STATION [ARRIVAL]
-stations PATTERN
+info ID
+list [PATTERN]
+play ID
 
 .SH WEBOOB COMMANDS
 .TP
@@ -66,7 +67,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, multiline, radio_list, simple, table,
+webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -84,4 +86,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Traveloob
+Home page: http://weboob.org/Radioob
