@@ -34,7 +34,7 @@ class YahooBackend(BaseBackend, ICapWeather):
     NAME = 'yahoo'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.5'
+    VERSION = '0.6'
     DESCRIPTION = 'Yahoo'
     LICENSE = 'GPLv3'
     BROWSER = BaseBrowser
