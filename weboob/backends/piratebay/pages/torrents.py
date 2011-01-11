@@ -78,11 +78,18 @@ class TorrentPage(BasePage):
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
                 if len(div.getchildren()) > 1 \
                         and div.getchildren()[1].attrib.get('class','') == 'col2' :
-                    seed = div.getchildren()[1].getchildren()[7].text
-                    leech = div.getchildren()[1].getchildren()[9].text
+                    child_to_explore = div.getchildren()[1]
                 else:
-                    seed = div.getchildren()[0].getchildren()[24].text
-                    leech = div.getchildren()[0].getchildren()[26].text
+                    child_to_explore = div.getchildren()[0]
+                prev_child_txt = "none"
+                seed="-1"
+                leech="-1"
+                for ch in child_to_explore.getchildren():
+                    if prev_child_txt == "Seeders:":
+                        seed = ch.text
+                    if prev_child_txt == "Leechers:":
+                        leech = ch.text
+                    prev_child_txt = ch.text
             elif div.attrib.get('class','') == 'nfo':
                 description = div.getchildren()[0].text
         torrent = Torrent(id, title)
