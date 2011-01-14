@@ -230,7 +230,7 @@ class Masstransit(BaseApplication):
     "Application Class"
     APPNAME = 'masstransit'
     VERSION = '0.6'
-    COPYRIGHT = 'Copyright(C) 2010 Julien Hébert'
+    COPYRIGHT = 'Copyright(C) 2010-2011 Julien Hébert'
 
     def main(self, argv):
         self.load_backends(ICapTravel)
