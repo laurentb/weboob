@@ -124,7 +124,7 @@ class MessagesListFormatter(IFormatter):
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.5.1'
-    COPYRIGHT = 'Copyright(C) 2010 Christophe Benz'
+    COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Boobmsg is a console application to send messages on supported websites and " \
                   "to display messages threads and contents."
     CAPS = ICapMessages

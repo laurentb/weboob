@@ -79,7 +79,7 @@ class MonboobScheduler(Scheduler):
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
     VERSION = '0.5.1'
-    COPYRIGHT = 'Copyright(C) 2010 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Monboob is a daemon to send messages on supported website by email, " \
                   "and can be used to send replies."
     CONFIG = {'interval':  300,
