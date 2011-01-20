@@ -67,7 +67,9 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/home.php': HomePage,
              'http://www.adopteunmec.com/shop2c.php': ShopPage,
              'http://www.adopteunmec.com/mails.php': ContactListPage,
+             'http://www.adopteunmec.com/mail.php': ContactListPage,
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
+             'http://www.adopteunmec.com/mail.php\?type=1': BasketsPage,
              'http://www.adopteunmec.com/thread.php\?id=([0-9]+)(&see=all)?': ContactThreadPage,
              'http://www.adopteunmec.com/edit.php\?type=1': EditPhotoPage,
              'http://s\d+.adopteunmec.com/upload\d.php\?.*': EditPhotoCbPage,
@@ -205,18 +207,18 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def get_baskets(self):
-        self.location('/mails.php?type=1')
+        self.location('/mail.php?type=1')
         return self.page.get_profiles_ids_list()
 
     @pageaccess
     def flush_visits(self):
         """ Does nothing, only flush new visits to increase my score """
-        self.openurl('/mails.php?type=3')
+        self.openurl('/mail.php?type=3')
 
     @pageaccess
     def get_threads_list(self):
         if not self.is_on_page(ContactListPage):
-            self.location('/mails.php')
+            self.location('/mail.php')
 
         return self.page.get_contact_list()
 
