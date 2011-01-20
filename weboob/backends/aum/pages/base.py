@@ -36,7 +36,7 @@ class PageBase(BasePage):
                 raise AdopteBanned('Your account is blocked. You have to unblock by yourself but we can\'t help you.')
 
     def open_contact_list_page(self):
-        self.browser.follow_link(url_regex=r"/mails.php$")
+        self.browser.follow_link(url_regex=r"/mail.php$")
 
     def open_thread_page(self, id, all_messages=False):
         if all_messages:
