@@ -30,5 +30,11 @@ class WikiEditPage(BasePage):
             self.browser['content[comments]'] = message.encode('utf-8')
         self.browser.submit()
 
+    def get_authenticity_token(self):
+        wiki_form = select(self.document.getroot(), 'form#wiki_form', 1)
+        return wiki_form.xpath('div/input')[0].get('value')
+
+
+
 class WikiPage(BasePage):
     pass

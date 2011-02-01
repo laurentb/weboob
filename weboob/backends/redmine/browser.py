@@ -17,6 +17,7 @@
 
 
 from urlparse import urlsplit
+import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
@@ -74,3 +75,10 @@ class RedmineBrowser(BaseBrowser):
     def set_wiki_source(self, project, page, data, message):
         self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
         self.page.set_source(data, message)
+
+    def get_wiki_preview(self, project, page, data):
+        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, page)
+        params = {}
+        params['content[text]'] = data.encode('utf-8')
+        params['authenticity_token'] = "%s" % self.page.get_authenticity_token()
+        return self.readurl(url, urllib.urlencode(params))

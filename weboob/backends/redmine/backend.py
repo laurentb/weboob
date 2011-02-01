@@ -72,3 +72,14 @@ class RedmineBackend(BaseBackend, ICapContent):
 
         with self.browser:
             return self.browser.set_wiki_source(project, page, content.content, message)
+
+    def preview_content(self, content):
+        try:
+            _type, project, page = self.id2path(content.id)
+        except ValueError:
+            return
+
+        with self.browser:
+            return self.browser.get_wiki_preview(project, page, content.content)
+
+
