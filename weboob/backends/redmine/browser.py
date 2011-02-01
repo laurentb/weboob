@@ -34,7 +34,7 @@ class RedmineBrowser(BaseBrowser):
     PAGES = {'%s/':                              IndexPage,
              '%s/login':                         LoginPage,
              '%s/my/page':                       MyPage,
-             '%s/projects/\w+/wiki/\w+/edit':    WikiEditPage,
+             '%s/projects/(\w+)/wiki/(\w+)/edit':    WikiEditPage,
              '%s/projects/\w+/wiki/\w*':         WikiPage,
             }
 
@@ -77,6 +77,14 @@ class RedmineBrowser(BaseBrowser):
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
+        if self.is_on_page(WikiEditPage):
+            current_project, current_page = self.page.groups
+            if current_project != project or current_page != page:
+                self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
+                                                               project, page))
+        else:
+            self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
+                                                           project, page))
         url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, page)
         params = {}
         params['content[text]'] = data.encode('utf-8')
