@@ -46,6 +46,7 @@ def build_qt():
     os.system('make -C weboob/applications/qboobmsg/ui')
     os.system('make -C weboob/applications/qhavesex/ui')
     os.system('make -C weboob/applications/qvideoob/ui')
+    os.system('make -C weboob/applications/qwebcontentedit/ui')
     os.system('make -C weboob/tools/application/qt')
 
 class Options:
@@ -95,7 +96,7 @@ scripts = set(os.listdir('scripts'))
 packages = set(find_packages())
 
 hildon_scripts = set(('masstransit',))
-qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt'))
+qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit'))
 
 if not options.hildon:
     scripts = scripts - hildon_scripts
@@ -116,6 +117,8 @@ qt_packages = set((
     'weboob.applications.qvideoob.ui',
     'weboob.applications.qweboobcfg',
     'weboob.applications.qweboobcfg.ui',
+    'weboob.applications.qwebcontentedit',
+    'weboob.applications.qwebcontentedit.ui'
     ))
 
 if not options.hildon:
