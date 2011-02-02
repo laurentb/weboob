@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
-
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
+import lxml
+import sys
 class Article(object):
     def __init__(self):
         self.title = u''
@@ -33,20 +33,21 @@ class ArticlePage(BasePage):
 
     def set_article(self):
         self.article = Article()
-        #elp(self.get_title().encode('iso8859-1'))
         self.article.title = self.get_title()
         self.article.body = self.get_article()
-
 
     def get_title(self):
         return self.browser.parser.tostring(select(self.document.getroot(), "h1", 1))
 
     def get_article(self):
         main_div = self.document.getroot()
-        article_body = select(main_div, "div.mn-line>div.mna-body")[0] 
-        txt_article = article_body.text_content()
-        txt_to_remove = select(article_body, "div.mna-tools")[0].text_content()
-        txt_to_remove2 = select(main_div, "div.mn-line>div.mna-body>div.mna-comment-call")[0].text_content()
+        article_body = select(main_div, "div.mn-line>div.mna-body", 1) 
+        txt_article = self.browser.parser.tostring(article_body)
+        try:
+            txt_to_remove = self.browser.parser.tostring(select(article_body, "div.mna-tools", 1))
+        except SelectElementException:
+            txt_to_remove = ''
+        txt_to_remove2 = self.browser.parser.tostring(select(main_div, "div.mn-line>div.mna-body>div.mna-comment-call", 1))
         return txt_article.replace(txt_to_remove, '', 1).replace( txt_to_remove2, '', 1)
 
     def get_content(self):

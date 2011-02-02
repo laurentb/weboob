@@ -35,4 +35,5 @@ class CleanBoob(ReplApplication):
     def main(self, argv):
         for backend, content in self.do('get_thread', argv[1]):
             self.format(content)
+            #print content
         return 0
