@@ -19,9 +19,27 @@
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select
 
+class Article(object):
+    def __init__(self):
+        self.title = u''
+        self.body = u''
+        self.author =None 
+        self.date = None
+
 class ArticlePage(BasePage):
+    def on_loaded(self):
+        self.article = None
+        self.set_article()
+
+    def set_article(self):
+        self.article = Article()
+        #elp(self.get_title().encode('iso8859-1'))
+        self.article.title = self.get_title()
+        self.article.body = self.get_article()
+
+
     def get_title(self):
-        return select(self.document.getroot(), "h1", 1).text_content()
+        return self.browser.parser.tostring(select(self.document.getroot(), "h1", 1))
 
     def get_article(self):
         main_div = self.document.getroot()
@@ -32,6 +50,4 @@ class ArticlePage(BasePage):
         return txt_article.replace(txt_to_remove, '', 1).replace( txt_to_remove2, '', 1)
 
     def get_content(self):
-        title = self.get_title()
-        content = self.get_article()
-        return [title, content] 
+        return self.article

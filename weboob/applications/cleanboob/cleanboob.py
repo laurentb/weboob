@@ -18,7 +18,7 @@
 
 import sys
 
-from weboob.capabilities.content import ICapContent
+from weboob.capabilities.messages import ICapMessages, Message
 from weboob.tools.application.repl import ReplApplication
 
 
@@ -30,9 +30,9 @@ class CleanBoob(ReplApplication):
     VERSION = '0.1'
     COPYRIGHT = 'Copyright(C) 2011-2012 Julien Hébert'
     DESCRIPTION = "CleanBoob is a console application to extract article from website."
-    CAPS = ICapContent
+    CAPS = ICapMessages
 
     def main(self, argv):
-        for backend, content in self.do('get_content', argv[1]):
+        for backend, content in self.do('get_thread', argv[1]):
             self.format(content)
         return 0

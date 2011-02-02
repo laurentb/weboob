@@ -19,7 +19,7 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
-from weboob.capabilities.content import ICapContent, Content
+from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 
 from .browser import Newspaper20minutesBrowser
@@ -28,7 +28,7 @@ from .browser import Newspaper20minutesBrowser
 __all__ = ['Newspaper20minutesBackend']
 
 
-class Newspaper20minutesBackend(BaseBackend, ICapContent):
+class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     NAME = 'minutes20'
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
@@ -39,7 +39,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapContent):
     #                    Value('password',   label='Password', masked=True))
     BROWSER = Newspaper20minutesBrowser
 
-    def get_content(self, url):
+    """def get_content(self, url):
         if isinstance(url, basestring):
             content = Content(url)
         else:
@@ -58,3 +58,32 @@ class Newspaper20minutesBackend(BaseBackend, ICapContent):
 
     def push_content(self, content, message = None):
         raise NotImplementedError()
+    """
+
+    def get_thread(self, id):
+        if isinstance(id, Thread):
+            thread = id
+            id = thread.id
+        else:
+            thread = None
+
+        with self.browser:
+            content = self.browser.get_content(id)
+
+        if not thread:
+            thread = Thread(id)
+
+        flags = Message.IS_HTML
+        if not thread.id in self.storage.get('seen', default={}):
+            flags |= Message.IS_UNREAD
+
+
+        thread.title = content.title
+        if not thread.date:
+            thread.date = content.date
+
+        #thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, signature=None, children = [], flags=flags)
+
+        thread.root = Message(thread=thread, id=0, title=content.title)
+        return thread
+
