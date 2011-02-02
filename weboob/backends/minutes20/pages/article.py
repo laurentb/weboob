@@ -17,8 +17,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
-import lxml
-import sys
+
 class Article(object):
     def __init__(self):
         self.title = u''
@@ -37,17 +36,17 @@ class ArticlePage(BasePage):
         self.article.body = self.get_article()
 
     def get_title(self):
-        return self.browser.parser.tostring(select(self.document.getroot(), "h1", 1))
+        return select(self.document.getroot(), "h1", 1).text_content()
 
     def get_article(self):
         main_div = self.document.getroot()
         article_body = select(main_div, "div.mn-line>div.mna-body", 1) 
-        txt_article = self.browser.parser.tostring(article_body)
+        txt_article = article_body.text_content()
         try:
-            txt_to_remove = self.browser.parser.tostring(select(article_body, "div.mna-tools", 1))
+            txt_to_remove = select(article_body, "div.mna-tools", 1).text_content()
         except SelectElementException:
             txt_to_remove = ''
-        txt_to_remove2 = self.browser.parser.tostring(select(main_div, "div.mn-line>div.mna-body>div.mna-comment-call", 1))
+        txt_to_remove2 = select(main_div, "div.mn-line>div.mna-body>div.mna-comment-call", 1).text_content()
         return txt_article.replace(txt_to_remove, '', 1).replace( txt_to_remove2, '', 1)
 
     def get_content(self):

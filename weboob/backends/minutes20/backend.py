@@ -84,6 +84,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
 
         #thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, signature=None, children = [], flags=flags)
 
-        thread.root = Message(thread=thread, id=0, title=content.title)
+        thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body)
         return thread
 
