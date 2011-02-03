@@ -30,7 +30,8 @@ class MainWindow(QtMainWindow):
 
         self.config = config
         self.weboob = weboob
-        
+        self.backend = None
+
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.loadPage)
         self.connect(self.ui.loadButton, SIGNAL("clicked()"), self.loadPage)
         self.connect(self.ui.tabWidget, SIGNAL("currentChanged(int)"),
@@ -39,24 +40,25 @@ self._currentTabChanged)
 
     def _currentTabChanged(self):
         if self.ui.tabWidget.currentIndex() == 1:
-            self.showPreview()
+            if self.backend is not None:
+                self.showPreview()
         return
-       
+
     def loadPage(self):
-        id = unicode(self.ui.idEdit.text())
-        if not id:
+        _id = unicode(self.ui.idEdit.text())
+        if not _id:
             return
 
         for backend in self.weboob.iter_backends():
-            self.content = backend.get_content(id)
+            self.content = backend.get_content(_id)
             if self.content:
                 self.ui.contentEdit.setPlainText(self.content.content)
                 self.backend = backend
                 return
-                
-                    
+
+
     def savePage(self):
-        if not hasattr(self, "backend"):
+        if self.backend is None:
             return
         new_content = unicode(self.ui.contentEdit.toPlainText())
         if new_content != self.content.content:
@@ -75,5 +77,5 @@ self._currentTabChanged)
         print backtrace
 
     def showPreview(self):
-        self.ui.previewEdit.setHtml(self.backend.preview_content(self.content))
+        self.ui.previewEdit.setHtml(self.backend.get_content_preview(self.content))
         return

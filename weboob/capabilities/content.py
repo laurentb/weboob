@@ -36,5 +36,5 @@ class ICapContent(IBaseCap):
     def push_content(self, content, message=None):
         raise NotImplementedError()
     
-    def preview_content(self, content):
+    def get_content_preview(self, content):
         raise NotImplementedError()

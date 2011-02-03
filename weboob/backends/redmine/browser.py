@@ -18,6 +18,7 @@
 
 from urlparse import urlsplit
 import urllib
+import lxml.html
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
@@ -77,12 +78,18 @@ class RedmineBrowser(BaseBrowser):
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
-        if not self.is_on_page(WikiEditPage) or self.page.groups[0] != project \
-                or self.page.groups[1] != page:
+        if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project 
+            or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
                                                            project, page))
         url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, page)
         params = {}
         params['content[text]'] = data.encode('utf-8')
         params['authenticity_token'] = "%s" % self.page.get_authenticity_token()
-        return self.readurl(url, urllib.urlencode(params))
+        preview_html = lxml.html.fragment_fromstring(self.readurl(url,
+                                                    urllib.urlencode(params)),
+                                                    create_parent='div')
+        preview_html.find("fieldset").drop_tag()
+        preview_html.find("legend").drop_tree()
+        return lxml.html.tostring(preview_html)
+        
