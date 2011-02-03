@@ -21,7 +21,6 @@ from weboob.tools.browser import BaseBrowser
 __all__ = ['Newspaper20minutesBrowser']
 
 
-# Browser
 class Newspaper20minutesBrowser(BaseBrowser):
     PAGES = {
              'http://www.20minutes.fr/article/?.*': ArticlePage
