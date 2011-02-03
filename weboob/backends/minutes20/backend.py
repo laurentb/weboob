@@ -23,6 +23,7 @@ from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 
 from .browser import Newspaper20minutesBrowser
+from weboob.tools.newsfeed import Newsfeed
 
 
 __all__ = ['Newspaper20minutesBackend']
@@ -63,3 +64,10 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
 
     def set_message_read(self, message):
         raise NotImplementedError()
+    
+    def iter_threads(self):
+        for article in Newsfeed('http://www.20minutes.fr/rss/une.xml').iter_entries():
+            thread = Thread(article.id)
+            thread.title =  article.title
+            thread.date = article.datetime
+            yield(thread)
