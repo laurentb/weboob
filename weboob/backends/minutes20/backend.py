@@ -71,3 +71,10 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
             thread.title =  article.title
             thread.date = article.datetime
             yield(thread)
+
+    def iter_unread_messages(self, thread=None):
+        for thread in self.iter_threads():
+            self.fill_thread(thread, 'root')
+            for m in thread.iter_all_messages():
+                if m.flags & m.IS_UNREAD:
+                    yield m
