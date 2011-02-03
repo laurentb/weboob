@@ -52,10 +52,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         if not thread:
             thread = Thread(id)
 
-        if not thread.id in self.storage.get('seen', default={}):
-            flags |= Message.IS_UNREAD
-
-
         thread.title = content.title
         if not thread.date:
             thread.date = content.date
