@@ -27,27 +27,18 @@ class Article(object):
 
 class ArticlePage(BasePage):
     def on_loaded(self):
-        self.article = None
-        self.set_article()
-
-    def set_article(self):
         self.article = Article()
-        self.article.title = self.get_title()
-        self.article.body = self.get_article()
-
-    def get_title(self):
-        return select(self.document.getroot(), "h1", 1).text_content()
-
-    def get_article(self):
         main_div = self.document.getroot()
-        article_body = select(main_div, "div.mn-line>div.mna-body", 1) 
-        txt_article = article_body.text_content()
-        try:
-            txt_to_remove = select(article_body, "div.mna-tools", 1).text_content()
-        except SelectElementException:
-            txt_to_remove = ''
-        txt_to_remove2 = select(main_div, "div.mn-line>div.mna-body>div.mna-comment-call", 1).text_content()
-        return txt_article.replace(txt_to_remove, '', 1).replace( txt_to_remove2, '', 1)
+        self.article.title = select(main_div, "h1", 1).text_content()
+        element_body = select(main_div, "div.mn-line>div.mna-body", 1) 
+        element_tools = select(element_body, "div.mna-tools", 1)
+        element_comment  = select(element_body, "div.mna-comment-call", 1)
+        element_author = select(element_body, "#mna-signature", 1)
+        element_body.remove(element_tools)
+        element_body.remove(element_comment)
+        element_body.remove(element_author)
+        self.article.author = element_author.text_content().strip()
+        self.article.body = self.browser.parser.tostring(element_body)
 
     def get_content(self):
         return self.article
