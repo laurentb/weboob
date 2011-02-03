@@ -40,5 +40,3 @@ class ArticlePage(BasePage):
         self.article.author = element_author.text_content().strip()
         self.article.body = self.browser.parser.tostring(element_body)
 
-    def get_content(self):
-        return self.article

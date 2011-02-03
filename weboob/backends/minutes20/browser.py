@@ -34,4 +34,4 @@ class Newspaper20minutesBrowser(BaseBrowser):
 
     def get_content(self, url):
         self.location(url)
-        return self.page.get_content()
+        return self.page.article
