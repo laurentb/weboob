@@ -62,8 +62,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body)
         return thread
 
-    def set_message_read(self, message):
-        raise NotImplementedError()
     
     def iter_threads(self):
         for article in Newsfeed('http://www.20minutes.fr/rss/une.xml').iter_entries():
