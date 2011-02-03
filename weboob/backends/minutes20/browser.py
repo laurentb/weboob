@@ -15,13 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
-from urlparse import urlsplit
-
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-
-from .pages.index import IndexPage
 from .pages.article import ArticlePage
+from weboob.tools.browser import BaseBrowser
 
 __all__ = ['Newspaper20minutesBrowser']
 
