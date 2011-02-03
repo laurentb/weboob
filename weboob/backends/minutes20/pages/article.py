@@ -22,7 +22,7 @@ class Article(object):
     def __init__(self):
         self.title = u''
         self.body = u''
-        self.author =None 
+        self.author = None 
         self.date = None
 
 class ArticlePage(BasePage):
@@ -32,7 +32,7 @@ class ArticlePage(BasePage):
         self.article.title = select(main_div, "h1", 1).text_content()
         element_body = select(main_div, "div.mn-line>div.mna-body", 1) 
         element_tools = select(element_body, "div.mna-tools", 1)
-        element_comment  = select(element_body, "div.mna-comment-call", 1)
+        element_comment = select(element_body, "div.mna-comment-call", 1)
         element_author = select(element_body, "#mna-signature", 1)
         element_body.remove(element_tools)
         element_body.remove(element_comment)
