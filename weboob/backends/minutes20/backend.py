@@ -78,3 +78,8 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
             for m in thread.iter_all_messages():
                 if m.flags & m.IS_UNREAD:
                     yield m
+
+
+    def set_message_read(self, message):
+        self.storage.set('seen', message.thread.id, 'comments', self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
+        self.storage.save()
