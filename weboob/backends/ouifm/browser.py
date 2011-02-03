@@ -26,11 +26,15 @@ __all__ = ['OuiFMBrowser']
 
 class OuiFMBrowser(BaseBrowser):
     DOMAIN = u'www.ouifm.fr'
-    PAGES = {r'.*ouifm.fr/scripts_player/decode_json.php': PlayerPage,
+    PAGES = {r'.*ouifm.fr/player/decode_json.*.php': PlayerPage,
             }
 
     def get_current(self, radio):
-        self.location('/scripts_player/decode_json.php')
+        if radio == 'general':
+            _radio = ''
+        else:
+            _radio = '_%s' % radio
+        self.location('/player/decode_json%s.php' % _radio)
         assert self.is_on_page(PlayerPage)
 
-        return self.page.get_current(radio)
+        return self.page.get_current()
