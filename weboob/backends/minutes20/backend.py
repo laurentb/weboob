@@ -39,27 +39,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     #                    Value('password',   label='Password', masked=True))
     BROWSER = Newspaper20minutesBrowser
 
-    """def get_content(self, url):
-        if isinstance(url, basestring):
-            content = Content(url)
-        else:
-            content = url
-            url = content._id
-        with self.browser:
-            data = self.browser.get_content(url)
-            print "blabla"
-        
-        content.content = data[1]
-        content.title = data[0]
-        return content
-
-    def log_content(self, id):
-        raise NotImplementedError()
-
-    def push_content(self, content, message = None):
-        raise NotImplementedError()
-    """
-
     def get_thread(self, id):
         if isinstance(id, Thread):
             thread = id
@@ -87,3 +66,5 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body)
         return thread
 
+    def set_message_read(self, message):
+        raise NotImplementedError()
