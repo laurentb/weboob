@@ -25,6 +25,6 @@ __all__ = ['PlayerPage']
 
 class PlayerPage(BasePage):
     def get_current(self):
-        title = select(self.document.getroot(), 'div#liste_titres span.titre', 1).text.strip()
-        artist = select(self.document.getroot(), 'div#liste_titres span.artiste', 1).text.strip()
+        title = select(self.document.getroot(), 'span.titre_en_cours', 1).text.strip()
+        artist = select(self.document.getroot(), 'span.artiste_en_cours', 1).text.strip()
         return unicode(artist), unicode(title)
