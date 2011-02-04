@@ -53,13 +53,14 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         if not thread:
             thread = Thread(id)
 
+        flags = Message.IS_HTML
         thread.title = content.title
         if not thread.date:
             thread.date = content.date
 
         #thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, signature=None, children = [], flags=flags)
 
-        thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body)
+        thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, flags=flags)
         return thread
 
     
