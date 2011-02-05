@@ -15,17 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
 from weboob.tools.parsers.lxmlparser import select
 from .minutes20 import Minutes20Page
 
-
-class ArticlePage(Minutes20Page):
+class LeDirectPage(Minutes20Page):
     def set_body(self):
-        self.element_body = select(self.main_div, "div.mna-body", 1) 
-        self.element_body.remove(select(self.element_body, "div.mna-tools", 1))
-        self.element_body.remove(select(self.element_body, "div.mna-comment-call", 1))
-        self.element_body.remove(self.get_element_author())
-        self.article.body = self.browser.parser.tostring(self.element_body) 
-
-    
+        self.article.body = self.browser.parser.tostring(select(self.main_div, "div.mna-body", 1))

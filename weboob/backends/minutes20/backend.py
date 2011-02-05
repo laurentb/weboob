@@ -58,12 +58,19 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         if not thread.date:
             thread.date = content.date
 
-        #thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, signature=None, children = [], flags=flags)
-
-        thread.root = Message(thread=thread, id=0, title=content.title, sender=content.author, receivers=None, date=thread.date, parent=None, content=content.body, flags=flags, children= [])
+        thread.root = Message(
+            thread=thread,
+            id=0,
+            title=content.title,
+            sender=content.author,
+            receivers=None,
+            date=thread.date,
+            parent=None,
+            content=content.body,
+            flags=flags,
+            children= [])
         return thread
 
-    
     def iter_threads(self):
         for article in Newsfeed('http://www.20minutes.fr/rss/une.xml').iter_entries():
             thread = Thread(article.id)
@@ -71,14 +78,25 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
             thread.date = article.datetime
             yield(thread)
 
+    def fill_thread(self, thread):
+        return self.get_thread(thread)
+
     def iter_unread_messages(self, thread=None):
         for thread in self.iter_threads():
-            self.fill_thread(thread, 'root')
-            for m in thread.iter_all_messages():
-                if m.flags & m.IS_UNREAD:
-                    yield m
+            self.fill_thread(thread)
+            for msg in thread.iter_all_messages():
+                if msg.flags & msg.IS_UNREAD:
+                    yield msg
 
 
     def set_message_read(self, message):
-        self.storage.set('seen', message.thread.id, 'comments', self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
+        self.storage.set(
+            'seen',
+            message.thread.id,
+            'comments',
+            self.storage.get(
+                'seen',
+                message.thread.id,
+                'comments',
+                default=[]) + [message.id])
         self.storage.save()

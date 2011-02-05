@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .pages.article import ArticlePage
+from .pages.ledirect import LeDirectPage
 from weboob.tools.browser import BaseBrowser
 
 __all__ = ['Newspaper20minutesBrowser']
@@ -23,8 +24,13 @@ __all__ = ['Newspaper20minutesBrowser']
 
 class Newspaper20minutesBrowser(BaseBrowser):
     PAGES = {
-             'http://www.20minutes.fr/article/?.*': ArticlePage
+             'http://www.20minutes.fr/article/?.*': ArticlePage,
+             'http://www.20minutes.fr/ledirect/?.*': LeDirectPage
             }
+
+
+    def is_logged(self):
+        return False
 
     def get_content(self, url):
         self.location(url)
