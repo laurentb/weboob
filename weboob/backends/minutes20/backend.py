@@ -53,7 +53,10 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         if not thread:
             thread = Thread(id)
 
+
         flags = Message.IS_HTML
+        if not thread.id in self.storage.get('seen', default={}):
+            flags |= Message.IS_UNREAD
         thread.title = content.title
         if not thread.date:
             thread.date = content.date
@@ -72,7 +75,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed('http://www.20minutes.fr/rss/une.xml').iter_entries():
+        for article in Newsfeed('http://www.20minutes.fr/rss/20minutes.xml').iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime
