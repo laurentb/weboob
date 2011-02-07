@@ -19,9 +19,9 @@ Julien Veyssier <julien.veyssier@aiur.fr>
 Roger Philibert <roger.philibert@gmail.com>
         * Youjizz backend maintainer.
 
-Juke <juke@free.fr>
+Julien Hebert <juke@free.fr>
         * Developer of masstransit;
-        * Transilien backend maintainer.
+        * Minutes20 and Transilien backends maintainer.
 
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
@@ -49,6 +49,9 @@ Pierre Mazière <pierre.maziere@gmail.com>
 
 Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.
+
+Johann Broudin <johann.broudin@6-8.fr>
+        * Minor documentation fixes.
 
 Want to be a celebrity? Learn how to contribute to Weboob!
 http://weboob.org/How_to_contribute
