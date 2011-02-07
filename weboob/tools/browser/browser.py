@@ -427,9 +427,9 @@ class BaseBrowser(mechanize.Browser):
         a dict in **kwargs (but the order is lost).
 
         Example:
-        >>> buildurl('/blah.php', ('a', '&'), ('c', '=')
+        >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
         '/blah.php?a=%26&b=%3D'
-        >>> buildurl('/blah.php', a='&', 'c'='=')
+        >>> buildurl('/blah.php', a='&', 'b'='=')
         '/blah.php?b=%3D&a=%26'
 
         """
