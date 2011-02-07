@@ -32,6 +32,7 @@ class Minutes20Page(BasePage):
     main_div = NotImplementedError
     element_body = NotImplementedError
     article = Article()
+    
     def set_author(self):
         self.article.author = self.get_element_author().text_content().strip()
 
