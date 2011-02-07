@@ -39,7 +39,7 @@ class Minutes20Page(BasePage):
         return select(self.main_div, "div.mna-signature", 1) 
 
     def set_body(self):
-        raise NotImplementedError
+        self.article.body = self.browser.parser.tostring(select(self.main_div, "div.mna-body", 1))
 
 
     def on_loaded(self):

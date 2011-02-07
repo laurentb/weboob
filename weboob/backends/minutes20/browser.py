@@ -17,6 +17,8 @@
 
 from .pages.article import ArticlePage
 from .pages.ledirect import LeDirectPage
+from .pages.preums import PreumsPage
+from .pages.minutes20 import Minutes20Page
 from weboob.tools.browser import BaseBrowser
 
 __all__ = ['Newspaper20minutesBrowser']
@@ -25,7 +27,8 @@ __all__ = ['Newspaper20minutesBrowser']
 class Newspaper20minutesBrowser(BaseBrowser):
     PAGES = {
              'http://www.20minutes.fr/article/?.*': ArticlePage,
-             'http://www.20minutes.fr/ledirect/?.*': LeDirectPage
+             'http://www.20minutes.fr/ledirect/?.*': Minutes20Page,
+             'http://www.20minutes.fr/preums/?.*': Minutes20Page
             }
 
 
