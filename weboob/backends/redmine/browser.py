@@ -55,7 +55,7 @@ class RedmineBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1
+        return self.is_on_page(LoginPage) or self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -78,7 +78,7 @@ class RedmineBrowser(BaseBrowser):
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
-        if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project 
+        if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project
             or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
                                                            project, page))
@@ -92,4 +92,4 @@ class RedmineBrowser(BaseBrowser):
         preview_html.find("fieldset").drop_tag()
         preview_html.find("legend").drop_tree()
         return lxml.html.tostring(preview_html)
-        
+
