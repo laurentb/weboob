@@ -33,7 +33,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     NAME = 'minutes20'
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.1'
+    VERSION = '0.6'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'20minutes French news  website'
     #CONFIG = ValuesDict(Value('login',      label='Account ID'),
