@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from __future__ import with_statement
+
 import urllib2
 from xml.dom import minidom
 
@@ -58,30 +60,29 @@ class YahooBackend(BaseBackend, ICapWeather):
         with self.browser:
             content = self.browser.readurl((self.SEARCH_URL % pattern).replace(' ','+'))
 
-            page=''
-            for line in content.split('\n'):
-                if "<title>" in line and "Prévisions et Temps" in line:
-                    page="direct"
-                elif "<title>" in line and "Résultats de la recherche" in line:
-                    page="resultats"
-                    
-                if page == "resultats":
-                    if '/redirwoei/' in line:
-                        cities = line.split('/redirwoei/')
-                        for c in cities:
-                            if "strong" in c:
-                                cid = c.split("'")[0]
-                                cname = c.split("'")[1].replace("><strong>","").replace("</strong>","").split("</a>")[0]
-                                yield City(cid, cname.decode('utf-8'))
-                elif page == "direct":
-                    if 'div id="yw-breadcrumb"' in line:
-                        l = line.split('</a>')
-                        region = l[2].split('>')[-1]
-                        country = l[1].split('>')[-1]
-                        city = l[3].split('</li>')[1].replace('<li>','')
-                        cid = line.split("/?unit")[0].split('-')[-1]
-                        yield City(cid, (city+", "+region+", "+country).decode('utf-8'))
+        page=''
+        for line in content.split('\n'):
+            if "<title>" in line and "Prévisions et Temps" in line:
+                page="direct"
+            elif "<title>" in line and "Résultats de la recherche" in line:
+                page="resultats"
 
+            if page == "resultats":
+                if '/redirwoei/' in line:
+                    cities = line.split('/redirwoei/')
+                    for c in cities:
+                        if "strong" in c:
+                            cid = c.split("'")[0]
+                            cname = c.split("'")[1].replace("><strong>","").replace("</strong>","").split("</a>")[0]
+                            yield City(cid, cname.decode('utf-8'))
+            elif page == "direct":
+                if 'div id="yw-breadcrumb"' in line:
+                    l = line.split('</a>')
+                    region = l[2].split('>')[-1]
+                    country = l[1].split('>')[-1]
+                    city = l[3].split('</li>')[1].replace('<li>','')
+                    cid = line.split("/?unit")[0].split('-')[-1]
+                    yield City(cid, (city+", "+region+", "+country).decode('utf-8'))
 
     def _get_weather_dom(self, city_id):
         handler = urllib2.urlopen(self.WEATHER_URL % (city_id, 'c'))
