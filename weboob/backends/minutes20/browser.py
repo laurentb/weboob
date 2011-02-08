@@ -17,7 +17,6 @@
 
 from .pages.article import ArticlePage
 from .pages.ledirect import LeDirectPage
-from .pages.preums import PreumsPage
 from .pages.minutes20 import Minutes20Page
 from weboob.tools.browser import BaseBrowser
 
