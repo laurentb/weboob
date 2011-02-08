@@ -16,10 +16,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select 
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
 
-__all__ = ['Minutes20Page', 'Article']
+__all__ = ['Minutes20Page', 'Article', 'NoAuthorElement']
 
+class NoAuthorElement(Exception):
+    pass
 
 class Article(object):
     def __init__(self):
@@ -37,7 +39,10 @@ class Minutes20Page(BasePage):
         self.article.author = self.get_element_author().text_content().strip()
 
     def get_element_author(self):
-        return select(self.main_div, "div.mna-signature", 1) 
+        try :
+            return select(self.main_div, "div.mna-signature", 1) 
+        except SelectElementException:
+            raise NoAuthorElement()
 
     def set_body(self):
         self.article.body = self.browser.parser.tostring(select(self.main_div, "div.mna-body", 1))
@@ -47,7 +52,10 @@ class Minutes20Page(BasePage):
         self.article = Article()
         self.main_div = self.document.getroot()
         self.article.title = select(self.main_div, "h1", 1).text_content()
-        self.set_author()
+        try :
+            self.set_author()
+        except NoAuthorElement:
+            pass
         self.set_body()
 
     
