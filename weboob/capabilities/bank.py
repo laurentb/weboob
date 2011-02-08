@@ -21,7 +21,8 @@ from datetime import datetime, date
 from .base import IBaseCap, CapBaseObject
 
 
-__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 'Operation']
+__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 
+    'Operation']
 
 
 class AccountNotFound(Exception):
@@ -48,20 +49,21 @@ class Account(CapBaseObject):
 class Operation(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.add_field('date', (basestring,datetime,date))
+        self.add_field('date', (basestring, datetime, date))
         self.add_field('label', unicode)
         self.add_field('amount', float)
 
     def __repr__(self):
-        return "<Operation date='%s' label='%s' amount=%s>" % (self.date, self.label, self.amount)
+        return "<Operation date='%s' label='%s' amount=%s>" % (self.date, 
+            self.label, self.amount)
 
 class Transfer(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('amount', float)
-        self.add_field('date', (basestring,datetime,date))
-        self.add_field('origin', (int,long,basestring))
-        self.add_field('recipient', (int,long,basestring))
+        self.add_field('date', (basestring, datetime, date))
+        self.add_field('origin', (int, long, basestring))
+        self.add_field('recipient', (int, long, basestring))
 
 class ICapBank(IBaseCap):
     def iter_accounts(self):
