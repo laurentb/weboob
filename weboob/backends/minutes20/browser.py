@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .pages.article import ArticlePage
-from .pages.ledirect import LeDirectPage
 from .pages.minutes20 import Minutes20Page
 from weboob.tools.browser import BaseBrowser
 
