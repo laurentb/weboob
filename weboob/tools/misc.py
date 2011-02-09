@@ -23,7 +23,8 @@ import traceback
 import types
 
 
-__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields', 'local2utc', 'to_unicode', 'utc2local']
+__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields', 
+            'local2utc', 'to_unicode', 'utc2local']
 
 
 def get_backtrace(empty="Empty backtrace."):
@@ -61,8 +62,8 @@ try:
     html2text = h2t.html2text
 except ImportError:
     warning('python-html2text is not present. HTML pages will not be converted into text.')
-    def html2text(s):
-        return s
+    def html2text(html):
+        return html
 
 
 def iter_fields(obj):
@@ -74,10 +75,10 @@ def iter_fields(obj):
             yield attribute_name, attribute
 
 
-def local2utc(d):
-    d = d.replace(tzinfo=tz.tzlocal())
-    d = d.astimezone(tz.tzutc())
-    return d
+def local2utc(date):
+    date = date.replace(tzinfo=tz.tzlocal())
+    date = date.astimezone(tz.tzutc())
+    return date
 
 
 def to_unicode(text):
@@ -102,7 +103,7 @@ def to_unicode(text):
             return unicode(text, 'windows-1252')
 
 
-def utc2local(d):
-    d = d.replace(tzinfo=tz.tzutc())
-    d = d.astimezone(tz.tzlocal())
-    return d
+def utc2local(date):
+    date = date.replace(tzinfo=tz.tzutc())
+    date = date.astimezone(tz.tzlocal())
+    return date
