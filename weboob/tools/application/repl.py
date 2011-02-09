@@ -1080,7 +1080,7 @@ class ReplApplication(Cmd, BaseApplication):
         except FieldNotFound, e:
             print e
         except MandatoryFieldsNotFound, e:
-            print '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
+            print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
 
     def flush(self):
         self.formatter.flush()
