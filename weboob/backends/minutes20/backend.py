@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
+"backend for http://20minutes.fr"
 
 # python2.5 compatibility
 from __future__ import with_statement
@@ -24,9 +24,11 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import Newspaper20minutesBrowser
 from weboob.tools.newsfeed import Newsfeed
-
+from .tools import url2id
 
 __all__ = ['Newspaper20minutesBackend']
+
+
 
 
 class Newspaper20minutesBackend(BaseBackend, ICapMessages):
@@ -40,18 +42,18 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     #                    Value('password',   label='Password', masked=True))
     BROWSER = Newspaper20minutesBrowser
 
-    def get_thread(self, id):
-        if isinstance(id, Thread):
-            thread = id
-            id = thread.id
+    def get_thread(self, _id):
+        if isinstance(_id, Thread):
+            thread = _id
+            _id = thread.id
         else:
             thread = None
 
         with self.browser:
-            content = self.browser.get_content(id)
+            content = self.browser.get_content(_id)
 
         if not thread:
-            thread = Thread(id)
+            thread = Thread(_id)
 
 
         flags = Message.IS_HTML
@@ -75,7 +77,8 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed('http://www.20minutes.fr/rss/20minutes.xml').iter_entries():
+        for article in Newsfeed('http://www.20minutes.fr/rss/20minutes.xml', 
+            url2id).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime

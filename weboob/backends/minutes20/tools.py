@@ -15,23 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from .pages.article import ArticlePage
-from .pages.minutes20 import Minutes20Page
-from weboob.tools.browser import BaseBrowser
-from .tools import id2url
-__all__ = ['Newspaper20minutesBrowser']
 
-class Newspaper20minutesBrowser(BaseBrowser):
-    PAGES = {
-             'http://www.20minutes.fr/article/?.*': ArticlePage,
-             'http://www.20minutes.fr/ledirect/?.*': Minutes20Page,
-             'http://www.20minutes.fr/preums/?.*': Minutes20Page
-            }
-
-
-    def is_logged(self):
-        return False
-
-    def get_content(self, _id):
-        self.location(id2url(_id))
-        return self.page.article
+import re
+def id2url(_id):
+    regexp2 = re.compile("(\w+).(\w+).(.*$)")
+    match = regexp2.match(_id)
+    return 'http://www.20minutes.fr/%s/%s/%s' % (   match.group(1), 
+                                                    match.group(2), 
+                                                    match.group(3))
+def url2id(url):
+    regexp = re.compile("http://www.20minutes.fr/(\w+)/([0-9]+)/(.*$)")
+    match = regexp.match(url)
+    return '%s.%d.%s' % (match.group(1), int(match.group(2)), match.group(3))
