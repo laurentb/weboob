@@ -40,6 +40,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     DESCRIPTION = u'20minutes French news  website'
     #CONFIG = ValuesDict(Value('login',      label='Account ID'),
     #                    Value('password',   label='Password', masked=True))
+    STORAGE = {'seen': {}}
     BROWSER = Newspaper20minutesBrowser
 
     def get_thread(self, _id):
