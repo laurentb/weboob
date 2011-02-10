@@ -255,6 +255,14 @@ class Boobmsg(ReplApplication):
                 self.threads.append(thread)
             self.format(thread)
         self.flush()
+    
+    def do_export_thread(self, arg):
+        id, backend_name = self.parse_id(arg)
+        cmd = self.do('get_thread', id, backends=backend_name)
+        for backend, thread in cmd:
+            for m in thread.iter_all_messages():
+                self.format(m)
+
 
     def do_show(self, arg):
         """

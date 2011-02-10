@@ -33,5 +33,17 @@ class Newspaper20minutesBrowser(BaseBrowser):
         return False
 
     def get_content(self, _id):
-        self.location(id2url(_id))
+        try :
+            url = id2url(_id)
+        except ValueError:
+            url = _id
+        try:
+            self.location(url)
+        except IndexError:
+            if _id == '':
+                raise ValueError("thread id is empty")
+            else:
+                raise
+        except AttributeError:
+            raise ValueError("cant go on url")
         return self.page.article
