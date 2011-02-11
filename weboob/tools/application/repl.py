@@ -1071,7 +1071,11 @@ class ReplApplication(Cmd, BaseApplication):
     def set_formatter_header(self, string):
         self.formatter.set_header(string)
 
-    def format(self, result):
+    def format(self, result, output=sys.stdout):
+        if output != sys.stdout:
+            saveout = sys.stdout
+            fsock = open(output, 'w')
+            sys.stdout = fsock
         fields = self.selected_fields
         if fields in ('$direct', '$full'):
             fields = None
@@ -1081,6 +1085,9 @@ class ReplApplication(Cmd, BaseApplication):
             print e
         except MandatoryFieldsNotFound, e:
             print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
+        if output != sys.stdout:
+            sys.stdout = saveout
+            fsock.close()
 
     def flush(self):
         self.formatter.flush()
