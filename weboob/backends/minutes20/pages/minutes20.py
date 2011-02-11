@@ -29,7 +29,7 @@ class Article(object):
         self.title = u''
         self.body = u''
         self.url = u''
-        self.author = None 
+        self.author = u'' 
         self.date = None
 
 class Minutes20Page(BasePage):
