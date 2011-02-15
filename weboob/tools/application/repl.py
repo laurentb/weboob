@@ -51,6 +51,9 @@ class BackendNotGiven(Exception):
 class NotEnoughArguments(Exception):
     pass
 
+class OutputIsNone(Exception):
+    pass
+
 
 class ReplOptionParser(OptionParser):
     def format_option_help(self, formatter=None):
@@ -1072,10 +1075,17 @@ class ReplApplication(Cmd, BaseApplication):
         self.formatter.set_header(string)
 
     def format(self, result, output=sys.stdout):
-        if output != sys.stdout:
-            saveout = sys.stdout
+        saveout = sys.stdout
+        try :
             fsock = open(output, 'w')
-            sys.stdout = fsock
+        except TypeError:
+            if output == None:
+                raise OutputIsNone("output is None")
+            elif output == sys.stdout:
+                fsock = sys.stdout
+            else:
+                raise
+        sys.stdout = fsock
         fields = self.selected_fields
         if fields in ('$direct', '$full'):
             fields = None
@@ -1085,8 +1095,8 @@ class ReplApplication(Cmd, BaseApplication):
             print e
         except MandatoryFieldsNotFound, e:
             print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
-        if output != sys.stdout:
-            sys.stdout = saveout
+        sys.stdout = saveout
+        if fsock != sys.stdout:
             fsock.close()
 
     def flush(self):

@@ -34,11 +34,16 @@ class MessageFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['title'])
-        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['date'])
-        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, item['sender'])
+        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD, 
+                                       ReplApplication.NC, item['title'])
+        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD, 
+                                       ReplApplication.NC, item['date'])
+        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD, 
+                                       ReplApplication.NC, item['sender'])
         if item['receivers']:
-            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, ReplApplication.NC, ', '.join(item['receivers']))
+            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, 
+                                         ReplApplication.NC, 
+                                         ', '.join(item['receivers']))
 
         if item['flags'] & Message.IS_HTML:
             content = html2text(item['content'])
@@ -71,9 +76,14 @@ class MessagesListFormatter(IFormatter):
             unread = '   '
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD, self.count, unread, item['title'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD, 
+                                                 self.count, unread, 
+                                                 item['title'], backend, 
+                                                 ReplApplication.NC)
         else:
-            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'], unread, item['title'], ReplApplication.NC)
+            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'], 
+                                            unread, item['title'], 
+                                            ReplApplication.NC)
         if item['date']:
             result += u'\n             %s' % item['date']
         return result
@@ -107,12 +117,23 @@ class MessagesListFormatter(IFormatter):
         flags += ']'
 
         if self.interactive:
-            result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ', ReplApplication.BOLD, self.count,
-                                                       ReplApplication.NC, flags, message.sender, message.title,
-                                                       backend)
+            result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ', 
+                                                          ReplApplication.BOLD, 
+                                                          self.count,
+                                                          ReplApplication.NC, 
+                                                          flags, 
+                                                          message.sender, 
+                                                          message.title,
+                                                          backend)
         else:
-            result = u'%s%s* (%s@%s)%s %s <%s> %s\n' % (depth * '  ', ReplApplication.BOLD, message.id, backend,
-                                                       flags, ReplApplication.NC, message.sender, message.title)
+            result = u'%s%s* (%s@%s)%s %s <%s> %s\n' % (depth * '  ', 
+                                                        ReplApplication.BOLD, 
+                                                        message.id, 
+                                                        backend,
+                                                        flags, 
+                                                        ReplApplication.NC, 
+                                                        message.sender, 
+                                                        message.title)
         if message.children:
             if depth >= 0:
                 depth += 1
@@ -125,7 +146,8 @@ class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.6'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
-    DESCRIPTION = "Boobmsg is a console application to send messages on supported websites and " \
+    DESCRIPTION = "Boobmsg is a console application to send messages on " \
+                  "supported websites and " \
                   "to display messages threads and contents."
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
@@ -137,7 +159,11 @@ class Boobmsg(ReplApplication):
 
 
     def add_application_options(self, group):
-        group.add_option('-e', '--skip-empty', action='store_true', help='Don\'t send messages with an empty body.')
+        group.add_option('-e', '--skip-empty',  action='store_true', 
+                         help='Don\'t send messages with an empty body.')
+        group.add_option('--to_file', action='store', 
+                         help='File to export result', type="string", 
+                         dest="filename")
 
     def load_default_backends(self):
         self.load_backends(ICapMessages, storage=self.create_storage())
@@ -154,7 +180,9 @@ class Boobmsg(ReplApplication):
             backend_name = None
 
         results = {}
-        for backend, field in self.do('get_account_status', backends=backend_name, caps=ICapAccount):
+        for backend, field in self.do('get_account_status', 
+                                      backends=backend_name, 
+                                      caps=ICapAccount):
             if backend.name in results:
                 results[backend.name].append(field)
             else:
@@ -182,7 +210,8 @@ class Boobmsg(ReplApplication):
         receivers, text = self.parse_command_args(line, 2, 1)
         if text is None:
             if self.interactive:
-                print 'Reading message content from stdin... Type ctrl-D from an empty line to post message.'
+                print 'Reading message content from stdin... Type ctrl-D ' \
+                      'from an empty line to post message.'
             text = sys.stdin.read()
             if sys.stdin.encoding:
                 text = text.decode(sys.stdin.encoding)
@@ -191,7 +220,8 @@ class Boobmsg(ReplApplication):
             return
 
         for receiver in receivers.strip().split(','):
-            receiver, backend_name = self.parse_id(receiver.strip(), unique_backend=True)
+            receiver, backend_name = self.parse_id(receiver.strip(), 
+                                                   unique_backend=True)
             if not backend_name and len(self.enabled_backends) > 1:
                 self.logger.warning(u'No backend specified for receiver "%s": message will be sent with all the '
                     'enabled backends (%s)' % (receiver,
@@ -231,7 +261,7 @@ class Boobmsg(ReplApplication):
         if len(arg) > 0:
             try:
                 thread = self.threads[int(arg) - 1]
-            except (IndexError,ValueError):
+            except (IndexError, ValueError):
                 id, backend_name = self.parse_id(arg)
             else:
                 id = thread.id
@@ -259,9 +289,13 @@ class Boobmsg(ReplApplication):
     def do_export_thread(self, arg):
         id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', id, backends=backend_name)
+        if self.options.filename:
+            output = self.options.filename
+        else:
+            output = sys.stdout
         for backend, thread in cmd:
             for m in thread.iter_all_messages():
-                self.format(m)
+                self.format(m, output=output)
 
 
     def do_show(self, arg):
@@ -276,7 +310,7 @@ class Boobmsg(ReplApplication):
 
         try:
             message = self.messages[int(arg) - 1]
-        except (IndexError,ValueError):
+        except (IndexError, ValueError):
             id, backend_name = self.parse_id(arg)
         else:
             self.format(message)
