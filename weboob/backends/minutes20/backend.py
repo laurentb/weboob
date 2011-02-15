@@ -73,6 +73,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
             date=thread.date,
             parent=None,
             content=content.body,
+            signature='URL: %s' % content.url,
             flags=flags,
             children= [])
         return thread
