@@ -287,15 +287,20 @@ class Boobmsg(ReplApplication):
         self.flush()
     
     def do_export_thread(self, arg):
-        id, backend_name = self.parse_id(arg)
-        cmd = self.do('get_thread', id, backends=backend_name)
+        """ 
+        export_thread
+
+        Export a thread
+        """
+        _id, backend_name = self.parse_id(arg)
+        cmd = self.do('get_thread', _id, backends=backend_name)
         if self.options.filename:
             output = self.options.filename
         else:
             output = sys.stdout
         for backend, thread in cmd:
-            for m in thread.iter_all_messages():
-                self.format(m, output=output)
+            for msg in thread.iter_all_messages():
+                self.format(msg, output=output)
 
 
     def do_show(self, arg):
