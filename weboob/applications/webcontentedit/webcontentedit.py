@@ -93,7 +93,7 @@ class WebContentEdit(ReplApplication):
         print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
         message = self.ask('Enter a commit message', default='')
-
+        minor = self.ask('Is this a minor edit?', default=False)
         if not self.ask('Do you want to push?', default=True):
             return
 
@@ -103,7 +103,7 @@ class WebContentEdit(ReplApplication):
             sys.stdout.write('Pushing %s...' % content.id)
             sys.stdout.flush()
             try:
-                self.do('push_content', content, message, backends=[content.backend]).wait()
+                self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
             except CallErrors, e:
                 errors.errors += e.errors
                 sys.stdout.write(' error (content saved in %s)\n' % path)
