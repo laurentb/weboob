@@ -17,27 +17,23 @@
 
 
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from .minutes20 import Minutes20Page, NoAuthorElement
+from .inrocks import InrocksPage
 
-class ArticlePage(Minutes20Page):
+def try_remove(base_element, selector):
+    try :
+        base_element.remove(select(base_element, selector, 1 ))
+    except SelectElementException:
+        pass
+
+class ArticlePage(InrocksPage):
     def set_body(self):
-        self.element_body = select(self.main_div, "div.mna-body", 1)
-        element_tools = select(self.element_body, "div.mna-tools", 1)
-        try :
-            self.element_body.remove(element_tools)
-        except ValueError:
-            pass
-        try:
-            self.element_body.remove(
-                select(self.element_body, "div.mna-comment-call", 1))
-        except SelectElementException:
-            pass
-        except ValueError:
-            pass
-        try:
-            self.element_body.remove(self.get_element_author())
-        except NoAuthorElement:
-            pass
-        except ValueError:
-            pass
+        self.element_body = select(self.main_div, "div.maincol", 1)
+        try_remove(self.element_body, "div.sidebar")
+        details = select(self.element_body, "div.details", 1)
+        try_remove(details, "div.footer")
+        header = select(self.element_body, "div.header", 1)
+        for selector in ["h1", "div.date", "div.news-single-img", 
+                         "div.metas_img"]:
+            try_remove(header, selector)
+
         self.article.body = self.browser.parser.tostring(self.element_body)

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-"backend for http://20minutes.fr"
+"backend for http://www.lesinrocks.com"
 
 # python2.5 compatibility
 from __future__ import with_statement
@@ -76,7 +76,7 @@ class NewspaperInrocksBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed('http://www.20minutes.fr/rss/20minutes.xml', 
+        for article in Newsfeed('http://www.lesinrocks.com/fileadmin/rss/actus.xml', 
             url2id).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title

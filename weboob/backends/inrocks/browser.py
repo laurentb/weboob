@@ -22,7 +22,9 @@ __all__ = ['NewspaperInrocksBrowser']
 
 class NewspaperInrocksBrowser(BaseBrowser):
     PAGES = {
-             'http://www.20minutes.fr/article/?.*': ArticlePage,
+             'http://www.lesinrocks.com/actualite/actu-article/t/60121/date/2011-02-15/article/accuse-davoir-participe-a-une-mutinerie-un-detenu-porte-plainte/': ArticlePage,
+             '.*': ArticlePage,
+
             }
 
 
@@ -30,5 +32,6 @@ class NewspaperInrocksBrowser(BaseBrowser):
         return False
 
     def get_content(self, _id):
-        self.location(id2url(_id))
+        url = _id
+        self.location(url)
         return self.page.article
