@@ -61,11 +61,12 @@ self._currentTabChanged)
         if self.backend is None:
             return
         new_content = unicode(self.ui.contentEdit.toPlainText())
+        minor = self.ui.minorBox.isChecked()
         if new_content != self.content.content:
             self.content.content = new_content
             message = unicode(self.ui.descriptionEdit.text())
             self.process = QtDo(self.weboob, self._savePage_cb, self._savePage_eb)
-            self.process.do('push_content', self.content, message, backends=self.backend)
+            self.process.do('push_content', self.content, message, minor=minor, backends=self.backend)
 
     def _savePage_cb(self, backend, data):
         if not backend:
