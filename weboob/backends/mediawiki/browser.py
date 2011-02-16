@@ -72,7 +72,7 @@ class MediawikiBrowser(BaseBrowser):
 
         data = {'action':      'query',
                 'prop':        'info',
-                'titles':      page.encode,
+                'titles':      page,
                 'intoken':     _type,
                 }
         result = self.API_get(data)
