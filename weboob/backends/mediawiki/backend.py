@@ -50,8 +50,9 @@ class MediawikiBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def log_content(self, id):
-        raise NotImplementedError()
+    def iter_revisions(self, _id):
+        for rev in self.browser.iter_wiki_revisions(_id):
+            yield rev
     
 
     def push_content(self, content, message=None, minor=False):
@@ -59,6 +60,3 @@ class MediawikiBackend(BaseBackend, ICapContent):
 
     def get_content_preview(self, content):
         return self.browser.get_wiki_preview(content)
-
-    
-

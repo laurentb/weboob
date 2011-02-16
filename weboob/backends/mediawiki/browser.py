@@ -17,9 +17,11 @@
 
 from urlparse import urlsplit
 import urllib
-import lxml.html
+import datetime
+
 
 from weboob.tools.browser import BaseBrowser
+from weboob.capabilities.content import Revision
 
 try:
     import simplejson
@@ -67,6 +69,7 @@ class MediawikiBrowser(BaseBrowser):
         return result['query']['pages'][str(pageid)]['revisions'][0]['*']
 
     def get_token(self, page, _type):
+        ''' _type can be edit, delete, protect, move, block, unblock, email or import'''
         if not self.is_logged():
             self.login()
 
@@ -99,7 +102,6 @@ class MediawikiBrowser(BaseBrowser):
             data['minor'] = 'true'
 
         result = self.API_post(data)
-        print result
 
     def get_wiki_preview(self, content, message=None):
         data = {'action':     'parse',
@@ -135,6 +137,32 @@ class MediawikiBrowser(BaseBrowser):
         if result['login']['result'] == 'NeedToken':
             data['lgtoken'] = result['login']['token']
             result2 = self.API_post(data)
+
+    def iter_wiki_revisions(self, page):
+        '''Yield 'Revision' objects for the last 10 Revisions of the specified page.'''
+        data = {'action':       'query',
+                'titles':       page,
+                'prop':         'revisions',
+                'rvprop':       'ids|timestamp|comment|user|flags',
+                'rvlimit':      '10',
+                }
+
+        result = self.API_get(data)
+        pageid = str(result['query']['pages'].keys()[0])
+        
+        for rev in result['query']['pages'][pageid]['revisions']:
+            rev_content = Revision(str(rev['revid']))
+            rev_content.comment = rev['comment']
+            rev_content.revision = str(rev['revid'])
+            rev_content.author = rev['user']
+            rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+            if rev.has_key('minor'):
+                rev_content.minor = True
+            else:
+                rev_content.minor = False
+            yield rev_content
+                
+        
 
     def home(self):
         '''We don't need to change location, we're using the JSON API here.'''
