@@ -27,7 +27,7 @@ __all__ = ['MediawikiBackend']
 
 class MediawikiBackend(BaseBackend, ICapContent):
     NAME = 'mediawiki'
-    MAINTAINER = 'Clément Schreiner'
+    MAINTAINER = u'Clément Schreiner'
     EMAIL = '0.6'
     LICENSE = 'GPLv3'
     DESCRIPTION = 'Mediawiki wiki software application'
@@ -50,8 +50,8 @@ class MediawikiBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def iter_revisions(self, _id):
-        for rev in self.browser.iter_wiki_revisions(_id):
+    def iter_revisions(self, _id, max_results=10):
+        for rev in self.browser.iter_wiki_revisions(_id, max_results):
             yield rev
     
 

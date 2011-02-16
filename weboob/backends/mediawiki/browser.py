@@ -138,13 +138,15 @@ class MediawikiBrowser(BaseBrowser):
             data['lgtoken'] = result['login']['token']
             result2 = self.API_post(data)
 
-    def iter_wiki_revisions(self, page):
-        '''Yield 'Revision' objects for the last 10 Revisions of the specified page.'''
+    def iter_wiki_revisions(self, page, nb_entries):
+        '''Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.'''
+        if not self.is_logged():
+            self.login()
         data = {'action':       'query',
                 'titles':       page,
                 'prop':         'revisions',
                 'rvprop':       'ids|timestamp|comment|user|flags',
-                'rvlimit':      '10',
+                'rvlimit':      str(nb_entries),
                 }
 
         result = self.API_get(data)
