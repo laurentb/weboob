@@ -119,5 +119,6 @@ class WebContentEdit(ReplApplication):
             _id, backend_name = self.parse_id(id)
             backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
+        _id = _id.encode('utf-8')
         for backend, revision in self.do('iter_revisions', _id):
             self.format(revision)
