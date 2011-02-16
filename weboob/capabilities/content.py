@@ -17,6 +17,7 @@
 
 
 from .base import IBaseCap, CapBaseObject
+from datetime import datetime
 
 class Content(CapBaseObject):
     def __init__(self, id):
@@ -26,11 +27,22 @@ class Content(CapBaseObject):
         self.add_field('content', basestring)
         self.add_field('revision', basestring)
 
+class Revision(CapBaseObject):
+    def __init__(self, _id):
+        CapBaseObject.__init__(self, _id)
+        self.add_field('author', basestring)
+        self.add_field('comment', basestring)
+        self.add_field('revision', basestring)
+        self.add_field('timestamp', datetime)
+        self.add_field('minor', bool)
+        
+
+
 class ICapContent(IBaseCap):
     def get_content(self, id, revision=None):
         raise NotImplementedError()
 
-    def log_content(self, id):
+    def iter_revisions(self, id):
         raise NotImplementedError()
 
     def push_content(self, content, message=None, minor=False):
