@@ -113,3 +113,11 @@ class WebContentEdit(ReplApplication):
 
         if len(errors.errors) > 0:
             raise errors
+
+    def do_log(self, line):
+        for id in line.split():
+            _id, backend_name = self.parse_id(id)
+            backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+
+        for backend, revision in self.do('iter_revisions', _id):
+            self.format(revision)
