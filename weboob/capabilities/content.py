@@ -33,7 +33,7 @@ class ICapContent(IBaseCap):
     def log_content(self, id):
         raise NotImplementedError()
 
-    def push_content(self, content, message=None):
+    def push_content(self, content, message=None, minor=False):
         raise NotImplementedError()
     
     def get_content_preview(self, content):
