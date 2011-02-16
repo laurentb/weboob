@@ -78,5 +78,7 @@ self._currentTabChanged)
         print backtrace
 
     def showPreview(self):
-        self.ui.previewEdit.setHtml(self.backend.get_content_preview(self.content))
+        tmp_content = self.content
+        tmp_content.content=unicode(self.ui.contentEdit.toPlainText())
+        self.ui.previewEdit.setHtml(self.backend.get_content_preview(tmp_content))
         return
