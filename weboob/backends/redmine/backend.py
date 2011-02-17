@@ -64,7 +64,7 @@ class RedmineBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def push_content(self, content, message=None):
+    def push_content(self, content, message=None, minor=False):
         try:
             _type, project, page = self.id2path(content.id)
         except ValueError:
