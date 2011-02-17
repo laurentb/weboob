@@ -13,11 +13,8 @@ Christophe Benz <christophe.benz@gmail.com>
         * Bouygues, INA, SFR and Youtube backends maintainer.
 
 Julien Veyssier <julien.veyssier@aiur.fr>
-        * CreditMutuel, Geolocip, Ipinfodb, Kickass, Piratebay and Isohunt
+        * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
           backends maintainer.
-
-Roger Philibert <roger.philibert@gmail.com>
-        * Youjizz backend maintainer.
 
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
@@ -26,8 +23,14 @@ Julien Hebert <juke@free.fr>
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
 
+Clément Schreiner <clemux@clemux.info>
+        * MediaWiki and Newsfeed backends maintainer.
+
 Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
+
+Roger Philibert <roger.philibert@gmail.com>
+        * Youjizz backend maintainer.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale backend maintainer.
@@ -37,9 +40,6 @@ Cedric Defortis <cedric@aiur.fr>
 
 Laurent Bachelier <laurent@bachelier.name>
         * Various contributions.
-
-Clément Schreiner <clemux@clemux.info>
-        * Newsfeed backend maintainer.
 
 Flo <florent.fourcot@resel.fr>
         * BNPorc patches.
