@@ -44,4 +44,4 @@ class Newspaper20minutesBrowser(BaseBrowser):
                 raise ValueError("thread id is empty")
             else:
                 raise
-        return self.page.article
+        return self.page.get_article()

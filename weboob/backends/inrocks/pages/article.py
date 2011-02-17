@@ -32,10 +32,10 @@ class ArticlePage(InrocksPage):
         details = select(self.element_body, "div.details", 1)
         try_remove(details, "div.footer")
         header = select(self.element_body, "div.header", 1)
-        for selector in ["h1", "div.picture", "div.date", "div.news-single-img", 
+        for selector in ["h1", "div.picture", "div.date", "div.news-single-img",
                          "div.metas_img", "strong"]:
             try_remove(header, selector)
-        
+ 
         return self.browser.parser.tostring(self.element_body)
 
 

@@ -28,7 +28,11 @@ def try_remove(base_element, selector):
 class ArticlePage(Minutes20Page):
     "ArticlePage object for minutes20"
     def get_body(self):
-        try_remove(self.element_body, "div.mna-tools")
-        try_remove(self.element_body, "div.mna-comment-call")
-        try_remove(self.element_body, self.element_author_selector)
-        return self.browser.parser.tostring(self.element_body)
+        element_body = self.get_element_body()
+        try_remove(element_body, "div.mna-tools")
+        try_remove(element_body, "div.mna-comment-call")
+        try :
+            element_body.remove(self.get_element_author())
+        except NoAuthorElement:
+            pass
+        return self.browser.parser.tostring(element_body)
