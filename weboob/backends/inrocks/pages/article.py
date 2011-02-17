@@ -22,7 +22,7 @@ from .inrocks import InrocksPage
 def try_remove(base_element, selector):
     try :
         base_element.remove(select(base_element, selector, 1 ))
-    except SelectElementException:
+    except (SelectElementException, ValueError):
         pass
 
 class ArticlePage(InrocksPage):
@@ -32,8 +32,8 @@ class ArticlePage(InrocksPage):
         details = select(self.element_body, "div.details", 1)
         try_remove(details, "div.footer")
         header = select(self.element_body, "div.header", 1)
-        for selector in ["h1", "div.date", "div.news-single-img", 
-                         "div.metas_img"]:
+        for selector in ["h1", "div.picture", "div.date", "div.news-single-img", 
+                         "div.metas_img", "strong"]:
             try_remove(header, selector)
 
         self.article.body = self.browser.parser.tostring(self.element_body)
