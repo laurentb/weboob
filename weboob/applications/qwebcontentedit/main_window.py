@@ -38,6 +38,9 @@ class MainWindow(QtMainWindow):
 self._currentTabChanged)
         self.connect(self.ui.saveButton, SIGNAL("clicked()"), self.savePage)
 
+        for backend in self.weboob.iter_backends():
+            self.ui.backendBox.insertItem(0, backend.name)
+
     def _currentTabChanged(self):
         if self.ui.tabWidget.currentIndex() == 1:
             if self.backend is not None:
@@ -48,14 +51,22 @@ self._currentTabChanged)
         _id = unicode(self.ui.idEdit.text())
         if not _id:
             return
+        backend = str(self.ui.backendBox.currentText())
+        self.process = QtDo(self.weboob, self._loadPage_cb, self._loadPage_eb)
+        self.process.do('get_content', _id, backends=(backend,))
 
-        for backend in self.weboob.iter_backends():
-            self.content = backend.get_content(_id)
-            if self.content:
-                self.ui.contentEdit.setPlainText(self.content.content)
-                self.backend = backend
-                return
+        
 
+    def _loadPage_cb(self, backend, data):
+        if not backend or not data:
+            return
+        self.content = data
+        self.ui.contentEdit.setPlainText(self.content.content)
+        self.backend = backend
+
+    def _loadPage_eb(self, backend, error, backtrace):
+        print error
+        print backtrace
 
     def savePage(self):
         if self.backend is None:
