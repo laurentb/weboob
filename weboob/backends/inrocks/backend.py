@@ -21,25 +21,22 @@ from __future__ import with_statement
 
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
-
-from .browser import NewspaperInrocksBrowser
 from weboob.tools.newsfeed import Newsfeed
 from .tools import url2id
+from .browser import NewspaperInrocksBrowser
 
 __all__ = ['NewspaperInrocksBackend']
 
-
-
-
 class NewspaperInrocksBackend(BaseBackend, ICapMessages):
-    NAME = 'inrocks'
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.6'
     LICENSE = 'GPLv3'
-    DESCRIPTION = u'Inrock French news website'
     STORAGE = {'seen': {}}
+    NAME = 'inrocks'
+    DESCRIPTION = u'Inrock French news website'
     BROWSER = NewspaperInrocksBrowser
+    RSS_FEED = 'http://www.lesinrocks.com/fileadmin/rss/actus.xml'
 
     def get_thread(self, _id):
         if isinstance(_id, Thread):
@@ -53,7 +50,6 @@ class NewspaperInrocksBackend(BaseBackend, ICapMessages):
 
         if not thread:
             thread = Thread(_id)
-
 
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default={}):
@@ -71,13 +67,13 @@ class NewspaperInrocksBackend(BaseBackend, ICapMessages):
             date=thread.date,
             parent=None,
             content=content.body,
+            signature='URL: %s' % content.url,
             flags=flags,
             children= [])
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed('http://www.lesinrocks.com/fileadmin/rss/actus.xml', 
-            url2id).iter_entries():
+        for article in Newsfeed(self.RSS_FEED, url2id).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime

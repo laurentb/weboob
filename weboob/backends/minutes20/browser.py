@@ -16,9 +16,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .pages.article import ArticlePage
-from .pages.minutes20 import Minutes20Page
 from weboob.tools.browser import BaseBrowser
 from .tools import id2url
+from .pages.minutes20 import Minutes20Page
+
 __all__ = ['Newspaper20minutesBrowser']
 
 class Newspaper20minutesBrowser(BaseBrowser):
@@ -27,7 +28,6 @@ class Newspaper20minutesBrowser(BaseBrowser):
              'http://www.20minutes.fr/ledirect/?.*': Minutes20Page,
              'http://www.20minutes.fr/preums/?.*': Minutes20Page
             }
-
 
     def is_logged(self):
         return False
@@ -44,6 +44,4 @@ class Newspaper20minutesBrowser(BaseBrowser):
                 raise ValueError("thread id is empty")
             else:
                 raise
-        except AttributeError:
-            raise ValueError("cant go on url")
         return self.page.article

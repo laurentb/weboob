@@ -37,32 +37,35 @@ class InrocksPage(BasePage):
     element_body = NotImplementedError
     article = Article
     element_author_selector = ValueError
+    element_title_selector  = ValueError
+    element_body_selector   = ValueError
 
-    def set_author(self):
-        try:
-            self.article.author = self.get_element_author().text_content().strip()
-        except NoAuthorElement:
+    def get_body(self):
+        return self.browser.parser.tostring(self.element_body)
+
+    def get_author(self):
+        try :
+            return select(self.main_div, self.element_author_selector, 1).text_content().strip()
+        except SelectElementException:
+            #TODO: test nombre d'element en retour
             pass
 
-    def get_element_author(self):
-        try :
-            return select(self.main_div, self.element_author_selector, 1)
-        except SelectElementException:
-            raise NoAuthorElement()
-
-    def set_body(self):
-        self.article.body = self.browser.parser.tostring(select(self.main_div,
-                                                                "div.mna-body",
-                                                                1))
-
+    def get_title(self):
+       return select(self.main_div, self.element_title_selector, 1).text_content().strip()
 
     def on_loaded(self):
         self.article = Article(self.browser, url2id(self.url) )
         self.main_div = self.document.getroot()
-        self.article.title = select(self.main_div, "h1", 1).text_content()
-        self.article.url = self.url
-        self.element_author_selector = "div.name>span"
-        self.set_author()
-        self.set_body()
+
+        self.element_author_selector    = "div.name>span"
+        self.element_title_selector     = "h1"
+        self.element_body_selector      = "div.maincol"
+
+        self.element_body = select(self.main_div, self.element_body_selector, 1)
+
+        self.article.author = self.get_author()
+        self.article.title  = self.get_title()
+        self.article.url    = self.url
+        self.article.body   = self.get_body()
 
     

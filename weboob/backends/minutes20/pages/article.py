@@ -1,5 +1,6 @@
 "ArticlePage object for minutes20"
 # -*- coding: utf-8 -*-
+
 # Copyright(C) 2011  Julien Hebert
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,30 +16,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
 from .minutes20 import Minutes20Page, NoAuthorElement
 
+def try_remove(base_element, selector):
+    try :
+        base_element.remove(select(base_element, selector, 1 ))
+    except (SelectElementException, ValueError):
+        pass
+
 class ArticlePage(Minutes20Page):
     "ArticlePage object for minutes20"
-    def set_body(self):
-        self.element_body = select(self.main_div, "div.mna-body", 1)
-        element_tools = select(self.element_body, "div.mna-tools", 1)
-
-        try :
-            self.element_body.remove(element_tools)
-        except ValueError:
-            pass
-
-        try:
-            self.element_body.remove(
-                select(self.element_body, "div.mna-comment-call", 1))
-        except (SelectElementException, ValueError):
-            pass
-
-        try:
-            self.element_body.remove(self.get_element_author())
-        except (NoAuthorElement, ValueError):
-            pass
-
-        self.article.body = self.browser.parser.tostring(self.element_body)
+    def get_body(self):
+        try_remove(self.element_body, "div.mna-tools")
+        try_remove(self.element_body, "div.mna-comment-call")
+        try_remove(self.element_body, self.element_author_selector)
+        return self.browser.parser.tostring(self.element_body)

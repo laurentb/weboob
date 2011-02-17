@@ -21,27 +21,22 @@ from __future__ import with_statement
 
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
-
-from .browser import Newspaper20minutesBrowser
 from weboob.tools.newsfeed import Newsfeed
 from .tools import url2id
+from .browser import Newspaper20minutesBrowser
 
 __all__ = ['Newspaper20minutesBackend']
 
-
-
-
 class Newspaper20minutesBackend(BaseBackend, ICapMessages):
-    NAME = 'minutes20'
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.6'
     LICENSE = 'GPLv3'
-    DESCRIPTION = u'20minutes French news  website'
-    #CONFIG = ValuesDict(Value('login',      label='Account ID'),
-    #                    Value('password',   label='Password', masked=True))
     STORAGE = {'seen': {}}
+    NAME = 'minutes20'
+    DESCRIPTION = u'20minutes French news  website'
     BROWSER = Newspaper20minutesBrowser
+    RSS_FEED = 'http://www.20minutes.fr/rss/20minutes.xml'
 
     def get_thread(self, _id):
         if isinstance(_id, Thread):
@@ -55,7 +50,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
 
         if not thread:
             thread = Thread(_id)
-
 
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default={}):
@@ -79,8 +73,7 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed('http://www.20minutes.fr/rss/20minutes.xml', 
-            url2id).iter_entries():
+        for article in Newsfeed(self.RSS_FEED, url2id).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime
@@ -95,7 +88,6 @@ class Newspaper20minutesBackend(BaseBackend, ICapMessages):
             for msg in thread.iter_all_messages():
                 if msg.flags & msg.IS_UNREAD:
                     yield msg
-
 
     def set_message_read(self, message):
         self.storage.set(

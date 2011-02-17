@@ -18,7 +18,9 @@
 from .pages.article import ArticlePage
 from weboob.tools.browser import BaseBrowser
 from .tools import id2url
+
 __all__ = ['NewspaperInrocksBrowser']
+
 
 class NewspaperInrocksBrowser(BaseBrowser):
     PAGES = {
@@ -26,7 +28,6 @@ class NewspaperInrocksBrowser(BaseBrowser):
              '.*': ArticlePage,
 
             }
-
 
     def is_logged(self):
         return False

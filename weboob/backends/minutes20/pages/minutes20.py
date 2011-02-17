@@ -29,38 +29,38 @@ class Article(object):
         self.title = u''
         self.body = u''
         self.url = u''
-        self.author = u'' 
+        self.author = u''
         self.date = None
 
 class Minutes20Page(BasePage):
     main_div = NotImplementedError
     element_body = NotImplementedError
     article = Article
-    
-    def set_author(self):
-        self.article.author = self.get_element_author().text_content().strip()
+    element_author_selector = ValueError
+    element_title_selector  = ValueError
+    element_body_selector   = ValueError
 
-    def get_element_author(self):
-        try :
-            return select(self.main_div, "div.mna-signature", 1) 
-        except SelectElementException:
-            raise NoAuthorElement()
+    def get_body(self):
+        return self.browser.parser.tostring(self.element_body)
 
-    def set_body(self):
-        self.article.body = self.browser.parser.tostring(select(self.main_div, 
-                                                                "div.mna-body", 
-                                                                1))
+    def get_author(self):
+        return select(self.main_div, self.element_author_selector, 1).text_content().strip()
 
+    def get_title(self):
+       return select(self.main_div, self.element_title_selector, 1).text_content().strip()
 
     def on_loaded(self):
         self.article = Article(self.browser, url2id(self.url) )
         self.main_div = self.document.getroot()
-        self.article.title = select(self.main_div, "h1", 1).text_content()
-        self.article.url = self.url
-        try :
-            self.set_author()
-        except NoAuthorElement:
-            pass
-        self.set_body()
 
-    
+        self.element_author_selector    = "div.mna-signature"
+        self.element_title_selector     = "h1"
+        self.element_body_selector      = "div.mna-body"
+
+        self.element_body = select(self.main_div, self.element_body_selector, 1)
+
+        self.article.author = self.get_author()
+        self.article.title  = self.get_title()
+        self.article.url    = self.url
+        self.article.body   = self.get_body()
+
