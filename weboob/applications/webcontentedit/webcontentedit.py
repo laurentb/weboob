@@ -41,7 +41,7 @@ class WebContentEdit(ReplApplication):
 
     def do_edit(self, line):
         """
-        edit ID
+        edit ID [ID...]
 
         Edit a content with $EDITOR, then push it on the website.
         """
@@ -66,7 +66,7 @@ class WebContentEdit(ReplApplication):
                 data = content.content
                 if isinstance(data, unicode):
                     data = data.encode('utf-8')
-                f.write(data)
+                f.write(data or '')
             paths[path] = content
 
         params = ''
@@ -115,10 +115,18 @@ class WebContentEdit(ReplApplication):
             raise errors
 
     def do_log(self, line):
-        for id in line.split():
-            _id, backend_name = self.parse_id(id)
-            backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+        """
+        log ID
+
+        Display log of a page
+        """
+        if not line:
+            print >>sys.stderr, 'Error: please give a page ID'
+            return 1
+
+        _id, backend_name = self.parse_id(line)
+        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
         _id = _id.encode('utf-8')
-        for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count):
+        for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count, backends=backend_names):
             self.format(revision)
