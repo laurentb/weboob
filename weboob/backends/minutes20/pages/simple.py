@@ -25,21 +25,10 @@ def try_remove(base_element, selector):
     except (SelectElementException, ValueError):
         pass
 
-class ArticlePage(GenericNewsPage):
+class SimplePage(GenericNewsPage):
     "ArticlePage object for minutes20"
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_author_selector = "div.mna-signature"
         self.element_body_selector = "div.mna-body"
 
-    def get_body(self):
-        element_body = self.get_element_body()
-        try_remove(element_body, "div.mna-tools")
-        try_remove(element_body, "div.mna-comment-call")
-        try :
-            element_body.remove(self.get_element_author())
-        except NoAuthorElement:
-            pass
-        return self.browser.parser.tostring(element_body)
-
-    

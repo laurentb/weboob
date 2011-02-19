@@ -25,8 +25,6 @@ from weboob.tools.newsfeed import Newsfeed
 from .tools import url2id
 from .browser import NewspaperInrocksBrowser
 
-__all__ = ['NewspaperInrocksBackend']
-
 class NewspaperInrocksBackend(BaseBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
@@ -88,7 +86,6 @@ class NewspaperInrocksBackend(BaseBackend, ICapMessages):
             for msg in thread.iter_all_messages():
                 if msg.flags & msg.IS_UNREAD:
                     yield msg
-
 
     def set_message_read(self, message):
         self.storage.set(

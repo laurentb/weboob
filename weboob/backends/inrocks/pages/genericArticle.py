@@ -16,8 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from weboob.backends.minutes20.tools import url2id
-__all__ = ['Minutes20Page', 'Article', 'NoAuthorElement']
 
 class NoAuthorElement(SelectElementException):
     pass
@@ -32,13 +30,13 @@ class Article(object):
         self.author = u''
         self.date = None
 
-class Minutes20Page(BasePage):
-    __main_div = NotImplementedError
+class GenericNewsPage(BasePage):
     __element_body = NotImplementedError
     __article = Article
-    __element_author_selector = ValueError
-    __element_title_selector  = ValueError
-    __element_body_selector   = ValueError
+    __element_title_selector  = "h1"
+    main_div = NotImplementedError
+    element_body_selector = NotImplementedError
+    element_author_selector = NotImplementedError
 
     def get_body(self):
         return self.browser.parser.tostring(self.get_element_body())
@@ -50,30 +48,25 @@ class Minutes20Page(BasePage):
             return None
 
     def get_title(self):
-       return select(self.__main_div, self.__element_title_selector, 1).text_content().strip()
+        return select(
+            self.main_div,
+            self.__element_title_selector,
+            1).text_content().strip()
 
     def get_element_body(self):
-        return select(self.__main_div, self.__element_body_selector, 1)
+        return select(self.main_div, self.element_body_selector, 1)
 
     def get_element_author(self):
         try:
-            return select(self.__main_div, self.__element_author_selector, 1)
+            return select(self.main_div, self.element_author_selector, 1)
         except SelectElementException:
             raise NoAuthorElement()
 
-    def get_article(self):
-        __article = Article(self.browser, url2id(self.url) )
+    def get_article(self, id):
+        __article = Article(self.browser, id)
         __article.author = self.get_author()
         __article.title  = self.get_title()
         __article.url    = self.url
         __article.body   = self.get_body()
 
         return __article
-
-    def on_loaded(self):
-        self.__main_div = self.document.getroot()
-
-        self.__element_author_selector    = "div.mna-signature"
-        self.__element_title_selector     = "h1"
-        self.__element_body_selector      = "div.mna-body"
-

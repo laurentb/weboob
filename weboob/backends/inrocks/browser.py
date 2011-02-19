@@ -19,7 +19,6 @@ from .pages.article import ArticlePage
 from weboob.tools.browser import BaseBrowser
 from .tools import id2url
 
-__all__ = ['NewspaperInrocksBrowser']
 
 
 class NewspaperInrocksBrowser(BaseBrowser):
@@ -35,4 +34,4 @@ class NewspaperInrocksBrowser(BaseBrowser):
     def get_content(self, _id):
         url = _id
         self.location(url)
-        return self.page.article
+        return self.page.get_article(_id)

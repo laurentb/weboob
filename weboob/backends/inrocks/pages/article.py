@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from .inrocks import InrocksPage
+from .genericArticle import GenericNewsPage
 
 def try_remove(base_element, selector):
     try :
@@ -25,18 +25,22 @@ def try_remove(base_element, selector):
     except (SelectElementException, ValueError):
         pass
 
-class ArticlePage(InrocksPage):
+class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
+    def on_loaded(self):
+        self.main_div = self.document.getroot()
+        self.element_author_selector    = "div.name>span"
+        self.element_body_selector      = "div.maincol"
+
     def get_body(self):
-        try_remove(self.element_body, "div.sidebar")
-        details = select(self.element_body, "div.details", 1)
+        element_body = self.get_element_body()
+        try_remove(element_body, "div.sidebar")
+        details = select(element_body, "div.details", 1)
         try_remove(details, "div.footer")
-        header = select(self.element_body, "div.header", 1)
+        header = select(element_body, "div.header", 1)
         for selector in ["h1", "div.picture", "div.date", "div.news-single-img",
                          "div.metas_img", "strong"]:
             try_remove(header, selector)
- 
-        return self.browser.parser.tostring(self.element_body)
-
+        return self.browser.parser.tostring(element_body)
 
 

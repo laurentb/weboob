@@ -25,8 +25,6 @@ from weboob.tools.newsfeed import Newsfeed
 from .tools import url2id
 from .browser import Newspaper20minutesBrowser
 
-__all__ = ['Newspaper20minutesBackend']
-
 class Newspaper20minutesBackend(BaseBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
