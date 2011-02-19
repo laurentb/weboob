@@ -35,18 +35,18 @@ class Revision(CapBaseObject):
         self.add_field('revision', basestring)
         self.add_field('timestamp', datetime)
         self.add_field('minor', bool)
-        
+
 
 
 class ICapContent(IBaseCap):
     def get_content(self, id, revision=None):
         raise NotImplementedError()
 
-    def iter_revisions(self, id):
+    def iter_revisions(self, id, max_results=10):
         raise NotImplementedError()
 
     def push_content(self, content, message=None, minor=False):
         raise NotImplementedError()
-    
+
     def get_content_preview(self, content):
         raise NotImplementedError()
