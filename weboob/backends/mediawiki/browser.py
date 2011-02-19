@@ -35,7 +35,7 @@ __all__ = ['MediawikiBrowser']
 # Browser
 class MediawikiBrowser(BaseBrowser):
     ENCODING = 'utf-8'
-    
+
     def __init__(self, url, apiurl, *args, **kwargs):
         url_parsed = urlsplit(url)
         self.PROTOCOL = url_parsed.scheme
@@ -43,7 +43,7 @@ class MediawikiBrowser(BaseBrowser):
         self.BASEPATH = url_parsed.path
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
-            
+
         prefix = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, self.BASEPATH)
         self.apiurl = apiurl
 
@@ -51,7 +51,7 @@ class MediawikiBrowser(BaseBrowser):
 
     def get_wiki_source(self, page):
         assert isinstance(self.apiurl, basestring)
-        
+
         data = {'action':           'query',
                 'prop':             'revisions|info',
                 'titles':           page,
@@ -61,7 +61,7 @@ class MediawikiBrowser(BaseBrowser):
                 }
 
 
-        
+
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
         if pageid == "-1":
@@ -70,7 +70,7 @@ class MediawikiBrowser(BaseBrowser):
 
     def get_token(self, page, _type):
         ''' _type can be edit, delete, protect, move, block, unblock, email or import'''
-        if not self.is_logged():
+        if len(self.username) > 0 and not self.is_logged():
             self.login()
 
         data = {'action':      'query',
@@ -84,14 +84,14 @@ class MediawikiBrowser(BaseBrowser):
             return None
         return result['query']['pages'][str(pageid)][_type+'token']
 
-    
+
     def set_wiki_source(self, content, message=None, minor=False):
-        if not self.is_logged():
+        if len(self.username) > 0 and not self.is_logged():
             self.login()
-            
+
         page = content.id
         token = self.get_token(page, 'edit')
-        
+
         data = {'action':      'edit',
                 'title':       page,
                 'token':       token,
@@ -111,8 +111,6 @@ class MediawikiBrowser(BaseBrowser):
                 }
         result = self.API_post(data)
         return result['parse']['text']['*']
-                
-
 
     def is_logged(self):
         data = {'action':     'query',
@@ -120,7 +118,7 @@ class MediawikiBrowser(BaseBrowser):
                 }
         result = self.API_get(data)
         return result['query']['userinfo']['id'] != 0
-        
+
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -132,15 +130,15 @@ class MediawikiBrowser(BaseBrowser):
                 }
         result = self.API_post(data)
         if result['login']['result'] == 'WrongPass':
-            raise BrowserIncorrectPassword
-        
+            raise BrowserIncorrectPassword()
+
         if result['login']['result'] == 'NeedToken':
             data['lgtoken'] = result['login']['token']
             result2 = self.API_post(data)
 
     def iter_wiki_revisions(self, page, nb_entries):
         '''Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.'''
-        if not self.is_logged():
+        if len(self.username) > 0 and not self.is_logged():
             self.login()
         data = {'action':       'query',
                 'titles':       page,
@@ -151,7 +149,7 @@ class MediawikiBrowser(BaseBrowser):
 
         result = self.API_get(data)
         pageid = str(result['query']['pages'].keys()[0])
-        
+
         for rev in result['query']['pages'][pageid]['revisions']:
             rev_content = Revision(str(rev['revid']))
             rev_content.comment = rev['comment']
@@ -163,8 +161,6 @@ class MediawikiBrowser(BaseBrowser):
             else:
                 rev_content.minor = False
             yield rev_content
-                
-        
 
     def home(self):
         '''We don't need to change location, we're using the JSON API here.'''

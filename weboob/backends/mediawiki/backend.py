@@ -28,13 +28,14 @@ __all__ = ['MediawikiBackend']
 class MediawikiBackend(BaseBackend, ICapContent):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
-    EMAIL = '0.6'
+    EMAIL = 'clemux@clemux.info'
+    VERSION = '0.6'
     LICENSE = 'GPLv3'
     DESCRIPTION = 'Mediawiki wiki software application'
     CONFIG = ValuesDict(Value('url',      label='URL of the Mediawiki website'),
                         Value('apiurl',   label='URL of the Mediawiki website\'s API'),
-                        Value('username', label='Login'),
-                        Value('password', label='Password', masked=True))
+                        Value('username', label='Login', default=''),
+                        Value('password', label='Password', default='', masked=True))
 
     BROWSER = MediawikiBrowser
     def create_default_browser(self):
@@ -53,7 +54,6 @@ class MediawikiBackend(BaseBackend, ICapContent):
     def iter_revisions(self, _id, max_results=10):
         for rev in self.browser.iter_wiki_revisions(_id, max_results):
             yield rev
-    
 
     def push_content(self, content, message=None, minor=False):
         self.browser.set_wiki_source(content, message, minor)
