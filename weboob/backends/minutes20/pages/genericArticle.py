@@ -33,7 +33,7 @@ class Article(object):
 class GenericNewsPage(BasePage):
     __element_body = NotImplementedError
     __article = Article
-    __element_title_selector  = "h1"
+    element_title_selector  = "h1"
     main_div = NotImplementedError
     element_body_selector = NotImplementedError
     element_author_selector = NotImplementedError
@@ -50,7 +50,7 @@ class GenericNewsPage(BasePage):
     def get_title(self):
         return select(
             self.main_div,
-            self.__element_title_selector,
+            self.element_title_selector,
             1).text_content().strip()
 
     def get_element_body(self):
