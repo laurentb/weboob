@@ -16,14 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from .genericArticle import GenericNewsPage, NoAuthorElement
-
-def try_remove(base_element, selector):
-    try :
-        base_element.remove(select(base_element, selector, 1 ))
-    except (SelectElementException, ValueError):
-        pass
+from .genericArticle import GenericNewsPage
 
 class SimplePage(GenericNewsPage):
     "ArticlePage object for minutes20"

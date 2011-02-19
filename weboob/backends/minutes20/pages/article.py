@@ -17,7 +17,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from .genericArticle import GenericNewsPage, NoAuthorElement
+from .genericArticle import NoAuthorElement
+from .simple import SimplePage
 
 def try_remove(base_element, selector):
     try :
@@ -25,12 +26,8 @@ def try_remove(base_element, selector):
     except (SelectElementException, ValueError):
         pass
 
-class ArticlePage(GenericNewsPage):
+class ArticlePage(SimplePage):
     "ArticlePage object for minutes20"
-    def on_loaded(self):
-        self.main_div = self.document.getroot()
-        self.element_author_selector = "div.mna-signature"
-        self.element_body_selector = "div.mna-body"
 
     def get_body(self):
         element_body = self.get_element_body()
@@ -41,5 +38,3 @@ class ArticlePage(GenericNewsPage):
         except NoAuthorElement:
             pass
         return self.browser.parser.tostring(element_body)
-
-    
