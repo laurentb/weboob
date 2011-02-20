@@ -16,13 +16,27 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .pages.article import ArticlePage
+from .pages.flashactu import FlashActuPage
 from weboob.tools.browser import BaseBrowser
 
 
 
 class NewspaperFigaroBrowser(BaseBrowser):
     PAGES = {
-             '.*': ArticlePage,
+             "http://www.lefigaro.fr/flash-actu/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
+             "http://www.lefigaro.fr/flash-sport/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
+             "http://www.lefigaro.fr/politique/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/football-ligue-1-et-2/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/international/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/actualite-france/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/cinema/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/conjoncture/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/automobile/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/actualites/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/matieres-premieres/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/le-talk/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/flash-eco/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
+             #'.*': ArticlePage
             }
 
     def is_logged(self):
@@ -31,4 +45,5 @@ class NewspaperFigaroBrowser(BaseBrowser):
     def get_content(self, _id):
         url = _id
         self.location(url)
+        print self.page
         return self.page.get_article(_id)
