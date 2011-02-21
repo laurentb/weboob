@@ -21,13 +21,14 @@ class NoAuthorElement(SelectElementException):
     pass
 
 class Article(object):
+    author = u''
+
     def __init__(self, browser, _id):
         self.browser = browser
         self.id = _id
         self.title = u''
         self.body = u''
         self.url = u''
-        self.author = u''
         self.date = None
 
 class GenericNewsPage(BasePage):
@@ -45,7 +46,7 @@ class GenericNewsPage(BasePage):
         try:
             return self.get_element_author().text_content().strip()
         except NoAuthorElement:
-            return None
+            return self.__article.author
 
     def get_title(self):
         return select(
