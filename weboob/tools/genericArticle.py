@@ -17,6 +17,13 @@
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
 
+def try_remove(base_element, selector):
+    try :
+        base_element.remove(select(base_element, selector, 1 ))
+    except (SelectElementException, ValueError):
+        pass
+
+
 class NoAuthorElement(SelectElementException):
     pass
 

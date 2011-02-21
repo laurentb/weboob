@@ -17,13 +17,11 @@
 
 from .pages.article import ArticlePage
 from weboob.tools.browser import BaseBrowser
-from .tools import id2url
 
 
 
 class NewspaperInrocksBrowser(BaseBrowser):
     PAGES = {
-             'http://www.lesinrocks.com/actualite/actu-article/t/60121/date/2011-02-15/article/accuse-davoir-participe-a-une-mutinerie-un-detenu-porte-plainte/': ArticlePage,
              '.*': ArticlePage,
 
             }

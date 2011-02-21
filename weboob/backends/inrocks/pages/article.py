@@ -16,22 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from .genericArticle import GenericNewsPage
-
-def try_remove(base_element, selector):
-    try :
-        base_element.remove(select(base_element, selector, 1 ))
-    except (SelectElementException, ValueError):
-        pass
+from weboob.tools.parsers.lxmlparser import select
+from weboob.tools.genericArticle import GenericNewsPage, try_remove
 
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_author_selector    = "div.name>span"
-        self.element_body_selector      = "div.maincol"
         self.element_title_selector     = "h1"
+        self.element_body_selector      = "div.maincol"
 
     def get_body(self):
         element_body = self.get_element_body()
