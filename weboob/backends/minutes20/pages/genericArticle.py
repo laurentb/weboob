@@ -20,6 +20,9 @@ from weboob.tools.parsers.lxmlparser import select, SelectElementException
 class NoAuthorElement(SelectElementException):
     pass
 
+class NoneMainDiv(AttributeError):
+    pass
+
 class Article(object):
     author = u''
 
@@ -62,9 +65,14 @@ class GenericNewsPage(BasePage):
             return select(self.main_div, self.element_author_selector, 1)
         except SelectElementException:
             raise NoAuthorElement()
+        except AttributeError:
+            if self.main_div == None:
+                raise NoneMainDiv("main_div is none on %s" % (self.browser))
+            else:
+                raise
 
-    def get_article(self, id):
-        __article = Article(self.browser, id)
+    def get_article(self, _id):
+        __article = Article(self.browser, _id)
         __article.author = self.get_author()
         __article.title  = self.get_title()
         __article.url    = self.url
