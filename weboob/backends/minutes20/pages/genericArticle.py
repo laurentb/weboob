@@ -33,7 +33,7 @@ class Article(object):
 class GenericNewsPage(BasePage):
     __element_body = NotImplementedError
     __article = Article
-    element_title_selector  = "h1"
+    element_title_selector  = NotImplementedError 
     main_div = NotImplementedError
     element_body_selector = NotImplementedError
     element_author_selector = NotImplementedError

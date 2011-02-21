@@ -24,4 +24,6 @@ class SimplePage(GenericNewsPage):
         self.main_div = self.document.getroot()
         self.element_author_selector = "div.mna-signature"
         self.element_body_selector = "div.mna-body"
+        self.element_title_selector = "div.mn-left>h1"
 
+    
