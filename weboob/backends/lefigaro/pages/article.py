@@ -31,6 +31,7 @@ class ArticlePage(GenericNewsPage):
         self.main_div = self.document.getroot()
         self.element_author_selector    = "div.name>span"
         self.element_body_selector      = "#article"
+        self.element_title_selector     = "h1"
 
     def get_body(self):
         element_body = self.get_element_body()
