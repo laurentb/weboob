@@ -26,6 +26,7 @@ from .tools import url2id
 from .browser import NewspaperFigaroBrowser
 
 class NewspaperFigaroBackend(BaseBackend, ICapMessages):
+    "NewspaperFigaroBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.6'
@@ -78,6 +79,7 @@ class NewspaperFigaroBackend(BaseBackend, ICapMessages):
             yield(thread)
 
     def fill_thread(self, thread):
+        "fill the thread"
         return self.get_thread(thread)
 
     def iter_unread_messages(self, thread=None):

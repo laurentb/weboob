@@ -1,3 +1,4 @@
+"browser for 20minutes website"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2011  Julien Hebert
@@ -22,6 +23,7 @@ from .tools import id2url
 
 
 class Newspaper20minutesBrowser(BaseBrowser):
+    "Newspaper20minutesBrowser class"
     PAGES = {
              'http://www.20minutes.fr/article/?.*': ArticlePage,
              'http://www.20minutes.fr/ledirect/?.*': SimplePage,
@@ -31,7 +33,14 @@ class Newspaper20minutesBrowser(BaseBrowser):
     def is_logged(self):
         return False
 
+    def login(self):
+        pass
+
+    def fillobj(self, obj, fields):
+        pass
+
     def get_content(self, _id):
+        "return page article content"
         try :
             url = id2url(_id)
         except ValueError:

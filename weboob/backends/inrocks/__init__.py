@@ -1,3 +1,4 @@
+"init of NewspaperInrocksBackend"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2011  Julien Hebert
@@ -16,4 +17,4 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .backend import NewspaperInrocksBackend
-__all__ = ['NewspaperInrocksBackendBackend']
+__all__ = ['NewspaperInrocksBackend']

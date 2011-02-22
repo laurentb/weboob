@@ -1,3 +1,4 @@
+"browser for lefigaro website"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2011  Julien Hebert
@@ -22,6 +23,7 @@ from weboob.tools.browser import BaseBrowser
 
 
 class NewspaperFigaroBrowser(BaseBrowser):
+    "NewspaperFigaroBrowser class"
     PAGES = {
              "http://www.lefigaro.fr/flash-actu/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
              "http://www.lefigaro.fr/flash-sport/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
@@ -42,8 +44,13 @@ class NewspaperFigaroBrowser(BaseBrowser):
     def is_logged(self):
         return False
 
+    def login(self):
+        pass
+
+    def fillobj(self, obj, fields):
+        pass
+
     def get_content(self, _id):
-        url = _id
-        self.location(url)
-        print self.page
+        "return page article content"
+        self.location(_id)
         return self.page.get_article(_id)
