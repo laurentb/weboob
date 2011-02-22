@@ -31,14 +31,22 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/football-ligue-1-et-2/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/international/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/actualite-france/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/mon-figaro/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/cinema/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/conjoncture/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/automobile/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/marches/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/actualites/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/matieres-premieres/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/programmes-tele/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/le-talk/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/environnement/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/rugby/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/societes/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/medias/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/conso/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/football-coupes-d-europe/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/flash-eco/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
-             #'.*': ArticlePage
             }
 
     def is_logged(self):
