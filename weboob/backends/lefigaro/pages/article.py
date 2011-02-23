@@ -35,7 +35,6 @@ class ArticlePage(GenericNewsPage):
 
         element_body.remove(h1_title)
         element_body.remove(div_infos)
-        element_body.remove(toolsbar)
 
         try_remove(element_body, "div.photo")
         try_remove(element_body, "div.art_bandeau_bottom")
