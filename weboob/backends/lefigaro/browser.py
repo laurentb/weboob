@@ -40,6 +40,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/matieres-premieres/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/programmes-tele/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/le-talk/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/sortir-paris/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/environnement/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/rugby/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/societes/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
@@ -47,6 +48,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/conso/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/football-coupes-d-europe/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/sante/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/creation-gestion-entreprise/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/flash-eco/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": FlashActuPage,
             }
 
