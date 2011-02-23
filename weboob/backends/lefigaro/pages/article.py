@@ -31,7 +31,6 @@ class ArticlePage(GenericNewsPage):
         element_body    = self.get_element_body()
         h1_title        = select(element_body, self.element_title_selector, 1)
         div_infos       = select(element_body, "div.infos", 1)
-        toolsbar        = select(element_body, "#toolsbar", 1)
         el_script       = select(element_body, "script", 1)
 
         element_body.remove(h1_title)
@@ -42,6 +41,7 @@ class ArticlePage(GenericNewsPage):
         try_remove(element_body, "div.art_bandeau_bottom")
         try_remove(element_body, "div.view")
         try_remove(element_body, "span.auteur_long")
+        try_remove(element_body, "#toolsbar")
 
         el_script.drop_tree()
         element_body.find_class("texte")[0].drop_tag()
