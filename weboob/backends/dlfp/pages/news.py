@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,8 @@
 
 
 from datetime import datetime
-from logging import warning
 
-from weboob.tools.misc import local2utc
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
 from weboob.backends.dlfp.tools import url2id
 
 from .index import DLFPPage
@@ -37,31 +36,23 @@ class Comment(object):
         self.url = u''
         self.comments = []
 
-        for sub in div.getchildren():
-            if sub.tag == 'a':
-                self.id = sub.attrib['name']
-                self.url = u'https://linuxfr.org/comments/%s.html#%s' % (self.id, self.id)
-            elif sub.tag == 'h1':
-                try:
-                    self.title = sub.find('b').text
-                except UnicodeError:
-                    warning('Bad encoded title, but DLFP sucks')
-            elif sub.tag == 'div' and sub.attrib.get('class', '').startswith('comment'):
-                self.author = sub.find('a').text if sub.find('a') is not None else 'Unknown'
-                self.date = self.parse_date(sub.find('i').tail)
-                self.score = int(sub.findall('i')[-1].find('span').text)
-                self.body = self.browser.parser.tostring(sub.find('p'))
-            elif sub.attrib.get('class', '') == 'commentsul':
-                comment = Comment(self.browser, sub.find('li'), self.id)
-                self.comments.append(comment)
+        self.id = div.attrib['id'].split('-')[1]
+        self.title = unicode(select(div.find('h2'), 'a.title', 1).text)
+        try:
+            self.author = unicode(select(div.find('p'), 'a[rel=author]', 1).text)
+        except SelectElementException:
+            self.author = 'Anonyme'
+        self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
+                                      '%Y-%m-%dT%H:%M:%S')
+        self.body = self.browser.parser.tostring(div.find('div'))
+        self.score = int(select(div.find('p'), 'span.score', 1).text)
+        self.url = select(div.find('h2'), 'a.title', 1).attrib['href']
 
-    def parse_date(self, date_s):
-        date_s = date_s.strip().encode('utf-8')
-        if not date_s:
-            date = datetime.now()
-        else:
-            date = datetime.strptime(date_s, u'le %d/%m/%Y \xe0 %H:%M.'.encode('utf-8'))
-        return local2utc(date)
+        subs = div.find('ul')
+        if subs is not None:
+            for sub in subs.findall('li'):
+                comment = Comment(self.browser, sub, self.id)
+                self.comments.append(comment)
 
     def iter_all_comments(self):
         for comment in self.comments:
@@ -70,35 +61,25 @@ class Comment(object):
                 yield c
 
     def __repr__(self):
-        return u"<Comment id='%s' author='%s' title='%s'>" % (self.id, self.author, self.title)
+        return u"<Comment id=%r author=%r title=%r>" % (self.id, self.author, self.title)
 
 class Article(object):
-    def __init__(self, browser, _id, tree):
+    def __init__(self, browser, url, tree):
         self.browser = browser
-        self.id = _id
-        self.title = u''
-        self.author = u''
-        self.body = u''
-        self.part2 = u''
-        self.date = None
-        self.url = u''
-        self.comments = []
+        self.url = url
+        self.id = url2id(self.url)
 
-        for div in tree.findall('div'):
-            if div.attrib.get('class', '').startswith('titlediv '):
-                self.author = div.find('a').text
-                for a in div.find('h1').getiterator('a'):
-                    if a.text: self.title += a.text
-                    if a.tail: self.title += a.tail
-                self.title = self.title.strip()
-                # TODO use the date_s
-                #subdivs = div.findall('a')
-                #if len(subdivs) > 1:
-                #    date_s = unicode(subdivs[1].text)
-                #else:
-                #    date_s = unicode(div.find('i').tail)
-            if div.attrib.get('class', '').startswith('bodydiv '):
-                self.body = self.browser.parser.tostring(div)
+        header = tree.find('header')
+        self.title = u' — '.join([a.text for a in header.find('h1').findall('a')])
+        try:
+            self.author = select(header, 'a[rel=author]', 1).text
+        except SelectElementException:
+            self.author = 'Anonyme'
+        self.body = self.browser.parser.tostring(select(tree, 'div.content', 1))
+        self.date = datetime.strptime(select(header, 'time', 1).attrib['datetime'].split('+')[0],
+                                      '%Y-%m-%dT%H:%M:%S')
+
+        self.comments = []
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -115,21 +96,37 @@ class Article(object):
 class ContentPage(DLFPPage):
     def on_loaded(self):
         self.article = None
-        for div in self.document.find('body').find('div').findall('div'):
-            self.parse_div(div)
-            if div.attrib.get('class', '') == 'centraldiv':
-                for subdiv in div.findall('div'):
-                    self.parse_div(subdiv)
-
-    def parse_div(self, div):
-        if div.attrib.get('class', '') in ('newsdiv', 'centraldiv'):
-            self.article = Article(self.browser, url2id(self.url), div)
-            self.article.url = self.url
-        if div.attrib.get('class', '') == 'articlediv':
-            self.article.parse_part2(div)
-        if div.attrib.get('class', '') == 'comments':
-            comment = Comment(self.browser, div, 0)
-            self.article.append_comment(comment)
 
     def get_article(self):
+        if not self.article:
+            self.article = Article(self.browser,
+                                   self.url,
+                                   select(self.document.getroot(), 'article', 1))
+
+            try:
+                threads = select(self.document.getroot(), 'ul.threads', 1)
+            except SelectElementException:
+                pass # no comments
+            else:
+                for comment in threads.findall('li'):
+                    self.article.append_comment(Comment(self.browser, comment, 0))
+
         return self.article
+
+    def get_post_comment_url(self):
+        return select(self.document.getroot(), 'p#send-comment', 1).find('a').attrib['href']
+
+class NewCommentPage(DLFPPage):
+    pass
+
+class NodePage(DLFPPage):
+    def get_errors(self):
+        try:
+            div = select(self.document.getroot(), 'div.errors', 1)
+        except SelectElementException:
+            return []
+
+        l = []
+        for li in div.find('ul').findall('li'):
+            l.append(li.text)
+        return l
