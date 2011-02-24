@@ -144,6 +144,7 @@ class ReplApplication(Cmd, BaseApplication):
                                       help='select output formatter (%s)' % u', '.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
+        formatting_options.add_option('--outfile', dest='outfile', help='file to export result')
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
@@ -1067,6 +1068,8 @@ class ReplApplication(Cmd, BaseApplication):
             self.formatter.display_header = False
         if self.options.no_keys:
             self.formatter.display_keys = False
+        if self.options.outfile:
+            self.formatter.outfile = self.options.outfile
         if self.interactive:
             self.formatter.interactive = True
         return name
@@ -1075,30 +1078,16 @@ class ReplApplication(Cmd, BaseApplication):
         self.formatter.set_header(string)
 
     def format(self, result, output=sys.stdout):
-        saveout = sys.stdout
-        try :
-            fsock = open(output, 'w')
-        except TypeError:
-            if output == None:
-                raise OutputIsNone("output is None")
-            elif output == sys.stdout:
-                fsock = sys.stdout
-            else:
-                raise
-        sys.stdout = fsock
         fields = self.selected_fields
         if fields in ('$direct', '$full'):
             fields = None
+        self.formatter.output = output
         try:
             self.formatter.format(obj=result, selected_fields=fields)
         except FieldNotFound, e:
             print e
         except MandatoryFieldsNotFound, e:
             print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
-        sys.stdout = saveout
-        if fsock != sys.stdout:
-            fsock.close()
-
     def flush(self):
         self.formatter.flush()
 
