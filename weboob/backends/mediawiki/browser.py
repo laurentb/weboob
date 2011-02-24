@@ -20,7 +20,7 @@ import urllib
 import datetime
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.content import Revision
 
 try:
@@ -43,10 +43,8 @@ class MediawikiBrowser(BaseBrowser):
         self.BASEPATH = url_parsed.path
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
-
-        prefix = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, self.BASEPATH)
+            
         self.apiurl = apiurl
-
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def get_wiki_source(self, page):
@@ -101,7 +99,7 @@ class MediawikiBrowser(BaseBrowser):
         if minor:
             data['minor'] = 'true'
 
-        result = self.API_post(data)
+        self.API_post(data)
 
     def get_wiki_preview(self, content, message=None):
         data = {'action':     'parse',
@@ -134,7 +132,7 @@ class MediawikiBrowser(BaseBrowser):
 
         if result['login']['result'] == 'NeedToken':
             data['lgtoken'] = result['login']['token']
-            result2 = self.API_post(data)
+            self.API_post(data)
 
     def iter_wiki_revisions(self, page, nb_entries):
         '''Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.'''
