@@ -332,6 +332,13 @@ class BaseBrowser(mechanize.Browser):
     def is_on_page(self, pageCls):
         return isinstance(self.page, pageCls)
 
+    def absurl(self, rel):
+        if rel is None:
+            return None
+        if not rel.startswith('/'):
+            rel = '/' + rel
+        return '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, rel)
+
     def follow_link(self, *args, **kwargs):
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
