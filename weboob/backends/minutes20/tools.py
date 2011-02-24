@@ -34,3 +34,6 @@ def url2id(url):
     regexp = re.compile("http://www.20minutes.fr/(\w+)/([0-9]+)/(.*$)")
     match = regexp.match(url)
     return '%s.%d.%s' % (match.group(1), int(match.group(2)), match.group(3))
+
+def rssid(entry):
+    return url2id(entry.id)

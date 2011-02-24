@@ -23,11 +23,8 @@ __all__ = ['Entry', 'Newsfeed']
 
 
 class Entry:
-    def __init__(self, entry, url2id=None):
-        if url2id:
-            self.id = url2id(entry.id)
-        else:
-            self.id = entry.id
+    def __init__(self, entry, rssid_func=None):
+        self.id = entry.id
 
         if entry.has_key("link"):
             self.link = entry["link"]
@@ -63,16 +60,19 @@ class Entry:
         else:
             self.content = None
 
+        if rssid_func:
+            self.id = rssid_func(self)
+
 class Newsfeed:
-    def __init__(self, url, url2id=None):
+    def __init__(self, url, rssid_func=None):
         self.feed = feedparser.parse(url)
-        self.url2id = url2id
+        self.rssid_func = rssid_func
 
     def iter_entries(self):
         for entry in self.feed['entries']:
-            yield Entry(entry, self.url2id)
+            yield Entry(entry, self.rssid_func)
 
     def get_entry(self, id):
         for entry in self.feed['entries']:
             if entry.id == id:
-                return Entry(entry, self.url2id)
+                return Entry(entry, self.rssid_func)

@@ -32,3 +32,6 @@ def id2url(_id):
 def url2id(url):
     "return an id from an url"
     return url
+
+def rssid(entry):
+    return url2id(entry.id)
