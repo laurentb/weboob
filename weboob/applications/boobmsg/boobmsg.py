@@ -34,15 +34,15 @@ class MessageFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD, 
+        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD,
                                        ReplApplication.NC, item['title'])
-        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD, 
+        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD,
                                        ReplApplication.NC, item['date'])
-        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD, 
+        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD,
                                        ReplApplication.NC, item['sender'])
         if item['receivers']:
-            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD, 
-                                         ReplApplication.NC, 
+            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD,
+                                         ReplApplication.NC,
                                          ', '.join(item['receivers']))
 
         if item['flags'] & Message.IS_HTML:
@@ -76,13 +76,13 @@ class MessagesListFormatter(IFormatter):
             unread = '   '
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD, 
-                                                 self.count, unread, 
-                                                 item['title'], backend, 
+            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD,
+                                                 self.count, unread,
+                                                 item['title'], backend,
                                                  ReplApplication.NC)
         else:
-            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'], 
-                                            unread, item['title'], 
+            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'],
+                                            unread, item['title'],
                                             ReplApplication.NC)
         if item['date']:
             result += u'\n             %s' % item['date']
@@ -117,23 +117,24 @@ class MessagesListFormatter(IFormatter):
         flags += ']'
 
         if self.interactive:
-            result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ', 
-                                                          ReplApplication.BOLD, 
+            result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ',
+                                                          ReplApplication.BOLD,
                                                           self.count,
-                                                          ReplApplication.NC, 
-                                                          flags, 
-                                                          message.sender, 
+                                                          ReplApplication.NC,
+                                                          flags,
+                                                          message.sender,
                                                           message.title,
                                                           backend)
         else:
-            result = u'%s%s* (%s@%s)%s %s <%s> %s\n' % (depth * '  ', 
-                                                        ReplApplication.BOLD, 
-                                                        message.id, 
-                                                        backend,
-                                                        flags, 
-                                                        ReplApplication.NC, 
-                                                        message.sender, 
-                                                        message.title)
+            result = u'%s%s* (%s.%s@%s)%s %s <%s> %s\n' % (depth * '  ',
+                                                           ReplApplication.BOLD,
+                                                           message.thread.id,
+                                                           message.id,
+                                                           backend,
+                                                           flags,
+                                                           ReplApplication.NC,
+                                                           message.sender,
+                                                           message.title)
         if message.children:
             if depth >= 0:
                 depth += 1
@@ -159,11 +160,14 @@ class Boobmsg(ReplApplication):
 
 
     def add_application_options(self, group):
-        group.add_option('-e', '--skip-empty',  action='store_true', 
+        group.add_option('-e', '--skip-empty',  action='store_true',
                          help='Don\'t send messages with an empty body.')
-        group.add_option('--to_file', action='store', 
-                         help='File to export result', type="string", 
+        group.add_option('--to_file', action='store',
+                         help='File to export result', type="string",
                          dest="filename")
+        group.add_option('-t', '--title', action='store',
+                         help='For the "post" command, set a title to message',
+                         type='string', dest='title')
 
     def load_default_backends(self):
         self.load_backends(ICapMessages, storage=self.create_storage())
@@ -180,8 +184,8 @@ class Boobmsg(ReplApplication):
             backend_name = None
 
         results = {}
-        for backend, field in self.do('get_account_status', 
-                                      backends=backend_name, 
+        for backend, field in self.do('get_account_status',
+                                      backends=backend_name,
                                       caps=ICapAccount):
             if backend.name in results:
                 results[backend.name].append(field)
@@ -220,7 +224,7 @@ class Boobmsg(ReplApplication):
             return
 
         for receiver in receivers.strip().split(','):
-            receiver, backend_name = self.parse_id(receiver.strip(), 
+            receiver, backend_name = self.parse_id(receiver.strip(),
                                                    unique_backend=True)
             if not backend_name and len(self.enabled_backends) > 1:
                 self.logger.warning(u'No backend specified for receiver "%s": message will be sent with all the '
@@ -229,15 +233,17 @@ class Boobmsg(ReplApplication):
 
             if '.' in receiver:
                 # It's a reply
-                thread_id, parent_id = receiver.split('.', 1)
+                thread_id, parent_id = receiver.rsplit('.', 1)
             else:
                 # It's an original message
                 thread_id = receiver
                 parent_id = None
 
+
             thread = Thread(thread_id)
             message = Message(thread,
                               0,
+                              title=self.options.title,
                               parent=Message(thread, parent_id) if parent_id else None,
                               content=text)
 
@@ -285,9 +291,9 @@ class Boobmsg(ReplApplication):
                 self.threads.append(thread)
             self.format(thread)
         self.flush()
-    
+
     def do_export_thread(self, arg):
-        """ 
+        """
         export_thread
 
         Export a thread
