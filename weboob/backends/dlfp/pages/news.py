@@ -25,8 +25,8 @@ from weboob.backends.dlfp.tools import url2id
 from .index import DLFPPage
 
 class Comment(object):
-    def __init__(self, browser, div, reply_id):
-        self.browser = browser
+    def __init__(self, article, div, reply_id):
+        self.browser = article.browser
         self.id = ''
         self.reply_id = reply_id
         self.title = u''
@@ -38,6 +38,7 @@ class Comment(object):
         self.comments = []
 
         self.id = div.attrib['id'].split('-')[1]
+        self.url = '%s#%s' % (article.url, div.attrib['id'])
         self.title = unicode(select(div.find('h2'), 'a.title', 1).text)
         try:
             self.author = unicode(select(div.find('p'), 'a[rel=author]', 1).text)
@@ -48,12 +49,11 @@ class Comment(object):
         self.date = local2utc(self.date)
         self.body = self.browser.parser.tostring(div.find('div'))
         self.score = int(select(div.find('p'), 'span.score', 1).text)
-        self.url = select(div.find('h2'), 'a.title', 1).attrib['href']
 
         subs = div.find('ul')
         if subs is not None:
             for sub in subs.findall('li'):
-                comment = Comment(self.browser, sub, self.id)
+                comment = Comment(article, sub, self.id)
                 self.comments.append(comment)
 
     def iter_all_comments(self):
@@ -112,7 +112,7 @@ class ContentPage(DLFPPage):
                 pass # no comments
             else:
                 for comment in threads.findall('li'):
-                    self.article.append_comment(Comment(self.browser, comment, 0))
+                    self.article.append_comment(Comment(self.article, comment, 0))
 
         return self.article
 
