@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.parsers.lxmlparser import select
+from weboob.tools.parsers.lxmlparser import select, SelectElementException
 from weboob.tools.genericArticle import GenericNewsPage, try_remove
 
 class ArticlePage(GenericNewsPage):
@@ -30,19 +30,24 @@ class ArticlePage(GenericNewsPage):
     def get_body(self):
         element_body    = self.get_element_body()
         h1_title        = select(element_body, self.element_title_selector, 1)
-        div_infos       = select(element_body, "div.infos", 1)
-        el_script       = select(element_body, "script", 1)
+
+        try:
+            el_script       = select(element_body, "script", 1)
+        except SelectElementException:
+            pass
+        else:
+            el_script.drop_tree()
+
 
         element_body.remove(h1_title)
-        element_body.remove(div_infos)
 
+        try_remove(element_body, "div.infos")
         try_remove(element_body, "div.photo")
         try_remove(element_body, "div.art_bandeau_bottom")
         try_remove(element_body, "div.view")
         try_remove(element_body, "span.auteur_long")
         try_remove(element_body, "#toolsbar")
 
-        el_script.drop_tree()
         element_body.find_class("texte")[0].drop_tag()
         element_body.tag = "div"
         return self.browser.parser.tostring(element_body)

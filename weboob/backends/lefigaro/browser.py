@@ -44,6 +44,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/programmes-tele/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/le-talk/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/sortir-paris/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/autres-sports/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/immobilier/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/environnement/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/rugby/([0-9][0-9][0-9][0-9])/([0-9][0-9])/([0-9][0-9])/(.*$)": ArticlePage,
