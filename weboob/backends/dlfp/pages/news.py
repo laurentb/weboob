@@ -19,6 +19,7 @@
 from datetime import datetime
 
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.misc import local2utc
 from weboob.backends.dlfp.tools import url2id
 
 from .index import DLFPPage
@@ -44,6 +45,7 @@ class Comment(object):
             self.author = 'Anonyme'
         self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
+        self.date = local2utc(self.date)
         self.body = self.browser.parser.tostring(div.find('div'))
         self.score = int(select(div.find('p'), 'span.score', 1).text)
         self.url = select(div.find('h2'), 'a.title', 1).attrib['href']
@@ -78,6 +80,7 @@ class Article(object):
         self.body = self.browser.parser.tostring(select(tree, 'div.content', 1))
         self.date = datetime.strptime(select(header, 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
+        self.date = local2utc(self.date)
 
         self.comments = []
 

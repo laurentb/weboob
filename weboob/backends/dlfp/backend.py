@@ -102,7 +102,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                               title=content.title,
                               sender=content.author or u'',
                               receivers=None,
-                              date=thread.date, #TODO XXX WTF this is None
+                              date=thread.date,
                               parent=None,
                               content=content.body,
                               signature='URL: %s' % self.browser.absurl(id2url(content.id)),
