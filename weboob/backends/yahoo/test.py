@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,8 +18,16 @@
 
 from weboob.tools.test import BackendTest
 
-class RedmineTest(BackendTest):
-    BACKEND = 'redmine'
+class YahooTest(BackendTest):
+    BACKEND = 'yahoo'
 
-    def test_redmine(self):
-        pass
+    def test_meteo(self):
+        l = list(self.backend.iter_city_search('paris'))
+        self.assertTrue(len(l) > 0)
+
+        city = l[0]
+        current = self.backend.get_current(city.id)
+        self.assertTrue(current.temp > -20 and current.temp < 50)
+
+        forecasts = list(self.backend.iter_forecast(city.id))
+        self.assertTrue(len(forecasts) > 0)
