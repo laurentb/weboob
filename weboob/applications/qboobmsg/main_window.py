@@ -41,6 +41,8 @@ class MainWindow(QtMainWindow):
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
+        else:
+            self.centralWidget().load()
 
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapMessages,), self)
