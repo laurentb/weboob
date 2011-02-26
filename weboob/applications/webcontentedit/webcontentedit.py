@@ -66,7 +66,10 @@ class WebContentEdit(ReplApplication):
                 data = content.content
                 if isinstance(data, unicode):
                     data = data.encode('utf-8')
-                f.write(data or '')
+                elif data is None:
+                    data = ''
+                f.write(data)
+                content.content = data
             paths[path] = content
 
         params = ''
