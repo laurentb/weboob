@@ -162,9 +162,6 @@ class Boobmsg(ReplApplication):
     def add_application_options(self, group):
         group.add_option('-e', '--skip-empty',  action='store_true',
                          help='Don\'t send messages with an empty body.')
-        group.add_option('--to_file', action='store',
-                         help='File to export result', type="string",
-                         dest="filename")
         group.add_option('-t', '--title', action='store',
                          help='For the "post" command, set a title to message',
                          type='string', dest='title')
@@ -300,13 +297,9 @@ class Boobmsg(ReplApplication):
         """
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
-        if self.options.filename:
-            output = self.options.filename
-        else:
-            output = sys.stdout
         for backend, thread in cmd:
             for msg in thread.iter_all_messages():
-                self.format(msg, output=output)
+                self.format(msg)
 
 
     def do_show(self, arg):

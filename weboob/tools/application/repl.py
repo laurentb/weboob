@@ -144,7 +144,7 @@ class ReplApplication(Cmd, BaseApplication):
                                       help='select output formatter (%s)' % u', '.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
-        formatting_options.add_option('--outfile', dest='outfile', help='file to export result')
+        formatting_options.add_option('-O', '--outfile', dest='outfile', help='file to export result')
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
@@ -1077,17 +1077,17 @@ class ReplApplication(Cmd, BaseApplication):
     def set_formatter_header(self, string):
         self.formatter.set_header(string)
 
-    def format(self, result, output=sys.stdout):
+    def format(self, result):
         fields = self.selected_fields
         if fields in ('$direct', '$full'):
             fields = None
-        self.formatter.output = output
         try:
             self.formatter.format(obj=result, selected_fields=fields)
         except FieldNotFound, e:
             print e
         except MandatoryFieldsNotFound, e:
             print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
+
     def flush(self):
         self.formatter.flush()
 
