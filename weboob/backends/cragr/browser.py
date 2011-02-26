@@ -134,7 +134,7 @@ class Cragr(BaseBrowser):
 
         # separate euros from cents
         amount_euros = int(amount)
-        amount_cents = int((amount - amount_euros) * 100)
+        amount_cents = int((amount * 100) - (amount_euros * 100))
 
         # let's circumvent https://github.com/jjlee/mechanize/issues/closed#issue/17
         # using http://wwwsearch.sourceforge.net/mechanize/faq.html#usage
