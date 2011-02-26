@@ -28,6 +28,7 @@ import sys
 import logging
 import asyncore
 import subprocess
+import socket
 
 from weboob.core import Weboob, CallErrors
 from weboob.core.scheduler import Scheduler
@@ -59,7 +60,11 @@ class MonboobScheduler(Scheduler):
             else:
                 host = '127.0.0.1'
                 port = self.app.options.smtpd
-            FakeSMTPD(self.app, host, int(port))
+            try:
+                FakeSMTPD(self.app, host, int(port))
+            except socket.error, e:
+                self.logger.error('Unable to start the SMTP daemon: %s' % e)
+                return False
 
         # XXX Fuck, we shouldn't copy this piece of code from
         # weboob.scheduler.Scheduler.run().
