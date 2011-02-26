@@ -17,8 +17,9 @@
 
 from PyQt4.QtCore import SIGNAL
 
-
 from weboob.tools.application.qt import QtMainWindow, QtDo
+from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.capabilities.content import ICapContent
 
 from .ui.main_window_ui import Ui_MainWindow
 
@@ -35,9 +36,22 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.loadPage)
         self.connect(self.ui.loadButton, SIGNAL("clicked()"), self.loadPage)
         self.connect(self.ui.tabWidget, SIGNAL("currentChanged(int)"),
-self._currentTabChanged)
+                                        self._currentTabChanged)
         self.connect(self.ui.saveButton, SIGNAL("clicked()"), self.savePage)
+        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
 
+        if self.weboob.count_backends() == 0:
+            self.backendsConfig()
+        else:
+            self.loadBackends()
+
+    def backendsConfig(self):
+        bckndcfg = BackendCfg(self.weboob, (ICapContent,), self)
+        if bckndcfg.run():
+            self.loadBackends()
+
+    def loadBackends(self):
+        self.ui.backendBox.clear()
         for backend in self.weboob.iter_backends():
             self.ui.backendBox.insertItem(0, backend.name)
 
@@ -54,8 +68,6 @@ self._currentTabChanged)
         backend = str(self.ui.backendBox.currentText())
         self.process = QtDo(self.weboob, self._loadPage_cb, self._loadPage_eb)
         self.process.do('get_content', _id, backends=(backend,))
-
-        
 
     def _loadPage_cb(self, backend, data):
         if not backend or not data:
@@ -92,4 +104,3 @@ self._currentTabChanged)
         tmp_content = self.content
         tmp_content.content=unicode(self.ui.contentEdit.toPlainText())
         self.ui.previewEdit.setHtml(self.backend.get_content_preview(tmp_content))
-        return
