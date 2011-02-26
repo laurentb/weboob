@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import re
 from logging import warning
 
 from weboob.core.modules import ModuleLoadError
+from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.ordereddict import OrderedDict
@@ -244,7 +245,13 @@ class BackendCfg(QDialog):
 
             params[key] = value.value
 
-        self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
+        try:
+            self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
+        except BackendAlreadyExists, e:
+            QMessageBox.critical(self, self.tr('Unable to create backend'),
+                     unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
+            return
+
         self.to_load.add(bname)
         self.ui.configFrame.hide()
 
@@ -275,6 +282,10 @@ class BackendCfg(QDialog):
             self.ui.backendInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'),
                 QVariant(img))
 
+        if not backend.name in [n for n, ign, ign2 in self.weboob.backends_config.iter_backends()]:
+            self.ui.nameEdit.setText(backend.name)
+        else:
+            self.ui.nameEdit.setText('')
         self.ui.backendInfo.setText(unicode(self.tr(
            '<h1>%s Backend %s</h1>'
            '<b>Version</b>: %s<br />'
