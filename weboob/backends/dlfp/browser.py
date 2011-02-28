@@ -70,8 +70,8 @@ class DLFP(BaseBrowser):
         self.select_form(predicate=self._is_comment_submit_form)
         self.set_all_readonly(False)
         if title is not None:
-            self['comment[title]'] = title
-        self['comment[wiki_body]'] = message
+            self['comment[title]'] = title.encode('utf-8')
+        self['comment[wiki_body]'] = message.encode('utf-8')
         if int(reply_id) > 0:
             self['comment[parent_id]'] = str(reply_id)
         self['commit'] = 'Poster le commentaire'
