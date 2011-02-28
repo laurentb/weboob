@@ -138,14 +138,15 @@ class WeboobCfg(ReplApplication):
 
     def do_edit(self, line):
         """
-        edit
+        edit NAME
 
-        Edit configuration file.
+        Edit a backend
         """
-        if line:
-            print 'This command takes no argument.'
-        else:
-            subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
+        try:
+            self.edit_backend(line)
+        except KeyError, e:
+            print >>sys.stderr, 'Error: backend "%s" not found' % line
+            return 1
 
     def do_backends(self, line):
         """
