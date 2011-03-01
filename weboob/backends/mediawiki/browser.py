@@ -78,8 +78,6 @@ class MediawikiBrowser(BaseBrowser):
                 }
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
-        if pageid == "-1":
-            return None
         return result['query']['pages'][str(pageid)][_type+'token']
 
 
