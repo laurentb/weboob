@@ -32,7 +32,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
     NAME = 'youporn'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.6'
+    VERSION = '0.7'
     DESCRIPTION = 'Youporn videos website'
     LICENSE = 'GPLv3'
     BROWSER = YoupornBrowser

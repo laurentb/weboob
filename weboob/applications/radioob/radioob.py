@@ -52,7 +52,7 @@ class RadioListFormatter(IFormatter):
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.6'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Radioob is a console application to list radios, play them and get " \
                   "informations like the current song."

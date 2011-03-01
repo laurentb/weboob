@@ -23,7 +23,7 @@ from .main_window import MainWindow
 
 class QBoobMsg(QtApplication):
     APPNAME = 'qboobmsg'
-    VERSION = '0.6'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "QBoobMsg is a graphical application to read messages on supported " \
                   "website and reply to them."

@@ -28,7 +28,7 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.6'
+    VERSION = '0.7'
     DESCRIPTION = 'the pirate bay bittorrent tracker'
     LICENSE = 'GPLv3'
     #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
