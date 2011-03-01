@@ -18,7 +18,6 @@
 
 import os
 import sys
-import subprocess
 import re
 
 from weboob.capabilities.account import ICapAccount
@@ -144,7 +143,7 @@ class WeboobCfg(ReplApplication):
         """
         try:
             self.edit_backend(line)
-        except KeyError, e:
+        except KeyError:
             print >>sys.stderr, 'Error: backend "%s" not found' % line
             return 1
 
