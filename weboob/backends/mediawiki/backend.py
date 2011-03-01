@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import with_statement
+
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.content import ICapContent, Content
 from weboob.tools.value import ValuesDict, Value
@@ -32,8 +34,8 @@ class MediawikiBackend(BaseBackend, ICapContent):
     VERSION = '0.6'
     LICENSE = 'GPLv3'
     DESCRIPTION = 'Mediawiki wiki software application'
-    CONFIG = ValuesDict(Value('url',      label='URL of the Mediawiki website'),
-                        Value('apiurl',   label='URL of the Mediawiki website\'s API'),
+    CONFIG = ValuesDict(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/'),
+                        Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php'),
                         Value('username', label='Login', default=''),
                         Value('password', label='Password', default='', masked=True))
 
