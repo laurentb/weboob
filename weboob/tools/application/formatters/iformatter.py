@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from __future__ import with_statement
+
 import os
 import sys
 try:
@@ -55,30 +57,36 @@ class IFormatter(object):
 
     MANDATORY_FIELDS = None
 
-    def __init__(self, display_keys=True, display_header=True, return_only=False):
+    def __init__(self, display_keys=True, display_header=True, return_only=False, outfile=sys.stdout):
         self.display_keys = display_keys
         self.display_header = display_header
         self.return_only = return_only
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
+        self.outfile = outfile
         # XXX if stdin is not a tty, it seems that the command fails.
         if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
     def after_format(self, formatted):
-        for line in formatted.split('\n'):
-            if self.termrows and (self.print_lines + 1) >= self.termrows:
-                sys.stdout.write(PROMPT)
-                sys.stdout.flush()
-                readch()
-                sys.stdout.write('\b \b' * len(PROMPT))
-                self.print_lines = 0
+        if self.outfile != sys.stdout:
+            with open(self.outfile, "a+") as outfile:
+                outfile.write(formatted.encode('utf-8'))
 
-            if isinstance(line, unicode):
-                line = line.encode('utf-8')
-            print line
-            self.print_lines += 1
+        else:
+            for line in formatted.split('\n'):
+                if self.termrows and (self.print_lines + 1) >= self.termrows:
+                    self.outfile.write(PROMPT)
+                    self.outfile.flush()
+                    readch()
+                    self.outfile.write('\b \b' * len(PROMPT))
+                    self.print_lines = 0
+
+                if isinstance(line, unicode):
+                    line = line.encode('utf-8')
+                print line
+                self.print_lines += 1
 
     def build_id(self, v, backend_name):
         return u'%s@%s' % (unicode(v), backend_name)

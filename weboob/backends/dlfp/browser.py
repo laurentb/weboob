@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,98 +17,87 @@
 
 
 import urllib
-from cStringIO import StringIO
 
-from weboob.tools.browser import BaseBrowser
-from weboob.tools.parsers.lxmlparser import LxmlHtmlParser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPError, BrowserIncorrectPassword
+from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
-from .pages.news import ContentPage
-from .tools import id2url, id2threadid, id2contenttype
-
-class Parser(LxmlHtmlParser):
-    def parse(self, data, encoding=None):
-        # Want to kill templeet coders
-        data = StringIO(data.read().replace('<<', '<').replace('cite>', 'i>').replace('tt>', 'i>'))
-        return LxmlHtmlParser.parse(self, data, encoding)
+from .pages.news import ContentPage, NewCommentPage, NodePage
+from .tools import id2url, url2id
 
 # Browser
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
-    PAGES = {'https://linuxfr.org/': IndexPage,
-             'https://linuxfr.org/pub/': IndexPage,
-             'https://linuxfr.org/my/': IndexPage,
+    PAGES = {'https://linuxfr.org/?': IndexPage,
              'https://linuxfr.org/login.html': LoginPage,
-             'https://linuxfr.org/.*/\d+.html': ContentPage
+             'https://linuxfr.org/news/[^\.]+': ContentPage,
+             'https://linuxfr.org/users/[\w_]+/journaux/[^\.]+': ContentPage,
+             'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
+             'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
             }
-
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = Parser()
-        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         return self.location('https://linuxfr.org')
 
     def get_content(self, _id):
-        self.location(id2url(_id))
-        return self.page.get_article()
+        url = id2url(_id)
+        if url is None:
+            if url2id(_id) is not None:
+                url = _id
+                _id = url2id(url)
+            else:
+                return None
 
-    def post_reply(self, thread, reply_id, title, message, is_html=False):
-        content_type = id2contenttype(thread)
-        thread_id = id2threadid(thread)
-        thread_url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, id2url(thread))
-        reply_id = int(reply_id)
+        self.location(url)
+        content = self.page.get_article()
+        content.id = _id
+        return content
 
-        if not content_type or not thread_id:
-            return False
+    def _is_comment_submit_form(self, form):
+        return 'comment_new' in form.action
 
-        url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL,
-                                                              self.DOMAIN,
-                                                              thread_id,
-                                                              reply_id,
-                                                              content_type)
+    def post_comment(self, thread, reply_id, title, message):
+        url = id2url(thread)
+        if url is None:
+            raise CantSendMessage('%s is not a right ID' % thread)
 
-        timestamp = ''
-        if content_type == 1:
-            res = self.openurl(url).read()
-            const = 'name="timestamp" value="'
-            i = res.find(const)
-            if i >= 0:
-                res = res[i + len(const):]
-                timestamp = res[:res.find('"/>')]
+        self.location(url)
+        assert self.is_on_page(ContentPage)
+        self.location(self.page.get_post_comment_url())
+        assert self.is_on_page(NewCommentPage)
 
-        if is_html:
-            format = 1
-        else:
-            format = 3
+        self.select_form(predicate=self._is_comment_submit_form)
+        self.set_all_readonly(False)
+        if title is not None:
+            self['comment[title]'] = title.encode('utf-8')
+        self['comment[wiki_body]'] = message.encode('utf-8')
+        if int(reply_id) > 0:
+            self['comment[parent_id]'] = str(reply_id)
+        self['commit'] = 'Poster le commentaire'
 
-        # Define every data fields
-        data = {'news_id': thread_id,
-                'com_parent': reply_id,
-                'timestamp': timestamp,
-                'res_type': content_type,
-                'referer': thread_url,
-                'subject': unicode(title).encode('utf-8'),
-                'body': unicode(message).encode('utf-8'),
-                'format': format,
-                'submit': 'Envoyer',
-                }
+        try:
+            self.submit()
+        except BrowserHTTPError, e:
+            raise CantSendMessage('Unable to send message to %s.%s: %s' % (thread, reply_id, e))
 
-        url = '%s://%s/submit/comments,%d,%d,%d.html#post' % (self.PROTOCOL, self.DOMAIN, thread_id, reply_id, content_type)
+        if self.is_on_page(NodePage):
+            errors = self.page.get_errors()
+            if len(errors) > 0:
+                raise CantSendMessage('Unable to send message: %s' % ', '.join(errors))
 
-        request = self.request_class(url, urllib.urlencode(data), {'Referer': url})
-        result = self.openurl(request)
-        request = self.request_class(thread_url, None, {'Referer': result.geturl()})
-        self.openurl(request).read()
         return None
 
     def login(self):
-        self.location('/login.html', 'login=%s&passwd=%s&isauto=1' % (self.username, self.password))
+        data = {'account[login]': self.username,
+                'account[password]': self.password,
+                'account[remember_me]': 1}
+        self.location('/compte/connexion', urllib.urlencode(data), no_login=True)
+        if not self.is_logged():
+            raise BrowserIncorrectPassword()
 
     def is_logged(self):
         return (self.page and self.page.is_logged())
 
     def close_session(self):
-        self.openurl('/close_session.html')
-
+        self.openurl('/compte/deconnexion')

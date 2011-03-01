@@ -51,6 +51,9 @@ class BackendNotGiven(Exception):
 class NotEnoughArguments(Exception):
     pass
 
+class OutputIsNone(Exception):
+    pass
+
 
 class ReplOptionParser(OptionParser):
     def format_option_help(self, formatter=None):
@@ -141,6 +144,7 @@ class ReplApplication(Cmd, BaseApplication):
                                       help='select output formatter (%s)' % u', '.join(available_formatters))
         formatting_options.add_option('--no-header', dest='no_header', action='store_true', help='do not display header')
         formatting_options.add_option('--no-keys', dest='no_keys', action='store_true', help='do not display item keys')
+        formatting_options.add_option('-O', '--outfile', dest='outfile', help='file to export result')
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
@@ -662,18 +666,25 @@ class ReplApplication(Cmd, BaseApplication):
         action = args[0]
         given_backend_names = args[1:]
 
-        if action not in ('add', 'register'):
-            skipped_backend_names = []
-            for backend_name in given_backend_names:
+        for backend_name in given_backend_names:
+            if action in ('add', 'register'):
+                try:
+                    module = self.weboob.modules_loader.get_or_load_module(backend_name)
+                except ModuleLoadError:
+                    print >>sys.stderr, 'Backend "%s" does not exist.' % backend_name
+                    return 1
+                else:
+                    if self.CAPS and not self.caps_included(module.iter_caps(), self.CAPS.__name__):
+                        print >>sys.stderr, 'Backend "%s" is not supported by this application => skipping.' % backend_name
+                        return 1
+            else:
                 if backend_name not in [backend.name for backend in self.weboob.iter_backends()]:
-                    print 'Backend "%s" does not exist => skipping.' % backend_name
-                    skipped_backend_names.append(backend_name)
-            for skipped_backend_name in skipped_backend_names:
-                given_backend_names.remove(skipped_backend_name)
+                    print >>sys.stderr, 'Backend "%s" does not exist => skipping.' % backend_name
+                    return 1
 
-        if action in ('enable', 'disable', 'only', 'add', 'register', 'remove'):
+        if action in ('enable', 'disable', 'only', 'add', 'register', 'edit', 'remove'):
             if not given_backend_names:
-                print 'Please give at least a backend name.'
+                print >>sys.stderr, 'Please give at least a backend name.'
                 return
 
         given_backends = set(backend for backend in self.weboob.iter_backends() if backend.name in given_backend_names)
@@ -1064,6 +1075,8 @@ class ReplApplication(Cmd, BaseApplication):
             self.formatter.display_header = False
         if self.options.no_keys:
             self.formatter.display_keys = False
+        if self.options.outfile:
+            self.formatter.outfile = self.options.outfile
         if self.interactive:
             self.formatter.interactive = True
         return name
@@ -1080,7 +1093,7 @@ class ReplApplication(Cmd, BaseApplication):
         except FieldNotFound, e:
             print e
         except MandatoryFieldsNotFound, e:
-            print '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
+            print >> sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
 
     def flush(self):
         self.formatter.flush()

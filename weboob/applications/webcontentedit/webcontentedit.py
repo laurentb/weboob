@@ -33,7 +33,7 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.5.1'
+    VERSION = '0.6'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Webcontentedit is a console application to display and " \
                   "edit contents on supported websites."
@@ -41,7 +41,7 @@ class WebContentEdit(ReplApplication):
 
     def do_edit(self, line):
         """
-        edit ID
+        edit ID [ID...]
 
         Edit a content with $EDITOR, then push it on the website.
         """
@@ -66,6 +66,9 @@ class WebContentEdit(ReplApplication):
                 data = content.content
                 if isinstance(data, unicode):
                     data = data.encode('utf-8')
+                elif data is None:
+                    content.content = u''
+                    data = ''
                 f.write(data)
             paths[path] = content
 
@@ -93,7 +96,7 @@ class WebContentEdit(ReplApplication):
         print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
         message = self.ask('Enter a commit message', default='')
-
+        minor = self.ask('Is this a minor edit?', default=False)
         if not self.ask('Do you want to push?', default=True):
             return
 
@@ -103,7 +106,7 @@ class WebContentEdit(ReplApplication):
             sys.stdout.write('Pushing %s...' % content.id)
             sys.stdout.flush()
             try:
-                self.do('push_content', content, message, backends=[content.backend]).wait()
+                self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
             except CallErrors, e:
                 errors.errors += e.errors
                 sys.stdout.write(' error (content saved in %s)\n' % path)
@@ -113,3 +116,20 @@ class WebContentEdit(ReplApplication):
 
         if len(errors.errors) > 0:
             raise errors
+
+    def do_log(self, line):
+        """
+        log ID
+
+        Display log of a page
+        """
+        if not line:
+            print >>sys.stderr, 'Error: please give a page ID'
+            return 1
+
+        _id, backend_name = self.parse_id(line)
+        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+
+        _id = _id.encode('utf-8')
+        for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count, backends=backend_names):
+            self.format(revision)

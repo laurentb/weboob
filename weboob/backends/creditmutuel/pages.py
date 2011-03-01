@@ -45,9 +45,11 @@ class AccountsPage(BasePage):
                 account.link_id = first_td.find('a').get('href', '')
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
                 s = tr.getchildren()[2].text
+                if s.strip() == "":
+                    s = tr.getchildren()[1].text
                 balance = u''
                 for c in s:
-                    if c.isdigit():
+                    if c.isdigit() or c == '-':
                         balance += c
                     if c == ',':
                         balance += '.'

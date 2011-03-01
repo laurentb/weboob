@@ -35,15 +35,6 @@ class MessagesManager(QWidget):
 
         self.weboob = weboob
 
-        self.ui.backendsList.addItem('(All)')
-        for backend in self.weboob.iter_backends():
-            if not backend.has_caps(ICapMessages):
-                continue
-
-            item = QListWidgetItem(backend.name.capitalize())
-            item.setData(Qt.UserRole, backend)
-            self.ui.backendsList.addItem(item)
-
         self.ui.backendsList.setCurrentRow(0)
         self.backend = None
         self.thread = None
@@ -60,6 +51,16 @@ class MessagesManager(QWidget):
         self.connect(self.ui.sendButton, SIGNAL('clicked()'), self._sendPressed)
 
     def load(self):
+        self.ui.backendsList.clear()
+        self.ui.backendsList.addItem('(All)')
+        for backend in self.weboob.iter_backends():
+            if not backend.has_caps(ICapMessages):
+                continue
+
+            item = QListWidgetItem(backend.name.capitalize())
+            item.setData(Qt.UserRole, backend)
+            self.ui.backendsList.addItem(item)
+
         self.refreshThreads()
 
     def _backendChanged(self):
@@ -138,8 +139,9 @@ class MessagesManager(QWidget):
 
         top.addChild(item)
 
-        for child in message.children:
-            self._insert_message(child, item)
+        if message.children is not None:
+            for child in message.children:
+                self._insert_message(child, item)
 
     def _messageSelected(self, item, column):
         message = item.data(0, Qt.UserRole).toPyObject()

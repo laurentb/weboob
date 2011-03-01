@@ -1,4 +1,4 @@
-.TH BOOBMSG 1 "08 January 2011" "boobmsg 0\&.5"
+.TH BOOBMSG 1 "01 March 2011" "boobmsg 0\&.6"
 .SH NAME
 boobmsg
 .SH SYNOPSIS
@@ -22,12 +22,22 @@ Boobmsg is a console application to send messages on supported websites and to d
 .br
 * fourchan (4chan website)
 .br
+* inrocks (Inrock French news website)
+.br
+* lefigaro (Lefigaro French news website)
+.br
+* minutes20 (20minutes French news  website)
+.br
 * newsfeed (Loads RSS and Atom feeds from any website)
 .br
 * orange (Orange french mobile phone provider)
 .br
 * sfr (SFR french mobile phone provider)
 .SH BOOBMSG COMMANDS
+.TP
+\fBexport_thread\fR
+.br
+Export a thread
 .TP
 \fBlist\fR
 .br
@@ -175,6 +185,9 @@ what backend(s) to enable (comma separated)
 .TP
 \fB\-e\fR, \fB\-\-skip\-empty\fR
 Don't send messages with an empty body.
+.TP
+\fB\-t TITLE\fR, \fB\-\-title=TITLE\fR
+For the "post" command, set a title to message
 
 .SH LOGGING OPTIONS
 .TP
@@ -215,9 +228,12 @@ do not display header
 .TP
 \fB\-\-no\-keys\fR
 do not display item keys
+.TP
+\fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
+file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010 Christophe Benz
+Copyright(C) 2010-2011 Christophe Benz
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP

@@ -19,12 +19,14 @@
 from weboob.tools.misc import iter_fields
 
 
-__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded', 'CapBaseObject']
+__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded', 
+    'CapBaseObject']
 
 
 class FieldNotFound(Exception):
     def __init__(self, obj, field):
-        Exception.__init__(self, u'Field "%s" not found for object %s' % (field, obj))
+        Exception.__init__(self, 
+            u'Field "%s" not found for object %s' % (field, obj))
 
 
 class NotAvailableMeta(type):
@@ -133,7 +135,8 @@ class CapBaseObject(object):
         if self._attribs is not None and name in self._attribs:
             return self._attribs[name].value
         else:
-            raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, name)
+            raise AttributeError, "'%s' object has no attribute '%s'" % (
+                self.__class__.__name__, name)
 
     def __setattr__(self, name, value):
         try:
@@ -145,5 +148,7 @@ class CapBaseObject(object):
                value is not NotLoaded and \
                value is not NotAvailable and \
                value is not None:
-                raise ValueError('Value for "%s" needs to be of type %r, not %r' % (name, attr.type, type(value)))
+                raise ValueError(
+                    'Value for "%s" needs to be of type %r, not %r' % (
+                        name, attr.type, type(value)))
             attr.value = value

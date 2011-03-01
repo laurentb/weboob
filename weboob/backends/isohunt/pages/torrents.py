@@ -63,23 +63,23 @@ class TorrentPage(BasePage):
         for a in self.document.getiterator('a'):
             if 'Search more torrents of' in a.attrib.get('title', ''):
                 title = a.tail
+        seed = -1
+        leech = -1
+        tip_id = "none"
         for span in self.document.getiterator('span'):
             if span.attrib.get('style', '') == 'color:green;' and ('ShowTip' in span.attrib.get('onmouseover', '')):
                 seed = span.tail.split(' ')[1]
                 tip_id = span.attrib.get('onmouseover', '').split("'")[1]
-                for div in self.document.getiterator('div'):
-                    # find the corresponding super tip which appears on super mouse hover!
-                    if div.attrib.get('class', '') == 'dirs ydsf' and tip_id in div.attrib.get('id', ''):
-                        leech = div.getchildren()[0].getchildren()[1].tail.split(' ')[2]
-                    # the <b> with the size in it doesn't have a distinction
-                    # have to get it by higher
-                    elif div.attrib.get('id', '') == 'torrent_details':
-                        size = div.getchildren()[6].getchildren()[0].getchildren()[0].text
-                        u = size[-2:]
-                        size = float(size[:-3])
-
-                # all the thing we get in that loop are unique, no need to go on looping
-                break
+        for div in self.document.getiterator('div'):
+            # find the corresponding super tip which appears on super mouse hover!
+            if div.attrib.get('class', '') == 'dirs ydsf' and tip_id in div.attrib.get('id', ''):
+                leech = div.getchildren()[0].getchildren()[1].tail.split(' ')[2]
+            # the <b> with the size in it doesn't have a distinction
+            # have to get it by higher
+            elif div.attrib.get('id', '') == 'torrent_details':
+                size = div.getchildren()[6].getchildren()[0].getchildren()[0].text
+                u = size[-2:]
+                size = float(size[:-3])
 
         # files and description (uploader's comment)
         description = 'No description'
@@ -89,7 +89,8 @@ class TorrentPage(BasePage):
             if p.attrib.get('style', '') == 'line-height:1.2em;margin-top:1.8em':
                 count_p_found += 1
                 if count_p_found == 1:
-                    description = p.getchildren()[1].tail
+                    if p.getchildren()[1].tail != None:
+                        description = p.getchildren()[1].tail
                 if count_p_found == 2:
                     if p.getchildren()[0].text == 'Directory:':
                         files.append(p.getchildren()[0].tail.strip()+'/')

@@ -18,7 +18,6 @@
 
 import os
 import sys
-import subprocess
 import re
 
 from weboob.capabilities.account import ICapAccount
@@ -32,7 +31,7 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.5.1'
+    VERSION = '0.6'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
@@ -138,14 +137,15 @@ class WeboobCfg(ReplApplication):
 
     def do_edit(self, line):
         """
-        edit
+        edit NAME
 
-        Edit configuration file.
+        Edit a backend
         """
-        if line:
-            print 'This command takes no argument.'
-        else:
-            subprocess.call([os.environ.get('EDITOR', 'vi'), self.weboob.backends_config.confpath])
+        try:
+            self.edit_backend(line)
+        except KeyError:
+            print >>sys.stderr, 'Error: backend "%s" not found' % line
+            return 1
 
     def do_backends(self, line):
         """

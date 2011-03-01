@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ from weboob.tools.browser import BrowserIncorrectPassword, BasePage
 class DLFPPage(BasePage):
     def is_logged(self):
         for form in self.document.getiterator('form'):
-            if form.attrib.get('id', None) == 'formulaire':
+            if form.attrib.get('id', None) == 'new_account_sidebar':
                 return False
 
         return True

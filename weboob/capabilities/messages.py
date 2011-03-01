@@ -91,9 +91,8 @@ class Message(CapBaseObject):
             return unicode(self.id) == unicode(msg.id)
 
     def __repr__(self):
-        result = '<Message id="%s" title="%s" date="%s" from="%s">' % (
-            self.full_id, self.title, self.date, self.sender)
-        return result.encode('utf-8')
+        return '<Message id=%r title=%r date=%r from=%r>' % (
+                   self.full_id, self.title, self.date, self.sender)
 
 class Thread(CapBaseObject):
     IS_THREADS =    0x001

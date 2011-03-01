@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,43 +18,50 @@
 
 import re
 
-ID2URL_NEWSPAPER = re.compile('.*/(\d{4})/(\d{2})/(\d{2})/(\d+)\.html$')
-ID2URL_TELEGRAM  = re.compile('.*/~([A-Za-z0-9_]+)/(\d+)\.html$')
-URL2ID_NEWSPAPER = re.compile('^N(\d{4})(\d{2})(\d{2}).(\d+)$')
-URL2ID_TELEGRAM  = re.compile('^T([A-Za-z0-9_]+).(\d+)$')
+RSSID_RE = re.compile('tag:.*:(\w)\w+/(\d+)')
+ID2URL_RE = re.compile('^(\w)([\w_]*)\.([^\.]+)$')
+URL2ID_DIARY_RE = re.compile('.*/users/([\w_]+)/journaux/([^\.]+)')
+URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
+
+def rssid(entry):
+    m = RSSID_RE.match(entry.id)
+    if not m:
+        return None
+    if m.group(1) == 'D':
+        mm = URL2ID_DIARY_RE.match(entry.link)
+        if not mm:
+            return
+        return 'D%s.%s' % (mm.group(1), m.group(2))
+    return '%s.%s' % (m.group(1), m.group(2))
+
+def id2url(id):
+    m = ID2URL_RE.match(id)
+    if not m:
+        return None
+
+    if m.group(1) == 'N':
+        return '/news/%s' % m.group(3)
+    if m.group(1) == 'D':
+        return '/users/%s/journaux/%s' % (m.group(2), m.group(3))
 
 def url2id(url):
-    m = ID2URL_NEWSPAPER.match(url)
+    m = URL2ID_NEWSPAPER_RE.match(url)
     if m:
-        return 'N%04d%02d%02d.%d' % (int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)))
-    m = ID2URL_TELEGRAM.match(url)
+        return 'N.%s' % (m.group(1))
+    m = URL2ID_DIARY_RE.match(url)
     if m:
-        return 'T%s.%d' % (m.group(1), int(m.group(2)))
-    return None
+        return 'D%s.%s' % (m.group(1), m.group(2))
 
-def id2url(_id):
-    m = URL2ID_NEWSPAPER.match(_id)
+def id2threadid(id):
+    m = ID2URL_RE.match(id)
     if m:
-        return '/%04d/%02d/%02d/%d.html' % (int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)))
-    m = URL2ID_TELEGRAM.match(_id)
-    if m:
-        return '/~%s/%d.html' % (m.group(1), int(m.group(2)))
-    return None
-
-def id2threadid(_id):
-    m = URL2ID_NEWSPAPER.match(_id)
-    if m:
-        return int(m.group(4))
-    m = URL2ID_TELEGRAM.match(_id)
-    if m:
-        return int(m.group(2))
-    return None
+        return m.group(3)
 
 def id2contenttype(_id):
     if not _id:
         return None
     if _id[0] == 'N':
         return 1
-    if _id[0] == 'T':
+    if _id[0] == 'D':
         return 5
     return None

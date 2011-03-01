@@ -1,0 +1,58 @@
+.TH QWEBCONTENTEDIT 1 "01 March 2011" "qwebcontentedit 0\&.6"
+.SH NAME
+qwebcontentedit
+.SH SYNOPSIS
+.B qwebcontentedit
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
+.br
+.B qwebcontentedit
+[\-\-help] [\-\-version]
+
+.SH DESCRIPTION
+.LP
+
+Qt application for managing content on supported websites
+
+.SS Supported websites:
+* mediawiki (Mediawiki wiki software application)
+.br
+* redmine (The Redmine project management web application)
+.SH OPTIONS
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+display debug messages
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+display only error messages
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+display info messages
+.TP
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
+.TP
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH COPYRIGHT
+Copyright(C) 2011 Clément Schreiner
+.LP
+For full COPYRIGHT see COPYING file with weboob package.
+.LP
+.RE
+.SH FILES
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Qwebcontentedit

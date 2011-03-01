@@ -72,10 +72,16 @@ class TorrentPage(BasePage):
                 for ch in div.getchildren():
                     if ch.tail != None:
                         description += ' '+ch.tail.strip()
-            if div.attrib.get('class', '') == 'seedBlock':
-                seed = int(div.getchildren()[1].text)
-            if div.attrib.get('class', '') == 'leechBlock':
-                leech = int(div.getchildren()[1].text)
+            elif div.attrib.get('class', '') == 'seedBlock':
+                if div.getchildren()[1].text != None:
+                    seed = int(div.getchildren()[1].text)
+                else:
+                    seed = 0
+            elif div.attrib.get('class', '') == 'leechBlock':
+                if div.getchildren()[1].text != None:
+                    leech = int(div.getchildren()[1].text)
+                else:
+                    leech = 0
 
         for h in self.document.getiterator('h1'):
             if h.attrib.get('class', '') == 'torrentName':
@@ -87,7 +93,9 @@ class TorrentPage(BasePage):
 
         size = 0
         for span in self.document.getiterator('span'):
-            if span.attrib.get('class', '') == 'folder' or span.attrib.get('class', '') == 'folderopen':
+            # sometimes there are others span, this is not so sure but the size of the children list
+            # is enough to know if this is the right span
+            if (span.attrib.get('class', '') == 'folder' or span.attrib.get('class', '') == 'folderopen') and len(span.getchildren())>2:
                 size = span.getchildren()[1].tail
                 u = span.getchildren()[2].text
                 size = float(size.split(': ')[1].replace(',', '.'))

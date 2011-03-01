@@ -76,7 +76,7 @@ class AccountsList(CragrBasePage):
         title_spans = self.document.xpath('/html/body/div[@class="dv"]/span')
         for title_span in title_spans:
             title_text = title_span.text_content().strip().replace("\n", '')
-            if (re.match('.*Compte.*n.[0-9]+.*au.*', title_text)):
+            if (re.match('.*Compte.*n.*[0-9]+.*au.*', title_text)):
                 return True
         return False
 

@@ -32,7 +32,7 @@ class RedmineBackend(BaseBackend, ICapContent):
     NAME = 'redmine'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.5.1'
+    VERSION = '0.6'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('url',      label='URL of the Redmine website'),
@@ -64,7 +64,7 @@ class RedmineBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def push_content(self, content, message=None):
+    def push_content(self, content, message=None, minor=False):
         try:
             _type, project, page = self.id2path(content.id)
         except ValueError:
@@ -72,3 +72,12 @@ class RedmineBackend(BaseBackend, ICapContent):
 
         with self.browser:
             return self.browser.set_wiki_source(project, page, content.content, message)
+
+    def get_content_preview(self, content):
+        try:
+            _type, project, page = self.id2path(content.id)
+        except ValueError:
+            return
+
+        with self.browser:
+            return self.browser.get_wiki_preview(project, page, content.content)

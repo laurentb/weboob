@@ -24,11 +24,7 @@ __all__ = ['PlayerPage']
 
 
 class PlayerPage(BasePage):
-    def get_current(self, radio):
-        if radio == 'general':
-            _radio = ''
-        else:
-            _radio = '_%s' % radio
-        title = select(self.document.getroot(), 'div#titre%s' % _radio, 1).text.strip()
-        artist = select(self.document.getroot(), 'div#artiste%s' % _radio, 1).text.strip()
-        return unicode(artist), unicode(title)
+    def get_current(self):
+        title = select(self.document.getroot(), 'span.titre_en_cours', 1).text
+        artist = select(self.document.getroot(), 'span.artiste_en_cours', 1).text
+        return unicode(artist).strip(), unicode(title).strip()

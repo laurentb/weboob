@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ from weboob.tools.value import Value, ValueBool, ValuesDict
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import DLFP
-from .tools import url2id
+from .tools import rssid, id2url
 
 
 __all__ = ['DLFPBackend']
@@ -34,17 +34,17 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.5.1'
+    VERSION = '0.6'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
                         Value('password',          label='Password', regexp='.+', masked=True),
                         ValueBool('get_news',      label='Get newspapers', default=True),
-                        ValueBool('get_telegrams', label='Get telegrams', default=False))
+                        ValueBool('get_diaries',   label='Get diaries', default=False))
     STORAGE = {'seen': {}}
     BROWSER = DLFP
-    RSS_TELEGRAMS= "https://linuxfr.org/backend/journaux/rss20.rss"
-    RSS_NEWSPAPERS = "https://linuxfr.org/backend/news/rss20.rss"
+    RSS_NEWSPAPERS = "https://linuxfr.org/news.atom"
+    RSS_DIARIES = "https://linuxfr.org/journaux.atom"
 
 
     def create_default_browser(self):
@@ -62,12 +62,11 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         whats = set()
         if self.config['get_news']:
             whats.add(self.RSS_NEWSPAPERS)
-        if self.config['get_telegrams']:
-            whats.add(self.RSS_TELEGRAMS)
-
+        if self.config['get_diaries']:
+            whats.add(self.RSS_DIARIES)
 
         for what in whats:
-            for article in Newsfeed(what, url2id).iter_entries():
+            for article in Newsfeed(what, rssid).iter_entries():
                 thread = Thread(article.id)
                 thread.title = article.title
                 if article.datetime:
@@ -84,8 +83,11 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         with self.browser:
             content = self.browser.get_content(id)
 
+        if not content:
+            return None
+
         if not thread:
-            thread = Thread(id)
+            thread = Thread(content.id)
 
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default={}):
@@ -100,10 +102,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                               title=content.title,
                               sender=content.author or u'',
                               receivers=None,
-                              date=thread.date, #TODO XXX WTF this is None
+                              date=thread.date,
                               parent=None,
-                              content=''.join([content.body, content.part2]),
-                              signature='URL: %s' % content.url,
+                              content=content.body,
+                              signature='URL: %s' % self.browser.absurl(id2url(content.id)),
                               children=[],
                               flags=flags)
 
@@ -151,16 +153,15 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
 
     def post_message(self, message):
         if not message.parent:
-            raise CantSendMessage('Posting news and telegrams on DLFP is not supported yet')
+            raise CantSendMessage('Posting news and diaries on DLFP is not supported yet')
 
         assert message.thread
 
         with self.browser:
-            return self.browser.post_reply(message.thread.id,
-                                           message.parent.id,
-                                           message.title,
-                                           message.content,
-                                           message.flags & message.IS_HTML)
+            return self.browser.post_comment(message.thread.id,
+                                             message.parent.id,
+                                             message.title,
+                                             message.content)
 
     def fill_thread(self, thread, fields):
         return self.get_thread(thread)

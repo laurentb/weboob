@@ -245,7 +245,7 @@ class BaseBrowser(mechanize.Browser):
 
     def check_location(func):
         def inner(self, *args, **kwargs):
-            if args and isinstance(args[0], basestring) and args[0][0] == '/' and \
+            if args and isinstance(args[0], basestring) and args[0].startswith('/') and \
                (not self.request or self.request.host != self.DOMAIN):
                 args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
 
@@ -331,6 +331,13 @@ class BaseBrowser(mechanize.Browser):
 
     def is_on_page(self, pageCls):
         return isinstance(self.page, pageCls)
+
+    def absurl(self, rel):
+        if rel is None:
+            return None
+        if not rel.startswith('/'):
+            rel = '/' + rel
+        return '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, rel)
 
     def follow_link(self, *args, **kwargs):
         try:
@@ -427,9 +434,9 @@ class BaseBrowser(mechanize.Browser):
         a dict in **kwargs (but the order is lost).
 
         Example:
-        >>> buildurl('/blah.php', ('a', '&'), ('c', '=')
+        >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
         '/blah.php?a=%26&b=%3D'
-        >>> buildurl('/blah.php', a='&', 'c'='=')
+        >>> buildurl('/blah.php', a='&', 'b'='=')
         '/blah.php?b=%3D&a=%26'
 
         """

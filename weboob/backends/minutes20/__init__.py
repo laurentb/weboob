@@ -1,6 +1,7 @@
+"init of Newspaper20minutesBackend"
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2011  Julien Hebert
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,11 +16,5 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
-from weboob.tools.test import BackendTest
-
-class RedmineTest(BackendTest):
-    BACKEND = 'redmine'
-
-    def test_redmine(self):
-        pass
+from .backend import Newspaper20minutesBackend
+__all__ = ['Newspaper20minutesBackend']

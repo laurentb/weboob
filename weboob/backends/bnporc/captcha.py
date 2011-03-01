@@ -50,46 +50,43 @@ class Captcha(object):
         return s
 
     def build_tiles(self):
-        y = 5
+        y = 1
         ty = 0
         while y < self.ny:
-            x = 6
+            x = 1
             tx = 0
             while x < self.nx:
-                if self[x,y] == 8:
-                    tile = self.tiles[tx][ty]
-                    tile.valid = True
-                    yy = y
-                    while not self[x,yy] in (3,7):
-                        l = []
-                        tile.map.append(l)
-                        xx = x
-                        while not self[xx,yy] in (3,7):
-                            l.append(self[xx,yy])
-                            xx += 1
+                tile = self.tiles[tx][ty]
+                for j in xrange(26):
+                    l = []
+                    tile.map.append(l)
+                    for i in xrange(26):
+                        if self[x+i,y+j] > 20:
+                            l.append('.')
+                            tile.valid = True
+                        else:
+                            l.append(' ')
 
-                        yy += 1
-
+                if tile.valid:
                     self.map[tile.get_num()] = tile
 
-                x += 26
+                x += 27
                 tx += 1
 
-            y += 25
+            y += 27
             ty += 1
 
-
 class Tile(object):
-    hash = {'b2d25ae11efaaaec6dd6a4c00f0dfc29': 1,
-            '600873fa288e75ca6cca092ae95bf129': 2,
-            'da24ac28930feee169adcbc9bad4acaf': 3,
-            '76294dec2a3c6a7b8d9fcc7a116d1d4f': 4,
-            'd9531059e3834b6b8a97e29417a47dec': 5,
-            '8ba0c0cfe5e64d6b4afb1aa6f3612c1a': 6,
-            '19e0120231e7a9cf4544f96d8c388c8a': 7,
-            '83d8ad340156cb7f5c1e64454b66c773': 8,
-            '5ee8648d77eeb3e0979f6e59b2fbe66a': 9,
-            '3f3fb79bf61ebad096e05287119169df': 0
+    hash = {'4a6eff78f6c6f172b75bf9fd7fd36d5d': 0,
+            '70019df58ec6e96d983507de86529058': 1,
+            '683a3700dbd1b9019b5ad3ca39c545d3': 2,
+            '998935d6f4111bd586001468a9c705a7': 3,
+            'a5cca8bf800fa505cf7ae5039b0cc73c': 4,
+            '2317a585e19c4f245cdc8acda51e4542': 5,
+            '956958628d014f6e6bf59d88cd254dc6': 6,
+            '13c35a4e7bf18e95186311876e66dd95': 7,
+            '736894876d76899a5cfecc745b095121': 8,
+            'ff41cd68224bece411c7fc876ab05a1d': 9
            }
 
     def __init__(self, _id):
@@ -104,7 +101,7 @@ class Tile(object):
         s = ''
         for pxls in self.map:
             for pxl in pxls:
-                s += '%02d' % pxl
+                s += pxl
         return hashlib.md5(s).hexdigest()
 
     def get_num(self):
@@ -117,5 +114,6 @@ class Tile(object):
     def display(self):
         for pxls in self.map:
             for pxl in pxls:
-                sys.stdout.write('%02d' % pxl)
+                sys.stdout.write(pxl)
             sys.stdout.write('\n')
+        print self.checksum()
