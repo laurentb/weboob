@@ -36,4 +36,4 @@ class MediawikiTest(BackendTest):
 
     def test_content_preview(self):
         content = self.backend.get_content(u"Utilisateur:Clemux/Test")
-        self.backend.get_wiki_preview(content)
+        self.backend.get_content_preview(content)
