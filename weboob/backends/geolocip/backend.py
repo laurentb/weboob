@@ -29,7 +29,7 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.6'
+    VERSION = '0.6.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u"IP Adresses geolocalisation with the site www.geolocip.com"
     BROWSER = BaseBrowser

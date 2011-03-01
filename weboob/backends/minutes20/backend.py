@@ -24,7 +24,7 @@ class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     "Newspaper20minutesBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.6'
+    VERSION = '0.6.1'
     LICENSE = 'GPLv3'
     STORAGE = {'seen': {}}
     NAME = 'minutes20'

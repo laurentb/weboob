@@ -39,7 +39,7 @@ template_lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__fil
 
 class VideoobWeb(BaseApplication):
     APPNAME = 'videoob-webserver'
-    VERSION = '0.6'
+    VERSION = '0.6.1'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     CAPS = ICapVideo
     CONFIG = dict(host='localhost', port=8080)

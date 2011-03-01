@@ -54,7 +54,7 @@ class VideoListFormatter(IFormatter):
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
-    VERSION = '0.6'
+    VERSION = '0.6.1'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele'
     DESCRIPTION = "Videoob is a console application to search videos on supported websites " \
                   "and to play them or get informations."

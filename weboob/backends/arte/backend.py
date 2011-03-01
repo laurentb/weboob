@@ -33,7 +33,7 @@ class ArteBackend(BaseBackend, ICapVideo):
     NAME = 'arte'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.6'
+    VERSION = '0.6.1'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('lang', label='Lang of videos',
