@@ -104,12 +104,12 @@ class ModulesLoader(object):
         self.logger = getLogger('modules')
 
     def get_or_load_module(self, module_name):
+        """
+        Can raise a ModuleLoadError exception.
+        """
         if module_name not in self.loaded:
             self.load_module(module_name)
-        if module_name in self.loaded:
-            return self.loaded[module_name]
-        else:
-            return None
+        return self.loaded[module_name]
 
     def iter_existing_module_names(self):
         try:
@@ -134,7 +134,7 @@ class ModulesLoader(object):
         try:
             package_name = 'weboob.backends.%s' % module_name
             module = Module(__import__(package_name, fromlist=[str(package_name)]))
-        except ImportError, e:
+        except Exception, e:
             if self.logger.level == logging.DEBUG:
                 self.logger.exception(e)
             raise ModuleLoadError(module_name, e)
