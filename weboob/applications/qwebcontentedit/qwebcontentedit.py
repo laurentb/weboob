@@ -23,7 +23,7 @@ from .main_window import MainWindow
 class QWebContentEdit(QtApplication):
     APPNAME = 'qwebcontentedit'
     VERSION = '0.6'
-    COPYRIGHT = 'Copyright(C) 2011 Clément Schreiner'
+    COPYRIGHT = u'Copyright(C) 2011 Clément Schreiner'
     DESCRIPTION = "Qt application for managing content on supported websites"
     CAPS = ICapContent
 
@@ -33,4 +33,4 @@ class QWebContentEdit(QtApplication):
         self.main_window.show()
         return self.weboob.loop()
 
-    
+
