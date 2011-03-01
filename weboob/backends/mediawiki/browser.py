@@ -62,8 +62,8 @@ class MediawikiBrowser(BaseBrowser):
 
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
-        if pageid == "-1":
-            return None
+        if pageid == "-1":    # Page does not exist
+            return ""
         return result['query']['pages'][str(pageid)]['revisions'][0]['*']
 
     def get_token(self, page, _type):
@@ -148,17 +148,18 @@ class MediawikiBrowser(BaseBrowser):
         result = self.API_get(data)
         pageid = str(result['query']['pages'].keys()[0])
 
-        for rev in result['query']['pages'][pageid]['revisions']:
-            rev_content = Revision(str(rev['revid']))
-            rev_content.comment = rev['comment']
-            rev_content.revision = str(rev['revid'])
-            rev_content.author = rev['user']
-            rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
-            if rev.has_key('minor'):
-                rev_content.minor = True
-            else:
-                rev_content.minor = False
-            yield rev_content
+        if pageid != "-1":    
+            for rev in result['query']['pages'][pageid]['revisions']:
+                rev_content = Revision(str(rev['revid']))
+                rev_content.comment = rev['comment']
+                rev_content.revision = str(rev['revid'])
+                rev_content.author = rev['user']
+                rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+                if rev.has_key('minor'):
+                    rev_content.minor = True
+                else:
+                    rev_content.minor = False
+                yield rev_content
 
     def home(self):
         '''We don't need to change location, we're using the JSON API here.'''
