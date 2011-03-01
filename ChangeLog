@@ -1,3 +1,77 @@
+Weboob 0.6 (2011-03-01)
+	General
+	* New backend: Inrocks (CapMessages).
+	* New backend: LeFigaro (CapMessages).
+	* New backend: MediaWiki (CapContent).
+	* New backend: Minutes20 (CapMessages).
+	* New application: QWebContentEdit (CapContent).
+
+	Backend: AuM
+	* Fix: website changed, mails.php renamed to mail.php.
+
+	Backend: BNP
+	* Fix: the captcha has been changed on their website (#461).
+
+	Backend: CrAgr
+	* Fix: the history operation works when every non-ASCII character on
+	  the bank website is replaced with two interrogation marks.
+	* Fix: calculation of cents.
+
+	Backend: CreditMutuel
+	* Fix: negative value correctly considered by 'list'
+
+	Backend: DLFP
+	* Fix: website changed to a new version (#503).
+
+	Backend: IsoHunt
+	* Fix: website doesn't provide seed information on info page anymore
+	  (#529).
+
+	Backend: KickAss
+	* Fix: size span detection improved (fixes #497).
+
+	Backend: OuiFM
+	* Fix: website changed to get current song.
+
+	Backend: PirateBay
+	* Fix: parsing to find leecher and seeders (#458).
+
+	Backend: Redmine
+	* Adds support for previewing modifications on redmine's wiki pages.
+	* Fix: when login/password is invalid.
+
+	Backend: Yahoo
+	* Fix: didn't load with python < 2.6
+
+	Application: boobmsg
+	* New command 'export_thread'.
+	* New parameter '-t' on the 'post' command to set a title.
+
+	Application: monboob
+	* Fix: catch errors when trying to bind the SMTP server (#485).
+
+	Application: QBoobMsg
+	* Fix: reload of backends list.
+
+	Application: webcontentedit
+	* New command 'log' to display all revisions of a page.
+
+	Application: weboob-config
+	* The 'edit' command can be used to interactively edit one backend,
+	  instead of opening the './weboob/backends' file with a text editor.
+	* Checks on given backends for 'backends <add|register>' subcommands.
+
+	Application: weboob-config-qt
+	* Fix: crash when trying to add an already existing backend.
+
+	Repl Applications
+	* New parameter '-O' to set an output file.
+
+	Core:
+	* Fix: Browser.location() crashes when uri is empty (#488).
+	* Fix: catch every exceptions when loading a backend (not only
+	  ImportError).
+
 Weboob 0.5 (2011-01-08)
 	General
 	* New backend: MeteoFrance (CapWeather).
