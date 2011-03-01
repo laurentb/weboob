@@ -666,18 +666,25 @@ class ReplApplication(Cmd, BaseApplication):
         action = args[0]
         given_backend_names = args[1:]
 
-        if action not in ('add', 'register'):
-            skipped_backend_names = []
-            for backend_name in given_backend_names:
+        for backend_name in given_backend_names:
+            if action in ('add', 'register'):
+                try:
+                    module = self.weboob.modules_loader.get_or_load_module(backend_name)
+                except ModuleLoadError:
+                    print >>sys.stderr, 'Backend "%s" does not exist.' % backend_name
+                    return 1
+                else:
+                    if self.CAPS and not self.caps_included(module.iter_caps(), self.CAPS.__name__):
+                        print >>sys.stderr, 'Backend "%s" is not supported by this application => skipping.' % backend_name
+                        return 1
+            else:
                 if backend_name not in [backend.name for backend in self.weboob.iter_backends()]:
-                    print 'Backend "%s" does not exist => skipping.' % backend_name
-                    skipped_backend_names.append(backend_name)
-            for skipped_backend_name in skipped_backend_names:
-                given_backend_names.remove(skipped_backend_name)
+                    print >>sys.stderr, 'Backend "%s" does not exist => skipping.' % backend_name
+                    return 1
 
-        if action in ('enable', 'disable', 'only', 'add', 'register', 'remove'):
+        if action in ('enable', 'disable', 'only', 'add', 'register', 'edit', 'remove'):
             if not given_backend_names:
-                print 'Please give at least a backend name.'
+                print >>sys.stderr, 'Please give at least a backend name.'
                 return
 
         given_backends = set(backend for backend in self.weboob.iter_backends() if backend.name in given_backend_names)
