@@ -76,7 +76,7 @@ class MailParser(object):
 
     DATETIME_REGEXP = re.compile(u'([0-9]{1,2}) ([a-zéû]*) ([0-9]{4}), ([0-9]{2}):([0-9]{2}):([0-9]{2})(.*)')
     months = [u'', u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
-    SMILEY_REGEXP = re.compile('http://s.adopteunmec.com/img/smile/([0-9]+).gif')
+    SMILEY_REGEXP = re.compile('http://s.adopteunmec.com/www/img/smile/([0-9]+).gif')
     smileys = {0: ':)',
                1: ':D',
                2: ':o',
