@@ -27,6 +27,9 @@ def try_remove(base_element, selector):
 class NoAuthorElement(SelectElementException):
     pass
 
+class NoTitleException(SelectElementException):
+    pass
+
 class NoneMainDiv(AttributeError):
     pass
 
@@ -59,10 +62,13 @@ class GenericNewsPage(BasePage):
             return self.__article.author
 
     def get_title(self):
-        return select(
-            self.main_div,
-            self.element_title_selector,
-            1).text_content().strip()
+        try :
+            return select(
+                self.main_div,
+                self.element_title_selector,
+                1).text_content().strip()
+        except SelectElementException:
+            raise NoTitleException("no title on %s" % (self.browser)) 
 
     def get_element_body(self):
         return select(self.main_div, self.element_body_selector, 1)
