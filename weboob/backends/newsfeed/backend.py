@@ -38,19 +38,18 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
 
     def iter_threads(self):
         for article in Newsfeed(self.config["url"]).iter_entries():
-            thread = Thread(article.id)
-            thread.title = article.title
-            yield thread
+            yield self.get_thread(article.id, article)
 
-
-
-    def get_thread(self, id):
+    def get_thread(self, id, entry=None):
         if isinstance(id, Thread):
             thread = id
             id = thread.id
         else:
             thread = Thread(id)
-        entry = Newsfeed(self.config["url"]).get_entry(id)
+
+        if entry is None:
+            entry = Newsfeed(self.config["url"]).get_entry(id)
+
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default=[]):
             flags |= Message.IS_UNREAD
