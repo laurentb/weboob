@@ -65,7 +65,7 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/register3.php.*': RegisterWaitPage,
              'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
              'http://www.adopteunmec.com/home.php': HomePage,
-             'http://www.adopteunmec.com/shop2c.php': ShopPage,
+             'http://www.adopteunmec.com/shop2c?.php': ShopPage,
              'http://www.adopteunmec.com/mails.php': ContactListPage,
              'http://www.adopteunmec.com/mail.php': ContactListPage,
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
