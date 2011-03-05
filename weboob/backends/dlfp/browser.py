@@ -22,7 +22,7 @@ from weboob.tools.browser import BaseBrowser, BrowserHTTPError, BrowserIncorrect
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
-from .pages.news import ContentPage, NewCommentPage, NodePage
+from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage
 from .tools import id2url, url2id
 
 # Browser
@@ -33,6 +33,7 @@ class DLFP(BaseBrowser):
              'https://linuxfr.org/login.html': LoginPage,
              'https://linuxfr.org/news/[^\.]+': ContentPage,
              'https://linuxfr.org/users/[\w_]+/journaux/[^\.]+': ContentPage,
+             'https://linuxfr.org/nodes/(\d+)/comments/(\d+)$': CommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
             }
@@ -101,3 +102,30 @@ class DLFP(BaseBrowser):
 
     def close_session(self):
         self.openurl('/compte/deconnexion')
+
+    def plusse(self, url):
+        return self.relevance(url, 'for')
+
+    def moinse(self, url):
+        return self.relevance(url, 'against')
+
+    def relevance(self, url, what):
+        self.location(url)
+
+        comment = None
+        if self.is_on_page(CommentPage):
+            comment = self.page.get_comment()
+        elif self.is_on_page(ContentPage):
+            ignored, id = url.rsplit('#comment-', 1)
+            comment = self.page.get_comment(int(id))
+
+        if comment is None:
+            raise ValueError('The given URL isn\'t a comment.')
+
+        if comment.relevance_token is None:
+            return False
+
+        res = self.readurl('%s%s' % (comment.relevance_url, what),
+                           urllib.urlencode({'authenticity_token': comment.relevance_token}))
+
+        return res

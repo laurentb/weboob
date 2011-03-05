@@ -49,6 +49,13 @@ class Comment(object):
         self.date = local2utc(self.date)
         self.body = self.browser.parser.tostring(div.find('div'))
         self.score = int(select(div.find('p'), 'span.score', 1).text)
+        forms = select(div.find('footer'), 'form.button_to')
+        if len(forms) == 0:
+            self.relevance_url = None
+            self.relevance_token = None
+        else:
+            self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
+            self.relevance_token = select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
 
         subs = div.find('ul')
         if subs is not None:
@@ -70,6 +77,14 @@ class Article(object):
         self.browser = browser
         self.url = url
         self.id = url2id(self.url)
+        self.title = None
+        self.author = None
+        self.body = None
+        self.date = None
+        self.comments = []
+
+        if not tree:
+            return
 
         header = tree.find('header')
         self.title = u' — '.join([a.text for a in header.find('h1').findall('a')])
@@ -81,8 +96,6 @@ class Article(object):
         self.date = datetime.strptime(select(header, 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
-
-        self.comments = []
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -96,9 +109,23 @@ class Article(object):
     def parse_part2(self, div):
         self.part2 = self.browser.parser.tostring(div)
 
+class CommentPage(DLFPPage):
+    def get_comment(self):
+        article = Article(self.browser, self.url, None)
+        return Comment(article, select(self.document.getroot(), 'li.comment', 1), 0)
+
 class ContentPage(DLFPPage):
     def on_loaded(self):
         self.article = None
+
+    def get_comment(self, id):
+        article = Article(self.browser, self.url, None)
+        try:
+            li = select(self.document.getroot(), 'li#comment-%s' % id, 1)
+        except SelectElementException:
+            return None
+        else:
+            return Comment(article, li, 0)
 
     def get_article(self):
         if not self.article:
