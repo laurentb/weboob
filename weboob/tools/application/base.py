@@ -25,6 +25,7 @@ import tempfile
 
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.core import Weboob, CallErrors
+from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
@@ -352,7 +353,12 @@ class BaseApplication(object):
 
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
-        app = klass()
+
+        try:
+            app = klass()
+        except BackendsConfig.WrongPermissions, e:
+            print e
+            sys.exit(1)
 
         try:
             try:
