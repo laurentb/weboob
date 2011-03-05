@@ -290,7 +290,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if isinstance(error, ResultsConditionError):
             print >>sys.stderr, u'Error(%s): condition error: %s' % (backend.name, error)
         else:
-            return super(ReplApplication, self).bcall_error_handler(self, backend, error, backtrace)
+            return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
 
     # -- options related methods -------------
     def _handle_options(self):
