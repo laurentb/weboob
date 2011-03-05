@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QWebContentEdit
+Comment=Edit website contents
+Exec=qwebcontentedit
+Icon=qwebcontentedit
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;
