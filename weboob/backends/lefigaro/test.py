@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,14 +18,13 @@
 
 from weboob.tools.test import BackendTest
 
-class YoujizzTest(BackendTest):
-    BACKEND = 'youjizz'
 
-    def test_youjizz(self):
-        self.assertTrue(len(self.backend.iter_search_results('anus', nsfw=False)) == 0)
+__all__ = ['LeFigaroTest']
 
-        l = list(self.backend.iter_search_results('sex', nsfw=True))
-        self.assertTrue(len(l) > 0)
-        v = l[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+
+class LeFigaroTest(BackendTest):
+    BACKEND = 'lefigaro'
+
+    def test_new_messages(self):
+        for message in self.backend.iter_unread_messages():
+            pass
