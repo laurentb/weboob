@@ -29,6 +29,10 @@ class LoginPage(BasePage):
 class LoginErrorPage(BasePage):
     pass
 
+class FramePage(BasePage):
+    pass
+
+
 class AccountsPage(BasePage):
     def get_list(self):
         raise NotImplementedError()
