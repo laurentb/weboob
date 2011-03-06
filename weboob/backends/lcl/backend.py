@@ -58,5 +58,7 @@ class LCLBackend(BaseBackend, ICapBank):
         return iter([])
 
     def iter_history(self, account):
-        """ TODO Not supported yet """
-        return iter([])
+      with self.browser:
+        for history in self.browser.get_history(account):
+          yield history
+
