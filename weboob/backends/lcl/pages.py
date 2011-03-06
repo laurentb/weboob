@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 
 class LoginPage(BasePage):
@@ -35,4 +36,19 @@ class FramePage(BasePage):
 
 class AccountsPage(BasePage):
     def get_list(self):
-        raise NotImplementedError()
+      l = []
+      for div in self.document.getiterator('div'):
+        if div.attrib.get('class')=="unCompte-CC" :
+          account = Account()
+          account.id = div.attrib.get('id').replace('-','')
+          for td in div.getiterator('td'):
+            if td.find("div") is not None and td.find("div").attrib.get('class') == 'libelleCompte':
+              account.label = td.find("div").text
+            elif td.find('a') is not None and td.find('a').attrib.get('class') is None:
+              balance = td.find('a').text.replace(u"\u00A0",'').replace('.','').replace('+','').replace(',','.')
+              account.balance = float(balance)
+              account.link_id = td.find('a').attrib.get('href')
+
+          l.append(account)
+
+      return l

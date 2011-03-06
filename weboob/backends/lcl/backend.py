@@ -46,9 +46,8 @@ class LCLBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        if not _id.isdigit():
-            raise AccountNotFound()
-        account = self.browser.get_account(_id)
+        with self.browser:
+            account = self.browser.get_account(_id)
         if account:
             return account
         else:
