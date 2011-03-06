@@ -18,7 +18,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage
+from .pages import LoginPage, LoginErrorPage, FramePage, AccountsPage
 
 
 __all__ = ['LCLBrowser']
@@ -34,6 +34,7 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
         'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
+        'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
         }
 
     def __init__(self, agency, *args, **kwargs):
@@ -54,6 +55,8 @@ class LCLBrowser(BaseBrowser):
 
         if not self.is_logged() or self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
+
+        self.location('%s://%s/outil/UWSP/Synthese/accesSynthese' % (self.PROTOCOL, self.DOMAIN))
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
