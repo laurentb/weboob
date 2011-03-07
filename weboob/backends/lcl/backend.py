@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon, Pierre Mazière
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ class LCLBackend(BaseBackend, ICapBank):
         return iter([])
 
     def iter_history(self, account):
-      with self.browser:
-        for history in self.browser.get_history(account):
-          yield history
+        with self.browser:
+            for history in self.browser.get_history(account):
+                yield history
 
