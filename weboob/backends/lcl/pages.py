@@ -86,5 +86,5 @@ class AccountHistoryPage(BasePage):
             if done:
                 break
 
-  def get_operations(self):
-      return self.operations
+    def get_operations(self):
+        return self.operations
