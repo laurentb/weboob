@@ -70,6 +70,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/lefigaromagazine/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/creation-gestion-entreprise/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/flash-eco/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
+             "http://www.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
             }
 
     def is_logged(self):
