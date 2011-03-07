@@ -21,6 +21,11 @@ from .simple import SimplePage
 
 class ArticlePage(SimplePage):
     "ArticlePage object for minutes20"
+    def on_loaded(self):
+        self.main_div = self.document.getroot()
+        self.element_title_selector = "h1"
+        self.element_author_selector = "div.mna-signature"
+        self.element_body_selector = "div.mna-body"
 
     def get_body(self):
         element_body = self.get_element_body()
@@ -32,9 +37,3 @@ class ArticlePage(SimplePage):
             pass
         return self.browser.parser.tostring(element_body)
 
-    def on_loaded(self):
-        self.main_div = self.document.getroot()
-        self.element_author_selector = "div.mna-signature"
-        self.element_body_selector = "div.mna-body"
-        self.element_title_selector = "h1"
-    

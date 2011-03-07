@@ -16,40 +16,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from weboob.tools.genericArticle import GenericNewsPage, try_remove
+from weboob.tools.genericArticle import GenericNewsPage, remove_from_selector_list, drop_comments, try_drop_tree, try_remove_from_selector_list
 
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
+        self.element_title_selector = "h1"
         self.element_author_selector    = "div.name>span"
-        self.element_title_selector     = "h1"
         self.element_body_selector      = "#article"
 
     def get_body(self):
-        element_body    = self.get_element_body()
-        h1_title        = select(element_body, self.element_title_selector, 1)
+        element_body = self.get_element_body()
+        remove_from_selector_list(element_body, [self.element_title_selector, "link"])
+        drop_comments(element_body)
+        try_drop_tree(element_body, "script")
 
-        try:
-            el_script       = select(element_body, "script", 1)
-        except SelectElementException:
-            pass
-        else:
-            el_script.drop_tree()
-
-
-        element_body.remove(h1_title)
-
-        try_remove(element_body, "div.infos")
-        try_remove(element_body, "div.photo")
-        try_remove(element_body, "div.art_bandeau_bottom")
-        try_remove(element_body, "div.view")
-        try_remove(element_body, "span.auteur_long")
-        try_remove(element_body, "#toolsbar")
+        try_remove_from_selector_list(element_body, ["div.infos", "div.photo", "div.art_bandeau_bottom", "div.view", "span.auteur_long", "#toolsbar"])
 
         element_body.find_class("texte")[0].drop_tag()
         element_body.tag = "div"
         return self.browser.parser.tostring(element_body)
-
 

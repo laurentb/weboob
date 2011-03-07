@@ -298,9 +298,9 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
         for backend, thread in cmd:
-            for msg in thread.iter_all_messages():
-                self.format(msg)
-
+            if thread is not None :
+                for msg in thread.iter_all_messages():
+                    self.format(msg)
 
     def do_show(self, arg):
         """

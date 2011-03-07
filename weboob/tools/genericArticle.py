@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from lxml.etree import Comment
+
 
 def try_remove(base_element, selector):
     try :
@@ -24,7 +26,31 @@ def try_remove(base_element, selector):
         pass
 
 
+def try_drop_tree(base_element, selector):
+    try:
+        select(base_element, selector, 1).drop_tree()
+    except SelectElementException:
+        pass
+
+def remove_from_selector_list(base_element, selector_list):
+    for selector in selector_list:
+        base_element.remove(select(base_element, selector, 1))
+
+
+def try_remove_from_selector_list(base_element, selector_list):
+    for selector in selector_list:
+        try_remove(base_element, selector)
+
+def drop_comments(base_element):
+    for comment in base_element.getiterator(Comment):
+        comment.drop_tree()
+
+
+
 class NoAuthorElement(SelectElementException):
+    pass
+
+class NoBodyElement(SelectElementException):
     pass
 
 class NoTitleException(SelectElementException):
@@ -71,7 +97,10 @@ class GenericNewsPage(BasePage):
             raise NoTitleException("no title on %s" % (self.browser)) 
 
     def get_element_body(self):
-        return select(self.main_div, self.element_body_selector, 1)
+        try :
+            return select(self.main_div, self.element_body_selector, 1)
+        except SelectElementException:
+            raise NoBodyElement("no body on %s" % (self.browser)) 
 
     def get_element_author(self):
         try:
