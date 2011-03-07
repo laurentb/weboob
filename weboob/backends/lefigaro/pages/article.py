@@ -28,11 +28,11 @@ class ArticlePage(GenericNewsPage):
 
     def get_body(self):
         element_body = self.get_element_body()
-        remove_from_selector_list(element_body, [self.element_title_selector, "link"])
+        remove_from_selector_list(element_body, [self.element_title_selector])
         drop_comments(element_body)
         try_drop_tree(element_body, "script")
 
-        try_remove_from_selector_list(element_body, ["div.infos", "div.photo", "div.art_bandeau_bottom", "div.view", "span.auteur_long", "#toolsbar"])
+        try_remove_from_selector_list(element_body, ["div.infos", "div.photo", "div.art_bandeau_bottom", "div.view", "span.auteur_long", "#toolsbar", 'link'])
 
         element_body.find_class("texte")[0].drop_tag()
         element_body.tag = "div"
