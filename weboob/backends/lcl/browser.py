@@ -54,7 +54,7 @@ class LCLBrowser(BaseBrowser):
 
         self.page.login(self.agency, self.username, self.password)
 
-        if not self.is_logged() or self.is_on_page(LoginErrorPage):
+        if not self.is_logged():
             raise BrowserIncorrectPassword()
 
         self.location('%s://%s/outil/UWSP/Synthese/accesSynthese' % (self.PROTOCOL, self.DOMAIN))
