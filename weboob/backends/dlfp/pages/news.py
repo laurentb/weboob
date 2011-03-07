@@ -83,7 +83,7 @@ class Article(object):
         self.date = None
         self.comments = []
 
-        if not tree:
+        if tree is None:
             return
 
         header = tree.find('header')

@@ -103,13 +103,7 @@ class DLFP(BaseBrowser):
     def close_session(self):
         self.openurl('/compte/deconnexion')
 
-    def plusse(self, url):
-        return self.relevance(url, 'for')
-
-    def moinse(self, url):
-        return self.relevance(url, 'against')
-
-    def relevance(self, url, what):
+    def get_comment(self, url):
         self.location(url)
 
         comment = None
@@ -118,6 +112,17 @@ class DLFP(BaseBrowser):
         elif self.is_on_page(ContentPage):
             ignored, id = url.rsplit('#comment-', 1)
             comment = self.page.get_comment(int(id))
+
+        return comment
+
+    def plusse(self, url):
+        return self.relevance(url, 'for')
+
+    def moinse(self, url):
+        return self.relevance(url, 'against')
+
+    def relevance(self, url, what):
+        comment = self.get_comment(url)
 
         if comment is None:
             raise ValueError('The given URL isn\'t a comment.')
