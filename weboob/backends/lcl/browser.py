@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon, Pierre Mazière
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -75,9 +75,9 @@ class LCLBrowser(BaseBrowser):
         return None
 
     def get_history(self,account):
-      if not self.is_on_page(AccountHistoryPage) :
-        self.location('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, account.link_id))
-      return self.page.get_operations()
+        if not self.is_on_page(AccountHistoryPage) :
+            self.location('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, account.link_id))
+        return self.page.get_operations()
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
