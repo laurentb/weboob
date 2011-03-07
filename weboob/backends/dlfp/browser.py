@@ -148,3 +148,9 @@ class DLFP(BaseBrowser):
             self.last_board_msg_id = msgs[0].id
 
         return reversed(msgs)
+
+    def board_post(self, msg):
+        request = self.request_class(self.absurl('/board/'),
+                                     urllib.urlencode({'board[message]': msg}),
+                                     {'Referer': self.absurl('/')})
+        self.readurl(request)
