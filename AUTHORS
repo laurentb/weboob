@@ -26,6 +26,10 @@ Nicolas Duhamel <nicolas@jombi.fr>
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
 
+Pierre Mazière <pierre.maziere@gmail.com>
+        * LCL backend maintainer;
+        * BNPorc fixes.
+
 Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
 
@@ -43,9 +47,6 @@ Laurent Bachelier <laurent@bachelier.name>
 
 Flo <florent.fourcot@resel.fr>
         * BNPorc patches.
-
-Pierre Mazière <pierre.maziere@gmail.com>
-        * BNPorc fixes.
 
 Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.

@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
+from __future__ import with_statement
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
@@ -28,8 +30,8 @@ __all__ = ['LCLBackend']
 
 class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
-    MAINTAINER = 'Romain Bignon'
-    EMAIL = 'romain@weboob.org'
+    MAINTAINER = u'Pierre Mazière'
+    EMAIL = 'pierre.maziere@gmail.com'
     VERSION = '0.7'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'GPLv3'
