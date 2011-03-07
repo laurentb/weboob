@@ -23,6 +23,7 @@ from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage
+from .pages.board import BoardIndexPage
 from .tools import id2url, url2id
 
 # Browser
@@ -36,7 +37,10 @@ class DLFP(BaseBrowser):
              'https://linuxfr.org/nodes/(\d+)/comments/(\d+)$': CommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
+             'https://linuxfr.org/board/index.xml': BoardIndexPage,
             }
+
+    last_board_msg_id = None
 
     def home(self):
         return self.location('https://linuxfr.org')
@@ -134,3 +138,13 @@ class DLFP(BaseBrowser):
                            urllib.urlencode({'authenticity_token': comment.relevance_token}))
 
         return res
+
+    def iter_new_board_messages(self):
+        self.location('/board/index.xml')
+        assert self.is_on_page(BoardIndexPage)
+
+        msgs = self.page.get_messages(self.last_board_msg_id)
+        if len(msgs) > 0:
+            self.last_board_msg_id = msgs[0].id
+
+        return reversed(msgs)
