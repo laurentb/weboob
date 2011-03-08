@@ -52,6 +52,9 @@ class ArticlePage(GenericNewsPage):
             text_content = description_element.text_content()
             if len(text_content.strip()) == 0 :
                 description_element.drop_tree()
+            else:
+                if len(description_element) == 1:
+                    description_element.drop_tag()
 
         if len(div_header_element.text_content().strip()) == 0:
             div_header_element.drop_tree()
@@ -62,8 +65,7 @@ class ArticlePage(GenericNewsPage):
         if len(element_detail) == 1:
             element_detail.drop_tag()
 
-        if len(element_body) == 1:
-            div_content_element.drop_tag()
+        div_content_element.drop_tag()
 
         return self.browser.parser.tostring(element_body)
 
