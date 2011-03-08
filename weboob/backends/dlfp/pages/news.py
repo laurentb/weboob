@@ -31,6 +31,7 @@ class Comment(object):
         self.reply_id = reply_id
         self.title = u''
         self.author = u''
+        self.username = None
         self.date = None
         self.body = u''
         self.score = 0
@@ -41,9 +42,13 @@ class Comment(object):
         self.url = '%s#%s' % (article.url, div.attrib['id'])
         self.title = unicode(select(div.find('h2'), 'a.title', 1).text)
         try:
-            self.author = unicode(select(div.find('p'), 'a[rel=author]', 1).text)
+            a = select(div.find('p'), 'a[rel=author]', 1)
         except SelectElementException:
             self.author = 'Anonyme'
+            self.username = None
+        else:
+            self.author = unicode(a.text)
+            self.username = unicode(a.attrib['href'].lstrip('/users/'))
         self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
