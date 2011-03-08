@@ -42,10 +42,12 @@ class ArticlePage(GenericNewsPage):
                                       ["h1", "div.picture", "div.date", 
                                        "div.news-single-img", 
                                        "div.metas_img", "strong"])
-        try_remove_from_selector_list(div_content_element, ["div.tw_button", "div.wpfblike"])
+        try_remove_from_selector_list(div_content_element, 
+                                      ["div.tw_button", "div.wpfblike"])
 
         try :
-            description_element = select(div_header_element, "div.description", 1)
+            description_element = select(div_header_element, 
+                                         "div.description", 1)
         except SelectElementException:
             pass
         else:
