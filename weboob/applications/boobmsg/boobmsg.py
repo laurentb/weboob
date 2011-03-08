@@ -157,6 +157,7 @@ class Boobmsg(ReplApplication):
                        }
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
+                           'export_thread': 'msg'
                           }
 
 
