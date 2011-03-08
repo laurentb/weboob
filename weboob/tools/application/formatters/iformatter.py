@@ -43,6 +43,7 @@ else:
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.application.console import ConsoleApplication
 
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
@@ -57,6 +58,21 @@ class IFormatter(object):
 
     MANDATORY_FIELDS = None
 
+    def get_bold(self):
+        if self.outfile != sys.stdout:
+            return ''
+        else:
+            return ConsoleApplication.BOLD
+
+    def get_nc(self):
+        if self.outfile != sys.stdout:
+            return ''
+        else:
+            return ConsoleApplication.NC
+
+    BOLD = property(get_bold)
+    NC = property(get_nc)
+
     def __init__(self, display_keys=True, display_header=True, return_only=False, outfile=sys.stdout):
         self.display_keys = display_keys
         self.display_header = display_header
@@ -66,9 +82,11 @@ class IFormatter(object):
         self.termrows = 0
         self.outfile = outfile
         # XXX if stdin is not a tty, it seems that the command fails.
+
         if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
+	
     def after_format(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:

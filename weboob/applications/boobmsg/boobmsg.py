@@ -34,15 +34,16 @@ class MessageFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['title'])
-        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['date'])
-        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['sender'])
+        print self.outfile
+        result = u'%sTitle:%s %s\n' % (self.BOLD,
+                                       self.NC, item['title'])
+        result += u'%sDate:%s %s\n' % (self.BOLD,
+                                       self.NC, item['date'])
+        result += u'%sFrom:%s %s\n' % (self.BOLD,
+                                       self.NC, item['sender'])
         if item['receivers']:
-            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD,
-                                         ReplApplication.NC,
+            result += u'%sTo:%s %s\n' % (self.BOLD,
+                                         self.NC,
                                          ', '.join(item['receivers']))
 
         if item['flags'] & Message.IS_HTML:
