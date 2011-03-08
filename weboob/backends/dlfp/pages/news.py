@@ -48,7 +48,7 @@ class Comment(object):
             self.username = None
         else:
             self.author = unicode(a.text)
-            self.username = unicode(a.attrib['href'].lstrip('/users/'))
+            self.username = unicode(a.attrib['href'].split('/')[2])
         self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
