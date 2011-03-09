@@ -29,8 +29,16 @@ class LoginPage(BasePage):
         self.browser['CodeId'] = passwd
         self.browser.submit()
 
-class LoginErrorPage(BasePage):
-    pass
+class LoginResultPage(BasePage):
+    def is_error(self):
+        for text in self.document.find('body').itertext():
+            text=text.strip()
+            # Login seems valid, but password does not
+            needle='Les données saisies sont incorrectes'
+            if text.startswith(needle.decode('utf-8')):
+                return True
+
+        return False
 
 class FramePage(BasePage):
     pass
