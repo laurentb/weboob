@@ -144,10 +144,9 @@ class DLFP(BaseBrowser):
         assert self.is_on_page(BoardIndexPage)
 
         msgs = self.page.get_messages(self.last_board_msg_id)
-        if len(msgs) > 0:
-            self.last_board_msg_id = msgs[0].id
-
-        return reversed(msgs)
+        for msg in reversed(msgs):
+            self.last_board_msg_id = msg.id
+            yield msg
 
     def board_post(self, msg):
         request = self.request_class(self.absurl('/board/'),
