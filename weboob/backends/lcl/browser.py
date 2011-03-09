@@ -18,7 +18,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginErrorPage, FramePage, AccountsPage, AccountHistoryPage
+from .pages import LoginPage, LoginResultPage, FramePage, AccountsPage, AccountHistoryPage
 
 
 __all__ = ['LCLBrowser']
@@ -32,7 +32,7 @@ class LCLBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
         'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
-        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginErrorPage,
+        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginResultPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvementsPro/accesListeMouvementsPro.*':  AccountHistoryPage,
@@ -48,16 +48,22 @@ class LCLBrowser(BaseBrowser):
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
+        assert self.password.isdigit()
+        assert isinstance(self.agency, basestring)
+        assert self.agency.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://particuliers.secure.lcl.fr/', no_login=True)
+            self.location('%s://%s/index.html' % (self.PROTOCOL, self.DOMAIN),\
+                          no_login=True)
 
         self.page.login(self.agency, self.username, self.password)
 
-        if not self.is_logged():
+        if not self.is_logged() or \
+           (self.is_on_page(LoginResultPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword()
 
-        self.location('%s://%s/outil/UWSP/Synthese/accesSynthese' % (self.PROTOCOL, self.DOMAIN))
+        self.location('%s://%s/outil/UWSP/Synthese/accesSynthese' \
+                      % (self.PROTOCOL, self.DOMAIN))
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
