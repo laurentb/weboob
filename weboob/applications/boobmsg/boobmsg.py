@@ -34,7 +34,6 @@ class MessageFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        print self.outfile
         result = u'%sTitle:%s %s\n' % (self.BOLD,
                                        self.NC, item['title'])
         result += u'%sDate:%s %s\n' % (self.BOLD,
@@ -157,7 +156,8 @@ class Boobmsg(ReplApplication):
                        }
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
-                           'export_thread': 'msg'
+                           'export_thread': 'msg',
+                           'export_all': 'msg'
                           }
 
 
@@ -290,6 +290,19 @@ class Boobmsg(ReplApplication):
                 self.threads.append(thread)
             self.format(thread)
         self.flush()
+
+    def do_export_all(self, arg):
+        """
+        export_all
+
+        Export All threads
+        """
+
+        cmd = self.do('iter_threads')
+        for backend, thread in cmd:
+            t  = backend.get_thread(thread.id)
+            for msg in t.iter_all_messages():
+                self.format(msg)
 
     def do_export_thread(self, arg):
         """
