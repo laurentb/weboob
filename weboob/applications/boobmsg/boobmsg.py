@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010-2011  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,14 +77,14 @@ class MessagesListFormatter(IFormatter):
             unread = '   '
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD,
+            result = u'%s* (%d) %s %s (%s)%s' % (self.BOLD,
                                                  self.count, unread,
                                                  item['title'], backend,
-                                                 ReplApplication.NC)
+                                                 self.NC)
         else:
-            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'],
+            result = u'%s* (%s) %s %s%s' % (self.BOLD, item['id'],
                                             unread, item['title'],
-                                            ReplApplication.NC)
+                                            self.NC)
         if item['date']:
             result += u'\n             %s' % item['date']
         return result
@@ -119,21 +119,21 @@ class MessagesListFormatter(IFormatter):
 
         if self.interactive:
             result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ',
-                                                          ReplApplication.BOLD,
+                                                          self.BOLD,
                                                           self.count,
-                                                          ReplApplication.NC,
+                                                          self.NC,
                                                           flags,
                                                           message.sender,
                                                           message.title,
                                                           backend)
         else:
             result = u'%s%s* (%s.%s@%s)%s %s <%s> %s\n' % (depth * '  ',
-                                                           ReplApplication.BOLD,
+                                                           self.BOLD,
                                                            message.thread.id,
                                                            message.id,
                                                            backend,
                                                            flags,
-                                                           ReplApplication.NC,
+                                                           self.NC,
                                                            message.sender,
                                                            message.title)
         if message.children:

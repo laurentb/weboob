@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,16 +41,16 @@ class TorrentInfoFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%s%s%s\n' % (ReplApplication.BOLD, item['name'], ReplApplication.NC)
+        result = u'%s%s%s\n' % (self.BOLD, item['name'], self.NC)
         result += 'ID: %s\n' % item['id']
         result += 'Size: %s\n' % sizeof_fmt(item['size'])
         result += 'Seeders: %s\n' % item['seeders']
         result += 'Leechers: %s\n' % item['leechers']
         result += 'URL: %s\n' % item['url']
-        result += '\n%sFiles%s\n' % (ReplApplication.BOLD, ReplApplication.NC)
+        result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
         for f in item['files']:
             result += ' * %s\n' % f
-        result += '\n%sDescription%s\n' % (ReplApplication.BOLD, ReplApplication.NC)
+        result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += item['description']
         return result
 
@@ -68,9 +68,9 @@ class TorrentListFormatter(IFormatter):
         self.count += 1
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['name'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s (%s)%s\n' % (self.BOLD, self.count, item['name'], backend, self.NC)
         else:
-            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['name'], self.NC)
         size = sizeof_fmt(item['size'])
         result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
         return result

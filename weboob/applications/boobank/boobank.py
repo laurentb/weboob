@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2009-2011  Romain Bignon, Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ class AccountListFormatter(IFormatter):
             result += '               %s  Account                     Balance    Coming \n' % ((' ' * 15) if not self.interactive else '')
             result += '------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
         result += (u' %s%-' + (u'15' if self.interactive else '30') + u's%s %-25s  %8s   %8s') % \
-                             (ReplApplication.BOLD, id, ReplApplication.NC,
+                             (self.BOLD, id, self.NC,
                               item['label'], '%.2f' % item['balance'], '%.2f' % (item['coming'] or 0.0))
 
         self.tot_balance += item['balance']

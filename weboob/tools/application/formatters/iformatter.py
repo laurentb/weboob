@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010-2011  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,7 +55,6 @@ class MandatoryFieldsNotFound(Exception):
 
 
 class IFormatter(object):
-
     MANDATORY_FIELDS = None
 
     def get_bold(self):
@@ -86,7 +85,6 @@ class IFormatter(object):
         if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             self.termrows = int(os.popen('stty size', 'r').read().split()[0])
 
-	
     def after_format(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz, Romain Bignon, John Obbele
+# Copyright(C) 2010-2011  Christophe Benz, Romain Bignon, John Obbele
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ class VideoListFormatter(IFormatter):
         self.count += 1
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s (%s)%s\n' % (self.BOLD, self.count, item['title'], backend, self.NC)
         else:
-            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['title'], self.NC)
         result += '            %s' % (item['duration'] if item['duration'] else item['date'])
         if item['author'] is not NotLoaded:
             result += ' - %s' % item['author']
