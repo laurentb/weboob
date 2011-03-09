@@ -19,7 +19,7 @@
 from datetime import date
 from weboob.capabilities.bank import Operation
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 
 class LoginPage(BasePage):
     def login(self, agency, login, passwd):
@@ -27,7 +27,12 @@ class LoginPage(BasePage):
         self.browser['agenceId'] = agency
         self.browser['compteId'] = login
         self.browser['CodeId'] = passwd
-        self.browser.submit()
+        try:
+            self.browser.submit()
+        except BrowserUnavailable:
+            # Login is not valid
+            return False
+        return True
 
 class LoginResultPage(BasePage):
     def is_error(self):
