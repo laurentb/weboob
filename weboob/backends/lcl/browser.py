@@ -56,9 +56,8 @@ class LCLBrowser(BaseBrowser):
             self.location('%s://%s/index.html' % (self.PROTOCOL, self.DOMAIN),\
                           no_login=True)
 
-        self.page.login(self.agency, self.username, self.password)
-
-        if not self.is_logged() or \
+        if not self.page.login(self.agency, self.username, self.password) or \
+           not self.is_logged() or \
            (self.is_on_page(LoginResultPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword()
 
