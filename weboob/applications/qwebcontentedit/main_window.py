@@ -74,6 +74,7 @@ class MainWindow(QtMainWindow):
             return
         self.content = data
         self.ui.contentEdit.setPlainText(self.content.content)
+        self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id, backend.name))
         self.backend = backend
 
     def _loadPage_eb(self, backend, error, backtrace):
