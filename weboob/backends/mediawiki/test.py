@@ -35,6 +35,8 @@ class MediawikiTest(BackendTest):
         content = self.backend.get_content(u"Utilisateur:Clemux/Test")
         content.content = "test "+str(datetime.now())
         self.backend.push_content(content, message="test weboob", minor=True)
+        new_content = self.backend.get_content(u"Utilisateur:Clemux/Test")
+        assert content.content == new_content.content
 
     def test_content_preview(self):
         content = self.backend.get_content(u"Utilisateur:Clemux/Test")
