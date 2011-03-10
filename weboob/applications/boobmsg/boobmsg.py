@@ -25,8 +25,24 @@ from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
-
 __all__ = ['Boobmsg']
+
+
+class XHtmlFormatter(IFormatter):
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result  = "<div>\n"
+        result += "<h1>%s</h1>" % (item['title'])
+        result += "<dl>"
+        result += "<dt>Date</dt><dd>%s</dd>" % (item['date'])
+        result += "<dt>Sender</dt><dd>%s</dd>" % (item['sender'])
+        result += "<dt>Signature</dt><dd>%s</dd>" % (item['signature'])
+        result += "</dl>"
+        result += "<div>%s</div>" % (item['content'])
+        result += "</div>\n"
+        return result
 
 
 class MessageFormatter(IFormatter):
@@ -153,6 +169,7 @@ class Boobmsg(ReplApplication):
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
                         'msg':     MessageFormatter,
+                        'xhtml':     XHtmlFormatter,
                        }
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
