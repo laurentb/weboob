@@ -61,11 +61,11 @@ class NoneMainDiv(AttributeError):
 
 class Article(object):
     author = u''
+    title = u''
 
     def __init__(self, browser, _id):
         self.browser = browser
         self.id = _id
-        self.title = u''
         self.body = u''
         self.url = u''
         self.date = None
@@ -84,7 +84,8 @@ class GenericNewsPage(BasePage):
     def get_author(self):
         try:
             return self.get_element_author().text_content().strip()
-        except NoAuthorElement:
+        except (NoAuthorElement, NoneMainDiv):
+            #TODO: Mettre un warning
             return self.__article.author
 
     def get_title(self):
@@ -93,6 +94,12 @@ class GenericNewsPage(BasePage):
                 self.main_div,
                 self.element_title_selector,
                 1).text_content().strip()
+        except AttributeError:
+            if self.main_div == None:
+                #TODO: Mettre un warning
+                return self.__article.title
+            else:
+                raise
         except SelectElementException:
             raise NoTitleException("no title on %s" % (self.browser)) 
 
@@ -100,7 +107,12 @@ class GenericNewsPage(BasePage):
         try :
             return select(self.main_div, self.element_body_selector, 1)
         except SelectElementException:
-            raise NoBodyElement("no body on %s" % (self.browser)) 
+            raise NoBodyElement("no body on %s" % (self.browser))
+        except AttributeError:
+            if self.main_div == None:
+                raise NoneMainDiv("main_div is none on %s" % (self.browser))
+            else:
+                raise
 
     def get_element_author(self):
         try:

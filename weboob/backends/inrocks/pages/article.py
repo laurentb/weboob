@@ -19,7 +19,7 @@
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
 from weboob.tools.genericArticle import GenericNewsPage, try_remove, \
                                         try_remove_from_selector_list, \
-                                        drop_comments
+                                        drop_comments, NoneMainDiv
 
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
@@ -30,45 +30,49 @@ class ArticlePage(GenericNewsPage):
         self.element_body_selector      = "div.maincol"
 
     def get_body(self):
-        element_body = self.get_element_body()
-        div_header_element = select(element_body, "div.header", 1)
-        element_detail = select(element_body, "div.details", 1)
-        div_content_element = select(element_body, "div.content", 1)
-
-        drop_comments(element_body)
-        try_remove(element_body, "div.sidebar")
-        try_remove(element_detail, "div.footer")
-        try_remove_from_selector_list(div_header_element, 
-                                      ["h1", "div.picture", "div.date", 
-                                       "div.news-single-img", 
-                                       "div.metas_img", "strong"])
-        try_remove_from_selector_list(div_content_element, 
-                                      ["div.tw_button", "div.wpfblike"])
-
         try :
-            description_element = select(div_header_element, 
-                                         "div.description", 1)
-        except SelectElementException:
-            pass
+            element_body = self.get_element_body()
+        except NoneMainDiv:
+            return None 
         else:
-            text_content = description_element.text_content()
-            if len(text_content.strip()) == 0 :
-                description_element.drop_tree()
+            div_header_element = select(element_body, "div.header", 1)
+            element_detail = select(element_body, "div.details", 1)
+            div_content_element = select(element_body, "div.content", 1)
+
+            drop_comments(element_body)
+            try_remove(element_body, "div.sidebar")
+            try_remove(element_detail, "div.footer")
+            try_remove_from_selector_list(div_header_element, 
+                                          ["h1", "div.picture", "div.date", 
+                                           "div.news-single-img", 
+                                           "div.metas_img", "strong"])
+            try_remove_from_selector_list(div_content_element, 
+                                          ["div.tw_button", "div.wpfblike"])
+
+            try :
+                description_element = select(div_header_element, 
+                                             "div.description", 1)
+            except SelectElementException:
+                pass
             else:
-                if len(description_element) == 1:
-                    description_element.drop_tag()
+                text_content = description_element.text_content()
+                if len(text_content.strip()) == 0 :
+                    description_element.drop_tree()
+                else:
+                    if len(description_element) == 1:
+                        description_element.drop_tag()
 
-        if len(div_header_element.text_content().strip()) == 0:
-            div_header_element.drop_tree()
+            if len(div_header_element.text_content().strip()) == 0:
+                div_header_element.drop_tree()
 
-        if len(div_header_element) == 1:
-            div_header_element.drop_tag()
+            if len(div_header_element) == 1:
+                div_header_element.drop_tag()
 
-        if len(element_detail) == 1:
-            element_detail.drop_tag()
+            if len(element_detail) == 1:
+                element_detail.drop_tag()
 
-        div_content_element.drop_tag()
+            div_content_element.drop_tag()
 
-        return self.browser.parser.tostring(element_body)
+            return self.browser.parser.tostring(element_body)
 
 
