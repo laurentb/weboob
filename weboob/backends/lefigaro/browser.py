@@ -63,6 +63,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/tennis/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/emploi/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/impots/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/placement/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/culture/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/musique/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/photos/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
