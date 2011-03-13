@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Nicolas Duhamel
+# Copyright(C) 2010-2011  Nicolas Duhamel
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,40 +27,29 @@ __all__ = ['AccountList']
 class AccountList(BasePage):
     def on_loaded(self):
         self.account_list = []
+        self.parse_table('comptes')
+        self.parse_table('comptesEpargne')
 
     def get_accounts_list(self):
-        #Parse CCP
-        compte_table = self.document.xpath("//table[@id='comptes']", smart_strings=False)[0]
-        compte_ligne = compte_table.xpath("./tbody/tr")
-
-        for compte in compte_ligne:
-            account = Account()
-            tp = compte.xpath("./td/a")[0]
-            account.label = tp.text
-            account.link_id = tp.get("href")
-            account.id = compte.xpath("./td")[1].text
-            account.balance = float(''.join(compte.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
-            self.account_list.append(account)
-
-        #Parse epargne
-        epargne_table = self.document.xpath("//table[@id='comptesEpargne']", smart_strings=False)[0]
-        epargne_ligne = epargne_table.xpath("./tbody/tr")
-
-        for epargne in epargne_ligne:
-            account = Account()
-            tp = epargne.xpath("./td/a")[0]
-            account.label = tp.text
-            account.link_id = tp.get("href")
-            account.id = epargne.xpath("./td")[1].text
-            account.balance = float(''.join(epargne.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
-            self.account_list.append(account)
-
         return self.account_list
 
-    def get_account(self, id):
-        if not self.account_list:
-            self.get_accounts_list()
+    def parse_table(self, what):
+        tables = self.document.xpath("//table[@id='%s']" % what, smart_strings=False)
+        if len(tables) < 1:
+            return
 
+        lines = tables[0].xpath("./tbody/tr")
+
+        for line  in lines:
+            account = Account()
+            tp = line.xpath("./td/a")[0]
+            account.label = tp.text
+            account.link_id = tp.get("href")
+            account.id = line.xpath("./td")[1].text
+            account.balance = float(''.join(line.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
+            self.account_list.append(account)
+
+    def get_account(self, id):
         for account in self.account_list:
             if account.id == id:
                 return account
