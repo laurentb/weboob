@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from .pages.article import ArticlePage
+from .pages.inrockstv import InrocksTvPage
 from weboob.tools.browser import BaseBrowser
 
 
@@ -24,7 +25,9 @@ from weboob.tools.browser import BaseBrowser
 class NewspaperInrocksBrowser(BaseBrowser):
     "NewspaperInrocksBrowser class"
     PAGES = {
-             '.*': ArticlePage,
+             'http://www.lesinrocks.com/actualite/.*': ArticlePage,
+             'http://www.lesinrocks.com/inrockstv/.*': InrocksTvPage,
+             'http://blogs.lesinrocks.com/.*': ArticlePage,
             }
 
     def is_logged(self):
