@@ -58,6 +58,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/theatre/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/football-coupes-d-europe/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/sante/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/voyages/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/assurance/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/retraite/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/tennis/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
