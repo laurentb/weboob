@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import datetime
 import gdata.youtube.service
+import re
 import urllib
 
 from weboob.capabilities.video import ICapVideo
@@ -87,9 +88,21 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     LICENSE = 'GPLv3'
     BROWSER = YoutubeBrowser
 
+    URL_RE = re.compile(r'https?://.*youtube.com/watch\?v=(.*)')
+
     def get_video(self, _id):
+        m = self.URL_RE.match(_id)
+        if m:
+            _id = m.group(1)
+
         yt_service = gdata.youtube.service.YouTubeService()
-        entry = yt_service.GetYouTubeVideoEntry(video_id=_id)
+        try:
+            entry = yt_service.GetYouTubeVideoEntry(video_id=_id)
+        except gdata.service.Error, e:
+            if e.args[0]['status'] == 400:
+                return None
+            raise
+
         video = get_video(entry)
         video.url = get_video_url(video)
         return video
