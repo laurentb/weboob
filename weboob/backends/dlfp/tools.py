@@ -19,8 +19,8 @@
 import re
 
 RSSID_RE = re.compile('tag:.*:(\w)\w+/(\d+)')
-ID2URL_RE = re.compile('^(\w)([\w_]*)\.([^\.]+)$')
-URL2ID_DIARY_RE = re.compile('.*/users/([\w_]+)/journaux/([^\.]+)')
+ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^\.]+)$')
+URL2ID_DIARY_RE = re.compile('.*/users/([\w\-_]+)/journaux/([^\.]+)')
 URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
 
 def rssid(entry):

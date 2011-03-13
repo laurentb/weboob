@@ -33,7 +33,7 @@ class DLFP(BaseBrowser):
     PAGES = {'https://linuxfr.org/?': IndexPage,
              'https://linuxfr.org/login.html': LoginPage,
              'https://linuxfr.org/news/[^\.]+': ContentPage,
-             'https://linuxfr.org/users/[\w_]+/journaux/[^\.]+': ContentPage,
+             'https://linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/(\d+)$': CommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
