@@ -117,9 +117,7 @@ class ModulesLoader(object):
         except ImportError:
             return
         for path in weboob.backends.__path__:
-            self.logger.debug( 'Backend path: %s' % path )
             for root, dirs, files in os.walk(path):
-                self.logger.debug( 'Walking on %s' % root )
                 if os.path.dirname( root ) == path and '__init__.py' in files:
                     s = os.path.basename( root )
                     yield s
