@@ -45,6 +45,9 @@ Cedric Defortis <cedric@aiur.fr>
 Laurent Bachelier <laurent@bachelier.name>
         * Various contributions.
 
+Philippe Fremy <phil@freehackers.org>
+        * Fixes for Windows.
+
 Flo <florent.fourcot@resel.fr>
         * BNPorc patches.
 
