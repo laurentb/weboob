@@ -60,7 +60,7 @@ class ConsoleApplication(BaseApplication):
         return unloaded
 
     def is_backend_loadable(self, backend):
-        return self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__)
+        return self.CAPS is None or self.caps_included(backend.iter_caps(), self.CAPS.__name__)
 
     def load_backends(self, *args, **kwargs):
         if 'errors' in kwargs:
