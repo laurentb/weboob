@@ -16,10 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
-from weboob.tools.genericArticle import GenericNewsPage, try_remove, \
-                                        try_remove_from_selector_list, \
-                                        drop_comments, NoneMainDiv
+from weboob.tools.genericArticle import GenericNewsPage
 
 class InrocksTvPage(GenericNewsPage):
     "ArticlePage object for inrocks"
@@ -32,5 +29,3 @@ class InrocksTvPage(GenericNewsPage):
     def get_body(self):
         element_body = self.get_element_body()
         return self.browser.parser.tostring(element_body)
-
-

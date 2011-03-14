@@ -18,7 +18,6 @@
 
 import logging
 import os
-import re
 
 from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
