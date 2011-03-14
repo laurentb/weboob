@@ -117,11 +117,12 @@ class ModulesLoader(object):
         except ImportError:
             return
         for path in weboob.backends.__path__:
-            regexp = re.compile('^%s/([\w\d_]+)$' % path)
+            self.logger.debug( 'Backend path: %s' % path )
             for root, dirs, files in os.walk(path):
-                m = regexp.match(root)
-                if m and '__init__.py' in files:
-                    yield m.group(1)
+                self.logger.debug( 'Walking on %s' % root )
+                if os.path.dirname( root ) == path and '__init__.py' in files:
+                    s = os.path.basename( root )
+                    yield s
 
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
