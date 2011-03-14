@@ -27,27 +27,74 @@ import subprocess
 import sys
 
 
-def check_executable(executable, error):
+def check_executable_win(executable, error):
+    pathsrc = "PATH"        # Where to get the path
+    pathextsrc = "PATHEXT"  # Where to get the extension list
+    dotfirst = 1            # Should we look in the current directory also?
+
+    path = os.environ[pathsrc]
+    path = filter(None, path.split(";"))
+
+    if dotfirst:
+        path = ["."]+path
+        
+    pathext = os.environ[pathextsrc]
+    pathext = filter(None, pathext.split(";"))
+
+    # The command name we are looking for
+    cmdName = executable
+
+    # Is the command name really a file name?
+    if '.' in cmdName:
+        # Fake it by making pathext a list of one empty string.
+        pathext = ['']
+
+    # Loop over the directories on the path, looking for the file.
+    for d in path:
+        for e in pathext:
+            filePath = os.path.join(d, cmdName + e)
+            if os.path.exists(filePath):
+                return filePath.replace( '\\', '/' )
+
+    print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
+    if error:
+        print >>sys.stderr, error
+    sys.exit(1)
+
+def check_executable_unix(executable, error):
     with open('/dev/null', 'w') as devnull:
         process = subprocess.Popen(['which', executable], stdout=devnull)
         return_code = process.wait()
     if return_code == 0:
-        return True
+        return executable
     else:
         print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
         if error:
             print >>sys.stderr, error
         sys.exit(1)
 
+if sys.platform == 'win32':
+    check_executable = check_executable_win
+else:
+    check_executable = check_executable_unix
+
 def build_qt():
     print 'Building Qt applications'
-    check_executable('pyuic4', 'To disable Qt applications, use --no-qt.')
+    pyuic4 = check_executable('pyuic4', 'To disable Qt applications, use --no-qt.')
 
-    os.system('make -C weboob/applications/qboobmsg/ui')
-    os.system('make -C weboob/applications/qhavesex/ui')
-    os.system('make -C weboob/applications/qvideoob/ui')
-    os.system('make -C weboob/applications/qwebcontentedit/ui')
-    os.system('make -C weboob/tools/application/qt')
+    if sys.platform == 'win32':
+        env={ 'PYUIC' : pyuic4}
+        extraMakeFlag = ['-e']
+    else:
+        env = None
+        extraMakeFlag = []
+
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qboobmsg/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qhavesex/ui'], env=env )
+    if sys.platform != 'win32':
+        subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qvideoob/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qwebcontentedit/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/tools/application/qt'], env=env )
 
 class Options:
     pass
