@@ -80,7 +80,6 @@ class CreditMutuelBrowser(BaseBrowser):
         current_url = self.geturl()
         current_url_parts = current_url.split('/')
         for subbank in self.SUB_BANKS:
-            print "\nploup %s\n"%subbank
             if subbank in current_url_parts:
                 return subbank
 
