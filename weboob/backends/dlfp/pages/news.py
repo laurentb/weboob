@@ -151,8 +151,20 @@ class ContentPage(DLFPPage):
     def get_post_comment_url(self):
         return select(self.document.getroot(), 'p#send-comment', 1).find('a').attrib['href']
 
+    def get_tag_url(self):
+        return select(self.document.getroot(), 'div.tag_in_place', 1).find('a').attrib['href']
+
 class NewCommentPage(DLFPPage):
     pass
+
+class NewTagPage(DLFPPage):
+    def _is_tag_form(self, form):
+        return form.action.endswith('/tags')
+
+    def tag(self, tag):
+        self.browser.select_form(predicate=self._is_tag_form)
+        self.browser['tags'] = tag
+        self.browser.submit()
 
 class NodePage(DLFPPage):
     def get_errors(self):

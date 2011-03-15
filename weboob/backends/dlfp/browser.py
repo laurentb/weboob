@@ -22,7 +22,7 @@ from weboob.tools.browser import BaseBrowser, BrowserHTTPError, BrowserIncorrect
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
-from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage
+from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage, NewTagPage
 from .pages.board import BoardIndexPage
 from .tools import id2url, url2id
 
@@ -37,6 +37,7 @@ class DLFP(BaseBrowser):
              'https://linuxfr.org/nodes/(\d+)/comments/(\d+)$': CommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
+             'https://linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
              'https://linuxfr.org/board/index.xml': BoardIndexPage,
             }
 
@@ -45,16 +46,25 @@ class DLFP(BaseBrowser):
     def home(self):
         return self.location('https://linuxfr.org')
 
-    def get_content(self, _id):
+    def parse_id(self, _id):
         url = id2url(_id)
         if url is None:
             if url2id(_id) is not None:
                 url = _id
                 _id = url2id(url)
             else:
-                return None
+                return None, None
+
+        return url, _id
+
+    def get_content(self, _id):
+        url, _id = self.parse_id(_id)
+
+        if url is None:
+            return None
 
         self.location(url)
+        assert self.is_on_page(ContentPage)
         content = self.page.get_article()
         content.id = _id
         return content
@@ -153,3 +163,16 @@ class DLFP(BaseBrowser):
                                      urllib.urlencode({'board[message]': msg}),
                                      {'Referer': self.absurl('/')})
         self.readurl(request)
+
+    def add_tag(self, _id, tag):
+        url, _id = self.parse_id(_id)
+        if url is None:
+            return None
+
+        self.location(url)
+        assert self.is_on_page(ContentPage)
+
+        self.location(self.page.get_tag_url())
+        assert self.is_on_page(NewTagPage)
+
+        self.page.tag(tag)
