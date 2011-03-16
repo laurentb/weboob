@@ -34,6 +34,7 @@ class Comment(object):
         self.username = None
         self.date = None
         self.body = u''
+        self.signature = u''
         self.score = 0
         self.url = u''
         self.comments = []
@@ -52,7 +53,18 @@ class Comment(object):
         self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
-        self.body = self.browser.parser.tostring(div.find('div'))
+
+        content = div.find('div')
+        try:
+            signature = select(content, 'p.signature', 1)
+        except SelectElementException:
+            # No signature.
+            pass
+        else:
+            content.remove(signature)
+            self.signature = self.browser.parser.tostring(signature)
+        self.body = self.browser.parser.tostring(content)
+
         self.score = int(select(div.find('p'), 'span.score', 1).text)
         forms = select(div.find('footer'), 'form.button_to')
         if len(forms) == 0:

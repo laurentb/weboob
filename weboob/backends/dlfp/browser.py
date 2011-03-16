@@ -65,6 +65,7 @@ class DLFP(BaseBrowser):
 
         self.location(url)
         assert self.is_on_page(ContentPage)
+        self.page.url = self.absurl(url)
         content = self.page.get_article()
         content.id = _id
         return content
@@ -121,6 +122,7 @@ class DLFP(BaseBrowser):
         self.location(url)
 
         comment = None
+        self.page.url = self.absurl(url)
         if self.is_on_page(CommentPage):
             comment = self.page.get_comment()
         elif self.is_on_page(ContentPage):
