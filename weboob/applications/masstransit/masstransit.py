@@ -53,16 +53,15 @@ class MasstransitHildon():
     def connect_event(self, connection, event=None, c=None, d=None):
         debug("DBUS-DEBUG a: %s,  b:%s, c:%s,d: %s" % (connection, event, c, d))
         status = event.get_status()
-        if conic != ImportError:
-            if status == conic.STATUS_CONNECTED:
-                self.connected = True
-                if self.touch_selector_entry_filled == False:
-                    debug("connected, now fill")
-                    self.fill_touch_selector_entry()
-                if self.refresh_in_progress:
-                    self.refresh()
-            elif status == conic.STATUS_DISCONNECTED:
-                self.connected = False
+        if status == conic.STATUS_CONNECTED:
+            self.connected = True
+            if self.touch_selector_entry_filled == False:
+                debug("connected, now fill")
+                self.fill_touch_selector_entry()
+            if self.refresh_in_progress:
+                self.refresh()
+        elif status == conic.STATUS_DISCONNECTED:
+            self.connected = False
 
     def __init__(self, weboob):
         self.touch_selector_entry_filled = False
@@ -210,6 +209,7 @@ class MasstransitHildon():
 
     def on_retour_button_clicked(self, widget):
         "the button is clicked"
+        debug("on_retour_button_clicked")
         self.refresh_in_progress = True
         col_source = self.combo_source.get_active(0)
         col_dest = self.combo_dest.get_active(0)
@@ -219,6 +219,7 @@ class MasstransitHildon():
 
     def on_refresh_button_clicked(self, widget):
         "the refresh button is clicked"
+        debug("on_refresh_button_clicked")
         self.refresh_in_progress = True
         try :
             self.connection.request_connection(conic.CONNECT_FLAG_NONE)
