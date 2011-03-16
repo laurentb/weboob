@@ -49,6 +49,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/sortir-paris/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/vie-entreprise/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/autres-sports/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/jeux-olympiques/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/environnement/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/rugby/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://www.lefigaro.fr/societes/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
