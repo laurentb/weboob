@@ -51,9 +51,11 @@ class Parser(HTMLParser.HTMLParser):
         self.__liste_destination = []
         self.__liste_platform = []
 
-    def parse(self, data, encoding):
-        self.feed(data.read())
-        return self
+    @classmethod
+    def parse(cls, data, encoding):
+        parser = cls()
+        parser.feed(data.read())
+        return parser
 
     def handle_starttag(self, tag, attrs):
         "execute a chaque balise ouvrante"
@@ -119,7 +121,7 @@ class Transilien(BaseBrowser):
             }
 
     def __init__(self, **kwargs):
-        kwargs['parser'] = Parser()
+        kwargs['parser'] = Parser
         BaseBrowser.__init__(self, '', **kwargs)
 
     def iter_station_search(self, pattern):
