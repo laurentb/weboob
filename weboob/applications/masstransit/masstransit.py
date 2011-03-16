@@ -18,15 +18,34 @@
 
 from weboob.capabilities.travel import ICapTravel
 from weboob.tools.application.base import BaseApplication
+from logging import warning
 
-import conic
 import gtk
-import hildon
+
+class FakeConic(object):
+    STATUS_CONNECTED = None
+    STATUS_DISCONNECTED = None
+    CONNECT_FLAG_NONE = None
+    def Connection(self):
+        raise NotImplementedError()
+try:
+    import hildon
+except ImportError:
+    toolkit = gtk
+else:
+    toolkit = hildon
+
+try :
+    import conic
+except ImportError:
+    warning("conic is not found")
+    conic = FakeConic()
+
+
 from logging import debug
 
 
 __all__ = ['Masstransit']
-
 
 class MasstransitHildon():
     "hildon interface"
@@ -34,45 +53,77 @@ class MasstransitHildon():
     def connect_event(self, connection, event=None, c=None, d=None):
         debug("DBUS-DEBUG a: %s,  b:%s, c:%s,d: %s" % (connection, event, c, d))
         status = event.get_status()
-        if status == conic.STATUS_CONNECTED:
-            self.connected = True
-            if self.touch_selector_entry_filled == False:
-                debug("connected, now fill")
-                self.fill_touch_selector_entry()
-            if self.refresh_in_progress:
-                self.refresh()
-        elif status == conic.STATUS_DISCONNECTED:
-            self.connected = False
+        if conic != ImportError:
+            if status == conic.STATUS_CONNECTED:
+                self.connected = True
+                if self.touch_selector_entry_filled == False:
+                    debug("connected, now fill")
+                    self.fill_touch_selector_entry()
+                if self.refresh_in_progress:
+                    self.refresh()
+            elif status == conic.STATUS_DISCONNECTED:
+                self.connected = False
 
     def __init__(self, weboob):
         self.touch_selector_entry_filled = False
         self.refresh_in_progress = False
         self.connected = False
         self.weboob = weboob
-        self.connection = conic.Connection()
-        self.connection.connect("connection-event", self.connect_event)
-        self.connection.set_property("automatic-connection-events", True)
-        self.connection.request_connection(conic.CONNECT_FLAG_NONE)
+        try :
+            self.connection = conic.Connection()
+            self.connection.set_property("automatic-connection-events", True)
+            self.connection.request_connection(conic.CONNECT_FLAG_NONE)
+        except NotImplementedError:
+            pass
 
-        main_window = hildon.Window()
+        horizontal_box = gtk.HBox()
+        main_window = toolkit.Window()
+        try :
+            self.refresh_button = toolkit.Button(
+                gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
+                hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
+                "Actualiser"
+                )
+            self.retour_button = hildon.Button(
+                gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
+                hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
+                "Retour"
+                )
+            self.combo_source = hildon.TouchSelectorEntry(text=True)
+            self.combo_dest = hildon.TouchSelectorEntry(text=True)
+            self.picker_button_source = hildon.PickerButton(
+                gtk.HILDON_SIZE_AUTO,
+                hildon.BUTTON_ARRANGEMENT_VERTICAL)
+
+            self.picker_button_dest = hildon.PickerButton(
+                gtk.HILDON_SIZE_AUTO,
+                hildon.BUTTON_ARRANGEMENT_VERTICAL
+                )
+            self.picker_button_source.set_sensitive(False)
+            self.picker_button_dest.set_sensitive(False)
+
+            self.picker_button_source.set_title("Gare de Depart")
+            self.picker_button_dest.set_title("Gare d'arrivee")
+
+            self.picker_button_source.set_selector(self.combo_source)
+            self.picker_button_dest.set_selector(self.combo_dest)
+            horizontal_box.pack_start(self.picker_button_source)
+            horizontal_box.pack_start(self.picker_button_dest)
+
+        except AttributeError:
+            self.refresh_button = gtk.Button("Actualiser")
+            self.retour_button = gtk.Button("Retour")
+            self.combo_source = gtk.combo_box_entry_new_text()
+            help(self.combo_source)
+            self.combo_dest = gtk.combo_box_entry_new_text()
+            horizontal_box.pack_start(self.combo_source)
+            horizontal_box.pack_start(self.combo_dest)
+
         main_window.set_title("Horaires des Prochains Trains")
         main_window.connect("destroy", self.on_main_window_destroy)
 
-        self.refresh_button = hildon.Button(
-            gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
-            "Actualiser"
-            )
-
-        self.refresh_button.set_sensitive(False)
         self.refresh_button.connect("clicked", self.on_refresh_button_clicked)
-       
-        self.retour_button = hildon.Button(
-            gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
-            hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
-            "Retour"
-            )
-
+        
         self.retour_button.set_sensitive(False)
         self.retour_button.connect("clicked", self.on_retour_button_clicked)
 
@@ -106,7 +157,6 @@ class MasstransitHildon():
                 gtk.CellRendererText(),
                 text=3
             ))
-       
         treeview.append_column(
             gtk.TreeViewColumn(
                 'Information',
@@ -114,44 +164,23 @@ class MasstransitHildon():
                 text=4
             ))
 
-   
-        self.combo_source = hildon.TouchSelectorEntry(text=True)
-        self.combo_dest = hildon.TouchSelectorEntry(text=True)
-
-        self.picker_button_source = hildon.PickerButton(
-            gtk.HILDON_SIZE_AUTO,
-            hildon.BUTTON_ARRANGEMENT_VERTICAL)
-
-        self.picker_button_dest = hildon.PickerButton(
-            gtk.HILDON_SIZE_AUTO,
-            hildon.BUTTON_ARRANGEMENT_VERTICAL
-            )
-
-        self.picker_button_source.set_sensitive(False)
-        self.picker_button_dest.set_sensitive(False)
-
-        self.picker_button_source.set_title("Gare de Depart")
-        self.picker_button_dest.set_title("Gare d'arrivee")
-
-        self.picker_button_source.set_selector(self.combo_source)
-        self.picker_button_dest.set_selector(self.combo_dest)
-
+        
+        
         vertical_box = gtk.VBox()
-        horizontal_box = gtk.HBox()
         vertical_box.pack_start(horizontal_box)
-        horizontal_box.pack_start(self.picker_button_source)
-        horizontal_box.pack_start(self.picker_button_dest)
         horizontal_box.pack_start(self.retour_button)
         vertical_box.pack_start(treeview)
         vertical_box.pack_start(self.refresh_button)
 
         main_window.add(vertical_box)
         main_window.show_all()
+        self.fill_touch_selector_entry()
 
-        self.picker_button_source.connect("value-changed",
+        if toolkit != gtk:
+            self.picker_button_source.connect("value-changed",
                                           self.check_station_input,
                                           self.picker_button_source)
-        self.picker_button_dest.connect("value-changed",
+            self.picker_button_dest.connect("value-changed",
                                         self.check_station_input,
                                         self.picker_button_dest)
 
@@ -169,7 +198,8 @@ class MasstransitHildon():
             self.combo_dest.append_text(station)
 
         self.touch_selector_entry_filled = True
-        self.picker_button_source.set_sensitive(True)
+        if toolkit != gtk:
+            self.picker_button_source.set_sensitive(True)
 
     def on_main_window_destroy(self, widget):
         "exit application at the window close"
@@ -190,7 +220,13 @@ class MasstransitHildon():
     def on_refresh_button_clicked(self, widget):
         "the refresh button is clicked"
         self.refresh_in_progress = True
-        self.connection.request_connection(conic.CONNECT_FLAG_NONE)
+        try :
+            self.connection.request_connection(conic.CONNECT_FLAG_NONE)
+        except AttributeError:
+            if isinstance(conic, FakeConic):
+                self.refresh()
+            else:
+                raise
 
     def check_station_input(self, widget, user_data):
         if self.combo_source.get_current_text() is None :
@@ -209,11 +245,16 @@ class MasstransitHildon():
     def refresh(self):
         "update departures"
         self.treestore.clear()
+        try :
+            source_text = self.combo_source.get_current_text()
+            dest_text = self.combo_dest.get_current_text()
+        except AttributeError:
+            source_text = self.combo_source.child.get_text()
+            dest_text = self.combo_dest.child.get_text()
         for backend in self.weboob.iter_backends():
-            for station in \
-            backend.iter_station_search(self.combo_source.get_current_text()):
+            for station in backend.iter_station_search(source_text):
                 for arrival in \
-                backend.iter_station_search(self.combo_dest.get_current_text()):
+                backend.iter_station_search(dest_text):
                     for departure in \
                     backend.iter_station_departures(station.id, arrival.id):
                         self.treestore.append(None,
