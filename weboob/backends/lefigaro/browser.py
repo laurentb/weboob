@@ -28,6 +28,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://www.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://www.lefigaro.fr/(?!flash-|bd).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+            }
 
     def is_logged(self):
         return False
