@@ -70,6 +70,7 @@ class MasstransitHildon():
         self.weboob = weboob
         try :
             self.connection = conic.Connection()
+            self.connection.connect("connection-event", self.connect_event)
             self.connection.set_property("automatic-connection-events", True)
             self.connection.request_connection(conic.CONNECT_FLAG_NONE)
         except NotImplementedError:
