@@ -21,7 +21,9 @@ from __future__ import with_statement
 import os
 import sys
 import subprocess
-
+if sys.platform == 'win32':
+    import WConio
+    
 try:
     import tty, termios
 except ImportError:
@@ -85,7 +87,10 @@ class IFormatter(object):
         # XXX if stdin is not a tty, it seems that the command fails.
 
         if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
-            self.termrows = int( subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
+            if sys.platform == 'win32':
+                self.termrows = WConio.gettextinfo()[8]
+            else:
+                self.termrows = int( subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
 
     def after_format(self, formatted):
         if self.outfile != sys.stdout:
