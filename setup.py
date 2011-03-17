@@ -83,7 +83,7 @@ def build_qt():
     pyuic4 = check_executable('pyuic4', 'To disable Qt applications, use --no-qt.')
 
     if sys.platform == 'win32':
-        env={ 'PYUIC' : pyuic4}
+        env={ 'PYUIC' : pyuic4, 'PATH':os.environ['PATH']}
         extraMakeFlag = ['-e']
     else:
         env = None
