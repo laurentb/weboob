@@ -19,11 +19,12 @@ from weboob.tools.parsers.lxmlparser import select
 from weboob.tools.browser import BasePage
 
 class Message(object):
-    def __init__(self, id, timestamp, login, message):
+    def __init__(self, id, timestamp, login, message, is_me):
         self.id = id
         self.timestamp = timestamp
         self.login = login
         self.message = message
+        self.is_me = is_me
 
 class BoardIndexPage(BasePage):
     def is_logged(self):
@@ -35,7 +36,8 @@ class BoardIndexPage(BasePage):
             m = Message(int(post.attrib['id']),
                         post.attrib['time'],
                         post.find('login').text,
-                        post.find('message').text)
+                        post.find('message').text,
+                        post.find('login').text.lower() == self.browser.username.lower())
             if last is not None and last == m.id:
                 break
             msgs.append(m)
