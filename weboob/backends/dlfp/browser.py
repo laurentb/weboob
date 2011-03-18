@@ -17,6 +17,7 @@
 
 
 import urllib
+import re
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPError, BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
@@ -47,6 +48,9 @@ class DLFP(BaseBrowser):
         return self.location('https://linuxfr.org')
 
     def parse_id(self, _id):
+        if re.match('^https?://linuxfr.org/nodes/\d+/comments/\d+$', _id):
+            return _id, None
+
         url = id2url(_id)
         if url is None:
             if url2id(_id) is not None:
@@ -64,10 +68,19 @@ class DLFP(BaseBrowser):
             return None
 
         self.location(url)
-        assert self.is_on_page(ContentPage)
         self.page.url = self.absurl(url)
-        content = self.page.get_article()
-        content.id = _id
+
+        if self.is_on_page(CommentPage):
+            content = self.page.get_comment()
+        elif self.is_on_page(ContentPage):
+            m = re.match('.*#comment-(\d+)$', url)
+            if m:
+                content = self.page.get_comment(int(m.group(1)))
+            else:
+                content = self.page.get_article()
+
+        if _id is not None:
+            content.id = _id
         return content
 
     def _is_comment_submit_form(self, form):
@@ -118,19 +131,6 @@ class DLFP(BaseBrowser):
     def close_session(self):
         self.openurl('/compte/deconnexion')
 
-    def get_comment(self, url):
-        self.location(url)
-
-        comment = None
-        self.page.url = self.absurl(url)
-        if self.is_on_page(CommentPage):
-            comment = self.page.get_comment()
-        elif self.is_on_page(ContentPage):
-            ignored, id = url.rsplit('#comment-', 1)
-            comment = self.page.get_comment(int(id))
-
-        return comment
-
     def plusse(self, url):
         return self.relevance(url, 'for')
 
@@ -138,7 +138,7 @@ class DLFP(BaseBrowser):
         return self.relevance(url, 'against')
 
     def relevance(self, url, what):
-        comment = self.get_comment(url)
+        comment = self.get_content(url)
 
         if comment is None:
             raise ValueError('The given URL isn\'t a comment.')
