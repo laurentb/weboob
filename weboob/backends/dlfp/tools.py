@@ -19,10 +19,10 @@
 import re
 
 RSSID_RE = re.compile('tag:.*:(\w)\w+/(\d+)')
-ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^\.]+)$')
+ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^ \.]+)$')
 URL2ID_DIARY_RE = re.compile('.*/users/([\w\-_]+)/journaux/([^\.]+)')
 URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
-URL2ID_WIKI_RE = re.compile('.*/wiki/(.+)')
+URL2ID_WIKI_RE = re.compile('.*/wiki/([^ /]+)')
 URL2ID_FORUM_RE = re.compile('.*/forums/([\w\-_]+)/posts/([^\.]+)')
 
 def rssid(entry):

@@ -19,12 +19,13 @@
 import urllib
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPError, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
 from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage, NewTagPage
 from .pages.board import BoardIndexPage
+from .pages.wiki import WikiEditPage
 from .tools import id2url, url2id
 
 # Browser
@@ -34,12 +35,15 @@ class DLFP(BaseBrowser):
     PAGES = {'https://linuxfr.org/?': IndexPage,
              'https://linuxfr.org/login.html': LoginPage,
              'https://linuxfr.org/news/[^\.]+': ContentPage,
-             'https://linuxfr.org/wiki/[^\.]+': ContentPage,
+             'https://linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
+             'https://linuxfr.org/wiki': WikiEditPage,
+             'https://linuxfr.org/wiki/nouveau': WikiEditPage,
+             'https://linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
              'https://linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
              'https://linuxfr.org/forums/[\w\-_]+/posts/[^\.]+': ContentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments/(\d+)$': CommentPage,
+             'https://linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
              'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments$': NodePage,
+             'https://linuxfr.org/nodes/(\d+)/comments': NodePage,
              'https://linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
              'https://linuxfr.org/board/index.xml': BoardIndexPage,
             }
@@ -62,6 +66,66 @@ class DLFP(BaseBrowser):
                 return None, None
 
         return url, _id
+
+    def get_wiki_content(self, _id):
+        url, _id = self.parse_id('W.%s' % _id)
+        if url is None:
+            return None
+
+        try:
+            self.location('%s/modifier' % url)
+        except BrowserHTTPNotFound:
+            return ''
+
+        assert self.is_on_page(WikiEditPage)
+
+        return self.page.get_body()
+
+    def _go_on_wiki_edit_page(self, name):
+        """
+        Go on the wiki page named 'name'.
+
+        Return True if this is a new page, or False if
+        the page already exist.
+        Return None if it isn't a right wiki page name.
+        """
+        url, _id = self.parse_id('W.%s' % name)
+        if url is None:
+            return None
+
+        try:
+            self.location('%s/modifier' % url)
+        except BrowserHTTPNotFound:
+            self.location('/wiki/nouveau')
+            new = True
+        else:
+            new = False
+
+        assert self.is_on_page(WikiEditPage)
+
+        return new
+
+    def set_wiki_content(self, name, content, message):
+        new = self._go_on_wiki_edit_page(name)
+        if new is None:
+            return None
+
+        if new:
+            title = name.replace('-', ' ')
+        else:
+            title = None
+
+        self.page.post_content(title, content, message)
+
+    def get_wiki_preview(self, name, content):
+        if self._go_on_wiki_edit_page(name) is None:
+            return None
+
+        self.page.post_preview(content)
+        if self.is_on_page(WikiEditPage):
+            return self.page.get_preview_html()
+        elif self.is_on_page(ContentPage):
+            return self.page.get_article().body
 
     def get_content(self, _id):
         url, _id = self.parse_id(_id)

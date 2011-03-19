@@ -22,6 +22,7 @@ from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValuesDict
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
+from weboob.capabilities.content import ICapContent, Content
 
 from .browser import DLFP
 from .tools import rssid, id2url
@@ -30,7 +31,7 @@ from .tools import rssid, id2url
 __all__ = ['DLFPBackend']
 
 
-class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -57,6 +58,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
 
         with self.browser:
             self.browser.close_session()
+
+    #### ICapMessages ##############################################
 
     def iter_threads(self):
         whats = set()
@@ -152,6 +155,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
 
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    #### ICapMessagesReply #########################################
     def post_message(self, message):
         if not message.parent:
             raise CantSendMessage('Posting news and diaries on DLFP is not supported yet')
@@ -164,7 +171,29 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                                              message.title,
                                              message.content)
 
-    def fill_thread(self, thread, fields):
-        return self.get_thread(thread)
+    #### ICapContent ###############################################
+    def get_content(self, id):
+        if isinstance(id, basestring):
+            content = Content(id)
+        else:
+            content = id
+            id = content.id
+
+        with self.browser:
+            data = self.browser.get_wiki_content(id)
+
+        if data is None:
+            return None
+
+        content.content = data
+        return content
+
+    def push_content(self, content, message=None, minor=False):
+        with self.browser:
+            return self.browser.set_wiki_content(content.id, content.content, message)
+
+    def get_content_preview(self, content):
+        with self.browser:
+            return self.browser.get_wiki_preview(content.id, content.content)
 
     OBJECTS = {Thread: fill_thread}
