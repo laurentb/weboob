@@ -46,7 +46,7 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserHTTPError', 'BasePage', 'BaseBrowser']
+           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser']
 
 
 # Exceptions
@@ -59,6 +59,9 @@ class BrowserBanned(BrowserIncorrectPassword):
 
 
 class BrowserUnavailable(Exception):
+    pass
+
+class BrowserHTTPNotFound(BrowserUnavailable):
     pass
 
 class BrowserHTTPError(BrowserUnavailable):
@@ -272,12 +275,18 @@ class BaseBrowser(mechanize.Browser):
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             if if_fail == 'raise':
-                raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
+                raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
                 return None
         except (mechanize.BrowserStateError, BrowserRetry):
             self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
+
+    def get_exception(self, e):
+        if isinstance(e, urllib2.HTTPError) and e.getcode() == 404:
+            return BrowserHTTPNotFound
+        else:
+            return BrowserHTTPError
 
     def readurl(self, url, *args, **kwargs):
         """
@@ -325,7 +334,7 @@ class BaseBrowser(mechanize.Browser):
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
-            raise BrowserHTTPError(e)
+            raise self.get_exception(e)(e)
         except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
             raise BrowserUnavailable(e)
@@ -345,7 +354,7 @@ class BaseBrowser(mechanize.Browser):
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
-            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
+            raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
             raise BrowserUnavailable(e)
@@ -375,7 +384,7 @@ class BaseBrowser(mechanize.Browser):
                 self.location(keep_args, keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
-            raise BrowserHTTPError('%s (url="%s")' % (e, args and args[0] or 'None'))
+            raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
