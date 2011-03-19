@@ -22,6 +22,8 @@ RSSID_RE = re.compile('tag:.*:(\w)\w+/(\d+)')
 ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^\.]+)$')
 URL2ID_DIARY_RE = re.compile('.*/users/([\w\-_]+)/journaux/([^\.]+)')
 URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
+URL2ID_WIKI_RE = re.compile('.*/wiki/(.+)')
+URL2ID_FORUM_RE = re.compile('.*/forums/([\w\-_]+)/posts/([^\.]+)')
 
 def rssid(entry):
     m = RSSID_RE.match(entry.id)
@@ -32,6 +34,11 @@ def rssid(entry):
         if not mm:
             return
         return 'D%s.%s' % (mm.group(1), m.group(2))
+    if m.group(1) == 'F':
+        mm = URL2ID_FORUM_RE.match(entry.link)
+        if not mm:
+            return
+        return 'F%s.%s' % (mm.group(1), m.group(2))
     return '%s.%s' % (m.group(1), m.group(2))
 
 def id2url(id):
@@ -43,6 +50,10 @@ def id2url(id):
         return '/news/%s' % m.group(3)
     if m.group(1) == 'D':
         return '/users/%s/journaux/%s' % (m.group(2), m.group(3))
+    if m.group(1) == 'W':
+        return '/wiki/%s' % m.group(3)
+    if m.group(1) == 'F':
+        return '/forums/%s/posts/%s' % (m.group(2), m.group(3))
 
 def url2id(url):
     m = URL2ID_NEWSPAPER_RE.match(url)
@@ -51,17 +62,14 @@ def url2id(url):
     m = URL2ID_DIARY_RE.match(url)
     if m:
         return 'D%s.%s' % (m.group(1), m.group(2))
+    m = URL2ID_WIKI_RE.match(url)
+    if m:
+        return 'W.%s' % (m.group(1))
+    m = URL2ID_FORUM_RE.match(url)
+    if m:
+        return 'F%s.%s' % (m.group(1), m.group(2))
 
 def id2threadid(id):
     m = ID2URL_RE.match(id)
     if m:
         return m.group(3)
-
-def id2contenttype(_id):
-    if not _id:
-        return None
-    if _id[0] == 'N':
-        return 1
-    if _id[0] == 'D':
-        return 5
-    return None
