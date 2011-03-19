@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import stat
 import os
+import sys
 from ConfigParser import RawConfigParser, DuplicateSectionError
 from logging import warning
 
@@ -37,11 +38,16 @@ class BackendsConfig(object):
         try:
             mode = os.stat(confpath).st_mode
         except OSError:
-            os.mknod(confpath, 0600)
+            if sys.platform == 'win32':
+                fptr = open(confpath,'w')
+                fptr.close()
+            else:
+                os.mknod(confpath, 0600)
         else:
-            if mode & stat.S_IRGRP or mode & stat.S_IROTH:
-                raise self.WrongPermissions(
-                    u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
+            if sys.platform != 'win32':
+                if mode & stat.S_IRGRP or mode & stat.S_IROTH:
+                    raise self.WrongPermissions(
+                        u'Weboob will not start until config file %s is readable by group or other users.' % confpath)
 
     def iter_backends(self):
         config = RawConfigParser()

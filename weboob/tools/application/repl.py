@@ -86,8 +86,13 @@ class ReplApplication(Cmd, BaseApplication):
     DISABLE_REPL = False
 
     # shell escape strings
-    BOLD   = '[1m'
-    NC     = '[0m'    # no color
+    if sys.platform == 'win32':
+        #workaround to disable bold
+        BOLD   = ''
+        NC     = ''         # no color
+    else:
+        BOLD   = '[1m'
+        NC     = '[0m'    # no color
 
     EXTRA_FORMATTERS = {}
     DEFAULT_FORMATTER = 'multiline'
@@ -1027,7 +1032,10 @@ class ReplApplication(Cmd, BaseApplication):
 
         while True:
             if v.masked:
-                line = getpass.getpass(question)
+                if sys.platform == 'win32':
+                    line = getpass.getpass(str(question))
+                else:
+                    line = getpass.getpass(question)
             else:
                 self.stdout.write(question)
                 self.stdout.flush()
