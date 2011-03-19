@@ -15,11 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import logging
+from copy import deepcopy
 from PyQt4.QtCore import SIGNAL
+from PyQt4.QtGui import QMessageBox
 
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.content import ICapContent
+from weboob.tools.misc import to_unicode
 
 from .ui.main_window_ui import Ui_MainWindow
 
@@ -59,27 +63,42 @@ class MainWindow(QtMainWindow):
         if self.ui.tabWidget.currentIndex() == 1:
             if self.backend is not None:
                 self.showPreview()
-        return
 
     def loadPage(self):
         _id = unicode(self.ui.idEdit.text())
         if not _id:
             return
+        self.ui.saveButton.setEnabled(False)
         backend = str(self.ui.backendBox.currentText())
         self.process = QtDo(self.weboob, self._loadPage_cb, self._loadPage_eb)
         self.process.do('get_content', _id, backends=(backend,))
 
     def _loadPage_cb(self, backend, data):
-        if not backend or not data:
+        if not backend:
+            self.process = None
+            if self.backend:
+                self.ui.saveButton.setEnabled(True)
             return
+        if not data:
+            self.content = None
+            self.backend = None
+            QMessageBox.critical(self, self.tr('Unable to open page'),
+                                 'Unable to open page "%s" on %s: it does not exist.'
+                                 % (self.ui.idEdit.text(), self.ui.backendBox.currentText()),
+                                 QMessageBox.Ok)
+            return
+
         self.content = data
         self.ui.contentEdit.setPlainText(self.content.content)
         self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id, backend.name))
         self.backend = backend
 
     def _loadPage_eb(self, backend, error, backtrace):
-        print error
-        print backtrace
+        content = unicode(self.tr('Unable to load page:\n%s\n')) % to_unicode(error)
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % to_unicode(backtrace)
+        QMessageBox.critical(self, self.tr('Error while loading page'),
+                             content, QMessageBox.Ok)
 
     def savePage(self):
         if self.backend is None:
@@ -87,6 +106,7 @@ class MainWindow(QtMainWindow):
         new_content = unicode(self.ui.contentEdit.toPlainText())
         minor = self.ui.minorBox.isChecked()
         if new_content != self.content.content:
+            self.ui.saveButton.setEnabled(False)
             self.content.content = new_content
             message = unicode(self.ui.descriptionEdit.text())
             self.process = QtDo(self.weboob, self._savePage_cb, self._savePage_eb)
@@ -94,14 +114,20 @@ class MainWindow(QtMainWindow):
 
     def _savePage_cb(self, backend, data):
         if not backend:
+            self.process = None
+            self.ui.saveButton.setEnabled(True)
             return
         self.ui.descriptionEdit.clear()
 
     def _savePage_eb(self, backend, error, backtrace):
-        print error
-        print backtrace
+        content = unicode(self.tr('Unable to save page:\n%s\n')) % to_unicode(error)
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % to_unicode(backtrace)
+        QMessageBox.critical(self, self.tr('Error while saving page'),
+                             content, QMessageBox.Ok)
+        self.ui.saveButton.setEnabled(True)
 
     def showPreview(self):
-        tmp_content = self.content
+        tmp_content = deepcopy(self.content)
         tmp_content.content=unicode(self.ui.contentEdit.toPlainText())
         self.ui.previewEdit.setHtml(self.backend.get_content_preview(tmp_content))
