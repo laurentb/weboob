@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 
 from weboob.tools.test import BackendTest
+from datetime import datetime
 
 
 __all__ = ['DLFPTest']
@@ -28,3 +29,15 @@ class DLFPTest(BackendTest):
     def test_new_messages(self):
         for message in self.backend.iter_unread_messages():
             pass
+
+    def test_get_content(self):
+        self.backend.get_content(u"Ceci-est-un-test")
+
+    def test_push_content(self):
+        content = self.backend.get_content(u"Ceci-est-un-test")
+        content.content = "test "+str(datetime.now())
+        self.backend.push_content(content, message="test weboob", minor=True)
+
+    def test_content_preview(self):
+        content = self.backend.get_content(u"Ceci-est-un-test")
+        self.backend.get_content_preview(content)
