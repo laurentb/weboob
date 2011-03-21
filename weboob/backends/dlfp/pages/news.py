@@ -166,7 +166,7 @@ class ContentPage(DLFPPage):
         if not self.article:
             self.article = Article(self.browser,
                                    self.url,
-                                   select(self.document.getroot(), 'article', 1))
+                                   select(self.document.getroot(), 'div#contents article', 1))
 
             try:
                 threads = select(self.document.getroot(), 'ul.threads', 1)
