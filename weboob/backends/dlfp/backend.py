@@ -21,6 +21,7 @@ from __future__ import with_statement
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValuesDict
+from weboob.tools.misc import limit
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 from weboob.capabilities.content import ICapContent, Content
 
@@ -41,12 +42,21 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
                         Value('password',          label='Password', regexp='.+', masked=True),
                         ValueBool('get_news',      label='Get newspapers', default=True),
-                        ValueBool('get_diaries',   label='Get diaries', default=False))
+                        ValueBool('get_diaries',   label='Get diaries', default=False),
+                        ValueBool('get_polls',     label='Get polls', default=False),
+                        ValueBool('get_board',     label='Get board', default=False),
+                        ValueBool('get_wiki',      label='Get wiki', default=False),
+                        ValueBool('get_tracker',   label='Get tracker', default=False))
     STORAGE = {'seen': {}}
     BROWSER = DLFP
-    RSS_NEWSPAPERS = "https://linuxfr.org/news.atom"
-    RSS_DIARIES = "https://linuxfr.org/journaux.atom"
 
+    FEEDS = {'get_news':     "https://linuxfr.org/news.atom",
+             'get_diaries':  "https://linuxfr.org/journaux.atom",
+             'get_polls':    "https://linuxfr.org/sondages.atom",
+             'get_board':    "https://linuxfr.org/forums.atom",
+             'get_wiki':     "https://linuxfr.org/wiki.atom",
+             'get_tracker':  "https://linuxfr.org/suivi.atom",
+            }
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
@@ -63,13 +73,12 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
 
     def iter_threads(self):
         whats = set()
-        if self.config['get_news']:
-            whats.add(self.RSS_NEWSPAPERS)
-        if self.config['get_diaries']:
-            whats.add(self.RSS_DIARIES)
+        for param, url in self.FEEDS.iteritems():
+            if self.config[param]:
+                whats.add(url)
 
         for what in whats:
-            for article in Newsfeed(what, rssid).iter_entries():
+            for article in limit(Newsfeed(what, rssid).iter_entries(), 20):
                 thread = Thread(article.id)
                 thread.title = article.title
                 if article.datetime:

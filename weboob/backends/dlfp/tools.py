@@ -26,7 +26,7 @@ REGEXPS = {'/users/%s/journaux/%s': 'D%s.%s',
            '/wiki/%s':              'W.%s',
            '/suivi/%s':             'T.%s',
            '/sondages/%s':          'P.%s',
-           '/forums/%s/posts/%s':   'B.%s',
+           '/forums/%s/posts/%s':   'B%s.%s',
           }
 
 def f2re(f):
