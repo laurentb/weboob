@@ -23,6 +23,7 @@ ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^ \.]+)$')
 URL2ID_DIARY_RE = re.compile('.*/users/([\w\-_]+)/journaux/([^\.]+)')
 URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
 URL2ID_WIKI_RE = re.compile('.*/wiki/([^ /]+)')
+URL2ID_SUIVI_RE = re.compile('.*/suivi/([^ /]+)')
 URL2ID_FORUM_RE = re.compile('.*/forums/([\w\-_]+)/posts/([^\.]+)')
 
 def rssid(entry):
@@ -54,6 +55,8 @@ def id2url(id):
         return '/wiki/%s' % m.group(3)
     if m.group(1) == 'F':
         return '/forums/%s/posts/%s' % (m.group(2), m.group(3))
+    if m.group(1) == 'S':
+        return '/suivi/%s' % m.group(3)
 
 def url2id(url):
     m = URL2ID_NEWSPAPER_RE.match(url)
@@ -68,6 +71,9 @@ def url2id(url):
     m = URL2ID_FORUM_RE.match(url)
     if m:
         return 'F%s.%s' % (m.group(1), m.group(2))
+    m = URL2ID_SUIVI_RE.match(url)
+    if m:
+        return 'S.%s' % (m.group(1))
 
 def id2threadid(id):
     m = ID2URL_RE.match(id)
