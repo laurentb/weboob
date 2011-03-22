@@ -120,11 +120,11 @@ class Transilien(BaseBrowser):
              'https://www\.transilien\.com/web/ITProchainsTrains\.do\?.*': RoutePage
             }
     PROTOCOL = 'https'
+    USER_AGENT = BaseBrowser.USER_AGENTS['microb']
 
     def __init__(self, **kwargs):
         kwargs['parser'] = Parser
         BaseBrowser.__init__(self, '', **kwargs)
-        USER_AGENT = BaseBrowser.USER_AGENTS['microb']
 
     def iter_station_search(self, pattern):
         pass
