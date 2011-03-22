@@ -43,7 +43,6 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
             content = self.browser.readurl('http://ipinfodb.com/ip_locator.php?ip=%s' % str(ipaddr))
 
             if 'Invalid IP or domain name' in content:
-                """ exception"""
                 raise Exception('Bad parameter')
             else:
                 tab = {'City' : 'NA' ,\
@@ -73,8 +72,14 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
                 iploc.region = tab['Region']
                 iploc.zipcode = tab['zipcode']
                 iploc.country = tab['Country name']
-                iploc.lt = float(tab['Latitude'])
-                iploc.lg = float(tab['Longitude'])
+                try :
+                    iploc.lt = float(tab['Latitude'])
+                    iploc.lg = float(tab['Longitude'])
+                except ValueError:
+                    if len(tab['Latitude']) == 0 or len(tab['Longitude']) == 0:
+                        pass
+                    else:
+                        raise
                 iploc.host = tab['hostname']
                 iploc.tld = tab['hostname'].split('.')[-1]
                 #iploc.isp = 'NA'
