@@ -116,9 +116,10 @@ class Parser(HTMLParser.HTMLParser):
 
 class Transilien(BaseBrowser):
     DOMAIN = 'www.transilien.com'
-    PAGES = {'http://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': RoutePage,
-             'http://www\.transilien\.com/web/ITProchainsTrains\.do\?.*': RoutePage
+    PAGES = {'https://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': RoutePage,
+             'https://www\.transilien\.com/web/ITProchainsTrains\.do\?.*': RoutePage
             }
+    PROTOCOL = 'https'
 
     def __init__(self, **kwargs):
         kwargs['parser'] = Parser
@@ -130,9 +131,9 @@ class Transilien(BaseBrowser):
 
     def iter_station_departures(self, station_id, arrival_id=None):
         if arrival_id:
-            self.location('http://www.transilien.com/web/ITProchainsTrainsAvecDest.do?codeTr3aDepart=%s&codeTr3aDest=%s&urlModule=/site/pid/184&gareAcc=true' % (station_id, arrival_id))
+            self.location('https://www.transilien.com/web/ITProchainsTrainsAvecDest.do?codeTr3aDepart=%s&codeTr3aDest=%s&urlModule=/site/pid/184&gareAcc=true' % (station_id, arrival_id))
         else:
-            self.location('http://www.transilien.com/web/ITProchainsTrains.do?tr3a=%s&urlModule=/site/pid/184' % station_id)
+            self.location('https://www.transilien.com/web/ITProchainsTrains.do?tr3a=%s&urlModule=/site/pid/184' % station_id)
         for route in self.page.document.list_route:
             _late_reason = None
             try :
