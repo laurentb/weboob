@@ -101,7 +101,11 @@ class GenericNewsPage(BasePage):
             else:
                 raise
         except SelectElementException:
-            raise NoTitleException("no title on %s" % (self.browser)) 
+            try :
+                self.element_title_selector = "h1"
+                return self.get_title()
+            except SelectElementException:
+                raise NoTitleException("no title on %s" % (self.browser))
 
     def get_element_body(self):
         try :
