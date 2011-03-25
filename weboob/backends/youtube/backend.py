@@ -67,7 +67,7 @@ def get_video_url(video, format=18):
         key = parts[0]
         for p in parts[1:]:
             idx = p.rfind(',')
-            value = p[:idx].replace('\\/', '/')
+            value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
             formats[int(key)] = value
             key = p[idx + 1:]
     format_list = [22, 35, 34, 18, 17]
