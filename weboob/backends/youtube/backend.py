@@ -34,51 +34,6 @@ from .video import YoutubeVideo
 __all__ = ['YoutubeBackend']
 
 
-def get_video(entry):
-    video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()),
-                         title=to_unicode(entry.media.title.text.strip()),
-                         duration=to_unicode(datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))),
-                         thumbnail_url=to_unicode(entry.media.thumbnail[0].url.strip()),
-                         )
-    video.author = entry.author[0].name.text.strip()
-    if entry.media.name:
-        video.author = to_unicode(entry.media.name.text.strip())
-    return video
-
-
-def get_video_url(video, format=18):
-    """
-    Returns the YouTube video url for download or playback.
-    In the case of a download, if the user-chosen format is not
-    available, the next available format will be used.
-    Much of the code for this method is borrowed from youtubeservice.py of Cutetube
-    http://maemo.org/packages/view/cutetube/.
-    """
-    video_url = ''
-    player_url = YoutubeVideo.id2url(video.id)
-    html = urllib.urlopen(player_url).read()
-    html = ''.join(html.split())
-    formats = {}
-    pos = html.find('","fmt_url_map":"')
-    if (pos != -1):
-        pos2 = html.find('"', pos + 17)
-        fmt_map = urllib.unquote(html[pos + 17:pos2]) + ','
-        parts = fmt_map.split('|')
-        key = parts[0]
-        for p in parts[1:]:
-            idx = p.rfind(',')
-            value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
-            formats[int(key)] = value
-            key = p[idx + 1:]
-    format_list = [22, 35, 34, 18, 17]
-    for format in format_list[format_list.index(format):]:
-        if format in formats:
-            video_url = formats.get(format)
-            break
-        break
-    return video_url
-
-
 class YoutubeBackend(BaseBackend, ICapVideo):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
@@ -89,6 +44,61 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     BROWSER = YoutubeBrowser
 
     URL_RE = re.compile(r'https?://.*youtube.com/watch\?v=(.*)')
+    AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
+    FORMAT_EXTENSIONS = {
+        13: '3gp',
+        17: 'mp4',
+        18: 'mp4',
+        22: 'mp4',
+        37: 'mp4',
+        38: 'video', # You actually don't know if this will be MOV, AVI or whatever
+        43: 'webm',
+        45: 'webm',
+    }
+
+    def _entry2video(self, entry):
+        """
+        Parse an entry returned by gdata and return a Video object.
+        """
+        video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()),
+                             title=to_unicode(entry.media.title.text.strip()),
+                             duration=to_unicode(datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))),
+                             thumbnail_url=to_unicode(entry.media.thumbnail[0].url.strip()),
+                             )
+        video.author = entry.author[0].name.text.strip()
+        if entry.media.name:
+            video.author = to_unicode(entry.media.name.text.strip())
+        return video
+
+    def _set_video_url(self, video, format=18):
+        """
+        In the case of a download, if the user-chosen format is not
+        available, the next available format will be used.
+        Much of the code for this method is borrowed from youtubeservice.py of Cutetube
+        http://maemo.org/packages/view/cutetube/.
+        """
+        player_url = YoutubeVideo.id2url(video.id)
+        html = urllib.urlopen(player_url).read()
+        html = ''.join(html.split())
+        formats = {}
+        pos = html.find('","fmt_url_map":"')
+        if (pos != -1):
+            pos2 = html.find('"', pos + 17)
+            fmt_map = urllib.unquote(html[pos + 17:pos2]) + ','
+            parts = fmt_map.split('|')
+            key = parts[0]
+            for p in parts[1:]:
+                idx = p.rfind(',')
+                value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
+                formats[int(key)] = value
+                key = p[idx + 1:]
+        for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
+            if format in formats:
+                video.url = formats.get(format)
+                video.ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
+                return True
+
+        return False
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)
@@ -103,8 +113,8 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                 return None
             raise
 
-        video = get_video(entry)
-        video.url = get_video_url(video)
+        video = self._entry2video(entry)
+        self._set_video_url(video)
         return video
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
@@ -136,7 +146,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
             feed = yt_service.YouTubeQuery(query)
             for entry in feed.entry:
-                yield get_video(entry)
+                yield self._entry2video(entry)
                 nb_yielded += 1
                 if nb_yielded == max_results:
                     return
@@ -145,7 +155,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         if 'thumbnail' in fields:
             video.thumbnail.data = urllib.urlopen(video.thumbnail.url).read()
         if 'url' in fields:
-            video.url = get_video_url(video)
+            self._set_video_url(video)
         return video
 
     OBJECTS = {YoutubeVideo: fill_video}
