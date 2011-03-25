@@ -118,10 +118,13 @@ class Videoob(ReplApplication):
                 print >>sys.stderr, 'Please install "wget"'
                 return 1
 
-        if dest is not None:
-            os.system('wget %s -O %s' % (video.url, dest))
-        else:
-            os.system('wget %s' % (video.url))
+        if dest is None:
+            ext = video.ext
+            if not ext:
+                ext = 'avi'
+            dest = '%s.%s' % (video.id, ext)
+
+        os.system('wget "%s" -O "%s"' % (video.url, dest))
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
