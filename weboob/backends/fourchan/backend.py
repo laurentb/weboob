@@ -74,10 +74,9 @@ class FourChanBackend(BaseBackend, ICapMessages):
                               parent=None,
                               content=_thread.text,
                               signature=None,
-                              children=None,
+                              children=[],
                               flags=flags|Message.IS_HTML)
 
-        parent = thread.root
         for comment in _thread.comments:
             flags = 0
             if not comment.id in self.storage.get('boards', board, _thread.id, default=[]):
@@ -89,13 +88,12 @@ class FourChanBackend(BaseBackend, ICapMessages):
                         sender=comment.author,
                         receivers=None,
                         date=comment.datetime,
-                        parent=parent,
+                        parent=thread.root,
                         content=comment.text,
                         signature=None,
                         children=None,
                         flags=flags|Message.IS_HTML)
-            parent.children = [m]
-            parent = m
+            thread.root.children.append(m)
 
         return thread
 
