@@ -20,6 +20,7 @@ import datetime
 import lxml.html
 import re
 
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
@@ -42,14 +43,15 @@ class VideoPage(BasePage):
         # youjizz HTML is crap, we must parse it with regexps
         data = lxml.html.tostring(self.document.getroot())
         m = re.search(r'<strong>.*?Runtime.*?</strong> (.+?)<br.*>', data)
-        try:
-            if m:
-                minutes, seconds = (int(v) for v in to_unicode(m.group(1).strip()).split(':'))
-                video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
+        if m:
+            txt = m.group(1).strip()
+            if txt == 'Unknown':
+                video.duration = NotAvailable
             else:
-                raise Exception()
-        except Exception:
-            raise SelectElementException('Could not retrieve video duration')
+                minutes, seconds = (int(v) for v in to_unicode(txt).split(':'))
+                video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
+        else:
+            raise SelectElementException('Unable to retrieve video duration')
 
         video_file_urls = re.findall(r'"(http://media[^ ,]+\.flv)"', data)
         if len(video_file_urls) == 0:
