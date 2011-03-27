@@ -42,7 +42,7 @@ class IndexPage(BasePage):
             title = title_el.text.strip()
 
             time_span = select(span, 'span.thumbtime span', 1)
-            time_txt = time_span.text.strip()
+            time_txt = time_span.text.strip().replace(';', ':')
             if time_txt == 'N/A':
                 minutes, seconds = 0, 0
             elif ':' in time_txt:
