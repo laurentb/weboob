@@ -21,14 +21,14 @@ class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
-        self.element_title_selector = "h3"
+        self.element_title_selector = "title"
         self.element_author_selector    = "p.auteur>a"
         self.element_body_selector      = "div.bloc_article_01"
 
     def get_body(self):
         element_body = self.get_element_body()
-        remove_from_selector_list(element_body, [self.element_title_selector, "p.auteur", "h4", "h4"])
-        try_remove_from_selector_list(element_body, ["p.tag", "div.alire"])
+        remove_from_selector_list(element_body, ["p.auteur", "h4", "h4"])
+        try_remove_from_selector_list(element_body, ["p.tag", "div.alire", self.element_title_selector])
         try_drop_tree(element_body, "script")
 
         return self.browser.parser.tostring(element_body)
