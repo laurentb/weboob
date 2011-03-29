@@ -266,6 +266,9 @@ class Monboob(ReplApplication):
                 body = mail.content
             content_type = 'plain'
 
+        if body is None:
+            body = ''
+
         if mail.signature:
             if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
                 body += u'<p>-- <br />%s</p>' % mail.signature
