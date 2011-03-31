@@ -40,12 +40,11 @@ class ComposePage(BasePage):
         return "0"
 
     def post_message(self, message, sender):
-        receiver_list = [re.sub(' +', '', receiver) for receiver in message.receivers]
-        for receiver in receiver_list:
-            if self.phone_regex.match(receiver) is None:
-                raise CantSendMessage(u'Invalid receiver: %s' % receiver)
+        receiver = message.thread.id
+        if self.phone_regex.match(receiver) is None:
+            raise CantSendMessage(u'Invalid receiver: %s' % receiver)
 
-        listetel = ",,"+ "|,,".join(receiver_list)
+        listetel = ",,"+ receiver
 
         #Fill the form
         self.browser.select_form(name="formulaire")
