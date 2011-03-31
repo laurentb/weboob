@@ -25,8 +25,7 @@ class QBoobMsg(QtApplication):
     APPNAME = 'qboobmsg'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "QBoobMsg is a graphical application to read messages on supported " \
-                  "website and reply to them."
+    DESCRIPTION = 'Qt application allowing to read messages on various websites and reply to them.'
     CAPS = ICapMessages
 
     def main(self, argv):

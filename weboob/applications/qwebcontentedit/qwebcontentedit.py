@@ -24,7 +24,7 @@ class QWebContentEdit(QtApplication):
     APPNAME = 'qwebcontentedit'
     VERSION = '0.8'
     COPYRIGHT = u'Copyright(C) 2011 Clément Schreiner'
-    DESCRIPTION = "Qt application for managing content on supported websites"
+    DESCRIPTION = 'Qt application allowing to manage contents of various websites.'
     CAPS = ICapContent
 
     def main(self, argv):

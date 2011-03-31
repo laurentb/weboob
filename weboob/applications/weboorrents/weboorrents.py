@@ -80,8 +80,8 @@ class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "Weboorrents is a console application to search torrents on supported trackers " \
-                  "and to download .torrent files."
+    DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
+                  'and download .torrent files.'
     CAPS = ICapTorrent
     EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,

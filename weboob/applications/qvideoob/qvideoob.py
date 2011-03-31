@@ -25,7 +25,7 @@ class QVideoob(QtApplication):
     APPNAME = 'qvideoob'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "QVideoob is a graphical application to search videos on supported websites and play them."
+    DESCRIPTION = 'Qt application allowing to search videos on various websites and play them.'
     CAPS = ICapVideo
     CONFIG = {'settings': {'nsfw': 1,
                            'sfw': 1,

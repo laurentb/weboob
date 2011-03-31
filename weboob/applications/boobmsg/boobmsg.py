@@ -163,9 +163,8 @@ class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
-    DESCRIPTION = "Boobmsg is a console application to send messages on " \
-                  "supported websites and " \
-                  "to display messages threads and contents."
+    DESCRIPTION = "Console application allowing to send messages on various websites and " \
+                  "to display message threads and contents."
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
                         'msg':     MessageFormatter,

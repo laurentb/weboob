@@ -41,6 +41,7 @@ class VideoobWeb(BaseApplication):
     APPNAME = 'videoob-webserver'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
+    DESCRIPTION = 'WSGI web server application allowing to search for videos on various websites.'
     CAPS = ICapVideo
     CONFIG = dict(host='localhost', port=8080)
 

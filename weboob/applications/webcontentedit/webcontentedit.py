@@ -35,8 +35,7 @@ class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
     VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "Webcontentedit is a console application to display and " \
-                  "edit contents on supported websites."
+    DESCRIPTION = 'Console application allowing to display and edit contents on various websites.'
     CAPS = ICapContent
 
     def do_edit(self, line):
