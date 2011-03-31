@@ -85,8 +85,8 @@ class Monboob(ReplApplication):
     APPNAME = 'monboob'
     VERSION = '0.7.1'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "Monboob is a daemon to send messages on supported website by email, " \
-                  "and can be used to send replies."
+    DESCRIPTION = 'Daemon allowing to regularly check for new messages on various websites, ' \
+                  'and send an email for each message, and post a reply to a message on a website.'
     CONFIG = {'interval':  300,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',

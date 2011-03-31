@@ -29,7 +29,7 @@ class Geolooc(ReplApplication):
     APPNAME = 'geolooc'
     VERSION = '0.7.1'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = "Geolooc is a console application to get geolocalization of IP addresses."
+    DESCRIPTION = 'Console application allowing to geolocalize IP addresses.'
     CAPS = ICapGeolocIp
 
     def main(self, argv):
