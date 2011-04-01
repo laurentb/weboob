@@ -4,4 +4,5 @@ include man/*
 include weboob/applications/qboobmsg/ui/Makefile
 include weboob/applications/qhavesex/ui/Makefile
 include weboob/applications/qvideoob/ui/Makefile
+include weboob/applications/qwebcontentedit/ui/Makefile
 include weboob/tools/application/qt/Makefile
