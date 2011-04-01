@@ -31,7 +31,7 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.8'
     LICENSE = 'GPLv3'
-    DESCRIPTION = u"IP Adresses geolocalisation with the site ipinfodb.com"
+    DESCRIPTION = u"IP Addresses geolocalisation with the site ipinfodb.com"
     BROWSER = BaseBrowser
 
     def create_default_browser(self):
