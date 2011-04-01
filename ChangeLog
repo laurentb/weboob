@@ -1,3 +1,39 @@
+Weboob 0.6.1 (2011-04-01)
+	General
+	* Weboob should work on Windows.
+
+	Backend: AuM
+	* Fix: parsing of smileys (#532).
+	* Fix: handle unknown page (#535).
+
+	Backend: BP
+	* Fix: parsing accounts when there are missing sections.
+
+	Backend: LCL
+	* Fix login and implements CapBank methods.
+
+	Backend: NewsFeed
+	* Fix: correctly set the UNREAD flag.
+
+	Backend: Orange
+	* Fix: posting (#614).
+
+	Backend: Transilien
+	* Fix: do not keep results in new requests.
+
+	Backend: Youjizz
+	* Fix: parsing duration.
+
+	Backend: Youtube
+	* Fix: getting video from a page URL.
+	* Fix: getting file URL from video.
+
+	Application: masstransit
+	* Works without hildon or conic.
+
+	Core
+	* Remove the 'refresh' feature from Browser.
+
 Weboob 0.6 (2011-03-01)
 	General
 	* New backend: Inrocks (CapMessages).
