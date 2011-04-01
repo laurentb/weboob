@@ -1,3 +1,88 @@
+Weboob 0.7 (2011-04-01)
+	General
+	* New backend: Dailymotion (CapVideo).
+	* New backend: Ecrans (CapMessages).
+	* Now compatible with Windows (is it really a good news? :)).
+
+	Console applications
+	* Do not print escape characters (like bold) when using -O.
+
+	Backend: AuM
+	* Fix: parsing of smileys (#532).
+	* Fix: new page (#535).
+
+	Backend: BP
+	* Fix: parsing of accounts is case there are missing sections.
+
+	Backend: CreditMutuel
+	* Compatibility with other agencies (#550).
+
+	Backend: DLFP
+	* Ability to plusse/moinse contents.
+	* Ability to tag a content.
+	* Support the board.
+	* Support comments signatures.
+	* Support wiki, forums, polls, tracker.
+	* Now implements CapContent to edit wiki.
+
+	Backend: FourChan
+	* All messages are children of thread.
+
+	Backend: Inrocks
+	* Add support of 'InrocksTV' pages.
+
+	Backend: IpInfoDB
+	* Fix: crash when lat/long are empty (#585).
+
+	Backend: LCL
+	* Fix login, and implement CapBank methods.
+
+	Backend: Newsfeed
+	* Fix: correctly set the UNREAD flag.
+
+	Backend: Orange
+	* Fix: posting messages (#614).
+
+	Backend: Redmine
+	* Fix: support project names with '-' in.
+
+	Backend: Transilien
+	* Fix: don't keep previous results.
+	* Change user-agent of browser and use HTTPS (#580,#583).
+
+	Backend: Youjizz
+	* Fix: crash when duration is not available.
+
+	Backend: Youtube
+	* Now correctly handle gdata errors.
+	* Fix: get video from page URL.
+	* Fix: get file URL of video.
+
+	Application: boobmsg
+	* New command 'export_all'.
+	* New xhtml formatter.
+
+	Application: masstransit
+	* Works without conic or hildon (#562).
+	* Add banner on load.
+
+	Application: QWebContentEdit
+	* Better errors management.
+
+	Application: videoob
+	* New command 'download'.
+
+	Application: webcontentedit
+	* Set a default editor (#557).
+
+	Core
+	* Split of ReplApplication to create ConsoleApplication.
+	* Remove the 'refresh' feature from Browser (to prevent unwanted
+	behaviors like freezes).
+	* Browser has upgraded Firefox from 3.0.3 to 3.6.13.
+	* Browser doesn't retry on 404 errors.
+	* Script to generate Sphinx API documentation.
+
 Weboob 0.6 (2011-03-01)
 	General
 	* New backend: Inrocks (CapMessages).
