@@ -1,4 +1,4 @@
-.TH BOOBMSG 1 "01 March 2011" "boobmsg 0\&.6"
+.TH BOOBMSG 1 "01 April 2011" "boobmsg 0\&.7"
 .SH NAME
 boobmsg
 .SH SYNOPSIS
@@ -20,6 +20,8 @@ Boobmsg is a console application to send messages on supported websites and to d
 .br
 * dlfp (Da Linux French Page)
 .br
+* ecrans (Ecrans French news website)
+.br
 * fourchan (4chan website)
 .br
 * inrocks (Inrock French news website)
@@ -34,6 +36,10 @@ Boobmsg is a console application to send messages on supported websites and to d
 .br
 * sfr (SFR french mobile phone provider)
 .SH BOOBMSG COMMANDS
+.TP
+\fBexport_all\fR
+.br
+Export All threads
 .TP
 \fBexport_thread\fR
 .br
@@ -221,7 +227,7 @@ select result item keys to display (comma separated)
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
 select output formatter (csv, htmltable, msg, msglist, multiline, simple, table,
-webkit)
+webkit, xhtml)
 .TP
 \fB\-\-no\-header\fR
 do not display header

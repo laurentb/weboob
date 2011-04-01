@@ -1,21 +1,25 @@
-.TH MASSTRANSIT 1 "02 August 2010"
+.TH MASSTRANSIT 1 "01 April 2011" "masstransit 0\&.7"
 .SH NAME
-masstransit \- Transport information for N900
+masstransit
 .SH SYNOPSIS
 .B masstransit
-[\-dqv] [\-b \fIbackends\fR]
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
 .B masstransit
-[\-\-version] [\-\-help]
-.SH DESCRIPTION
-.LP
-Weboob provides several applications to interact with a lot of websites.
-
-This graphical application for Nokia N900 phones is used to know timelines
-of stations for transports (train, airplanes, etc.)
+[\-\-help] [\-\-version]
 
 .SH OPTIONS
-.SS Logging options
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 display debug messages
@@ -25,22 +29,21 @@ display only error messages
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 display info messages
-.SS Misc options
 .TP
-\fB\-b\fR, \fB\-\-backends\fR \fIbackends\fR
-select backends to load
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
 .TP
-\fB\-\-version\fR
-display version of \fIweboob-config\fR
-.TP
-\fB\-h\fR, \fB\-\-help\fR
-show the help message and exit
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
 
 .SH COPYRIGHT
-Copyright(C) 2010 Julien Hébert
+Copyright(C) 2010-2011 Julien Hébert
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends"
+"~/.weboob/backends" 
+
+.SH SEE ALSO
+Home page: http://weboob.org/Masstransit
