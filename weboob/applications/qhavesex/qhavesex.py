@@ -23,7 +23,7 @@ from .main_window import MainWindow
 
 class QHaveSex(QtApplication):
     APPNAME = 'qhavesex'
-    VERSION = '0.7'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "QHaveSex is a graphical application to interact with dating websites " \
                   "and help you to seduce women."

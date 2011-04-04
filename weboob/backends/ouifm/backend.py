@@ -29,7 +29,7 @@ class OuiFMBackend(BaseBackend, ICapRadio):
     NAME = 'ouifm'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.7'
+    VERSION = '0.8'
     DESCRIPTION = u'The Ouï FM french radio'
     LICENSE = 'GPLv3'
     BROWSER = OuiFMBrowser
