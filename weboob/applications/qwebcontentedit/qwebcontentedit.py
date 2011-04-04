@@ -22,7 +22,7 @@ from .main_window import MainWindow
 
 class QWebContentEdit(QtApplication):
     APPNAME = 'qwebcontentedit'
-    VERSION = '0.7'
+    VERSION = '0.7.1'
     COPYRIGHT = u'Copyright(C) 2011 Clément Schreiner'
     DESCRIPTION = "Qt application for managing content on supported websites"
     CAPS = ICapContent

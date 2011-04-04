@@ -33,7 +33,7 @@ class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     NAME = 'sfr'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.7'
+    VERSION = '0.7.1'
     DESCRIPTION = 'SFR french mobile phone provider'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('login', label='Login'),

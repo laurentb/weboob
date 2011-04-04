@@ -27,7 +27,7 @@ __all__ = ['Traveloob']
 
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
-    VERSION = '0.7'
+    VERSION = '0.7.1'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Traveloob is a console application to get timelines."
     CAPS = ICapTravel

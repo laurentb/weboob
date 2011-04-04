@@ -37,7 +37,7 @@ def check_executable_win(executable, error):
 
     if dotfirst:
         path = ["."]+path
-        
+
     pathext = os.environ[pathextsrc]
     pathext = filter(None, pathext.split(";"))
 
@@ -184,7 +184,7 @@ if options.xdg:
 
 setup(
     name='weboob',
-    version='0.7',
+    version='0.7.1',
     description='Weboob, Web Out Of Browsers',
     author='Romain Bignon',
     author_email='weboob@weboob.org',

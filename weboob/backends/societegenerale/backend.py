@@ -33,7 +33,7 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     NAME = 'societegenerale'
     MAINTAINER = 'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
-    VERSION = '0.7'
+    VERSION = '0.7.1'
     LICENSE = 'GPLv3'
     DESCRIPTION = u'Société Générale french bank\' website'
     CONFIG = ValuesDict(Value('login',      label='Account ID'),
