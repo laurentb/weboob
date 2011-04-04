@@ -33,7 +33,7 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Webcontentedit is a console application to display and " \
                   "edit contents on supported websites."
@@ -53,7 +53,7 @@ class WebContentEdit(ReplApplication):
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
-            print >>sys.stderr, 'No contents found'
+            print >> sys.stderr, 'No contents found'
             return 1
 
         paths = {}
@@ -73,9 +73,10 @@ class WebContentEdit(ReplApplication):
             paths[path] = content
 
         params = ''
-        if os.environ['EDITOR'] == 'vim':
+        editor = os.environ.get('EDITOR', 'vim')
+        if editor == 'vim':
             params = '-p'
-        os.system("$EDITOR %s %s" % (params, ' '.join(paths.iterkeys())))
+        os.system("%s %s %s" % (editor, params, ' '.join(paths.iterkeys())))
 
         for path, content in paths.iteritems():
             with open(path, 'r') as f:
@@ -124,7 +125,7 @@ class WebContentEdit(ReplApplication):
         Display log of a page
         """
         if not line:
-            print >>sys.stderr, 'Error: please give a page ID'
+            print >> sys.stderr, 'Error: please give a page ID'
             return 1
 
         _id, backend_name = self.parse_id(line)

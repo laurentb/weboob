@@ -83,7 +83,7 @@ class MonboobScheduler(Scheduler):
 
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Monboob is a daemon to send messages on supported website by email, " \
                   "and can be used to send replies."
@@ -265,6 +265,9 @@ class Monboob(ReplApplication):
             else:
                 body = mail.content
             content_type = 'plain'
+
+        if body is None:
+            body = ''
 
         if mail.signature:
             if int(self.config.get('html')) and mail.flags & mail.IS_HTML:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010-2011  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ else:
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound
 from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.application.console import ConsoleApplication
 
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
@@ -58,8 +59,22 @@ class MandatoryFieldsNotFound(Exception):
 
 
 class IFormatter(object):
-
     MANDATORY_FIELDS = None
+
+    def get_bold(self):
+        if self.outfile != sys.stdout:
+            return ''
+        else:
+            return ConsoleApplication.BOLD
+
+    def get_nc(self):
+        if self.outfile != sys.stdout:
+            return ''
+        else:
+            return ConsoleApplication.NC
+
+    BOLD = property(get_bold)
+    NC = property(get_nc)
 
     def __init__(self, display_keys=True, display_header=True, return_only=False, outfile=sys.stdout):
         self.display_keys = display_keys
@@ -70,6 +85,7 @@ class IFormatter(object):
         self.termrows = 0
         self.outfile = outfile
         # XXX if stdin is not a tty, it seems that the command fails.
+
         if os.isatty(sys.stdout.fileno()) and os.isatty(sys.stdin.fileno()):
             if sys.platform == 'win32':
                 self.termrows = WConio.gettextinfo()[8]

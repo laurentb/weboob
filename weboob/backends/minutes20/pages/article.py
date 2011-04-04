@@ -16,25 +16,28 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from weboob.tools.genericArticle import NoAuthorElement, try_remove
+from weboob.tools.genericArticle import NoAuthorElement, try_remove, NoneMainDiv
 from .simple import SimplePage
 
 class ArticlePage(SimplePage):
     "ArticlePage object for minutes20"
-
-    def get_body(self):
-        element_body = self.get_element_body()
-        try_remove(element_body, "div.mna-tools")
-        try_remove(element_body, "div.mna-comment-call")
-        try :
-            element_body.remove(self.get_element_author())
-        except NoAuthorElement:
-            pass
-        return self.browser.parser.tostring(element_body)
-
     def on_loaded(self):
         self.main_div = self.document.getroot()
+        self.element_title_selector = "h1"
         self.element_author_selector = "div.mna-signature"
         self.element_body_selector = "div.mna-body"
-        self.element_title_selector = "h1"
-    
+
+    def get_body(self):
+        try:
+            element_body = self.get_element_body()
+        except NoneMainDiv:
+            return None
+        else:
+            try_remove(element_body, "div.mna-tools")
+            try_remove(element_body, "div.mna-comment-call")
+            try :
+                element_body.remove(self.get_element_author())
+            except NoAuthorElement:
+                pass
+            return self.browser.parser.tostring(element_body)
+

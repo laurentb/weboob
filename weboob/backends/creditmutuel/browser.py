@@ -32,13 +32,14 @@ class CreditMutuelBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
              'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
-         'https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi': AccountsPage,
-         'https://www.creditmutuel.fr/cmdv/fr/banque/mouvements.cgi.*' : OperationsPage,
-         'https://www.creditmutuel.fr/cmdv/fr/banque/BAD.*' : InfoPage
+         'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*' : OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage
             }
 
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
+        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage)
@@ -61,7 +62,7 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('https://www.creditmutuel.fr/cmdv/fr/banque/situation_financiere.cgi')
+            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi'%self.getCurrentSubBank())
         return self.page.get_list()
 
     def get_account(self, id):
@@ -74,12 +75,20 @@ class CreditMutuelBrowser(BaseBrowser):
 
         return None
 
+    def getCurrentSubBank(self):
+        # the account list and history urls depend on the sub bank of the user
+        current_url = self.geturl()
+        current_url_parts = current_url.split('/')
+        for subbank in self.SUB_BANKS:
+            if subbank in current_url_parts:
+                return subbank
+
     def get_history(self, account):
         page_url = account.link_id
         #operations_count = 0
         l_ret = []
         while (page_url):
-            self.location('https://%s/cmdv/fr/banque/%s' % (self.DOMAIN, page_url))
+            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.getCurrentSubBank(), page_url))
             #for page_operation in self.page.get_history(operations_count):
             #    operations_count += 1
             #    yield page_operation

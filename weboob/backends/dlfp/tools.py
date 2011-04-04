@@ -18,50 +18,62 @@
 
 import re
 
-RSSID_RE = re.compile('tag:.*:(\w)\w+/(\d+)')
-ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^\.]+)$')
-URL2ID_DIARY_RE = re.compile('.*/users/([\w\-_]+)/journaux/([^\.]+)')
-URL2ID_NEWSPAPER_RE = re.compile('.*/news/(.+)')
+RSSID_RE = re.compile('tag:.*:(\w+)/(\d+)')
+ID2URL_RE = re.compile('^(\w)([\w\-_]*)\.([^ \.]+)$')
+
+REGEXPS = {'/users/%s/journaux/%s': 'D%s.%s',
+           '/news/%s':              'N.%s',
+           '/wiki/%s':              'W.%s',
+           '/suivi/%s':             'T.%s',
+           '/sondages/%s':          'P.%s',
+           '/forums/%s/posts/%s':   'B%s.%s',
+          }
+
+def f2re(f):
+    return '.*' + f.replace('%s', '([^ /]+)')
 
 def rssid(entry):
     m = RSSID_RE.match(entry.id)
     if not m:
         return None
-    if m.group(1) == 'D':
-        mm = URL2ID_DIARY_RE.match(entry.link)
-        if not mm:
-            return
-        return 'D%s.%s' % (mm.group(1), m.group(2))
-    return '%s.%s' % (m.group(1), m.group(2))
+
+    ind = m.group(1).replace('Post', 'Board')[0]
+
+    for url_re, id_re in REGEXPS.iteritems():
+        if id_re[0] != ind:
+            continue
+
+        if id_re.count('%s') == 2:
+            mm = re.match(f2re(url_re), entry.link)
+            if not mm:
+                return
+            return '%s%s.%s' % (ind, mm.group(1), m.group(2))
+        else:
+            return '%s.%s' % (ind, m.group(2))
 
 def id2url(id):
     m = ID2URL_RE.match(id)
     if not m:
         return None
 
-    if m.group(1) == 'N':
-        return '/news/%s' % m.group(3)
-    if m.group(1) == 'D':
-        return '/users/%s/journaux/%s' % (m.group(2), m.group(3))
+    for url_re, id_re in REGEXPS.iteritems():
+        if id_re[0] != m.group(1):
+            continue
+
+        if id_re.count('%s') == 2:
+            return url_re % (m.group(2), m.group(3))
+        else:
+            return url_re % m.group(3)
 
 def url2id(url):
-    m = URL2ID_NEWSPAPER_RE.match(url)
-    if m:
-        return 'N.%s' % (m.group(1))
-    m = URL2ID_DIARY_RE.match(url)
-    if m:
-        return 'D%s.%s' % (m.group(1), m.group(2))
+    for url_re, id_re in REGEXPS.iteritems():
+        m = re.match(f2re(url_re), url)
+        if not m:
+            continue
+
+        return id_re % m.groups()
 
 def id2threadid(id):
     m = ID2URL_RE.match(id)
     if m:
         return m.group(3)
-
-def id2contenttype(_id):
-    if not _id:
-        return None
-    if _id[0] == 'N':
-        return 1
-    if _id[0] == 'D':
-        return 5
-    return None

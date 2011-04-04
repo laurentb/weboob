@@ -23,8 +23,8 @@ import traceback
 import types
 
 
-__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields', 
-            'local2utc', 'to_unicode', 'utc2local']
+__all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields',
+            'local2utc', 'to_unicode', 'utc2local', 'limit']
 
 
 def get_backtrace(empty="Empty backtrace."):
@@ -107,3 +107,11 @@ def utc2local(date):
     date = date.replace(tzinfo=tz.tzutc())
     date = date.astimezone(tz.tzlocal())
     return date
+
+def limit(iterator, lim):
+    count = 0
+    iterator = iter(iterator)
+    while count < lim:
+        yield iterator.next()
+        count += 1
+    raise StopIteration()

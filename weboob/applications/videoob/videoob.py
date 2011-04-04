@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz, Romain Bignon, John Obbele
+# Copyright(C) 2010-2011  Christophe Benz, Romain Bignon, John Obbele
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-
+import subprocess
 import sys
+import os
 
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.base import NotLoaded
@@ -41,9 +42,9 @@ class VideoListFormatter(IFormatter):
         self.count += 1
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s (%s)%s\n' % (self.BOLD, self.count, item['title'], backend, self.NC)
         else:
-            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['title'], self.NC)
         result += '            %s' % (item['duration'] if item['duration'] else item['date'])
         if item['author'] is not NotLoaded:
             result += ' - %s' % item['author']
@@ -54,7 +55,7 @@ class VideoListFormatter(IFormatter):
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele'
     DESCRIPTION = "Videoob is a console application to search videos on supported websites " \
                   "and to play them or get informations."
@@ -91,6 +92,39 @@ class Videoob(ReplApplication):
 
     def _complete_id(self):
         return ['%s@%s' % (video.id, video.backend) for video in self.videos]
+
+    def complete_download(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_id()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+    def do_download(self, line):
+        """
+        download ID [FILENAME]
+
+        Download a video
+        """
+        _id, dest = self.parse_command_args(line, 2, 1)
+        video = self._get_video(_id, ['url'])
+        if not video:
+            print 'Video not found: %s' %  _id
+            return 1
+
+        with open('/dev/null', 'w') as devnull:
+            process = subprocess.Popen(['which', 'wget'], stdout=devnull)
+            if process.wait() != 0:
+                print >>sys.stderr, 'Please install "wget"'
+                return 1
+
+        if dest is None:
+            ext = video.ext
+            if not ext:
+                ext = 'avi'
+            dest = '%s.%s' % (video.id, ext)
+
+        os.system('wget "%s" -O "%s"' % (video.url, dest))
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')

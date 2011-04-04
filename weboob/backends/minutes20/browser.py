@@ -45,11 +45,7 @@ class Newspaper20minutesBrowser(BaseBrowser):
             url = id2url(_id)
         except ValueError:
             url = _id
-        try:
-            self.location(url)
-        except IndexError:
-            if _id == '':
-                raise ValueError("thread id is empty")
-            else:
-                raise
-        return self.page.get_article(_id)
+        self.location(url)
+
+        if self.page is not None:
+            return self.page.get_article(_id)

@@ -26,6 +26,7 @@ class YoujizzVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
         self.nsfw = True
+        self.ext = 'flv'
 
     @classmethod
     def id2url(cls, _id):

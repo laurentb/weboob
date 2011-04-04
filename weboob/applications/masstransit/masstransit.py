@@ -77,7 +77,7 @@ class MasstransitHildon():
             pass
 
         horizontal_box = gtk.HBox()
-        main_window = toolkit.Window()
+        self.main_window = toolkit.Window()
         try :
             self.refresh_button = toolkit.Button(
                 gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
@@ -114,13 +114,12 @@ class MasstransitHildon():
             self.refresh_button = gtk.Button("Actualiser")
             self.retour_button = gtk.Button("Retour")
             self.combo_source = gtk.combo_box_entry_new_text()
-            help(self.combo_source)
             self.combo_dest = gtk.combo_box_entry_new_text()
             horizontal_box.pack_start(self.combo_source)
             horizontal_box.pack_start(self.combo_dest)
 
-        main_window.set_title("Horaires des Prochains Trains")
-        main_window.connect("destroy", self.on_main_window_destroy)
+        self.main_window.set_title("Horaires des Prochains Trains")
+        self.main_window.connect("destroy", self.on_main_window_destroy)
 
         self.refresh_button.connect("clicked", self.on_refresh_button_clicked)
         
@@ -172,8 +171,8 @@ class MasstransitHildon():
         vertical_box.pack_start(treeview)
         vertical_box.pack_start(self.refresh_button)
 
-        main_window.add(vertical_box)
-        main_window.show_all()
+        self.main_window.add(vertical_box)
+        self.main_window.show_all()
         self.fill_touch_selector_entry()
 
         if toolkit != gtk:
@@ -246,6 +245,9 @@ class MasstransitHildon():
 
     def refresh(self):
         "update departures"
+        banner = hildon.hildon_banner_show_information(self.main_window, "", "Chargement en cours")
+        banner.set_timeout(10000)
+        hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 1)
         self.treestore.clear()
         try :
             source_text = self.combo_source.get_current_text()
@@ -267,12 +269,14 @@ class MasstransitHildon():
                                              departure.information])
 
         self.refresh_in_progress = False
+        banner.set_timeout(1)
+        hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 0) 
 
 
 class Masstransit(BaseApplication):
     "Application Class"
     APPNAME = 'masstransit'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Julien Hébert'
 
     def main(self, argv):

@@ -21,7 +21,9 @@ from __future__ import with_statement
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValuesDict
+from weboob.tools.misc import limit
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
+from weboob.capabilities.content import ICapContent, Content
 
 from .browser import DLFP
 from .tools import rssid, id2url
@@ -30,22 +32,31 @@ from .tools import rssid, id2url
 __all__ = ['DLFPBackend']
 
 
-class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
+class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     NAME = 'dlfp'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     LICENSE = 'GPLv3'
     DESCRIPTION = "Da Linux French Page"
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
                         Value('password',          label='Password', regexp='.+', masked=True),
                         ValueBool('get_news',      label='Get newspapers', default=True),
-                        ValueBool('get_diaries',   label='Get diaries', default=False))
+                        ValueBool('get_diaries',   label='Get diaries', default=False),
+                        ValueBool('get_polls',     label='Get polls', default=False),
+                        ValueBool('get_board',     label='Get board', default=False),
+                        ValueBool('get_wiki',      label='Get wiki', default=False),
+                        ValueBool('get_tracker',   label='Get tracker', default=False))
     STORAGE = {'seen': {}}
     BROWSER = DLFP
-    RSS_NEWSPAPERS = "https://linuxfr.org/news.atom"
-    RSS_DIARIES = "https://linuxfr.org/journaux.atom"
 
+    FEEDS = {'get_news':     "https://linuxfr.org/news.atom",
+             'get_diaries':  "https://linuxfr.org/journaux.atom",
+             'get_polls':    "https://linuxfr.org/sondages.atom",
+             'get_board':    "https://linuxfr.org/forums.atom",
+             'get_wiki':     "https://linuxfr.org/wiki.atom",
+             'get_tracker':  "https://linuxfr.org/suivi.atom",
+            }
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
@@ -58,15 +69,16 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
         with self.browser:
             self.browser.close_session()
 
+    #### ICapMessages ##############################################
+
     def iter_threads(self):
         whats = set()
-        if self.config['get_news']:
-            whats.add(self.RSS_NEWSPAPERS)
-        if self.config['get_diaries']:
-            whats.add(self.RSS_DIARIES)
+        for param, url in self.FEEDS.iteritems():
+            if self.config[param]:
+                whats.add(url)
 
         for what in whats:
-            for article in Newsfeed(what, rssid).iter_entries():
+            for article in limit(Newsfeed(what, rssid).iter_entries(), 20):
                 thread = Thread(article.id)
                 thread.title = article.title
                 if article.datetime:
@@ -130,7 +142,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                           date=com.date,
                           parent=parent,
                           content=com.body,
-                          signature='<br />'.join(['Score: %d' % com.score,
+                          signature=com.signature + \
+                                    '<br />'.join(['Score: %d' % com.score,
                                                    'URL: %s' % com.url]),
                           children=[],
                           flags=flags)
@@ -151,6 +164,10 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
 
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    #### ICapMessagesReply #########################################
     def post_message(self, message):
         if not message.parent:
             raise CantSendMessage('Posting news and diaries on DLFP is not supported yet')
@@ -163,7 +180,29 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                                              message.title,
                                              message.content)
 
-    def fill_thread(self, thread, fields):
-        return self.get_thread(thread)
+    #### ICapContent ###############################################
+    def get_content(self, id):
+        if isinstance(id, basestring):
+            content = Content(id)
+        else:
+            content = id
+            id = content.id
+
+        with self.browser:
+            data = self.browser.get_wiki_content(id)
+
+        if data is None:
+            return None
+
+        content.content = data
+        return content
+
+    def push_content(self, content, message=None, minor=False):
+        with self.browser:
+            return self.browser.set_wiki_content(content.id, content.content, message)
+
+    def get_content_preview(self, content):
+        with self.browser:
+            return self.browser.get_wiki_preview(content.id, content.content)
 
     OBJECTS = {Thread: fill_thread}

@@ -32,7 +32,7 @@ class RedmineBackend(BaseBackend, ICapContent):
     NAME = 'redmine'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('url',      label='URL of the Redmine website'),

@@ -23,3 +23,4 @@ class IpinfodbTest(BackendTest):
 
     def test_ipinfobd(self):
         self.backend.get_location('88.198.11.130')
+        self.backend.get_location('2a01:4f8:130:3062::1')

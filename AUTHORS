@@ -45,6 +45,9 @@ Cedric Defortis <cedric@aiur.fr>
 Laurent Bachelier <laurent@bachelier.name>
         * Various contributions.
 
+Laurent Dufréchou <laurent.dufrechou@gmail.com>
+        * Fixes for Windows.
+
 Philippe Fremy <phil@freehackers.org>
         * Fixes for Windows.
 
@@ -57,5 +60,5 @@ Antoine <antoine.underlinux@orange.fr>
 Johann Broudin <johann.broudin@6-8.fr>
         * Minor documentation fixes.
 
-Want to be a celebrity? Learn how to contribute to Weboob!
+Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute

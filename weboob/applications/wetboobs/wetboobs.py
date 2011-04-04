@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ class ForecastsFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (ReplApplication.BOLD, '%s:' % item['date'], ReplApplication.NC, item['low'], item['unit'], item['high'], item['unit'])
+        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (self.BOLD, '%s:' % item['date'], self.NC, item['low'], item['unit'], item['high'], item['unit'])
         if 'text' in item and item['text']:
             result += ' %s' % item['text']
         return result
@@ -48,7 +48,7 @@ class CurrentFormatter(IFormatter):
         else:
             date = item['date']
 
-        result = u'%s%s%s: %s' % (ReplApplication.BOLD, date, ReplApplication.NC, item['temp'])
+        result = u'%s%s%s: %s' % (self.BOLD, date, self.NC, item['temp'])
         if 'unit' in item and item['unit']:
             result += u'°%s' % item['unit']
         if 'text' in item and item['text']:
@@ -66,14 +66,14 @@ class CitiesFormatter(IFormatter):
         self.count += 1
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s' % (ReplApplication.BOLD, self.count, item['name'], backend, ReplApplication.NC)
+            result = u'%s* (%d) %s (%s)%s' % (self.BOLD, self.count, item['name'], backend, self.NC)
         else:
-            result = u'%s* (%s) %s%s' % (ReplApplication.BOLD, item['id'], item['name'], ReplApplication.NC)
+            result = u'%s* (%s) %s%s' % (self.BOLD, item['id'], item['name'], self.NC)
         return result
 
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Wetboobs is a console application to display weather and forecasts in your city."
     CAPS = ICapWeather

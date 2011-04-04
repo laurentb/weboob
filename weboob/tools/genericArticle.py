@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 from weboob.tools.browser import BasePage
 from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from lxml.etree import Comment
+
 
 def try_remove(base_element, selector):
     try :
@@ -24,7 +26,34 @@ def try_remove(base_element, selector):
         pass
 
 
+def try_drop_tree(base_element, selector):
+    try:
+        select(base_element, selector, 1).drop_tree()
+    except SelectElementException:
+        pass
+
+def remove_from_selector_list(base_element, selector_list):
+    for selector in selector_list:
+        base_element.remove(select(base_element, selector, 1))
+
+
+def try_remove_from_selector_list(base_element, selector_list):
+    for selector in selector_list:
+        try_remove(base_element, selector)
+
+def drop_comments(base_element):
+    for comment in base_element.getiterator(Comment):
+        comment.drop_tree()
+
+
+
 class NoAuthorElement(SelectElementException):
+    pass
+
+class NoBodyElement(SelectElementException):
+    pass
+
+class NoTitleException(SelectElementException):
     pass
 
 class NoneMainDiv(AttributeError):
@@ -32,11 +61,11 @@ class NoneMainDiv(AttributeError):
 
 class Article(object):
     author = u''
+    title = u''
 
     def __init__(self, browser, _id):
         self.browser = browser
         self.id = _id
-        self.title = u''
         self.body = u''
         self.url = u''
         self.date = None
@@ -55,17 +84,39 @@ class GenericNewsPage(BasePage):
     def get_author(self):
         try:
             return self.get_element_author().text_content().strip()
-        except NoAuthorElement:
+        except (NoAuthorElement, NoneMainDiv):
+            #TODO: Mettre un warning
             return self.__article.author
 
     def get_title(self):
-        return select(
-            self.main_div,
-            self.element_title_selector,
-            1).text_content().strip()
+        try :
+            return select(
+                self.main_div,
+                self.element_title_selector,
+                1).text_content().strip()
+        except AttributeError:
+            if self.main_div == None:
+                #TODO: Mettre un warning
+                return self.__article.title
+            else:
+                raise
+        except SelectElementException:
+            try :
+                self.element_title_selector = "h1"
+                return self.get_title()
+            except SelectElementException:
+                raise NoTitleException("no title on %s" % (self.browser))
 
     def get_element_body(self):
-        return select(self.main_div, self.element_body_selector, 1)
+        try :
+            return select(self.main_div, self.element_body_selector, 1)
+        except SelectElementException:
+            raise NoBodyElement("no body on %s" % (self.browser))
+        except AttributeError:
+            if self.main_div == None:
+                raise NoneMainDiv("main_div is none on %s" % (self.browser))
+            else:
+                raise
 
     def get_element_author(self):
         try:

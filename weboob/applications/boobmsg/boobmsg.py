@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010-2011  Christophe Benz
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,8 +25,24 @@ from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
-
 __all__ = ['Boobmsg']
+
+
+class XHtmlFormatter(IFormatter):
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result  = "<div>\n"
+        result += "<h1>%s</h1>" % (item['title'])
+        result += "<dl>"
+        result += "<dt>Date</dt><dd>%s</dd>" % (item['date'])
+        result += "<dt>Sender</dt><dd>%s</dd>" % (item['sender'])
+        result += "<dt>Signature</dt><dd>%s</dd>" % (item['signature'])
+        result += "</dl>"
+        result += "<div>%s</div>" % (item['content'])
+        result += "</div>\n"
+        return result
 
 
 class MessageFormatter(IFormatter):
@@ -34,15 +50,15 @@ class MessageFormatter(IFormatter):
         pass
 
     def format_dict(self, item):
-        result = u'%sTitle:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['title'])
-        result += u'%sDate:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['date'])
-        result += u'%sFrom:%s %s\n' % (ReplApplication.BOLD,
-                                       ReplApplication.NC, item['sender'])
+        result = u'%sTitle:%s %s\n' % (self.BOLD,
+                                       self.NC, item['title'])
+        result += u'%sDate:%s %s\n' % (self.BOLD,
+                                       self.NC, item['date'])
+        result += u'%sFrom:%s %s\n' % (self.BOLD,
+                                       self.NC, item['sender'])
         if item['receivers']:
-            result += u'%sTo:%s %s\n' % (ReplApplication.BOLD,
-                                         ReplApplication.NC,
+            result += u'%sTo:%s %s\n' % (self.BOLD,
+                                         self.NC,
                                          ', '.join(item['receivers']))
 
         if item['flags'] & Message.IS_HTML:
@@ -76,14 +92,14 @@ class MessagesListFormatter(IFormatter):
             unread = '   '
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s %s (%s)%s' % (ReplApplication.BOLD,
+            result = u'%s* (%d) %s %s (%s)%s' % (self.BOLD,
                                                  self.count, unread,
                                                  item['title'], backend,
-                                                 ReplApplication.NC)
+                                                 self.NC)
         else:
-            result = u'%s* (%s) %s %s%s' % (ReplApplication.BOLD, item['id'],
+            result = u'%s* (%s) %s %s%s' % (self.BOLD, item['id'],
                                             unread, item['title'],
-                                            ReplApplication.NC)
+                                            self.NC)
         if item['date']:
             result += u'\n             %s' % item['date']
         return result
@@ -118,21 +134,21 @@ class MessagesListFormatter(IFormatter):
 
         if self.interactive:
             result = u'%s%s* (%d)%s %s <%s> %s (%s)\n' % (depth * '  ',
-                                                          ReplApplication.BOLD,
+                                                          self.BOLD,
                                                           self.count,
-                                                          ReplApplication.NC,
+                                                          self.NC,
                                                           flags,
                                                           message.sender,
                                                           message.title,
                                                           backend)
         else:
             result = u'%s%s* (%s.%s@%s)%s %s <%s> %s\n' % (depth * '  ',
-                                                           ReplApplication.BOLD,
+                                                           self.BOLD,
                                                            message.thread.id,
                                                            message.id,
                                                            backend,
                                                            flags,
-                                                           ReplApplication.NC,
+                                                           self.NC,
                                                            message.sender,
                                                            message.title)
         if message.children:
@@ -145,7 +161,7 @@ class MessagesListFormatter(IFormatter):
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
-    VERSION = '0.6.1'
+    VERSION = '0.7'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Boobmsg is a console application to send messages on " \
                   "supported websites and " \
@@ -153,9 +169,12 @@ class Boobmsg(ReplApplication):
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
                         'msg':     MessageFormatter,
+                        'xhtml':     XHtmlFormatter,
                        }
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
+                           'export_thread': 'msg',
+                           'export_all': 'msg'
                           }
 
 
@@ -289,6 +308,19 @@ class Boobmsg(ReplApplication):
             self.format(thread)
         self.flush()
 
+    def do_export_all(self, arg):
+        """
+        export_all
+
+        Export All threads
+        """
+
+        cmd = self.do('iter_threads')
+        for backend, thread in cmd:
+            t  = backend.get_thread(thread.id)
+            for msg in t.iter_all_messages():
+                self.format(msg)
+
     def do_export_thread(self, arg):
         """
         export_thread
@@ -298,9 +330,9 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
         for backend, thread in cmd:
-            for msg in thread.iter_all_messages():
-                self.format(msg)
-
+            if thread is not None :
+                for msg in thread.iter_all_messages():
+                    self.format(msg)
 
     def do_show(self, arg):
         """
