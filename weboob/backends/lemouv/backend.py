@@ -49,7 +49,7 @@ class lemouvBackend(BaseBackend, ICapRadio):
             radio = Radio(radio)
 
         if not radio.id in self._RADIOS:
-            return none
+            return None
 
         title, description, url = self._RADIOS[radio.id]
         radio.title = title
