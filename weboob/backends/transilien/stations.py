@@ -340,4 +340,5 @@ STATIONS = {
     'MJM': u'MAREIL SUR MAULDRE',
     'MAE': u'MAULE',
     'NZL': u'NEZEL AULNAY',
+    'PAA': u'GARE DE LYON',
 }
