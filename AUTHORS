@@ -4,8 +4,8 @@ Romain Bignon <romain@weboob.org>
         * Manager;
         * Core team;
         * Qt Applications;
-        * AuM, Arte, BNPorc, CanalTP, DLFP, Fourchan, Gazelle, LCL, OuiFM,
-          Redmine, Yahoo and Youporn backends maintainer.
+        * AuM, Arte, BNPorc, CanalTP, Dailymotion, DLFP, Fourchan, Gazelle, LCL,
+          OuiFM, Redmine, Yahoo and Youporn backends maintainer.
 
 Christophe Benz <christophe.benz@gmail.com>
         * Core team;
@@ -18,7 +18,8 @@ Julien Veyssier <julien.veyssier@aiur.fr>
 
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
-        * Inrocks, LeFigaro, Minutes20 and Transilien backends maintainer.
+        * Ecrans, Inrocks, LeFigaro, Minutes20 and Transilien backends
+          maintainer.
 
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
@@ -32,6 +33,9 @@ Pierre Mazière <pierre.maziere@gmail.com>
 
 Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
+
+Johann Broudin <johann.broudin@6-8.fr>
+        * LeMouv backend maintainer.
 
 Roger Philibert <roger.philibert@gmail.com>
         * Youjizz backend maintainer.
@@ -56,9 +60,6 @@ Flo <florent.fourcot@resel.fr>
 
 Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.
-
-Johann Broudin <johann.broudin@6-8.fr>
-        * Minor documentation fixes.
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
