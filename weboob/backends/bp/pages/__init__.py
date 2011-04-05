@@ -16,12 +16,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from .login import LoginPage, LoggedPage, BadLoginPage, AccountDesactivate
-from .cookie import CookiePage
+from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate
 from .accountlist import AccountList
 from .accounthistory import AccountHistory
 from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 
-__all__ = ['LoginPage', 'LoggedPage', 'CookiePage', "AccountList", 'AccountHistory', 'BadLoginPage',
+__all__ = ['LoginPage','Initident', 'CheckPassword', 'repositionnerCheminCourant', "AccountList", 'AccountHistory', 'BadLoginPage',
            'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary']

@@ -37,10 +37,6 @@ def remove_extra_spaces(data):
 
 
 class AccountHistory(BasePage):
-    def on_loaded(self):
-        if self.document.docinfo.doctype == '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" ' \
-            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">':
-            self.browser.follow_link(url_regex="releve", tag="a")
 
     def get_history(self):
         mvt_table = self.document.xpath("//table[@id='mouvements']", smart_strings=False)[0]
@@ -50,14 +46,17 @@ class AccountHistory(BasePage):
 
         for mvt in mvt_ligne:
             operation = Operation(len(operations))
-            operation.date = mvt.xpath("./td")[0].text
-            tp = mvt.xpath("./td")[1]
-            operation.label = remove_extra_spaces(remove_html_tags(self.browser.parser.tostring(tp)))
+            operation.date = mvt.xpath("./td/span")[0].text
+            tmp = mvt.xpath("./td/span")[1]
+            operation.label = remove_extra_spaces(remove_html_tags(self.browser.parser.tostring(tmp)))
 
             r = re.compile(r'\d+')
-            tp = mvt.xpath("./td/span")
+            
+            tmp = mvt.xpath("./td/span/strong")
+            if not tmp:
+                tmp = mvt.xpath("./td/span")
             amount = None
-            for t in tp:
+            for t in tmp:
                 if r.search(t.text):
                     amount = t.text
             amount =  ''.join( amount.replace('.', '').replace(',', '.').split() )

@@ -38,15 +38,16 @@ class AccountList(BasePage):
         if len(tables) < 1:
             return
 
-        lines = tables[0].xpath("./tbody/tr")
+        lines = tables[0].xpath(".//tbody/tr")
 
         for line  in lines:
             account = Account()
-            tp = line.xpath("./td/a")[0]
-            account.label = tp.text
-            account.link_id = tp.get("href")
-            account.id = line.xpath("./td")[1].text
-            account.balance = float(''.join(line.xpath("./td/span")[0].text.replace('.','').replace(',','.').split()))
+            tmp = line.xpath("./td//a")[0]
+            account.label = tmp.text
+            account.link_id = tmp.get("href")
+            tmp = line.xpath("./td//strong")
+            account.id = tmp[0].text
+            account.balance = float(''.join(tmp[1].text.replace('.','').replace(',','.').split()))
             self.account_list.append(account)
 
     def get_account(self, id):

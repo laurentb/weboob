@@ -20,7 +20,8 @@ from datetime import datetime
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
 
-from .pages import LoginPage, LoggedPage, CookiePage, AccountList, AccountHistory, BadLoginPage, AccountDesactivate, \
+from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
+                   AccountList, AccountHistory, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 from weboob.capabilities.bank import Transfer
@@ -33,19 +34,23 @@ class BPBrowser(BaseBrowser):
     DOMAIN = 'voscomptesenligne.labanquepostale.fr'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
-    PAGES = {r'.*wsost/OstBrokerWeb/loginform.*':                               LoginPage,
-             r'.*voscomptes/canalXHTML/identif\.ea.*':                          LoggedPage,
-             r'.*voscomptes/canalXHTML/releve/syntheseAssurancesEtComptes\.ea': CookiePage,
-             r'.*voscomptes/canalXHTML/releve/liste_comptes\.jsp':              AccountList,
-             r'.*canalXHTML/relevesCCP/.*':                                     AccountHistory,
-             r'.*canalXHTML/relevesEpargnes/.*':                                AccountHistory,
-             r'.*ost/messages\.CVS\.html\?param=0x132120c8.*' :                 BadLoginPage,
-             r'.*ost/messages\.CVS\.html\?param=0x132120cb.*' :                 AccountDesactivate,
+    PAGES = {r'.*wsost/OstBrokerWeb/loginform.*'                                         : LoginPage,
+             r'.*authentification/repositionnerCheminCourant-identif.ea'                 : repositionnerCheminCourant,
+             r'.*authentification/initialiser-identif.ea'                                : Initident,
+             r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
+             
+             r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
+             
+             r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
+             r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
+             
+             r'.*/virementSafran_aiguillage/init-saisieComptes\.ea'                      : TransferChooseAccounts,
+             r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea'            : CompleteTransfer,
+             r'.*/virementSafran_national/validerVirementNational-virementNational.ea'   : TransferConfirm,
+             r'.*/virementSafran_national/confirmerVirementNational-virementNational.ea' : TransferSummary,
 
-             r'.*/virementsafran/aiguillage/saisieComptes\.ea.*':               TransferChooseAccounts,
-             r'.*/virementsafran/aiguillage/2-saisieComptes\.ea.*' :            CompleteTransfer,
-             r'.*/virementsafran/virementnational/2-virementNational\.ea.*' :   TransferConfirm,
-             r'.*/virementsafran/virementnational/4-virementNational\.ea.*' :   TransferSummary,
+             r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
+             r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
              }
 
     def home(self):
@@ -69,16 +74,12 @@ class BPBrowser(BaseBrowser):
             raise BrowserBanned()
 
     def get_accounts_list(self):
-        self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/authentification/'
-            'liste_contrat_atos.ea')
-        self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/releve/liste_comptes.jsp')
+        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
         return self.page.get_accounts_list()
 
     def get_account(self, id):
         if not self.is_on_page(AccountList):
-            self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/authentification/'
-                'liste_contrat_atos.ea')
-            self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/releve/liste_comptes.jsp')
+            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
         return self.page.get_account(id)
 
     def get_history(self, Account):
@@ -86,8 +87,7 @@ class BPBrowser(BaseBrowser):
         return self.page.get_history()
 
     def make_transfer(self, from_account, to_account, amount):
-        self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/aiguillage/'
-            'saisieComptes.ea')
+        self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_aiguillage/init-saisieComptes.ea')
         self.page.set_accouts(from_account, to_account)
 
         #TODO: Check
