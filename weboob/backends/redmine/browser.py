@@ -40,6 +40,7 @@ class RedmineBrowser(BaseBrowser):
             }
 
     def __init__(self, url, *args, **kwargs):
+        self._userid = 0
         v = urlsplit(url)
         self.PROTOCOL = v.scheme
         self.DOMAIN = v.netloc
@@ -68,6 +69,14 @@ class RedmineBrowser(BaseBrowser):
 
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
+
+        divs = self.page.document.getroot().cssselect('div#loggedas')
+        if len(divs) > 0:
+            parts = divs[0].find('a').attrib['href'].split('/')
+            self._userid = int(parts[2])
+
+    def get_userid(self):
+        return self._userid
 
     def get_wiki_source(self, project, page):
         self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
