@@ -82,50 +82,59 @@ class ConsoleApplication(BaseApplication):
 
         for name, backend in ret.iteritems():
             self.enabled_backends.add(backend)
+
+        self.check_loaded_backends()
+
+        return ret
+
+    def check_loaded_backends(self, default_config=None):
         while len(self.enabled_backends) == 0:
             print 'Warning: there is currently no configured backend for %s' % self.APPNAME
             if not self.ask('Do you want to configure backends?', default=True):
-                break
+                return False
 
-            self.weboob.modules_loader.load_all()
-            r = ''
-            while r != 'q':
-                backends = []
-                print '\nAvailable backends:'
-                for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                    if not self.is_backend_loadable(backend):
-                        continue
-                    backends.append(name)
-                    loaded = ' '
-                    for bi in self.weboob.iter_backends():
-                        if bi.NAME == name:
-                            if loaded == ' ':
-                                loaded = 'X'
-                            elif loaded == 'X':
-                                loaded = 2
-                            else:
-                                loaded += 1
-                    print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
-                                                           self.BOLD, name, self.NC, backend.description)
-                print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
-                r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
+            self.prompt_create_backends(default_config)
 
-                if r.isdigit():
-                    i = int(r) - 1
-                    if i < 0 or i >= len(backends):
-                        print 'Error: %s is not a valid choice' % r
-                        continue
-                    name = backends[i]
-                    try:
-                        inst = self.add_backend(name)
-                        if inst:
-                            self.load_backends(names=[inst])
-                    except (KeyboardInterrupt, EOFError):
-                        print '\nAborted.'
+        return True
+
+    def prompt_create_backends(self, default_config=None):
+        self.weboob.modules_loader.load_all()
+        r = ''
+        while r != 'q':
+            backends = []
+            print '\nAvailable backends:'
+            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
+                if not self.is_backend_loadable(backend):
+                    continue
+                backends.append(name)
+                loaded = ' '
+                for bi in self.weboob.iter_backends():
+                    if bi.NAME == name:
+                        if loaded == ' ':
+                            loaded = 'X'
+                        elif loaded == 'X':
+                            loaded = 2
+                        else:
+                            loaded += 1
+                print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
+                                                       self.BOLD, name, self.NC, backend.description)
+            print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
+            r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
+
+            if r.isdigit():
+                i = int(r) - 1
+                if i < 0 or i >= len(backends):
+                    print 'Error: %s is not a valid choice' % r
+                    continue
+                name = backends[i]
+                try:
+                    inst = self.add_backend(name, default_config)
+                    if inst:
+                        self.load_backends(names=[inst])
+                except (KeyboardInterrupt, EOFError):
+                    print '\nAborted.'
 
             print 'Right right!'
-
-        return ret
 
     def _handle_options(self):
         self.load_default_backends()
