@@ -36,20 +36,19 @@ class TransferChooseAccounts(BasePage):
 
 class CompleteTransfer(BasePage):
     def complete_transfer(self, amount):
-        self.browser.select_form(name="VirementNationalForm")
+        self.browser.select_form(name="virement_unitaire_saisie_saisie_virement_sepa")
         self.browser["montant"] = str(amount)
         self.browser.submit()
 
 
 class TransferConfirm(BasePage):
     def confirm(self):
-        self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virementsafran/'
-            'virementnational/4-virementNational.ea')
+        self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea')
 
 
 class TransferSummary(BasePage):
     def get_transfer_id(self):
-        p = self.document.xpath("//form/div/p")[0]
+        p = self.document.xpath("//div[@id='main']/div/p")[0]
 
         #HACK for deal with bad encoding ...
         try:
