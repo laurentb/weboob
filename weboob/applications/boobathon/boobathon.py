@@ -31,11 +31,14 @@ __all__ = ['Boobathon']
 
 
 class Task(object):
-    def __init__(self, id, backend, capability):
-        self.id = id
+    STATUS_NONE     = 0
+    STATUS_PROGRESS = 1
+    STATUS_DONE     = 2
+
+    def __init__(self, backend, capability):
         self.backend = backend
         self.capability = capability
-        self.done = False
+        self.status = self.STATUS_NONE
         self.date = None
         self.branch = u''
 
@@ -55,9 +58,8 @@ class Event(object):
         self.name = 'wiki/weboob/%s' % name
         self.description = None
         self.date = None
-        self.start = None
+        self.begin = None
         self.end = None
-        self.duration = None
         self.location = None
         self.backend = backend
         self.members = OrderedDict()
@@ -66,11 +68,23 @@ class Event(object):
     def get_me(self):
         return self.members.get(self.backend.browser.get_userid(), None)
 
+    def currently_in_event(self):
+        if not self.date or not self.begin or not self.end:
+            return False
+
+        return self.begin < datetime.now() < self.end
+
+    def format_duration(self):
+        if not self.begin or not self.end:
+            return None
+
+        delta = self.end - self.begin
+        return '%02d:%02d' % (delta.seconds/3600, delta.seconds%3600)
+
     def load(self):
         self.content = self.backend.get_content(self.name)
         self.members.clear()
         member = None
-        task_id = 0
         for line in self.content.content.split('\n'):
             line = line.strip()
             if line.startswith('h1. '):
@@ -96,13 +110,11 @@ class Event(object):
                 key, value = m.group(1), m.group(2)
                 if member is None:
                     if key == 'Date':
-                        self.date = self.parse_datetime(value, '%Y-%m-%d')
-                    elif key == 'Start':
-                        self.start = self.parse_datetime(value, '%H:%M')
+                        self.date = self.parse_date(value)
+                    elif key == 'Start' or key == 'Begin':
+                        self.begin = self.parse_time(value)
                     elif key == 'End':
-                        self.end = self.parse_datetime(value, '%H:%M')
-                    elif key == 'Duration':
-                        self.duration = self.parse_datetime(value, '%H:%M')
+                        self.end = self.parse_time(value)
                     elif key == 'Location':
                         self.location = value
                 else:
@@ -121,12 +133,15 @@ class Event(object):
                 if not m:
                     print 'Unable to parse task: "%s"' % line
                     continue
-                task_id += 1
-                task = Task(task_id, m.group(1), m.group(2))
+                task = Task(m.group(1), m.group(2))
                 member.tasks.append(task)
+                if m.group(3) == '!/img/weboob/_progress.png!':
+                    task.status = task.STATUS_PROGRESS
+                    continue
+
                 mm = re.match('!/img/weboob/_done.png! (\d+):(\d+) (\w+)', m.group(3))
-                if mm:
-                    task.done = True
+                if mm and self.date:
+                    task.status = task.STATUS_DONE
                     task.date = datetime(self.date.year,
                                          self.date.month,
                                          self.date.day,
@@ -134,9 +149,20 @@ class Event(object):
                                          int(m.group(2)))
                     task.branch = m.group(3)
 
-    def parse_datetime(self, value, format):
+    def parse_date(self, value):
         try:
-            return datetime.strptime(value, format)
+            return datetime.strptime(value, '%Y-%m-%d')
+        except ValueError:
+            return None
+
+    def parse_time(self, value):
+        m = re.match('(\d+):(\d+)', value)
+        if not m:
+            return
+
+        try:
+            return self.date.replace(hour=int(m.group(1)),
+                                     minute=int(m.group(2)))
         except ValueError:
             return None
 
@@ -150,7 +176,7 @@ h2. Event
 %s
 
 * *Date*: %s
-* *Start*: %s
+* *Begin*: %s
 * *End*: %s
 * *Duration*: %s
 * *Location*: %s
@@ -160,9 +186,9 @@ h2. Attendees
 """ % (self.title,
        self.description,
        self.date.strftime('%Y-%m-%d') if self.date else '_Unknown_',
-       self.start.strftime('%H:%M') if self.start else '_Unknown_',
+       self.begin.strftime('%H:%M') if self.begin else '_Unknown_',
        self.end.strftime('%H:%M') if self.end else '_Unknown_',
-       self.duration.strftime('%H:%M') if self.duration else '_Unknown_',
+       self.format_duration() or '_Unknown_',
        self.location or '_Unknown_')
 
         for member in self.members.itervalues():
@@ -184,17 +210,19 @@ h2. Attendees
 * *Hardware*: %s
 %s
 
-|_.Backend|_.Capabilities|_.Done|""" % (member.name,
+|_.Backend|_.Capabilities|_.Status|""" % (member.name,
                                         member.id,
                                         repository,
                                         member.hardware,
                                         availabilities)
 
             for task in member.tasks:
-                if task.done:
+                if task.status == task.STATUS_DONE:
                     status = '!/img/weboob/_done.png! %s:%s %s' % (task.date.hour,
                                                                    task.date.minute,
                                                                    task.branch)
+                elif task.status == task.STATUS_PROGRESS:
+                    status = '!/img/weboob/_progress.png!'
                 else:
                     status = ' '
                 s += u"""
@@ -244,11 +272,11 @@ class Boobathon(ReplApplication):
                                    regexp='^(\d{4}-\d{2}-\d{2})?$')
         if self.event.date:
             self.event.date = datetime.strptime(self.event.date, '%Y-%m-%d')
-        self.event.start = self.ask('Start at (HH:MM)',
-                                   default=self.event.start.strftime('%H:%M') if self.event.start else '',
+        self.event.begin = self.ask('Begin at (HH:MM)',
+                                   default=self.event.begin.strftime('%H:%M') if self.event.begin else '',
                                    regexp='^(\d{2}:\d{2})?$')
-        if self.event.start:
-            self.event.start = datetime.strptime(self.event.start, '%H:%M')
+        if self.event.begin:
+            self.event.begin = datetime.strptime(self.event.begin, '%H:%M')
         self.event.end = self.ask('End at (HH:MM)',
                                    default=self.event.end.strftime('%H:%M') if self.event.end else '',
                                    regexp='^(\d{2}:\d{2})?$')
@@ -271,10 +299,12 @@ class Boobathon(ReplApplication):
         for member in self.event.members.itervalues():
             s = u' %s %20s %s|' % ('->' if member.is_me else '  ', member.name, self.BOLD)
             for task in member.tasks:
-                if task.done:
+                if task.status == task.STATUS_DONE:
                     s += '##'
-                else:
+                elif task.status == task.STATUS_PROGRESS:
                     s += '--'
+                else:
+                    s += '  '
             s += '|%s' % self.NC
             print s
 
@@ -287,23 +317,34 @@ class Boobathon(ReplApplication):
             for i, task in enumerate(member.tasks):
                 while len(tasks) <= i*2+1:
                     tasks.append([])
-                if task.done:
+                if task.status == task.STATUS_DONE:
                     status = '%s#%s' % (self.BOLD, self.NC)
+                elif task.status == task.STATUS_PROGRESS:
+                    status = '|'
                 else:
                     status = ' '
                 tasks[i*2].append('%s %s' % (status, task.backend))
                 tasks[i*2+1].append('%s `-%s' % (status, task.capability[3:]))
 
+        sys.stdout.write('    ')
         for name in members:
             sys.stdout.write(' %s%-20s%s' % (self.BOLD, name, self.NC))
-        sys.stdout.write('\n')
+        sys.stdout.write('\n    ')
         for name in members:
             sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(name), self.NC))
         sys.stdout.write('\n')
-        for line in tasks:
+        for i, line in enumerate(tasks):
+            if not i%2:
+                sys.stdout.write(' #%-2d' % (i/2))
+            else:
+                sys.stdout.write('    ')
             for task in line:
                 sys.stdout.write(' %-20s' % task)
             sys.stdout.write('\n')
+
+    def do_edit(self, line):
+        self.event.load()
+        self.edit_event()
 
     def do_info(self, line):
         self.event.load()
@@ -312,9 +353,9 @@ class Boobathon(ReplApplication):
         print self.event.description
         print ''
         print 'Date:', self.event.date
-        print 'Start:', self.event.start
+        print 'Begin:', self.event.begin
         print 'End:', self.event.end
-        print 'Duration:', self.event.duration
+        print 'Duration:', self.event.format_duration()
         print 'Location:', self.event.location
         print ''
         print 'There are %d members, use the "members" command to list them' % len(self.event.members)
@@ -331,7 +372,7 @@ class Boobathon(ReplApplication):
             print 'Hardware:', member.hardware
             accompl = 0
             for task in member.tasks:
-                if task.done:
+                if task.status == task.STATUS_DONE:
                     accompl += 1
             print '%d tasks (%d accomplished)' % (len(member.tasks), accompl)
             print ''
@@ -358,8 +399,89 @@ class Boobathon(ReplApplication):
         else:
             self.save_event('Left the event')
 
+    def do_addtask(self, line):
+        self.event.load()
+        mem = self.event.get_me()
+        if not mem:
+            print 'You have not joined this event.'
+            return
+
+        backend, capability = self.parse_command_args(line, 2, 2)
+        for task in mem.tasks:
+            if (task.backend,task.capability) == (backend,capability):
+                print 'A task already exists for that.'
+                return
+
+        task = Task(backend, capability)
+        mem.tasks.append(task)
+        self.save_event('New task')
+
+    def do_start(self, line):
+        self.event.load()
+        mem = self.event.get_me()
+        if not mem:
+            print 'You have not joined this event.'
+            return
+
+        if len(mem.tasks) == 0:
+            print "You don't have any task to do."
+            return
+
+        if not self.event.currently_in_event():
+            print "You can't start a task, we are not in event."
+            return
+
+        if line.isdigit():
+            task_id = int(line)
+        else:
+            task_id = -1
+
+        last_done = -1
+        for i, task in enumerate(mem.tasks):
+            if task.status == task.STATUS_DONE:
+                last_done = i
+            elif task.status == task.STATUS_PROGRESS:
+                task.status = task.STATUS_NONE
+
+            if i == task_id or task.status == task.STATUS_NONE:
+                break
+        else:
+            print 'Task not found.'
+
+        if task.status == task.STATUS_DONE:
+            print 'Task is already done.'
+            return
+
+        task.status = task.STATUS_PROGRESS
+        mem.tasks.remove(task)
+        mem.tasks.insert(last_done, task)
+        self.save_event('Started a task')
+
     def do_done(self, line):
         self.event.load()
+        mem = self.event.get_me()
+        if not mem:
+            print 'You have not joined this event.'
+            return
+
+        if len(mem.tasks) == 0:
+            print "You don't have any task to do."
+            return
+
+        if not self.event.currently_in_event():
+            print "You can't start a task, we are not in event."
+            return
+
+        for task in mem.tasks:
+            if task.status == task.STATUS_PROGRESS:
+                print 'Task: %s,%s' % (task.backend, task.capability)
+                task.status = task.STATUS_DONE
+                task.date = datetime.now()
+                task.branch = self.ask('Enter name of branch')
+                self.save_event('Task accomplished')
+                return
+
+        print "There isn't any task in progress."
 
     def load_default_backends(self):
         """
