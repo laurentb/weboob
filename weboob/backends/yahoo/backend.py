@@ -58,7 +58,7 @@ class YahooBackend(BaseBackend, ICapWeather):
 
         # so i use a basic but efficient parsing
         with self.browser:
-            content = self.browser.readurl((self.SEARCH_URL % pattern).replace(' ','+'))
+            content = self.browser.readurl((self.SEARCH_URL % pattern.encode('utf-8')).replace(' ','+'))
 
         page=''
         for line in content.split('\n'):
