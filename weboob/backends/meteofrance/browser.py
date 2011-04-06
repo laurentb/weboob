@@ -45,7 +45,7 @@ class MeteofranceBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def iter_city_search(self, pattern):
-        searchurl = self.CITY_SEARCH_URL.format(city_pattern=urllib.quote_plus(pattern))
+        searchurl = self.CITY_SEARCH_URL.format(city_pattern=urllib.quote_plus(pattern.encode('utf-8')))
         self.location(searchurl)
 
         if self.is_on_page(CityPage):
