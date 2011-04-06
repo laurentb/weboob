@@ -49,8 +49,11 @@ Cedric Defortis <cedric@aiur.fr>
 Laurent Bachelier <laurent@bachelier.name>
         * Various contributions.
 
+Erwan Jahier <Erwan.Jahier@imag.fr>
+        * Patches on BP.
+
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
-        * Fixes for Windows.
+        * Windows support.
 
 Philippe Fremy <phil@freehackers.org>
         * Fixes for Windows.
