@@ -40,6 +40,7 @@ class BPBrowser(BaseBrowser):
              r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
              
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
+             r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
              
              r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
              r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
@@ -74,12 +75,12 @@ class BPBrowser(BaseBrowser):
             raise BrowserBanned()
 
     def get_accounts_list(self):
-        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
+        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
         return self.page.get_accounts_list()
 
     def get_account(self, id):
         if not self.is_on_page(AccountList):
-            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
+            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
         return self.page.get_account(id)
 
     def get_history(self, Account):

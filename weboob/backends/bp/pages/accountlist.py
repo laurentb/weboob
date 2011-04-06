@@ -29,6 +29,9 @@ class AccountList(BasePage):
         self.account_list = []
         self.parse_table('comptes')
         self.parse_table('comptesEpargne')
+        self.parse_table('comptesTitres')
+        self.parse_table('comptesVie')
+        self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
         return self.account_list
@@ -39,15 +42,22 @@ class AccountList(BasePage):
             return
 
         lines = tables[0].xpath(".//tbody/tr")
-
         for line  in lines:
             account = Account()
             tmp = line.xpath("./td//a")[0]
             account.label = tmp.text
             account.link_id = tmp.get("href")
+
             tmp = line.xpath("./td//strong")
-            account.id = tmp[0].text
-            account.balance = float(''.join(tmp[1].text.replace('.','').replace(',','.').split()))
+            if len(tmp) != 2:
+                tmp_id = line.xpath("./td//span")[1].text
+                tmp_balance = tmp[0].text
+            else:
+                tmp_id = tmp[0].text
+                tmp_balance = tmp[1].text
+
+            account.id = tmp_id 
+            account.balance = float(''.join(tmp_balance.replace('.','').replace(',','.').split()))
             self.account_list.append(account)
 
     def get_account(self, id):
