@@ -309,7 +309,9 @@ class Boobathon(ReplApplication):
 
     def edit_member(self, member):
         if member.name is None:
-            member.name = self.ask('Please enter your name')
+            firstname = self.ask('Please enter your firstname')
+            lastname = self.ask('Please enter your lastname')
+            member.name = '%s %s' % (firstname, lastname)
         if self.event.date is None:
             member.availabilities = self.ask('Enter availabilities', default=member.availabilities)
         member.repository = self.ask('Enter your repository (ex. romain/weboob.git)', default=member.repository)
@@ -328,7 +330,7 @@ class Boobathon(ReplApplication):
                 if task.status == task.STATUS_DONE:
                     s += '##'
                 elif task.status == task.STATUS_PROGRESS:
-                    s += '--'
+                    s += u'-·'
                 else:
                     s += '  '
             s += '|%s' % self.NC
@@ -349,13 +351,14 @@ class Boobathon(ReplApplication):
                 while len(tasks) <= i*2+1:
                     tasks.append([])
                 if task.status == task.STATUS_DONE:
-                    status = '%s#%s' % (self.BOLD, self.NC)
+                    st1 = st2 = '%s#%s' % (self.BOLD, self.NC)
                 elif task.status == task.STATUS_PROGRESS:
-                    status = '|'
+                    st1 = '|'
+                    st2 = '·'
                 else:
-                    status = ' '
-                tasks[i*2].append('%s %s' % (status, task.backend))
-                tasks[i*2+1].append('%s `-%s' % (status, task.capability[3:]))
+                    st1 = st2 = ' '
+                tasks[i*2].append('%s %s' % (st1, task.backend))
+                tasks[i*2+1].append('%s `-%s' % (st2, task.capability[3:]))
 
         sys.stdout.write('    ')
         for name in members:
@@ -440,7 +443,7 @@ class Boobathon(ReplApplication):
             print 'Unable to join during the event.'
             return
 
-        m = Member(self.event.backend.browser.get_userid(), 'Unknown')
+        m = Member(self.event.backend.browser.get_userid(), None)
         self.edit_member(m)
         self.event.members[m.id] = m
         self.save_event('Joined the event')
