@@ -2,18 +2,20 @@
 
 # Copyright(C) 2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from datetime import datetime, timedelta
@@ -397,24 +399,24 @@ class Boobathon(ReplApplication):
                 elif i == -1:
                     sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(mem.shortname()), self.NC))
                 elif len(mem.tasks) <= (i/2):
-                    sys.stdout.write(' ' * (20+2))
+                    sys.stdout.write(' ' * (20+1))
                 else:
                     task = mem.tasks[i/2]
                     if task.status == task.STATUS_DONE:
-                        status = '%s#%s' % (self.BOLD, self.NC)
+                        status = u'#'
                     elif task.status == task.STATUS_PROGRESS:
                         if not i%2:
-                            status = '|' #1st line
+                            status = u'|' #1st line
                         else:
-                            status = '·' #2nd line
+                            status = u'·' #2nd line
                     else:
-                        status = ' '
+                        status = u' '
 
                     if not i%2: #1st line
-                        line = '%s %s' % (status, task.backend)
+                        line = u'%s %s' % (status, task.backend)
                     else: #2nd line
-                        line = '%s `-%s' % (status, task.capability[3:])
-                    sys.stdout.write(' %-20s ' % line)
+                        line = u'%s `-%s' % (status, task.capability[3:])
+                    sys.stdout.write((u' %-20s' % line).encode('utf-8'))
             sys.stdout.write('\n')
             i += 1
 
