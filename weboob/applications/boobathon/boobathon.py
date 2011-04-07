@@ -55,6 +55,12 @@ class Member(object):
         self.hardware = u''
         self.is_me = False
 
+    def shortname(self):
+        name = self.name
+        if len(name) > 20:
+            name = '%s..' % name[:18]
+        return name
+
 class Event(object):
     def __init__(self, name, backend):
         self.my_id = backend.browser.get_userid()
@@ -118,7 +124,6 @@ class Event(object):
             elif line.startswith('* '):
                 m = re.match('\* \*(\w+)\*: (.*)', line)
                 if not m:
-                    print 'Unknown line "%s"' % line
                     continue
                 key, value = m.group(1), m.group(2)
                 if member is None:
@@ -325,7 +330,7 @@ class Boobathon(ReplApplication):
         """
         self.event.load()
         for member in self.event.members.itervalues():
-            s = u' %s %20s %s|' % ('->' if member.is_me else '  ', member.name, self.BOLD)
+            s = u' %s %20s %s|' % ('->' if member.is_me else '  ', member.shortname(), self.BOLD)
             for task in member.tasks:
                 if task.status == task.STATUS_DONE:
                     s += '##'
@@ -336,6 +341,34 @@ class Boobathon(ReplApplication):
             s += '|%s' % self.NC
             print s
 
+        print ''
+        now = datetime.now()
+        if self.event.begin > now:
+            d = self.event.begin - now
+            msg = 'The event will start in %d days, %02d:%02d:%02d'
+        elif self.event.end < now:
+            d = now - self.event.end
+            msg = 'The event is finished since %d days, %02d:%02d:%02d'
+        else:
+            tot = (self.event.end - self.event.begin).seconds
+            cur = (datetime.now() - self.event.begin).seconds
+            pct = cur*20/tot
+            progress = ''
+            for i in xrange(20):
+                if i < pct:
+                    progress += '='
+                elif i == pct:
+                    progress += '>'
+                else:
+                    progress += ' '
+            print 'Event started: %s |%s| %s' % (self.event.begin.strftime('%H:%M'),
+                                                 progress,
+                                                 self.event.end.strftime('%H:%M'))
+            d = self.event.end - now
+            msg = 'The event will be finished in %d days, %02d:%02d:%02d'
+
+        print msg % (d.days, d.seconds/3600%24, d.seconds%3600/60, d.seconds%60)
+
     def do_tasks(self, line):
         """
         tasks
@@ -343,38 +376,46 @@ class Boobathon(ReplApplication):
         Display all tasks of members.
         """
         self.event.load()
-        tasks = []
-        members = []
-        for member in self.event.members.itervalues():
-            members.append(member.name)
-            for i, task in enumerate(member.tasks):
-                while len(tasks) <= i*2+1:
-                    tasks.append([])
-                if task.status == task.STATUS_DONE:
-                    st1 = st2 = '%s#%s' % (self.BOLD, self.NC)
-                elif task.status == task.STATUS_PROGRESS:
-                    st1 = '|'
-                    st2 = '·'
-                else:
-                    st1 = st2 = ' '
-                tasks[i*2].append('%s %s' % (st1, task.backend))
-                tasks[i*2+1].append('%s `-%s' % (st2, task.capability[3:]))
 
-        sys.stdout.write('    ')
-        for name in members:
-            sys.stdout.write(' %s%-20s%s' % (self.BOLD, name, self.NC))
-        sys.stdout.write('\n    ')
-        for name in members:
-            sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(name), self.NC))
-        sys.stdout.write('\n')
-        for i, line in enumerate(tasks):
-            if not i%2:
+        stop = False
+        i = -2
+        while not stop:
+            if i >= 0 and not i%2:
                 sys.stdout.write(' #%-2d' % (i/2))
             else:
                 sys.stdout.write('    ')
-            for task in line:
-                sys.stdout.write(' %-20s' % task)
+            if i >= 0 and i%2:
+                # second line of task, see if we'll stop
+                stop = True
+            for mem in self.event.members.itervalues():
+                if len(mem.tasks) > (i/2+1):
+                    # there are more tasks, don't stop now
+                    stop = False
+                if i == -2:
+                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, mem.shortname(), self.NC))
+                elif i == -1:
+                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(mem.shortname()), self.NC))
+                elif len(mem.tasks) <= (i/2):
+                    sys.stdout.write(' ' * (20+2))
+                else:
+                    task = mem.tasks[i/2]
+                    if task.status == task.STATUS_DONE:
+                        status = '%s#%s' % (self.BOLD, self.NC)
+                    elif task.status == task.STATUS_PROGRESS:
+                        if not i%2:
+                            status = '|' #1st line
+                        else:
+                            status = '·' #2nd line
+                    else:
+                        status = ' '
+
+                    if not i%2: #1st line
+                        line = '%s %s' % (status, task.backend)
+                    else: #2nd line
+                        line = '%s `-%s' % (status, task.capability[3:])
+                    sys.stdout.write(' %-20s ' % line)
             sys.stdout.write('\n')
+            i += 1
 
     def do_edit(self, line):
         """
