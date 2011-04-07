@@ -276,6 +276,7 @@ class Boobathon(ReplApplication):
             if not self.ask("This event doesn't seem to exist. Do you want to create it?", default=True):
                 return 1
             self.edit_event()
+            self.save_event('Event created')
 
         return ReplApplication.main(self, [argv[0]])
 
@@ -310,13 +311,13 @@ class Boobathon(ReplApplication):
 
         self.event.location = self.ask('Enter a location', default=self.event.location)
 
-        self.save_event('Event edited')
-
     def edit_member(self, member):
         if member.name is None:
-            firstname = self.ask('Please enter your firstname')
-            lastname = self.ask('Please enter your lastname')
+            firstname = self.ask('Enter your firstname')
+            lastname = self.ask('Enter your lastname')
             member.name = '%s %s' % (firstname, lastname)
+        else:
+            member.name = self.ask('Enter your name', default=member.name)
         if self.event.date is None:
             member.availabilities = self.ask('Enter availabilities', default=member.availabilities)
         member.repository = self.ask('Enter your repository (ex. romain/weboob.git)', default=member.repository)
@@ -417,14 +418,34 @@ class Boobathon(ReplApplication):
             sys.stdout.write('\n')
             i += 1
 
+    def complete_edit(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return ['event', 'me']
+
     def do_edit(self, line):
         """
-        edit
+        edit [event | me]
 
-        Edit the event information.
+        Edit information about you or about event.
         """
+        if not line:
+            print 'Syntax: edit [event | me]'
+            return
+
         self.event.load()
-        self.edit_event()
+        if line == 'event':
+            self.edit_event()
+            self.save_event('Event edited')
+        elif line == 'me':
+            mem = self.event.get_me()
+            if not mem:
+                print 'You haven\'t joined the event.'
+                return
+            self.edit_member(mem)
+            self.save_event('Member edited')
+        else:
+            print 'Unable to edit "%s"' % line
 
     def do_info(self, line):
         """
@@ -458,7 +479,8 @@ class Boobathon(ReplApplication):
             print member.name
             print '-' * len(member.name)
             print 'Repository:', member.repository
-            print 'Availabilities:', member.availabilities
+            if self.event.date is None:
+                print 'Availabilities:', member.availabilities
             print 'Hardware:', member.hardware
             accompl = 0
             for task in member.tasks:
@@ -608,8 +630,6 @@ class Boobathon(ReplApplication):
         task.status = task.STATUS_PROGRESS
         mem.tasks.remove(task)
         mem.tasks.insert(last_done + 1, task)
-        print task
-        print mem.tasks
         self.save_event('Started a task')
 
     def do_done(self, line):
