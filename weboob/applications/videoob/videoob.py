@@ -2,20 +2,18 @@
 
 # Copyright(C) 2010-2011  Christophe Benz, Romain Bignon, John Obbele
 #
-# This file is part of weboob.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
 #
-# weboob is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# weboob is distributed in the hope that it will be useful,
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from __future__ import with_statement
 
@@ -23,11 +21,13 @@ import subprocess
 import sys
 import os
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
+
+from weboob.capabilities.collection import Collection, ICapCollection
 
 
 __all__ = ['Videoob']
@@ -65,10 +65,12 @@ class Videoob(ReplApplication):
                   'play and download them and get information.'
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
-    COMMANDS_FORMATTERS = {'search': 'video_list'}
+    COMMANDS_FORMATTERS = {'search': 'video_list', 'ls': 'video_list'}
 
     nsfw = True
     videos = []
+    
+    working_dir = []
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -238,3 +240,75 @@ class Videoob(ReplApplication):
             self.videos.append(video)
             self.format(video)
         self.flush()
+    
+    def do_ls(self, line):
+        self.videos = []
+        if len(self.working_dir) == 0:
+            for name in [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]:
+                print name
+            return 0
+        for backend, rep in self.do('iter_resources', backends=self.working_dir[0]):
+            if isinstance(rep, BaseVideo):
+                self.videos.append(rep)
+                self.format(rep)
+            else:
+                print rep
+
+        self.flush()
+    
+    def do_cd(self, line):
+        line = line.encode('utf-8')
+        
+        import urllib
+        line = urllib.quote_plus(line)
+        import posixpath
+        path = posixpath.normpath(line)
+        abspath =  posixpath.normpath(posixpath.join('/' + '/'.join(self.working_dir), path))
+        final_parse = abspath.split('/')[1:]
+        while len(final_parse) > 0 and final_parse[0] == u'': del final_parse[0]
+        if len(final_parse) == 0:
+            self.working_dir = []
+            self.prompt = '%s> ' % self.APPNAME
+            return 0
+        
+        final_parse = map(urllib.unquote_plus, final_parse)
+        working_backend = final_parse[0]
+        path = final_parse [1:]
+        
+        if working_backend in [b.NAME for b in self.enabled_backends]:
+            if working_backend in [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]:
+                backend = [b for b in self.enabled_backends if b.NAME == working_backend][0]
+            else:
+                print >>sys.stderr, "Error backend %s not implement Collection" % working_backend
+                return 1
+        else:
+            print >>sys.stderr, "Error backend %s unknow" % working_backend
+            return 1
+        
+        
+        if not path:
+            self.working_dir = [working_backend,]
+            backend.working_coll = []
+            self.prompt = '%s:%s> ' % (self.APPNAME, '/' + '/'.join(self.working_dir))
+            return 0
+        try:
+            path = backend.change_working_collection(path)
+        except NotImplementedError:
+            print >>sys.stderr, "Error backend %s not implement collection" % working_backend
+            return 1
+        
+        escape = lambda s: s.replace('/', '%2F')
+        path = map(escape, path)
+        self.working_dir =  [working_backend,]+path
+        self.prompt = '%s:%s> ' % (self.APPNAME, '/' + '/'.join(self.working_dir))
+        
+    def complete_cd(self, text, line, begidx, endidx):
+        mline = line.partition(' ')[2]
+        offs = len(mline) - len(text)
+        
+        if len(self.working_dir) == 0:
+            tmp = [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]
+        else:
+            tmp = [rep for backend, rep in self.do('iter_resources', backends=self.working_dir[0])]
+        
+        return [s[offs:] for s in tmp if s.startswith(mline)]
