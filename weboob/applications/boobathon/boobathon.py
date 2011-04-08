@@ -370,7 +370,7 @@ class Boobathon(ReplApplication):
             d = self.event.end - now
             msg = 'The event will be finished in %d days, %02d:%02d:%02d'
 
-        print msg % (d.days, d.seconds/3600%24, d.seconds%3600/60, d.seconds%60)
+        print msg % (d.days, d.seconds/3600, d.seconds%3600/60, d.seconds%60)
 
     def do_tasks(self, line):
         """
@@ -619,6 +619,7 @@ class Boobathon(ReplApplication):
                 last_done = i
             elif task.status == task.STATUS_PROGRESS:
                 task.status = task.STATUS_NONE
+                print 'Task #%s (%s,%s) canceled.' % (i, task.backend, task.capability)
 
             if (i == task_id or task_id < 0) and task.status == task.STATUS_NONE:
                 break
