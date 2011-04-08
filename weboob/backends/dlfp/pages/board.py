@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.parsers.lxmlparser import select
+
 from weboob.tools.browser import BasePage
 
 class Message(object):
@@ -34,7 +34,7 @@ class BoardIndexPage(BasePage):
 
     def get_messages(self, last=None):
         msgs = []
-        for post in select(self.document.getroot(), 'post'):
+        for post in self.parser.select(self.document.getroot(), 'post'):
             m = Message(int(post.attrib['id']),
                         post.attrib['time'],
                         post.find('login').text,

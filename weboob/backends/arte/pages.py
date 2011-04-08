@@ -22,7 +22,7 @@ import re
 import urllib
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 from .video import ArteVideo
 
@@ -40,13 +40,13 @@ class IndexPage(BasePage):
             if m:
                 _id = m.group(1)
             rating = rating_max = 0
-            rates = select(div, 'div[class=rateContainer]', 1)
+            rates = self.parser.select(div, 'div[class=rateContainer]', 1)
             for r in rates.findall('div'):
                 if 'star-rating-on' in r.attrib['class']:
                     rating += 1
                 rating_max += 1
 
-            thumb = select(div, 'img[class=thumbnail]', 1)
+            thumb = self.parser.select(div, 'img[class=thumbnail]', 1)
             thumbnail_url = 'http://videos.arte.tv' + thumb.attrib['src']
 
             yield ArteVideo(_id,
@@ -67,12 +67,12 @@ class VideoPage(BasePage):
         return self.document.getroot().cssselect('h2')[0].text
 
     def get_url(self, lang, quality):
-        obj = select(self.document.getroot(), 'object', 1)
-        movie_url = select(obj, 'param[name=movie]', 1)
+        obj = self.parser.select(self.document.getroot(), 'object', 1)
+        movie_url = self.parser.select(obj, 'param[name=movie]', 1)
         xml_url = urllib.unquote(movie_url.attrib['value'].split('videorefFileUrl=')[-1])
 
         doc = self.browser.get_document(self.browser.openurl(xml_url))
-        videos_list = select(doc.getroot(), 'video')
+        videos_list = self.parser.select(doc.getroot(), 'video')
         videos = {}
         for v in videos_list:
             videos[v.attrib['lang']] = v.attrib['ref']
@@ -84,8 +84,8 @@ class VideoPage(BasePage):
 
         doc = self.browser.get_document(self.browser.openurl(xml_url))
 
-        obj = select(doc.getroot(), 'urls', 1)
-        videos_list = select(obj, 'url')
+        obj = self.parser.select(doc.getroot(), 'urls', 1)
+        videos_list = self.parser.select(obj, 'url')
         urls = {}
         for v in videos_list:
             urls[v.attrib['quality']] = v.text

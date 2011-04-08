@@ -35,11 +35,11 @@ class ArticlePage(SimplePage):
         except NoneMainDiv:
             return None
         else:
-            try_remove(element_body, "div.mna-tools")
-            try_remove(element_body, "div.mna-comment-call")
+            try_remove(self.parser, element_body, "div.mna-tools")
+            try_remove(self.parser, element_body, "div.mna-comment-call")
             try :
                 element_body.remove(self.get_element_author())
             except NoAuthorElement:
                 pass
-            return self.browser.parser.tostring(element_body)
+            return self.parser.tostring(element_body)
 

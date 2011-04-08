@@ -87,7 +87,7 @@ class BoardPage(BasePage):
             if div.tag == 'input' and div.attrib.get('type', 'checkbox') and div.attrib.get('value', 'delete'):
                 article.id = int(div.attrib.get('name', '0'))
             if div.tag == 'blockquote':
-                article.text = self.browser.parser.tostring(div)
+                article.text = self.parser.tostring(div)
             if div.tag == 'table':
                 tags = div.cssselect('td.reply')
                 if tags:

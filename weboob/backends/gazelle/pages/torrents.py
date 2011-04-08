@@ -168,7 +168,7 @@ class TorrentsPage(BasePage):
                 title = title_t[0].find('strong').text.strip()
             body_t = box.cssselect('div.body')
             if body_t:
-                body = html2text(self.browser.parser.tostring(body_t[0])).strip()
+                body = html2text(self.parser.tostring(body_t[0])).strip()
 
             if title and body:
                 if torrent.description is NotLoaded:

@@ -21,7 +21,7 @@
 import re
 import datetime
 
-from weboob.tools.parsers.lxmlparser import select
+
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -39,19 +39,19 @@ class VideoPage(PornPage):
         return video
 
     def get_url(self):
-        download_div = select(self.document.getroot(), '#download', 1)
-        a = select(download_div, 'a', 1)
+        download_div = self.parser.select(self.document.getroot(), '#download', 1)
+        a = self.parser.select(download_div, 'a', 1)
         return a.attrib['href']
 
     def get_title(self):
-        element = select(self.document.getroot(), '#videoArea h1', 1)
+        element = self.parser.select(self.document.getroot(), '#videoArea h1', 1)
         return unicode(element.getchildren()[0].tail).strip()
 
     DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")
     MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     def set_details(self, v):
-        details_div = select(self.document.getroot(), '#details', 1)
+        details_div = self.parser.select(self.document.getroot(), '#details', 1)
         for li in details_div.getiterator('li'):
             span = li.find('span')
             name = span.text.strip()

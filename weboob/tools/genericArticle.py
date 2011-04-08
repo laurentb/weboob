@@ -16,32 +16,33 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 from lxml.etree import Comment
 
 
-def try_remove(base_element, selector):
+def try_remove(parser, base_element, selector):
     try :
-        base_element.remove(select(base_element, selector, 1 ))
-    except (SelectElementException, ValueError):
+        base_element.remove(parser.select(base_element, selector, 1 ))
+    except (BrokenPageError, ValueError):
         pass
 
 
-def try_drop_tree(base_element, selector):
+def try_drop_tree(parser, base_element, selector):
     try:
-        select(base_element, selector, 1).drop_tree()
-    except SelectElementException:
+        parser.select(base_element, selector, 1).drop_tree()
+    except BrokenPageError:
         pass
 
-def remove_from_selector_list(base_element, selector_list):
+def remove_from_selector_list(parser, base_element, selector_list):
     for selector in selector_list:
-        base_element.remove(select(base_element, selector, 1))
+        base_element.remove(parser.select(base_element, selector, 1))
 
 
-def try_remove_from_selector_list(base_element, selector_list):
+def try_remove_from_selector_list(parser, base_element, selector_list):
     for selector in selector_list:
-        try_remove(base_element, selector)
+        try_remove(parser, base_element, selector)
 
 def drop_comments(base_element):
     for comment in base_element.getiterator(Comment):
@@ -49,13 +50,13 @@ def drop_comments(base_element):
 
 
 
-class NoAuthorElement(SelectElementException):
+class NoAuthorElement(BrokenPageError):
     pass
 
-class NoBodyElement(SelectElementException):
+class NoBodyElement(BrokenPageError):
     pass
 
-class NoTitleException(SelectElementException):
+class NoTitleException(BrokenPageError):
     pass
 
 class NoneMainDiv(AttributeError):
@@ -75,13 +76,13 @@ class Article(object):
 class GenericNewsPage(BasePage):
     __element_body = NotImplementedError
     __article = Article
-    element_title_selector  = NotImplementedError 
+    element_title_selector  = NotImplementedError
     main_div = NotImplementedError
     element_body_selector = NotImplementedError
     element_author_selector = NotImplementedError
 
     def get_body(self):
-        return self.browser.parser.tostring(self.get_element_body())
+        return self.parser.tostring(self.get_element_body())
 
     def get_author(self):
         try:
@@ -92,7 +93,7 @@ class GenericNewsPage(BasePage):
 
     def get_title(self):
         try :
-            return select(
+            return self.parser.select(
                 self.main_div,
                 self.element_title_selector,
                 1).text_content().strip()
@@ -102,17 +103,17 @@ class GenericNewsPage(BasePage):
                 return self.__article.title
             else:
                 raise
-        except SelectElementException:
+        except BrokenPageError:
             try :
                 self.element_title_selector = "h1"
                 return self.get_title()
-            except SelectElementException:
+            except BrokenPageError:
                 raise NoTitleException("no title on %s" % (self.browser))
 
     def get_element_body(self):
         try :
-            return select(self.main_div, self.element_body_selector, 1)
-        except SelectElementException:
+            return self.parser.select(self.main_div, self.element_body_selector, 1)
+        except BrokenPageError:
             raise NoBodyElement("no body on %s" % (self.browser))
         except AttributeError:
             if self.main_div == None:
@@ -122,8 +123,8 @@ class GenericNewsPage(BasePage):
 
     def get_element_author(self):
         try:
-            return select(self.main_div, self.element_author_selector, 1)
-        except SelectElementException:
+            return self.parser.select(self.main_div, self.element_author_selector, 1)
+        except BrokenPageError:
             raise NoAuthorElement()
         except AttributeError:
             if self.main_div == None:

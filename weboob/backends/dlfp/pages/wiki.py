@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from .index import DLFPPage
 
 class WikiEditPage(DLFPPage):
     def get_body(self):
         try:
-            return select(self.document.getroot(), 'textarea#wiki_page_wiki_body', 1).text
-        except SelectElementException:
+            return self.parser.select(self.document.getroot(), 'textarea#wiki_page_wiki_body', 1).text
+        except BrokenPageError:
             return ''
 
     def _is_wiki_form(self, form):
@@ -52,5 +52,5 @@ class WikiEditPage(DLFPPage):
         self.browser.submit()
 
     def get_preview_html(self):
-        body = select(self.document.getroot(), 'article.wikipage div.content', 1)
-        return self.browser.parser.tostring(body)
+        body = self.parser.select(self.document.getroot(), 'article.wikipage div.content', 1)
+        return self.parser.tostring(body)

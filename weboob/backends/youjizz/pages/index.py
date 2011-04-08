@@ -22,7 +22,7 @@ import datetime
 import re
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from ..video import YoujizzVideo
 
@@ -32,25 +32,25 @@ __all__ = ['IndexPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        span_list = select(self.document.getroot(), 'span#miniatura')
+        span_list = self.parser.select(self.document.getroot(), 'span#miniatura')
         for span in span_list:
-            a = select(span, 'a', 1)
+            a = self.parser.select(span, 'a', 1)
             url = a.attrib['href']
             _id = re.sub(r'/videos/(.+)\.html', r'\1', url)
 
             thumbnail_url = span.find('.//img').attrib['src']
 
-            title_el = select(span, 'span#title1', 1)
+            title_el = self.parser.select(span, 'span#title1', 1)
             title = title_el.text.strip()
 
-            time_span = select(span, 'span.thumbtime span', 1)
+            time_span = self.parser.select(span, 'span.thumbtime span', 1)
             time_txt = time_span.text.strip().replace(';', ':')
             if time_txt == 'N/A':
                 minutes, seconds = 0, 0
             elif ':' in time_txt:
                 minutes, seconds = (int(v) for v in time_txt.split(':'))
             else:
-                raise SelectElementException('Unable to parse the video duration: %s' % time_txt)
+                raise BrokenPageError('Unable to parse the video duration: %s' % time_txt)
 
 
             yield YoujizzVideo(_id,

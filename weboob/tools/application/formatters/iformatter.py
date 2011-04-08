@@ -25,7 +25,7 @@ import sys
 import subprocess
 if sys.platform == 'win32':
     import WConio
-    
+
 try:
     import tty, termios
 except ImportError:

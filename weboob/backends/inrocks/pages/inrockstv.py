@@ -30,4 +30,4 @@ class InrocksTvPage(GenericNewsPage):
 
     def get_body(self):
         element_body = self.get_element_body()
-        return self.browser.parser.tostring(element_body)
+        return self.parser.tostring(element_body)

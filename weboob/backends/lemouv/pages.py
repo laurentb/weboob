@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 
 __all__ = ['XMLinfos']
@@ -28,7 +28,7 @@ __all__ = ['XMLinfos']
 class XMLinfos(BasePage):
     def get_current(self):
         try:
-            for channel in select(self.document.getroot(), 'channel'):
+            for channel in self.parser.select(self.document.getroot(), 'channel'):
                 title = channel.find('item/song_title').text
                 artist = channel.find('item/artist_name').text
         except AttributeError:

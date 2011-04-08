@@ -20,7 +20,7 @@
 
 from datetime import datetime
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 from weboob.tools.misc import local2utc
 from weboob.backends.dlfp.tools import url2id
 
@@ -54,23 +54,23 @@ class Comment(Content):
 
         self.id = div.attrib['id'].split('-')[1]
         self.url = '%s#%s' % (article.url, div.attrib['id'])
-        self.title = unicode(select(div.find('h2'), 'a.title', 1).text)
+        self.title = unicode(self.browser.parser.select(div.find('h2'), 'a.title', 1).text)
         try:
-            a = select(div.find('p'), 'a[rel=author]', 1)
-        except SelectElementException:
+            a = self.browser.parser.select(div.find('p'), 'a[rel=author]', 1)
+        except BrokenPageError:
             self.author = 'Anonyme'
             self.username = None
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.date = datetime.strptime(select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
+        self.date = datetime.strptime(self.browser.parser.select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
 
         content = div.find('div')
         try:
-            signature = select(content, 'p.signature', 1)
-        except SelectElementException:
+            signature = self.browser.parser.select(content, 'p.signature', 1)
+        except BrokenPageError:
             # No signature.
             pass
         else:
@@ -78,11 +78,11 @@ class Comment(Content):
             self.signature = self.browser.parser.tostring(signature)
         self.body = self.browser.parser.tostring(content)
 
-        self.score = int(select(div.find('p'), 'span.score', 1).text)
-        forms = select(div.find('footer'), 'form.button_to')
+        self.score = int(self.browser.parser.select(div.find('p'), 'span.score', 1).text)
+        forms = self.browser.parser.select(div.find('footer'), 'form.button_to')
         if len(forms) > 0:
             self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
-            self.relevance_token = select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
+            self.relevance_token = self.browser.parser.select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
 
         subs = div.find('ul')
         if subs is not None:
@@ -113,26 +113,26 @@ class Article(Content):
         header = tree.find('header')
         self.title = u' — '.join([a.text for a in header.find('h1').findall('a')])
         try:
-            a = select(header, 'a[rel=author]', 1)
-        except SelectElementException:
+            a = self.browser.parser.select(header, 'a[rel=author]', 1)
+        except BrokenPageError:
             self.author = 'Anonyme'
             self.username = None
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.body = self.browser.parser.tostring(select(tree, 'div.content', 1))
+        self.body = self.browser.parser.tostring(self.browser.parser.select(tree, 'div.content', 1))
         try:
-            self.date = datetime.strptime(select(header, 'time', 1).attrib['datetime'].split('+')[0],
+            self.date = datetime.strptime(self.browser.parser.select(header, 'time', 1).attrib['datetime'].split('+')[0],
                                           '%Y-%m-%dT%H:%M:%S')
             self.date = local2utc(self.date)
-        except SelectElementException:
+        except BrokenPageError:
             pass
-        forms = select(tree.find('footer'), 'form.button_to')
+        forms = self.browser.parser.select(tree.find('footer'), 'form.button_to')
         if len(forms) > 0:
             self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
-            self.relevance_token = select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
+            self.relevance_token = self.browser.parser.select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
 
-        self.score = int(select(tree, 'div.figures figure.score', 1).text)
+        self.score = int(self.browser.parser.select(tree, 'div.figures figure.score', 1).text)
 
     def append_comment(self, comment):
         self.comments.append(comment)
@@ -146,7 +146,7 @@ class Article(Content):
 class CommentPage(DLFPPage):
     def get_comment(self):
         article = Article(self.browser, self.url, None)
-        return Comment(article, select(self.document.getroot(), 'li.comment', 1), 0)
+        return Comment(article, self.parser.select(self.document.getroot(), 'li.comment', 1), 0)
 
 class ContentPage(DLFPPage):
     def on_loaded(self):
@@ -158,8 +158,8 @@ class ContentPage(DLFPPage):
     def get_comment(self, id):
         article = Article(self.browser, self.url, None)
         try:
-            li = select(self.document.getroot(), 'li#comment-%s' % id, 1)
-        except SelectElementException:
+            li = self.parser.select(self.document.getroot(), 'li#comment-%s' % id, 1)
+        except BrokenPageError:
             return None
         else:
             return Comment(article, li, 0)
@@ -168,11 +168,11 @@ class ContentPage(DLFPPage):
         if not self.article:
             self.article = Article(self.browser,
                                    self.url,
-                                   select(self.document.getroot(), 'div#contents article', 1))
+                                   self.parser.select(self.document.getroot(), 'div#contents article', 1))
 
             try:
-                threads = select(self.document.getroot(), 'ul.threads', 1)
-            except SelectElementException:
+                threads = self.parser.select(self.document.getroot(), 'ul.threads', 1)
+            except BrokenPageError:
                 pass # no comments
             else:
                 for comment in threads.findall('li'):
@@ -181,10 +181,10 @@ class ContentPage(DLFPPage):
         return self.article
 
     def get_post_comment_url(self):
-        return select(self.document.getroot(), 'p#send-comment', 1).find('a').attrib['href']
+        return self.parser.select(self.document.getroot(), 'p#send-comment', 1).find('a').attrib['href']
 
     def get_tag_url(self):
-        return select(self.document.getroot(), 'div.tag_in_place', 1).find('a').attrib['href']
+        return self.parser.select(self.document.getroot(), 'div.tag_in_place', 1).find('a').attrib['href']
 
 class NewCommentPage(DLFPPage):
     pass
@@ -201,8 +201,8 @@ class NewTagPage(DLFPPage):
 class NodePage(DLFPPage):
     def get_errors(self):
         try:
-            div = select(self.document.getroot(), 'div.errors', 1)
-        except SelectElementException:
+            div = self.parser.select(self.document.getroot(), 'div.errors', 1)
+        except BrokenPageError:
             return []
 
         l = []

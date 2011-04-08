@@ -29,9 +29,9 @@ class ArticlePage(GenericNewsPage):
 
     def get_body(self):
         element_body = self.get_element_body()
-        remove_from_selector_list(element_body, ["p.auteur", "h4" ])
-        try_remove_from_selector_list(element_body, ["p.tag", "div.alire", self.element_title_selector, "h4"])
-        try_drop_tree(element_body, "script")
+        remove_from_selector_list(self.parser, element_body, ["p.auteur", "h4" ])
+        try_remove_from_selector_list(self.parser, element_body, ["p.tag", "div.alire", self.element_title_selector, "h4"])
+        try_drop_tree(self.parser, element_body, "script")
 
-        return self.browser.parser.tostring(element_body)
+        return self.parser.tostring(element_body)
 

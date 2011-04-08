@@ -19,11 +19,11 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 class WikiEditPage(BasePage):
     def get_source(self):
-        return select(self.document.getroot(), 'textarea#content_text', 1).text
+        return self.parser.select(self.document.getroot(), 'textarea#content_text', 1).text
 
     def set_source(self, data, message):
         self.browser.select_form(nr=1)
@@ -33,7 +33,7 @@ class WikiEditPage(BasePage):
         self.browser.submit()
 
     def get_authenticity_token(self):
-        wiki_form = select(self.document.getroot(), 'form#wiki_form', 1)
+        wiki_form = self.parser.select(self.document.getroot(), 'form#wiki_form', 1)
         return wiki_form.xpath('div/input')[0].get('value')
 
 

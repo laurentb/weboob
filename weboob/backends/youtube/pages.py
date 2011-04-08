@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 
 __all__ = ['ForbiddenVideo', 'ForbiddenVideoPage', 'VerifyAgePage', 'VideoPage']
@@ -31,7 +31,7 @@ class ForbiddenVideo(Exception):
 
 class ForbiddenVideoPage(BasePage):
     def get_video(self, video=None):
-        element = select(self.document.getroot(), '.yt-alert-content', 1)
+        element = self.parser.select(self.document.getroot(), '.yt-alert-content', 1)
         raise ForbiddenVideo(element.text.strip())
 
 

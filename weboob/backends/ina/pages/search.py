@@ -22,7 +22,7 @@ import datetime
 import re
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from ..video import InaVideo
 
@@ -35,8 +35,8 @@ class SearchPage(BasePage):
 
     def iter_videos(self):
         try:
-            ul = select(self.document.getroot(), 'div.container-videos ul', 1)
-        except SelectElementException:
+            ul = self.parser.select(self.document.getroot(), 'div.container-videos ul', 1)
+        except BrokenPageError:
             # It means there are no results.
             return
         for li in ul.findall('li'):
@@ -44,18 +44,18 @@ class SearchPage(BasePage):
 
             thumbnail = 'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
 
-            title = select(li, 'p.titre', 1).text
+            title = self.parser.select(li, 'p.titre', 1).text
 
-            date = select(li, 'p.date', 1).text
+            date = self.parser.select(li, 'p.date', 1).text
             day, month, year = [int(s) for s in date.split('/')]
             date = datetime.datetime(year, month, day)
 
-            duration = select(li, 'p.duree', 1).text
+            duration = self.parser.select(li, 'p.duree', 1).text
             m = re.match(r'((\d+)h)?((\d+)min)?(\d+)s', duration)
             if m:
                 duration = datetime.timedelta(hours=int(m.group(2) or 0), minutes=int(m.group(4) or 0), seconds=int(m.group(5)))
             else:
-                raise SelectElementException('Unable to match duration (%r)' % duration)
+                raise BrokenPageError('Unable to match duration (%r)' % duration)
 
             yield InaVideo(id,
                            title=title,

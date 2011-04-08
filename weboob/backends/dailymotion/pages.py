@@ -24,7 +24,7 @@ import re
 from weboob.capabilities.video import VideoThumbnail
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 from .video import DailymotionVideo
 
@@ -34,7 +34,7 @@ __all__ = ['IndexPage', 'VideoPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        for div in select(self.document.getroot(), 'div.dmpi_video_item'):
+        for div in self.parser.select(self.document.getroot(), 'div.dmpi_video_item'):
             _id = 0
             for cls in div.attrib['class'].split():
                 if cls.startswith('id_'):
@@ -46,15 +46,15 @@ class IndexPage(BasePage):
                 continue
 
             video = DailymotionVideo(int(_id))
-            video.title = select(div, 'h3 a', 1).text
-            video.author = select(div, 'div.dmpi_user_login', 1).find('a').text
-            video.description = html2text(self.browser.parser.tostring(select(div, 'div.dmpi_video_description', 1))).strip()
-            minutes, seconds = select(div, 'div.duration', 1).text.split(':')
+            video.title = self.parser.select(div, 'h3 a', 1).text
+            video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').text
+            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
+            minutes, seconds = self.parser.select(div, 'div.duration', 1).text.split(':')
             video.duration = datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
-            url = select(div, 'img.dmco_image', 1).attrib['src']
+            url = self.parser.select(div, 'img.dmco_image', 1).attrib['src']
             video.thumbnail = VideoThumbnail(url)
 
-            rating_div = select(div, 'div.small_stars', 1)
+            rating_div = self.parser.select(div, 'div.small_stars', 1)
             video.rating_max = self.get_rate(rating_div)
             video.rating = self.get_rate(rating_div.find('div'))
             # XXX missing date
@@ -73,12 +73,12 @@ class VideoPage(BasePage):
         if video is None:
             video = DailymotionVideo(self.group_dict['id'])
 
-        div = select(self.document.getroot(), 'div#content', 1)
+        div = self.parser.select(self.document.getroot(), 'div#content', 1)
 
-        video.title = select(div, 'span.title', 1).text
-        video.author = select(div, 'a.name', 1).text
-        video.description = select(div, 'div#video_description', 1).text
-        for script in select(self.document.getroot(), 'div.dmco_html'):
+        video.title = self.parser.select(div, 'span.title', 1).text
+        video.author = self.parser.select(div, 'a.name', 1).text
+        video.description = self.parser.select(div, 'div#video_description', 1).text
+        for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):
             if 'id' in script.attrib and script.attrib['id'].startswith('container_player_'):
                 text = script.find('script').text
                 mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', text)

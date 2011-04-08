@@ -93,6 +93,8 @@ class NoHistory(object):
     def close(self):
         pass
 
+class BrokenPageError(Exception):
+    pass
 
 class BasePage(object):
     """
@@ -100,6 +102,7 @@ class BasePage(object):
     """
     def __init__(self, browser, document, url='', groups=None, group_dict=None, logger=None):
         self.browser = browser
+        self.parser = browser.parser
         self.document = document
         self.url = url
         self.groups = groups

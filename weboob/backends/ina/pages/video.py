@@ -27,7 +27,7 @@ except ImportError:
     from cgi import parse_qs
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from ..video import InaVideo
 
@@ -75,9 +75,9 @@ class VideoPage(BasePage):
                                               seconds=int(m.group(6)))
                 return date, duration
             else:
-                raise SelectElementException('Unable to parse date and duration')
+                raise BrokenPageError('Unable to parse date and duration')
         else:
-            raise SelectElementException('Unable to find date and duration element')
+            raise BrokenPageError('Unable to find date and duration element')
 
     def get_title(self):
         el = self.document.getroot().cssselect('div.bloc-produit-haut h1')[0]

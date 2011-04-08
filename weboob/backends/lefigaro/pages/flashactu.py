@@ -31,5 +31,5 @@ class FlashActuPage(GenericNewsPage):
     def get_body(self):
         element_body = self.get_element_body()
         element_body.tag = "div"
-        return self.browser.parser.tostring(element_body)
+        return self.parser.tostring(element_body)
 
