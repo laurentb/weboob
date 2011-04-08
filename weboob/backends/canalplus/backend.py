@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010  Nicolas Duhamel
 #
-# This file is part of weboob.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
 #
-# weboob is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# weboob is distributed in the hope that it will be useful,
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
 from __future__ import with_statement
@@ -27,17 +25,19 @@ from weboob.tools.value import ValuesDict, Value
 from .browser import CanalplusBrowser
 from .pages import CanalplusVideo
 
+from weboob.capabilities.collection import ICapCollection
+
 
 __all__ = ['CanalplusBackend']
 
 
-class CanalplusBackend(BaseBackend, ICapVideo):
+class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'canalplus'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
     VERSION = '0.8'
     DESCRIPTION = 'Canal plus french TV'
-    LICENSE = 'AGPLv3+'
+    LICENSE = 'GPLv3'
     CONFIG = ValuesDict(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
     BROWSER = CanalplusBrowser
 
@@ -63,3 +63,16 @@ class CanalplusBackend(BaseBackend, ICapVideo):
         return video
 
     OBJECTS = {CanalplusVideo: fill_video}
+    
+    working_coll = []
+    
+    def get_working_collection(self):
+        return self.working_coll
+    
+    def change_working_collection(self, splited_path):
+        self.working_coll = self.browser.change_working_collection(splited_path)
+        return self.working_coll
+        
+    def iter_resources(self):
+        rep = self.browser.iter_resources(self.working_coll)
+        return rep

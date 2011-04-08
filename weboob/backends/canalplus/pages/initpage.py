@@ -1,44 +1,47 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010  Nicolas Duhamel
 #
-# This file is part of weboob.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
 #
-# weboob is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# weboob is distributed in the hope that it will be useful,
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
 from weboob.tools.browser import BasePage
 
+from weboob.capabilities.collection import Collection
 
 __all__ = ['InitPage']
 
 
 class InitPage(BasePage):
+    
     def on_loaded(self):
-        channels = []
+        self.collections = []
+        
+        def do(id):
+            self.browser.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/" + id)
+            return self.browser.page.iter_channel()
+
         ### Parse liste des channels
         for elem in self.document[2].getchildren():
-            channel = {}
+            coll = Collection()
             for e in elem.getchildren():
-                subchannels = []
                 if e.tag == "NOM":
-                    channel['nom'] = e.text
+                    coll.title = e.text.strip().encode('utf-8')
                 elif e.tag == "SELECTIONS":
                     for select in e:
-                        subchannel = {}
-                        subchannel['id'] = select[0].text
-                        subchannel['nom'] = select[1].text
-                        subchannels.append(subchannel)
-            channel['subchannels'] = subchannels
-            channels.append(channel)
+                        sub = Collection(title=select[1].text.strip().encode('utf-8'))
+                        sub.id = select[0].text
+                        sub.children = do
+                        coll.appendchild(sub)
+            self.collections.append(coll)
