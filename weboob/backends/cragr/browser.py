@@ -23,12 +23,15 @@ from weboob.capabilities.bank import Transfer, TransferError
 from weboob.backends.cragr import pages
 import mechanize
 from datetime import datetime
+import re
 
 # Browser
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    # a session id that is sometimes added, and should be ignored when matching pages
+    SESSION_REGEXP = '(?:|%s[A-Z0-9]+)' % re.escape(r';jsessionid=')
 
     is_logging = False
 
@@ -36,7 +39,7 @@ class Cragr(BaseBrowser):
         self.DOMAIN = website
         self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
                       'https://%s/.*\.c.*'       % website:   pages.AccountsList,
-                      'https://%s/login/process' % website:   pages.AccountsList,
+                      ('https://%s/login/process' % website) + self.SESSION_REGEXP:   pages.AccountsList,
                       'https://%s/accounting/listAccounts' % website: pages.AccountsList,
                       'https://%s/accounting/listOperations' % website: pages.AccountsList,
                      }
@@ -70,6 +73,11 @@ class Cragr(BaseBrowser):
 
     def get_accounts_list(self):
         self.home()
+        # if there is no redirection but we are connected, go to a page that will be recognized
+        # as the account list page
+        # this is a hack, a better solution would be to recognize the page regardless of the URL
+        if self.is_on_page(pages.LoginPage) and self.is_logged():
+            self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
         return self.page.get_list()
 
     def get_account(self, id):
