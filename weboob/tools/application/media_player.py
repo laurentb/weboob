@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele
+# Copyright(C) 2010  Christophe Benz, Romain Bignon, John Obbele
 #
-# This file is part of weboob.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
 #
-# weboob is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# weboob is distributed in the hope that it will be useful,
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
 import os
@@ -28,9 +26,9 @@ __all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
 PLAYERS = (
+    ('mplayer', '-'),
     ('parole', 'fd://0'),
     ('totem', 'fd://0'),
-    ('mplayer', '-really-quiet -'),
     ('vlc', '-'),
     ('xine', 'stdin:/'),
 )
@@ -109,7 +107,10 @@ class MediaPlayer(object):
         media_url = media.url
         try:
             player_url = media.swf_player
-            rtmp = 'rtmpdump -r %s --swfVfy %s' % (media_url, player_url)
+            if  media.swf_player:
+                rtmp = 'rtmpdump -r %s --swfVfy %s' % (media_url, player_url)
+            else:
+                rtmp = 'rtmpdump -r %s' % media_url
         except AttributeError:
             self.logger.warning('Your media object does not have a "swf_player" attribute. SWF verification will be '
                                 'disabled and may prevent correct media playback.')
@@ -125,6 +126,7 @@ class MediaPlayer(object):
 
         print ':: Streaming from %s' % media_url
         print ':: to %s %s' % (player_name, args)
+        print ':: %s' % rtmp
         p1 = Popen(rtmp.split(), stdout=PIPE)
         Popen([player_name, args], stdin=p1.stdout, stderr=PIPE)
 
