@@ -395,7 +395,7 @@ class Boobathon(ReplApplication):
                     # there are more tasks, don't stop now
                     stop = False
                 if i == -2:
-                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, mem.shortname(), self.NC))
+                    sys.stdout.write(' %s%-20s%s' % (self.BOLD, mem.shortname().encode('utf-8'), self.NC))
                 elif i == -1:
                     sys.stdout.write(' %s%-20s%s' % (self.BOLD, '-' * len(mem.shortname()), self.NC))
                 elif len(mem.tasks) <= (i/2):
