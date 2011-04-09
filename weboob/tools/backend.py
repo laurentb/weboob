@@ -185,6 +185,8 @@ class BaseBackend(object):
 
         if '_proxy' in self._private_config:
             kwargs['proxy'] = self._private_config['_proxy']
+        elif 'http_proxy' in os.environ:
+            kwargs['proxy'] = os.environ['http_proxy']
         elif 'HTTP_PROXY' in os.environ:
             kwargs['proxy'] = os.environ['HTTP_PROXY']
         kwargs['logger'] = self.logger
