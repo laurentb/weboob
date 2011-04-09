@@ -1,0 +1,78 @@
+# * -*- coding: utf-8 -*-
+
+# Copyright(C) 2011  Johann Broudin
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
+from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.tools.backend import BaseBackend
+from .browser import franceinterBrowser
+
+
+__all__ = ['franceinterBackend']
+
+
+class franceinterBackend(BaseBackend, ICapRadio):
+    NAME = 'franceinter'
+    MAINTAINER = 'Johann Broudin'
+    EMAIL = 'johann.broudin@6-8.fr'
+    VERSION = '1'
+    DESCRIPTION = u'The france inter french radio'
+    LICENCE = 'AGPLv3'
+    BROWSER = franceinterBrowser
+
+    _RADIOS = {'france inter': (u'france inter', u'france inter', u'http://mp3.live.tv-radio.com/franceinter/all/franceinterhautdebit.mp3')}
+
+    def iter_radios(self):
+        for id in self._RADIOS.iterkeys():
+            yield self.get_radio(id)
+
+    def iter_radios_search(self, pattern):
+        for radio in self.iter_radios():
+            if pattern in radio.title or pattern in radio.description:
+                yield radio
+
+    def get_radio(self, radio):
+        if not isinstance(radio, Radio):
+            radio = Radio(radio)
+
+        if not radio.id in self._RADIOS:
+            return None
+
+        title, description, url = self._RADIOS[radio.id]
+        radio.title = title
+        radio.description = description
+
+        emission = self.browser.get_current(radio.id)
+        current = Emission(0)
+        current.artist = emission
+        radio.current = current
+
+        stream = Stream(0)
+        stream.title = u'128kbits/s'
+        stream.url = url
+        radio.streams = [stream]
+        return radio
+
+    def fill_radio(self, radio, fields):
+        if 'current' in fields:
+            if not radio.current:
+                radio.current = Emission(0)
+            radio.current.artist, radio.current.title = self.browser.get_current(radio.id)
+        return radio
+
+    OBJECTS = {Radio: fill_radio}
