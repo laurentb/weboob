@@ -115,20 +115,34 @@ class Videoob(ReplApplication):
         if not video:
             print 'Video not found: %s' %  _id
             return 1
-
-        with open('/dev/null', 'w') as devnull:
-            process = subprocess.Popen(['which', 'wget'], stdout=devnull)
-            if process.wait() != 0:
-                print >>sys.stderr, 'Please install "wget"'
-                return 1
+                        
+        def check_exec(executable):
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(['which', executable], stdout=devnull)
+                if process.wait() != 0:
+                    print >>sys.stderr, 'Please install "%s"' % executable
+                    return False
+            return True
+        
 
         if dest is None:
             ext = video.ext
             if not ext:
                 ext = 'avi'
             dest = '%s.%s' % (video.id, ext)
-
-        os.system('wget "%s" -O "%s"' % (video.url, dest))
+        
+        if video.url.find('rtmp') == 0:
+            if check_exec('rtmpdump'):
+                cmd = "rtmpdump -r " + video.url + " -o " + dest
+            else:
+                return 1
+        else:
+            if check_exec('wget'):
+                cmd = 'wget "%s" -O "%s"' % (video.url, dest)
+            else:
+                return 1
+        
+        os.system(cmd)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
