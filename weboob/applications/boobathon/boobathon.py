@@ -72,6 +72,7 @@ class Event(object):
         self.begin = None
         self.end = None
         self.location = None
+        self.winner = None
         self.backend = backend
         self.members = OrderedDict()
         self.load()
@@ -84,6 +85,9 @@ class Event(object):
             return False
 
         return self.begin < datetime.now() < self.end
+
+    def is_closed(self):
+        return self.end < datetime.now()
 
     def format_duration(self):
         if not self.begin or not self.end:
@@ -110,6 +114,12 @@ class Event(object):
             line = line.strip()
             if line.startswith('h1. '):
                 self.title = line[4:]
+            elif line.startswith('h3=. '):
+                m = re.match('h3=. Event finished. Winner is "(.*)":/users/(\d+)\!', line)
+                if not m:
+                    print 'Unable to parse h3=: %s' % line
+                    continue
+                self.winner = Member(int(m.group(2)), m.group(1))
             elif line.startswith('h2. '):
                 continue
             elif line.startswith('h3. '):
@@ -120,6 +130,8 @@ class Event(object):
                 member = Member(int(m.group(2)), m.group(1))
                 if member.id == self.my_id:
                     member.is_me = True
+                if member.id == self.winner.id:
+                    self.winner = member
                 self.members[member.id] = member
             elif self.description is None and len(line) > 0 and line != '{{TOC}}':
                 self.description = line
@@ -188,10 +200,15 @@ class Event(object):
             return None
 
     def save(self, message):
+        if self.winner:
+            finished = u'\nh3=. Event finished. Winner is "%s":/users/%d!\n' % (self.winner.name,
+                                                                                self.winner.id)
+        else:
+            finished = u''
         s = u"""h1. %s
 
 {{TOC}}
-
+%s
 h2. Event
 
 %s
@@ -205,6 +222,7 @@ h2. Event
 h2. Attendees
 
 """ % (self.title,
+       finished,
        self.description,
        self.date.strftime('%Y-%m-%d') if self.date else '_Unknown_',
        self.begin.strftime('%H:%M') if self.begin else '_Unknown_',
@@ -333,7 +351,15 @@ class Boobathon(ReplApplication):
         """
         self.event.load()
         for member in self.event.members.itervalues():
-            s = u' %s %20s %s|' % ('->' if member.is_me else '  ', member.shortname(), self.BOLD)
+            if member.is_me and member is self.event.winner:
+                status = '\o/ ->'
+            elif member.is_me:
+                status = '    ->'
+            elif member is self.event.winner:
+                status = '   \o/'
+            else:
+                status = '      '
+            s = u' %s%20s %s|' % (status, member.shortname(), self.BOLD)
             for task in member.tasks:
                 if task.status == task.STATUS_DONE:
                     s += '##'
@@ -420,6 +446,29 @@ class Boobathon(ReplApplication):
             sys.stdout.write('\n')
             i += 1
 
+    def complete_close(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            self.event.load()
+            return [member.name for member in self.event.members.itervalues()]
+
+    def do_close(self, name):
+        """
+        close WINNER
+
+        Close the event and set the winner.
+        """
+        self.event.load()
+
+        for member in self.event.members.itervalues():
+            if member.name == name:
+                self.winner = member
+                if self.save_event('Close event'):
+                    print 'Event is now closed. Winner is %s!' % self.winner.name
+                return
+
+        print '"%s" not found' % name
+
     def complete_edit(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
@@ -489,6 +538,8 @@ class Boobathon(ReplApplication):
                 if task.status == task.STATUS_DONE:
                     accompl += 1
             print '%d tasks (%d accomplished)' % (len(member.tasks), accompl)
+            if member is self.event.winner:
+                print '=== %s is the winner!' % member.name
             print ''
 
         print 'Use the "tasks" command to display all tasks'
@@ -504,8 +555,8 @@ class Boobathon(ReplApplication):
             print 'You have already joined this event.'
             return
 
-        if self.event.currently_in_event():
-            print 'Unable to join during the event.'
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
             return
 
         m = Member(self.event.backend.browser.get_userid(), None)
@@ -525,6 +576,10 @@ class Boobathon(ReplApplication):
             print 'Unable to leave during the event, loser!'
             return
 
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
+            return
+
         try:
             self.event.members.pop(self.event.backend.browser.get_userid())
         except KeyError:
@@ -542,6 +597,10 @@ class Boobathon(ReplApplication):
         mem = self.event.get_me()
         if not mem:
             print 'You have not joined this event.'
+            return
+
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
             return
 
         try:
@@ -568,6 +627,10 @@ class Boobathon(ReplApplication):
         mem = self.event.get_me()
         if not mem:
             print 'You have not joined this event.'
+            return
+
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
             return
 
         backend, capability = self.parse_command_args(line, 2, 2)
@@ -647,6 +710,10 @@ class Boobathon(ReplApplication):
             print 'You have not joined this event.'
             return
 
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
+            return
+
         for i, task in enumerate(mem.tasks):
             if task.status == task.STATUS_PROGRESS:
                 print 'Task (%s,%s) done! (%d%%)' % (task.backend, task.capability, (i+1)*100/len(mem.tasks))
@@ -673,6 +740,10 @@ class Boobathon(ReplApplication):
         mem = self.event.get_me()
         if not mem:
             print 'You have not joined this event.'
+            return
+
+        if self.event.is_closed():
+            print 'Boobathon is closed.'
             return
 
         for task in mem.tasks:
