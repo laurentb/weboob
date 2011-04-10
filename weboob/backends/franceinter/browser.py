@@ -23,11 +23,12 @@ from weboob.tools.browser import BaseBrowser
 from .pages import XMLinfos
 
 
-__all__ = ['franceinterBrowser']
+__all__ = ['FranceInterBrowser']
 
 
-class franceinterBrowser(BaseBrowser):
+class FranceInterBrowser(BaseBrowser):
     DOMAIN = u'metadatas.tv-radio.com'
+    ENCODING = 'iso-8859-1'
     PAGES  = {r'.*metadatas/franceinterRSS\.xml': XMLinfos}
 
     def get_current(self, radio):

@@ -27,12 +27,7 @@ __all__ = ['XMLinfos']
 
 class XMLinfos(BasePage):
     def get_current(self):
-        try:
-            for channel in self.parser.select(self.document.getroot(), 'channel'):
-                emission = channel.find('item/song_title').text
-                #artist = channel.find('item/artist_name').text
-        except AttributeError:
-            emission = "Not defined"
-            # artist = "Not defined"
-
-        return unicode(emission).strip()
+        emissions = self.parser.select(self.document.getroot(), 'item')
+        if len(emissions) == 0:
+            return 'No emission'
+        return emissions[0].find('titreemission').text

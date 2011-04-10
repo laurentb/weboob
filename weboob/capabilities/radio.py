@@ -35,7 +35,10 @@ class Emission(CapBaseObject):
         return False
 
     def __unicode__(self):
-        return u'%s - %s' % (self.artist, self.title)
+        if self.artist:
+            return u'%s - %s' % (self.artist, self.title)
+        else:
+            return self.title
 
 class Stream(CapBaseObject):
     def __init__(self, id):

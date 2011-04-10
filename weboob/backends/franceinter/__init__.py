@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import franceinterBackend
+from .backend import FranceInterBackend
 
 
-__all__ = ['franceinterBackend']
+__all__ = ['FranceInterBackend']
 

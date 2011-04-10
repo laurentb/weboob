@@ -20,22 +20,22 @@
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.tools.backend import BaseBackend
-from .browser import franceinterBrowser
+from .browser import FranceInterBrowser
 
 
-__all__ = ['franceinterBackend']
+__all__ = ['FranceInterBackend']
 
 
-class franceinterBackend(BaseBackend, ICapRadio):
+class FranceInterBackend(BaseBackend, ICapRadio):
     NAME = 'franceinter'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
     VERSION = '1'
     DESCRIPTION = u'The france inter french radio'
     LICENCE = 'AGPLv3'
-    BROWSER = franceinterBrowser
+    BROWSER = FranceInterBrowser
 
-    _RADIOS = {'france inter': (u'france inter', u'france inter', u'http://mp3.live.tv-radio.com/franceinter/all/franceinterhautdebit.mp3')}
+    _RADIOS = {'franceinter': (u'france inter', u'france inter', u'http://mp3.live.tv-radio.com/franceinter/all/franceinterhautdebit.mp3')}
 
     def iter_radios(self):
         for id in self._RADIOS.iterkeys():
@@ -59,7 +59,8 @@ class franceinterBackend(BaseBackend, ICapRadio):
 
         emission = self.browser.get_current(radio.id)
         current = Emission(0)
-        current.artist = emission
+        current.title = emission
+        current.artist = None
         radio.current = current
 
         stream = Stream(0)
@@ -72,7 +73,8 @@ class franceinterBackend(BaseBackend, ICapRadio):
         if 'current' in fields:
             if not radio.current:
                 radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.browser.get_current(radio.id)
+            radio.current.artist = self.browser.get_current(radio.id)
+            radio.current.title = None
         return radio
 
     OBJECTS = {Radio: fill_radio}

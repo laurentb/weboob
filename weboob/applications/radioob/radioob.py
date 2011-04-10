@@ -48,7 +48,10 @@ class RadioListFormatter(IFormatter):
             result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
         result += '   %-30s' % item['description']
         if item['current'] is not NotLoaded:
-            result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
+            if item['current'].artist:
+                result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
+            else:
+                result += ' (Current: %s)' % item['current'].title
         return result
 
 
