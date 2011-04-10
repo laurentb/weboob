@@ -239,9 +239,9 @@ h2. Attendees
 
             for task in member.tasks:
                 if task.status == task.STATUS_DONE:
-                    status = '!/img/weboob/_done.png! %s:%s %s' % (task.date.hour,
-                                                                   task.date.minute,
-                                                                   task.branch)
+                    status = '!/img/weboob/_done.png! %02d:%02d %s' % (task.date.hour,
+                                                                       task.date.minute,
+                                                                       task.branch)
                 elif task.status == task.STATUS_PROGRESS:
                     status = '!/img/weboob/_progress.png!'
                 else:
@@ -338,7 +338,7 @@ class Boobathon(ReplApplication):
                 if task.status == task.STATUS_DONE:
                     s += '##'
                 elif task.status == task.STATUS_PROGRESS:
-                    s += u'-·'
+                    s += u'=>'
                 else:
                     s += '  '
             s += '|%s' % self.NC
@@ -408,7 +408,7 @@ class Boobathon(ReplApplication):
                         if not i%2:
                             status = u'|' #1st line
                         else:
-                            status = u'·' #2nd line
+                            status = u'v' #2nd line
                     else:
                         status = u' '
 
