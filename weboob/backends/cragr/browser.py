@@ -77,9 +77,12 @@ class Cragr(BaseBrowser):
         # if there is no redirection but we are connected, go to a page that will be recognized
         # as the account list page
         # this is a hack, a better solution would be to recognize the page regardless of the URL
+        return self.page.get_list()
+
+    def home(self):
+        BaseBrowser.home(self)
         if self.is_on_page(pages.LoginPage) and self.is_logged():
             self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
-        return self.page.get_list()
 
     def get_account(self, id):
         assert isinstance(id, basestring)
