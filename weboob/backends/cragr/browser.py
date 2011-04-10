@@ -42,6 +42,7 @@ class Cragr(BaseBrowser):
                       ('https://%s/login/process' % website) + self.SESSION_REGEXP:   pages.AccountsList,
                       'https://%s/accounting/listAccounts' % website: pages.AccountsList,
                       'https://%s/accounting/listOperations' % website: pages.AccountsList,
+                      'https://%s/accounting/showAccountDetail.+' % website: pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 

@@ -75,7 +75,7 @@ class AccountsList(CragrBasePage):
             the history of a specific account.
         """
         # tested on CA Lorraine, Paris, Toulouse
-        title_spans = self.document.xpath('/html/body/div[@class="dv"]/span')
+        title_spans = self.document.xpath('/html/body//div[@class="dv"]/span')
         for title_span in title_spans:
             title_text = title_span.text_content().strip().replace("\n", '')
             if (re.match('.*Compte.*n.*[0-9]+.*au.*', title_text)):
@@ -206,12 +206,23 @@ class AccountsList(CragrBasePage):
                 else:
                     left_div_count += 1
 
+        # new layout that is somewhat easier to parse (found at Toulouse)
+        table_layout = len(self.document.xpath("id('operationsHeader')")) > 0
         # So, how are data laid out?
-        toulouse_way_of_life = (left_div_count == 2 * right_div_count)
+        alternate_layout = (left_div_count == 2 * right_div_count)
         # we'll have: one left-aligned div for the date, one right-aligned
         # div for the amount, and one left-aligned div for the label. Each time.
 
-        if (not toulouse_way_of_life):
+        if table_layout:
+            lines = self.document.xpath('id("operationsContent")//table[@class="tb"]/tr')
+            for line in lines:
+                operation = Operation(index)
+                index += 1
+                operation.date = self.extract_text(line[0])
+                operation.label = self.extract_text(line[1])
+                operation.amount = clean_amount(self.extract_text(line[2]))
+                yield operation
+        elif (not alternate_layout):
             for body_elmt in interesting_divs:
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount
