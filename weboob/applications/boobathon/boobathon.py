@@ -265,8 +265,8 @@ h2. Attendees
                 else:
                     status = ' '
                 s += u"""
-|=.!/img/weboob/%s.png!
-[[%s]]|[[%s]]|%s|""" % (task.backend.lower(), task.backend, task.capability, status)
+|=.!/img/weboob/%s.png!:/projects/weboob/wiki/%s
+[[%s]]|[[%s]]|%s|""" % (task.backend.lower(), task.backend, task.backend, task.capability, status)
             s += '\n\n'
 
         self.content.content = s
