@@ -30,9 +30,9 @@ class FranceInterBackend(BaseBackend, ICapRadio):
     NAME = 'franceinter'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
-    VERSION = '1'
+    VERSION = '0.8'
     DESCRIPTION = u'The france inter french radio'
-    LICENCE = 'AGPLv3'
+    LICENCE = 'AGPLv3+'
     BROWSER = FranceInterBrowser
 
     _RADIOS = {'franceinter': (u'france inter', u'france inter', u'http://mp3.live.tv-radio.com/franceinter/all/franceinterhautdebit.mp3')}

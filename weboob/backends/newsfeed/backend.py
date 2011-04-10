@@ -33,7 +33,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     EMAIL = "clemux@clemux.info"
     VERSION = '0.8'
     DESCRIPTION = "Loads RSS and Atom feeds from any website"
-    LICENSE = "GPLv3"
+    LICENSE = "AGPLv3+"
     CONFIG = ValuesDict(Value('url', label="Atom/RSS feed's url"))
     STORAGE = {'seen': []}
 

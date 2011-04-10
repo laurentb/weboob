@@ -30,12 +30,12 @@ class lemouvBackend(BaseBackend, ICapRadio):
     NAME = 'lemouv'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
-    VERSION = '1'
+    VERSION = '0.8'
     DESCRIPTION = u'The le mouv\' french radio'
-    LICENCE = 'GPLv3'
+    LICENCE = 'AGPLv3+'
     BROWSER = lemouvBrowser
 
-    _RADIOS = {'le mouv': (u'le mouv\'', u'le mouv', u'http://mp3.live.tv-radio.com/lemouv/all/lemouvhautdebit.mp3')}
+    _RADIOS = {'lemouv': (u'le mouv\'', u'le mouv', u'http://mp3.live.tv-radio.com/lemouv/all/lemouvhautdebit.mp3')}
 
     def iter_radios(self):
         for id in self._RADIOS.iterkeys():
