@@ -60,23 +60,25 @@ class LxmlHtmlParser(IParser):
         """
         if method == 'cssselect':
             results = element.cssselect(selector)
-            if nb is None:
-                return results
-            elif isinstance(nb, basestring) and nb == 'many':
-                if results is None or len(results) == 0:
-                    raise BrokenPageError('Element not found with selector "%s"' % selector)
-                elif len(results) == 1:
-                    raise BrokenPageError('Only one element found with selector "%s"' % selector)
-                else:
-                    return results
-            elif isinstance(nb, int) and nb > 0:
-                if results is None:
-                    raise BrokenPageError('Element not found with selector "%s"' % selector)
-                elif len(results) < nb:
-                    raise BrokenPageError('Not enough elements found (%d expected) with selector "%s"' % (nb, selector))
-                else:
-                    return results[0] if nb == 1 else results
-            else:
-                raise Exception('Unhandled value for kwarg "nb": %s' % nb)
+        elif method == 'xpath':
+            results = element.xpath(selector)
         else:
-            raise NotImplementedError('Only cssselect method is implemented for the moment')
+            raise NotImplementedError('Only the cssselect and xpath methods are supported')
+        if nb is None:
+            return results
+        elif isinstance(nb, basestring) and nb == 'many':
+            if results is None or len(results) == 0:
+                raise BrokenPageError('Element not found with selector "%s"' % selector)
+            elif len(results) == 1:
+                raise BrokenPageError('Only one element found with selector "%s"' % selector)
+            else:
+                return results
+        elif isinstance(nb, int) and nb > 0:
+            if results is None:
+                raise BrokenPageError('Element not found with selector "%s"' % selector)
+            elif len(results) < nb:
+                raise BrokenPageError('Not enough elements found (%d expected) with selector "%s"' % (nb, selector))
+            else:
+                return results[0] if nb == 1 else results
+        else:
+            raise Exception('Unhandled value for kwarg "nb": %s' % nb)
