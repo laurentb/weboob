@@ -87,7 +87,7 @@ class CanalplusBrowser(BaseBrowser):
             if i in [collection.title for collection in collections if isinstance(collection, Collection)]:
                 final.append(i)
             else:
-                print "Error path %s unknow, %s , %s " % (i,final,[collection.title for collection in collections if isinstance(collection, Collection)] )
+                #~ print "Error path %s unknow, %s , %s " % (i,final,[collection.title for collection in collections if isinstance(collection, Collection)] )
                 raise CollectionNotFound()
                 
             return walk(path, [collection.children for collection in collections if isinstance(collection, Collection) and collection.title == i][0], final)
@@ -105,7 +105,6 @@ class CanalplusBrowser(BaseBrowser):
                 return [collection.title for collection in collections ]
             i = path[0]
             if i not in [collection.title for collection in collections]:
-                print "Error path %s unknow" % i
                 raise CollectionNotFound()
                 
             return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])

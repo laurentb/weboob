@@ -29,7 +29,7 @@ from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
 
-from weboob.capabilities.collection import Collection, ICapCollection
+from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
 
 
 __all__ = ['Videoob']
@@ -302,6 +302,8 @@ class Videoob(ReplApplication):
         except NotImplementedError:
             print >>sys.stderr, "Error backend %s not implement collection" % working_backend
             return 1
+        except CollectionNotFound:
+            print >>sys.stderr, "Path: %s not found" % ('/'+'/'.join(final_parse))
         
         escape = lambda s: s.replace('/', '%2F')
         path = map(escape, path)
