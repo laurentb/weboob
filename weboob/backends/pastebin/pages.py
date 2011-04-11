@@ -25,9 +25,10 @@ __all__ = ['PastePage']
 
 class PastePage(BasePage):
     def fill_paste(self, paste):
-        header = self.parser.select(self.document.getroot(), '#content_left div.paste_box_info', 1)
-
-        paste.title = self.parser.select(header, 'div.paste_box_line1 h1', 1).text
+        header = self.parser.select(self.document.getroot(),
+                'id("content_left")//div[@class="paste_box_info"]', 1, 'xpath')
+        paste.title = self.parser.select(header,
+                '//div[@class="paste_box_line1"]//h1', 1, 'xpath').text
 
     def get_id(self):
         """
