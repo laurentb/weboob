@@ -282,7 +282,7 @@ class Videoob(ReplApplication):
         path = final_parse [1:]
         
         if working_backend in [b.NAME for b in self.enabled_backends]:
-            if working_backend in [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]:
+            if working_backend in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
                 backend = [b for b in self.enabled_backends if b.NAME == working_backend][0]
             else:
                 print >>sys.stderr, "Error backend %s not implement Collection" % working_backend
@@ -313,7 +313,7 @@ class Videoob(ReplApplication):
         offs = len(mline) - len(text)
         
         if len(self.working_dir) == 0:
-            tmp = [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]
+            tmp = [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]
         else:
             backend = [b for b in self.enabled_backends if b.NAME == self.working_dir[0]][0]
             tmp = [rep for rep in backend.iter_resources(self.working_dir[1:])]
