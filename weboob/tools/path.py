@@ -54,3 +54,8 @@ class Path(object):
             
     def get(self):
         return copy.copy(self._working_path)
+    
+    def tostring(self):
+        escape = lambda s: s.replace('/', '\/')
+        path = map(escape, self._working_path)
+        return '/' + '/'.join(path)

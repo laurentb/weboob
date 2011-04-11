@@ -295,11 +295,11 @@ class Videoob(ReplApplication):
             self.working_path.restore()
             return 1
         except CollectionNotFound:
-            print >>sys.stderr, "Path: %s not found" % ('/'+'/'.join(req_path))
+            print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
             self.working_path.restore()
             return 1
         
-        self.prompt = '%s:%s> ' % (self.APPNAME, '/' + '/'.join(req_path))
+        self.prompt = '%s:%s> ' % (self.APPNAME, self.working_path.tostring() )
         
     def complete_cd(self, text, line, begidx, endidx):
         mline = line.partition(' ')[2]
