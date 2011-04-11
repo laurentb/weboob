@@ -67,5 +67,5 @@ class ICapCollection(IBaseCap):
     def change_working_collection(self, splited_path):
         raise NotImplementedError()
         
-    def iter_resources(self):
+    def iter_resources(self, splited_path):
         raise NotImplementedError()

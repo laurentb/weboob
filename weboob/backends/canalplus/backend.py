@@ -65,16 +65,11 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
         return video
 
     OBJECTS = {CanalplusVideo: fill_video}
-    
-    working_coll = []
-    
-    def get_working_collection(self):
-        return self.working_coll
-    
-    def change_working_collection(self, splited_path):
-        self.working_coll = self.browser.change_working_collection(splited_path)
-        return self.working_coll
         
-    def iter_resources(self):
-        rep = self.browser.iter_resources(self.working_coll)
-        return rep
+    def change_working_collection(self, splited_path):
+        with self.browser:
+            return self.browser.change_working_collection(splited_path)
+        
+    def iter_resources(self, splited_path):
+        with self.browser:
+            return self.browser.iter_resources(splited_path)

@@ -246,10 +246,16 @@ class Videoob(ReplApplication):
     def do_ls(self, line):
         self.videos = []
         if len(self.working_dir) == 0:
-            for name in [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]:
+            for name in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
                 print name
             return 0
-        for backend, rep in self.do('iter_resources', backends=self.working_dir[0]):
+            
+        backend = [b for b in self.enabled_backends if b.NAME == self.working_dir[0]][0]
+        
+        def do(backend):
+            return backend.iter_resources(self.working_dir[1:])
+        
+        for backend, rep in self.do(do, backends=self.working_dir[0]):
             if isinstance(rep, BaseVideo):
                 self.videos.append(rep)
                 self.format(rep)
@@ -311,6 +317,7 @@ class Videoob(ReplApplication):
         if len(self.working_dir) == 0:
             tmp = [b.NAME for b in self.weboob. iter_backends(caps=ICapCollection)]
         else:
-            tmp = [rep for backend, rep in self.do('iter_resources', backends=self.working_dir[0])]
+            backend = [b for b in self.enabled_backends if b.NAME == self.working_dir[0]][0]
+            tmp = [rep for rep in backend.iter_resources(self.working_dir[1:])]
         
         return [s[offs:] for s in tmp if s.startswith(mline)]

@@ -94,7 +94,7 @@ class CanalplusBrowser(BaseBrowser):
         
         return walk(splited_path, collections)
         
-    def iter_resources(self, cur_coll):
+    def iter_resources(self, splited_path):
         self.home()
         collections = self.page.collections
        
@@ -110,4 +110,4 @@ class CanalplusBrowser(BaseBrowser):
                 
             return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])
         
-        return walk_res(cur_coll, collections)
+        return walk_res(splited_path, collections)
