@@ -21,7 +21,6 @@
 from weboob.tools.browser import BaseBrowser
 
 from .pages import PastePage, PostPage
-from .paste import PastebinPaste
 
 __all__ = ['PastebinBrowser']
 
