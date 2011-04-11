@@ -249,8 +249,6 @@ class Videoob(ReplApplication):
             for name in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
                 print name
             return 0
-            
-        backend = [b for b in self.enabled_backends if b.NAME == self.working_dir[0]][0]
         
         def do(backend):
             return backend.iter_resources(self.working_dir[1:])
