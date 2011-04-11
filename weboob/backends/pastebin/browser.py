@@ -24,8 +24,6 @@ from .pages import PastePage, PostPage
 
 __all__ = ['PastebinBrowser']
 
-from weboob.tools.browser import BaseBrowser
-
 class PastebinBrowser(BaseBrowser):
     DOMAIN = 'pastebin.com'
     ENCODING = 'UTF-8'
@@ -33,11 +31,19 @@ class PastebinBrowser(BaseBrowser):
             'http://%s/' % DOMAIN: PostPage}
 
     def fill_paste(self, paste):
+        """
+        Get as much as information possible from the paste page
+        """
         self.location(paste.page_url)
         return self.page.fill_paste(paste)
 
     def get_contents(self, _id):
-        return self.readurl('http://%s/raw.php?i=%s' % (self.DOMAIN, _id))
+        """
+        Get the contents from the raw URL
+        This is the fastest and safest method if you only want the content.
+        Returns unicode.
+        """
+        return self.readurl('http://%s/raw.php?i=%s' % (self.DOMAIN, _id)).decode(self.ENCODING)
 
     def post_paste(self, paste):
         self.home()

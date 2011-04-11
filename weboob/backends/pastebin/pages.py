@@ -29,6 +29,9 @@ class PastePage(BasePage):
                 'id("content_left")//div[@class="paste_box_info"]', 1, 'xpath')
         paste.title = self.parser.select(header,
                 '//div[@class="paste_box_line1"]//h1', 1, 'xpath').text
+        paste.contents = self.parser.select(self.document.getroot(),
+                '//textarea[@id="paste_code"]', 1, 'xpath').text
+        return paste
 
     def get_id(self):
         """
@@ -41,6 +44,6 @@ class PastePage(BasePage):
 class PostPage(BasePage):
     def post(self, paste):
         self.browser.select_form(name='myform')
-        self.browser['paste_code'] = paste.contents
-        self.browser['paste_name'] = paste.title
+        self.browser['paste_code'] = paste.contents.encode(self.browser.ENCODING)
+        self.browser['paste_name'] = paste.title.encode(self.browser.ENCODING)
         self.browser.submit()

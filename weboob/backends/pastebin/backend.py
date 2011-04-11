@@ -20,6 +20,7 @@
 
 from weboob.capabilities.paste import ICapPaste
 from weboob.tools.backend import BaseBackend
+from weboob.capabilities.base import NotLoaded
 
 from .browser import PastebinBrowser
 from .paste import PastebinPaste
@@ -38,15 +39,16 @@ class PastebinBackend(BaseBackend, ICapPaste):
     BROWSER = PastebinBrowser
 
     def get_paste(self, _id):
-        paste = PastebinPaste(_id)
-        self.browser.fill_paste(paste)
-        return paste
+        return PastebinPaste(_id)
 
     def fill_paste(self, paste, fields):
-        self.browser.fill_paste(paste)
-        if 'contents' in fields:
-            contents = self.browser.get_contents(paste.id)
-            paste.contents = contents
+        # if we only want the contents
+        if fields == ['contents']:
+            if paste.contents is NotLoaded:
+                contents = self.browser.get_contents(paste.id)
+                paste.contents = contents
+        elif fields:
+            self.browser.fill_paste(paste)
         return paste
 
     def post_paste(self, paste):
