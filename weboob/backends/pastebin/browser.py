@@ -25,7 +25,6 @@ from .pages import PastePage, PostPage
 __all__ = ['PastebinBrowser']
 
 from weboob.tools.browser import BaseBrowser
-BaseBrowser.SAVE_RESPONSES=True
 
 class PastebinBrowser(BaseBrowser):
     DOMAIN = 'pastebin.com'
