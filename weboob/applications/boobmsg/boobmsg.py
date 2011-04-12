@@ -27,6 +27,9 @@ from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
+from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
+from weboob.tools.path import Path 
+
 __all__ = ['Boobmsg']
 
 
@@ -175,9 +178,13 @@ class Boobmsg(ReplApplication):
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
                            'export_thread': 'msg',
-                           'export_all': 'msg'
+                           'export_all': 'msg',
+                           'ls':      'msglist',
                           }
-
+    
+    def __init__(self, *args, **kwargs):
+        ReplApplication.__init__(self, *args, **kwargs)
+        self.working_path = Path()
 
     def add_application_options(self, group):
         group.add_option('-e', '--skip-empty',  action='store_true',
@@ -358,3 +365,74 @@ class Boobmsg(ReplApplication):
             print 'Oops, you need to be in interactive mode to read messages'
         else:
             print 'Message not found'
+    
+    def do_ls(self, line):
+        #~ self.videos = []
+        path = self.working_path.get()
+        if len(path) == 0:
+            for name in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
+                print name
+            return 0
+        
+        def do(backend):
+            return backend.iter_resources(path[1:])
+        
+        for backend, rep in self.do(do, backends=path[0]):
+            if isinstance(rep, Thread):
+                #~ self.videos.append(rep)
+                self.format(rep)
+            else:
+                print rep
+
+        self.flush()
+    
+    def do_cd(self, line):
+        line = line.encode('utf-8')
+        
+        self.working_path.extend(line)
+        
+        req_path = self.working_path.get()
+        
+        if len(req_path) == 0:
+            self.prompt = '%s> ' % self.APPNAME
+            return 0
+            
+        working_backend = req_path[0]
+        path = req_path[1:]
+        
+        if working_backend in [b.NAME for b in self.enabled_backends]:
+            if working_backend in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
+                backend = [b for b in self.enabled_backends if b.NAME == working_backend][0]
+            else:
+                print >>sys.stderr, "Error backend %s not implement Collection" % working_backend
+                return 1
+        else:
+            print >>sys.stderr, "Error backend %s unknow" % working_backend
+            return 1
+        
+        try:
+            path = backend.change_working_collection(path)
+        except NotImplementedError:
+            print >>sys.stderr, "Error backend %s not implement collection" % working_backend
+            self.working_path.restore()
+            return 1
+        except CollectionNotFound:
+            print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
+            self.working_path.restore()
+            return 1
+        
+        self.prompt = '%s:%s> ' % (self.APPNAME, self.working_path.tostring() )
+        
+    def complete_cd(self, text, line, begidx, endidx):
+        mline = line.partition(' ')[2]
+        offs = len(mline) - len(text)
+        
+        path = self.working_path.get()
+        
+        if len(path) == 0:
+            tmp = [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]
+        else:
+            backend = [b for b in self.enabled_backends if b.NAME == path[0]][0]
+            tmp = [rep for rep in backend.iter_resources(path[1:])]
+        
+        return [s[offs:] for s in tmp if s.startswith(mline)]
