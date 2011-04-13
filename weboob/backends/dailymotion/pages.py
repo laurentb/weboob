@@ -82,7 +82,11 @@ class VideoPage(BasePage):
             if 'id' in script.attrib and script.attrib['id'].startswith('container_player_'):
                 text = script.find('script').text
                 mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', text)
-                mediaURL = urllib.unquote(mobj.group(1))
+                if mobj is None:
+                    mobj = re.search('"sdURL":.*?"(.*?)"', urllib.unquote(text))
+                    mediaURL = mobj.group(1).replace("\\", "")
+                else:
+                    mediaURL = urllib.unquote(mobj.group(1))
                 video.url = mediaURL
 
         return video
