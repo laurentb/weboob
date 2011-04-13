@@ -43,6 +43,7 @@ class YoujizzBrowser(BaseBrowser):
     @id2url(YoujizzVideo.id2url)
     def get_video(self, url, video=None):
         self.location(url)
+        assert self.is_on_page(VideoPage), 'Should be on video page.'
         return self.page.get_video(video)
 
     def iter_search_results(self, pattern):
