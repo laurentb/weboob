@@ -169,11 +169,11 @@ class MediawikiBrowser(BaseBrowser):
         '''Submit a GET request to the website
         The JSON data is parsed and returned as a dictionary'''
         data['format'] = 'json'
-        return simplejson.load(self.openurl(self.buildurl(self.apiurl, **data)), 'utf-8')
+        return simplejson.loads(self.readurl(self.buildurl(self.apiurl, **data)), 'utf-8')
 
     def API_post(self, data):
         '''Submit a POST request to the website
         The JSON data is parsed and returned as a dictionary'''
 
         data['format'] = 'json'
-        return simplejson.load(self.openurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
+        return simplejson.loads(self.readurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
