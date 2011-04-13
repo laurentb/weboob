@@ -22,6 +22,7 @@ from __future__ import with_statement
 
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
+from weboob.capabilities.contact import QueryError
 from weboob.tools.log import getLogger
 
 
@@ -56,6 +57,9 @@ class QueriesQueue(Optimization):
         return self.check_cron is not None
 
     def enqueue_query(self, id, priority=999):
+        id_queue = [_id[1] for _id in self.queue]
+        if int(id) in id_queue:
+            raise QueryError('This id is already queued')
         self.queue.append((int(priority), int(id)))
         self.save()
         # Try to flush queue to send it now.

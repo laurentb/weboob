@@ -68,6 +68,7 @@ class AuMBrowser(BaseBrowser):
              'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
              'http://www.adopteunmec.com/home.php': HomePage,
              'http://www.adopteunmec.com/shop2c?.php': ShopPage,
+             'http[s]://www.adopteunmec.com/register-pay.php': ShopPage,
              'http://www.adopteunmec.com/mails.php': ContactListPage,
              'http://www.adopteunmec.com/mail.php': ContactListPage,
              'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
@@ -105,7 +106,7 @@ class AuMBrowser(BaseBrowser):
         return not self.is_on_page(LoginPage)
 
     def home(self):
-        return self.location('http://www.adopteunmec.com/home.php')
+        return self.location('http://www.adopteunmec.com/')
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
@@ -273,7 +274,7 @@ class AuMBrowser(BaseBrowser):
 
     @pageaccess
     def search_profiles(self, **kwargs):
-        self.location('/search.php?display=1')
+        self.location('/search.php')
         self.page.search(**kwargs)
         return self.page.get_profiles_ids()
 

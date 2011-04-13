@@ -19,6 +19,7 @@
 
 
 import re
+import mechanize
 
 from weboob.tools.mech import ClientForm
 from weboob.tools.browser import BrowserIncorrectPassword
@@ -30,7 +31,10 @@ from ..captcha import Captcha
 
 class LoginPage(PageBase):
     def login(self, login, password):
-        self.browser.select_form(name="form_login")
+        try:
+            self.browser.select_form(name="form_login")
+        except mechanize._mechanize.FormNotFoundError:
+            return
         self.browser['login'] = login
         self.browser['password'] = password
 
@@ -120,7 +124,8 @@ class BanPage(PageBase):
         raise AdopteBanned('Your IP address is banned.')
 
 class ShopPage(PageBase):
-    pass
+    def on_loaded(self):
+        self.browser.location('http://www.adopteunmec.com/account.php')
 
 class ErrPage(PageBase):
     def on_loaded(self):
