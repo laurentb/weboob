@@ -257,10 +257,13 @@ class BaseBrowser(mechanize.Browser):
 
     def check_location(func):
         def inner(self, *args, **kwargs):
-            if args and isinstance(args[0], basestring) and args[0].startswith('/') and \
-               (not self.request or self.request.host != self.DOMAIN):
-                args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
+            if args and isinstance(args[0], basestring):
+                url = args[0]
+                if url.startswith('/') and (not self.request or self.request.host != self.DOMAIN):
+                    url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
+                url = re.sub('(.*)#.*', r'\1', url)
 
+                args = (url,) + args[1:]
             return func(self, *args, **kwargs)
         return inner
 
