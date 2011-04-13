@@ -21,7 +21,7 @@
 from weboob.tools.browser import BasePage
 from urlparse import urlparse
 
-__all__ = ['PastePage']
+__all__ = ['PastePage', 'PostPage']
 
 class PastePage(BasePage):
     def fill_paste(self, paste):
