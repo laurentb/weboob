@@ -17,17 +17,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from mechanize import RobustFactory
+import re
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 
-from .pages import PastePage
+from .pages import PastePage, CaptchaPage, PostPage
 
 __all__ = ['PastealaconBrowser']
 
 class PastealaconBrowser(BaseBrowser):
     DOMAIN = 'pastealacon.com'
     ENCODING = 'ISO-8859-1'
-    PAGES = {'http://%s/(?P<id>\d+)' % DOMAIN: PastePage}
+    PAGES = {'http://%s/(?P<id>\d+)' % DOMAIN: PastePage,
+             'http://%s/%s' % (DOMAIN, re.escape('pastebin.php?captcha=1')): CaptchaPage,
+             'http://%s/' % DOMAIN: PostPage}
+
+    def __init__(self, *args, **kwargs):
+        kwargs['factory'] = RobustFactory()
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def fill_paste(self, paste):
         """
@@ -43,3 +51,11 @@ class PastealaconBrowser(BaseBrowser):
         Returns unicode.
         """
         return self.readurl('http://%s/pastebin.php?dl=%s' % (self.DOMAIN, _id)).decode(self.ENCODING)
+
+    def post_paste(self, paste):
+        self.home()
+        self.page.post(paste)
+        if self.is_on_page(CaptchaPage):
+            raise BrowserUnavailable("Detected as spam and unable to handle the captcha")
+        paste.id = self.page.get_id()
+        self.fill_paste(paste)

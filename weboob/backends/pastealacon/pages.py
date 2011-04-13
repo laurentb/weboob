@@ -23,7 +23,7 @@ from weboob.tools.browser import BasePage
 from urlparse import urlparse
 import re
 
-__all__ = ['PastePage']
+__all__ = ['PastePage', 'PostPage', 'CaptchaPage']
 
 class PastePage(BasePage):
     def fill_paste(self, paste):
@@ -40,3 +40,14 @@ class PastePage(BasePage):
         """
         path = urlparse(self.url).path
         return path[1:]
+
+class PostPage(BasePage):
+    def post(self, paste):
+        self.browser.select_form(name='editor')
+        self.browser['code2'] = paste.contents.encode(self.browser.ENCODING)
+        self.browser['poster'] = paste.title.encode(self.browser.ENCODING)
+        self.browser['expiry'] = ['m']
+        self.browser.submit()
+
+class CaptchaPage(BasePage):
+    pass

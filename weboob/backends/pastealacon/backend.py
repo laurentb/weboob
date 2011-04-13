@@ -51,4 +51,7 @@ class PastealaconBackend(BaseBackend, ICapPaste):
             self.browser.fill_paste(paste)
         return paste
 
+    def post_paste(self, paste):
+        self.browser.post_paste(paste)
+
     OBJECTS = {PastealaconPaste: fill_paste}
