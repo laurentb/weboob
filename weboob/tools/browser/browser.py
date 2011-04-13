@@ -174,7 +174,8 @@ class BaseBrowser(mechanize.Browser):
     default_features.remove('_refresh')
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
-                 parser=None, history=NoHistory(), proxy=None, logger=None):
+                 parser=None, history=NoHistory(), proxy=None, logger=None,
+                 factory=None):
         """
         Constructor of Browser.
 
@@ -186,8 +187,9 @@ class BaseBrowser(mechanize.Browser):
         @param hisory [object]  History manager. Default value is an object
                                 which does not keep history.
         @param proxy [str]  proxy URL to use.
+        @param factory [object] Mechanize factory. None to use Mechanize's default.
         """
-        mechanize.Browser.__init__(self, history=history)
+        mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
 
         self.addheaders = [
