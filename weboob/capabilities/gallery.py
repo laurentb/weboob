@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from .base import IBaseCap, CapBaseObject, NotLoaded
 
@@ -73,7 +73,7 @@ class BaseGallery(CapBaseObject):
 class BaseImage(CapBaseObject):
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded, ext=NotLoaded):
         CapBaseObject.__init__(self, unicode(_id))
-        
+
         self.add_field('index', int, index) # usually page number
         self.add_field('thumbnail', Thumbnail, thumbnail)
         self.add_field('url', basestring, url)

@@ -19,13 +19,8 @@
 
 from __future__ import with_statement
 
-import datetime
-import re
-import urllib
-
 from weboob.capabilities.gallery import ICapGallery
 from weboob.tools.backend import BaseBackend
-from weboob.tools.misc import to_unicode
 from weboob.tools.value import Value, ValuesDict
 
 from .browser import EHentaiBrowser
@@ -39,9 +34,9 @@ class EHentaiBackend(BaseBackend, ICapGallery):
     NAME = 'ehentai'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.7'
+    VERSION = '0.8'
     DESCRIPTION = 'E-hentai galleries'
-    LICENSE = 'GPLv3'
+    LICENSE = 'AGPLv3+'
     BROWSER = EHentaiBrowser
     CONFIG = ValuesDict(
         Value('domain', label='Domain', default='g.e-hentai.org'),

@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlsoupparser import LxmlSoupParser
 from weboob.tools.misc import html2text
 from weboob.capabilities.gallery import Thumbnail
 from datetime import datetime
 import re
 
-from .gallery import EHentaiGallery, EHentaiImage
+from .gallery import EHentaiGallery
 
 __all__ = ['GalleryPage', 'ImagePage', 'IndexPage', 'HomePage', 'LoginPage']
 

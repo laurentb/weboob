@@ -28,7 +28,7 @@ __all__ = ['Galleroob']
 
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
-    VERSION = '0.0'
+    VERSION = '0.8'
     COPYTIGHT = 'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     CAPS = ICapGallery
