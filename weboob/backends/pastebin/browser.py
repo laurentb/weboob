@@ -49,4 +49,3 @@ class PastebinBrowser(BaseBrowser):
         self.home()
         self.page.post(paste)
         paste.id = self.page.get_id()
-        self.fill_paste(paste)

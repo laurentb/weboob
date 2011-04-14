@@ -44,6 +44,7 @@ class PastealaconTest(BackendTest):
         p = PastealaconPaste(None, title='ouiboube', contents='Weboob Test')
         self.backend.post_paste(p)
         assert p.id
+        self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
         assert p.id in p.page_url
 

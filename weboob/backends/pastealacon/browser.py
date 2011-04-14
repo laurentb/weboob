@@ -58,4 +58,3 @@ class PastealaconBrowser(BaseBrowser):
         if self.is_on_page(CaptchaPage):
             raise BrowserUnavailable("Detected as spam and unable to handle the captcha")
         paste.id = self.page.get_id()
-        self.fill_paste(paste)
