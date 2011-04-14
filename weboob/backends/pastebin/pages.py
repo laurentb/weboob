@@ -44,4 +44,5 @@ class PostPage(BasePage):
         self.browser.select_form(name='myform')
         self.browser['paste_code'] = paste.contents.encode(self.browser.ENCODING)
         self.browser['paste_name'] = paste.title.encode(self.browser.ENCODING)
+        self.browser['paste_expire_date'] = ['1M']
         self.browser.submit()

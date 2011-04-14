@@ -62,6 +62,7 @@ class PastebinBrowser(BaseBrowser):
     def api_post_paste(self, dev_key, paste):
         data = {'api_dev_key': dev_key,
                 'api_option': 'paste',
+                'api_paste_expire_date': '1M',
                 'api_paste_code': paste.contents.encode(self.ENCODING),
         }
         if paste.title:
