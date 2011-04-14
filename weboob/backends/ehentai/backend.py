@@ -40,8 +40,8 @@ class EHentaiBackend(BaseBackend, ICapGallery):
     BROWSER = EHentaiBrowser
     CONFIG = ValuesDict(
         Value('domain', label='Domain', default='g.e-hentai.org'),
-        Value('username', label='Username', default=None),
-        Value('password', label='Password', default=None, masked=True))
+        Value('username', label='Username', default=''),
+        Value('password', label='Password', default='', masked=True))
 
     def create_default_browser(self):
         return self.create_browser(

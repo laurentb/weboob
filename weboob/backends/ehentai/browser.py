@@ -42,7 +42,7 @@ class EHentaiBrowser(BaseBrowser):
         self.DOMAIN = domain
         self.logged = False
         BaseBrowser.__init__(self, *args, **kwargs)
-        if password is not None:
+        if password:
             self.login(username, password)
 
     def _gallery_page(self, gallery, n):
