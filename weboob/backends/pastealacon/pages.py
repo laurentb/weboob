@@ -20,7 +20,6 @@
 
 from weboob.tools.browser import BasePage
 
-from urlparse import urlparse
 import re
 
 __all__ = ['PastePage', 'PostPage', 'CaptchaPage']
@@ -38,8 +37,7 @@ class PastePage(BasePage):
         """
         Find out the ID from the URL
         """
-        path = urlparse(self.url).path
-        return path[1:]
+        return self.group_dict['id']
 
 class PostPage(BasePage):
     def post(self, paste):
