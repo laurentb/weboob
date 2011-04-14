@@ -22,12 +22,21 @@ from weboob.tools.browser import BaseBrowser
 
 from .pages import PastePage, PostPage
 
+import urllib
+import re
+
 __all__ = ['PastebinBrowser']
+
+class BadAPIRequest(Exception):
+    pass
+
 
 class PastebinBrowser(BaseBrowser):
     DOMAIN = 'pastebin.com'
     ENCODING = 'UTF-8'
-    PAGES = {'http://%s/(?P<id>.+)' % DOMAIN: PastePage,
+    PASTE_URL = 'http://%s/(?P<id>.+)' % DOMAIN
+    API_URL = 'http://%s/api/api_post.php' % DOMAIN
+    PAGES = {PASTE_URL: PastePage,
             'http://%s/' % DOMAIN: PostPage}
 
     def fill_paste(self, paste):
@@ -49,3 +58,19 @@ class PastebinBrowser(BaseBrowser):
         self.home()
         self.page.post(paste)
         paste.id = self.page.get_id()
+
+    def api_post_paste(self, dev_key, paste):
+        data = {'api_dev_key': dev_key,
+                'api_option': 'paste',
+                'api_paste_code': paste.contents.encode(self.ENCODING),
+        }
+        if paste.title:
+            data['api_paste_name'] = paste.title.encode(self.ENCODING)
+        res = self.readurl(self.API_URL, urllib.urlencode(data)).decode(self.ENCODING)
+        self._validate_api_response(res)
+        paste.id = re.match(self.PASTE_URL, res).groupdict()['id']
+
+    def _validate_api_response(self, res):
+        matches = re.match('Bad API request, (?P<error>.+)', res)
+        if matches:
+            raise BadAPIRequest(matches.groupdict().get('error'))

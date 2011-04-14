@@ -21,6 +21,7 @@
 from weboob.capabilities.paste import ICapPaste
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotLoaded
+from weboob.tools.value import Value, ValuesDict
 
 from .browser import PastebinBrowser
 from .paste import PastebinPaste
@@ -37,6 +38,9 @@ class PastebinBackend(BaseBackend, ICapPaste):
     DESCRIPTION = 'Pastebin paste tool'
     LICENSE = 'AGPLv3+'
     BROWSER = PastebinBrowser
+    CONFIG = ValuesDict(
+        Value('apikey', label='Optional API key', default='', masked=True),
+    )
 
     def get_paste(self, _id):
         return PastebinPaste(_id)
@@ -52,6 +56,9 @@ class PastebinBackend(BaseBackend, ICapPaste):
         return paste
 
     def post_paste(self, paste):
-        self.browser.post_paste(paste)
+        if self.config['apikey']:
+            self.browser.api_post_paste(self.config['apikey'], paste)
+        else:
+            self.browser.post_paste(paste)
 
     OBJECTS = {PastebinPaste: fill_paste}
