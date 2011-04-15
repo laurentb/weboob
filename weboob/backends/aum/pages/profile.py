@@ -186,7 +186,7 @@ class ProfilePage(PageBase):
     fields =      {'details':      {'Age':                  FieldOld('old'),
                                     u'Réside à':            FieldLocation(),
                                     'Yeux':                 FieldString('eyes'),
-                                    'Cheveux ':             FieldList('hairs'),
+                                    'Cheveux':              FieldList('hairs'),
                                     'Mensurations ':        FieldMeasurements(),
                                     'Origines ':            FieldString('from'),
                                     'Signes particuliers ': FieldParticularSignes(),
