@@ -101,7 +101,8 @@ class MailParser(object):
         self.title = 'Discussion with %s' % name
         self.sender = name
         self.name = name
-        self.tr = tr.childNodes[0].childNodes[1].childNodes[0].childNodes[0]
+        self.tr = tr.childNodes[0].childNodes[1].childNodes[1].childNodes[0]
+
         self.new = False
 
         tds = self.tr.childNodes
@@ -149,7 +150,7 @@ class MailParser(object):
     def parse_date(self, date_str):
         # To match regexp, we have to remove any return chars in string
         # before the status ('nouveau', 'lu', etc)
-        date_str = u''.join(date_str.split(u'\n'))
+        date_str = date_str.strip()
 
         m = self.DATETIME_REGEXP.match(date_str)
         if m:
@@ -303,7 +304,7 @@ class ContactThreadPage(PageBase):
         for big in big_list:
             for child in big.childNodes:
                 if hasattr(child, 'tagName') and child.tagName == u'b':
-                    self.name = child.childNodes[1].data.strip()
+                    self.name = child.childNodes[0].data.strip()
                     break
 
         tables = self.document.getElementsByTagName('table')
