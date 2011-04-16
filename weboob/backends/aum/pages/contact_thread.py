@@ -134,7 +134,7 @@ class MailParser(object):
                                     content += self.smileys[int(m.group(1))]
                                 except KeyError:
                                     error('Mail: unable to find this smiley: %s' % c.getAttribute('src'))
-                self.content = content
+                self.content = content.strip()
                 break
 
         self.parse_profile_link()
