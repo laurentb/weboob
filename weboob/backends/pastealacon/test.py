@@ -25,28 +25,30 @@ from .paste import PastealaconPaste
 class PastealaconTest(BackendTest):
     BACKEND = 'pastealacon'
 
-    def test_get_paste(self):
+    def _get_paste(self, _id):
         # html method
-        p = self.backend.get_paste('27184')
+        p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['title'])
         assert p.title == 'ouiboube'
-        assert p.page_url == 'http://pastealacon.com/27184'
-        assert u'coucou\r\ncoucou\r\nhéhéhé' == p.contents
+        assert p.page_url == 'http://pastealacon.com/'+_id
+        assert u'héhéhé' in p.contents
 
         # raw method
-        p = self.backend.get_paste('27184')
+        p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['contents'])
         assert p.title is NotLoaded
-        assert p.page_url == 'http://pastealacon.com/27184'
-        assert u'coucou\r\ncoucou\r\nhéhéhé' == p.contents
+        assert p.page_url == 'http://pastealacon.com/'+_id
+        assert u'héhéhé' in p.contents
 
     def test_post(self):
-        p = PastealaconPaste(None, title='ouiboube', contents='Weboob Test')
+        p = PastealaconPaste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
         self.backend.post_paste(p)
         assert p.id
         self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
         assert p.id in p.page_url
+
+        self._get_paste(p.id)
 
     def test_spam(self):
         p = PastealaconPaste(None, title='viagra', contents='http://example.com/')
