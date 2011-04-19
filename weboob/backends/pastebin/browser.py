@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+
+from weboob.capabilities.paste import PasteNotFound
 
 from .pages import PastePage, PostPage
 
@@ -43,8 +45,11 @@ class PastebinBrowser(BaseBrowser):
         """
         Get as much as information possible from the paste page
         """
-        self.location(paste.page_url)
-        return self.page.fill_paste(paste)
+        try:
+            self.location(paste.page_url)
+            return self.page.fill_paste(paste)
+        except BrowserHTTPNotFound:
+            raise PasteNotFound()
 
     def get_contents(self, _id):
         """
@@ -52,7 +57,10 @@ class PastebinBrowser(BaseBrowser):
         This is the fastest and safest method if you only want the content.
         Returns unicode.
         """
-        return self.readurl('http://%s/raw.php?i=%s' % (self.DOMAIN, _id)).decode(self.ENCODING)
+        try:
+            return self.readurl('http://%s/raw.php?i=%s' % (self.DOMAIN, _id), if_fail='raise').decode(self.ENCODING)
+        except BrowserHTTPNotFound:
+            raise PasteNotFound()
 
     def post_paste(self, paste):
         self.home()

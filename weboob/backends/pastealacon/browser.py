@@ -20,7 +20,9 @@
 from mechanize import RobustFactory
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable, BrowserHTTPNotFound
+
+from weboob.capabilities.paste import PasteNotFound
 
 from .pages import PastePage, CaptchaPage, PostPage
 
@@ -50,7 +52,10 @@ class PastealaconBrowser(BaseBrowser):
         This is the fastest and safest method if you only want the content.
         Returns unicode.
         """
-        return self.readurl('http://%s/pastebin.php?dl=%s' % (self.DOMAIN, _id)).decode(self.ENCODING)
+        try:
+            return self.readurl('http://%s/pastebin.php?dl=%s' % (self.DOMAIN, _id), if_fail='raise').decode(self.ENCODING)
+        except BrowserHTTPNotFound:
+            raise PasteNotFound()
 
     def post_paste(self, paste):
         self.home()

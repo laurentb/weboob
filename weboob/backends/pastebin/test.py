@@ -20,6 +20,7 @@
 from weboob.tools.test import BackendTest
 from .paste import PastebinPaste
 from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.paste import PasteNotFound
 
 class PastebinTest(BackendTest):
     BACKEND = 'pastebin'
@@ -57,3 +58,12 @@ class PastebinTest(BackendTest):
         p2 = self.backend.get_paste(p1.id)
         self.backend.fillobj(p2, ['contents'])
         assert p2.contents == p1.contents
+
+    def test_notfound(self):
+        # html method
+        p = self.backend.get_paste('weboooooooooooooooooooooooooob')
+        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
+
+        # raw method
+        p = self.backend.get_paste('weboooooooooooooooooooooooooob')
+        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])

@@ -18,16 +18,23 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
-
 import re
+
+from weboob.tools.browser import BasePage, BrokenPageError
+
+from weboob.capabilities.paste import PasteNotFound
 
 __all__ = ['PastePage', 'PostPage', 'CaptchaPage']
 
 class PastePage(BasePage):
     def fill_paste(self, paste):
         root = self.document.getroot()
-        header = self.parser.select(root, 'id("content")//h3', 1, 'xpath')
+        try:
+            # there is no 404, try to detect if there really is a content
+            self.parser.select(root, 'id("content")/div[@class="syntax"]//ol', 1, 'xpath')
+        except BrokenPageError:
+            raise PasteNotFound()
+        header = self.parser.select(root, 'id("content")/h3', 1, 'xpath')
         matches = re.match(r'Posted by (?P<author>.+) on (?P<date>.+) \(', header.text)
         paste.title = matches.groupdict().get('author')
         paste.contents = self.parser.select(root, '//textarea[@id="code"]', 1, 'xpath').text

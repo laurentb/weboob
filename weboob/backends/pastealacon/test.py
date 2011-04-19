@@ -17,9 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.browser import BrowserUnavailable
+
+from weboob.capabilities.paste import PasteNotFound
+
 from .paste import PastealaconPaste
 
 class PastealaconTest(BackendTest):
@@ -53,3 +57,12 @@ class PastealaconTest(BackendTest):
     def test_spam(self):
         p = PastealaconPaste(None, title='viagra', contents='http://example.com/')
         self.assertRaises(BrowserUnavailable, self.backend.post_paste, p)
+
+    def test_notfound(self):
+        # html method
+        p = self.backend.get_paste('424242424242424242424242424242424242')
+        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
+
+        # raw method
+        p = self.backend.get_paste('424242424242424242424242424242424242')
+        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])

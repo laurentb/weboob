@@ -21,8 +21,11 @@
 from .base import IBaseCap, CapBaseObject, NotLoaded
 
 
-__all__ = ['BasePaste', 'ICapPaste']
+__all__ = ['PasteNotFound', 'BasePaste', 'ICapPaste']
 
+
+class PasteNotFound(Exception):
+    pass
 
 class BasePaste(CapBaseObject):
     """
