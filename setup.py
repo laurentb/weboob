@@ -200,20 +200,20 @@ setup(
     data_files=data_files,
 
     install_requires=[
-        # 'ClientForm', # python-clientform
-        # 'elementtidy', # python-elementtidy
-        # 'FeedParser', # python-feedparser
-        # 'gdata', # python-gdata
-        # 'html5lib', # python-html5lib
-        # 'lxml', # python-lxml
-        # 'Mako', # python-mako
-        # 'mechanize', # python-mechanize
-        # 'PIL', # python-imaging
-        # 'PyQt', # python-qt4
-        # 'python-dateutil', # python-dateutil
-        # 'PyYAML', # python-yaml
-        # 'Routes', # python-routes
-        # 'simplejson', # python-simplejson
-        # 'WebOb', # python-webob
+        'ClientForm',
+        'elementtidy',
+        'FeedParser',
+        'gdata',
+        'html5lib',
+        'lxml',
+        'Mako',
+        'mechanize',
+        'PIL',
+        'PyQt',
+        'python-dateutil',
+        'PyYAML',
+        'Routes',
+        'simplejson',
+        'WebOb',
         ],
 )
