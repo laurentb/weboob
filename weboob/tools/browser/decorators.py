@@ -35,7 +35,7 @@ def id2url(id2url):
     def wrapper(func):
         def inner(self, *args, **kwargs):
             arg = unicode(args[0])
-            if arg.startswith('http://'):
+            if arg.startswith('http://') or arg.startswith('https://'):
                 if self.DOMAIN in arg:
                     url = arg
                 else:
