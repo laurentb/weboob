@@ -55,7 +55,7 @@ class PastebinBrowser(BaseBrowser):
 
     @id2url(PastebinPaste.id2url)
     def get_paste(self, url):
-        _id = re.match(self.PASTE_URL, url).groupdict()['id']
+        _id = re.match('^%s$' % self.PASTE_URL, url).groupdict()['id']
         return PastebinPaste(_id)
 
     def get_contents(self, _id):
@@ -84,7 +84,7 @@ class PastebinBrowser(BaseBrowser):
             data['api_paste_name'] = paste.title.encode(self.ENCODING)
         res = self.readurl(self.API_URL, urllib.urlencode(data)).decode(self.ENCODING)
         self._validate_api_response(res)
-        paste.id = re.match(self.PASTE_URL, res).groupdict()['id']
+        paste.id = re.match('^%s$' % self.PASTE_URL, res).groupdict()['id']
 
     def _validate_api_response(self, res):
         matches = re.match('Bad API request, (?P<error>.+)', res)

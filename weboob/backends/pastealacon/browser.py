@@ -44,7 +44,7 @@ class PastealaconBrowser(BaseBrowser):
 
     @id2url(PastealaconPaste.id2url)
     def get_paste(self, url):
-        _id = re.match(self.PASTE_URL, url).groupdict()['id']
+        _id = re.match('^%s$' % self.PASTE_URL, url).groupdict()['id']
         return PastealaconPaste(_id)
 
     def fill_paste(self, paste):
