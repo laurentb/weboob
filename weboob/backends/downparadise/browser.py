@@ -31,10 +31,10 @@ class Downparadise(BaseBrowser):
              'http://forum.downparadise.ws/ucp.php.*'       : UcpPage,
              'http://forum.downparadise.ws/viewforum.php.*' : ViewforumPage,
             }
-            
+
     def home(self):
         return self.location('http://forum.downparadise.ws/index.php')
-    
+
     def login(self):
         data = {'login':	'Connexion',
                 'password':	self.password,
@@ -42,44 +42,23 @@ class Downparadise(BaseBrowser):
         self.location('http://forum.downparadise.ws/ucp.php?mode=login', urllib.urlencode(data) , no_login=True)
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-            
+
     def is_logged(self):
         return (self.page and self.page.is_logged())
-    
-    def change_working_forum(self, splited_path):
+
+    def iter_forums(self, splited_path):
         if not self.is_on_page(IndexPage):
             self.home()
 
         collections = self.page.get_collections()
-        
-        def walk(path, collections, final=[]):
-            if len(path) == 0: return final
-            i = path.pop(0)
-            if i in [collection.title for collection in collections if isinstance(collection, Collection)]:
-                final.append(i)
-            else:
-                raise CollectionNotFound()
-                
-            return walk(path, [collection.children for collection in collections if isinstance(collection, Collection) and collection.title == i][0], final)
-        
-        return walk(splited_path, collections)
-            
-    def iter_forums(self, splited_path):
-        
-        if not self.is_on_page(IndexPage):
-            self.home()
 
-        collections = self.page.get_collections() 
-               
         def walk_res(path, collections):
-            if not isinstance(collections, (list, Collection)):
+            if len(path) == 0 or not isinstance(collections, (list, Collection)):
                 return collections
-            if len(path) == 0: 
-                return [collection.title for collection in collections ]
             i = path[0]
             if i not in [collection.title for collection in collections]:
                 raise CollectionNotFound()
-                
+
             return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])
-        
+
         return walk_res(splited_path, collections)

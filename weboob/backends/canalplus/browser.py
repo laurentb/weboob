@@ -76,37 +76,18 @@ class CanalplusBrowser(BaseBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         return self.page.get_video(video, self.quality)
-        
-    def change_working_collection(self, splited_path):
-        self.home()
-        collections = self.page.collections
-        
-        def walk(path, collections, final=[]):
-            if len(path) == 0: return final
-            i = path.pop(0)
-            if i in [collection.title for collection in collections if isinstance(collection, Collection)]:
-                final.append(i)
-            else:
-                #~ print "Error path %s unknow, %s , %s " % (i,final,[collection.title for collection in collections if isinstance(collection, Collection)] )
-                raise CollectionNotFound()
-                
-            return walk(path, [collection.children for collection in collections if isinstance(collection, Collection) and collection.title == i][0], final)
-        
-        return walk(splited_path, collections)
-        
+
     def iter_resources(self, splited_path):
         self.home()
         collections = self.page.collections
-       
+
         def walk_res(path, collections):
-            if not isinstance(collections, (list, Collection)):
+            if len(path) == 0 or not isinstance(collections, (list, Collection)):
                 return collections
-            if len(path) == 0: 
-                return [collection.title for collection in collections ]
             i = path[0]
             if i not in [collection.title for collection in collections]:
                 raise CollectionNotFound()
-                
+
             return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])
-        
+
         return walk_res(splited_path, collections)

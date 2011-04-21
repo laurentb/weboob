@@ -32,27 +32,24 @@ class DownparadiseBackend(BaseBackend, ICapCollection, ICapMessages, ICapMessage
     VERSION = '0.8'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "Downparadise message board"
-    
+
     CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
                         Value('password',          label='Password', regexp='.+', masked=True))
-    
+
     BROWSER = Downparadise
 
     def create_default_browser(self):
         return self.create_browser(self.config['username'], self.config['password'])
-        
+
     #############################
     ##  Collection
 
-    def change_working_collection(self, splited_path):
-        return self.browser.change_working_forum(splited_path)
-        
     def iter_resources(self, splited_path):
         return self.browser.iter_forums(splited_path)
-    
+
     #############################
     ##  Messages
-    
+
     def iter_threads(self):
         """
         Iterates on threads, from newers to olders.
@@ -85,10 +82,10 @@ class DownparadiseBackend(BaseBackend, ICapCollection, ICapMessages, ICapMessage
         @param [message]  message read (or ID)
         """
         raise NotImplementedError()
-    
+
     #############################
     ##  Message Post
-    
+
     def post_message(self, message):
         """
         Post a message.

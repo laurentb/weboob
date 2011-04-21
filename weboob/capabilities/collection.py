@@ -34,10 +34,10 @@ class Children(object):
             return obj._childrenfct(obj.id)
         else:
             return obj._children
-    
+
     def __set__(self, obj, value):
         obj._childrenfct = value
-        
+
 class Collection(object):
     """
     _childrenfct
@@ -46,26 +46,19 @@ class Collection(object):
     children return iterator
     """
     children = Children()
-    
+
     def __init__(self, title=None, children=None):
         self.title = title
         self._children = children if children else []
         self._childrenfct = None
-        
+
     def appendchild(self, child):
         self._children.append(child)
-        
-    
+
+
 class Ressource(object):
     pass
 
 class ICapCollection(IBaseCap):
-    
-    def get_working_collection(self):
-        raise NotImplementedError()
-
-    def change_working_collection(self, splited_path):
-        raise NotImplementedError()
-        
     def iter_resources(self, splited_path):
         raise NotImplementedError()
