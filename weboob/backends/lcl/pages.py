@@ -73,33 +73,28 @@ class AccountsPage(BasePage):
 class AccountHistoryPage(BasePage):
     def on_loaded(self):
         self.operations = []
-        done=False
-        for table in self.document.getiterator('table'):
-            title_tr=table.find('tr')
-            if title_tr is None:
+        for td in self.document.iter('td'):
+            text=td.findtext("b")
+            if text is None:
                 continue
-            for text in title_tr.itertext():
-                prefix='Opérations effectuées'
-                if text.startswith(prefix.decode('utf-8')):
-                    for tr in table.iter('tr'):
-                        tr_class=tr.attrib.get('class')
-                        if tr_class == 'tbl1' or tr_class=='tbl2':
-                            tds=tr.findall('td')
-                            d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
-                            label=u''+tds[1].find('a').text.strip()
-                            if tds[3].text.strip() != u"":
-                                amount = - float(tds[3].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                            else:
-                                amount= float(tds[4].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                            operation=Operation(len(self.operations))
-                            operation.date=d
-                            operation.label=label
-                            operation.amount=amount
-                            self.operations.append(operation)
-                    done=True
-                    break
-            if done:
-                break
+            prefix='Opérations effectuées'
+            if text.startswith(prefix.decode('utf-8')):
+                table=td.getparent().getparent()
+                for tr in table.iter('tr'):
+                    tr_class=tr.attrib.get('class')
+                    if tr_class == 'tbl1' or tr_class=='tbl2':
+                        tds=tr.findall('td')
+                        d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
+                        label=u''+tds[1].find('a').text.strip()
+                        if tds[3].text.strip() != u"":
+                            amount = - float(tds[3].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                        else:
+                            amount= float(tds[4].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                        operation=Operation(len(self.operations))
+                        operation.date=d
+                        operation.label=label
+                        operation.amount=amount
+                        self.operations.append(operation)
 
     def get_operations(self):
         return self.operations
