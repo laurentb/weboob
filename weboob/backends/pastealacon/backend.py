@@ -39,19 +39,23 @@ class PastealaconBackend(BaseBackend, ICapPaste):
     BROWSER = PastealaconBrowser
 
     def get_paste(self, _id):
-        return PastealaconPaste(_id)
+        with self.browser:
+            return self.browser.get_paste(_id)
 
     def fill_paste(self, paste, fields):
         # if we only want the contents
         if fields == ['contents']:
             if paste.contents is NotLoaded:
-                contents = self.browser.get_contents(paste.id)
-                paste.contents = contents
+                with self.browser:
+                    contents = self.browser.get_contents(paste.id)
+                    paste.contents = contents
         elif fields:
-            self.browser.fill_paste(paste)
+            with self.browser:
+                self.browser.fill_paste(paste)
         return paste
 
     def post_paste(self, paste):
-        self.browser.post_paste(paste)
+        with self.browser:
+            self.browser.post_paste(paste)
 
     OBJECTS = {PastealaconPaste: fill_paste}

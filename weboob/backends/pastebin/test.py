@@ -26,19 +26,20 @@ class PastebinTest(BackendTest):
     BACKEND = 'pastebin'
 
     def test_get_paste(self):
-        # html method
-        p = self.backend.get_paste('7HmXwzyt')
-        self.backend.fillobj(p, ['title'])
-        assert p.title == 'plop'
-        assert p.page_url == 'http://pastebin.com/7HmXwzyt'
-        assert p.contents == 'prout'
+        for _id in ('7HmXwzyt', 'http://pastebin.com/7HmXwzyt'):
+            # html method
+            p = self.backend.get_paste(_id)
+            self.backend.fillobj(p, ['title'])
+            assert p.title == 'plop'
+            assert p.page_url == 'http://pastebin.com/7HmXwzyt'
+            assert p.contents == 'prout'
 
-        # raw method
-        p = self.backend.get_paste('7HmXwzyt')
-        self.backend.fillobj(p, ['contents'])
-        assert p.title is NotLoaded
-        assert p.page_url == 'http://pastebin.com/7HmXwzyt'
-        assert p.contents == 'prout'
+            # raw method
+            p = self.backend.get_paste(_id)
+            self.backend.fillobj(p, ['contents'])
+            assert p.title is NotLoaded
+            assert p.page_url == 'http://pastebin.com/7HmXwzyt'
+            assert p.contents == 'prout'
 
     def test_post(self):
         p = PastebinPaste(None, title='ouiboube', contents='Weboob Test')
@@ -60,10 +61,11 @@ class PastebinTest(BackendTest):
         assert p2.contents == p1.contents
 
     def test_notfound(self):
-        # html method
-        p = self.backend.get_paste('weboooooooooooooooooooooooooob')
-        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
+        for _id in ('weboooooooooooooooooooooooooob', 'http://pastebin.com/weboooooooooooooooooooooooooob'):
+            # html method
+            p = self.backend.get_paste(_id)
+            self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
 
-        # raw method
-        p = self.backend.get_paste('weboooooooooooooooooooooooooob')
-        self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])
+            # raw method
+            p = self.backend.get_paste(_id)
+            self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])

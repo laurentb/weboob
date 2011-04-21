@@ -43,22 +43,26 @@ class PastebinBackend(BaseBackend, ICapPaste):
     )
 
     def get_paste(self, _id):
-        return PastebinPaste(_id)
+        with self.browser:
+            return self.browser.get_paste(_id)
 
     def fill_paste(self, paste, fields):
         # if we only want the contents
         if fields == ['contents']:
             if paste.contents is NotLoaded:
-                contents = self.browser.get_contents(paste.id)
+                with self.browser:
+                    contents = self.browser.get_contents(paste.id)
                 paste.contents = contents
         elif fields:
-            self.browser.fill_paste(paste)
+            with self.browser:
+                self.browser.fill_paste(paste)
         return paste
 
     def post_paste(self, paste):
-        if self.config['apikey']:
-            self.browser.api_post_paste(self.config['apikey'], paste)
-        else:
-            self.browser.post_paste(paste)
+        with self.browser:
+            if self.config['apikey']:
+                self.browser.api_post_paste(self.config['apikey'], paste)
+            else:
+                self.browser.post_paste(paste)
 
     OBJECTS = {PastebinPaste: fill_paste}

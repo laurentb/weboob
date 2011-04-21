@@ -23,21 +23,29 @@ import re
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable, BrowserHTTPNotFound
 
 from weboob.capabilities.paste import PasteNotFound
+from weboob.tools.browser.decorators import id2url
 
 from .pages import PastePage, CaptchaPage, PostPage
+from .paste import PastealaconPaste
 
 __all__ = ['PastealaconBrowser']
 
 class PastealaconBrowser(BaseBrowser):
     DOMAIN = 'pastealacon.com'
     ENCODING = 'ISO-8859-1'
-    PAGES = {'http://%s/(?P<id>\d+)' % DOMAIN: PastePage,
+    PASTE_URL = 'http://%s/(?P<id>\d+)' % DOMAIN
+    PAGES = {PASTE_URL: PastePage,
              'http://%s/%s' % (DOMAIN, re.escape('pastebin.php?captcha=1')): CaptchaPage,
              'http://%s/' % DOMAIN: PostPage}
 
     def __init__(self, *args, **kwargs):
         kwargs['factory'] = RobustFactory()
         BaseBrowser.__init__(self, *args, **kwargs)
+
+    @id2url(PastealaconPaste.id2url)
+    def get_paste(self, url):
+        _id = re.match(self.PASTE_URL, url).groupdict()['id']
+        return PastealaconPaste(_id)
 
     def fill_paste(self, paste):
         """
