@@ -18,18 +18,27 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-__all__ = ['check_domain', 'id2url']
+__all__ = ['check_url', 'id2url']
 
 from urlparse import urlsplit
+import re
 
-def check_domain(domain):
-    def wrapper(func):
-        def inner(self, *args, **kwargs):
-            if self.DOMAIN not in args[0]:
-                return None
-            return func(self, *args, **kwargs)
-        return inner
-    return wrapper
+class check_url(object):
+    """
+    Checks if the first argument matches the given regular expression (given as str,
+    without the ^$ delimiters which are automatically added).
+    If not, this decorator will return None instead of calling the function.
+    """
+
+    def __init__(self, regexp):
+        self.regexp = re.compile('^%s$' % regexp)
+
+    def __call__(self, func):
+        def wrapper(funcself, *args, **kwargs):
+            if self.regexp.match(args[0]):
+                return func(funcself, *args, **kwargs)
+            return None
+        return wrapper
 
 
 def id2url(id2url):
