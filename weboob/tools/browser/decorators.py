@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2010-2011 Christophe Benz, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -20,6 +20,7 @@
 
 __all__ = ['check_domain', 'id2url']
 
+from urlparse import urlsplit
 
 def check_domain(domain):
     def wrapper(func):
@@ -32,11 +33,20 @@ def check_domain(domain):
 
 
 def id2url(id2url):
+    """
+    If the first argument is not an URL, this decorator will try to
+    convert it to one, by calling the id2url function.
+    If id2url returns None (because the id is invalid), the decorated
+    function will not be called and None will be returned.
+    If the DOMAIN attribute of the method's class is not empty, it will
+    also check it. If it does not match, the decorated function will not
+    be called and None will be returned.
+    """
     def wrapper(func):
         def inner(self, *args, **kwargs):
             arg = unicode(args[0])
             if arg.startswith('http://') or arg.startswith('https://'):
-                if self.DOMAIN in arg:
+                if self.DOMAIN and self.DOMAIN == urlsplit(arg).netloc:
                     url = arg
                 else:
                     return None
