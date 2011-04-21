@@ -24,37 +24,37 @@ class Path(object):
     def __init__(self):
         self._working_path = []
         self._previous = self._working_path
-        
-            
+
+
     def extend(self, user_input):
-        
+
         user_input = urllib.quote_plus(user_input)
         user_input = posixpath.normpath(user_input)
-        
+
         escape = lambda s: s.replace('/', '%2F')
         current_path = map(escape, self._working_path)
-        
+
         abspath =  posixpath.normpath(posixpath.join('/' + '/'.join(current_path), user_input))
-        
+
         abspath = abspath.split('/')[1:]
         while len(abspath) > 0 and abspath[0] == u'': del abspath[0]
-        
+
         final_parse = map(urllib.unquote_plus, abspath)
-        
+
         self._previous = self._working_path
-        
+
         if len(final_parse) == 0:
             self._working_path = []
-        
+
         self._working_path = final_parse
-    
+
     def restore(self):
         self._working_path = self._previous
-        
-            
+
+
     def get(self):
         return copy.copy(self._working_path)
-    
+
     def tostring(self):
         escape = lambda s: s.replace('/', '\/')
         path = map(escape, self._working_path)

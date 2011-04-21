@@ -92,25 +92,10 @@ class Weboorrents(ReplApplication):
                            'info':      'torrent_info',
                           }
 
-    torrents = []
-
-    def _complete_id(self):
-        return ['%s@%s' % (torrent.id, torrent.backend) for torrent in self.torrents]
-
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
-
-    def parse_id(self, id):
-        if self.interactive:
-            try:
-                torrent = self.torrents[int(id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                id = '%s@%s' % (torrent.id, torrent.backend)
-        return ReplApplication.parse_id(self, id)
+            return self._complete_object()
 
     def do_info(self, id):
         """
@@ -134,7 +119,7 @@ class Weboorrents(ReplApplication):
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
@@ -171,11 +156,11 @@ class Weboorrents(ReplApplication):
 
         Search torrents.
         """
-        self.torrents = []
+        self.change_path('/search')
         if not pattern:
             pattern = None
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
-            self.torrents.append(torrent)
+            self.add_object(torrent)
             self.format(torrent)
         self.flush()

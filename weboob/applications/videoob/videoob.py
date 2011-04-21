@@ -23,15 +23,11 @@ import subprocess
 import sys
 import os
 
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
-
-from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
-
-from weboob.tools.path import Path 
 
 __all__ = ['Videoob']
 
@@ -71,41 +67,19 @@ class Videoob(ReplApplication):
     COMMANDS_FORMATTERS = {'search': 'video_list', 'ls': 'video_list'}
 
     nsfw = True
-    videos = []
-        
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
         self.player = MediaPlayer(self.logger)
-        self.working_path = Path()
 
     def main(self, argv):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def _get_video(self, _id, fields=None):
-        if self.interactive:
-            try:
-                video = self.videos[int(_id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                for backend, video in self.do('fillobj', video, fields, backends=[video.backend]):
-                    if video:
-                        return video
-        _id, backend_name = self.parse_id(_id)
-        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, video in self.do('get_video', _id, backends=backend_names):
-            if video:
-                return video
-
-    def _complete_id(self):
-        return ['%s@%s' % (video.id, video.backend) for video in self.videos]
-
     def complete_download(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
@@ -116,11 +90,11 @@ class Videoob(ReplApplication):
         Download a video
         """
         _id, dest = self.parse_command_args(line, 2, 1)
-        video = self._get_video(_id, ['url'])
+        video = self.get_object(_id, 'get_video', ['url'])
         if not video:
             print 'Video not found: %s' %  _id
             return 1
-                        
+
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
@@ -128,14 +102,14 @@ class Videoob(ReplApplication):
                     print >>sys.stderr, 'Please install "%s"' % executable
                     return False
             return True
-        
+
 
         if dest is None:
             ext = video.ext
             if not ext:
                 ext = 'avi'
             dest = '%s.%s' % (video.id, ext)
-        
+
         if video.url.find('rtmp') == 0:
             if check_exec('rtmpdump'):
                 cmd = "rtmpdump -r " + video.url + " -o " + dest
@@ -146,13 +120,13 @@ class Videoob(ReplApplication):
                 cmd = 'wget "%s" -O "%s"' % (video.url, dest)
             else:
                 return 1
-        
+
         os.system(cmd)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_play(self, _id):
         """
@@ -164,7 +138,7 @@ class Videoob(ReplApplication):
             print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return
 
-        video = self._get_video(_id, ['url'])
+        video = self.get_object(_id, 'get_video', ['url'])
         if not video:
             print 'Video not found: %s' %  _id
             return
@@ -180,7 +154,7 @@ class Videoob(ReplApplication):
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_info(self, _id):
         """
@@ -192,7 +166,7 @@ class Videoob(ReplApplication):
             print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return
 
-        video = self._get_video(_id)
+        video = self.get_object(_id, 'get_video')
         if not video:
             print >>sys.stderr, 'Video not found: %s' %  _id
             return
@@ -237,80 +211,9 @@ class Videoob(ReplApplication):
             return 1
 
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
-        self.videos = []
+        self.change_path('/search')
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
-            self.videos.append(video)
+            self.add_object(video)
             self.format(video)
         self.flush()
-    
-    def do_ls(self, line):
-        self.videos = []
-        path = self.working_path.get()
-        if len(path) == 0:
-            for name in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
-                print name
-            return 0
-        
-        def do(backend):
-            return backend.iter_resources(path[1:])
-        
-        for backend, rep in self.do(do, backends=path[0]):
-            if isinstance(rep, BaseVideo):
-                self.videos.append(rep)
-                self.format(rep)
-            else:
-                print rep
-
-        self.flush()
-    
-    def do_cd(self, line):
-        line = line.encode('utf-8')
-        
-        self.working_path.extend(line)
-        
-        req_path = self.working_path.get()
-        
-        if len(req_path) == 0:
-            self.prompt = '%s> ' % self.APPNAME
-            return 0
-            
-        working_backend = req_path[0]
-        path = req_path[1:]
-        
-        if working_backend in [b.NAME for b in self.enabled_backends]:
-            if working_backend in [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]:
-                backend = [b for b in self.enabled_backends if b.NAME == working_backend][0]
-            else:
-                print >>sys.stderr, "Error backend %s not implement Collection" % working_backend
-                return 1
-        else:
-            print >>sys.stderr, "Error backend %s unknow" % working_backend
-            return 1
-        
-        try:
-            path = backend.change_working_collection(path)
-        except NotImplementedError:
-            print >>sys.stderr, "Error backend %s not implement collection" % working_backend
-            self.working_path.restore()
-            return 1
-        except CollectionNotFound:
-            print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
-            self.working_path.restore()
-            return 1
-        
-        self.prompt = '%s:%s> ' % (self.APPNAME, self.working_path.tostring() )
-        
-    def complete_cd(self, text, line, begidx, endidx):
-        mline = line.partition(' ')[2]
-        offs = len(mline) - len(text)
-        
-        path = self.working_path.get()
-        
-        if len(path) == 0:
-            tmp = [b.NAME for b in self.weboob.iter_backends(caps=ICapCollection)]
-        else:
-            backend = [b for b in self.enabled_backends if b.NAME == path[0]][0]
-            tmp = [rep for rep in backend.iter_resources(path[1:])]
-        
-        return [s[offs:] for s in tmp if s.startswith(mline)]

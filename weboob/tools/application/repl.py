@@ -25,12 +25,14 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 
-from weboob.capabilities.base import FieldNotFound
+from weboob.capabilities.base import FieldNotFound, CapBaseObject
 from weboob.core import CallErrors
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
+from weboob.tools.path import Path
 from weboob.tools.ordereddict import OrderedDict
+from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
 
 from .console import BackendNotGiven, ConsoleApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -128,10 +130,53 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
+        self.objects = []
+        self.working_path = Path()
 
     @property
     def interactive(self):
         return self._interactive
+
+    def change_path(self, path):
+        if len(path) > 0 and path != '/':
+            self.prompt = '%s:%s> ' % (self.APPNAME, path)
+        else:
+            self.prompt = '%s> ' % (self.APPNAME)
+        self.objects = []
+
+    def add_object(self, obj):
+        self.objects.append(obj)
+
+    def _complete_object(self):
+        return ['%s@%s' % (obj.id, obj.backend) for obj in self.objects]
+
+    def parse_id(self, id):
+        if self.interactive:
+            try:
+                obj = self.objects[int(id) - 1]
+            except (IndexError,ValueError):
+                pass
+            else:
+                if isinstance(obj, CapBaseObject):
+                    id = '%s@%s' % (obj.id, obj.backend)
+        return ConsoleApplication.parse_id(self, id)
+
+    def get_object(self, _id, method, fields=None):
+        if self.interactive:
+            try:
+                obj = self.objects[int(_id) - 1]
+            except (IndexError,ValueError):
+                pass
+            else:
+                if isinstance(obj, CapBaseObject):
+                    for backend, obj in self.do('fillobj', obj, fields, backends=[obj.backend]):
+                        if obj:
+                            return obj
+        _id, backend_name = self.parse_id(_id)
+        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+        for backend, obj in self.do(method, _id, backends=backend_names):
+            if obj:
+                return obj
 
     def main(self, argv):
         cmd_args = argv[1:]
@@ -740,6 +785,62 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             page = Page(core=browser, data=data, uri=browser._response.geturl())
             browser = Browser(view=page.view)
+
+    def do_ls(self, line):
+        if len(self.objects) == 0:
+            self.objects = self._fetch_objects()
+
+        for obj in self.objects:
+            if isinstance(obj, CapBaseObject):
+                self.format(obj)
+            else:
+                print obj.title
+
+        self.flush()
+
+    def do_cd(self, line):
+        line = line.encode('utf-8')
+
+        self.working_path.extend(line)
+
+        objects = self._fetch_objects()
+        if len(objects) == 0:
+            print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
+            self.working_path.restore()
+            return 1
+
+        self.objects = objects
+        self.change_path(self.working_path.tostring())
+
+    def _fetch_objects(self):
+        objects = []
+        path = self.working_path.get()
+
+        try:
+            for backend, res in self.do('iter_resources', path, caps=ICapCollection):
+                objects.append(res)
+        except CallErrors, errors:
+            for backend, error, backtrace in errors.errors:
+                if isinstance(error, CollectionNotFound):
+                    pass
+                else:
+                    self.bcall_error_handler(backend, error, backtrace)
+
+        return objects
+
+    def complete_cd(self, text, line, begidx, endidx):
+        directories = ['..']
+        mline = line.partition(' ')[2]
+        offs = len(mline) - len(text)
+
+        if len(self.objects) == 0:
+            self.objects = self._fetch_objects()
+
+        for obj in self.objects:
+            if isinstance(obj, Collection):
+                directories.append(obj.title)
+
+        return [s[offs:] for s in directories if s.startswith(mline)]
 
     # -- formatting related methods -------------
     def set_formatter(self, name):
