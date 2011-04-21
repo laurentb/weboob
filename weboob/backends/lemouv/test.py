@@ -24,5 +24,5 @@ class LeMouvTest(BackendTest):
     BACKEND = 'lemouv'
 
     def test_lemouv(self):
-        l = list(self.backend.iter_resources())
+        l = list(self.backend.iter_resources([]))
         self.assertTrue(len(l) > 0)

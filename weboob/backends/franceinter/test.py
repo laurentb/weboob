@@ -24,5 +24,5 @@ class FranceInterTest(BackendTest):
     BACKEND = 'franceinter'
 
     def test_franceinter(self):
-        l = list(self.backend.iter_resources())
+        l = list(self.backend.iter_resources([]))
         self.assertTrue(len(l) > 0)
