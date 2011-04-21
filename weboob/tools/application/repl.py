@@ -181,6 +181,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
         for backend, obj in self.do(method, _id, backends=backend_names):
             if obj:
+                backend.fillobj(obj, fields)
                 return obj
 
     def unload_backends(self, *args, **kwargs):
