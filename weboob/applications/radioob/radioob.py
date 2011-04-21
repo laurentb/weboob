@@ -63,9 +63,9 @@ class Radioob(ReplApplication):
                   'like the current song.'
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
-    COMMANDS_FORMATTERS = {'list':    'radio_list'}
-
-    radios = []
+    COMMANDS_FORMATTERS = {'ls':     'radio_list',
+                           'search': 'radio_list',
+                          }
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -75,29 +75,10 @@ class Radioob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def _get_radio(self, _id, fields=None):
-        if self.interactive:
-            try:
-                radio = self.radios[int(_id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                for backend, radio in self.do('fillobj', radio, fields, backends=[radio.backend]):
-                    if radio:
-                        return radio
-        _id, backend_name = self.parse_id(_id)
-        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, radio in self.do('get_radio', _id, backends=backend_names):
-            if radio:
-                return radio
-
-    def _complete_id(self):
-        return ['%s@%s' % (radio.id, radio.backend) for radio in self.radios]
-
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_play(self, _id):
         """
@@ -109,7 +90,7 @@ class Radioob(ReplApplication):
             print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return
 
-        radio = self._get_radio(_id, ['streams'])
+        radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
             print >>sys.stderr, 'Radio not found: ' % _id
             return
@@ -125,7 +106,7 @@ class Radioob(ReplApplication):
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_info(self, _id):
         """
@@ -137,24 +118,25 @@ class Radioob(ReplApplication):
             print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return
 
-        radio = self._get_radio(_id)
+        radio = self.get_object(_id, 'get_radio')
         if not radio:
             print 'Radio not found:', _id
             return
         self.format(radio)
         self.flush()
 
-    def do_list(self, pattern=None):
+    def do_search(self, pattern=None):
         """
-        list [PATTERN]
+        search PATTERN
 
         List radios matching a PATTERN.
 
         If PATTERN is not given, this command will list all the radios.
         """
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'All radios')
-        self.radios = []
+        self.change_path('/search')
         for backend, radio in self.do('iter_radios_search', pattern=pattern):
-            self.radios.append(radio)
+            self.add_object(radio)
             self.format(radio)
         self.flush()
+

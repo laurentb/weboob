@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 from .browser import FranceInterBrowser
 
@@ -26,7 +27,7 @@ from .browser import FranceInterBrowser
 __all__ = ['FranceInterBackend']
 
 
-class FranceInterBackend(BaseBackend, ICapRadio):
+class FranceInterBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'franceinter'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
@@ -37,13 +38,16 @@ class FranceInterBackend(BaseBackend, ICapRadio):
 
     _RADIOS = {'franceinter': (u'france inter', u'france inter', u'http://mp3.live.tv-radio.com/franceinter/all/franceinterhautdebit.mp3')}
 
-    def iter_radios(self):
+    def iter_resources(self, splited_path):
+        if len(splited_path) > 0:
+            raise CollectionNotFound()
+
         for id in self._RADIOS.iterkeys():
             yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
-        for radio in self.iter_radios():
-            if pattern in radio.title or pattern in radio.description:
+        for radio in self.iter_resources([]):
+            if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 
     def get_radio(self, radio):
@@ -59,7 +63,7 @@ class FranceInterBackend(BaseBackend, ICapRadio):
 
         emission = self.browser.get_current(radio.id)
         current = Emission(0)
-        current.title = emission
+        current.title = unicode(emission)
         current.artist = None
         radio.current = current
 

@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import OuiFMBrowser
@@ -27,7 +28,7 @@ from .browser import OuiFMBrowser
 __all__ = ['OuiFMBackend']
 
 
-class OuiFMBackend(BaseBackend, ICapRadio):
+class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'ouifm'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -43,13 +44,16 @@ class OuiFMBackend(BaseBackend, ICapRadio):
                'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3'),
               }
 
-    def iter_radios(self):
+    def iter_resources(self, splited_path):
+        if len(splited_path) > 0:
+            raise CollectionNotFound()
+
         for id in self._RADIOS.iterkeys():
             yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
-        for radio in self.iter_radios():
-            if pattern in radio.title or pattern in radio.description:
+        for radio in self.iter_resources([]):
+            if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 
     def get_radio(self, radio):

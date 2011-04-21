@@ -64,7 +64,8 @@ class Videoob(ReplApplication):
                   'play and download them and get information.'
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
-    COMMANDS_FORMATTERS = {'search': 'video_list', 'ls': 'video_list'}
+    COMMANDS_FORMATTERS = {'search': 'video_list',
+                           'ls': 'video_list'}
 
     nsfw = True
 

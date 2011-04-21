@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 from .browser import lemouvBrowser
 
@@ -26,7 +27,7 @@ from .browser import lemouvBrowser
 __all__ = ['lemouvBackend']
 
 
-class lemouvBackend(BaseBackend, ICapRadio):
+class lemouvBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'lemouv'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
@@ -37,13 +38,16 @@ class lemouvBackend(BaseBackend, ICapRadio):
 
     _RADIOS = {'lemouv': (u'le mouv\'', u'le mouv', u'http://mp3.live.tv-radio.com/lemouv/all/lemouvhautdebit.mp3')}
 
-    def iter_radios(self):
+    def iter_resources(self, splited_path):
+        if len(splited_path) > 0:
+            raise CollectionNotFound()
+
         for id in self._RADIOS.iterkeys():
             yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
-        for radio in self.iter_radios():
-            if pattern in radio.title or pattern in radio.description:
+        for radio in self.iter_resources([]):
+            if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 
     def get_radio(self, radio):

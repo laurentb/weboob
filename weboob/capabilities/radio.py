@@ -61,9 +61,6 @@ class Radio(CapBaseObject):
         self.add_field('streams', list)
 
 class ICapRadio(IBaseCap):
-    def iter_radios(self):
-        raise NotImplementedError()
-
     def iter_radios_search(self, pattern):
         raise NotImplementedError()
 

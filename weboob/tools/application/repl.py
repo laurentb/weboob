@@ -137,12 +137,17 @@ class ReplApplication(Cmd, ConsoleApplication):
     def interactive(self):
         return self._interactive
 
-    def change_path(self, path):
+    def _change_prompt(self):
+        path = self.working_path.tostring()
         if len(path) > 0 and path != '/':
             self.prompt = '%s:%s> ' % (self.APPNAME, path)
         else:
             self.prompt = '%s> ' % (self.APPNAME)
         self.objects = []
+
+    def change_path(self, path):
+        self.working_path.fromstring(path)
+        self._change_prompt()
 
     def add_object(self, obj):
         self.objects.append(obj)
@@ -177,6 +182,14 @@ class ReplApplication(Cmd, ConsoleApplication):
         for backend, obj in self.do(method, _id, backends=backend_names):
             if obj:
                 return obj
+
+    def unload_backends(self, *args, **kwargs):
+        self.objects = []
+        return ConsoleApplication.unload_backends(self, *args, **kwargs)
+
+    def load_backends(self, *args, **kwargs):
+        self.objects = []
+        return ConsoleApplication.load_backends(self, *args, **kwargs)
 
     def main(self, argv):
         cmd_args = argv[1:]
@@ -810,7 +823,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             return 1
 
         self.objects = objects
-        self.change_path(self.working_path.tostring())
+        self._change_prompt()
 
     def _fetch_objects(self):
         objects = []
