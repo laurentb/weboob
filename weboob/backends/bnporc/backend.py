@@ -42,7 +42,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
                         Value('password',   label='Password', masked=True),
                         Value('rotating_password',
                               label='Password to set when the allowed uses are exhausted (6 digits)',
-                              default='',
+                              default='', masked=True,
                               regexp='^(\d{6}|)$'))
     BROWSER = BNPorc
 
