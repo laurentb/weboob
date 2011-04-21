@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
-from weboob.tools.browser.decorators import id2url
+from weboob.tools.browser.decorators import id2url, check_url
 
 from weboob.capabilities.paste import PasteNotFound
 
@@ -54,6 +54,7 @@ class PastebinBrowser(BaseBrowser):
             raise PasteNotFound()
 
     @id2url(PastebinPaste.id2url)
+    @check_url(PASTE_URL)
     def get_paste(self, url):
         _id = re.match('^%s$' % self.PASTE_URL, url).groupdict()['id']
         return PastebinPaste(_id)

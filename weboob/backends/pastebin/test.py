@@ -69,3 +69,7 @@ class PastebinTest(BackendTest):
             # raw method
             p = self.backend.get_paste(_id)
             self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])
+
+    def test_checkurl(self):
+        # call with an URL we can't handle with this backend
+        assert self.backend.get_paste('http://pastealacon.com/1') is None

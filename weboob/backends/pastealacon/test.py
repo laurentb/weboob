@@ -71,3 +71,10 @@ class PastealaconTest(BackendTest):
             # raw method
             p = self.backend.get_paste(_id)
             self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['contents'])
+
+    def test_checkurl(self):
+        # call with an URL we can't handle with this backend
+        assert self.backend.get_paste('http://pastebin.com/nJG9ZFG8') is None
+        # same even with correct domain (IDs are numeric)
+        assert self.backend.get_paste('http://pastealacon.com/nJG9ZFG8') is None
+        assert self.backend.get_paste('nJG9ZFG8') is None

@@ -23,7 +23,7 @@ import re
 from weboob.tools.browser import BaseBrowser, BrowserUnavailable, BrowserHTTPNotFound
 
 from weboob.capabilities.paste import PasteNotFound
-from weboob.tools.browser.decorators import id2url
+from weboob.tools.browser.decorators import id2url, check_url
 
 from .pages import PastePage, CaptchaPage, PostPage
 from .paste import PastealaconPaste
@@ -43,6 +43,7 @@ class PastealaconBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     @id2url(PastealaconPaste.id2url)
+    @check_url(PASTE_URL)
     def get_paste(self, url):
         _id = re.match('^%s$' % self.PASTE_URL, url).groupdict()['id']
         return PastealaconPaste(_id)
