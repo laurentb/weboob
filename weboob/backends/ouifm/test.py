@@ -24,5 +24,5 @@ class OuiFMTest(BackendTest):
     BACKEND = 'ouifm'
 
     def test_ouifm(self):
-        l = list(self.backend.iter_radios())
+        l = list(self.backend.iter_resources())
         self.assertTrue(len(l) > 0)
