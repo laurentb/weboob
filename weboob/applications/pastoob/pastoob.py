@@ -38,22 +38,23 @@ class Pastoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def do_show(self, _id):
+    def do_get(self, _id):
         """
-        show ID
+        get ID
 
         Get a paste contents.
         """
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('show', short=True)
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('get', short=True)
             return 1
 
         try:
-            paste = self.get_object(_id, 'get_paste', ['title'])
+            paste = self.get_object(_id, 'get_paste', ['contents'])
         except PasteNotFound:
             print >>sys.stderr, 'Paste not found: %s' %  _id
             return 2
         if not paste:
             print >>sys.stderr, 'Unable to handle paste: %s' %  _id
             return 3
-        print paste.contents
+        output = sys.stdout
+        output.write(paste.contents)
