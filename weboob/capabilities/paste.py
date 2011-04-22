@@ -53,9 +53,10 @@ class ICapPaste(IBaseCap):
     This capability represents the ability for a website backend to store plain text.
     """
 
-    def new_paste(self):
+    def new_paste(self, *args, **kwargs):
         """
         Get a new paste object for posting it with the backend.
+        The parameters should be passed to the object init.
 
         @return a Paste object
         """

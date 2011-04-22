@@ -24,8 +24,6 @@ from weboob.tools.browser import BrowserUnavailable
 
 from weboob.capabilities.paste import PasteNotFound
 
-from .paste import PastealaconPaste
-
 class PastealaconTest(BackendTest):
     BACKEND = 'pastealacon'
 
@@ -45,7 +43,7 @@ class PastealaconTest(BackendTest):
         assert u'héhéhé' in p.contents
 
     def test_post(self):
-        p = PastealaconPaste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
+        p = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
         self.backend.post_paste(p)
         assert p.id
         self.backend.fill_paste(p, ['title'])
@@ -59,7 +57,7 @@ class PastealaconTest(BackendTest):
         self._get_paste('http://pastealacon.com/'+p.id)
 
     def test_spam(self):
-        p = PastealaconPaste(None, title='viagra', contents='http://example.com/')
+        p = self.backend.new_paste(None, title='viagra', contents='http://example.com/')
         self.assertRaises(BrowserUnavailable, self.backend.post_paste, p)
 
     def test_notfound(self):

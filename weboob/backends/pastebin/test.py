@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
-from .paste import PastebinPaste
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.paste import PasteNotFound
 
@@ -42,7 +41,7 @@ class PastebinTest(BackendTest):
             assert p.contents == 'prout'
 
     def test_post(self):
-        p = PastebinPaste(None, title='ouiboube', contents='Weboob Test')
+        p = self.backend.new_paste(None, title='ouiboube', contents='Weboob Test')
         self.backend.post_paste(p)
         assert p.id
         self.backend.fill_paste(p, ['title'])
@@ -51,7 +50,7 @@ class PastebinTest(BackendTest):
 
     def test_specialchars(self):
         # post a paste and get the contents through the HTML response
-        p1 = PastebinPaste(None, title='ouiboube', contents=u'Weboob <test>¿¡')
+        p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡')
         self.backend.post_paste(p1)
         assert p1.id
 

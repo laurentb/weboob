@@ -82,7 +82,7 @@ class Pastoob(ReplApplication):
         accepted_backends = [backend for backend in self.weboob.iter_backends()]
         backend = choice(accepted_backends)
 
-        p = backend.new_paste()
+        p = backend.new_paste(_id=None)
         p.title = os.path.basename(filename)
         p.contents = contents
         backend.post_paste(p)
