@@ -276,12 +276,6 @@ class BaseBrowser(mechanize.Browser):
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
 
-        if self.DEBUG_HTTP:
-            # Enable log messages from mechanize.Browser
-            self.set_debug_redirects(True)
-            self.set_debug_responses(True)
-            self.set_debug_http(True)
-
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
@@ -504,6 +498,3 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ControlNotFoundError:
             return
-
-    def fillobj(self, obj, fields):
-        raise NotImplementedError()
