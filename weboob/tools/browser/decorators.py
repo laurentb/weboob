@@ -55,7 +55,8 @@ def id2url(id2url):
         def inner(self, *args, **kwargs):
             arg = unicode(args[0])
             if arg.startswith('http://') or arg.startswith('https://'):
-                if self.DOMAIN and self.DOMAIN == urlsplit(arg).netloc:
+                domain = urlsplit(arg).netloc
+                if not self.DOMAIN or self.DOMAIN == domain or domain.endswith('.'+self.DOMAIN):
                     url = arg
                 else:
                     return None
