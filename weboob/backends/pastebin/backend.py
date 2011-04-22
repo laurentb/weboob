@@ -42,6 +42,9 @@ class PastebinBackend(BaseBackend, ICapPaste):
         Value('apikey', label='Optional API key', default='', masked=True),
     )
 
+    def new_paste(self):
+        return PastebinPaste(None)
+
     def get_paste(self, _id):
         with self.browser:
             return self.browser.get_paste(_id)

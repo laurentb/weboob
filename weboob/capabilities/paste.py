@@ -50,23 +50,31 @@ class BasePaste(CapBaseObject):
 
 class ICapPaste(IBaseCap):
     """
-    This capability represents the ability for a website backend to store text.
+    This capability represents the ability for a website backend to store plain text.
     """
 
-    def get_paste(self, _id):
+    def new_paste(self):
         """
-        Get a Video from an ID.
+        Get a new paste object for posting it with the backend.
 
-        @param _id  the video id. It can be a numeric ID, or a page url, or so.
-        @return a Video object
+        @return a Paste object
         """
         raise NotImplementedError()
 
-    def post_message(self, paste):
+    def get_paste(self, url):
+        """
+        Get a Paste from an ID or URL.
+
+        @param _id the paste id. It can be an ID or a page URL.
+        @return a Paste object
+        """
+        raise NotImplementedError()
+
+    def post_paste(self, _id):
         """
         Post a paste.
 
-        @param paste  Paste object
+        @param paste Paste object
         @return
         """
         raise NotImplementedError()

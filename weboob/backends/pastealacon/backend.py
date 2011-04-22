@@ -38,6 +38,9 @@ class PastealaconBackend(BaseBackend, ICapPaste):
     LICENSE = 'AGPLv3+'
     BROWSER = PastealaconBrowser
 
+    def new_paste(self):
+        return PastealaconPaste(None)
+
     def get_paste(self, _id):
         with self.browser:
             return self.browser.get_paste(_id)

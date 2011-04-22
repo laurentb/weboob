@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 import sys
+from random import choice
 
 from weboob.capabilities.paste import ICapPaste, PasteNotFound
 from weboob.tools.application.repl import ReplApplication
@@ -58,3 +60,30 @@ class Pastoob(ReplApplication):
             return 3
         output = sys.stdout
         output.write(paste.contents)
+
+    def do_post(self, filename):
+        """
+        post [FILENAME]
+
+        Submit a new paste.
+        The filename can be '-' for reading standard input (pipe).
+        """
+        if not filename:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('get', short=True)
+            return 1
+
+        if filename is None or filename == '-':
+            contents = sys.stdin.read()
+        else:
+            with open(filename) as fp:
+                contents = fp.read()
+
+        # chose a random backend from the ones able to satisfy our requirements
+        accepted_backends = [backend for backend in self.weboob.iter_backends()]
+        backend = choice(accepted_backends)
+
+        p = backend.new_paste()
+        p.title = os.path.basename(filename)
+        p.contents = contents
+        backend.post_paste(p)
+        print 'Successfuly posted paste: %s' % p.page_url
