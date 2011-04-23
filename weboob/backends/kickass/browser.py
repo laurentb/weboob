@@ -32,8 +32,8 @@ class KickassBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://fr.kickasstorrents.com/new/.*field=seeders&sorder=desc': TorrentsPage,
-        'http://fr.kickasstorrents.com/.*.html': TorrentPage,
+        'http://fr.(kickasstorrents.com|kat.ph)/new/.*field=seeders&sorder=desc': TorrentsPage,
+        'http://fr.(kickasstorrents.com|kat.ph)/.*.html': TorrentPage,
         }
 
     def home(self):

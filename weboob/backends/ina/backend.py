@@ -51,7 +51,7 @@ class InaBackend(BaseBackend, ICapVideo):
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:
                 video = self.browser.get_video(video.id, video)
-        if 'thumbnail' in fields:
+        if 'thumbnail' in fields and video.thumbnail:
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
