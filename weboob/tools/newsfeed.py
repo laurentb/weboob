@@ -19,7 +19,12 @@
 
 import datetime
 import feedparser
-
+if feedparser.__version__ >= '5.0':
+    # feedparser >= 5.0 replaces this regexp on sgmllib and mechanize < 2.0
+    # fails with malformated webpages.
+    import sgmllib
+    import re
+    sgmllib.endbracket = re.compile('[<>]')
 
 __all__ = ['Entry', 'Newsfeed']
 
@@ -59,8 +64,6 @@ class Entry:
                 self.content.append(i.value)
         elif self.summary:
             self.content.append(self.summary)
-        else:
-            self.content = None
 
         if rssid_func:
             self.id = rssid_func(self)

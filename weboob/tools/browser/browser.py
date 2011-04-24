@@ -397,6 +397,29 @@ class BaseBrowser(mechanize.Browser):
     def get_document(self, result):
         return self.parser.parse(result, self.ENCODING)
 
+    # DO NOT ENABLE THIS FUCKING PEACE OF CODE EVEN IF IT WOULD BE BETTER
+    # TO SANITARIZE FUCKING HTML.
+    #def _set_response(self, response, *args, **kwargs):
+    #    import time
+    #    if response and hasattr(response, 'set_data'):
+    #        print time.time()
+    #        r = response.read()
+    #        start = 0
+    #        end = 0
+    #        new = ''
+    #        lowr = r.lower()
+    #        start = lowr[end:].find('<script')
+    #        while start >= end:
+    #            start_stop = start + lowr[start:].find('>') + 1
+    #            new += r[end:start_stop]
+    #            end = start + lowr[start:].find('</script>')
+    #            new += r[start_stop:end].replace('<', '&lt;').replace('>', '&gt;')
+    #            start = end + lowr[end:].find('<script')
+    #        new += r[end:]
+    #        response.set_data(new)
+    #        print time.time()
+    #    mechanize.Browser._set_response(self, response, *args, **kwargs)
+
     def _change_location(self, result, no_login=False):
         """
         This function is called when we have moved to a page, to load a Page
