@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 __all__ = ['PastePage', 'PostPage']
 
@@ -30,6 +30,14 @@ class PastePage(BasePage):
                 '//div[@class="paste_box_line1"]//h1', 1, 'xpath').text
         paste.contents = self.parser.select(self.document.getroot(),
                 '//textarea[@id="paste_code"]', 1, 'xpath').text
+        visibility_text = self.parser.select(header,
+                '//div[@class="paste_box_line1"]//img', 1, 'xpath').attrib['alt']
+        if visibility_text.startswith('Public'):
+            paste.public = True
+        elif visibility_text.startswith('Private'):
+            paste.public = False
+        else:
+            raise BrokenPageError('Unable to get the paste visibility')
         return paste
 
     def get_id(self):
@@ -44,5 +52,6 @@ class PostPage(BasePage):
         self.browser.select_form(name='myform')
         self.browser['paste_code'] = paste.contents.encode(self.browser.ENCODING)
         self.browser['paste_name'] = paste.title.encode(self.browser.ENCODING)
+        self.browser['paste_private'] = ['0' if paste.public else '1']
         self.browser['paste_expire_date'] = ['1M']
         self.browser.submit()

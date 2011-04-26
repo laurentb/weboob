@@ -25,6 +25,9 @@ __all__ = ['PastealaconPaste']
 
 
 class PastealaconPaste(BasePaste):
+    # all pastes are public
+    public = True
+
     @classmethod
     def id2url(cls, _id):
         return 'http://pastealacon.com/%s' % _id

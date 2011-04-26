@@ -34,6 +34,7 @@ class PastealaconTest(BackendTest):
         assert p.title == 'ouiboube'
         assert p.page_url.startswith('http://pastealacon.com/')
         assert u'héhéhé' in p.contents
+        assert p.public is True
 
         # raw method
         p = self.backend.get_paste(_id)
@@ -41,6 +42,7 @@ class PastealaconTest(BackendTest):
         assert p.title is NotLoaded
         assert p.page_url.startswith('http://pastealacon.com/')
         assert u'héhéhé' in p.contents
+        assert p.public is True
 
     def test_post(self):
         p = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
@@ -49,6 +51,7 @@ class PastealaconTest(BackendTest):
         self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
         assert p.id in p.page_url
+        assert p.public is True
 
         # test all get methods from the Paste we just created
         self._get_paste(p.id)

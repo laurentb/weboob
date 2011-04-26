@@ -32,6 +32,7 @@ class PastebinTest(BackendTest):
             assert p.title == 'plop'
             assert p.page_url == 'http://pastebin.com/7HmXwzyt'
             assert p.contents == 'prout'
+            assert p.public is True
 
             # raw method
             p = self.backend.get_paste(_id)
@@ -39,25 +40,29 @@ class PastebinTest(BackendTest):
             assert p.title is NotLoaded
             assert p.page_url == 'http://pastebin.com/7HmXwzyt'
             assert p.contents == 'prout'
+            assert p.public is NotLoaded
 
     def test_post(self):
-        p = self.backend.new_paste(None, title='ouiboube', contents='Weboob Test')
+        p = self.backend.new_paste(None, title='ouiboube', contents='Weboob Test', public=True)
         self.backend.post_paste(p)
         assert p.id
         self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
         assert p.id in p.page_url
+        assert p.public is True
 
     def test_specialchars(self):
         # post a paste and get the contents through the HTML response
-        p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡')
+        p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡', public=False)
         self.backend.post_paste(p1)
         assert p1.id
+        assert p1.public is False
 
         # this should use the raw method to get the contents
         p2 = self.backend.get_paste(p1.id)
         self.backend.fillobj(p2, ['contents'])
         assert p2.contents == p1.contents
+        assert p2.public is NotLoaded
 
     def test_notfound(self):
         for _id in ('weboooooooooooooooooooooooooob', 'http://pastebin.com/weboooooooooooooooooooooooooob'):

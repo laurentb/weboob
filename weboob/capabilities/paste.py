@@ -31,12 +31,14 @@ class BasePaste(CapBaseObject):
     """
     Represents a pasted text.
     """
-    def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded):
+    def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
+            public=NotLoaded):
         CapBaseObject.__init__(self, unicode(_id))
 
         self.add_field('title', basestring, title)
         self.add_field('language', basestring, language)
         self.add_field('contents', basestring, contents)
+        self.add_field('public', bool, public)
 
     @classmethod
     def id2url(cls, _id):
