@@ -79,3 +79,7 @@ class PastealaconTest(BackendTest):
         # same even with correct domain (IDs are numeric)
         assert self.backend.get_paste('http://pastealacon.com/nJG9ZFG8') is None
         assert self.backend.get_paste('nJG9ZFG8') is None
+
+    def test_can_post(self):
+        assert 0 == self.backend.can_post(public=False)
+        assert 1 == self.backend.can_post(public=True)

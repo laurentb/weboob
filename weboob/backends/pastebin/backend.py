@@ -47,6 +47,9 @@ class PastebinBackend(BaseBackend, ICapPaste):
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
 
+    def can_post(self, public=None):
+        return 1
+
     def get_paste(self, _id):
         with self.browser:
             return self.browser.get_paste(_id)

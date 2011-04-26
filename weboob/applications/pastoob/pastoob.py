@@ -84,12 +84,26 @@ class Pastoob(ReplApplication):
             with open(filename) as fp:
                 contents = fp.read()
 
-        # chose a random backend from the ones able to satisfy our requirements
-        accepted_backends = [backend for backend in self.weboob.iter_backends()]
-        backend = choice(accepted_backends)
+        # get and sort the backends able to satisfy our requirements
+        params = self._get_params()
+        backends = {}
+        for backend in self.weboob.iter_backends():
+            score = backend.can_post(**params)
+            if score:
+                backends.setdefault(score, []).append(backend)
+        # select a random backend from the best scores
+        if len(backends):
+            backend = choice(backends[max(backends.keys())])
+        else:
+            print >>sys.stderr, 'No suitable backend found.'
+            return 1
 
         p = backend.new_paste(_id=None)
+        p.public = params.get('public')
         p.title = os.path.basename(filename)
         p.contents = contents
         backend.post_paste(p)
         print 'Successfuly posted paste: %s' % p.page_url
+
+    def _get_params(self):
+        return {'public': True}

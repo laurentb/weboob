@@ -77,3 +77,8 @@ class PastebinTest(BackendTest):
     def test_checkurl(self):
         # call with an URL we can't handle with this backend
         assert self.backend.get_paste('http://pastealacon.com/1') is None
+
+    def test_can_post(self):
+        assert self.backend.can_post(public=None) > 0
+        assert self.backend.can_post(public=True) > 0
+        assert self.backend.can_post(public=False) > 0

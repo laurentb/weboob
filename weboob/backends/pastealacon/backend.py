@@ -43,6 +43,11 @@ class PastealaconBackend(BaseBackend, ICapPaste):
     def new_paste(self, *args, **kwargs):
         return PastealaconPaste(*args, **kwargs)
 
+    def can_post(self, public=None):
+        if public is False:
+            return 0
+        return 1
+
     def get_paste(self, _id):
         with self.browser:
             return self.browser.get_paste(_id)

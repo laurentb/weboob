@@ -64,6 +64,22 @@ class ICapPaste(IBaseCap):
         """
         raise NotImplementedError()
 
+    def can_post(self, public=None):
+        """
+        Checks if the paste can be pasted by this backend.
+        Some properties are considered required (public/private, max_age) while others
+        are just bonuses (language).
+
+        public: True must be public, False must be private, None do not care
+
+        A score of 0 means the backend is not suitable.
+        A score of 1 means the backend is suitable.
+        Higher scores means it is more suitable than others with a lower score.
+
+        @return int Score
+        """
+        raise NotImplementedError()
+
     def get_paste(self, url):
         """
         Get a Paste from an ID or URL.
