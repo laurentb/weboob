@@ -41,7 +41,7 @@ class BackendsConfig(object):
         try:
             mode = os.stat(confpath).st_mode
         except OSError:
-            if if sys.platform == 'win32':
+            if sys.platform == 'win32':
                 fptr = open(confpath,'w')
                 fptr.close()
             elif re.match('freebsd[0-9]*', sys.platform):
