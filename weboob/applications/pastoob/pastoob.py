@@ -62,6 +62,10 @@ class Pastoob(ReplApplication):
             return 3
         output = sys.stdout
         output.write(paste.contents)
+        # add a newline unless we are writing
+        # in a file or in a pipe
+        if os.isatty(output.fileno()):
+            output.write('\n')
 
     def do_post(self, filename):
         """
