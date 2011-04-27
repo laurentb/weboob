@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2011 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,12 +18,33 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.base import NotLoaded
+
+import urllib
+from random import choice
 
 class KickassTest(BackendTest):
     BACKEND = 'kickass'
 
     def test_torrent(self):
-        l = list(self.backend.iter_torrents('debian'))
-        if len(l) > 0:
-            assert l[0].url.endswith('.torrent')
-            self.backend.get_torrent_file(l[0].id)
+        torrents = list(self.backend.iter_torrents('debian'))
+        for torrent in torrents:
+            path, qs = urllib.splitquery(torrent.url)
+            assert path.endswith('.torrent')
+            if qs:
+                assert torrent.filename
+            assert torrent.id
+            assert torrent.name
+            assert torrent.description is NotLoaded
+            full_torrent = self.backend.get_torrent(torrent.id)
+            # do not assert torrent.name is full_torrent.name
+            # (or even that one contains another), it isn't always true!
+            assert full_torrent.name
+            assert full_torrent.url
+            assert full_torrent.description is not NotLoaded
+
+        # get the file of a random torrent
+        # from the list (getting them all would be too long)
+        if len(torrents):
+            torrent = choice(torrents)
+            self.backend.get_torrent_file(torrent.id)

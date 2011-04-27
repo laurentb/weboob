@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2011 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,6 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+try:
+    from urlparse import parse_qs
+except ImportError:
+    from cgi import parse_qs
+from urlparse import urlsplit
+
 from weboob.capabilities.torrent import Torrent
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
@@ -34,10 +40,7 @@ class TorrentsPage(BasePage):
                 if not title:
                     title = ''
                 for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
-                    if red.text:
-                        title += red.text
-                    if red.tail:
-                        title += red.tail
+                    title += red.text_content()
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
                     .replace('.html', '')
 
@@ -57,6 +60,7 @@ class TorrentsPage(BasePage):
                 yield Torrent(idt,
                               title,
                               url=url,
+                              filename=parse_qs(urlsplit(url).query).get('title', [None])[0],
                               size=get_bytes_size(size, u),
                               seeders=int(seed),
                               leechers=int(leech))
@@ -70,17 +74,17 @@ class TorrentPage(BasePage):
         url = 'No Url found'
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
-                description = div.text.strip()
-                for ch in div.getchildren():
-                    if ch.tail != None:
-                        description += ' '+ch.tail.strip()
+                try:
+                    description = div.text_content()
+                except UnicodeDecodeError:
+                    description = 'Description with invalid UTF-8.'
             elif div.attrib.get('class', '') == 'seedBlock':
-                if div.getchildren()[1].text != None:
+                if div.getchildren()[1].text is not None:
                     seed = int(div.getchildren()[1].text)
                 else:
                     seed = 0
             elif div.attrib.get('class', '') == 'leechBlock':
-                if div.getchildren()[1].text != None:
+                if div.getchildren()[1].text is not None:
                     leech = int(div.getchildren()[1].text)
                 else:
                     leech = 0
@@ -108,8 +112,8 @@ class TorrentPage(BasePage):
                 files.append(td.text)
 
         torrent = Torrent(id, title)
-        torrent = Torrent(id, title)
         torrent.url = url
+        torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
         torrent.size = get_bytes_size(size, u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)

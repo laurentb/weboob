@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -28,7 +28,7 @@ __all__ = ['ICapTorrent', 'Torrent']
 class Torrent(CapBaseObject):
     def __init__(self, id, name, date=NotLoaded, size=NotLoaded, url=NotLoaded,
                        seeders=NotLoaded, leechers=NotLoaded, files=NotLoaded,
-                       description=NotLoaded):
+                       description=NotLoaded, filename=NotLoaded):
         CapBaseObject.__init__(self, id)
         self.add_field('name', basestring, name)
         self.add_field('size', (int,long,float), size)
@@ -38,6 +38,7 @@ class Torrent(CapBaseObject):
         self.add_field('leechers', int, leechers)
         self.add_field('files', list, files)
         self.add_field('description', basestring, description)
+        self.add_field('filename', basestring, filename) # suggested name of the .torrent file
 
 class ICapTorrent(IBaseCap):
     def iter_torrents(self, pattern):
