@@ -61,7 +61,8 @@ class PastebinBackend(BaseBackend, ICapPaste):
                 with self.browser:
                     contents = self.browser.get_contents(paste.id)
                 paste.contents = contents
-        elif fields:
+        # get all fields
+        elif fields is None or len(fields):
             with self.browser:
                 self.browser.fill_paste(paste)
         return paste
