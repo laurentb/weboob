@@ -36,13 +36,13 @@ class WikiEditPage(DLFPPage):
         self.browser.set_all_readonly(False)
 
         if title is not None:
-            self.browser['wiki_page[title]'] = title
+            self.browser['wiki_page[title]'] = title.encode('utf-8')
             self.browser['commit'] = 'Créer'
         else:
             self.browser['commit'] = 'Mettre à jour'
-        self.browser['wiki_page[wiki_body]'] = body
+        self.browser['wiki_page[wiki_body]'] = body.encode('utf-8')
         if message is not None:
-            self.browser['wiki_page[message]'] = message
+            self.browser['wiki_page[message]'] = message.encode('utf-8')
 
         self.browser.submit()
 
