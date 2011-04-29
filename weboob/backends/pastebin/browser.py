@@ -70,12 +70,12 @@ class PastebinBrowser(BaseBrowser):
         except BrowserHTTPNotFound:
             raise PasteNotFound()
 
-    def post_paste(self, paste):
+    def post_paste(self, paste, expiration=None):
         self.home()
-        self.page.post(paste)
+        self.page.post(paste, expiration=expiration)
         paste.id = self.page.get_id()
 
-    def api_post_paste(self, dev_key, paste):
+    def api_post_paste(self, dev_key, paste, expiration=None):
         data = {'api_dev_key': dev_key,
                 'api_option': 'paste',
                 'api_paste_expire_date': '1M',
@@ -84,6 +84,8 @@ class PastebinBrowser(BaseBrowser):
         }
         if paste.title:
             data['api_paste_name'] = paste.title.encode(self.ENCODING)
+        if expiration:
+            data['api_paste_expire_date'] = expiration
         res = self.readurl(self.API_URL, urllib.urlencode(data)).decode(self.ENCODING)
         self._validate_api_response(res)
         paste.id = re.match('^%s$' % self.PASTE_URL, res).groupdict()['id']

@@ -47,11 +47,12 @@ class PastePage(BasePage):
         return self.group_dict['id']
 
 class PostPage(BasePage):
-    def post(self, paste):
+    def post(self, paste, expiration=None):
         self.browser.select_form(name='editor')
         self.browser['code2'] = paste.contents.encode(self.browser.ENCODING)
         self.browser['poster'] = paste.title.encode(self.browser.ENCODING)
-        self.browser['expiry'] = ['m']
+        if expiration:
+            self.browser['expiry'] = [expiration]
         self.browser.submit()
 
 class CaptchaPage(BasePage):

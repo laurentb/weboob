@@ -44,7 +44,7 @@ class PastebinTest(BackendTest):
 
     def test_post(self):
         p = self.backend.new_paste(None, title='ouiboube', contents='Weboob Test', public=True)
-        self.backend.post_paste(p)
+        self.backend.post_paste(p, max_age=600)
         assert p.id
         self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
@@ -54,7 +54,7 @@ class PastebinTest(BackendTest):
     def test_specialchars(self):
         # post a paste and get the contents through the HTML response
         p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡', public=False)
-        self.backend.post_paste(p1)
+        self.backend.post_paste(p1, max_age=600)
         assert p1.id
         assert p1.public is False
 
@@ -82,3 +82,9 @@ class PastebinTest(BackendTest):
         assert self.backend.can_post(public=None) > 0
         assert self.backend.can_post(public=True) > 0
         assert self.backend.can_post(public=False) > 0
+        assert self.backend.can_post(public=True, max_age=600) > 0
+        assert self.backend.can_post(public=True, max_age=3600*24) > 0
+        assert self.backend.can_post(public=True, max_age=3600*24*3) > 0
+        assert self.backend.can_post(public=True, max_age=False) > 0
+        assert self.backend.can_post(public=None, max_age=False) > 0
+        assert self.backend.can_post(public=True, max_age=3600*24*40) > 0

@@ -102,8 +102,8 @@ class Pastoob(ReplApplication):
         p.public = params.get('public')
         p.title = os.path.basename(filename)
         p.contents = contents
-        backend.post_paste(p)
+        backend.post_paste(p, max_age=params.get('max_age'))
         print 'Successfuly posted paste: %s' % p.page_url
 
     def _get_params(self):
-        return {'public': True}
+        return {'public': True, 'max_age': 3600*24*3}

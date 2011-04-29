@@ -46,7 +46,7 @@ class PastealaconTest(BackendTest):
 
     def test_post(self):
         p = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
-        self.backend.post_paste(p)
+        self.backend.post_paste(p, max_age=3600*24)
         assert p.id
         self.backend.fill_paste(p, ['title'])
         assert p.title == 'ouiboube'
@@ -83,3 +83,9 @@ class PastealaconTest(BackendTest):
     def test_can_post(self):
         assert 0 == self.backend.can_post(public=False)
         assert 1 == self.backend.can_post(public=True)
+        assert 0 == self.backend.can_post(public=True, max_age=600)
+        assert 1 == self.backend.can_post(public=True, max_age=3600*24)
+        assert 1 == self.backend.can_post(public=True, max_age=3600*24*3)
+        assert 1 == self.backend.can_post(public=True, max_age=False)
+        assert 1 == self.backend.can_post(public=None, max_age=False)
+        assert 1 == self.backend.can_post(public=True, max_age=3600*24*40)

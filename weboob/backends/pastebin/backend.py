@@ -20,7 +20,7 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.paste import ICapPaste
+from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.value import Value, ValuesDict
@@ -32,7 +32,7 @@ from .paste import PastebinPaste
 __all__ = ['PastebinBackend']
 
 
-class PastebinBackend(BaseBackend, ICapPaste):
+class PastebinBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastebin'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
@@ -44,10 +44,21 @@ class PastebinBackend(BaseBackend, ICapPaste):
         Value('apikey', label='Optional API key', default='', masked=True),
     )
 
+    EXPIRATIONS = {
+        600: '10M',
+        3600: '1H',
+        3600*24: '1D',
+        3600*24*30: '1M',
+        False: 'N',
+    }
+
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
 
-    def can_post(self, public=None):
+    def can_post(self, public=None, max_age=None):
+        if max_age is not None:
+            if self.get_closest_expiration(max_age) is None:
+                return 0
         return 1
 
     def get_paste(self, _id):
@@ -67,11 +78,15 @@ class PastebinBackend(BaseBackend, ICapPaste):
                 self.browser.fill_paste(paste)
         return paste
 
-    def post_paste(self, paste):
+    def post_paste(self, paste, max_age=None):
+        if max_age is not None:
+            expiration = self.get_closest_expiration(max_age)
+        else:
+            expiration = None
         with self.browser:
             if self.config['apikey']:
-                self.browser.api_post_paste(self.config['apikey'], paste)
+                self.browser.api_post_paste(self.config['apikey'], paste, expiration=self.EXPIRATIONS.get(expiration))
             else:
-                self.browser.post_paste(paste)
+                self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
 
     OBJECTS = {PastebinPaste: fill_paste}

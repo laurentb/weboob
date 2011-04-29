@@ -66,9 +66,9 @@ class PastealaconBrowser(BaseBrowser):
         except BrowserHTTPNotFound:
             raise PasteNotFound()
 
-    def post_paste(self, paste):
+    def post_paste(self, paste, expiration=None):
         self.home()
-        self.page.post(paste)
+        self.page.post(paste, expiration=expiration)
         if self.is_on_page(CaptchaPage):
             raise BrowserUnavailable("Detected as spam and unable to handle the captcha")
         paste.id = self.page.get_id()

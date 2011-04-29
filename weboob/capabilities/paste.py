@@ -64,7 +64,7 @@ class ICapPaste(IBaseCap):
         """
         raise NotImplementedError()
 
-    def can_post(self, public=None):
+    def can_post(self, public=None, max_age=None):
         """
         Checks if the paste can be pasted by this backend.
         Some properties are considered required (public/private, max_age) while others
@@ -89,7 +89,7 @@ class ICapPaste(IBaseCap):
         """
         raise NotImplementedError()
 
-    def post_paste(self, _id):
+    def post_paste(self, paste, max_age=None):
         """
         Post a paste.
 

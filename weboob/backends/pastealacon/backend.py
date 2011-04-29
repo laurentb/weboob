@@ -20,7 +20,7 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.paste import ICapPaste
+from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotLoaded
 
@@ -31,7 +31,7 @@ from .paste import PastealaconPaste
 __all__ = ['PastealaconBackend']
 
 
-class PastealaconBackend(BaseBackend, ICapPaste):
+class PastealaconBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastealacon'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
@@ -40,12 +40,21 @@ class PastealaconBackend(BaseBackend, ICapPaste):
     LICENSE = 'AGPLv3+'
     BROWSER = PastealaconBrowser
 
+    EXPIRATIONS = {
+        24*3600: 'd',
+        24*3600*30: 'm',
+        False: 'f',
+    }
+
     def new_paste(self, *args, **kwargs):
         return PastealaconPaste(*args, **kwargs)
 
-    def can_post(self, public=None):
+    def can_post(self, public=None, max_age=None):
         if public is False:
             return 0
+        if max_age is not None:
+            if self.get_closest_expiration(max_age) is None:
+                return 0
         return 1
 
     def get_paste(self, _id):
@@ -65,8 +74,12 @@ class PastealaconBackend(BaseBackend, ICapPaste):
                 self.browser.fill_paste(paste)
         return paste
 
-    def post_paste(self, paste):
+    def post_paste(self, paste, max_age = None):
+        if max_age is not None:
+            expiration = self.get_closest_expiration(max_age)
+        else:
+            expiration = None
         with self.browser:
-            self.browser.post_paste(paste)
+            self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
 
     OBJECTS = {PastealaconPaste: fill_paste}

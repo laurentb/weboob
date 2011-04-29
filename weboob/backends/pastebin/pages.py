@@ -48,10 +48,11 @@ class PastePage(BasePage):
 
 
 class PostPage(BasePage):
-    def post(self, paste):
+    def post(self, paste, expiration=None):
         self.browser.select_form(name='myform')
         self.browser['paste_code'] = paste.contents.encode(self.browser.ENCODING)
         self.browser['paste_name'] = paste.title.encode(self.browser.ENCODING)
         self.browser['paste_private'] = ['0' if paste.public else '1']
-        self.browser['paste_expire_date'] = ['1M']
+        if expiration:
+            self.browser['paste_expire_date'] = [expiration]
         self.browser.submit()
