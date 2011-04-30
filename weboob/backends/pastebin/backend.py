@@ -41,7 +41,9 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     LICENSE = 'AGPLv3+'
     BROWSER = PastebinBrowser
     CONFIG = ValuesDict(
-        Value('apikey', label='Optional API key', default='', masked=True),
+        Value('username', label='Optional username', default=''),
+        Value('password', label='Optional password', default='', masked=True),
+        Value('api_key',   label='Optional API key',  default='', masked=True),
     )
 
     EXPIRATIONS = {
@@ -51,6 +53,9 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
         3600*24*30: '1M',
         False: 'N',
     }
+
+    def create_default_browser(self):
+        return self.create_browser(self.config['api_key'], self.config['username'], self.config['password'], get_home=False)
 
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
@@ -78,14 +83,14 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
                 self.browser.fill_paste(paste)
         return paste
 
-    def post_paste(self, paste, max_age=None):
+    def post_paste(self, paste, max_age=None, use_api=True):
         if max_age is not None:
             expiration = self.get_closest_expiration(max_age)
         else:
             expiration = None
         with self.browser:
-            if self.config['apikey']:
-                self.browser.api_post_paste(self.config['apikey'], paste, expiration=self.EXPIRATIONS.get(expiration))
+            if use_api and self.config.get('api_key'):
+                self.browser.api_post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
             else:
                 self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
 

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserIncorrectPassword
 from weboob.tools.browser.decorators import id2url, check_url
 
 from weboob.capabilities.paste import PasteNotFound
@@ -43,12 +43,18 @@ class PastebinBrowser(BaseBrowser):
     PAGES = {PASTE_URL: PastePage,
             'http://%s/' % DOMAIN: PostPage}
 
+    def __init__(self, api_key, *args, **kwargs):
+        self.api_key = api_key
+        self.user_key = None
+
+        BaseBrowser.__init__(self, *args, **kwargs)
+
     def fill_paste(self, paste):
         """
         Get as much as information possible from the paste page
         """
         try:
-            self.location(paste.page_url)
+            self.location(paste.page_url, no_login=True)
             return self.page.fill_paste(paste)
         except BrowserHTTPNotFound:
             raise PasteNotFound()
@@ -72,16 +78,22 @@ class PastebinBrowser(BaseBrowser):
 
     def post_paste(self, paste, expiration=None):
         self.home()
+        if not self.is_on_page(PostPage):
+            self.home()
         self.page.post(paste, expiration=expiration)
         paste.id = self.page.get_id()
 
-    def api_post_paste(self, dev_key, paste, expiration=None):
-        data = {'api_dev_key': dev_key,
+    def api_post_paste(self, paste, expiration=None):
+        data = {'api_dev_key': self.api_key,
                 'api_option': 'paste',
-                'api_paste_expire_date': '1M',
-                'api_paste_private': '0' if paste.public else '1',
                 'api_paste_code': paste.contents.encode(self.ENCODING),
         }
+        if self.password:
+            data['api_user_key'] = self.api_login()
+        if paste.public is True:
+            data['api_paste_private'] = '0'
+        elif paste.public is False:
+            data['api_paste_private'] = '1'
         if paste.title:
             data['api_paste_name'] = paste.title.encode(self.ENCODING)
         if expiration:
@@ -90,7 +102,38 @@ class PastebinBrowser(BaseBrowser):
         self._validate_api_response(res)
         paste.id = re.match('^%s$' % self.PASTE_URL, res).groupdict()['id']
 
+    def api_login(self):
+        # "The api_user_key does not expire."
+        # TODO store it on disk
+        if self.user_key:
+            return self.user_key
+
+        data = {'api_dev_key': self.api_key,
+                'api_user_name': self.username,
+                'api_user_password': self.password
+        }
+        res = self.readurl('http://%s/api/api_login.php' % self.DOMAIN,
+                urllib.urlencode(data)).decode(self.ENCODING)
+        try:
+            self._validate_api_response(res)
+        except BadAPIRequest, e:
+            if str(e) == 'invalid login':
+                raise BrowserIncorrectPassword
+            else:
+                raise e
+        self.user_key = res
+        return res
+
     def _validate_api_response(self, res):
         matches = re.match('Bad API request, (?P<error>.+)', res)
         if matches:
             raise BadAPIRequest(matches.groupdict().get('error'))
+
+    def is_logged(self):
+        return self.page and self.page.is_logged()
+
+    def login(self):
+        self.location('http://%s/login' % self.DOMAIN, no_login=True)
+        self.page.login(self.username, self.password)
+        if not self.is_logged():
+            raise BrowserIncorrectPassword()

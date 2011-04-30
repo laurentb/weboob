@@ -175,7 +175,7 @@ class BaseBrowser(mechanize.Browser):
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
                  parser=None, history=NoHistory(), proxy=None, logger=None,
-                 factory=None):
+                 factory=None, get_home=True):
         """
         Constructor of Browser.
 
@@ -188,6 +188,7 @@ class BaseBrowser(mechanize.Browser):
                                 which does not keep history.
         @param proxy [str]  proxy URL to use.
         @param factory [object] Mechanize factory. None to use Mechanize's default.
+        @param get_home [bool] Try to get the homepage.
         """
         mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
@@ -224,7 +225,7 @@ class BaseBrowser(mechanize.Browser):
         self.username = username
         self.password = password
         self.lock = RLock()
-        if self.password:
+        if self.password and get_home:
             try:
                 self.home()
             # Do not abort the build of browser when the website is down.

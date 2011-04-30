@@ -22,7 +22,27 @@ from weboob.tools.browser import BasePage, BrokenPageError
 
 __all__ = ['PastePage', 'PostPage']
 
-class PastePage(BasePage):
+class BasePastebinPage(BasePage):
+    def is_logged(self):
+        header = self.parser.select(self.document.getroot(),
+                'id("header_bottom")/ul[@class="top_menu"]', 1, 'xpath')
+        for link in header.xpath('//ul/li/a'):
+            if link.text == 'logout':
+                return True
+            if link.text == 'login':
+                return False
+
+# XXX hack, since all pages are detected as a PostPage we make PastePage
+# inherit LoginPage
+class LoginPage(BasePastebinPage):
+    def login(self, username, password):
+        self.browser.select_form(nr=1)
+        self.browser['user_name'] = username.encode(self.browser.ENCODING)
+        self.browser['user_password'] = password.encode(self.browser.ENCODING)
+        self.browser.submit()
+
+
+class PastePage(LoginPage):
     def fill_paste(self, paste):
         header = self.parser.select(self.document.getroot(),
                 'id("content_left")//div[@class="paste_box_info"]', 1, 'xpath')
@@ -47,12 +67,15 @@ class PastePage(BasePage):
         return self.group_dict['id']
 
 
-class PostPage(BasePage):
+class PostPage(BasePastebinPage):
     def post(self, paste, expiration=None):
         self.browser.select_form(name='myform')
         self.browser['paste_code'] = paste.contents.encode(self.browser.ENCODING)
         self.browser['paste_name'] = paste.title.encode(self.browser.ENCODING)
-        self.browser['paste_private'] = ['0' if paste.public else '1']
+        if paste.public is True:
+            self.browser['paste_private'] = ['0']
+        elif paste.public is False:
+            self.browser['paste_private'] = ['1']
         if expiration:
             self.browser['paste_expire_date'] = [expiration]
         self.browser.submit()
