@@ -19,7 +19,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import html2text
-from weboob.capabilities.gallery import Thumbnail
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from datetime import datetime
 import re
 

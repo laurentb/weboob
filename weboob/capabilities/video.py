@@ -21,26 +21,10 @@
 from datetime import datetime, timedelta
 
 from .base import IBaseCap, CapBaseObject, NotLoaded
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
-
-
-class VideoThumbnail(CapBaseObject):
-    def __init__(self, url):
-        CapBaseObject.__init__(self, url)
-        self.add_field('url', basestring, url.replace(' ', '%20'))
-        self.add_field('data', str)
-
-    def __str__(self):
-        return self.url
-
-    def __repr__(self):
-        return '<Thumbnail url="%s">' % self.url
-
-    def __iscomplete__(self):
-        return self.data is not NotLoaded
-
 
 class BaseVideo(CapBaseObject):
     """
@@ -60,12 +44,12 @@ class BaseVideo(CapBaseObject):
         self.add_field('date', datetime, date)
         self.add_field('rating', (int,long,float), rating)
         self.add_field('rating_max', (int,long,float), rating_max)
-        self.add_field('thumbnail', VideoThumbnail, thumbnail)
+        self.add_field('thumbnail', Thumbnail, thumbnail)
         self.add_field('nsfw', bool, nsfw)
 
         # XXX remove this and fix all backends
         if thumbnail_url is not None and self.thumbnail is NotLoaded:
-            self.thumbnail = VideoThumbnail(thumbnail_url)
+            self.thumbnail = Thumbnail(thumbnail_url)
 
     @classmethod
     def id2url(cls, _id):

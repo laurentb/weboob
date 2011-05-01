@@ -20,7 +20,7 @@
 
 from datetime import datetime
 
-from weboob.capabilities.video import VideoThumbnail
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage
 from .video import CanalplusVideo
 
@@ -49,7 +49,7 @@ class VideoPage(BasePage):
         video.description = infos.find('DESCRIPTION').text
 
         media = el.find('MEDIA')
-        video.thumbnail = VideoThumbnail(media.find('IMAGES').find('PETIT').text)
+        video.thumbnail = Thumbnail(media.find('IMAGES').find('PETIT').text)
         lastest_format = None
         for format in media.find('VIDEOS'):
             if format.text is None:

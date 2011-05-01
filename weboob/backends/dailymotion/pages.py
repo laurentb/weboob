@@ -21,7 +21,7 @@ import datetime
 import urllib
 import re
 
-from weboob.capabilities.video import VideoThumbnail
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage
 
@@ -52,7 +52,7 @@ class IndexPage(BasePage):
             minutes, seconds = self.parser.select(div, 'div.duration', 1).text.split(':')
             video.duration = datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
             url = self.parser.select(div, 'img.dmco_image', 1).attrib['src']
-            video.thumbnail = VideoThumbnail(url)
+            video.thumbnail = Thumbnail(url)
 
             rating_div = self.parser.select(div, 'div.small_stars', 1)
             video.rating_max = self.get_rate(rating_div)

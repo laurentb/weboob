@@ -19,25 +19,10 @@
 
 from datetime import datetime
 
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from .base import IBaseCap, CapBaseObject, NotLoaded
 
 __all__ = ['Thumbnail', 'ICapGallery', 'BaseGallery', 'BaseImage']
-
-
-class Thumbnail(CapBaseObject):
-    def __init__(self, url):
-        CapBaseObject.__init__(self, url)
-        self.add_field('url', basestring, url.replace(' ', '%20'))
-        self.add_field('data', str)
-
-    def __str__(self):
-        return self.url
-
-    def __repr__(self):
-        return '<Thumbnail url="%s">' % self.url
-
-    def __iscomplete__(self):
-        return self.data is not NotLoaded
 
 
 class BaseGallery(CapBaseObject):
