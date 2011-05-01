@@ -43,7 +43,7 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     CONFIG = ValuesDict(
         Value('username', label='Optional username', default=''),
         Value('password', label='Optional password', default='', masked=True),
-        Value('api_key',   label='Optional API key',  default='', masked=True),
+        Value('api_key',  label='Optional API key',  default='', masked=True),
     )
 
     EXPIRATIONS = {
@@ -55,7 +55,10 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     }
 
     def create_default_browser(self):
-        return self.create_browser(self.config['api_key'], self.config['username'], self.config['password'], get_home=False)
+        return self.create_browser(self.config['api_key'] if self.config['api_key'] else None,
+            self.config['username'] if self.config['username'] else None,
+            self.config['password'] if self.config['password'] else None,
+            get_home=False)
 
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
