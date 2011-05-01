@@ -20,6 +20,9 @@
 
 from dateutil import tz
 from logging import warning
+from random import random
+from time import time, sleep
+from os import stat, utime
 import sys
 import traceback
 import types
@@ -117,3 +120,22 @@ def limit(iterator, lim):
         yield iterator.next()
         count += 1
     raise StopIteration()
+
+def ratelimit(function, group, delay):
+    path = '/tmp/weboob_ratelimit.%s' % group
+    while True:
+        try:
+            offset = time() - stat(path).st_mtime
+        except OSError:
+            with open(path, 'w'):
+                pass
+            print 'creating %s' % path
+            offset = 0
+
+        if delay < offset:
+            break
+
+        sleep(delay - offset)
+
+    utime(path, None)
+    function()

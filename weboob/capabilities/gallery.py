@@ -78,6 +78,16 @@ class BaseImage(CapBaseObject):
         self.add_field('thumbnail', Thumbnail, thumbnail)
         self.add_field('url', basestring, url)
         self.add_field('ext', basestring, ext)
+        self.add_field('data', str)
+
+    def __str__(self):
+        return self.url
+
+    def __repr__(self):
+        return '<Image url="%s">' % self.url
+
+    def __iscomplete__(self):
+        return self.data is not NotLoaded
 
 class ICapGallery(IBaseCap):
     """

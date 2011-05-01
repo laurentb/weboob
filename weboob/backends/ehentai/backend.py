@@ -19,8 +19,10 @@
 
 from __future__ import with_statement
 
+import time
 from weboob.capabilities.gallery import ICapGallery
 from weboob.tools.backend import BaseBackend
+from weboob.tools.misc import to_unicode, ratelimit
 from weboob.tools.value import Value, ValuesDict
 
 from .browser import EHentaiBrowser
@@ -42,6 +44,10 @@ class EHentaiBackend(BaseBackend, ICapGallery):
         Value('domain', label='Domain', default='g.e-hentai.org'),
         Value('username', label='Username', default=''),
         Value('password', label='Password', default='', masked=True))
+
+    def __init__(self, *args, **kwargs):
+        BaseBackend.__init__(self, *args, **kwargs)
+        self.time_last_retreived = 0
 
     def create_default_browser(self):
         return self.create_browser(
@@ -68,6 +74,15 @@ class EHentaiBackend(BaseBackend, ICapGallery):
     def fill_image(self, image, fields):
         with self.browser:
             image.url = self.browser.get_image_url(image)
+            if 'data' in fields:
+                #offset = time.time() - self.time_last_retreived
+                #if offset < 2:
+                #    time.sleep(2 - offset)
+                #self.time_last_retreived = time.time()
+
+                def get():
+                    image.data = self.browser.readurl(image.url)
+                ratelimit(get, "ehentai_get", 2)
 
     OBJECTS = {
             EHentaiGallery: fill_gallery,
