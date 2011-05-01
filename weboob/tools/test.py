@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -20,7 +20,6 @@
 from unittest import TestCase
 from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
-from random import choice
 
 
 __all__ = ['TestCase', 'BackendTest']
@@ -32,18 +31,35 @@ class BackendTest(TestCase):
         TestCase.__init__(self, *args, **kwargs)
 
         self.backend = None
+        self.backend_instance = None
         self.weboob = Weboob()
 
         if self.weboob.load_backends(modules=[self.BACKEND]):
-            self.backend = choice(self.weboob.backend_instances.values())
+            self.backends = self.weboob.backend_instances
+        else:
+            self.backends = {}
 
     def run(self, result):
+        """
+        Call the parent run() for each backend instance.
+        Skip the test if we have no backends.
+        """
         try:
-            if not self.backend:
+            if not len(self.backends):
                 result.startTest(self)
                 result.stopTest(self)
                 raise SkipTest()
 
-            return TestCase.run(self, result)
+            for backend_instance, backend in self.backends.iteritems():
+                self.backend = backend
+                self.backend_instance = backend_instance
+                TestCase.run(self, result)
         finally:
             self.weboob.deinit()
+
+    def shortDescription(self):
+        """
+        Generate a description with the backend instance name.
+        """
+        # do not use TestCase.shortDescription as it returns None
+        return '%s [%s]' % (str(self), self.backend_instance)
