@@ -45,7 +45,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     LICENSE = 'AGPLv3+'
     BROWSER = YoutubeBrowser
 
-    URL_RE = re.compile(r'https?://.*youtube.com/watch\?v=(.*)')
+    URL_RE = re.compile(r'^https?://(?:\w*\.?youtube\.com/watch\?v=|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)(.*)$')
     AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
     FORMAT_EXTENSIONS = {
         13: '3gp',
