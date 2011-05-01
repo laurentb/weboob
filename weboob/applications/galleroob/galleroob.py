@@ -42,7 +42,13 @@ class Galleroob(ReplApplication):
 
         Download a gallery
         """
-        _id, dest = self.parse_command_args(line, 2, 2)
+        _id, dest, first = self.parse_command_args(line, 3, 2)
+
+        if first is None:
+            first = 0
+        else:
+            first = int(first)
+
         gallery = None
         for backend, result in self.do('get_gallery', _id):
             if result:
@@ -53,17 +59,20 @@ class Galleroob(ReplApplication):
             print 'Gallery not found: %s' % _id
             return 1
 
-        with open('/dev/null', 'w') as devnull:
-            process = subprocess.Popen(['which', 'wget'], stdout=devnull)
-            if process.wait() != 0:
-                print >>sys.stderr, 'Please install "wget"'
-                return 1
-
         os.system('mkdir "%s"' % dest)
 
         i = 0
         for img in backend.iter_gallery_images(gallery):
-            backend.fillobj(img, ('url',))
+            i += 1
+            if i < first:
+                continue
+
+            backend.fillobj(img, ('url','data'))
+            if img.data is None:
+                backend.fillobj(img, ('url','data'))
+                if img.data is None:
+                    print "Couldn't get page %d, exiting" % i
+                    break
 
             ext = search(r"\.([^\.]{1,5})$", img.url)
             if ext:
@@ -71,8 +80,10 @@ class Galleroob(ReplApplication):
             else:
                 ext = "jpg"
 
-            i += 1
 
-            os.system('wget "%s" -O "%s/%03d.%s"' % (img.url, dest, i, ext))
+            name = '%s/%03d.%s' % (dest, i, ext)
+            print 'Writing file %s' % name
 
+            with open(name, 'w') as f:
+                f.write(img.data)
 
