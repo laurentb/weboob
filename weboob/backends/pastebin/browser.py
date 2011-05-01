@@ -38,7 +38,7 @@ class BadAPIRequest(Exception):
 class PastebinBrowser(BaseBrowser):
     DOMAIN = 'pastebin.com'
     ENCODING = 'UTF-8'
-    PASTE_URL = 'http://%s/(?P<id>.+)' % DOMAIN
+    PASTE_URL = 'http://%s/(?P<id>\w+)' % DOMAIN
     API_URL = 'http://%s/api/api_post.php' % DOMAIN
     PAGES = {PASTE_URL: PastePage,
             'http://%s/' % DOMAIN: PostPage}
