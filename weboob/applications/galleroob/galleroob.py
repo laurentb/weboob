@@ -59,6 +59,12 @@ class Galleroob(ReplApplication):
             print 'Gallery not found: %s' % _id
             return 1
 
+        backend.fillobj(gallery, ('title',))
+        if dest is None:
+            dest = sub('/', ' ', gallery.title)
+
+        print "Downloading to %s" % dest
+
         os.system('mkdir "%s"' % dest)
 
         i = 0
