@@ -101,7 +101,7 @@ class Radioob(ReplApplication):
                                   'configuration file.')
             self.player.play(radio.streams[0], player_name=player_name)
         except (InvalidMediaPlayer, MediaPlayerNotFound), e:
-            print '%s\nVideo URL: %s' % (e, radio.streams[0].url)
+            print '%s\nRadio URL: %s' % (e, radio.streams[0].url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
