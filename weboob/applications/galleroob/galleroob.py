@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess
 import sys
 import os
 from re import search, sub
@@ -50,7 +49,7 @@ class GalleryListFormatter(IFormatter):
         if item['description'] is not NotLoaded:
             result += u'\n    %-70s' % item['description']
         return result
-                
+
 
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
@@ -63,7 +62,7 @@ class Galleroob(ReplApplication):
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
-    
+
     def do_search(self, pattern=None):
         """
         search PATTERN
@@ -75,7 +74,7 @@ class Galleroob(ReplApplication):
 
         self.set_formatter_header(u'Search pattern: %s' %
             pattern if pattern else u'Latest galleries')
-        for backend, gallery in self.do('iter_search_results', 
+        for backend, gallery in self.do('iter_search_results',
                 pattern=pattern, max_results=self.options.count):
             self.add_object(gallery)
             self.format(gallery)
@@ -144,7 +143,7 @@ class Galleroob(ReplApplication):
             with open(name, 'w') as f:
                 f.write(img.data)
 
-        os.chdir("..")
+        os.chdir(os.path.pardir)
 
     def do_info(self, line):
         """
@@ -156,7 +155,7 @@ class Galleroob(ReplApplication):
 
         gallery = self.get_object(_id, 'get_gallery')
         if not gallery:
-            print >>sys.gallery, 'Gallery not found: %s' %  _id
+            print >>sys.stderr, 'Gallery not found: %s' %  _id
             return
         self.format(gallery)
         self.flush()
