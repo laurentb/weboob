@@ -22,6 +22,8 @@ from __future__ import with_statement
 
 import os
 import sys
+import codecs
+import locale
 from random import choice
 
 from weboob.capabilities.paste import ICapPaste, PasteNotFound
@@ -61,7 +63,7 @@ class Pastoob(ReplApplication):
         if not paste:
             print >>sys.stderr, 'Unable to handle paste: %s' %  _id
             return 3
-        output = sys.stdout
+        output = codecs.getwriter(sys.stdout.encoding)(sys.stdout)
         output.write(paste.contents)
         # add a newline unless we are writing
         # in a file or in a pipe
@@ -76,9 +78,9 @@ class Pastoob(ReplApplication):
         The filename can be '-' for reading standard input (pipe).
         """
         if filename is None or filename == '-':
-            contents = sys.stdin.read()
+            contents = sys.stdin.read().decode(sys.stdin.encoding or locale.getpreferredencoding())
         else:
-            with open(filename) as fp:
+            with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
                 contents = fp.read()
 
         # get and sort the backends able to satisfy our requirements
