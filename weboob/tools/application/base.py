@@ -304,7 +304,7 @@ class BaseApplication(object):
 
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print 'Debug data will be saved in this directory: %s' % responses_dirname
+            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
             from weboob.tools.browser import BaseBrowser
             BaseBrowser.SAVE_RESPONSES = True
             BaseBrowser.responses_dirname = responses_dirname
@@ -359,7 +359,7 @@ class BaseApplication(object):
         try:
             app = klass()
         except BackendsConfig.WrongPermissions, e:
-            print e
+            print >>sys.stderr, e
             sys.exit(1)
 
         try:
@@ -367,12 +367,12 @@ class BaseApplication(object):
                 args = app.parse_args(args)
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
-                print 'Program killed by SIGINT'
+                print >>sys.stderr, 'Program killed by SIGINT'
                 sys.exit(0)
             except EOFError:
                 sys.exit(0)
             except ConfigError, e:
-                print 'Configuration error: %s' % e
+                print >>sys.stderr, 'Configuration error: %s' % e
                 sys.exit(1)
             except CallErrors, e:
                 app.bcall_errors_handler(e)

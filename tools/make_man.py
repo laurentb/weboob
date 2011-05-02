@@ -118,7 +118,7 @@ def main():
                 try:
                     script = imp.load_module("scripts.%s" % fname, f, tmpfile, desc)
                 except ImportError, e:
-                    print >> sys.stderr, "Unable to load the %s script (%s)" \
+                    print >>sys.stderr, "Unable to load the %s script (%s)" \
                         % (fname, e)
                 else:
                     print "Loaded %s" % fname

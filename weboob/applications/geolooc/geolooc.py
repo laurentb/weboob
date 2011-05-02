@@ -37,9 +37,7 @@ class Geolooc(ReplApplication):
     def main(self, argv):
         if len(argv) < 2:
             print >>sys.stderr, 'Syntax: %s ipaddr' % argv[0]
-            return 1
+            return 2
 
         for backend, location in self.do('get_location', argv[1]):
             self.format(location)
-
-        return 0

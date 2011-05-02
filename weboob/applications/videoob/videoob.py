@@ -93,8 +93,8 @@ class Videoob(ReplApplication):
         _id, dest = self.parse_command_args(line, 2, 1)
         video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print 'Video not found: %s' %  _id
-            return 1
+            print >>sys.stderr, 'Video not found: %s' %  _id
+            return 3
 
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
@@ -136,13 +136,13 @@ class Videoob(ReplApplication):
         Play a video with a found player.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
+            return 2
 
         video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print 'Video not found: %s' %  _id
-            return
+            print >>sys.stderr, 'Video not found: %s' %  _id
+            return 3
         try:
             player_name = self.config.get('media_player')
             if not player_name:
@@ -164,13 +164,13 @@ class Videoob(ReplApplication):
         Get information about a video.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            return 2
 
         video = self.get_object(_id, 'get_video')
         if not video:
             print >>sys.stderr, 'Video not found: %s' %  _id
-            return
+            return 3
         self.format(video)
         self.flush()
 
@@ -193,6 +193,7 @@ class Videoob(ReplApplication):
                 self.nsfw = False
             else:
                 print 'Invalid argument "%s".' % line
+                return 2
         else:
             print "on" if self.nsfw else "off"
 
@@ -206,9 +207,9 @@ class Videoob(ReplApplication):
         """
         if len(self.enabled_backends) == 0:
             if self.interactive:
-                print 'No backend loaded. Please use the "backends" command.'
+                print >>sys.stderr, 'No backend loaded. Please use the "backends" command.'
             else:
-                print 'No backend loaded.'
+                print >>sys.stderr, 'No backend loaded.'
             return 1
 
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')

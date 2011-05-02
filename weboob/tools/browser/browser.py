@@ -24,6 +24,7 @@ from httplib import BadStatusLine
 from logging import warning
 import mechanize
 import os
+import sys
 import re
 import tempfile
 from threading import RLock
@@ -316,7 +317,7 @@ class BaseBrowser(mechanize.Browser):
         """
         if self.responses_dirname is None:
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print 'Debug data will be saved in this directory: %s' % self.responses_dirname
+            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
         response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
         with open(response_filepath, 'w') as f:
             f.write(result.read())
@@ -513,7 +514,7 @@ class BaseBrowser(mechanize.Browser):
                                 value = [self.str(is_list.index(args[label]))]
                             except ValueError, e:
                                 if args[label]:
-                                    print '[%s] %s: %s' % (label, args[label], e)
+                                    print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
                                 return
                         else:
                             value = [self.str(args[label])]
