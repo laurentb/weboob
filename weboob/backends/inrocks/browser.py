@@ -27,8 +27,7 @@ from weboob.tools.browser import BaseBrowser
 class NewspaperInrocksBrowser(BaseBrowser):
     "NewspaperInrocksBrowser class"
     PAGES = {
-             'http://www.lesinrocks.com/actualite/.*': ArticlePage,
-             'http://www.lesinrocks.com/medias/.*': ArticlePage,
+             'http://www.lesinrocks.com/(?!inrockstv).+/.*': ArticlePage,
              'http://www.lesinrocks.com/inrockstv/.*': InrocksTvPage,
              'http://blogs.lesinrocks.com/.*': ArticlePage,
             }
