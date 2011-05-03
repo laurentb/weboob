@@ -21,7 +21,6 @@
 import logging
 import os
 
-from weboob.capabilities.base import IBaseCap
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
 
