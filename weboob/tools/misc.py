@@ -20,7 +20,6 @@
 
 from dateutil import tz
 from logging import warning
-from random import random
 from time import time, sleep
 from tempfile import gettempdir
 import os
