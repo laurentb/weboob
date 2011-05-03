@@ -60,6 +60,6 @@ class ArteBrowser(BaseBrowser):
         if not pattern:
             self.home()
         else:
-            self.location(self.buildurl('/%s/do_search/videos/%s' % (self.lang, self.SEARCH_LANG[self.lang]), q=pattern))
+            self.location(self.buildurl('/%s/do_search/videos/%s' % (self.lang, self.SEARCH_LANG[self.lang]), q=pattern.encode('utf-8')))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

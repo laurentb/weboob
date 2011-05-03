@@ -47,6 +47,6 @@ class YoupornBrowser(BaseBrowser):
         if not pattern:
             self.home()
         else:
-            self.location(self.buildurl('/search/%s' % sortby, query=pattern))
+            self.location(self.buildurl('/search/%s' % sortby, query=pattern.encode('utf-8')))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

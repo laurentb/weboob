@@ -69,7 +69,7 @@ class CanalplusBrowser(BaseBrowser):
         self.location('http://service.canal-plus.com/video/rest/initPlayer/cplus/')
 
     def iter_search_results(self, pattern):
-        self.location('http://service.canal-plus.com/video/rest/search/cplus/' + urllib.quote_plus(pattern))
+        self.location('http://service.canal-plus.com/video/rest/search/cplus/' + urllib.quote_plus(pattern.encode('utf-8')))
         return self.page.iter_results()
 
     @id2url(CanalplusVideo.id2url)

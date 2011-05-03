@@ -41,6 +41,6 @@ class InaBrowser(BaseBrowser):
         return self.page.get_video(video)
 
     def iter_search_results(self, pattern):
-        self.location(self.buildurl('/recherche/recherche', search=pattern))
+        self.location(self.buildurl('/recherche/recherche', search=pattern.encode('utf-8')))
         assert self.is_on_page(SearchPage)
         return self.page.iter_videos()

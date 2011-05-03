@@ -47,9 +47,9 @@ class DailymotionBrowser(BaseBrowser):
             self.home()
         else:
             if sortby is None:
-                url = '/search/%s/1' % quote_plus(pattern)
+                url = '/search/%s/1' % quote_plus(pattern.encode('utf-8'))
             else:
-                url = '/%s/search/%s/1' % (sortby, quote_plus(pattern))
+                url = '/%s/search/%s/1' % (sortby, quote_plus(pattern.encode('utf-8')))
             self.location(url)
 
         assert self.is_on_page(IndexPage)

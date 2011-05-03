@@ -58,7 +58,7 @@ class GazelleBrowser(BaseBrowser):
         return self.location('%s://%s/login.php' % (self.PROTOCOL, self.DOMAIN))
 
     def iter_torrents(self, pattern):
-        self.location(self.buildurl('/torrents.php', searchstr=pattern))
+        self.location(self.buildurl('/torrents.php', searchstr=pattern.encode('utf-8')))
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()

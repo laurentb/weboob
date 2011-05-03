@@ -40,7 +40,7 @@ class KickassBrowser(BaseBrowser):
         return self.location('http://kickasstorrents.com')
 
     def iter_torrents(self, pattern):
-        self.location('http://fr.kickasstorrents.com/new/?q=%s&field=seeders&sorder=desc' % pattern)
+        self.location('http://fr.kickasstorrents.com/new/?q=%s&field=seeders&sorder=desc' % pattern.encode('utf-8'))
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 

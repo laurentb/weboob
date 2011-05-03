@@ -50,6 +50,6 @@ class YoujizzBrowser(BaseBrowser):
         if not pattern:
             self.home()
         else:
-            self.location('/search/%s-1.html' % (urllib.quote_plus(pattern)))
+            self.location('/search/%s-1.html' % (urllib.quote_plus(pattern.encode('utf-8'))))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

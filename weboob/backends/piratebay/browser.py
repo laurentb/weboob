@@ -63,7 +63,7 @@ class PiratebayBrowser(BaseBrowser):
 
     def iter_torrents(self, pattern):
         #self.location(self.buildurl('/torrents.php', searchstr=pattern))
-        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern)
+        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern.encode('utf-8'))
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
