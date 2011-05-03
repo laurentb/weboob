@@ -193,10 +193,15 @@ class BaseBackend(object):
 
         return self.BROWSER(*args, **kwargs)
 
-    def iter_caps(self):
-        for cap in self.__class__.__bases__:
-            if issubclass(cap, IBaseCap) and cap != IBaseCap:
-                yield cap
+    @classmethod
+    def iter_caps(klass):
+        def iter_caps(cls):
+            for base in cls.__bases__:
+                if issubclass(base, IBaseCap) and base != IBaseCap:
+                    yield base
+                    for cap in iter_caps(base):
+                        yield cap
+        return iter_caps(klass)
 
     def has_caps(self, *caps):
         for c in caps:

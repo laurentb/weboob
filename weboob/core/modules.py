@@ -82,9 +82,7 @@ class Module(object):
         return self.klass.ICON
 
     def iter_caps(self):
-        for cap in self.klass.__bases__:
-            if issubclass(cap, IBaseCap) and cap != IBaseCap:
-                yield cap
+        return self.klass.iter_caps()
 
     def has_caps(self, *caps):
         for c in caps:
