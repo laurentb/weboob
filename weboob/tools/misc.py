@@ -22,7 +22,8 @@ from dateutil import tz
 from logging import warning
 from random import random
 from time import time, sleep
-from os import stat, utime
+from tempfile import gettempdir
+import os
 import sys
 import traceback
 import types
@@ -121,15 +122,32 @@ def limit(iterator, lim):
         count += 1
     raise StopIteration()
 
-def ratelimit(function, group, delay):
-    path = '/tmp/weboob_ratelimit.%s' % group
+def ratelimit(group, delay):
+    """
+    Simple rate limiting.
+
+    Waits if the last call of lastlimit with this group name was less than
+    delay seconds ago. The rate limiting is global, shared between any instance
+    of the application and any call to this function sharing the same group
+    name. The same group name should not be used with different delays.
+
+    This function is intended to be called just before the code that should be
+    rate-limited.
+
+    This function is not thread-safe. For reasonably non-critical rate
+    limiting (like accessing a website), it should be sufficient nevertheless.
+
+    @param group [string]  rate limiting group name, alphanumeric
+    @param delay [int]  delay in seconds between each call
+    """
+
+    path = os.path.join(gettempdir(), 'weboob_ratelimit.%s' % group)
     while True:
         try:
-            offset = time() - stat(path).st_mtime
+            offset = time() - os.stat(path).st_mtime
         except OSError:
             with open(path, 'w'):
                 pass
-            print 'creating %s' % path
             offset = 0
 
         if delay < offset:
@@ -137,5 +155,4 @@ def ratelimit(function, group, delay):
 
         sleep(delay - offset)
 
-    utime(path, None)
-    function()
+    os.utime(path, None)

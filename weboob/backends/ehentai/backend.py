@@ -75,14 +75,8 @@ class EHentaiBackend(BaseBackend, ICapGallery):
         with self.browser:
             image.url = self.browser.get_image_url(image)
             if 'data' in fields:
-                #offset = time.time() - self.time_last_retreived
-                #if offset < 2:
-                #    time.sleep(2 - offset)
-                #self.time_last_retreived = time.time()
-
-                def get():
-                    image.data = self.browser.readurl(image.url)
-                ratelimit(get, "ehentai_get", 2)
+                ratelimit("ehentai_get", 2)
+                image.data = self.browser.readurl(image.url)
 
     OBJECTS = {
             EHentaiGallery: fill_gallery,
