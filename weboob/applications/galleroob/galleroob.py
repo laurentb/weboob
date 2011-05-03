@@ -20,11 +20,37 @@
 import subprocess
 import sys
 import os
+from re import search, sub
+
 from weboob.tools.application.repl import ReplApplication
+from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.gallery import ICapGallery
-from re import search
+from weboob.tools.application.formatters.iformatter import IFormatter
+
 
 __all__ = ['Galleroob']
+
+
+class GalleryListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'title')
+
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        result = u'%s* (%s) %s%s' % (
+                ReplApplication.BOLD,
+                item['id'],
+                item['title'],
+                ReplApplication.NC)
+        if item['cardinality'] is not NotLoaded:
+            result += u' (%d pages)' % item['cardinality']
+        if item['description'] is not NotLoaded:
+            result += u'\n    %-70s' % item['description']
+        return result
+                
 
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
@@ -32,17 +58,37 @@ class Galleroob(ReplApplication):
     COPYTIGHT = 'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     CAPS = ICapGallery
+    EXTRA_FORMATTERS = {'gallery_list': GalleryListFormatter}
+    COMMANDS_FORMATTERS = {'search': 'gallery_list'}
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
+    
+    def do_search(self, pattern=None):
+        """
+        search PATTERN
+
+        List galleries matching a PATTERN.
+
+        If PATTERN is not given, the command will list all the galleries
+        """
+
+        self.set_formatter_header(u'Search pattern: %s' %
+            pattern if pattern else u'Latest galleries')
+        for backend, gallery in self.do('iter_search_results', 
+                pattern=pattern, max_results=self.options.count):
+            self.add_object(gallery)
+            self.format(gallery)
 
     def do_download(self, line):
         """
-        download ID FOLDER
+        download ID [FIRST [FOLDER]]
 
-        Download a gallery
+        Download a gallery.
+
+        Begins at page FIRST (default: 0) and saves to FOLDER (default: title)
         """
-        _id, dest, first = self.parse_command_args(line, 3, 2)
+        _id, first, dest = self.parse_command_args(line, 3, 1)
 
         if first is None:
             first = 0
@@ -50,7 +96,8 @@ class Galleroob(ReplApplication):
             first = int(first)
 
         gallery = None
-        for backend, result in self.do('get_gallery', _id):
+        _id, backend = self.parse_id(_id)
+        for backend, result in self.do('get_gallery', _id, backends=backend):
             if result:
                 backend = backend
                 gallery = result
@@ -65,7 +112,11 @@ class Galleroob(ReplApplication):
 
         print "Downloading to %s" % dest
 
-        os.system('mkdir "%s"' % dest)
+        try:
+            os.mkdir(dest)
+        except OSError:
+            pass # ignore error on existing directory
+        os.chdir(dest) # fail here if dest couldn't be created
 
         i = 0
         for img in backend.iter_gallery_images(gallery):
@@ -87,9 +138,25 @@ class Galleroob(ReplApplication):
                 ext = "jpg"
 
 
-            name = '%s/%03d.%s' % (dest, i, ext)
+            name = '%03d.%s' % (i, ext)
             print 'Writing file %s' % name
 
             with open(name, 'w') as f:
                 f.write(img.data)
 
+        os.chdir("..")
+
+    def do_info(self, line):
+        """
+        info ID
+
+        Get information about a gallery.
+        """
+        _id, = self.parse_command_args(line, 1, 1)
+
+        gallery = self.get_object(_id, 'get_gallery')
+        if not gallery:
+            print >>sys.gallery, 'Gallery not found: %s' %  _id
+            return
+        self.format(gallery)
+        self.flush()
