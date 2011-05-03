@@ -77,11 +77,15 @@ class Pastoob(ReplApplication):
         Submit a new paste.
         The filename can be '-' for reading standard input (pipe).
         """
-        if filename is None or filename == '-':
+        if not filename or filename == '-':
             contents = sys.stdin.read().decode(sys.stdin.encoding or locale.getpreferredencoding())
         else:
-            with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
-                contents = fp.read()
+            try:
+                with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
+                    contents = fp.read()
+            except IOError, e:
+                print >>sys.stderr, 'Unable to open file "%s": %s' % (filename, e.strerror)
+                return 1
 
         # get and sort the backends able to satisfy our requirements
         params = self._get_params()
