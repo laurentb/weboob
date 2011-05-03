@@ -84,6 +84,8 @@ class BoardPage(BasePage):
                     filename = span.text
                 article = Message(self.browser, self.board, 0, filename, url)
                 self.articles.append(article)
+            if article is None:
+                continue
             if div.tag == 'input' and div.attrib.get('type', 'checkbox') and div.attrib.get('value', 'delete'):
                 article.id = int(div.attrib.get('name', '0'))
             if div.tag == 'blockquote':
