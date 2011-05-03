@@ -75,10 +75,6 @@ class Pastoob(ReplApplication):
         Submit a new paste.
         The filename can be '-' for reading standard input (pipe).
         """
-        if not filename:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('post', short=True)
-            return 1
-
         if filename is None or filename == '-':
             contents = sys.stdin.read()
         else:
