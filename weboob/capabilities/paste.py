@@ -64,13 +64,14 @@ class ICapPaste(IBaseCap):
         """
         raise NotImplementedError()
 
-    def can_post(self, contents, public=None, max_age=None):
+    def can_post(self, contents, title=None, public=None, max_age=None):
         """
         Checks if the paste can be pasted by this backend.
         Some properties are considered required (public/private, max_age) while others
         are just bonuses (language).
 
         contents: Can be used to check encodability, maximum length, etc.
+        title: Can be used to check length, allowed characters. Should not be required.
         public: True must be public, False must be private, None do not care.
         max_age: Maximum time to live in seconds.
 

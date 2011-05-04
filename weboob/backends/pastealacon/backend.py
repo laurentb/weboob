@@ -20,6 +20,8 @@
 
 from __future__ import with_statement
 
+import re
+
 from weboob.tools.capabilities.paste import BasePasteBackend
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotLoaded
@@ -49,7 +51,7 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
     def new_paste(self, *args, **kwargs):
         return PastealaconPaste(*args, **kwargs)
 
-    def can_post(self, contents, public=None, max_age=None):
+    def can_post(self, contents, title=None, public=None, max_age=None):
         try:
             contents.encode(self.browser.ENCODING)
         except UnicodeEncodeError:
@@ -59,6 +61,9 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
         if max_age is not None:
             if self.get_closest_expiration(max_age) is None:
                 return 0
+        # the "title" is filtered (does not even accepts dots)
+        if not title or re.match('^\w+$', title) and len(title) <= 24:
+            return 2
         return 1
 
     def get_paste(self, _id):

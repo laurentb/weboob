@@ -63,10 +63,12 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
 
-    def can_post(self, contents, public=None, max_age=None):
+    def can_post(self, contents, title=None, public=None, max_age=None):
         if max_age is not None:
             if self.get_closest_expiration(max_age) is None:
                 return 0
+        if not title or len(title) <= 60:
+            return 2
         return 1
 
     def get_paste(self, _id):
