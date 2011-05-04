@@ -44,13 +44,12 @@ class Pastoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def do_get(self, _id, *args):
+    def do_get(self, _id):
         """
         get ID
 
         Get a paste contents.
         """
-        print args
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('get', short=True)
             return 2
