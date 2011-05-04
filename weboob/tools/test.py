@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from unittest import TestCase
+from random import choice
+
 from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
 
@@ -30,14 +32,17 @@ class BackendTest(TestCase):
     def __init__(self, *args, **kwargs):
         TestCase.__init__(self, *args, **kwargs)
 
-        self.backend = None
+        self.backends = {}
         self.backend_instance = None
+        self.backend = None
         self.weboob = Weboob()
 
         if self.weboob.load_backends(modules=[self.BACKEND]):
+            # provide the tests with all available backends
             self.backends = self.weboob.backend_instances
-        else:
-            self.backends = {}
+            # chose one backend (enough for most tests)
+            self.backend_instance = choice(self.backends.keys())
+            self.backend = self.backends[self.backend_instance]
 
     def run(self, result):
         """
@@ -49,11 +54,7 @@ class BackendTest(TestCase):
                 result.startTest(self)
                 result.stopTest(self)
                 raise SkipTest()
-
-            for backend_instance, backend in self.backends.iteritems():
-                self.backend = backend
-                self.backend_instance = backend_instance
-                TestCase.run(self, result)
+            TestCase.run(self, result)
         finally:
             self.weboob.deinit()
 
