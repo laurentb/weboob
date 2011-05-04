@@ -79,12 +79,14 @@ class PastebinTest(BackendTest):
         assert self.backend.get_paste('http://pastealacon.com/1') is None
 
     def test_can_post(self):
-        assert self.backend.can_post(public=None) > 0
-        assert self.backend.can_post(public=True) > 0
-        assert self.backend.can_post(public=False) > 0
-        assert self.backend.can_post(public=True, max_age=600) > 0
-        assert self.backend.can_post(public=True, max_age=3600*24) > 0
-        assert self.backend.can_post(public=True, max_age=3600*24*3) > 0
-        assert self.backend.can_post(public=True, max_age=False) > 0
-        assert self.backend.can_post(public=None, max_age=False) > 0
-        assert self.backend.can_post(public=True, max_age=3600*24*40) > 0
+        assert self.backend.can_post('hello', public=None) > 0
+        assert self.backend.can_post('hello', public=True) > 0
+        assert self.backend.can_post('hello', public=False) > 0
+        assert self.backend.can_post('hello', public=True, max_age=600) > 0
+        assert self.backend.can_post('hello', public=True, max_age=3600*24) > 0
+        assert self.backend.can_post('hello', public=True, max_age=3600*24*3) > 0
+        assert self.backend.can_post('hello', public=True, max_age=False) > 0
+        assert self.backend.can_post('hello', public=None, max_age=False) > 0
+        assert self.backend.can_post('hello', public=True, max_age=3600*24*40) > 0
+        assert self.backend.can_post(u'héhé', public=True) > 0
+        assert self.backend.can_post(u'hello ♥', public=True) > 0

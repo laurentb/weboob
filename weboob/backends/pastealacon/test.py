@@ -81,11 +81,13 @@ class PastealaconTest(BackendTest):
         assert self.backend.get_paste('nJG9ZFG8') is None
 
     def test_can_post(self):
-        assert 0 == self.backend.can_post(public=False)
-        assert 1 == self.backend.can_post(public=True)
-        assert 0 == self.backend.can_post(public=True, max_age=600)
-        assert 1 == self.backend.can_post(public=True, max_age=3600*24)
-        assert 1 == self.backend.can_post(public=True, max_age=3600*24*3)
-        assert 1 == self.backend.can_post(public=True, max_age=False)
-        assert 1 == self.backend.can_post(public=None, max_age=False)
-        assert 1 == self.backend.can_post(public=True, max_age=3600*24*40)
+        assert 0 == self.backend.can_post('hello', public=False)
+        assert 1 == self.backend.can_post('hello', public=True)
+        assert 0 == self.backend.can_post('hello', public=True, max_age=600)
+        assert 1 == self.backend.can_post('hello', public=True, max_age=3600*24)
+        assert 1 == self.backend.can_post('hello', public=True, max_age=3600*24*3)
+        assert 1 == self.backend.can_post('hello', public=True, max_age=False)
+        assert 1 == self.backend.can_post('hello', public=None, max_age=False)
+        assert 1 == self.backend.can_post('hello', public=True, max_age=3600*24*40)
+        assert 1 == self.backend.can_post(u'héhé', public=True)
+        assert 0 == self.backend.can_post(u'hello ♥', public=True)

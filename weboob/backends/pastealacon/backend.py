@@ -49,7 +49,11 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
     def new_paste(self, *args, **kwargs):
         return PastealaconPaste(*args, **kwargs)
 
-    def can_post(self, public=None, max_age=None):
+    def can_post(self, contents, public=None, max_age=None):
+        try:
+            contents.encode(self.browser.ENCODING)
+        except UnicodeEncodeError:
+            return 0
         if public is False:
             return 0
         if max_age is not None:

@@ -91,7 +91,7 @@ class Pastoob(ReplApplication):
         params = self._get_params()
         backends = {}
         for backend in self.weboob.iter_backends():
-            score = backend.can_post(**params)
+            score = backend.can_post(contents, **params)
             if score:
                 backends.setdefault(score, []).append(backend)
         # select a random backend from the best scores
