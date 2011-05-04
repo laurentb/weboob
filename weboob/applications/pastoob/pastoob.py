@@ -53,16 +53,16 @@ class Pastoob(ReplApplication):
         print args
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('get', short=True)
-            return 1
+            return 2
 
         try:
             paste = self.get_object(_id, 'get_paste', ['contents'])
         except PasteNotFound:
             print >>sys.stderr, 'Paste not found: %s' %  _id
-            return 2
+            return 3
         if not paste:
             print >>sys.stderr, 'Unable to handle paste: %s' %  _id
-            return 3
+            return 1
         output = codecs.getwriter(sys.stdout.encoding)(sys.stdout)
         output.write(paste.contents)
         # add a newline unless we are writing

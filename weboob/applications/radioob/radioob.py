@@ -87,13 +87,13 @@ class Radioob(ReplApplication):
         Play a radio with a found player.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
+            return 2
 
         radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
             print >>sys.stderr, 'Radio not found: ' % _id
-            return
+            return 1
         try:
             player_name = self.config.get('media_player')
             if not player_name:
@@ -115,13 +115,13 @@ class Radioob(ReplApplication):
         Get information about a radio.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            return 2
 
         radio = self.get_object(_id, 'get_radio')
         if not radio:
-            print 'Radio not found:', _id
-            return
+            print >>sys.stderr, 'Radio not found:', _id
+            return 3
         self.format(radio)
         self.flush()
 

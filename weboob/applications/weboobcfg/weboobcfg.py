@@ -52,7 +52,7 @@ class WeboobCfg(ReplApplication):
         """
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
-            return
+            return 2
         name, options = self.parse_command_args(line, 2, 1)
         if options:
             options = options.split(' ')
@@ -65,8 +65,8 @@ class WeboobCfg(ReplApplication):
             try:
                 key, value = option.split('=', 1)
             except ValueError:
-                print 'Parameters have to be formatted "key=value"'
-                return
+                print >>sys.stderr, 'Parameters have to be formatted "key=value"'
+                return 2
             params[key] = value
 
         self.add_backend(name, params)
@@ -133,9 +133,8 @@ class WeboobCfg(ReplApplication):
         Remove a configured backend.
         """
         if not self.weboob.backends_config.remove_backend(instance_name):
-            print 'Backend instance "%s" does not exist' % instance_name
+            print >>sys.stderr, 'Backend instance "%s" does not exist' % instance_name
             return 1
-        return 0
 
     def do_edit(self, line):
         """
@@ -175,7 +174,7 @@ class WeboobCfg(ReplApplication):
         """
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
-            return
+            return 2
 
         try:
             backend = self.weboob.modules_loader.get_or_load_module(line)
@@ -183,7 +182,7 @@ class WeboobCfg(ReplApplication):
             backend = None
 
         if not backend:
-            print 'Backend "%s" does not exist.' % line
+            print >>sys.stderr, 'Backend "%s" does not exist.' % line
             return 1
 
         print '.------------------------------------------------------------------------------.'

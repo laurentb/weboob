@@ -342,8 +342,8 @@ class Boobmsg(ReplApplication):
         Read a message
         """
         if len(arg) == 0:
-            print 'Please give a message ID.'
-            return
+            print >>sys.stderr, 'Please give a message ID.'
+            return 2
 
         try:
             message = self.messages[int(arg) - 1]
@@ -355,6 +355,8 @@ class Boobmsg(ReplApplication):
             return
 
         if not self.interactive:
-            print 'Oops, you need to be in interactive mode to read messages'
+            print >>sys.stderr,  'Oops, you need to be in interactive mode to read messages'
+            return 1
         else:
-            print 'Message not found'
+            print >>sys.stderr,  'Message not found'
+            return 3

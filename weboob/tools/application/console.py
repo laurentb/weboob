@@ -126,7 +126,7 @@ class ConsoleApplication(BaseApplication):
             if r.isdigit():
                 i = int(r) - 1
                 if i < 0 or i >= len(backends):
-                    print 'Error: %s is not a valid choice' % r
+                    print >>sys.stderr, 'Error: %s is not a valid choice' % r
                     continue
                 name = backends[i]
                 try:
@@ -182,7 +182,7 @@ class ConsoleApplication(BaseApplication):
                     if response.isdigit():
                         i = int(response) - 1
                         if i < 0 or i >= len(backends):
-                            print 'Error: %s is not a valid choice' % response
+                            print >>sys.stderr, 'Error: %s is not a valid choice' % response
                             continue
                         backend_name = backends[i][0]
             else:
@@ -208,12 +208,12 @@ class ConsoleApplication(BaseApplication):
             backend = None
 
         if not backend:
-            print 'Backend "%s" does not exist.' % name
-            return None
+            print >>sys.stderr, 'Backend "%s" does not exist.' % name
+            return 1
 
         if not backend.has_caps(ICapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
-            print 'You can\'t register a new account with %s' % name
-            return None
+            print >>sys.stderr, 'You can\'t register a new account with %s' % name
+            return 1
 
         account = Account()
         account.properties = {}
@@ -274,8 +274,8 @@ class ConsoleApplication(BaseApplication):
             items.update(params)
             params = items
         if not backend:
-            print 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
-            return None
+            print >>sys.stderr, 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
+            return 1
 
         # ask for params non-specified on command-line arguments
         asked_config = False
@@ -296,7 +296,7 @@ class ConsoleApplication(BaseApplication):
             print 'Backend "%s" successfully %s.' % (name, 'updated' if edit else 'added')
             return name
         except BackendAlreadyExists:
-            print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
+            print >>sys.stderr, 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             while self.ask('Add new instance of "%s" backend?' % name, default=False):
                 new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=r'^[\w\-_]+$')
                 try:
@@ -304,7 +304,8 @@ class ConsoleApplication(BaseApplication):
                     print 'Backend "%s" successfully added.' % new_name
                     return new_name
                 except BackendAlreadyExists:
-                    print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+                    print >>sys.stderr, 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+                    return 1
 
     def ask(self, question, default=None, masked=False, regexp=None, choices=None):
         """
@@ -396,7 +397,7 @@ class ConsoleApplication(BaseApplication):
             try:
                 v.set_value(line)
             except ValueError, e:
-                print 'Error: %s' % e
+                print >>sys.stderr, 'Error: %s' % e
             else:
                 break
 

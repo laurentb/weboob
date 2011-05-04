@@ -42,7 +42,7 @@ class WeboobCli(ReplApplication):
     def main(self, argv):
         if len(argv) < 3:
             print >>sys.stderr, "Syntax: %s capability method [args ..]" % argv[0]
-            return 1
+            return 2
 
         cap_s = argv[1]
         cmd = argv[2]

@@ -102,8 +102,8 @@ class Galleroob(ReplApplication):
                 gallery = result
 
         if not gallery:
-            print 'Gallery not found: %s' % _id
-            return 1
+            print >>sys.stderr, 'Gallery not found: %s' % _id
+            return 3
 
         backend.fillobj(gallery, ('title',))
         if dest is None:
@@ -127,7 +127,7 @@ class Galleroob(ReplApplication):
             if img.data is None:
                 backend.fillobj(img, ('url','data'))
                 if img.data is None:
-                    print "Couldn't get page %d, exiting" % i
+                    print >>sys.stderr, "Couldn't get page %d, exiting" % i
                     break
 
             ext = search(r"\.([^\.]{1,5})$", img.url)
@@ -156,6 +156,6 @@ class Galleroob(ReplApplication):
         gallery = self.get_object(_id, 'get_gallery')
         if not gallery:
             print >>sys.stderr, 'Gallery not found: %s' %  _id
-            return
+            return 3
         self.format(gallery)
         self.flush()

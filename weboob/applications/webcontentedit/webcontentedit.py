@@ -54,8 +54,8 @@ class WebContentEdit(ReplApplication):
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
-            print >> sys.stderr, 'No contents found'
-            return 1
+            print >>sys.stderr, 'No contents found'
+            return 3
 
         paths = {}
         for content in contents:
@@ -92,8 +92,8 @@ class WebContentEdit(ReplApplication):
                 contents.remove(content)
 
         if len(contents) == 0:
-            print 'No changes. Abort.'
-            return
+            print >>sys.stderr, 'No changes. Abort.'
+            return 1
 
         print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
@@ -126,8 +126,8 @@ class WebContentEdit(ReplApplication):
         Display log of a page
         """
         if not line:
-            print >> sys.stderr, 'Error: please give a page ID'
-            return 1
+            print >>sys.stderr, 'Error: please give a page ID'
+            return 2
 
         _id, backend_name = self.parse_id(line)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends

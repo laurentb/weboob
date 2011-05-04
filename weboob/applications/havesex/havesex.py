@@ -133,7 +133,7 @@ class HaveSex(ReplApplication):
     def edit_optims(self, backend_names, optims_names, stop=False):
         if optims_names is None:
             print >>sys.stderr, 'Error: missing parameters.'
-            return 1
+            return 2
 
         for optim_name in optims_names.split():
             backends_optims = {}
@@ -165,7 +165,7 @@ class HaveSex(ReplApplication):
     def optims(self, function, backend_names, optims, store=True):
         if optims is None:
             print >>sys.stderr, 'Error: missing parameters.'
-            return 1
+            return 2
 
         for optim_name in optims.split():
             try:
@@ -210,8 +210,6 @@ class HaveSex(ReplApplication):
                     self.storage.delete('optims', optim_name)
         if store:
             self.storage.save()
-
-        return 0
 
     def complete_optim(self, text, line, *ignored):
         args = line.split(' ')

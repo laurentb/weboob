@@ -113,6 +113,7 @@ class Weboorrents(ReplApplication):
 
         if not found:
             print >>sys.stderr, 'Torrent "%s" not found' % id
+            return 3
         else:
             self.flush()
 
@@ -149,6 +150,7 @@ class Weboorrents(ReplApplication):
                 return
 
         print >>sys.stderr, 'Torrent "%s" not found' % id
+        return 3
 
     def do_search(self, pattern):
         """

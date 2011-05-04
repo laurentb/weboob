@@ -146,7 +146,7 @@ class Boobank(ReplApplication):
         id, backend_name = self.parse_id(id)
         if not id:
             print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
-            return 1
+            return 2
         names = (backend_name,) if backend_name is not None else None
 
         def do(backend):
@@ -204,7 +204,7 @@ class Boobank(ReplApplication):
         id_from, backend_name_from = self.parse_id(id_from)
         if not id_to:
             print >>sys.stderr, 'Error: listing recipient is not implemented yet'
-            return
+            return 4
 
         id_to, backend_name_to = self.parse_id(id_to)
 
@@ -212,11 +212,11 @@ class Boobank(ReplApplication):
             amount = float(amount)
         except (TypeError,ValueError):
             print >>sys.stderr, 'Error: please give a decimal amount to transfer'
-            return 1
+            return 2
 
         if backend_name_from != backend_name_to:
             print >>sys.stderr, "Transfer between different backends is not implemented"
-            return
+            return 4
         else:
             backend_name = backend_name_from
 
