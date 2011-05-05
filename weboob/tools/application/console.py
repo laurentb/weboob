@@ -92,7 +92,7 @@ class ConsoleApplication(BaseApplication):
     def check_loaded_backends(self, default_config=None):
         while len(self.enabled_backends) == 0:
             print 'Warning: there is currently no configured backend for %s' % self.APPNAME
-            if not self.ask('Do you want to configure backends?', default=True):
+            if not self.interactive or not self.ask('Do you want to configure backends?', default=True):
                 return False
 
             self.prompt_create_backends(default_config)
