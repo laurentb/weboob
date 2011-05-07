@@ -34,14 +34,19 @@ class VideoPage(PornPage):
         if video is None:
             video = YoupornVideo(self.group_dict['id'])
         video.title = self.get_title()
-        video.url = self.get_url()
+        video.url, video.ext = self.get_url()
         self.set_details(video)
         return video
 
     def get_url(self):
         download_div = self.parser.select(self.document.getroot(), '#download', 1)
         a = self.parser.select(download_div, 'a', 1)
-        return a.attrib['href']
+        m = re.match('^(\w+) - .*', a.text)
+        if m:
+            ext = m.group(1).lower()
+        else:
+            ext = 'flv'
+        return a.attrib['href'], ext
 
     def get_title(self):
         element = self.parser.select(self.document.getroot(), '#videoArea h1', 1)
