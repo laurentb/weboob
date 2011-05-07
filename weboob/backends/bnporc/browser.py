@@ -133,10 +133,18 @@ class BNPorc(BaseBrowser):
             self.location('/NS_AVEDT?ch4=%s' % account.link_id)
         return self.page.get_operations()
 
+    def get_transfer_accounts(self):
+        if not self.is_on_page(pages.TransferPage):
+            self.location('/NS_VIRDF')
+
+        assert self.is_on_page(pages.TransferPage)
+        return self.page.get_accounts()
+
     def transfer(self, from_id, to_id, amount, reason=None):
         if not self.is_on_page(pages.TransferPage):
             self.location('/NS_VIRDF')
 
+        accounts = self.page.get_accounts()
         self.page.transfer(from_id, to_id, amount, reason)
 
         if not self.is_on_page(pages.TransferCompletePage):
@@ -144,7 +152,7 @@ class BNPorc(BaseBrowser):
 
         transfer = Transfer(self.page.get_id())
         transfer.amount = amount
-        transfer.origin = from_id
-        transfer.recipient = to_id
+        transfer.origin = accounts[from_id].label
+        transfer.recipient = accounts[to_id].label
         transfer.date = datetime.now()
         return transfer

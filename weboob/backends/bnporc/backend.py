@@ -21,7 +21,7 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound, Account
+from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
 from weboob.tools.backend import BaseBackend
 from weboob.tools.value import ValuesDict, Value
 
@@ -85,6 +85,13 @@ class BNPorcBackend(BaseBackend, ICapBank):
         with self.browser:
             for coming in self.browser.get_coming_operations(account):
                 yield coming
+
+    def iter_transfer_recipients(self, ignored):
+        for account in self.browser.get_transfer_accounts().itervalues():
+            recipient = Recipient()
+            recipient.id = account.id
+            recipient.label = account.label
+            yield recipient
 
     def transfer(self, account, to, amount, reason=None):
         if isinstance(account, Account):

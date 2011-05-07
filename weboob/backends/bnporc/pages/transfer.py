@@ -21,39 +21,58 @@
 import re
 
 from weboob.tools.browser import BasePage
+from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
 
 
 __all__ = ['TransferPage', 'TransferConfirmPage', 'TransferCompletePage']
 
 
+class Account(object):
+    def __init__(self, id, label, send_checkbox, receive_checkbox):
+        self.id = id
+        self.label = label
+        self.send_checkbox = send_checkbox
+        self.receive_checkbox = receive_checkbox
+
 class TransferPage(BasePage):
-    def transfer(self, from_id, to_id, amount, reason):
-        self.browser.select_form(nr=0)
-        from_found = False
-        to_found = False
+    def get_accounts(self):
+        accounts = OrderedDict()
         for table in self.document.getiterator('table'):
             if table.attrib.get('cellspacing') == '2':
                 for tr in table.cssselect('tr.hdoc1, tr.hdotc1'):
                     tds = tr.findall('td')
                     id = tds[1].text.replace(u'\xa0', u'')
-                    if id == from_id:
-                        if tds[4].find('input') is None:
-                            raise TransferError("Unable to make a transfer from %s" % from_id)
-                        self.browser['C1'] = [tds[4].find('input').attrib['value']]
-                        from_found = True
-                    elif id == to_id:
-                        if tds[5].find('input') is None:
-                            raise TransferError("Unable to make a transfer to %s" % from_id)
-                        self.browser['C2'] = [tds[5].find('input').attrib['value']]
-                        to_found = True
+                    label = tds[0].text
+                    if label is None and tds[0].find('nobr') is not None:
+                        label = tds[0].find('nobr').text
+                    send_checkbox =    tds[4].find('input').attrib['value'] if tds[4].find('input') is not None else None
+                    receive_checkbox = tds[5].find('input').attrib['value'] if tds[5].find('input') is not None else None
+                    account = Account(id, label, send_checkbox, receive_checkbox)
+                    accounts[id] = account
+        return accounts
 
-        if not from_found:
+    def transfer(self, from_id, to_id, amount, reason):
+        accounts = self.get_accounts()
+
+        try:
+            sender = accounts[from_id]
+        except KeyError:
             raise TransferError('Account %s not found' % from_id)
 
-        if not to_found:
+        try:
+            recipient = accounts[to_id]
+        except KeyError:
             raise TransferError('Recipient %s not found' % to_id)
 
+        if sender.send_checkbox is None:
+            raise TransferError('Unable to make a transfer from %s' % sender.label)
+        if recipient.receive_checkbox is None:
+            raise TransferError('Unable to make a transfer to %s' % recipient.label)
+
+        self.browser.select_form(nr=0)
+        self.browser['C1'] = [sender.send_checkbox]
+        self.browser['C2'] = [recipient.receive_checkbox]
         self.browser['T6'] = str(amount).replace('.', ',')
         if reason:
             self.browser['T5'] = reason
