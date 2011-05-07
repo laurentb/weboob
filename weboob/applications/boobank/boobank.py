@@ -42,6 +42,24 @@ class TransferFormatter(IFormatter):
         result += u'Amount:     %.2f\n' % item['amount']
         return result
 
+class RecipientListFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'label')
+
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        self.count += 1
+
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            id = '#%d (%s)' % (self.count, backend)
+        else:
+            id = item['id']
+
+        return u'%s %-30s  %s %s' % (self.BOLD, id, self.NC, item['label'])
 
 class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
@@ -90,52 +108,25 @@ class Boobank(ReplApplication):
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
                   "display accounts history and coming bank operations, and transfer money from an account to " \
                   "another (if available)."
-    EXTRA_FORMATTERS = {'account_list': AccountListFormatter,
-                        'transfer':     TransferFormatter,
+    EXTRA_FORMATTERS = {'account_list':   AccountListFormatter,
+                        'recipient_list': RecipientListFormatter,
+                        'transfer':       TransferFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
-    COMMANDS_FORMATTERS = {'list':        'account_list',
+    COMMANDS_FORMATTERS = {'ls':          'account_list',
                            'transfer':    'transfer',
                           }
 
-    accounts = []
-
-    def do_list(self, line):
-        """
-        list
-
-        List every available accounts.
-        """
-        tot_balance = 0.0
-        tot_coming = 0.0
-        self.accounts = []
-        for backend, account in self.do('iter_accounts'):
-            self.format(account)
-            tot_balance += account.balance
-            if account.coming:
-                tot_coming += account.coming
-            self.accounts.append(account)
-        self.flush()
-
     def _complete_account(self, exclude=None):
         if exclude:
-            id, backend = self.parse_id(exclude)
-        return ['%s@%s' % (acc.id, acc.backend) for acc in self.accounts if not exclude or (acc.id != id and acc.backend == backend)]
+            exclude = '%s@%s' % self.parse_id(exclude)
+
+        return [s for s in self._complete_object() if s != exclude]
 
     def complete_history(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_account()
-
-    def parse_id(self, id):
-        if self.interactive:
-            try:
-                account = self.accounts[int(id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                return account.id, account.backend
-        return ReplApplication.parse_id(self, id)
 
     def do_history(self, id):
         """
@@ -188,13 +179,13 @@ class Boobank(ReplApplication):
 
     def do_transfer(self, line):
         """
-        transfer ACCOUNT [TO AMOUNT [REASON]]
+        transfer ACCOUNT [RECIPIENT AMOUNT [REASON]]
 
         Make a transfer beetwen two account
-        - ACCOUNT the source account
-        - TO      the recipient
-        - AMOUNT  amount to transfer
-        - REASON  reason of transfer
+        - ACCOUNT    the source account
+        - RECIPIENT  the recipient
+        - AMOUNT     amount to transfer
+        - REASON     reason of transfer
 
         If you give only the ACCOUNT parameter, it lists all the
         available recipients for this account.
@@ -203,8 +194,14 @@ class Boobank(ReplApplication):
 
         id_from, backend_name_from = self.parse_id(id_from)
         if not id_to:
-            print >>sys.stderr, 'Error: listing recipient is not implemented yet'
-            return 4
+            self.objects = []
+            self.set_formatter('recipient_list')
+            self.set_formatter_header(u'Available recipients')
+            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=[backend_name_from]):
+                self.format(recipient)
+                self.add_object(recipient)
+            self.flush()
+            return 0
 
         id_to, backend_name_to = self.parse_id(id_to)
 
