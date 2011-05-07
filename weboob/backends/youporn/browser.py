@@ -34,7 +34,7 @@ class YoupornBrowser(BaseBrowser):
     ENCODING = None
     PAGES = {r'http://[w\.]*youporn\.com/?': IndexPage,
              r'http://[w\.]*youporn\.com/search.*': IndexPage,
-             r'http://[w\.]*youporn\.com/watch/(?P<id>.+)': VideoPage,
+             r'http://[w\.]*youporn\.com/watch/(?P<id>\d+)/?.*': VideoPage,
              r'http://[w\.]*youporngay\.com:80/watch/(?P<id>.+)': VideoPage,
             }
 
