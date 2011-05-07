@@ -810,8 +810,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             browser = Browser(view=page.view)
 
     def do_ls(self, line):
-        if len(self.objects) == 0:
-            self.objects = self._fetch_objects()
+        self.objects = self._fetch_objects()
 
         for obj in self.objects:
             if isinstance(obj, CapBaseObject):
