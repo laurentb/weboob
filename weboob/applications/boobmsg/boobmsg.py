@@ -318,13 +318,16 @@ class Boobmsg(ReplApplication):
         Export All threads
         """
 
-        cmd = self.do('iter_threads')
-        for backend, thread in cmd:
-            if not thread:
-                continue
-            t = backend.fillobj(thread, None)
-            for msg in t.iter_all_messages():
-                self.format(msg)
+        def func(backend):
+            for thread in backend.iter_threads():
+                if not thread:
+                    continue
+                t = backend.fillobj(thread, None)
+                for msg in t.iter_all_messages():
+                    yield msg
+
+        for backend, msg in self.do(func):
+            self.format(msg)
 
     def do_export_thread(self, arg):
         """
