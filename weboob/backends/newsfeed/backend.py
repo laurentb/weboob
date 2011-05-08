@@ -51,6 +51,8 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
 
         if entry is None:
             entry = Newsfeed(self.config["url"]).get_entry(id)
+        if entry is None:
+            return None
 
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default=[]):
