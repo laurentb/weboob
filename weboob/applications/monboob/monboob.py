@@ -110,16 +110,16 @@ class Monboob(ReplApplication):
     def main(self, argv):
         self.load_config()
         try:
-            self.config['interval'] = int(self.config['interval'])
-            if self.config['interval'] < 1:
+            self.config.set('interval', int(self.config.get('interval')))
+            if self.config.get('interval') < 1:
                 raise ValueError()
         except ValueError:
             print >>sys.stderr, 'Configuration error: interval must be an integer >0.'
             return 1
 
         try:
-            self.config['html'] = int(self.config['html'])
-            if self.config['html'] not in (0,1):
+            self.config.set('html', int(self.config.get('html')))
+            if self.config.get('html') not in (0,1):
                 raise ValueError()
         except ValueError:
             print >>sys.stderr, 'Configuration error: html must be 0 or 1.'
@@ -248,7 +248,7 @@ class Monboob(ReplApplication):
 
         Run the fetching daemon.
         """
-        self.weboob.repeat(int(self.config.get('interval')), self.process)
+        self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
 
     def process(self):
@@ -273,7 +273,7 @@ class Monboob(ReplApplication):
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
         msg_id = u'<%s.%s@%s>' % (backend.name, mail.full_id, domain)
 
-        if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+        if self.config.get('html') and mail.flags & mail.IS_HTML:
             body = mail.content
             content_type = 'html'
         else:
@@ -287,7 +287,7 @@ class Monboob(ReplApplication):
             body = ''
 
         if mail.signature:
-            if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+            if self.config.get('html') and mail.flags & mail.IS_HTML:
                 body += u'<p>-- <br />%s</p>' % mail.signature
             else:
                 body += u'\n\n-- \n'
