@@ -25,7 +25,7 @@ from .main_window import MainWindow
 
 class QHaveSex(QtApplication):
     APPNAME = 'qhavesex'
-    VERSION = '0.8'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Qt application allowing to interact with various dating websites.'
     CAPS = ICapDating

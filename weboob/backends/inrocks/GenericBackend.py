@@ -29,7 +29,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
     "GenericNewspaperBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.8'
+    VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     RSS_FEED = None
