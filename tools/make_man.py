@@ -76,7 +76,7 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
             if len(cmds) == 0:
                 continue
             s += '.SH %s COMMANDS\n' % section.upper()
-            for cmd in cmds:
+            for cmd in sorted(cmds):
                 s += '.TP\n'
                 h = cmd.split('\n')
                 if ' ' in h[0]:
