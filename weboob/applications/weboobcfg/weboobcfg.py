@@ -21,6 +21,7 @@
 import os
 import sys
 import re
+from copy import copy
 
 from weboob.capabilities.account import ICapAccount
 from weboob.core.modules import ModuleLoadError
@@ -40,6 +41,10 @@ class WeboobCfg(ReplApplication):
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
                            }
+    DISABLE_REPL = True
+
+    weboob_commands = copy(ReplApplication.weboob_commands)
+    weboob_commands.remove('backends')
 
     def load_default_backends(self):
         pass
@@ -110,12 +115,15 @@ class WeboobCfg(ReplApplication):
 
     def do_list(self, line):
         """
-        list
+        list [CAPS ..]
 
         Show configured backends.
         """
+        caps = line.split()
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
+            if caps and not self.caps_included(backend.iter_caps(), caps):
+                continue
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend', name),
                                ('Configuration', ', '.join(

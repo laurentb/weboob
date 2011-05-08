@@ -57,6 +57,8 @@ class ReplOptionFormatter(IndentedHelpFormatter):
     def format_commands(self, commands):
         s = u''
         for section, cmds in commands.iteritems():
+            if len(cmds) == 0:
+                continue
             if len(s) > 0:
                 s += '\n'
             s += '%s Commands:\n' % section
@@ -78,6 +80,9 @@ class ReplApplication(Cmd, ConsoleApplication):
     DEFAULT_FORMATTER = 'multiline'
     COMMANDS_FORMATTERS = {}
 
+    weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit'])
+    hidden_commands = set(['EOF'])
+
     def __init__(self):
         Cmd.__init__(self)
         # XXX can't use bold prompt because:
@@ -98,9 +103,6 @@ class ReplApplication(Cmd, ConsoleApplication):
                                 'Type "help" to display available commands.',
                                 '',
                                ))
-        self.weboob_commands = ['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit']
-        self.hidden_commands = set(['EOF'])
-
         self.formatters_loader = FormattersLoader()
         for key, klass in self.EXTRA_FORMATTERS.iteritems():
             self.formatters_loader.register_formatter(key, klass)
