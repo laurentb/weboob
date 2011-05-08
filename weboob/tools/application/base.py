@@ -293,6 +293,11 @@ class BaseApplication(object):
 
         if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.DEBUG_MECHANIZE = True
+            # required to actually display or save the stuff
+            logger = logging.getLogger("mechanize")
+            logger.setLevel(logging.INFO)
         elif self.options.verbose:
             level = logging.INFO
         elif self.options.quiet:
@@ -305,7 +310,6 @@ class BaseApplication(object):
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
-            from weboob.tools.browser import BaseBrowser
             BaseBrowser.SAVE_RESPONSES = True
             BaseBrowser.responses_dirname = responses_dirname
             self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))

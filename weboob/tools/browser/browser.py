@@ -136,6 +136,7 @@ class BaseBrowser(mechanize.Browser):
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
     DEBUG_HTTP = False
+    DEBUG_MECHANIZE = False
 
     responses_dirname = None
     responses_count = 0
@@ -234,10 +235,12 @@ class BaseBrowser(mechanize.Browser):
                 pass
 
         if self.DEBUG_HTTP:
+            # display messages from httplib
+            self.set_debug_http(True)
+
+        if self.DEBUG_MECHANIZE:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
-            self.set_debug_responses(True)
-            self.set_debug_http(True)
 
     def __enter__(self):
         self.lock.acquire()
