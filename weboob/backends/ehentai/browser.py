@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from urllib import urlencode, quote
+from urllib import urlencode
 
 from .pages import IndexPage, GalleryPage, ImagePage, HomePage, LoginPage
 from .gallery import EHentaiImage
@@ -77,7 +77,7 @@ class EHentaiBrowser(BaseBrowser):
         self.location(image.id)
         assert self.is_on_page(ImagePage)
         return self.page.get_url()
-    
+
     def gallery_exists(self, gallery):
         gallery.url = self._gallery_url(gallery)
         self.location(gallery.url)
