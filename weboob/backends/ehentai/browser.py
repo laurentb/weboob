@@ -41,7 +41,7 @@ class EHentaiBrowser(BaseBrowser):
     def __init__(self, domain, username, password, *args, **kwargs):
         self.DOMAIN = domain
         self.logged = False
-        BaseBrowser.__init__(self, *args, **kwargs)
+        BaseBrowser.__init__(self, parser=('lxmlsoup',), *args, **kwargs)
         if password:
             self.login(username, password)
 
