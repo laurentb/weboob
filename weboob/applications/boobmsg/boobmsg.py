@@ -299,6 +299,8 @@ class Boobmsg(ReplApplication):
             self.formatter._list_messages = False
 
         for backend, thread in cmd:
+            if not thread:
+                continue
             if len(arg) > 0:
                 for m in thread.iter_all_messages():
                     if not m.backend:
@@ -318,7 +320,9 @@ class Boobmsg(ReplApplication):
 
         cmd = self.do('iter_threads')
         for backend, thread in cmd:
-            t  = backend.get_thread(thread.id)
+            if not thread:
+                continue
+            t = backend.fillobj(thread, None)
             for msg in t.iter_all_messages():
                 self.format(msg)
 
