@@ -34,31 +34,28 @@ from .tools import id2url, url2id
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
-    PAGES = {'https://linuxfr.org/?': IndexPage,
-             'https://linuxfr.org/login.html': LoginPage,
-             'https://linuxfr.org/news/[^\.]+': ContentPage,
-             'https://linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
-             'https://linuxfr.org/wiki': WikiEditPage,
-             'https://linuxfr.org/wiki/nouveau': WikiEditPage,
-             'https://linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
-             'https://linuxfr.org/suivi/[^\.]+': ContentPage,
-             'https://linuxfr.org/sondages/[^\.]+': ContentPage,
-             'https://linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
-             'https://linuxfr.org/forums/[\w\-_]+/posts/[^\.]+': ContentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments': NodePage,
-             'https://linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
-             'https://linuxfr.org/board/index.xml': BoardIndexPage,
+    PAGES = {'https?://.*linuxfr.org/?': IndexPage,
+             'https?://.*linuxfr.org/compte/connexion': LoginPage,
+             'https?://.*linuxfr.org/news/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
+             'https?://.*linuxfr.org/wiki': WikiEditPage,
+             'https?://.*linuxfr.org/wiki/nouveau': WikiEditPage,
+             'https?://.*linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
+             'https?://.*linuxfr.org/suivi/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/sondages/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/forums/[\w\-_]+/posts/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments': NodePage,
+             'https?://.*linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
+             'https?://.*linuxfr.org/board/index.xml': BoardIndexPage,
             }
 
     last_board_msg_id = None
 
-    def home(self):
-        return self.location('https://linuxfr.org')
-
     def parse_id(self, _id):
-        if re.match('^https?://linuxfr.org/nodes/\d+/comments/\d+$', _id):
+        if re.match('^https?://.*linuxfr.org/nodes/\d+/comments/\d+$', _id):
             return _id, None
 
         url = id2url(_id)
@@ -188,9 +185,13 @@ class DLFP(BaseBrowser):
         return None
 
     def login(self):
+        # not usefull for the moment
+        #self.location('/', no_login=True)
         data = {'account[login]': self.username,
                 'account[password]': self.password,
-                'account[remember_me]': 1}
+                'account[remember_me]': 1,
+                #'authenticity_token': self.page.get_login_token(),
+               }
         self.location('/compte/connexion', urllib.urlencode(data), no_login=True)
         if not self.is_logged():
             raise BrowserIncorrectPassword()

@@ -18,8 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
 from datetime import datetime
+
+from weboob.tools.test import BackendTest
+from weboob.backends.dlfp.browser import DLFP
 
 
 __all__ = ['DLFPTest']
@@ -28,7 +30,12 @@ __all__ = ['DLFPTest']
 class DLFPTest(BackendTest):
     BACKEND = 'dlfp'
 
+    def __init__(self, *args, **kwargs):
+        DLFP.DOMAIN = 'alpha.linuxfr.org'
+        BackendTest.__init__(self, *args, **kwargs)
+
     def test_new_messages(self):
+        return
         for message in self.backend.iter_unread_messages():
             pass
 

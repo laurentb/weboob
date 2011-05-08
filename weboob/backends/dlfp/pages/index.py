@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BrowserIncorrectPassword, BasePage
+from weboob.tools.browser import BasePage
 
 class DLFPPage(BasePage):
     def is_logged(self):
@@ -29,15 +29,11 @@ class DLFPPage(BasePage):
         return True
 
 class IndexPage(DLFPPage):
-    pass
+    def get_login_token(self):
+        form = self.parser.select(self.document.getroot(), 'form#new_account_sidebar', 1)
+        for i in form.find('div').getiterator('input'):
+            if i.attrib['name'] == 'authenticity_token':
+                return  i.attrib['value']
 
 class LoginPage(DLFPPage):
-    def on_loaded(self):
-        if self.has_error():
-            raise BrowserIncorrectPassword()
-
-    def has_error(self):
-        for p in self.document.getiterator('p'):
-            if p.text and p.text.startswith(u'Vous avez rentré un mauvais mot de passe'):
-                return True
-        return False
+    pass
