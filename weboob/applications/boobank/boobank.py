@@ -123,6 +123,14 @@ class Boobank(ReplApplication):
 
         return [s for s in self._complete_object() if s != exclude]
 
+    def do_list(self, line):
+        """
+        list
+
+        List accounts.
+        """
+        return self.do_ls(line)
+
     def complete_history(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
