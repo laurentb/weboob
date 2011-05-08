@@ -49,9 +49,10 @@ class TorrentInfoFormatter(IFormatter):
         result += 'Seeders: %s\n' % item['seeders']
         result += 'Leechers: %s\n' % item['leechers']
         result += 'URL: %s\n' % item['url']
-        result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
-        for f in item['files']:
-            result += ' * %s\n' % f
+        if item['files']:
+            result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
+            for f in item['files']:
+                result += ' * %s\n' % f
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += item['description']
         return result
