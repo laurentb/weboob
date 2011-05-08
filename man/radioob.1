@@ -1,4 +1,4 @@
-.TH RADIOOB 1 "01 March 2011" "radioob 0\&.6"
+.TH RADIOOB 1 "08 May 2011" "radioob 0\&.8"
 .SH NAME
 radioob
 .SH SYNOPSIS
@@ -11,9 +11,13 @@ radioob
 .SH DESCRIPTION
 .LP
 
-Radioob is a console application to list radios, play them and get informations like the current song.
+Console application allowing to search for web radio stations, listen to them and get information like the current song.
 
 .SS Supported websites:
+* franceinter (The france inter french radio)
+.br
+* lemouv (The le mouv' french radio)
+.br
 * ouifm (The Ouï FM french radio)
 .SH RADIOOB COMMANDS
 .TP
@@ -21,17 +25,17 @@ Radioob is a console application to list radios, play them and get informations 
 .br
 Get information about a radio.
 .TP
-\fBlist\fR [\fIPATTERN\fR]
+\fBplay\fR \fIID\fR
+.br
+Play a radio with a found player.
+.TP
+\fBsearch\fR \fIPATTERN\fR
 .br
 List radios matching a PATTERN.
 .br
 
 .br
 If PATTERN is not given, this command will list all the radios.
-.TP
-\fBplay\fR \fIID\fR
-.br
-Play a radio with a found player.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -57,6 +61,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -126,6 +134,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -137,10 +153,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP

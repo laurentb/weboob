@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
@@ -31,9 +33,9 @@ class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
     MAINTAINER = 'Xavier Guerrin'
     EMAIL = 'xavier@tuxfamily.org'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     DESCRIPTION = 'Credit Agricole french bank\'s website'
-    LICENSE = 'GPLv3'
+    LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'm.ca-alpesprovence.fr': u'Alpes Provence',
         'm.ca-anjou-maine.fr': u'Anjou Maine',

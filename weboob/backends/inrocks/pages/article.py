@@ -3,20 +3,22 @@
 
 # Copyright(C) 2011  Julien Hebert
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 from weboob.tools.genericArticle import GenericNewsPage, try_remove, \
                                         try_remove_from_selector_list, \
                                         drop_comments, NoneMainDiv
@@ -33,26 +35,28 @@ class ArticlePage(GenericNewsPage):
         try :
             element_body = self.get_element_body()
         except NoneMainDiv:
-            return None 
+            return None
         else:
-            div_header_element = select(element_body, "div.header", 1)
-            element_detail = select(element_body, "div.details", 1)
-            div_content_element = select(element_body, "div.content", 1)
+            div_header_element = self.parser.select(element_body, "div.header", 1)
+            element_detail = self.parser.select(element_body, "div.details", 1)
+            div_content_element = self.parser.select(element_body, "div.content", 1)
 
             drop_comments(element_body)
-            try_remove(element_body, "div.sidebar")
-            try_remove(element_detail, "div.footer")
-            try_remove_from_selector_list(div_header_element, 
-                                          ["h1", "div.picture", "div.date", 
-                                           "div.news-single-img", 
+            try_remove(self.parser, element_body, "div.sidebar")
+            try_remove(self.parser, element_detail, "div.footer")
+            try_remove_from_selector_list(self.parser,
+                                          div_header_element,
+                                          ["h1", "div.picture", "div.date",
+                                           "div.news-single-img",
                                            "div.metas_img", "strong"])
-            try_remove_from_selector_list(div_content_element, 
+            try_remove_from_selector_list(self.parser,
+                                          div_content_element,
                                           ["div.tw_button", "div.wpfblike"])
 
             try :
-                description_element = select(div_header_element, 
+                description_element = self.parser.select(div_header_element,
                                              "div.description", 1)
-            except SelectElementException:
+            except BrokenPageError:
                 pass
             else:
                 text_content = description_element.text_content()
@@ -73,6 +77,4 @@ class ArticlePage(GenericNewsPage):
 
             div_content_element.drop_tag()
 
-            return self.browser.parser.tostring(element_body)
-
-
+            return self.parser.tostring(element_body)

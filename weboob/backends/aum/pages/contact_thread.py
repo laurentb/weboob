@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2008-2010  Romain Bignon
+# Copyright(C) 2008-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import time
@@ -99,7 +101,8 @@ class MailParser(object):
         self.title = 'Discussion with %s' % name
         self.sender = name
         self.name = name
-        self.tr = tr.childNodes[0].childNodes[1].childNodes[0].childNodes[0]
+        self.tr = tr.childNodes[0].childNodes[1].childNodes[1].childNodes[0]
+
         self.new = False
 
         tds = self.tr.childNodes
@@ -131,7 +134,7 @@ class MailParser(object):
                                     content += self.smileys[int(m.group(1))]
                                 except KeyError:
                                     error('Mail: unable to find this smiley: %s' % c.getAttribute('src'))
-                self.content = content
+                self.content = content.strip()
                 break
 
         self.parse_profile_link()
@@ -147,7 +150,7 @@ class MailParser(object):
     def parse_date(self, date_str):
         # To match regexp, we have to remove any return chars in string
         # before the status ('nouveau', 'lu', etc)
-        date_str = u''.join(date_str.split(u'\n'))
+        date_str = date_str.strip()
 
         m = self.DATETIME_REGEXP.match(date_str)
         if m:
@@ -301,7 +304,7 @@ class ContactThreadPage(PageBase):
         for big in big_list:
             for child in big.childNodes:
                 if hasattr(child, 'tagName') and child.tagName == u'b':
-                    self.name = child.childNodes[1].data.strip()
+                    self.name = child.childNodes[0].data.strip()
                     break
 
         tables = self.document.getElementsByTagName('table')

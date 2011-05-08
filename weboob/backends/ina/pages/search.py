@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import datetime
 import re
 
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from ..video import InaVideo
 
@@ -33,8 +35,8 @@ class SearchPage(BasePage):
 
     def iter_videos(self):
         try:
-            ul = select(self.document.getroot(), 'div.container-videos ul', 1)
-        except SelectElementException:
+            ul = self.parser.select(self.document.getroot(), 'div.container-videos ul', 1)
+        except BrokenPageError:
             # It means there are no results.
             return
         for li in ul.findall('li'):
@@ -42,18 +44,18 @@ class SearchPage(BasePage):
 
             thumbnail = 'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
 
-            title = select(li, 'p.titre', 1).text
+            title = self.parser.select(li, 'p.titre', 1).text
 
-            date = select(li, 'p.date', 1).text
+            date = self.parser.select(li, 'p.date', 1).text
             day, month, year = [int(s) for s in date.split('/')]
             date = datetime.datetime(year, month, day)
 
-            duration = select(li, 'p.duree', 1).text
+            duration = self.parser.select(li, 'p.duree', 1).text
             m = re.match(r'((\d+)h)?((\d+)min)?(\d+)s', duration)
             if m:
                 duration = datetime.timedelta(hours=int(m.group(2) or 0), minutes=int(m.group(4) or 0), seconds=int(m.group(5)))
             else:
-                raise SelectElementException('Unable to match duration (%r)' % duration)
+                raise BrokenPageError('Unable to match duration (%r)' % duration)
 
             yield InaVideo(id,
                            title=title,

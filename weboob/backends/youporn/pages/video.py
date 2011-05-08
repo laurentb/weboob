@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import re
 import datetime
 
-from weboob.tools.parsers.lxmlparser import select
+
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -32,24 +34,29 @@ class VideoPage(PornPage):
         if video is None:
             video = YoupornVideo(self.group_dict['id'])
         video.title = self.get_title()
-        video.url = self.get_url()
+        video.url, video.ext = self.get_url()
         self.set_details(video)
         return video
 
     def get_url(self):
-        download_div = select(self.document.getroot(), '#download', 1)
-        a = select(download_div, 'a', 1)
-        return a.attrib['href']
+        download_div = self.parser.select(self.document.getroot(), '#download', 1)
+        a = self.parser.select(download_div, 'a', 1)
+        m = re.match('^(\w+) - .*', a.text)
+        if m:
+            ext = m.group(1).lower()
+        else:
+            ext = 'flv'
+        return a.attrib['href'], ext
 
     def get_title(self):
-        element = select(self.document.getroot(), '#videoArea h1', 1)
+        element = self.parser.select(self.document.getroot(), '#videoArea h1', 1)
         return unicode(element.getchildren()[0].tail).strip()
 
     DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")
     MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     def set_details(self, v):
-        details_div = select(self.document.getroot(), '#details', 1)
+        details_div = self.parser.select(self.document.getroot(), '#details', 1)
         for li in details_div.getiterator('li'):
             span = li.find('span')
             name = span.text.strip()

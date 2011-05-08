@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import re
@@ -73,7 +75,7 @@ class AccountsList(CragrBasePage):
             the history of a specific account.
         """
         # tested on CA Lorraine, Paris, Toulouse
-        title_spans = self.document.xpath('/html/body/div[@class="dv"]/span')
+        title_spans = self.document.xpath('/html/body//div[@class="dv"]/span')
         for title_span in title_spans:
             title_text = title_span.text_content().strip().replace("\n", '')
             if (re.match('.*Compte.*n.*[0-9]+.*au.*', title_text)):
@@ -204,12 +206,23 @@ class AccountsList(CragrBasePage):
                 else:
                     left_div_count += 1
 
+        # new layout that is somewhat easier to parse (found at Toulouse)
+        table_layout = len(self.document.xpath("id('operationsHeader')")) > 0
         # So, how are data laid out?
-        toulouse_way_of_life = (left_div_count == 2 * right_div_count)
+        alternate_layout = (left_div_count == 2 * right_div_count)
         # we'll have: one left-aligned div for the date, one right-aligned
         # div for the amount, and one left-aligned div for the label. Each time.
 
-        if (not toulouse_way_of_life):
+        if table_layout:
+            lines = self.document.xpath('id("operationsContent")//table[@class="tb"]/tr')
+            for line in lines:
+                operation = Operation(index)
+                index += 1
+                operation.date = self.extract_text(line[0])
+                operation.label = self.extract_text(line[1])
+                operation.amount = clean_amount(self.extract_text(line[2]))
+                yield operation
+        elif (not alternate_layout):
             for body_elmt in interesting_divs:
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount

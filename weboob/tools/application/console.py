@@ -2,24 +2,27 @@
 
 # Copyright(C) 2010-2011  Christophe Benz, Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from copy import deepcopy
 import getpass
 import logging
 import sys
+import os
 
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
@@ -29,8 +32,16 @@ from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
 from .base import BackendNotFound, BaseApplication
 
+
+__all__ = ['ConsoleApplication', 'BackendNotGiven']
+
+
 class BackendNotGiven(Exception):
-    pass
+    def __init__(self, id, backends):
+        self.id = id
+        self.backends = backends
+        Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
+                'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
 
 class ConsoleApplication(BaseApplication):
     """
@@ -82,50 +93,59 @@ class ConsoleApplication(BaseApplication):
 
         for name, backend in ret.iteritems():
             self.enabled_backends.add(backend)
-        while len(self.enabled_backends) == 0:
-            print 'Warning: there is currently no configured backend for %s' % self.APPNAME
-            if not self.ask('Do you want to configure backends?', default=True):
-                break
 
-            self.weboob.modules_loader.load_all()
-            r = ''
-            while r != 'q':
-                backends = []
-                print '\nAvailable backends:'
-                for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                    if not self.is_backend_loadable(backend):
-                        continue
-                    backends.append(name)
-                    loaded = ' '
-                    for bi in self.weboob.iter_backends():
-                        if bi.NAME == name:
-                            if loaded == ' ':
-                                loaded = 'X'
-                            elif loaded == 'X':
-                                loaded = 2
-                            else:
-                                loaded += 1
-                    print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
-                                                           self.BOLD, name, self.NC, backend.description)
-                print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
-                r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
-
-                if r.isdigit():
-                    i = int(r) - 1
-                    if i < 0 or i >= len(backends):
-                        print 'Error: %s is not a valid choice' % r
-                        continue
-                    name = backends[i]
-                    try:
-                        inst = self.add_backend(name)
-                        if inst:
-                            self.load_backends(names=[inst])
-                    except (KeyboardInterrupt, EOFError):
-                        print '\nAborted.'
-
-            print 'Right right!'
+        self.check_loaded_backends()
 
         return ret
+
+    def check_loaded_backends(self, default_config=None):
+        while len(self.enabled_backends) == 0:
+            print 'Warning: there is currently no configured backend for %s' % self.APPNAME
+            if not os.isatty(sys.stdout.fileno()) or not self.ask('Do you want to configure backends?', default=True):
+                return False
+
+            self.prompt_create_backends(default_config)
+
+        return True
+
+    def prompt_create_backends(self, default_config=None):
+        self.weboob.modules_loader.load_all()
+        r = ''
+        while r != 'q':
+            backends = []
+            print '\nAvailable backends:'
+            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
+                if not self.is_backend_loadable(backend):
+                    continue
+                backends.append(name)
+                loaded = ' '
+                for bi in self.weboob.iter_backends():
+                    if bi.NAME == name:
+                        if loaded == ' ':
+                            loaded = 'X'
+                        elif loaded == 'X':
+                            loaded = 2
+                        else:
+                            loaded += 1
+                print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
+                                                       self.BOLD, name, self.NC, backend.description)
+            print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
+            r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
+
+            if str(r).isdigit():
+                i = int(r) - 1
+                if i < 0 or i >= len(backends):
+                    print >>sys.stderr, 'Error: %s is not a valid choice' % r
+                    continue
+                name = backends[i]
+                try:
+                    inst = self.add_backend(name, default_config)
+                    if inst:
+                        self.load_backends(names=[inst])
+                except (KeyboardInterrupt, EOFError):
+                    print '\nAborted.'
+
+            print 'Right right!'
 
     def _handle_options(self):
         self.load_default_backends()
@@ -156,27 +176,11 @@ class ConsoleApplication(BaseApplication):
         except ValueError:
             backend_name = None
         if unique_backend and not backend_name:
-            backends = []
-            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                if self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__):
-                    continue
-                backends.append((name, backend))
-            if self.interactive:
-                while not backend_name:
-                    print 'This command works with a unique backend. Availables:'
-                    for index, (name, backend) in enumerate(backends):
-                        print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
-                            backend.description)
-                    response = self.ask('Select a backend to proceed', regexp='^\d+$')
-                    if response.isdigit():
-                        i = int(response) - 1
-                        if i < 0 or i >= len(backends):
-                            print 'Error: %s is not a valid choice' % response
-                            continue
-                        backend_name = backends[i][0]
+            backends = [(b.name, b) for b in self.enabled_backends]
+            if len(backends) == 1:
+                backend_name = backends[0]
             else:
-                raise BackendNotGiven('Please specify a backend to use for this argument (%s@backend_name). '
-                    'Availables: %s.' % (_id, ', '.join(name for name, backend in backends)))
+                raise BackendNotGiven(_id, backends)
         return _id, backend_name
 
     def caps_included(self, modcaps, caps):
@@ -197,12 +201,12 @@ class ConsoleApplication(BaseApplication):
             backend = None
 
         if not backend:
-            print 'Backend "%s" does not exist.' % name
-            return None
+            print >>sys.stderr, 'Backend "%s" does not exist.' % name
+            return 1
 
         if not backend.has_caps(ICapAccount) or backend.klass.ACCOUNT_REGISTER_PROPERTIES is None:
-            print 'You can\'t register a new account with %s' % name
-            return None
+            print >>sys.stderr, 'You can\'t register a new account with %s' % name
+            return 1
 
         account = Account()
         account.properties = {}
@@ -263,8 +267,8 @@ class ConsoleApplication(BaseApplication):
             items.update(params)
             params = items
         if not backend:
-            print 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
-            return None
+            print >>sys.stderr, 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
+            return 1
 
         # ask for params non-specified on command-line arguments
         asked_config = False
@@ -285,7 +289,7 @@ class ConsoleApplication(BaseApplication):
             print 'Backend "%s" successfully %s.' % (name, 'updated' if edit else 'added')
             return name
         except BackendAlreadyExists:
-            print 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
+            print >>sys.stderr, 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
             while self.ask('Add new instance of "%s" backend?' % name, default=False):
                 new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=r'^[\w\-_]+$')
                 try:
@@ -293,7 +297,8 @@ class ConsoleApplication(BaseApplication):
                     print 'Backend "%s" successfully added.' % new_name
                     return new_name
                 except BackendAlreadyExists:
-                    print 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+                    print >>sys.stderr, 'Instance "%s" already exists for backend "%s".' % (new_name, name)
+                    return 1
 
     def ask(self, question, default=None, masked=False, regexp=None, choices=None):
         """
@@ -385,7 +390,7 @@ class ConsoleApplication(BaseApplication):
             try:
                 v.set_value(line)
             except ValueError, e:
-                print 'Error: %s' % e
+                print >>sys.stderr, 'Error: %s' % e
             else:
                 break
 
@@ -422,7 +427,7 @@ class ConsoleApplication(BaseApplication):
             else:
                 return True
 
-    def bcall_errors_handler(self, errors):
+    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces'):
         """
         Handler for the CallErrors exception.
         """
@@ -432,7 +437,4 @@ class ConsoleApplication(BaseApplication):
                 ask_debug_mode = True
 
         if ask_debug_mode:
-            if self.interactive:
-                print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
-            else:
-                print >>sys.stderr, 'Use --debug option to print backtraces.'
+            print >>sys.stderr, debugmsg

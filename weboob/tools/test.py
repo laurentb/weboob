@@ -1,24 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon, Laurent Bachelier
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from unittest import TestCase
+from random import choice
+
 from nose.plugins.skip import SkipTest
 from weboob.core import Weboob
-from random import choice
 
 
 __all__ = ['TestCase', 'BackendTest']
@@ -29,19 +32,35 @@ class BackendTest(TestCase):
     def __init__(self, *args, **kwargs):
         TestCase.__init__(self, *args, **kwargs)
 
+        self.backends = {}
+        self.backend_instance = None
         self.backend = None
         self.weboob = Weboob()
 
         if self.weboob.load_backends(modules=[self.BACKEND]):
-            self.backend = choice(self.weboob.backend_instances.values())
+            # provide the tests with all available backends
+            self.backends = self.weboob.backend_instances
+            # chose one backend (enough for most tests)
+            self.backend_instance = choice(self.backends.keys())
+            self.backend = self.backends[self.backend_instance]
 
     def run(self, result):
+        """
+        Call the parent run() for each backend instance.
+        Skip the test if we have no backends.
+        """
         try:
-            if not self.backend:
+            if not len(self.backends):
                 result.startTest(self)
                 result.stopTest(self)
                 raise SkipTest()
-
-            return TestCase.run(self, result)
+            TestCase.run(self, result)
         finally:
             self.weboob.deinit()
+
+    def shortDescription(self):
+        """
+        Generate a description with the backend instance name.
+        """
+        # do not use TestCase.shortDescription as it returns None
+        return '%s [%s]' % (str(self), self.backend_instance)

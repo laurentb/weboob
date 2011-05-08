@@ -1,4 +1,4 @@
-.TH BOOBANK 1 "01 March 2011" "boobank 0\&.6"
+.TH BOOBANK 1 "08 May 2011" "boobank 0\&.8"
 .SH NAME
 boobank
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ boobank
 .SH DESCRIPTION
 .LP
 
-Boobank is a console application to get bank accounts, display history and do transfer operations.
+Console application allowing to list your bank accounts and get their balance, display accounts history and coming bank operations, and transfer money from an account to another (if available).
 
 .SS Supported websites:
 * bnporc (BNP Paribas french bank' website)
@@ -37,19 +37,19 @@ Display old operations.
 .TP
 \fBlist\fR
 .br
-List every available accounts.
+List accounts.
 .TP
-\fBtransfer\fR \fIACCOUNT\fR [\fITO\fR \fIAMOUNT\fR [\fIREASON\fR]]
+\fBtransfer\fR \fIACCOUNT\fR [\fIRECIPIENT\fR \fIAMOUNT\fR [\fIREASON\fR]]
 .br
 Make a transfer beetwen two account
 .br
-\- ACCOUNT the source account
+\- ACCOUNT    the source account
 .br
-\- TO      the recipient
+\- RECIPIENT  the recipient
 .br
-\- AMOUNT  amount to transfer
+\- AMOUNT     amount to transfer
 .br
-\- REASON  reason of transfer
+\- REASON     reason of transfer
 .br
 
 .br
@@ -81,6 +81,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -150,6 +154,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -161,10 +173,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP
@@ -208,8 +216,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (account_list, csv, htmltable, multiline, simple, table,
-transfer, webkit)
+select output formatter (account_list, csv, htmltable, multiline,
+recipient_list, simple, table, transfer, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header

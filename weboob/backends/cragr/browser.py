@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2010  Romain Bignon
+# Copyright(C) 2009-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
@@ -21,12 +23,15 @@ from weboob.capabilities.bank import Transfer, TransferError
 from weboob.backends.cragr import pages
 import mechanize
 from datetime import datetime
+import re
 
 # Browser
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    # a session id that is sometimes added, and should be ignored when matching pages
+    SESSION_REGEXP = '(?:|%s[A-Z0-9]+)' % re.escape(r';jsessionid=')
 
     is_logging = False
 
@@ -34,9 +39,10 @@ class Cragr(BaseBrowser):
         self.DOMAIN = website
         self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
                       'https://%s/.*\.c.*'       % website:   pages.AccountsList,
-                      'https://%s/login/process' % website:   pages.AccountsList,
+                      ('https://%s/login/process' % website) + self.SESSION_REGEXP:   pages.AccountsList,
                       'https://%s/accounting/listAccounts' % website: pages.AccountsList,
                       'https://%s/accounting/listOperations' % website: pages.AccountsList,
+                      'https://%s/accounting/showAccountDetail.+' % website: pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -68,7 +74,15 @@ class Cragr(BaseBrowser):
 
     def get_accounts_list(self):
         self.home()
+        # if there is no redirection but we are connected, go to a page that will be recognized
+        # as the account list page
+        # this is a hack, a better solution would be to recognize the page regardless of the URL
         return self.page.get_list()
+
+    def home(self):
+        BaseBrowser.home(self)
+        if self.is_on_page(pages.LoginPage) and self.is_logged():
+            self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -146,8 +160,8 @@ class Cragr(BaseBrowser):
         self.select_form(nr=0)
         self['numCompteEmetteur']     = ['%s' % self.dict_find_value(source_accounts, account)]
         self['numCompteBeneficiaire'] = ['%s' % self.dict_find_value(target_accounts, to)]
-        self['montantPartieEntiere']  = '%s' % amount_euros
-        self['montantPartieDecimale'] = '%s' % amount_cents
+        self['montantPartieEntiere']  = '%s'   % amount_euros
+        self['montantPartieDecimale'] = '%02d' % amount_cents
         self['libelle']               = reason
         self.submit()
 

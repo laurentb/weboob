@@ -2,18 +2,20 @@
 
 # Copyright(C) 2010-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import with_statement
 
@@ -47,9 +49,10 @@ class TorrentInfoFormatter(IFormatter):
         result += 'Seeders: %s\n' % item['seeders']
         result += 'Leechers: %s\n' % item['leechers']
         result += 'URL: %s\n' % item['url']
-        result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
-        for f in item['files']:
-            result += ' * %s\n' % f
+        if item['files']:
+            result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
+            for f in item['files']:
+                result += ' * %s\n' % f
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += item['description']
         return result
@@ -78,7 +81,7 @@ class TorrentListFormatter(IFormatter):
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
                   'and download .torrent files.'
@@ -90,25 +93,10 @@ class Weboorrents(ReplApplication):
                            'info':      'torrent_info',
                           }
 
-    torrents = []
-
-    def _complete_id(self):
-        return ['%s@%s' % (torrent.id, torrent.backend) for torrent in self.torrents]
-
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
-
-    def parse_id(self, id):
-        if self.interactive:
-            try:
-                torrent = self.torrents[int(id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                id = '%s@%s' % (torrent.id, torrent.backend)
-        return ReplApplication.parse_id(self, id)
+            return self._complete_object()
 
     def do_info(self, id):
         """
@@ -126,13 +114,14 @@ class Weboorrents(ReplApplication):
 
         if not found:
             print >>sys.stderr, 'Torrent "%s" not found' % id
+            return 3
         else:
             self.flush()
 
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
@@ -162,6 +151,7 @@ class Weboorrents(ReplApplication):
                 return
 
         print >>sys.stderr, 'Torrent "%s" not found' % id
+        return 3
 
     def do_search(self, pattern):
         """
@@ -169,11 +159,11 @@ class Weboorrents(ReplApplication):
 
         Search torrents.
         """
-        self.torrents = []
+        self.change_path('/search')
         if not pattern:
             pattern = None
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
-            self.torrents.append(torrent)
+            self.add_object(torrent)
             self.format(torrent)
         self.flush()

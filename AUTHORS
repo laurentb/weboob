@@ -24,6 +24,9 @@ Julien Hebert <juke@free.fr>
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
 
+Laurent Bachelier <laurent@bachelier.name>
+        * Pastealacon and PasteBin backends maintainer.
+
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
 
@@ -35,10 +38,10 @@ Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
 
 Johann Broudin <johann.broudin@6-8.fr>
-        * LeMouv backend maintainer.
+        * FranceInter and LeMouv backends maintainer.
 
 Roger Philibert <roger.philibert@gmail.com>
-        * Youjizz backend maintainer.
+        * Ehentai and Youjizz backends maintainer.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale backend maintainer.
@@ -46,11 +49,17 @@ Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance backend maintainer.
 
-Laurent Bachelier <laurent@bachelier.name>
-        * Various contributions.
+Erwan Jahier <Erwan.Jahier@imag.fr>
+        * Patches on BP.
 
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
-        * Fixes for Windows.
+        * Windows support.
+
+Michael Scherer <misc@zarb.org>
+        * Contribution on weboob-config.
+
+Romain Garbage <romain.garbage@gmail.com>
+        * Fixes for FreeBSD.
 
 Philippe Fremy <phil@freehackers.org>
         * Fixes for Windows.

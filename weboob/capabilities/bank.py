@@ -1,27 +1,30 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from datetime import datetime, date
 
-from .base import IBaseCap, CapBaseObject
+from .base import CapBaseObject
+from .collection import ICapCollection, CollectionNotFound
 
 
-__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 
+__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank',
     'Operation']
 
 
@@ -34,10 +37,14 @@ class AccountNotFound(Exception):
 class TransferError(Exception):
     pass
 
-class Account(CapBaseObject):
+class Recipient(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
         self.add_field('label', basestring)
+
+class Account(Recipient):
+    def __init__(self):
+        Recipient.__init__(self)
         self.add_field('balance', float)
         self.add_field('coming', float)
         self.link_id = None
@@ -54,7 +61,7 @@ class Operation(CapBaseObject):
         self.add_field('amount', float)
 
     def __repr__(self):
-        return "<Operation date='%s' label='%s' amount=%s>" % (self.date, 
+        return "<Operation date='%s' label='%s' amount=%s>" % (self.date,
             self.label, self.amount)
 
 class Transfer(CapBaseObject):
@@ -65,7 +72,13 @@ class Transfer(CapBaseObject):
         self.add_field('origin', (int, long, basestring))
         self.add_field('recipient', (int, long, basestring))
 
-class ICapBank(IBaseCap):
+class ICapBank(ICapCollection):
+    def iter_resources(self, splited_path):
+        if len(splited_path) > 0:
+            raise CollectionNotFound()
+
+        return self.iter_accounts()
+
     def iter_accounts(self):
         raise NotImplementedError()
 
@@ -78,12 +91,21 @@ class ICapBank(IBaseCap):
     def iter_history(self, account):
         raise NotImplementedError()
 
-    def transfer(self, account, to, amount, reason=None):
+    def iter_transfer_recipients(self, account):
+        """
+        Iter recipients availables for a transfer from a specific account.
+
+        @param account [Account] account which initiate the transfer
+        @return [iter(Recipient)]
+        """
+        raise NotImplementedError()
+
+    def transfer(self, account, recipient, amount, reason=None):
         """
         Make a transfer from an account to a recipient.
 
         @param account [Account]  account to take money
-        @param to [Account]  account to send money
+        @param recipient [Recipient]  account to send money
         @param amount [float]  amount
         @param reason [str]  reason of transfer
         @return [Transfer]  a Transfer object

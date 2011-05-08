@@ -2,18 +2,20 @@
 
 # Copyright(C) 2010-2011  Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import sys
@@ -161,7 +163,7 @@ class MessagesListFormatter(IFormatter):
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
@@ -173,9 +175,9 @@ class Boobmsg(ReplApplication):
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
                            'export_thread': 'msg',
-                           'export_all': 'msg'
+                           'export_all': 'msg',
+                           'ls':      'msglist',
                           }
-
 
     def add_application_options(self, group):
         group.add_option('-e', '--skip-empty',  action='store_true',
@@ -254,7 +256,6 @@ class Boobmsg(ReplApplication):
                 thread_id = receiver
                 parent_id = None
 
-
             thread = Thread(thread_id)
             message = Message(thread,
                               0,
@@ -297,6 +298,8 @@ class Boobmsg(ReplApplication):
             self.formatter._list_messages = False
 
         for backend, thread in cmd:
+            if not thread:
+                continue
             if len(arg) > 0:
                 for m in thread.iter_all_messages():
                     if not m.backend:
@@ -314,11 +317,16 @@ class Boobmsg(ReplApplication):
         Export All threads
         """
 
-        cmd = self.do('iter_threads')
-        for backend, thread in cmd:
-            t  = backend.get_thread(thread.id)
-            for msg in t.iter_all_messages():
-                self.format(msg)
+        def func(backend):
+            for thread in backend.iter_threads():
+                if not thread:
+                    continue
+                t = backend.fillobj(thread, None)
+                for msg in t.iter_all_messages():
+                    yield msg
+
+        for backend, msg in self.do(func):
+            self.format(msg)
 
     def do_export_thread(self, arg):
         """
@@ -340,8 +348,8 @@ class Boobmsg(ReplApplication):
         Read a message
         """
         if len(arg) == 0:
-            print 'Please give a message ID.'
-            return
+            print >>sys.stderr, 'Please give a message ID.'
+            return 2
 
         try:
             message = self.messages[int(arg) - 1]
@@ -353,6 +361,8 @@ class Boobmsg(ReplApplication):
             return
 
         if not self.interactive:
-            print 'Oops, you need to be in interactive mode to read messages'
+            print >>sys.stderr,  'Oops, you need to be in interactive mode to read messages'
+            return 1
         else:
-            print 'Message not found'
+            print >>sys.stderr,  'Message not found'
+            return 3

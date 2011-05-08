@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import OuiFMBrowser
@@ -25,13 +28,13 @@ from .browser import OuiFMBrowser
 __all__ = ['OuiFMBackend']
 
 
-class OuiFMBackend(BaseBackend, ICapRadio):
+class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'ouifm'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     DESCRIPTION = u'The Ouï FM french radio'
-    LICENSE = 'GPLv3'
+    LICENSE = 'AGPLv3+'
     BROWSER = OuiFMBrowser
 
     _RADIOS = {'general':     (u'OUÏ FM',            u'OUI FM',                       u'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3'),
@@ -41,13 +44,16 @@ class OuiFMBackend(BaseBackend, ICapRadio):
                'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3'),
               }
 
-    def iter_radios(self):
+    def iter_resources(self, splited_path):
+        if len(splited_path) > 0:
+            raise CollectionNotFound()
+
         for id in self._RADIOS.iterkeys():
             yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
-        for radio in self.iter_radios():
-            if pattern in radio.title or pattern in radio.description:
+        for radio in self.iter_resources([]):
+            if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 
     def get_radio(self, radio):

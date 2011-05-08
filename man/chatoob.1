@@ -1,4 +1,4 @@
-.TH CHATOOB 1 "01 March 2011" "chatoob 0\&.6"
+.TH CHATOOB 1 "08 May 2011" "chatoob 0\&.8"
 .SH NAME
 chatoob
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ chatoob
 .SH DESCRIPTION
 .LP
 
-Chatoob is a console application to chat with contacts.
+Console application allowing to chat with contacts on various websites.
 
 .SS Supported websites:
 * aum (“Adopte un mec” french dating website)
@@ -53,6 +53,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -122,6 +126,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -133,10 +145,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP

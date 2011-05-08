@@ -1,4 +1,4 @@
-.TH BOOBMSG 1 "01 March 2011" "boobmsg 0\&.6"
+.TH BOOBMSG 1 "08 May 2011" "boobmsg 0\&.8"
 .SH NAME
 boobmsg
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ boobmsg
 .SH DESCRIPTION
 .LP
 
-Boobmsg is a console application to send messages on supported websites and to display messages threads and contents.
+Console application allowing to send messages on various websites and to display message threads and contents.
 
 .SS Supported websites:
 * aum (“Adopte un mec” french dating website)
@@ -19,6 +19,8 @@ Boobmsg is a console application to send messages on supported websites and to d
 * bouygues (Bouygues french mobile phone provider)
 .br
 * dlfp (Da Linux French Page)
+.br
+* ecrans (Ecrans French news website)
 .br
 * fourchan (4chan website)
 .br
@@ -34,6 +36,10 @@ Boobmsg is a console application to send messages on supported websites and to d
 .br
 * sfr (SFR french mobile phone provider)
 .SH BOOBMSG COMMANDS
+.TP
+\fBexport_all\fR
+.br
+Export All threads
 .TP
 \fBexport_thread\fR
 .br
@@ -85,6 +91,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -154,6 +164,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -165,10 +183,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP
@@ -221,7 +235,7 @@ select result item keys to display (comma separated)
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
 select output formatter (csv, htmltable, msg, msglist, multiline, simple, table,
-webkit)
+webkit, xhtml)
 .TP
 \fB\-\-no\-header\fR
 do not display header

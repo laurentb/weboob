@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Christophe Benz, Romain Bignon, John Obbele
+# Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele, Nicolas Duhamel
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import with_statement
 
 from __future__ import with_statement
 
@@ -26,7 +30,6 @@ from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
-
 
 __all__ = ['Videoob']
 
@@ -57,16 +60,16 @@ class VideoListFormatter(IFormatter):
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon, John Obbele'
     DESCRIPTION = 'Console application allowing to search for videos on various websites, ' \
                   'play and download them and get information.'
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
-    COMMANDS_FORMATTERS = {'search': 'video_list'}
+    COMMANDS_FORMATTERS = {'search': 'video_list',
+                           'ls': 'video_list'}
 
     nsfw = True
-    videos = []
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -76,29 +79,10 @@ class Videoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def _get_video(self, _id, fields=None):
-        if self.interactive:
-            try:
-                video = self.videos[int(_id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                for backend, video in self.do('fillobj', video, fields, backends=[video.backend]):
-                    if video:
-                        return video
-        _id, backend_name = self.parse_id(_id)
-        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, video in self.do('get_video', _id, backends=backend_names):
-            if video:
-                return video
-
-    def _complete_id(self):
-        return ['%s@%s' % (video.id, video.backend) for video in self.videos]
-
     def complete_download(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
@@ -109,16 +93,19 @@ class Videoob(ReplApplication):
         Download a video
         """
         _id, dest = self.parse_command_args(line, 2, 1)
-        video = self._get_video(_id, ['url'])
+        video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print 'Video not found: %s' %  _id
-            return 1
+            print >>sys.stderr, 'Video not found: %s' %  _id
+            return 3
 
-        with open('/dev/null', 'w') as devnull:
-            process = subprocess.Popen(['which', 'wget'], stdout=devnull)
-            if process.wait() != 0:
-                print >>sys.stderr, 'Please install "wget"'
-                return 1
+        def check_exec(executable):
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(['which', executable], stdout=devnull)
+                if process.wait() != 0:
+                    print >>sys.stderr, 'Please install "%s"' % executable
+                    return False
+            return True
+
 
         if dest is None:
             ext = video.ext
@@ -126,12 +113,23 @@ class Videoob(ReplApplication):
                 ext = 'avi'
             dest = '%s.%s' % (video.id, ext)
 
-        os.system('wget "%s" -O "%s"' % (video.url, dest))
+        if video.url.find('rtmp') == 0:
+            if check_exec('rtmpdump'):
+                cmd = "rtmpdump -r " + video.url + " -o " + dest
+            else:
+                return 1
+        else:
+            if check_exec('wget'):
+                cmd = 'wget "%s" -O "%s"' % (video.url, dest)
+            else:
+                return 1
+
+        os.system(cmd)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_play(self, _id):
         """
@@ -140,13 +138,13 @@ class Videoob(ReplApplication):
         Play a video with a found player.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
+            return 2
 
-        video = self._get_video(_id, ['url'])
+        video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print 'Video not found: %s' %  _id
-            return
+            print >>sys.stderr, 'Video not found: %s' %  _id
+            return 3
         try:
             player_name = self.config.get('media_player')
             if not player_name:
@@ -159,7 +157,7 @@ class Videoob(ReplApplication):
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_info(self, _id):
         """
@@ -168,13 +166,13 @@ class Videoob(ReplApplication):
         Get information about a video.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            return 2
 
-        video = self._get_video(_id)
+        video = self.get_object(_id, 'get_video')
         if not video:
             print >>sys.stderr, 'Video not found: %s' %  _id
-            return
+            return 3
         self.format(video)
         self.flush()
 
@@ -197,6 +195,7 @@ class Videoob(ReplApplication):
                 self.nsfw = False
             else:
                 print 'Invalid argument "%s".' % line
+                return 2
         else:
             print "on" if self.nsfw else "off"
 
@@ -210,15 +209,15 @@ class Videoob(ReplApplication):
         """
         if len(self.enabled_backends) == 0:
             if self.interactive:
-                print 'No backend loaded. Please use the "backends" command.'
+                print >>sys.stderr, 'No backend loaded. Please use the "backends" command.'
             else:
-                print 'No backend loaded.'
+                print >>sys.stderr, 'No backend loaded.'
             return 1
 
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
-        self.videos = []
+        self.change_path('/search')
         for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
-            self.videos.append(video)
+            self.add_object(video)
             self.format(video)
         self.flush()

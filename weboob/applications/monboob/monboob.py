@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2009-2011  Romain Bignon, Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from email.mime.text import MIMEText
@@ -83,7 +85,7 @@ class MonboobScheduler(Scheduler):
 
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Daemon allowing to regularly check for new messages on various websites, ' \
                   'and send an email for each message, and post a reply to a message on a website.'
@@ -107,6 +109,21 @@ class Monboob(ReplApplication):
 
     def main(self, argv):
         self.load_config()
+        try:
+            self.config.set('interval', int(self.config.get('interval')))
+            if self.config.get('interval') < 1:
+                raise ValueError()
+        except ValueError:
+            print >>sys.stderr, 'Configuration error: interval must be an integer >0.'
+            return 1
+
+        try:
+            self.config.set('html', int(self.config.get('html')))
+            if self.config.get('html') not in (0,1):
+                raise ValueError()
+        except ValueError:
+            print >>sys.stderr, 'Configuration error: html must be 0 or 1.'
+            return 2
 
         return ReplApplication.main(self, argv)
 
@@ -231,7 +248,7 @@ class Monboob(ReplApplication):
 
         Run the fetching daemon.
         """
-        self.weboob.repeat(int(self.config.get('interval')), self.process)
+        self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
 
     def process(self):
@@ -256,7 +273,7 @@ class Monboob(ReplApplication):
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
         msg_id = u'<%s.%s@%s>' % (backend.name, mail.full_id, domain)
 
-        if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+        if self.config.get('html') and mail.flags & mail.IS_HTML:
             body = mail.content
             content_type = 'html'
         else:
@@ -270,7 +287,7 @@ class Monboob(ReplApplication):
             body = ''
 
         if mail.signature:
-            if int(self.config.get('html')) and mail.flags & mail.IS_HTML:
+            if self.config.get('html') and mail.flags & mail.IS_HTML:
                 body += u'<p>-- <br />%s</p>' % mail.signature
             else:
                 body += u'\n\n-- \n'

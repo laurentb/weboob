@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import with_statement
 
@@ -22,6 +24,7 @@ from httplib import BadStatusLine
 from logging import warning
 import mechanize
 import os
+import sys
 import re
 import tempfile
 from threading import RLock
@@ -91,6 +94,8 @@ class NoHistory(object):
     def close(self):
         pass
 
+class BrokenPageError(Exception):
+    pass
 
 class BasePage(object):
     """
@@ -98,6 +103,7 @@ class BasePage(object):
     """
     def __init__(self, browser, document, url='', groups=None, group_dict=None, logger=None):
         self.browser = browser
+        self.parser = browser.parser
         self.document = document
         self.url = url
         self.groups = groups
@@ -130,6 +136,7 @@ class BaseBrowser(mechanize.Browser):
     USER_AGENT = USER_AGENTS['desktop_firefox']
     SAVE_RESPONSES = False
     DEBUG_HTTP = False
+    DEBUG_MECHANIZE = False
 
     responses_dirname = None
     responses_count = 0
@@ -169,7 +176,8 @@ class BaseBrowser(mechanize.Browser):
     default_features.remove('_refresh')
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
-                 parser=None, history=NoHistory(), proxy=None, logger=None):
+                 parser=None, history=NoHistory(), proxy=None, logger=None,
+                 factory=None, get_home=True):
         """
         Constructor of Browser.
 
@@ -181,8 +189,10 @@ class BaseBrowser(mechanize.Browser):
         @param hisory [object]  History manager. Default value is an object
                                 which does not keep history.
         @param proxy [str]  proxy URL to use.
+        @param factory [object] Mechanize factory. None to use Mechanize's default.
+        @param get_home [bool] Try to get the homepage.
         """
-        mechanize.Browser.__init__(self, history=history)
+        mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
 
         self.addheaders = [
@@ -217,7 +227,7 @@ class BaseBrowser(mechanize.Browser):
         self.username = username
         self.password = password
         self.lock = RLock()
-        if self.password:
+        if self.password and get_home:
             try:
                 self.home()
             # Do not abort the build of browser when the website is down.
@@ -225,10 +235,12 @@ class BaseBrowser(mechanize.Browser):
                 pass
 
         if self.DEBUG_HTTP:
+            # display messages from httplib
+            self.set_debug_http(True)
+
+        if self.DEBUG_MECHANIZE:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
-            self.set_debug_responses(True)
-            self.set_debug_http(True)
 
     def __enter__(self):
         self.lock.acquire()
@@ -250,10 +262,13 @@ class BaseBrowser(mechanize.Browser):
 
     def check_location(func):
         def inner(self, *args, **kwargs):
-            if args and isinstance(args[0], basestring) and args[0].startswith('/') and \
-               (not self.request or self.request.host != self.DOMAIN):
-                args = ('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, args[0]),) + args[1:]
+            if args and isinstance(args[0], basestring):
+                url = args[0]
+                if url.startswith('/') and (not self.request or self.request.host != self.DOMAIN):
+                    url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
+                url = re.sub('(.*)#.*', r'\1', url)
 
+                args = (url,) + args[1:]
             return func(self, *args, **kwargs)
         return inner
 
@@ -265,12 +280,6 @@ class BaseBrowser(mechanize.Browser):
         """
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
-
-        if self.DEBUG_HTTP:
-            # Enable log messages from mechanize.Browser
-            self.set_debug_redirects(True)
-            self.set_debug_responses(True)
-            self.set_debug_http(True)
 
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
@@ -284,7 +293,7 @@ class BaseBrowser(mechanize.Browser):
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def get_exception(self, e):
-        if isinstance(e, urllib2.HTTPError) and e.getcode() == 404:
+        if isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() == 404:
             return BrowserHTTPNotFound
         else:
             return BrowserHTTPError
@@ -311,7 +320,7 @@ class BaseBrowser(mechanize.Browser):
         """
         if self.responses_dirname is None:
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print 'Debug data will be saved in this directory: %s' % self.responses_dirname
+            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
         response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
         with open(response_filepath, 'w') as f:
             f.write(result.read())
@@ -392,6 +401,29 @@ class BaseBrowser(mechanize.Browser):
 
     def get_document(self, result):
         return self.parser.parse(result, self.ENCODING)
+
+    # DO NOT ENABLE THIS FUCKING PEACE OF CODE EVEN IF IT WOULD BE BETTER
+    # TO SANITARIZE FUCKING HTML.
+    #def _set_response(self, response, *args, **kwargs):
+    #    import time
+    #    if response and hasattr(response, 'set_data'):
+    #        print time.time()
+    #        r = response.read()
+    #        start = 0
+    #        end = 0
+    #        new = ''
+    #        lowr = r.lower()
+    #        start = lowr[end:].find('<script')
+    #        while start >= end:
+    #            start_stop = start + lowr[start:].find('>') + 1
+    #            new += r[end:start_stop]
+    #            end = start + lowr[start:].find('</script>')
+    #            new += r[start_stop:end].replace('<', '&lt;').replace('>', '&gt;')
+    #            start = end + lowr[end:].find('<script')
+    #        new += r[end:]
+    #        response.set_data(new)
+    #        print time.time()
+    #    mechanize.Browser._set_response(self, response, *args, **kwargs)
 
     def _change_location(self, result, no_login=False):
         """
@@ -485,7 +517,7 @@ class BaseBrowser(mechanize.Browser):
                                 value = [self.str(is_list.index(args[label]))]
                             except ValueError, e:
                                 if args[label]:
-                                    print '[%s] %s: %s' % (label, args[label], e)
+                                    print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
                                 return
                         else:
                             value = [self.str(args[label])]
@@ -494,6 +526,3 @@ class BaseBrowser(mechanize.Browser):
                 self[field] = value
         except ControlNotFoundError:
             return
-
-    def fillobj(self, obj, fields):
-        raise NotImplementedError()

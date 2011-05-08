@@ -1,24 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
 import sys
 import re
+from copy import copy
 
 from weboob.capabilities.account import ICapAccount
 from weboob.core.modules import ModuleLoadError
@@ -31,13 +34,17 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
                            }
+    DISABLE_REPL = True
+
+    weboob_commands = copy(ReplApplication.weboob_commands)
+    weboob_commands.remove('backends')
 
     def load_default_backends(self):
         pass
@@ -50,7 +57,7 @@ class WeboobCfg(ReplApplication):
         """
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
-            return
+            return 2
         name, options = self.parse_command_args(line, 2, 1)
         if options:
             options = options.split(' ')
@@ -63,8 +70,8 @@ class WeboobCfg(ReplApplication):
             try:
                 key, value = option.split('=', 1)
             except ValueError:
-                print 'Parameters have to be formatted "key=value"'
-                return
+                print >>sys.stderr, 'Parameters have to be formatted "key=value"'
+                return 2
             params[key] = value
 
         self.add_backend(name, params)
@@ -108,12 +115,15 @@ class WeboobCfg(ReplApplication):
 
     def do_list(self, line):
         """
-        list
+        list [CAPS ..]
 
         Show configured backends.
         """
+        caps = line.split()
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
+            if caps and not self.caps_included(backend.iter_caps(), caps):
+                continue
             row = OrderedDict([('Instance name', instance_name),
                                ('Backend', name),
                                ('Configuration', ', '.join(
@@ -131,9 +141,33 @@ class WeboobCfg(ReplApplication):
         Remove a configured backend.
         """
         if not self.weboob.backends_config.remove_backend(instance_name):
-            print 'Backend instance "%s" does not exist' % instance_name
+            print >>sys.stderr, 'Backend instance "%s" does not exist' % instance_name
             return 1
-        return 0
+
+
+    def _do_toggle(self, name, state):
+        try:
+            bname, items = self.weboob.backends_config.get_backend(name)
+        except KeyError:
+            print >>sys.stderr, 'Backend instance "%s" does not exist' % name
+            return 1
+        self.weboob.backends_config.edit_backend(name, bname, {'_enabled': state})
+
+    def do_enable(self, name):
+        """
+        enable NAME
+
+        Enable a disabled backend
+        """
+        self._do_toggle(name, 1)
+
+    def do_disable(self, name):
+        """
+        disable NAME
+
+        Disable a backend
+        """
+        self._do_toggle(name, 0)
 
     def do_edit(self, line):
         """
@@ -173,7 +207,7 @@ class WeboobCfg(ReplApplication):
         """
         if not line:
             print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
-            return
+            return 2
 
         try:
             backend = self.weboob.modules_loader.get_or_load_module(line)
@@ -181,7 +215,7 @@ class WeboobCfg(ReplApplication):
             backend = None
 
         if not backend:
-            print 'Backend "%s" does not exist.' % line
+            print >>sys.stderr, 'Backend "%s" does not exist.' % line
             return 1
 
         print '.------------------------------------------------------------------------------.'

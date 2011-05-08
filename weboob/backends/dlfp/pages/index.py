@@ -2,21 +2,23 @@
 
 # Copyright(C) 2010-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BrowserIncorrectPassword, BasePage
+from weboob.tools.browser import BasePage
 
 class DLFPPage(BasePage):
     def is_logged(self):
@@ -27,15 +29,11 @@ class DLFPPage(BasePage):
         return True
 
 class IndexPage(DLFPPage):
-    pass
+    def get_login_token(self):
+        form = self.parser.select(self.document.getroot(), 'form#new_account_sidebar', 1)
+        for i in form.find('div').getiterator('input'):
+            if i.attrib['name'] == 'authenticity_token':
+                return  i.attrib['value']
 
 class LoginPage(DLFPPage):
-    def on_loaded(self):
-        if self.has_error():
-            raise BrowserIncorrectPassword()
-
-    def has_error(self):
-        for p in self.document.getiterator('p'):
-            if p.text and p.text.startswith(u'Vous avez rentré un mauvais mot de passe'):
-                return True
-        return False
+    pass

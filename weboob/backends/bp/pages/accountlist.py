@@ -2,18 +2,20 @@
 
 # Copyright(C) 2010-2011  Nicolas Duhamel
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from weboob.capabilities.bank import Account, AccountNotFound
@@ -29,6 +31,9 @@ class AccountList(BasePage):
         self.account_list = []
         self.parse_table('comptes')
         self.parse_table('comptesEpargne')
+        self.parse_table('comptesTitres')
+        self.parse_table('comptesVie')
+        self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
         return self.account_list
@@ -39,15 +44,22 @@ class AccountList(BasePage):
             return
 
         lines = tables[0].xpath(".//tbody/tr")
-
         for line  in lines:
             account = Account()
             tmp = line.xpath("./td//a")[0]
             account.label = tmp.text
             account.link_id = tmp.get("href")
+
             tmp = line.xpath("./td//strong")
-            account.id = tmp[0].text
-            account.balance = float(''.join(tmp[1].text.replace('.','').replace(',','.').split()))
+            if len(tmp) != 2:
+                tmp_id = line.xpath("./td//span")[1].text
+                tmp_balance = tmp[0].text
+            else:
+                tmp_id = tmp[0].text
+                tmp_balance = tmp[1].text
+
+            account.id = tmp_id 
+            account.balance = float(''.join(tmp_balance.replace('.','').replace(',','.').split()))
             self.account_list.append(account)
 
     def get_account(self, id):

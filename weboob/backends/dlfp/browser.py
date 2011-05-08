@@ -2,18 +2,20 @@
 
 # Copyright(C) 2010-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import urllib
@@ -32,31 +34,28 @@ from .tools import id2url, url2id
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
-    PAGES = {'https://linuxfr.org/?': IndexPage,
-             'https://linuxfr.org/login.html': LoginPage,
-             'https://linuxfr.org/news/[^\.]+': ContentPage,
-             'https://linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
-             'https://linuxfr.org/wiki': WikiEditPage,
-             'https://linuxfr.org/wiki/nouveau': WikiEditPage,
-             'https://linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
-             'https://linuxfr.org/suivi/[^\.]+': ContentPage,
-             'https://linuxfr.org/sondages/[^\.]+': ContentPage,
-             'https://linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
-             'https://linuxfr.org/forums/[\w\-_]+/posts/[^\.]+': ContentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
-             'https://linuxfr.org/nodes/(\d+)/comments': NodePage,
-             'https://linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
-             'https://linuxfr.org/board/index.xml': BoardIndexPage,
+    PAGES = {'https?://.*linuxfr.org/?': IndexPage,
+             'https?://.*linuxfr.org/compte/connexion': LoginPage,
+             'https?://.*linuxfr.org/news/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
+             'https?://.*linuxfr.org/wiki': WikiEditPage,
+             'https?://.*linuxfr.org/wiki/nouveau': WikiEditPage,
+             'https?://.*linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
+             'https?://.*linuxfr.org/suivi/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/sondages/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/forums/[\w\-_]+/posts/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
+             'https?://.*linuxfr.org/nodes/(\d+)/comments': NodePage,
+             'https?://.*linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
+             'https?://.*linuxfr.org/board/index.xml': BoardIndexPage,
             }
 
     last_board_msg_id = None
 
-    def home(self):
-        return self.location('https://linuxfr.org')
-
     def parse_id(self, _id):
-        if re.match('^https?://linuxfr.org/nodes/\d+/comments/\d+$', _id):
+        if re.match('^https?://.*linuxfr.org/nodes/\d+/comments/\d+$', _id):
             return _id, None
 
         url = id2url(_id)
@@ -186,9 +185,13 @@ class DLFP(BaseBrowser):
         return None
 
     def login(self):
+        # not usefull for the moment
+        #self.location('/', no_login=True)
         data = {'account[login]': self.username,
                 'account[password]': self.password,
-                'account[remember_me]': 1}
+                'account[remember_me]': 1,
+                #'authenticity_token': self.page.get_login_token(),
+               }
         self.location('/compte/connexion', urllib.urlencode(data), no_login=True)
         if not self.is_logged():
             raise BrowserIncorrectPassword()

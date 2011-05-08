@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Christophe Benz
+# Copyright(C) 2010-2011 Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import re
 
 from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
-from weboob.tools.parsers.lxmlparser import select
+
 
 
 __all__ = ['ClosePage', 'ComposePage', 'ConfirmPage', 'SentPage']
@@ -35,7 +37,7 @@ class ComposePage(BasePage):
 
     def get_nb_remaining_free_sms(self):
         remaining_regex = re.compile(u'Il vous reste (?P<nb>.+) Texto gratuits vers les numéros SFR à envoyer aujourd\'hui')
-        text = select(self.document.getroot(), '#smsReminder', 1).text.strip()
+        text = self.parser.select(self.document.getroot(), '#smsReminder', 1).text.strip()
         return remaining_regex.match(text).groupdict().get('nb')
 
     def post_message(self, message):

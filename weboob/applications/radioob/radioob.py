@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import sys
@@ -46,21 +48,24 @@ class RadioListFormatter(IFormatter):
             result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
         result += '   %-30s' % item['description']
         if item['current'] is not NotLoaded:
-            result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
+            if item['current'].artist:
+                result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
+            else:
+                result += ' (Current: %s)' % item['current'].title
         return result
 
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for web radio stations, listen to them and get information ' \
                   'like the current song.'
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
-    COMMANDS_FORMATTERS = {'list':    'radio_list'}
-
-    radios = []
+    COMMANDS_FORMATTERS = {'ls':     'radio_list',
+                           'search': 'radio_list',
+                          }
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -70,29 +75,10 @@ class Radioob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def _get_radio(self, _id, fields=None):
-        if self.interactive:
-            try:
-                radio = self.radios[int(_id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                for backend, radio in self.do('fillobj', radio, fields, backends=[radio.backend]):
-                    if radio:
-                        return radio
-        _id, backend_name = self.parse_id(_id)
-        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, radio in self.do('get_radio', _id, backends=backend_names):
-            if radio:
-                return radio
-
-    def _complete_id(self):
-        return ['%s@%s' % (radio.id, radio.backend) for radio in self.radios]
-
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_play(self, _id):
         """
@@ -101,13 +87,13 @@ class Radioob(ReplApplication):
         Play a radio with a found player.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('play', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
+            return 2
 
-        radio = self._get_radio(_id, ['streams'])
+        radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
             print >>sys.stderr, 'Radio not found: ' % _id
-            return
+            return 1
         try:
             player_name = self.config.get('media_player')
             if not player_name:
@@ -115,12 +101,12 @@ class Radioob(ReplApplication):
                                   'configuration file.')
             self.player.play(radio.streams[0], player_name=player_name)
         except (InvalidMediaPlayer, MediaPlayerNotFound), e:
-            print '%s\nVideo URL: %s' % (e, radio.streams[0].url)
+            print '%s\nRadio URL: %s' % (e, radio.streams[0].url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_info(self, _id):
         """
@@ -129,27 +115,28 @@ class Radioob(ReplApplication):
         Get information about a radio.
         """
         if not _id:
-            print 'This command takes an argument: %s' % self.get_command_help('info', short=True)
-            return
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
+            return 2
 
-        radio = self._get_radio(_id)
+        radio = self.get_object(_id, 'get_radio')
         if not radio:
-            print 'Radio not found:', _id
-            return
+            print >>sys.stderr, 'Radio not found:', _id
+            return 3
         self.format(radio)
         self.flush()
 
-    def do_list(self, pattern=None):
+    def do_search(self, pattern=None):
         """
-        list [PATTERN]
+        search PATTERN
 
         List radios matching a PATTERN.
 
         If PATTERN is not given, this command will list all the radios.
         """
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'All radios')
-        self.radios = []
+        self.change_path('/search')
         for backend, radio in self.do('iter_radios_search', pattern=pattern):
-            self.radios.append(radio)
+            self.add_object(radio)
             self.format(radio)
         self.flush()
+

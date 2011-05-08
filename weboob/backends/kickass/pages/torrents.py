@@ -1,20 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Julien Veyssier
+# Copyright(C) 2010-2011 Julien Veyssier, Laurent Bachelier
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
+try:
+    from urlparse import parse_qs
+except ImportError:
+    from cgi import parse_qs
+from urlparse import urlsplit
 
 from weboob.capabilities.torrent import Torrent
 from weboob.tools.browser import BasePage
@@ -32,10 +40,7 @@ class TorrentsPage(BasePage):
                 if not title:
                     title = ''
                 for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
-                    if red.text:
-                        title += red.text
-                    if red.tail:
-                        title += red.tail
+                    title += red.text_content()
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
                     .replace('.html', '')
 
@@ -55,6 +60,7 @@ class TorrentsPage(BasePage):
                 yield Torrent(idt,
                               title,
                               url=url,
+                              filename=parse_qs(urlsplit(url).query).get('title', [None])[0],
                               size=get_bytes_size(size, u),
                               seeders=int(seed),
                               leechers=int(leech))
@@ -68,17 +74,17 @@ class TorrentPage(BasePage):
         url = 'No Url found'
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
-                description = div.text.strip()
-                for ch in div.getchildren():
-                    if ch.tail != None:
-                        description += ' '+ch.tail.strip()
+                try:
+                    description = div.text_content()
+                except UnicodeDecodeError:
+                    description = 'Description with invalid UTF-8.'
             elif div.attrib.get('class', '') == 'seedBlock':
-                if div.getchildren()[1].text != None:
+                if div.getchildren()[1].text is not None:
                     seed = int(div.getchildren()[1].text)
                 else:
                     seed = 0
             elif div.attrib.get('class', '') == 'leechBlock':
-                if div.getchildren()[1].text != None:
+                if div.getchildren()[1].text is not None:
                     leech = int(div.getchildren()[1].text)
                 else:
                     leech = 0
@@ -106,8 +112,8 @@ class TorrentPage(BasePage):
                 files.append(td.text)
 
         torrent = Torrent(id, title)
-        torrent = Torrent(id, title)
         torrent.url = url
+        torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
         torrent.size = get_bytes_size(size, u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)

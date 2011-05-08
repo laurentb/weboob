@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from dateutil import tz
 from logging import warning
+from time import time, sleep
+from tempfile import gettempdir
+import os
 import sys
 import traceback
 import types
@@ -52,7 +57,7 @@ def get_bytes_size(size, unit_name):
         'GB': 1024 * 1024 * 1024,
         'TB': 1024 * 1024 * 1024 * 1024,
         }
-    return float(size * unit_data[unit_name])
+    return float(size * unit_data.get(unit_name, 1))
 
 
 try:
@@ -115,3 +120,38 @@ def limit(iterator, lim):
         yield iterator.next()
         count += 1
     raise StopIteration()
+
+def ratelimit(group, delay):
+    """
+    Simple rate limiting.
+
+    Waits if the last call of lastlimit with this group name was less than
+    delay seconds ago. The rate limiting is global, shared between any instance
+    of the application and any call to this function sharing the same group
+    name. The same group name should not be used with different delays.
+
+    This function is intended to be called just before the code that should be
+    rate-limited.
+
+    This function is not thread-safe. For reasonably non-critical rate
+    limiting (like accessing a website), it should be sufficient nevertheless.
+
+    @param group [string]  rate limiting group name, alphanumeric
+    @param delay [int]  delay in seconds between each call
+    """
+
+    path = os.path.join(gettempdir(), 'weboob_ratelimit.%s' % group)
+    while True:
+        try:
+            offset = time() - os.stat(path).st_mtime
+        except OSError:
+            with open(path, 'w'):
+                pass
+            offset = 0
+
+        if delay < offset:
+            break
+
+        sleep(delay - offset)
+
+    os.utime(path, None)

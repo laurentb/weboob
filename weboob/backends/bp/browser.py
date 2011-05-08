@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Nicolas Duhamel
+# Copyright(C) 2010-2011 Nicolas Duhamel
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from datetime import datetime
@@ -40,6 +42,7 @@ class BPBrowser(BaseBrowser):
              r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
              
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
+             r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
              
              r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
              r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
@@ -74,12 +77,12 @@ class BPBrowser(BaseBrowser):
             raise BrowserBanned()
 
     def get_accounts_list(self):
-        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
+        self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
         return self.page.get_accounts_list()
 
     def get_account(self, id):
         if not self.is_on_page(AccountList):
-            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/afficheSynthese-synthese.ea")
+            self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
         return self.page.get_account(id)
 
     def get_history(self, Account):

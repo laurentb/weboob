@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
@@ -72,8 +74,6 @@ class BaseBackend(object):
     DESCRIPTION = '<unspecified>'
     # License of this backend.
     LICENSE = '<unspecified>'
-    # Icon file path
-    ICON = None
     # Configuration required for this backend.
     # Values must be weboob.tools.value.Value objects.
     CONFIG = {}
@@ -183,16 +183,23 @@ class BaseBackend(object):
 
         if '_proxy' in self._private_config:
             kwargs['proxy'] = self._private_config['_proxy']
+        elif 'http_proxy' in os.environ:
+            kwargs['proxy'] = os.environ['http_proxy']
         elif 'HTTP_PROXY' in os.environ:
             kwargs['proxy'] = os.environ['HTTP_PROXY']
         kwargs['logger'] = self.logger
 
         return self.BROWSER(*args, **kwargs)
 
-    def iter_caps(self):
-        for cap in self.__class__.__bases__:
-            if issubclass(cap, IBaseCap) and cap != IBaseCap:
-                yield cap
+    @classmethod
+    def iter_caps(klass):
+        def iter_caps(cls):
+            for base in cls.__bases__:
+                if issubclass(base, IBaseCap) and base != IBaseCap:
+                    yield base
+                    for cap in iter_caps(base):
+                        yield cap
+        return iter_caps(klass)
 
     def has_caps(self, *caps):
         for c in caps:

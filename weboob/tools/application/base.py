@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import logging
@@ -291,6 +293,11 @@ class BaseApplication(object):
 
         if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
+            from weboob.tools.browser import BaseBrowser
+            BaseBrowser.DEBUG_MECHANIZE = True
+            # required to actually display or save the stuff
+            logger = logging.getLogger("mechanize")
+            logger.setLevel(logging.INFO)
         elif self.options.verbose:
             level = logging.INFO
         elif self.options.quiet:
@@ -302,8 +309,7 @@ class BaseApplication(object):
 
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
-            print 'Debug data will be saved in this directory: %s' % responses_dirname
-            from weboob.tools.browser import BaseBrowser
+            print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
             BaseBrowser.SAVE_RESPONSES = True
             BaseBrowser.responses_dirname = responses_dirname
             self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))
@@ -357,7 +363,7 @@ class BaseApplication(object):
         try:
             app = klass()
         except BackendsConfig.WrongPermissions, e:
-            print e
+            print >>sys.stderr, e
             sys.exit(1)
 
         try:
@@ -365,12 +371,12 @@ class BaseApplication(object):
                 args = app.parse_args(args)
                 sys.exit(app.main(args))
             except KeyboardInterrupt:
-                print 'Program killed by SIGINT'
+                print >>sys.stderr, 'Program killed by SIGINT'
                 sys.exit(0)
             except EOFError:
                 sys.exit(0)
             except ConfigError, e:
-                print 'Configuration error: %s' % e
+                print >>sys.stderr, 'Configuration error: %s' % e
                 sys.exit(1)
             except CallErrors, e:
                 app.bcall_errors_handler(e)

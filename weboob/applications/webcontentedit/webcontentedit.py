@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon
+# Copyright(C) 2010-2011 Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 # python2.5 compatibility
@@ -33,7 +35,7 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.7.1'
+    VERSION = '0.8'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to display and edit contents on various websites.'
     CAPS = ICapContent
@@ -52,8 +54,8 @@ class WebContentEdit(ReplApplication):
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
 
         if len(contents) == 0:
-            print >> sys.stderr, 'No contents found'
-            return 1
+            print >>sys.stderr, 'No contents found'
+            return 3
 
         paths = {}
         for content in contents:
@@ -90,8 +92,8 @@ class WebContentEdit(ReplApplication):
                 contents.remove(content)
 
         if len(contents) == 0:
-            print 'No changes. Abort.'
-            return
+            print >>sys.stderr, 'No changes. Abort.'
+            return 1
 
         print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
 
@@ -124,8 +126,8 @@ class WebContentEdit(ReplApplication):
         Display log of a page
         """
         if not line:
-            print >> sys.stderr, 'Error: please give a page ID'
-            return 1
+            print >>sys.stderr, 'Error: please give a page ID'
+            return 2
 
         _id, backend_name = self.parse_id(line)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends

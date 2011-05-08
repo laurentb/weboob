@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2008-2010  Romain Bignon
+# Copyright(C) 2008-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 import re
+import mechanize
 
 from weboob.tools.mech import ClientForm
 from weboob.tools.browser import BrowserIncorrectPassword
@@ -28,7 +31,10 @@ from ..captcha import Captcha
 
 class LoginPage(PageBase):
     def login(self, login, password):
-        self.browser.select_form(name="form_login")
+        try:
+            self.browser.select_form(name="form_login")
+        except mechanize._mechanize.FormNotFoundError:
+            return
         self.browser['login'] = login
         self.browser['password'] = password
 
@@ -118,7 +124,8 @@ class BanPage(PageBase):
         raise AdopteBanned('Your IP address is banned.')
 
 class ShopPage(PageBase):
-    pass
+    def on_loaded(self):
+        self.browser.location('http://www.adopteunmec.com/account.php')
 
 class ErrPage(PageBase):
     def on_loaded(self):

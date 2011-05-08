@@ -1,44 +1,30 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010  Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
 from datetime import datetime, timedelta
 
 from .base import IBaseCap, CapBaseObject, NotLoaded
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
-
-
-class VideoThumbnail(CapBaseObject):
-    def __init__(self, url):
-        CapBaseObject.__init__(self, url)
-        self.add_field('url', basestring, url.replace(' ', '%20'))
-        self.add_field('data', str)
-
-    def __str__(self):
-        return self.url
-
-    def __repr__(self):
-        return '<Thumbnail url="%s">' % self.url
-
-    def __iscomplete__(self):
-        return self.data is not NotLoaded
-
 
 class BaseVideo(CapBaseObject):
     """
@@ -58,12 +44,12 @@ class BaseVideo(CapBaseObject):
         self.add_field('date', datetime, date)
         self.add_field('rating', (int,long,float), rating)
         self.add_field('rating_max', (int,long,float), rating_max)
-        self.add_field('thumbnail', VideoThumbnail, thumbnail)
+        self.add_field('thumbnail', Thumbnail, thumbnail)
         self.add_field('nsfw', bool, nsfw)
 
         # XXX remove this and fix all backends
         if thumbnail_url is not None and self.thumbnail is NotLoaded:
-            self.thumbnail = VideoThumbnail(thumbnail_url)
+            self.thumbnail = Thumbnail(thumbnail_url)
 
     @classmethod
     def id2url(cls, _id):

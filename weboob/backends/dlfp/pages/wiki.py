@@ -2,28 +2,30 @@
 
 # Copyright(C) 2010-2011  Romain Bignon
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+# This file is part of weboob.
 #
-# This program is distributed in the hope that it will be useful,
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.parsers.lxmlparser import select, SelectElementException
+from weboob.tools.browser import BrokenPageError
 
 from .index import DLFPPage
 
 class WikiEditPage(DLFPPage):
     def get_body(self):
         try:
-            return select(self.document.getroot(), 'textarea#wiki_page_wiki_body', 1).text
-        except SelectElementException:
+            return self.parser.select(self.document.getroot(), 'textarea#wiki_page_wiki_body', 1).text
+        except BrokenPageError:
             return ''
 
     def _is_wiki_form(self, form):
@@ -34,13 +36,13 @@ class WikiEditPage(DLFPPage):
         self.browser.set_all_readonly(False)
 
         if title is not None:
-            self.browser['wiki_page[title]'] = title
+            self.browser['wiki_page[title]'] = title.encode('utf-8')
             self.browser['commit'] = 'Créer'
         else:
             self.browser['commit'] = 'Mettre à jour'
-        self.browser['wiki_page[wiki_body]'] = body
+        self.browser['wiki_page[wiki_body]'] = body.encode('utf-8')
         if message is not None:
-            self.browser['wiki_page[message]'] = message
+            self.browser['wiki_page[message]'] = message.encode('utf-8')
 
         self.browser.submit()
 
@@ -50,5 +52,5 @@ class WikiEditPage(DLFPPage):
         self.browser.submit()
 
     def get_preview_html(self):
-        body = select(self.document.getroot(), 'article.wikipage div.content', 1)
-        return self.browser.parser.tostring(body)
+        body = self.parser.select(self.document.getroot(), 'article.wikipage div.content', 1)
+        return self.parser.tostring(body)
