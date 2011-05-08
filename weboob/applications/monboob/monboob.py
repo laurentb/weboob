@@ -109,6 +109,21 @@ class Monboob(ReplApplication):
 
     def main(self, argv):
         self.load_config()
+        try:
+            self.config['interval'] = int(self.config['interval'])
+            if self.config['interval'] < 1:
+                raise ValueError()
+        except ValueError:
+            print >>sys.stderr, 'Configuration error: interval must be an integer >0.'
+            return 1
+
+        try:
+            self.config['html'] = int(self.config['html'])
+            if self.config['html'] not in (0,1):
+                raise ValueError()
+        except ValueError:
+            print >>sys.stderr, 'Configuration error: html must be 0 or 1.'
+            return 2
 
         return ReplApplication.main(self, argv)
 
