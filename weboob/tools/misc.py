@@ -57,7 +57,7 @@ def get_bytes_size(size, unit_name):
         'GB': 1024 * 1024 * 1024,
         'TB': 1024 * 1024 * 1024 * 1024,
         }
-    return float(size * unit_data[unit_name])
+    return float(size * unit_data.get(unit_name, 1))
 
 
 try:
