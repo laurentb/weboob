@@ -84,8 +84,16 @@ class TorrentsPage(BasePage):
                         title = tds[i].find('a').text
                     url = urlparse.urlparse(tds[i].find('a').attrib['href'])
                     params = urlparse.parse_qs(url.query)
-                    id = '%s.%s' % (params['id'][0], params['torrentid'][0])
-                    size = self.unit(*tds[i+3].text.split())
+                    if 'torrentid' in params:
+                        id = '%s.%s' % (params['id'][0], params['torrentid'][0])
+                    else:
+                        url = tds[i].find('span').find('a').attrib['href']
+                        m = self.TORRENTID_REGEXP.match(url)
+                        if not m:
+                            continue
+                        id = '%s.%s' % (params['id'][0], m.group(1))
+                    size, unit = tds[i+3].text.split()
+                    size = get_bytes_size(float(size), unit)
                     seeders = int(tds[-2].text)
                     leechers = int(tds[-1].text)
 
@@ -111,7 +119,10 @@ class TorrentsPage(BasePage):
             title = self.browser.parser.select(table, 'div.title_text', 1).text
 
         torrent = Torrent(id, title)
-        torrentid = id.split('.', 1)[1]
+        if '.' in id:
+            torrentid = id.split('.', 1)[1]
+        else:
+            torrentid = id
         table = self.browser.parser.select(self.document.getroot(), 'table.torrent_table')
         if len(table) == 0:
             table = self.browser.parser.select(self.document.getroot(), 'div.main_column', 1)
@@ -149,7 +160,6 @@ class TorrentsPage(BasePage):
                     warning('ID not found')
                     continue
                 if m.group(1) != torrentid:
-                    print
                     continue
 
                 torrent.url = self.format_url(url)
@@ -160,7 +170,7 @@ class TorrentsPage(BasePage):
                 break
 
         if not torrent.url:
-            warning('Torrent %d not found in list' % torrentid)
+            warning('Torrent %s not found in list' % torrentid)
             return None
 
         div = self.parser.select(self.document.getroot(), 'div.main_column', 1)
@@ -184,7 +194,7 @@ class TorrentsPage(BasePage):
                     torrent.description = u''
                 torrent.description += u'%s\n\n%s\n' % (title, body)
 
-        div = self.document.getroot().cssselect('div#files_%s,div#filelist_%s' % (torrentid, torrentid))
+        div = self.document.getroot().cssselect('div#files_%s,div#filelist_%s,tr#torrent_%s td' % (torrentid, torrentid, torrentid))
         if div:
             torrent.files = []
             for tr in div[0].find('table'):
