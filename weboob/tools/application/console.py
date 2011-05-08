@@ -123,7 +123,7 @@ class ConsoleApplication(BaseApplication):
             print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
             r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
 
-            if r.isdigit():
+            if str(r).isdigit():
                 i = int(r) - 1
                 if i < 0 or i >= len(backends):
                     print >>sys.stderr, 'Error: %s is not a valid choice' % r
@@ -178,13 +178,11 @@ class ConsoleApplication(BaseApplication):
                     for index, (name, backend) in enumerate(backends):
                         print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
                             backend.description)
-                    response = self.ask('Select a backend to proceed', regexp='^\d+$')
-                    if response.isdigit():
-                        i = int(response) - 1
-                        if i < 0 or i >= len(backends):
-                            print >>sys.stderr, 'Error: %s is not a valid choice' % response
-                            continue
-                        backend_name = backends[i][0]
+                    i = int(self.ask('Select a backend to proceed', regexp='^\d+$'))
+                    if i < 0 or i >= len(backends):
+                        print >>sys.stderr, 'Error: %s is not a valid choice' % i
+                        continue
+                    backend_name = backends[i][0]
             else:
                 raise BackendNotGiven('Please specify a backend to use for this argument (%s@backend_name). '
                     'Availables: %s.' % (_id, ', '.join(name for name, backend in backends)))

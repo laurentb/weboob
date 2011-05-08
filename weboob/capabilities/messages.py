@@ -77,7 +77,7 @@ class Message(CapBaseObject):
     @property
     def full_parent_id(self):
         if self.parent:
-            return self.parent.full_id()
+            return self.parent.full_id
         elif self._parent_id is None:
             return ''
         elif self._parent_id is NotLoaded:

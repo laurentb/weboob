@@ -74,8 +74,6 @@ class BaseBackend(object):
     DESCRIPTION = '<unspecified>'
     # License of this backend.
     LICENSE = '<unspecified>'
-    # Icon file path
-    ICON = None
     # Configuration required for this backend.
     # Values must be weboob.tools.value.Value objects.
     CONFIG = {}
