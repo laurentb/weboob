@@ -1,4 +1,4 @@
-.TH GEOLOOC 1 "01 April 2011" "geolooc 0\&.7"
+.TH GEOLOOC 1 "08 May 2011" "geolooc 0\&.8"
 .SH NAME
 geolooc
 .SH SYNOPSIS
@@ -11,12 +11,12 @@ geolooc
 .SH DESCRIPTION
 .LP
 
-Geolooc is a console application to get geolocalization of IP addresses.
+Console application allowing to geolocalize IP addresses.
 
 .SS Supported websites:
-* geolocip (IP Adresses geolocalisation with the site www.geolocip.com)
+* geolocip (IP Addresses geolocalisation with the site www.geolocip.com)
 .br
-* ipinfodb (IP Adresses geolocalisation with the site ipinfodb.com)
+* ipinfodb (IP Addresses geolocalisation with the site ipinfodb.com)
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -42,6 +42,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -111,6 +115,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -122,10 +134,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP

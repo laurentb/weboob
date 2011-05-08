@@ -1,39 +1,33 @@
-.TH WETBOOBS 1 "08 May 2011" "wetboobs 0\&.8"
+.TH PASTOOB 1 "08 May 2011" "pastoob 0\&.8"
 .SH NAME
-wetboobs
+pastoob
 .SH SYNOPSIS
-.B wetboobs
+.B pastoob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B wetboobs
+.B pastoob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display weather and forecasts in your city.
+Console application allowing to post and get pastes from pastebins.
 
 .SS Supported websites:
-* meteofrance (Get forecasts from the MeteoFrance website)
+* pastealacon (Paste a la con paste tool)
 .br
-* yahoo (Yahoo)
-.SH WETBOOBS COMMANDS
+* pastebin (Pastebin paste tool)
+.SH PASTOOB COMMANDS
 .TP
-\fBcurrent\fR \fICITY_ID\fR
+\fBget\fR \fIID\fR
 .br
-Get current weather for specified city. Use the 'search' command to find
-.br
-its ID.
+Get a paste contents.
 .TP
-\fBforecasts\fR \fICITY_ID\fR
+\fBpost\fR [\fIFILENAME\fR]
 .br
-Get forecasts for specified city. Use the 'search' command to find
+Submit a new paste.
 .br
-its ID.
-.TP
-\fBsearch\fR \fIPATTERN\fR
-.br
-Search cities.
+The filename can be '\-' for reading standard input (pipe).
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -194,8 +188,7 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (cities, csv, current, forecasts, htmltable, multiline,
-simple, table, webkit)
+select output formatter (csv, htmltable, multiline, simple, table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -207,7 +200,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2011 Laurent Bachelier
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -216,4 +209,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Wetboobs
+Home page: http://weboob.org/Pastoob

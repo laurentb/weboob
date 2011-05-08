@@ -1,4 +1,4 @@
-.TH VIDEOOB 1 "01 April 2011" "videoob 0\&.7"
+.TH VIDEOOB 1 "08 May 2011" "videoob 0\&.8"
 .SH NAME
 videoob
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ videoob
 .SH DESCRIPTION
 .LP
 
-Videoob is a console application to search videos on supported websites and to play them or get informations.
+Console application allowing to search for videos on various websites, play and download them and get information.
 
 .SS Supported websites:
 * arte (Arte french TV)
@@ -82,6 +82,10 @@ ACTION is one of the following (default: list):
 .br
 * remove    remove a backend
 .TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
+.TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
 If an argument is given, set the condition expression used to filter the results.
@@ -150,6 +154,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -161,10 +173,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP

@@ -1,4 +1,4 @@
-.TH HAVESEX 1 "01 April 2011" "havesex 0\&.7"
+.TH HAVESEX 1 "08 May 2011" "havesex 0\&.8"
 .SH NAME
 havesex
 .SH SYNOPSIS
@@ -11,7 +11,7 @@ havesex
 .SH DESCRIPTION
 .LP
 
-Havesex is a console application to interact with dating websites and to help you to seduce women.
+Console application allowing to interact with various dating websites and to optimize seduction algorithmically.
 
 .SS Supported websites:
 * aum (“Adopte un mec” french dating website)
@@ -69,6 +69,10 @@ ACTION is one of the following (default: list):
 * edit      edit a backend
 .br
 * remove    remove a backend
+.TP
+\fBcd\fR \fIPATH\fR
+.br
+Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -138,6 +142,14 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
+\fBls\fR
+.br
+List objects in current path.
+.TP
+\fBquit\fR
+.br
+Quit the application.
+.TP
 \fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
 .br
 If an argument is given, set the selected fields.
@@ -149,10 +161,6 @@ $full selects all fields using as much http requests as necessary.
 
 .br
 If no argument is given, print the currently selected fields.
-.TP
-\fBquit\fR
-.br
-Quit the application.
 
 .SH OPTIONS
 .TP

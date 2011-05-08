@@ -1,39 +1,79 @@
-.TH WETBOOBS 1 "08 May 2011" "wetboobs 0\&.8"
+.TH BOOBATHON 1 "08 May 2011" "boobathon 0\&.8"
 .SH NAME
-wetboobs
+boobathon
 .SH SYNOPSIS
-.B wetboobs
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
+.B boobathon
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] \fIboobathon\fR
 .br
-.B wetboobs
+.B boobathon
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display weather and forecasts in your city.
+Console application to participate to a Boobathon.
 
 .SS Supported websites:
-* meteofrance (Get forecasts from the MeteoFrance website)
+* dlfp (Da Linux French Page)
 .br
-* yahoo (Yahoo)
-.SH WETBOOBS COMMANDS
+* mediawiki (Mediawiki wiki software application)
+.br
+* redmine (The Redmine project management web application)
+.SH BOOBATHON COMMANDS
 .TP
-\fBcurrent\fR \fICITY_ID\fR
+\fBaddtask\fR \fIBACKEND\fR \fICAPABILITY\fR
 .br
-Get current weather for specified city. Use the 'search' command to find
-.br
-its ID.
+Add a new task.
 .TP
-\fBforecasts\fR \fICITY_ID\fR
+\fBcancel\fR
 .br
-Get forecasts for specified city. Use the 'search' command to find
-.br
-its ID.
+Cancel the current task.
 .TP
-\fBsearch\fR \fIPATTERN\fR
+\fBclose\fR \fIWINNER\fR
 .br
-Search cities.
+Close the event and set the winner.
+.TP
+\fBdone\fR
+.br
+Set the current task as done.
+.TP
+\fBedit\fR [event | me]
+.br
+Edit information about you or about event.
+.TP
+\fBinfo\fR
+.br
+Display information about this event.
+.TP
+\fBjoin\fR
+.br
+Join this event.
+.TP
+\fBleave\fR
+.br
+Leave this event.
+.TP
+\fBmembers\fR
+.br
+Display members informations.
+.TP
+\fBprogress\fR
+.br
+Display progress of members.
+.TP
+\fBremtask\fR \fITASK_ID\fR
+.br
+Remove a task.
+.TP
+\fBstart\fR [\fITASK_ID\fR]
+.br
+Start a task. If you don't give a task ID, the first available
+.br
+task will be taken.
+.TP
+\fBtasks\fR
+.br
+Display all tasks of members.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -194,8 +234,7 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (cities, csv, current, forecasts, htmltable, multiline,
-simple, table, webkit)
+select output formatter (csv, htmltable, multiline, simple, table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -207,7 +246,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2011 Romain Bignon
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -216,4 +255,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Wetboobs
+Home page: http://weboob.org/Boobathon

@@ -1,39 +1,41 @@
-.TH WETBOOBS 1 "08 May 2011" "wetboobs 0\&.8"
+.TH GALLEROOB 1 "08 May 2011" "galleroob 0\&.8"
 .SH NAME
-wetboobs
+galleroob
 .SH SYNOPSIS
-.B wetboobs
+.B galleroob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B wetboobs
+.B galleroob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display weather and forecasts in your city.
+galleroob browses and downloads web image galleries
 
 .SS Supported websites:
-* meteofrance (Get forecasts from the MeteoFrance website)
-.br
-* yahoo (Yahoo)
-.SH WETBOOBS COMMANDS
+* ehentai (E\-hentai galleries)
+.SH GALLEROOB COMMANDS
 .TP
-\fBcurrent\fR \fICITY_ID\fR
+\fBdownload\fR \fIID\fR [\fIFIRST\fR [\fIFOLDER\fR]]
 .br
-Get current weather for specified city. Use the 'search' command to find
+Download a gallery.
 .br
-its ID.
+
+.br
+Begins at page FIRST (default: 0) and saves to FOLDER (default: title)
 .TP
-\fBforecasts\fR \fICITY_ID\fR
+\fBinfo\fR \fIID\fR
 .br
-Get forecasts for specified city. Use the 'search' command to find
-.br
-its ID.
+Get information about a gallery.
 .TP
 \fBsearch\fR \fIPATTERN\fR
 .br
-Search cities.
+List galleries matching a PATTERN.
+.br
+
+.br
+If PATTERN is not given, the command will list all the galleries
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -194,8 +196,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (cities, csv, current, forecasts, htmltable, multiline,
-simple, table, webkit)
+select output formatter (csv, gallery_list, htmltable, multiline, simple, table,
+webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -207,7 +209,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+None
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -216,4 +218,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Wetboobs
+Home page: http://weboob.org/Galleroob
