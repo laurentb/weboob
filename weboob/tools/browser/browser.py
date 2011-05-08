@@ -293,7 +293,7 @@ class BaseBrowser(mechanize.Browser):
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def get_exception(self, e):
-        if isinstance(e, urllib2.HTTPError) and e.getcode() == 404:
+        if isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() == 404:
             return BrowserHTTPNotFound
         else:
             return BrowserHTTPError
