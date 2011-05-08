@@ -55,6 +55,9 @@ Erwan Jahier <Erwan.Jahier@imag.fr>
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
 
+Michael Scherer <misc@zarb.org>
+        * Contribution on weboob-config.
+
 Romain Garbage <romain.garbage@gmail.com>
         * Fixes for FreeBSD.
 
