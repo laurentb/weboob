@@ -93,7 +93,7 @@ class TorrentsPage(BasePage):
                             continue
                         id = '%s.%s' % (params['id'][0], m.group(1))
                     size, unit = tds[i+3].text.split()
-                    size = get_bytes_size(float(size), unit)
+                    size = get_bytes_size(float(size.replace(',','')), unit)
                     seeders = int(tds[-2].text)
                     leechers = int(tds[-1].text)
 
@@ -163,8 +163,8 @@ class TorrentsPage(BasePage):
                     continue
 
                 torrent.url = self.format_url(url)
-                size, unit = tr.cssselect('div.details_title strong')[0].text.strip('()').split()
-                torrent.size = get_bytes_size(float(size), unit)
+                size, unit = tr.cssselect('div.details_title strong')[-1].text.strip('()').split()
+                torrent.size = get_bytes_size(float(size.replace(',', '')), unit)
                 torrent.seeders = int(tr.cssselect('img[title=Seeders]')[0].tail)
                 torrent.leechers = int(tr.cssselect('img[title=Leechers]')[0].tail)
                 break
