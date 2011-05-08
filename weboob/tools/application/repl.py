@@ -157,7 +157,7 @@ class ReplApplication(Cmd, ConsoleApplication):
     def _complete_object(self):
         return ['%s@%s' % (obj.id, obj.backend) for obj in self.objects]
 
-    def parse_id(self, id):
+    def parse_id(self, id, unique_backend=False):
         if self.interactive:
             try:
                 obj = self.objects[int(id) - 1]
@@ -166,7 +166,22 @@ class ReplApplication(Cmd, ConsoleApplication):
             else:
                 if isinstance(obj, CapBaseObject):
                     id = '%s@%s' % (obj.id, obj.backend)
-        return ConsoleApplication.parse_id(self, id)
+        try:
+            return ConsoleApplication.parse_id(self, id, unique_backend)
+        except BackendNotGiven, e:
+            backend_name = None
+            while not backend_name:
+                print 'This command works with an unique backend. Availables:'
+                for index, (name, backend) in enumerate(e.backends):
+                    print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
+                        backend.DESCRIPTION)
+                i = int(self.ask('Select a backend to proceed', regexp='^\d+$'))
+                if i < 0 or i > len(e.backends):
+                    print >>sys.stderr, 'Error: %s is not a valid choice' % i
+                    continue
+                backend_name = e.backends[i-1][0]
+
+            return id, backend_name
 
     def get_object(self, _id, method, fields=None):
         if self.interactive:
@@ -356,6 +371,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             print >>sys.stderr, u'Error(%s): condition error: %s' % (backend.name, error)
         else:
             return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
+
+    def bcall_errors_handler(self, errors):
+        if self.interactive:
+            ConsoleApplication.bcall_errors_handler(self, errors, 'Use "logging debug" option to print backtraces.')
+        else:
+            ConsoleApplication.bcall_errors_handler(self, errors)
 
     # -- options related methods -------------
     def _handle_options(self):

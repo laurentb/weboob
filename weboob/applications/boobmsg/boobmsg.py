@@ -256,7 +256,6 @@ class Boobmsg(ReplApplication):
                 thread_id = receiver
                 parent_id = None
 
-
             thread = Thread(thread_id)
             message = Message(thread,
                               0,

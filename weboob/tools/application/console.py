@@ -22,6 +22,7 @@ from copy import deepcopy
 import getpass
 import logging
 import sys
+import os
 
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
@@ -31,8 +32,16 @@ from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
 from .base import BackendNotFound, BaseApplication
 
+
+__all__ = ['ConsoleApplication', 'BackendNotGiven']
+
+
 class BackendNotGiven(Exception):
-    pass
+    def __init__(self, id, backends):
+        self.id = id
+        self.backends = backends
+        Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
+                'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
 
 class ConsoleApplication(BaseApplication):
     """
@@ -92,7 +101,7 @@ class ConsoleApplication(BaseApplication):
     def check_loaded_backends(self, default_config=None):
         while len(self.enabled_backends) == 0:
             print 'Warning: there is currently no configured backend for %s' % self.APPNAME
-            if not self.interactive or not self.ask('Do you want to configure backends?', default=True):
+            if not os.isatty(sys.stdout.fileno()) or not self.ask('Do you want to configure backends?', default=True):
                 return False
 
             self.prompt_create_backends(default_config)
@@ -167,25 +176,11 @@ class ConsoleApplication(BaseApplication):
         except ValueError:
             backend_name = None
         if unique_backend and not backend_name:
-            backends = []
-            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                if self.CAPS and not self.caps_included(backend.iter_caps(), self.CAPS.__name__):
-                    continue
-                backends.append((name, backend))
-            if self.interactive:
-                while not backend_name:
-                    print 'This command works with a unique backend. Availables:'
-                    for index, (name, backend) in enumerate(backends):
-                        print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
-                            backend.description)
-                    i = int(self.ask('Select a backend to proceed', regexp='^\d+$'))
-                    if i < 0 or i >= len(backends):
-                        print >>sys.stderr, 'Error: %s is not a valid choice' % i
-                        continue
-                    backend_name = backends[i][0]
+            backends = [(b.name, b) for b in self.enabled_backends]
+            if len(backends) == 1:
+                backend_name = backends[0]
             else:
-                raise BackendNotGiven('Please specify a backend to use for this argument (%s@backend_name). '
-                    'Availables: %s.' % (_id, ', '.join(name for name, backend in backends)))
+                raise BackendNotGiven(_id, backends)
         return _id, backend_name
 
     def caps_included(self, modcaps, caps):
@@ -432,7 +427,7 @@ class ConsoleApplication(BaseApplication):
             else:
                 return True
 
-    def bcall_errors_handler(self, errors):
+    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces'):
         """
         Handler for the CallErrors exception.
         """
@@ -442,7 +437,4 @@ class ConsoleApplication(BaseApplication):
                 ask_debug_mode = True
 
         if ask_debug_mode:
-            if self.interactive:
-                print >>sys.stderr, 'Use "logging debug" option to print backtraces.'
-            else:
-                print >>sys.stderr, 'Use --debug option to print backtraces.'
+            print >>sys.stderr, debugmsg
