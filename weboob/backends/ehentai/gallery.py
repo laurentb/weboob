@@ -26,10 +26,6 @@ class EHentaiGallery(BaseGallery):
         BaseGallery.__init__(self, *args, **kwargs)
         self.nsfw = True
 
-    def iter_image(self):
-        self.browser.iter_gallery_images()
-
-
 class EHentaiImage(BaseImage):
     def __init__(self, *args, **kwargs):
         BaseImage.__init__(self, *args, **kwargs)

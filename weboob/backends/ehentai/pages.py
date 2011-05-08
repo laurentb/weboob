@@ -48,7 +48,7 @@ class IndexPage(BasePage):
             a = line.xpath('.//div[@class="it3"]/a')[-1]
             url = a.attrib["href"]
             title = a.text.strip()
-            yield EHentaiGallery(url, title=title)
+            yield EHentaiGallery(re.search('(?<=/g/)\d+/[\dabcdef]+', url).group(0), title=title)
 
 class GalleryPage(BasePage):
     def image_pages(self):
@@ -59,6 +59,12 @@ class GalleryPage(BasePage):
             return self.document.xpath("//table[@class='ptt']//a[text()='>']")[0]
         except IndexError:
             return None
+
+    def gallery_exists(self, gallery):
+        if self.document.xpath("//h1"):
+            return True
+        else:
+            return False
 
     def fill_gallery(self, gallery):
         gallery.title = self.document.xpath("//h1[@id='gn']/text()")[0]

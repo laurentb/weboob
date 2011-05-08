@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from urllib import urlencode
+from urllib import urlencode, quote
 
 from .pages import IndexPage, GalleryPage, ImagePage, HomePage, LoginPage
 from .gallery import EHentaiImage
@@ -45,11 +45,14 @@ class EHentaiBrowser(BaseBrowser):
         if password:
             self.login(username, password)
 
+    def _gallery_url(self, gallery):
+        return 'http://%s/g/%s/' % (self.DOMAIN, gallery.id)
+
     def _gallery_page(self, gallery, n):
         return gallery.url + ('?p=%d' % n)
 
     def iter_search_results(self, pattern):
-        self.location(self.buildurl('/', f_search=pattern))
+        self.location(self.buildurl('/', f_search=pattern.encode('utf-8')))
         assert self.is_on_page(IndexPage)
         return self.page.iter_galleries()
 
@@ -75,10 +78,16 @@ class EHentaiBrowser(BaseBrowser):
         assert self.is_on_page(ImagePage)
         return self.page.get_url()
     
-    def fill_gallery(self, gallery, fields):
-        self.location(gallery.id)
+    def gallery_exists(self, gallery):
+        gallery.url = self._gallery_url(gallery)
+        self.location(gallery.url)
         assert self.is_on_page(GalleryPage)
-        gallery.url = gallery.id
+        return self.page.gallery_exists(gallery)
+
+    def fill_gallery(self, gallery, fields):
+        gallery.url = self._gallery_url(gallery)
+        self.location(gallery.url)
+        assert self.is_on_page(GalleryPage)
         self.page.fill_gallery(gallery)
 
     def login(self, username, password):

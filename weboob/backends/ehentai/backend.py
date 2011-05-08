@@ -19,6 +19,7 @@
 
 from __future__ import with_statement
 
+import re
 from weboob.capabilities.gallery import ICapGallery
 from weboob.tools.backend import BaseBackend
 from weboob.tools.misc import ratelimit
@@ -60,11 +61,20 @@ class EHentaiBackend(BaseBackend, ICapGallery):
             return self.browser.iter_gallery_images(gallery)
 
     def get_gallery(self, _id):
-        return EHentaiGallery(_id)
+        if not re.match(r'(?i)/?\d+/[\dabcdef]+/?', _id):
+            return None
+
+        gallery = EHentaiGallery(_id)
+        with self.browser:
+            if self.browser.gallery_exists(gallery):
+                return gallery
+            else:
+                return None
 
     def fill_gallery(self, gallery, fields):
-        with self.browser:
-            self.browser.fill_gallery(gallery, fields)
+        if not gallery.__iscomplete__():
+            with self.browser:
+                self.browser.fill_gallery(gallery, fields)
 
     def fill_image(self, image, fields):
         with self.browser:
