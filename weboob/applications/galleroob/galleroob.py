@@ -54,7 +54,7 @@ class GalleryListFormatter(IFormatter):
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
     VERSION = '0.8'
-    COPYTIGHT = 'Copyright(C) 2011 Noé Rubinstein'
+    COPYRIGHT = 'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     CAPS = ICapGallery
     EXTRA_FORMATTERS = {'gallery_list': GalleryListFormatter}

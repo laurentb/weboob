@@ -1,3 +1,86 @@
+Weboob 0.8 (2011-05-08)
+	General
+	* New backend: E-Hentai (CapGallery).
+	* New backend: FranceInter (CapRadio).
+	* New backend: LeMouv (CapRadio).
+	* New backend: PasteALaCon (CapPaste).
+	* New backend: PasteBin (CapPaste).
+	* New application: Boobathon (CapContent).
+	* New application: Galleroob (CapGallery).
+	* New application: Pastoob (CapPaste).
+	* Fix lot of unicode problems.
+	* License changed to AGPLv3+.
+	* FreeBSD support.
+
+	Repl applications
+	* The new CapCollection capability is supported by every REPL
+	  Application. At the moment, only few backends implement it.
+	* Better messages and return codes in applications.
+
+	Backend: AdopteUnMec
+	* Fix: website changes (#508,#637,#638,#639).
+
+	Backend: BNPorc
+	* The 'rotating_password' parameter is now an hidden one (#627).
+	* Ability to do transfers to external recipients.
+
+	Backend: BP
+	* Add 'comptes titres', 'comptes vies' and 'comptes retraites' to the
+	  list of accounts (#567).
+	* Fix: website changes (#621).
+
+	Backend: CanalPlus
+	* Implement the new CapCollection capability.
+
+	Backend: CrAgr
+	* Support of a new history layout.
+	* Fix: login issues with the Toulouse website (#629).
+
+	Backend: Dailymotion
+	* Fix: URL was not found in special cases.
+
+	Backend: FourChan
+	* Fix: support message "AMERICA FUCK YEAH" outside of a thread.
+
+	Backend: Gazelle
+	* Fix: work with broken gazelle websites.
+
+	Backend: Inrocks
+	* Fix: matching URLs.
+
+	Backend: KickAss
+	* Several fixes and enhancements (#651).
+
+	Backend: LCL
+	* Fix: websites changes.
+
+	Backend: OuiFM
+	* Implements the new CapCollection capability.
+
+	Backend: Transilien
+	* Add the PAA code for Gare de Lyon.
+
+	Backend: Youtube
+	* Support more URLs.
+
+	Backend: Youporn
+	* Correctly set the 'ext' attribute on videos.
+
+	Application: monboob
+	* Check configuration (#484).
+
+	Application: weboob-config
+	* New commands 'enable' and 'disable'.
+
+	Core
+	* Use lowercase http_proxy environment variable.
+	* select() function has been moved into parser.
+	* Support for xpath in LxmlHtmlParser.select.
+	* Fragments are removed from URLs (#636).
+	* Remove a hack from feedparser which fixes parsing of webpages with
+	  recent versions of this library.
+	* Also log redirects when saving responses and debugging (#398).
+
 Weboob 0.7 (2011-04-01)
 	General
 	* New backend: Dailymotion (CapVideo).
