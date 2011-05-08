@@ -80,7 +80,7 @@ class ReplApplication(Cmd, ConsoleApplication):
     DEFAULT_FORMATTER = 'multiline'
     COMMANDS_FORMATTERS = {}
 
-    weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit'])
+    weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit', 'ls', 'cd'])
     hidden_commands = set(['EOF'])
 
     def __init__(self):
@@ -812,6 +812,11 @@ class ReplApplication(Cmd, ConsoleApplication):
             browser = Browser(view=page.view)
 
     def do_ls(self, line):
+        """
+        ls
+
+        List objects in current path.
+        """
         self.objects = self._fetch_objects()
 
         for obj in self.objects:
@@ -823,6 +828,11 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.flush()
 
     def do_cd(self, line):
+        """
+        cd PATH
+
+        Follow a path.
+        """
         line = line.encode('utf-8')
 
         self.working_path.extend(line)
