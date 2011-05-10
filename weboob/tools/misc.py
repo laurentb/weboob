@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import with_statement
+
 from dateutil import tz
 from logging import warning
 from time import time, sleep
