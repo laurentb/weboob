@@ -40,13 +40,13 @@ class BPBrowser(BaseBrowser):
              r'.*authentification/repositionnerCheminCourant-identif.ea'                 : repositionnerCheminCourant,
              r'.*authentification/initialiser-identif.ea'                                : Initident,
              r'.*authentification/verifierMotDePasse-identif.ea'                         : CheckPassword,
-             
+
              r'.*synthese_assurancesEtComptes/afficheSynthese-synthese\.ea'              : AccountList,
              r'.*synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea'     : AccountList,
-             
+
              r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
              r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
-             
+
              r'.*/virementSafran_aiguillage/init-saisieComptes\.ea'                      : TransferChooseAccounts,
              r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea'            : CompleteTransfer,
              r'.*/virementSafran_national/validerVirementNational-virementNational.ea'   : TransferConfirm,
@@ -55,6 +55,10 @@ class BPBrowser(BaseBrowser):
              r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
              r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
              }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['parser'] = ('lxml',)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&'
