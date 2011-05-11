@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BrokenPageError
-from weboob.tools.genericArticle import GenericNewsPage, try_remove, \
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, try_remove, \
                                         try_remove_from_selector_list, \
                                         drop_comments, NoneMainDiv
 

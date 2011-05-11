@@ -22,8 +22,9 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import ICapMessages
+from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperInrocksBrowser
-from .GenericBackend import GenericNewspaperBackend
+from .tools import rssid
 
 class NewspaperInrocksBackend(GenericNewspaperBackend, ICapMessages):
     "NewspaperInrocksBackend class"
@@ -36,4 +37,4 @@ class NewspaperInrocksBackend(GenericNewspaperBackend, ICapMessages):
     DESCRIPTION = u'Inrock French news website'
     BROWSER = NewspaperInrocksBrowser
     RSS_FEED = 'http://www.lesinrocks.com/fileadmin/rss/actus.xml'
-
+    RSSID = rssid

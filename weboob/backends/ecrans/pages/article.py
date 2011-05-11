@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.genericArticle import GenericNewsPage, remove_from_selector_list, try_remove_from_selector_list, try_drop_tree
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, remove_from_selector_list, try_remove_from_selector_list, try_drop_tree
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):

@@ -19,8 +19,9 @@
 "backend for http://20minutes.fr"
 
 from weboob.capabilities.messages import ICapMessages
+from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import Newspaper20minutesBrowser
-from .GenericBackend import GenericNewspaperBackend
+from .tools import rssid
 
 class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     "Newspaper20minutesBackend class"
@@ -33,4 +34,5 @@ class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     DESCRIPTION = u'20minutes French news  website'
     BROWSER = Newspaper20minutesBrowser
     RSS_FEED = 'http://www.20minutes.fr/rss/20minutes.xml'
+    RSSID = rssid
 
