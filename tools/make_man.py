@@ -20,8 +20,6 @@
 
 from __future__ import with_statement
 
-from __future__ import with_statement
-
 import sys, os, tempfile
 import imp, inspect
 import optparse
