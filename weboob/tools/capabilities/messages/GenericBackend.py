@@ -75,7 +75,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
             thread.date = article.datetime
             yield(thread)
 
-    def fill_thread(self, thread):
+    def fill_thread(self, thread, fields):
         "fill the thread"
         return self.get_thread(thread)
 
@@ -97,3 +97,5 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
                 'comments',
                 default=[]) + [message.id])
         self.storage.save()
+
+    OBJECTS = {Thread: fill_thread}
