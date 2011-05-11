@@ -31,7 +31,7 @@ class FranceInterBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'franceinter'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
-    VERSION = '0.8'
+    VERSION = '0.8.1'
     DESCRIPTION = u'The france inter french radio'
     LICENCE = 'AGPLv3+'
     BROWSER = FranceInterBrowser

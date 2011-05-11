@@ -1,3 +1,25 @@
+Weboob 0.8.1 (2011-05-11)
+	General
+	* Fix python 2.5 compatibility.
+
+	Backend: BP
+	* python-lxml is a hard dependency.
+
+	Backend: Geolocip
+	* Fix: support when website is unavailable.
+
+	Backend: IPInfoDB
+	* Fix: crash when no coordinates are given from web server.
+
+	Backend: LeFigaro
+	* Fix: when the feed is wrong.
+
+	Application: boobank
+	* Fix: restore the account_list formatter for the list command.
+
+	Application: boobmsg
+	* Fix backends to work with the export_all command.
+
 Weboob 0.8 (2011-05-08)
 	General
 	* New backend: E-Hentai (CapGallery).
