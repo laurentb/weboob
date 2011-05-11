@@ -23,7 +23,7 @@ import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.misc import html2text
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 
 from .video import DailymotionVideo
@@ -49,8 +49,18 @@ class IndexPage(BasePage):
             video.title = self.parser.select(div, 'h3 a', 1).text
             video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').text
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
-            minutes, seconds = self.parser.select(div, 'div.duration', 1).text.split(':')
-            video.duration = datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
+            parts = self.parser.select(div, 'div.duration', 1).text.split(':')
+            if len(parts) < 2:
+                seconds = parts[0]
+                hours = minutes = 0
+            elif len(parts) < 3:
+                minutes, seconds = parts
+                hours = 0
+            elif len(parts) < 4:
+                hours, minutes, seconds = parts
+            else:
+                raise BrokenPageError('Unable to parse duration %r' % self.parser.select(div, 'div.duration', 1).text)
+            video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
             url = self.parser.select(div, 'img.dmco_image', 1).attrib['src']
             video.thumbnail = Thumbnail(url)
 
