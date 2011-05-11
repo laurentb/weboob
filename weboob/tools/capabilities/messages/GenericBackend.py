@@ -23,7 +23,6 @@ from __future__ import with_statement
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
-from .tools import rssid
 
 class GenericNewspaperBackend(BaseBackend, ICapMessages):
     "GenericNewspaperBackend class"
@@ -33,6 +32,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     RSS_FEED = None
+    RSSID = None
 
     def get_thread(self, _id):
         if isinstance(_id, Thread):
@@ -69,7 +69,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed(self.RSS_FEED, rssid).iter_entries():
+        for article in Newsfeed(self.RSS_FEED, GenericNewspaperBackend.RSSID).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime

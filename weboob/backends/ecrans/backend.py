@@ -22,8 +22,9 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import ICapMessages
+from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperEcransBrowser
-from .GenericBackend import GenericNewspaperBackend
+from .tools import rssid
 
 class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     "NewspaperEcransBackend class"
@@ -36,5 +37,6 @@ class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     DESCRIPTION = u'Ecrans French news website'
     BROWSER = NewspaperEcransBrowser
     RSS_FEED = 'http://www.ecrans.fr/spip.php?page=backend'
+    RSSID = rssid
 
 

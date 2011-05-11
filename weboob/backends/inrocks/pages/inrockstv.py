@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.genericArticle import GenericNewsPage
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
 
 class InrocksTvPage(GenericNewsPage):
     "ArticlePage object for inrocks"

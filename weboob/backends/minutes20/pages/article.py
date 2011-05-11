@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.genericArticle import NoAuthorElement, try_remove, NoneMainDiv
+from weboob.tools.capabilities.messages.genericArticle import NoAuthorElement, try_remove, NoneMainDiv
 from .simple import SimplePage
 
 class ArticlePage(SimplePage):
