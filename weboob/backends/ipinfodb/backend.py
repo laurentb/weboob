@@ -78,10 +78,7 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
                     iploc.lt = float(tab['Latitude'])
                     iploc.lg = float(tab['Longitude'])
                 except ValueError:
-                    if len(tab['Latitude']) == 0 or len(tab['Longitude']) == 0:
-                        pass
-                    else:
-                        raise
+                    pass
                 iploc.host = tab['hostname']
                 iploc.tld = tab['hostname'].split('.')[-1]
                 #iploc.isp = 'NA'
