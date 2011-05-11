@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 
 
 __all__ = ['GeolocIpBackend']
@@ -43,6 +43,9 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
         with self.browser:
 
             content = self.browser.readurl('http://www.geolocip.com/?s[ip]=%s&commit=locate+IP!' % str(ipaddr))
+
+            if content is None:
+                raise BrowserUnavailable()
 
             tab = {}
             last_line = ''
