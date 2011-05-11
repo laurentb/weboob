@@ -44,6 +44,9 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
         with self.browser:
             content = self.browser.get_content(_id)
 
+        if content is None:
+            return None
+
         if not thread:
             thread = Thread(_id)
 
@@ -77,7 +80,8 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
 
     def fill_thread(self, thread, fields):
         "fill the thread"
-        return self.get_thread(thread)
+        t = self.get_thread(thread)
+        return t or thread
 
     def iter_unread_messages(self, thread=None):
         for thread in self.iter_threads():

@@ -20,8 +20,10 @@
 
 from .pages.article import ArticlePage
 from .pages.flashactu import FlashActuPage
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BasePage
 
+class IndexPage(BasePage):
+    pass
 
 
 class NewspaperFigaroBrowser(BaseBrowser):
@@ -30,6 +32,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://www.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://www.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://www.lefigaro.fr/(?!flash-|bd).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://www.lefigaro.fr/": IndexPage,
             }
 
     def is_logged(self):
@@ -44,4 +47,6 @@ class NewspaperFigaroBrowser(BaseBrowser):
     def get_content(self, _id):
         "return page article content"
         self.location(_id)
+        if self.is_on_page(IndexPage):
+            return None
         return self.page.get_article(_id)
