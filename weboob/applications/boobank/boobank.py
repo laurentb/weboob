@@ -114,6 +114,7 @@ class Boobank(ReplApplication):
                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
+                           'list':        'account_list',
                            'transfer':    'transfer',
                           }
 
