@@ -818,10 +818,13 @@ class ReplApplication(Cmd, ConsoleApplication):
                 print >>sys.stderr, 'No backend found for "%s"' % backend_name
                 return 1
             backend = backends.pop()
-        if not hasattr(backend, '_browser'):
-            print >>sys.stderr, 'No browser created for backend "%s" yet. Please invoke a command before.' % backend.name
+        if not backend.browser:
+            print >>sys.stderr, 'No browser created for backend "%s".' % backend.name
             return 1
-        browser = backend._browser
+        if not backend.browser.page:
+            print >>sys.stderr, 'The browser of %s is not on any page.' % backend.name
+            return 1
+        browser = backend.browser
         data = browser.parser.tostring(browser.page.document)
         try:
             from webkit_mechanize_browser.browser import Browser
