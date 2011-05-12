@@ -22,6 +22,7 @@ import urllib
 import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage, BrokenPageError
 
@@ -49,18 +50,23 @@ class IndexPage(BasePage):
             video.title = self.parser.select(div, 'h3 a', 1).text
             video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').text
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
-            parts = self.parser.select(div, 'div.duration', 1).text.split(':')
-            if len(parts) < 2:
-                seconds = parts[0]
-                hours = minutes = 0
-            elif len(parts) < 3:
-                minutes, seconds = parts
-                hours = 0
-            elif len(parts) < 4:
-                hours, minutes, seconds = parts
+            try:
+                parts = self.parser.select(div, 'div.duration', 1).text.split(':')
+            except BrokenPageError:
+                # it's probably a live, np.
+                video.duration = NotAvailable
             else:
-                raise BrokenPageError('Unable to parse duration %r' % self.parser.select(div, 'div.duration', 1).text)
-            video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+                if len(parts) == 1:
+                    seconds = parts[0]
+                    hours = minutes = 0
+                elif len(parts) == 2:
+                    minutes, seconds = parts
+                    hours = 0
+                elif len(parts) == 3:
+                    hours, minutes, seconds = parts
+                else:
+                    raise BrokenPageError('Unable to parse duration %r' % self.parser.select(div, 'div.duration', 1).text)
+                video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
             url = self.parser.select(div, 'img.dmco_image', 1).attrib['src']
             video.thumbnail = Thumbnail(url)
 
@@ -68,6 +74,7 @@ class IndexPage(BasePage):
             video.rating_max = self.get_rate(rating_div)
             video.rating = self.get_rate(rating_div.find('div'))
             # XXX missing date
+            video.date = NotAvailable
             yield video
 
     def get_rate(self, div):
