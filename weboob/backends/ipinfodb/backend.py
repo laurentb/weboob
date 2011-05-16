@@ -44,6 +44,9 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
 
             content = self.browser.readurl('http://ipinfodb.com/ip_locator.php?ip=%s' % str(ipaddr))
 
+            if content is None:
+                raise BrowserUnavailable()
+
             if 'Invalid IP or domain name' in content:
                 raise Exception('Bad parameter')
             else:
