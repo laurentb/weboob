@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserUnavailable
 
 
 __all__ = ['IpinfodbBackend']
