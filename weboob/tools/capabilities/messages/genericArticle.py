@@ -104,11 +104,10 @@ class GenericNewsPage(BasePage):
             else:
                 raise
         except BrokenPageError:
-            try :
-                self.element_title_selector = "h1"
-                return self.get_title()
-            except BrokenPageError:
+            if self.element_title_selector == 'h1':
                 raise NoTitleException("no title on %s" % (self.browser))
+            self.element_title_selector = "h1"
+            return self.get_title()
 
     def get_element_body(self):
         try :
