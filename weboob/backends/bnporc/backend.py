@@ -22,8 +22,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import BNPorc
 
@@ -38,29 +38,27 @@ class BNPorcBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'BNP Paribas french bank\' website'
-    CONFIG = ValuesDict(Value('login',      label='Account ID'),
-                        Value('password',   label='Password', masked=True),
-                        Value('rotating_password',
-                              label='Password to set when the allowed uses are exhausted (6 digits)',
-                              default='', masked=True,
-                              regexp='^(\d{6}|)$'))
+    CONFIG = BackendConfig(Value('login',      label='Account ID'),
+                           ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
+                           ValueBackendPassword('rotating_password',
+                                 label='Password to set when the allowed uses are exhausted (6 digits)',
+                                 regexp='^(\d{6}|)$'))
     BROWSER = BNPorc
 
     def create_default_browser(self):
-        if self.config['rotating_password'].isdigit() and len(self.config['rotating_password']) == 6:
-            rotating_password = self.config['rotating_password']
+        if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
+            rotating_password = self.config['rotating_password'].get()
         else:
             rotating_password = None
-        return self.create_browser(self.config['login'],
-                                   self.config['password'],
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get(),
                                    password_changed_cb=self._password_changed_cb,
                                    rotating_password=rotating_password)
 
     def _password_changed_cb(self, old, new):
-        new_settings = {'password':          new,
-                        'rotating_password': old,
-                       }
-        self.weboob.backends_config.edit_backend(self.name, self.NAME, new_settings)
+        self.config['password'].set(new)
+        self.config['rotating_password'].set(old)
+        self.config.save()
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

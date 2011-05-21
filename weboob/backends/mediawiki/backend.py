@@ -19,9 +19,9 @@
 
 from __future__ import with_statement
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.content import ICapContent, Content
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.value import ValueBackendPassword, Value
 
 
 from .browser import MediawikiBrowser
@@ -36,14 +36,21 @@ class MediawikiBackend(BaseBackend, ICapContent):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Mediawiki wiki software application'
-    CONFIG = ValuesDict(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/'),
-                        Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php'),
-                        Value('username', label='Login', default=''),
-                        Value('password', label='Password', default='', masked=True))
+    CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/'),
+                           Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php'),
+                           Value('username', label='Login', default=''),
+                           ValueBackendPassword('password', label='Password', default=''))
 
     BROWSER = MediawikiBrowser
     def create_default_browser(self):
-        return self.create_browser(self.config['url'], self.config['apiurl'], self.config['username'], self.config['password'])
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(self.config['url'].get(),
+                                   self.config['apiurl'].get(),
+                                   username, password)
 
     def get_content(self, _id):
         _id = _id.replace(' ', '_').encode('utf-8')

@@ -22,8 +22,8 @@ from __future__ import with_statement
 
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
 from weboob.capabilities.account import ICapAccount, StatusField
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import OrangeBrowser
 
@@ -38,15 +38,15 @@ class OrangeBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     VERSION = '0.9'
     DESCRIPTION = 'Orange french mobile phone provider'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('login', label='Login'),
-                        Value('password', label='Password', masked=True),
-                        Value('phonenumber', Label='Phone number')
-                        )
+    CONFIG = BackendConfig(Value('login', label='Login'),
+                           ValueBackendPassword('password', label='Password'),
+                           Value('phonenumber', Label='Phone number')
+                           )
     BROWSER = OrangeBrowser
     ACCOUNT_REGISTER_PROPERTIES = None
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'], self.config['password'])
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def get_account_status(self):
         with self.browser:
@@ -57,4 +57,4 @@ class OrangeBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
         with self.browser:
-            self.browser.post_message(message, self.config['phonenumber'])
+            self.browser.post_message(message, self.config['phonenumber'].get())

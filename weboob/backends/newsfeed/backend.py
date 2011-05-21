@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.newsfeed import Newsfeed
-from weboob.tools.value import Value, ValuesDict
+from weboob.tools.value import Value
 
 
 __all__ = ['NewsfeedBackend']
@@ -34,12 +34,12 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     VERSION = '0.9'
     DESCRIPTION = "Loads RSS and Atom feeds from any website"
     LICENSE = "AGPLv3+"
-    CONFIG = ValuesDict(Value('url', label="Atom/RSS feed's url"))
+    CONFIG = BackendConfig(Value('url', label="Atom/RSS feed's url"))
     STORAGE = {'seen': []}
 
 
     def iter_threads(self):
-        for article in Newsfeed(self.config["url"]).iter_entries():
+        for article in Newsfeed(self.config['url'].get()).iter_entries():
             yield self.get_thread(article.id, article)
 
     def get_thread(self, id, entry=None):
@@ -50,7 +50,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
             thread = Thread(id)
 
         if entry is None:
-            entry = Newsfeed(self.config["url"]).get_entry(id)
+            entry = Newsfeed(self.config['url'].get()).get_entry(id)
         if entry is None:
             return None
 

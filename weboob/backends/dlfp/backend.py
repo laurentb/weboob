@@ -20,9 +20,9 @@
 
 from __future__ import with_statement
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
-from weboob.tools.value import Value, ValueBool, ValuesDict
+from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.tools.misc import limit
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 from weboob.capabilities.content import ICapContent, Content
@@ -41,14 +41,14 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "Da Linux French Page"
-    CONFIG = ValuesDict(Value('username',          label='Username', regexp='.+'),
-                        Value('password',          label='Password', regexp='.+', masked=True),
-                        ValueBool('get_news',      label='Get newspapers', default=True),
-                        ValueBool('get_diaries',   label='Get diaries', default=False),
-                        ValueBool('get_polls',     label='Get polls', default=False),
-                        ValueBool('get_board',     label='Get board', default=False),
-                        ValueBool('get_wiki',      label='Get wiki', default=False),
-                        ValueBool('get_tracker',   label='Get tracker', default=False))
+    CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
+                           ValueBackendPassword('password', label='Password'),
+                           ValueBool('get_news',            label='Get newspapers', default=True),
+                           ValueBool('get_diaries',         label='Get diaries', default=False),
+                           ValueBool('get_polls',           label='Get polls', default=False),
+                           ValueBool('get_board',           label='Get board', default=False),
+                           ValueBool('get_wiki',            label='Get wiki', default=False),
+                           ValueBool('get_tracker',         label='Get tracker', default=False))
     STORAGE = {'seen': {}}
     BROWSER = DLFP
 
@@ -61,7 +61,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             }
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'], self.config['password'])
+        return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
     def deinit(self):
         # don't need to logout if the browser hasn't been used.
@@ -76,7 +76,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     def iter_threads(self):
         whats = set()
         for param, url in self.FEEDS.iteritems():
-            if self.config[param]:
+            if self.config[param].get():
                 whats.add(url)
 
         for what in whats:

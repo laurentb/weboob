@@ -30,9 +30,9 @@ from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound
 from weboob.capabilities.contact import ICapContact, Contact, ContactPhoto, ProfileNode, Query, QueryError
 from weboob.capabilities.account import ICapAccount, StatusField
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable
-from weboob.tools.value import Value, ValuesDict, ValueBool
+from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
 
 from .captcha import CaptchaError
@@ -55,10 +55,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"“Adopte un mec” french dating website"
-    CONFIG = ValuesDict(Value('username',     label='Username'),
-                        Value('password',     label='Password', masked=True),
-                        ValueBool('antispam', label='Enable anti-spam', default=False),
-                        ValueBool('baskets',  label='Get baskets with new messages', default=True))
+    CONFIG = BackendConfig(Value('username',                label='Username'),
+                           ValueBackendPassword('password', label='Password'),
+                           ValueBool('antispam',            label='Enable anti-spam', default=False),
+                           ValueBool('baskets',             label='Get baskets with new messages', default=True))
     STORAGE = {'profiles_walker': {'viewed': []},
                'priority_connection': {'config': {}, 'fakes': {}},
                'queries_queue': {'queue': []},
@@ -70,13 +70,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def __init__(self, *args, **kwargs):
         BaseBackend.__init__(self, *args, **kwargs)
-        if self.config['antispam']:
+        if self.config['antispam'].get():
             self.antispam = AntiSpam()
         else:
             self.antispam = None
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'], self.config['password'])
+        return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
     def report_spam(self, id, suppr_id=None):
         if suppr_id:
@@ -215,7 +215,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         if m.flags & m.IS_UNREAD:
                             yield m
 
-            if not self.config['baskets']:
+            if not self.config['baskets'].get():
                 return
 
             # Send mail when someone added me in her basket.
@@ -437,18 +437,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         @param account  an Account object which describe the account to create
         """
         browser = None
-        bday, bmonth, byear = account.properties['birthday'].value.split('/', 2)
+        bday, bmonth, byear = account.properties['birthday'].get().split('/', 2)
         while not browser:
             try:
-                browser = klass.BROWSER(account.properties['username'].value)
-                browser.register(password=   account.properties['password'].value,
-                                 sex=        (0 if account.properties['sex'].value == 'm' else 1),
+                browser = klass.BROWSER(account.properties['username'].get())
+                browser.register(password=   account.properties['password'].get(),
+                                 sex=        (0 if account.properties['sex'].get() == 'm' else 1),
                                  birthday_d= int(bday),
                                  birthday_m= int(bmonth),
                                  birthday_y= int(byear),
-                                 zipcode=    account.properties['zipcode'].value,
-                                 country=    account.properties['country'].value,
-                                 godfather=  account.properties['godfather'].value)
+                                 zipcode=    account.properties['zipcode'].get(),
+                                 country=    account.properties['country'].get(),
+                                 godfather=  account.properties['godfather'].get())
             except CaptchaError:
                 getLogger('aum').info('Unable to resolve captcha. Retrying...')
                 browser = None

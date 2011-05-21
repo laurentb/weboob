@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import CantSendMessage, ICapMessages, ICapMessagesPost
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import BouyguesBrowser
 
@@ -37,13 +37,13 @@ class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     VERSION = '0.9'
     DESCRIPTION = 'Bouygues french mobile phone provider'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('login', label='Login'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(Value('login', label='Login'),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = BouyguesBrowser
     ACCOUNT_REGISTER_PROPERTIES = None
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'], self.config['password'])
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def post_message(self, message):
         if not message.content.strip():

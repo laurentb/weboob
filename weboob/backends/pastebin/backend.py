@@ -21,9 +21,9 @@
 from __future__ import with_statement
 
 from weboob.tools.capabilities.paste import BasePasteBackend
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.base import NotLoaded
-from weboob.tools.value import Value, ValuesDict
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import PastebinBrowser
 from .paste import PastebinPaste
@@ -40,10 +40,10 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     DESCRIPTION = 'Pastebin paste tool'
     LICENSE = 'AGPLv3+'
     BROWSER = PastebinBrowser
-    CONFIG = ValuesDict(
+    CONFIG = BackendConfig(
         Value('username', label='Optional username', default=''),
-        Value('password', label='Optional password', default='', masked=True),
-        Value('api_key',  label='Optional API key',  default='', masked=True),
+        ValueBackendPassword('password', label='Optional password', default=''),
+        ValueBackendPassword('api_key',  label='Optional API key',  default='', noprompt=True),
     )
 
     EXPIRATIONS = {
@@ -55,10 +55,13 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     }
 
     def create_default_browser(self):
-        return self.create_browser(self.config['api_key'] if self.config['api_key'] else None,
-            self.config['username'] if self.config['username'] else None,
-            self.config['password'] if self.config['password'] else None,
-            get_home=False)
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(self.config['api_key'].get() if self.config['api_key'].get() else None,
+                                   username, password, get_home=False)
 
     def new_paste(self, *args, **kwargs):
         return PastebinPaste(*args, **kwargs)
@@ -94,7 +97,7 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
         else:
             expiration = None
         with self.browser:
-            if use_api and self.config.get('api_key'):
+            if use_api and self.config.get('api_key').get():
                 self.browser.api_post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))
             else:
                 self.browser.post_paste(paste, expiration=self.EXPIRATIONS.get(expiration))

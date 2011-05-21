@@ -21,9 +21,9 @@ from __future__ import with_statement
 
 import re
 from weboob.capabilities.gallery import ICapGallery
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import ratelimit
-from weboob.tools.value import Value, ValuesDict
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import EHentaiBrowser
 from .gallery import EHentaiGallery, EHentaiImage
@@ -40,16 +40,18 @@ class EHentaiBackend(BaseBackend, ICapGallery):
     DESCRIPTION = 'E-hentai galleries'
     LICENSE = 'AGPLv3+'
     BROWSER = EHentaiBrowser
-    CONFIG = ValuesDict(
+    CONFIG = BackendConfig(
         Value('domain', label='Domain', default='g.e-hentai.org'),
         Value('username', label='Username', default=''),
-        Value('password', label='Password', default='', masked=True))
+        ValueBackendPassword('password', label='Password'))
 
     def create_default_browser(self):
-        return self.create_browser(
-                self.config['domain'],
-                self.config['username'],
-                self.config['password'])
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(self.config['domain'].get(), username, password)
 
     def iter_search_results(self, pattern=None, sortby=None, max_results=None):
         with self.browser:

@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.content import ICapContent, Content
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import RedmineBrowser
 
@@ -37,13 +37,15 @@ class RedmineBackend(BaseBackend, ICapContent):
     VERSION = '0.9'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('url',      label='URL of the Redmine website'),
-                        Value('username', label='Login'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(Value('url',      label='URL of the Redmine website'),
+                           Value('username', label='Login'),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = RedmineBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['url'], self.config['username'], self.config['password'])
+        return self.create_browser(self.config['url'].get(),
+                                   self.config['username'].get(),
+                                   self.config['password'].get())
 
     def id2path(self, id):
         return id.split('/', 2)

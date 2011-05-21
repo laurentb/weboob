@@ -22,8 +22,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import SocieteGenerale
 
@@ -38,13 +38,13 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Société Générale french bank\' website'
-    CONFIG = ValuesDict(Value('login',      label='Account ID'),
-                        Value('password',   label='Password', masked=True))
+    CONFIG = BackendConfig(Value('login',      label='Account ID'),
+                           ValueBackendPassword('password',   label='Password'))
     BROWSER = SocieteGenerale
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'],
-                                   self.config['password'])
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

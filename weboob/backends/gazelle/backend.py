@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import ICapTorrent
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import GazelleBrowser
 
@@ -34,15 +34,15 @@ class GazelleBackend(BaseBackend, ICapTorrent):
     VERSION = '0.9'
     DESCRIPTION = 'gazelle bittorrent tracker'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
-                        Value('protocol', label='Protocol to use', choices=('http', 'https')),
-                        Value('username', label='Username'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(Value('domain',   label='Domain (example "ssl.what.cd")'),
+                           Value('protocol', label='Protocol to use', choices=('http', 'https')),
+                           Value('username', label='Username'),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = GazelleBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['protocol'], self.config['domain'],
-                                   self.config['username'], self.config['password'])
+        return self.create_browser(self.config['protocol'].get(), self.config['domain'].get(),
+                                   self.config['username'].get(), self.config['password'].get())
 
     def get_torrent(self, id):
         return self.browser.get_torrent(id)

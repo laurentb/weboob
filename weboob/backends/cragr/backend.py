@@ -19,9 +19,9 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import Cragr
 
@@ -72,13 +72,15 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.ca-toulouse31.fr': u'Toulouse 31', # m.ca-toulousain.fr redirects here
         'm.ca-tourainepoitou.fr': u'Tourraine Poitou',
         }.iteritems())])
-    CONFIG = ValuesDict(Value('website',  label='Website to use', choices=website_choices),
-                        Value('login',    label='Account ID'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(Value('website',  label='Website to use', choices=website_choices),
+                           Value('login',    label='Account ID'),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = Cragr
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'], self.config['login'], self.config['password'])
+        return self.create_browser(self.config['website'].get(),
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
