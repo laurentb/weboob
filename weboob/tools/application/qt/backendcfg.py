@@ -62,13 +62,14 @@ class BackendCfg(QDialog):
         self.ui.configuredBackendsList.header().setResizeMode(QHeaderView.ResizeToContents)
         self.ui.configFrame.hide()
 
+        self.icon_cache = {}
+
         for name, backend in self.weboob.modules_loader.loaded.iteritems():
             if not self.caps or backend.has_caps(*self.caps):
                 item = QListWidgetItem(name.capitalize())
 
                 if backend.icon_path:
-                    img = QImage(backend.icon_path)
-                    item.setIcon(QIcon(QPixmap.fromImage(img)))
+                    item.setIcon(self.get_icon_cache(backend.icon_path))
 
                 self.ui.backendsList.addItem(item)
 
@@ -86,6 +87,12 @@ class BackendCfg(QDialog):
         self.connect(self.ui.configButtonBox, SIGNAL('accepted()'), self.acceptBackend)
         self.connect(self.ui.configButtonBox, SIGNAL('rejected()'), self.rejectBackend)
 
+    def get_icon_cache(self, path):
+        if not path in self.icon_cache:
+            img = QImage(path)
+            self.icon_cache[path] = QIcon(QPixmap.fromImage(img))
+        return self.icon_cache[path]
+
     def loadConfiguredBackendsList(self):
         self.ui.configuredBackendsList.clear()
         for instance_name, name, params in self.weboob.backends_config.iter_backends():
@@ -102,8 +109,7 @@ class BackendCfg(QDialog):
                 else Qt.Unchecked)
 
             if backend.icon_path:
-                img = QImage(backend.icon_path)
-                item.setIcon(0, QIcon(QPixmap.fromImage(img)))
+                item.setIcon(0, self.get_icon_cache(backend.icon_path))
 
             self.ui.configuredBackendsList.addTopLevelItem(item)
 
@@ -159,22 +165,23 @@ class BackendCfg(QDialog):
         self.ui.configFrame.hide()
         self.loadConfiguredBackendsList()
 
-    def editBackend(self, bname=None):
+    def editBackend(self, name=None):
         self.ui.registerButton.hide()
         self.ui.configFrame.show()
 
-        if bname is not None:
-            mname, params = self.weboob.backends_config.get_backend(bname)
+        if name is not None:
+            bname, params = self.weboob.backends_config.get_backend(name)
 
-            items = self.ui.backendsList.findItems(mname, Qt.MatchFixedString)
+            items = self.ui.backendsList.findItems(bname, Qt.MatchFixedString)
             if not items:
                 warning('Backend not found')
             else:
                 self.ui.backendsList.setCurrentItem(items[0])
                 self.ui.backendsList.setEnabled(False)
 
-            self.ui.nameEdit.setText(bname)
+            self.ui.nameEdit.setText(name)
             self.ui.nameEdit.setEnabled(False)
+
             if '_proxy' in params:
                 self.ui.proxyBox.setChecked(True)
                 self.ui.proxyEdit.setText(params.pop('_proxy'))
@@ -184,13 +191,14 @@ class BackendCfg(QDialog):
 
             params.pop('_enabled', None)
 
-            for key, value in params.iteritems():
+            backend = self.weboob.modules_loader.loaded[bname]
+            for key, value in backend.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
                 try:
                     l, widget = self.config_widgets[key]
                 except KeyError:
                     warning('Key "%s" is not found' % key)
                 else:
-                    widget.set_data(value)
+                    widget.set_value(value)
         else:
             self.ui.nameEdit.clear()
             self.ui.nameEdit.setEnabled(True)
@@ -198,69 +206,6 @@ class BackendCfg(QDialog):
             self.ui.proxyEdit.clear()
             self.ui.backendsList.setEnabled(True)
             self.ui.backendsList.setCurrentRow(-1)
-
-    def acceptBackend(self):
-        bname = unicode(self.ui.nameEdit.text())
-        selection = self.ui.backendsList.selectedItems()
-
-        if not selection:
-            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                self.tr('Please select a backend'))
-            return
-
-        try:
-            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
-        except ModuleLoadError:
-            backend = None
-
-        if not backend:
-            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                self.tr('The selected backend does not exist.'))
-            return
-
-        params = {}
-
-        if not bname:
-            QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a backend name'))
-            return
-
-        if self.ui.nameEdit.isEnabled() and not re.match(r'^[\w\-_]+$', bname):
-            QMessageBox.critical(self, self.tr('Invalid value'),
-                self.tr('The backend name can only contain letters and digits'))
-            return
-
-        if self.ui.proxyBox.isChecked():
-            params['_proxy'] = unicode(self.ui.proxyEdit.text())
-            if not params['_proxy']:
-                QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a proxy URL'))
-                return
-
-        for key, field in backend.config.iteritems():
-            label, qtvalue = self.config_widgets[key]
-
-            try:
-                value = qtvalue.get_value()
-            except ValueError, e:
-                QMessageBox.critical(self, self.tr('Invalid value'),
-                    unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (field.label, e))
-                return
-
-            params[key] = value.value
-
-        try:
-            self.weboob.backends_config.add_backend(bname, backend.name, params, edit=not self.ui.nameEdit.isEnabled())
-        except BackendAlreadyExists, e:
-            QMessageBox.critical(self, self.tr('Unable to create backend'),
-                     unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
-            return
-
-        self.to_load.add(bname)
-        self.ui.configFrame.hide()
-
-        self.loadConfiguredBackendsList()
-
-    def rejectBackend(self):
-        self.ui.configFrame.hide()
 
     def backendSelectionChanged(self):
         for key, (label, value) in self.config_widgets.iteritems():
@@ -288,6 +233,7 @@ class BackendCfg(QDialog):
             self.ui.nameEdit.setText(backend.name)
         else:
             self.ui.nameEdit.setText('')
+
         self.ui.backendInfo.setText(unicode(self.tr(
            '<h1>%s Backend %s</h1>'
            '<b>Version</b>: %s<br />'
@@ -313,12 +259,81 @@ class BackendCfg(QDialog):
 
         for key, field in backend.config.iteritems():
             label = QLabel(u'%s:' % field.label)
-            value = QtValue(field)
-            self.ui.configLayout.addRow(label, value)
-            self.config_widgets[key] = (label, value)
+            qvalue = QtValue(field)
+            self.ui.configLayout.addRow(label, qvalue)
+            self.config_widgets[key] = (label, qvalue)
 
     def proxyEditEnabled(self, state):
         self.ui.proxyEdit.setEnabled(state)
+
+    def acceptBackend(self):
+        bname = unicode(self.ui.nameEdit.text())
+        selection = self.ui.backendsList.selectedItems()
+
+        if not selection:
+            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
+                self.tr('Please select a backend'))
+            return
+
+        try:
+            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+        except ModuleLoadError:
+            backend = None
+
+        if not backend:
+            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
+                self.tr('The selected backend does not exist.'))
+            return
+
+        params = {}
+
+        if not bname:
+            QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a backend name'))
+            return
+
+        if self.ui.nameEdit.isEnabled():
+            if not re.match(r'^[\w\-_]+$', bname):
+                QMessageBox.critical(self, self.tr('Invalid value'),
+                    self.tr('The backend name can only contain letters and digits'))
+                return
+            if self.weboob.backends_config.backend_exists(bname):
+                QMessageBox.critical(self, self.tr('Unable to create backend'),
+                         unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
+                return
+
+        if self.ui.proxyBox.isChecked():
+            params['_proxy'] = unicode(self.ui.proxyEdit.text())
+            if not params['_proxy']:
+                QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a proxy URL'))
+                return
+
+        config = backend.config.load(self.weboob, backend.name, bname, {}, nofail=True)
+        for key, field in config.iteritems():
+            label, qtvalue = self.config_widgets[key]
+
+            try:
+                value = qtvalue.get_value()
+            except ValueError, e:
+                QMessageBox.critical(self, self.tr('Invalid value'),
+                    unicode(self.tr('Invalid value for field "%s":<br /><br />%s')) % (field.label, e))
+                return
+
+            field.set(value.get())
+
+        try:
+            config.save(edit=not self.ui.nameEdit.isEnabled(), params=params)
+        except BackendAlreadyExists:
+            QMessageBox.critical(self, self.tr('Unable to create backend'),
+                     unicode(self.tr('Unable to create backend "%s": it already exists')) % bname)
+            return
+
+        self.to_load.add(bname)
+        self.ui.configFrame.hide()
+
+        self.loadConfiguredBackendsList()
+
+    def rejectBackend(self):
+        self.ui.configFrame.hide()
 
     def registerEvent(self):
         selection = self.ui.backendsList.selectedItems()
@@ -380,7 +395,7 @@ class BackendCfg(QDialog):
                     else:
                         for key, value in account.properties.iteritems():
                             if key in self.config_widgets:
-                                self.config_widgets[key][1].set_data(value.value)
+                                self.config_widgets[key][1].set_value(value)
 
     def run(self):
         self.exec_()

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from copy import deepcopy
+from copy import copy
 import getpass
 import logging
 import sys
@@ -64,7 +64,11 @@ class ConsoleApplication(BaseApplication):
 
     def __init__(self, option_parser=None):
         BaseApplication.__init__(self, option_parser)
+        self.weboob.callbacks['login'] = self.login_cb
         self.enabled_backends = set()
+
+    def login_cb(self, backend_name, value):
+        return self.ask('[%s] Password' % backend_name, masked=True, default='', regexp=value.regexp)
 
     def unload_backends(self, *args, **kwargs):
         unloaded = self.weboob.unload_backends(*args, **kwargs)
@@ -221,8 +225,8 @@ class ConsoleApplication(BaseApplication):
                     asked_config = True
                     print 'Configuration of new account %s' % website
                     print '-----------------------------%s' % ('-' * len(website))
-                p = deepcopy(prop)
-                p.set_value(self.ask(prop, default=account.properties[key].value if (key in account.properties) else prop.default))
+                p = copy(prop)
+                p.set(self.ask(prop, default=account.properties[key].get() if (key in account.properties) else prop.default))
                 account.properties[key] = p
             if asked_config:
                 print '-----------------------------%s' % ('-' * len(website))
@@ -239,7 +243,7 @@ class ConsoleApplication(BaseApplication):
         backend_config = {}
         for key, value in account.properties.iteritems():
             if key in backend.config:
-                backend_config[key] = value.value
+                backend_config[key] = value.get()
 
         if ask_add and self.ask('Do you want to add the new register account?', default=True):
             return self.add_backend(name, backend_config, ask_register=False)
@@ -253,9 +257,12 @@ class ConsoleApplication(BaseApplication):
         if params is None:
             params = {}
 
+        backend = None
+        config = None
         if not edit:
             try:
                 backend = self.weboob.modules_loader.get_or_load_module(name)
+                config = backend.config
             except ModuleLoadError:
                 backend = None
         else:
@@ -264,15 +271,17 @@ class ConsoleApplication(BaseApplication):
                 backend = self.weboob.modules_loader.get_or_load_module(bname)
             except ModuleLoadError:
                 backend = None
-            items.update(params)
-            params = items
+            else:
+                items.update(params)
+                params = items
+                config = backend.config.load(self.weboob, bname, name, params, nofail=True)
         if not backend:
             print >>sys.stderr, 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
             return 1
 
         # ask for params non-specified on command-line arguments
         asked_config = False
-        for key, value in backend.config.iteritems():
+        for key, value in config.iteritems():
             if not asked_config:
                 asked_config = True
                 print 'Configuration of backend'
@@ -284,21 +293,23 @@ class ConsoleApplication(BaseApplication):
         if asked_config:
             print '------------------------'
 
+        while not edit and self.weboob.backends_config.backend_exists(name):
+            print >>sys.stderr, 'Backend instance "%s" already exists in "%s"' % (name, self.weboob.backends_config.confpath)
+            if not self.ask('Add new instance of "%s" backend?' % backend.name, default=False):
+                return 1
+
+            name = self.ask('Please give new instance name (could be "%s_1")' % backend.name, regexp=r'^[\w\-_]+$')
+
         try:
-            self.weboob.backends_config.add_backend(name, name, params, edit=edit)
-            print 'Backend "%s" successfully %s.' % (name, 'updated' if edit else 'added')
+            config = config.load(self.weboob, backend.name, name, params, nofail=True)
+            for key, value in params.iteritems():
+                config[key].set(value)
+            config.save(edit=edit)
+            print 'Backend "%s" successfully added.' % name
             return name
         except BackendAlreadyExists:
-            print >>sys.stderr, 'Backend "%s" is already configured in file "%s"' % (name, self.weboob.backends_config.confpath)
-            while self.ask('Add new instance of "%s" backend?' % name, default=False):
-                new_name = self.ask('Please give new instance name (could be "%s_1")' % name, regexp=r'^[\w\-_]+$')
-                try:
-                    self.weboob.backends_config.add_backend(new_name, name, params)
-                    print 'Backend "%s" successfully added.' % new_name
-                    return new_name
-                except BackendAlreadyExists:
-                    print >>sys.stderr, 'Instance "%s" already exists for backend "%s".' % (new_name, name)
-                    return 1
+            print >>sys.stderr, 'Instance "%s" already exists.' % name
+            return 1
 
     def ask(self, question, default=None, masked=False, regexp=None, choices=None):
         """
@@ -313,7 +324,7 @@ class ConsoleApplication(BaseApplication):
         """
 
         if isinstance(question, Value):
-            v = deepcopy(question)
+            v = copy(question)
             if default:
                 v.default = default
             if masked:
@@ -388,13 +399,13 @@ class ConsoleApplication(BaseApplication):
                 line = aliases[line]
 
             try:
-                v.set_value(line)
+                v.set(line)
             except ValueError, e:
                 print >>sys.stderr, 'Error: %s' % e
             else:
                 break
 
-        return v.value
+        return v.get()
 
     def bcall_error_handler(self, backend, error, backtrace):
         """
