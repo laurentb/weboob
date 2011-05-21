@@ -41,6 +41,9 @@ class Weboob(object):
         self.logger = getLogger('weboob')
         self.workdir = workdir
         self.backend_instances = {}
+        self.callbacks = {'login':   lambda backend_name, value: None,
+                          'captcha': lambda backend_name, image: None,
+                         }
 
         # Scheduler
         if scheduler is None:
