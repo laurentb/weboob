@@ -38,7 +38,7 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Société Générale french bank\' website'
-    CONFIG = BackendConfig(Value('login',      label='Account ID'),
+    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password'))
     BROWSER = SocieteGenerale
 

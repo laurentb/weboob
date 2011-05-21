@@ -76,7 +76,7 @@ class ValueBackendPassword(Value):
     _stored = True
 
     def __init__(self, *args, **kwargs):
-        kwargs['masked'] = True
+        kwargs['masked'] = kwargs.pop('masked', True)
         self.noprompt = kwargs.pop('noprompt', False)
         Value.__init__(self, *args, **kwargs)
 

@@ -35,7 +35,7 @@ class BPBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La banque postale, French bank'
-    CONFIG = BackendConfig(Value('login',    label='Account ID'),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = BPBrowser
 

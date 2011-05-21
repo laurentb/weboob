@@ -73,7 +73,7 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.ca-tourainepoitou.fr': u'Tourraine Poitou',
         }.iteritems())])
     CONFIG = BackendConfig(Value('website',  label='Website to use', choices=website_choices),
-                           Value('login',    label='Account ID'),
+                           ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = Cragr
 

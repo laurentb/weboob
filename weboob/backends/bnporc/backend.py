@@ -38,7 +38,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'BNP Paribas french bank\' website'
-    CONFIG = BackendConfig(Value('login',      label='Account ID'),
+    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
                            ValueBackendPassword('rotating_password',
                                  label='Password to set when the allowed uses are exhausted (6 digits)',

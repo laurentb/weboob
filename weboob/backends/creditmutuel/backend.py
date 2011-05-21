@@ -35,7 +35,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     VERSION = '0.9'
     DESCRIPTION = u'Crédit Mutuel french bank'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,13}\w$'),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,13}\w$', masked=False),
                            ValueBackendPassword('password', label='Password of account'))
     BROWSER = CreditMutuelBrowser
 
