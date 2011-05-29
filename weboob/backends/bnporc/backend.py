@@ -23,7 +23,7 @@ from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import BNPorc
 
