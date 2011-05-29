@@ -77,7 +77,7 @@ class WebContentEdit(ReplApplication):
         editor = os.environ.get('EDITOR', 'vim')
         if editor == 'vim':
             params = '-p'
-        os.system("%s %s %s" % (editor, params, ' '.join(paths.iterkeys())))
+        os.system("%s %s %s" % (editor, params, ' '.join(['"%s"' % path.replace('"', '\\"') for path in paths.iterkeys()])))
 
         for path, content in paths.iteritems():
             with open(path, 'r') as f:
