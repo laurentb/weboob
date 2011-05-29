@@ -37,8 +37,8 @@ class RedmineBrowser(BaseBrowser):
     PAGES = {'%s/':                              IndexPage,
              '%s/login':                         LoginPage,
              '%s/my/page':                       MyPage,
-             '%s/projects/([\w-]+)/wiki/([\w_\-]+)/edit':    WikiEditPage,
-             '%s/projects/[\w-]+/wiki/[\w_\-]*':         WikiPage,
+             '%s/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
+             '%s/projects/[\w-]+/wiki/[^\/]*':         WikiPage,
             }
 
     def __init__(self, url, *args, **kwargs):
