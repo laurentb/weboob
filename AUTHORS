@@ -52,11 +52,17 @@ Cedric Defortis <cedric@aiur.fr>
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
 
+Noe Rubinstein <noe.rubinstein@gmail.com>
+        * Contributions on backends.
+
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
 
 Michael Scherer <misc@zarb.org>
         * Contribution on weboob-config.
+
+Laurent George <setog3@gmail.com>
+        * Fixes on AuM.
 
 Romain Garbage <romain.garbage@gmail.com>
         * Fixes for FreeBSD.
