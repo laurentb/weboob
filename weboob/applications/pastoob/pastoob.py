@@ -62,7 +62,7 @@ class Pastoob(ReplApplication):
         if not paste:
             print >>sys.stderr, 'Unable to handle paste: %s' %  _id
             return 1
-        output = codecs.getwriter(sys.stdout.encoding)(sys.stdout)
+        output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
         output.write(paste.contents)
         # add a newline unless we are writing
         # in a file or in a pipe
