@@ -31,7 +31,7 @@ class lemouvBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'lemouv'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
-    VERSION = '0.8.1'
+    VERSION = '0.8.2'
     DESCRIPTION = u'The le mouv\' french radio'
     LICENCE = 'AGPLv3+'
     BROWSER = lemouvBrowser

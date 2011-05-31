@@ -1,3 +1,32 @@
+Weboob 0.8.2 (2011-05-31)
+	Repl Applications
+	* Fix: command 'inspect' crash.
+
+	Backend: AuM
+	* Fix: parsing of author of a basket (#645).
+
+	Backend: Dailymotion
+	* Fix: parsing of duration
+	* Fix: parsing of lives in search results.
+
+	Backend: DLFP
+	* Fix: support of forum URLs.
+
+	Backend: IPInfoDB
+	* Fix: crash when website is not available.
+
+	Backend: KickAss
+	* Fix: fix parsing torrents in results pages (#663).
+
+	Backend: Redmine
+	* Fix: support all wiki page names.
+
+	Backend: YouTube
+	* Support more URLs.
+
+	Core
+	* Fix: recursive loop in genericArticle for CapMessage backends.
+
 Weboob 0.8.1 (2011-05-11)
 	General
 	* Fix python 2.5 compatibility.
