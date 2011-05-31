@@ -36,6 +36,8 @@ class TorrentsPage(BasePage):
     def iter_torrents(self):
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class', '') == 'odd' or tr.attrib.get('class', '') == ' even':
+                if not 'id' in tr.attrib:
+                    continue
                 title = tr.getchildren()[0].getchildren()[1].getchildren()[1].text
                 if not title:
                     title = ''
@@ -45,10 +47,9 @@ class TorrentsPage(BasePage):
                     .replace('.html', '')
 
                 # look for url
-                child = tr.getchildren()[0]
-                while child.attrib.get('href', None) is None and len(child.getchildren()) > 0:
-                    child = child.getchildren()[0]
-                url = child.get('href', '')
+                for a in tr.getchildren()[0].getiterator('a'):
+                    if '.torrent' in a.attrib.get('href', ''):
+                        url = a.attrib['href']
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
