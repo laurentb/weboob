@@ -25,7 +25,6 @@ import mechanize
 from datetime import datetime
 import re
 
-# Browser
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
@@ -37,12 +36,12 @@ class Cragr(BaseBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
-                      'https://%s/.*\.c.*'       % website:   pages.AccountsList,
-                      ('https://%s/login/process' % website) + self.SESSION_REGEXP:   pages.AccountsList,
-                      'https://%s/accounting/listAccounts' % website: pages.AccountsList,
-                      'https://%s/accounting/listOperations' % website: pages.AccountsList,
-                      'https://%s/accounting/showAccountDetail.+' % website: pages.AccountsList,
+        self.PAGES = {'https://[^/]+/':                               pages.LoginPage,
+                      'https://[^/]+/.*\.c.*':                        pages.AccountsList,
+                      'https://[^/]+/login/process%s' % self.SESSION_REGEXP:   pages.AccountsList,
+                      'https://[^/]+/accounting/listAccounts':        pages.AccountsList,
+                      'https://[^/]+/accounting/listOperations':      pages.AccountsList,
+                      'https://[^/]+/accounting/showAccountDetail.+': pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 

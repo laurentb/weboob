@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
+
 from weboob.tools.browser import BaseBrowser
 
 from .pages.index import IndexPage
@@ -37,33 +39,11 @@ class PiratebayBrowser(BaseBrowser):
              'https://thepiratebay.org/torrent/.*' : TorrentPage
              }
 
-    def __init__(self, *args, **kwargs):
-        #self.DOMAIN = domain
-        #self.PROTOCOL = protocol
-        #self.PAGES = {}
-        #for key, value in PiratebayBrowser.PAGES.iteritems():
-        #    self.PAGES[key % domain] = value
-
-        BaseBrowser.__init__(self, *args, **kwargs)
-
-    #def login(self):
-    #    if not self.is_on_page(LoginPage):
-    #        self.home()
-    #    self.page.login(self.username, self.password)
-
-    #def is_logged(self):
-    #    if not self.page or self.is_on_page(LoginPage):
-    #        return False
-    #    if self.is_on_page(IndexPage):
-    #        return self.page.is_logged()
-    #    return True
-
     def home(self):
         return self.location('https://thepiratebay.org')
 
     def iter_torrents(self, pattern):
-        #self.location(self.buildurl('/torrents.php', searchstr=pattern))
-        self.location('https://thepiratebay.org/search/%s/0/7/0' % pattern.encode('utf-8'))
+        self.location('https://thepiratebay.org/search/%s/0/7/0' % urllib.quote_plus(pattern.encode('utf-8')))
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()

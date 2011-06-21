@@ -28,18 +28,14 @@ __all__ = ['GazelleBrowser']
 
 
 class GazelleBrowser(BaseBrowser):
-    PAGES = {'https?://%s/?(index.php)?':  IndexPage,
-             'https?://%s/login.php':      LoginPage,
-             'https?://%s/torrents.php.*': TorrentsPage,
+    PAGES = {'https?://[^/]+/?(index.php)?':  IndexPage,
+             'https?://[^/]+/login.php':      LoginPage,
+             'https?://[^/]+/torrents.php.*': TorrentsPage,
             }
 
     def __init__(self, protocol, domain, *args, **kwargs):
         self.DOMAIN = domain
         self.PROTOCOL = protocol
-        self.PAGES = {}
-        for key, value in GazelleBrowser.PAGES.iteritems():
-            self.PAGES[key % domain] = value
-
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def login(self):
