@@ -38,36 +38,32 @@ class TorrentsPage(BasePage):
         return float(n*m[u])
 
     def iter_torrents(self):
+        table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
+        for tr in table.getiterator('tr'):
+            if tr.get('class','') != "header":
+                td = tr.getchildren()[1]
+                div = td.getchildren()[0]
+                link = div.find('a').attrib['href']
+                title = div.find('a').text
+                idt = link.split('/')[2]
 
-        for table in self.document.getiterator('table'):
-            if table.attrib.get('id','') != 'searchResult':
-                raise Exception('You''re in serious troubles!')
-            else:
-                for tr in table.getiterator('tr'):
-                    if tr.get('class','') != "header":
-                        td = tr.getchildren()[1]
-                        div = td.getchildren()[0]
-                        link = div.find('a').attrib['href']
-                        title = div.find('a').text
-                        idt = link.split('/')[2]
+                a = td.getchildren()[1]
+                url = a.attrib['href']
 
-                        a = td.getchildren()[1]
-                        url = a.attrib['href']
+                size = td.find('font').text.split(',')[1].strip()
+                u = size.split(' ')[1].split(u'\xa0')[1].replace('i','')
+                size = size.split(' ')[1].split(u'\xa0')[0]
 
-                        size = td.find('font').text.split(',')[1].strip()
-                        u = size.split(' ')[1].split(u'\xa0')[1].replace('i','')
-                        size = size.split(' ')[1].split(u'\xa0')[0]
+                seed = tr.getchildren()[2].text
+                leech = tr.getchildren()[3].text
 
-                        seed = tr.getchildren()[2].text
-                        leech = tr.getchildren()[3].text
-
-                        torrent = Torrent(idt,
-                                          title,
-                                          url=url,
-                                          size=self.unit(float(size),u),
-                                          seeders=int(seed),
-                                          leechers=int(leech))
-                        yield torrent
+                torrent = Torrent(idt,
+                                  title,
+                                  url=url,
+                                  size=self.unit(float(size),u),
+                                  seeders=int(seed),
+                                  leechers=int(leech))
+                yield torrent
 
 class TorrentPage(BasePage):
     def get_torrent(self, id):
