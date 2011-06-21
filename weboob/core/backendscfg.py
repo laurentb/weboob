@@ -44,12 +44,13 @@ class BackendsConfig(object):
             if sys.platform == 'win32':
                 fptr = open(confpath,'w')
                 fptr.close()
-            elif re.match('freebsd[0-9]*', sys.platform):
-                fptr = open(confpath,'w')
-                fptr.close()
-                os.chmod(confpath, 0600)
             else:
-                os.mknod(confpath, 0600)
+                try:
+                    os.mknod(confpath, 0600)
+                except OSError:
+                    fptr = open(confpath,'w')
+                    fptr.close()
+                    os.chmod(confpath, 0600)
         else:
             if sys.platform != 'win32':
                 if mode & stat.S_IRGRP or mode & stat.S_IROTH:
