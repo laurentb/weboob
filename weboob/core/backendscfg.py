@@ -23,7 +23,6 @@ from __future__ import with_statement
 import stat
 import os
 import sys
-import re
 from ConfigParser import RawConfigParser, DuplicateSectionError
 from logging import warning
 
