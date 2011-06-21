@@ -34,11 +34,13 @@ __all__ = ['RedmineBrowser']
 # Browser
 class RedmineBrowser(BaseBrowser):
     ENCODING = 'utf-8'
-    PAGES = {'%s/':                              IndexPage,
-             '%s/login':                         LoginPage,
-             '%s/my/page':                       MyPage,
-             '%s/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
-             '%s/projects/[\w-]+/wiki/[^\/]*':         WikiPage,
+    PAGES = {'https?://[^/]+/':                                        IndexPage,
+             'https?://[^/]+/login':                                   LoginPage,
+             # compatibility with redmine 0.9
+             'https?://[^/]+/login\?back_url.*':                       MyPage,
+             'https?://[^/]+/my/page':                                 MyPage,
+             'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
+             'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
             }
 
     def __init__(self, url, *args, **kwargs):
@@ -49,12 +51,6 @@ class RedmineBrowser(BaseBrowser):
         self.BASEPATH = v.path
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
-
-        prefix = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, self.BASEPATH)
-
-        self.PAGES = {}
-        for key, value in RedmineBrowser.PAGES.iteritems():
-            self.PAGES[key % prefix] = value
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
