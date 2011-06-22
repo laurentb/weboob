@@ -8,7 +8,7 @@ Weboob (Web Out Of Browsers) provides:
 * a :doc:`core library <api/core/index>` providing all the features needed by backends
 * :doc:`tools <api/tools/index>` to help develop backends and applications
 
-Weboob is written in Python and is distributed under the GPLv3 license.
+Weboob is written in Python and is distributed under the AGPLv3+ license.
 
 Why using Weboob?
 -----------------
