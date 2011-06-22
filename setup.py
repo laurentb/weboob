@@ -192,7 +192,7 @@ setup(
     author_email='weboob@weboob.org',
     maintainer='Christophe Benz',
     maintainer_email='christophe.benz@gmail.com',
-    license='GPLv3',
+    license='AGPLv3+',
     url='http://www.weboob.org',
     packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
