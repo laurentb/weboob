@@ -1,3 +1,16 @@
+Weboob 0.8.3 (2011-06-22)
+	General
+	* Fix: creation of configuration on Mac OS X (#556).
+
+	Backend: PirateBay
+	* Fix: parsing of search results.
+
+	Backend: Redmine
+	* Fix: handle of URLs when using port and old version of redmine (#675).
+
+	Application: pastoob
+	* Fix: don't crash if sys.stdout.encoding is None.
+
 Weboob 0.8.2 (2011-05-31)
 	Repl Applications
 	* Fix: command 'inspect' crash.
