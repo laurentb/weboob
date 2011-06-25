@@ -71,7 +71,7 @@ class MetaVideoPage(BasePage):
             video = PluzzVideo(id)
 
         video.title = self.get_meta('vignette-titre-court')
-        video.url = 'mms://videozones.francetv.fr/%s' % self.get_meta('urls-url-video')
+        video.url = 'mms://videozones.francetv.fr/%s' % self.get_meta('urls-url-video')[len('geoloc/'):]
         video.description = self.get_meta('description')
         hours, minutes, seconds = self.get_meta('vignette-duree').split(':')
         video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
