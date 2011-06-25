@@ -112,17 +112,19 @@ class Videoob(ReplApplication):
             dest = '%s.%s' % (video.id, ext)
 
         if video.url.find('rtmp') == 0:
-            if check_exec('rtmpdump'):
-                cmd = "rtmpdump -r " + video.url + " -o " + dest
-            else:
+            if not check_exec('rtmpdump'):
                 return 1
+            args = ('rtmpdump', '-r', video.url, '-o', dest)
+        elif video.url.find('mms') == 0:
+            if not check_exec('mimms'):
+                return 1
+            args = ('mimms', video.url, dest)
         else:
-            if check_exec('wget'):
-                cmd = 'wget "%s" -O "%s"' % (video.url, dest)
-            else:
+            if not check_exec('wget'):
                 return 1
+            args = ('wget', video.url, '-O', dest)
 
-        os.system(cmd)
+        os.spawnlp(os.P_WAIT, args[0], *args)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
