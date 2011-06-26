@@ -175,11 +175,18 @@ class ReplApplication(Cmd, ConsoleApplication):
                 for index, (name, backend) in enumerate(e.backends):
                     print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
                         backend.DESCRIPTION)
-                i = int(self.ask('Select a backend to proceed', regexp='^\d+$'))
-                if i < 0 or i > len(e.backends):
-                    print >>sys.stderr, 'Error: %s is not a valid choice' % i
-                    continue
-                backend_name = e.backends[i-1][0]
+                i = self.ask('Select a backend to proceed with "%s"' % id)
+                if not i.isdigit():
+                    if not i in dict(e.backends):
+                        print >>sys.stderr, 'Error: %s is not a valid backend' % i
+                        continue
+                    backend_name = i
+                else:
+                    i = int(i)
+                    if i < 0 or i > len(e.backends):
+                        print >>sys.stderr, 'Error: %s is not a valid choice' % i
+                        continue
+                    backend_name = e.backends[i-1][0]
 
             return id, backend_name
 
