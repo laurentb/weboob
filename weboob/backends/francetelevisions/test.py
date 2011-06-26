@@ -21,9 +21,9 @@
 from weboob.tools.test import BackendTest
 
 class PluzzTest(BackendTest):
-    BACKEND = 'pluzz'
+    BACKEND = 'francetelevisions'
 
-    def test_pluzz(self):
+    def test_francetelevisions(self):
         l = list(self.backend.iter_search_results('jt'))
         self.assertTrue(len(l) > 0)
         v = l[0]

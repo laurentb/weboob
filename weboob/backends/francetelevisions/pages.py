@@ -18,13 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import urllib
 import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from weboob.capabilities.base import NotAvailable
-from weboob.tools.misc import html2text
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 
 
 from .video import PluzzVideo
