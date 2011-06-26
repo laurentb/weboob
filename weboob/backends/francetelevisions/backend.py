@@ -31,7 +31,7 @@ __all__ = ['PluzzBackend']
 
 
 class PluzzBackend(BaseBackend, ICapVideo):
-    NAME = 'pluzz'
+    NAME = 'francetelevisions'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.9'
