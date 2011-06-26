@@ -48,7 +48,7 @@ class WebContentEdit(ReplApplication):
         """
         contents = []
         for id in line.split():
-            _id, backend_name = self.parse_id(id)
+            _id, backend_name = self.parse_id(id, unique_backend=True)
             backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
