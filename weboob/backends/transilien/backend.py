@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.travel import ICapTravel, Station, Departure
+from weboob.capabilities.travel import ICapTravel, Station, Departure, RoadStep
 from weboob.tools.backend import BaseBackend
 
 from .browser import Transilien
@@ -40,11 +40,26 @@ class TransilienBackend(BaseBackend, ICapTravel):
                 yield Station(_id, name)
 
     def iter_station_departures(self, station_id, arrival_id=None):
-        for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
-            departure = Departure(i, d['type'], d['time'])
-            departure.departure_station = d['departure']
-            departure.arrival_station = d['arrival']
-            departure.late = d['late']
-            departure.information = d['late_reason']
-            departure.plateform = d['plateform']
-            yield departure
+        with self.browser:
+            for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
+                departure = Departure(i, d['type'], d['time'])
+                departure.departure_station = d['departure']
+                departure.arrival_station = d['arrival']
+                departure.late = d['late']
+                departure.information = d['late_reason']
+                departure.plateform = d['plateform']
+                yield departure
+
+    def iter_roadmap(self, departure, arrival):
+        with self.browser:
+            roadmap = self.browser.get_roadmap(departure, arrival)
+
+        for s in roadmap['steps']:
+            step = RoadStep(s['id'])
+            step.line = s['line']
+            step.start_time = s['start_time']
+            step.end_time = s['end_time']
+            step.departure = s['departure']
+            step.arrival = s['arrival']
+            step.duration = s['duration']
+            yield step

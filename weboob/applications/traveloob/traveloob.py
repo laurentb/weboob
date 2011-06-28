@@ -72,3 +72,10 @@ class Traveloob(ReplApplication):
         for backend, departure in self.do('iter_station_departures', station_id, arrival_id, backends=backends):
             self.format(departure)
         self.flush()
+
+    def do_roadmap(self, line):
+        departure, arrival = self.parse_command_args(line, 2, 2)
+
+        for backend, route in self.do('iter_roadmap', departure, arrival):
+            self.format(route)
+        self.flush()

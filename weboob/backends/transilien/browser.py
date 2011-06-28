@@ -18,17 +18,30 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
 
-from .pages.route import RoutePage
+from .pages.departures import DeparturesPage
+from .pages.roadmap import RoadmapSearchPage, RoadmapConfirmPage, RoadmapPage
+
+class UnavailablePage(BasePage):
+    def on_loaded(self):
+        raise BrowserUnavailable('Website is currently unavailable')
 
 class Transilien(BaseBrowser):
     DOMAIN = 'www.transilien.com'
     PROTOCOL = 'https'
     USER_AGENT = BaseBrowser.USER_AGENTS['microb']
-    PAGES = {'https://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': RoutePage,
-             'https://www\.transilien\.com/web/ITProchainsTrains\.do\?.*':         RoutePage,
+    PAGES = {'https://www\.transilien\.com/web/ITProchainsTrainsAvecDest\.do\?.*': DeparturesPage,
+             'https://www\.transilien\.com/web/ITProchainsTrains\.do\?.*':         DeparturesPage,
+             'https://www\.transilien\.com/web/site.*':                            RoadmapSearchPage,
+             'https://www\.transilien\.com/web/RedirectHI.do.*':                   RoadmapConfirmPage,
+             'https://www\.transilien\.com/web/RedirectHIIntermediaire.do.*':      RoadmapPage,
+             'https://www\.transilien\.com/transilien_sncf_maintenance_en_cours.htm': UnavailablePage,
             }
+
+    def is_logged(self):
+        """ Do not need to be logged """
+        return True
 
     def iter_station_search(self, pattern):
         pass
@@ -41,6 +54,16 @@ class Transilien(BaseBrowser):
 
         return self.page.iter_routes()
 
-    def is_logged(self):
-        """ Do not need to be logged """
-        return True
+    def get_roadmap(self, departure, arrival):
+        self.location('/web/site/accueil/etat-trafic/chercher-itineraire/lang/en')
+
+        assert self.is_on_page(RoadmapSearchPage)
+        self.page.search(departure, arrival)
+
+        assert self.is_on_page(RoadmapConfirmPage)
+        self.page.confirm()
+
+        assert self.is_on_page(RoadmapPage)
+        roadmap = {}
+        roadmap['steps'] = list(self.page.get_steps())
+        return roadmap

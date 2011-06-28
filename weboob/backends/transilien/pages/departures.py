@@ -22,10 +22,14 @@ import datetime
 from weboob.tools.misc import to_unicode
 from weboob.tools.browser import BasePage, BrokenPageError
 
+
+__all__ = ['StationNotFound', 'DeparturesPage']
+
+
 class StationNotFound(Exception):
     pass
 
-class RoutePage(BasePage):
+class DeparturesPage(BasePage):
     def iter_routes(self):
         try:
             table = self.parser.select(self.document.getroot(), 'table.horaires3', 1)
