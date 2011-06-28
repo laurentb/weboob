@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import time, datetime
+from datetime import time, datetime, timedelta
 
 from .base import IBaseCap, CapBaseObject
 
@@ -33,7 +33,6 @@ class Station(CapBaseObject):
 
     def __repr__(self):
         return "<Station id=%r name=%r>" % (self.id, self.name)
-
 
 class Departure(CapBaseObject):
     def __init__(self, id, _type, _time):
@@ -50,6 +49,17 @@ class Departure(CapBaseObject):
     def __repr__(self):
         return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
+
+class RoadStep(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+
+        self.add_field('line', basestring)
+        self.add_field('start_time', time)
+        self.add_field('end_time', time)
+        self.add_field('departure', unicode)
+        self.add_field('arrival', unicode)
+        self.add_field('duration', timedelta)
 
 class ICapTravel(IBaseCap):
     def iter_station_search(self, pattern):
@@ -68,5 +78,15 @@ class ICapTravel(IBaseCap):
         @param station_id [id]  the station id
         @param arrival_id [id]  optionnal arrival station id
         @return [iter]  result of Departure objects
+        """
+        raise NotImplementedError()
+
+    def iter_roadmap(self, departure, arrival):
+        """
+        Get a roadmap.
+
+        @param departure [str]  name of departure station
+        @param arrival [str]  name of arrival station
+        @return [iter(RoadStep)]  steps of roadmap
         """
         raise NotImplementedError()
