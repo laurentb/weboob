@@ -23,8 +23,12 @@ from weboob.tools.test import BackendTest
 class TransilienTest(BackendTest):
     BACKEND = 'transilien'
 
-    def test_transilien(self):
+    def test_departures(self):
         stations = list(self.backend.iter_station_search('defense'))
         self.assertTrue(len(stations) > 0)
 
         list(self.backend.iter_station_departures(stations[0].id))
+
+    def test_roadmap(self):
+        roadmap = list(self.backend.iter_roadmap('Puteaux', u'École Militaire'))
+        self.assertTrue(len(roadmap) > 0)
