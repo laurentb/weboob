@@ -47,17 +47,20 @@ class RoadmapConfirmPage(BasePage):
         self.browser.set_all_readonly(False)
         self.select('idDepart', 1)
         self.select('idArrivee', 1)
+        self.browser['modeTransport'] = ['0']
         self.browser.submit()
 
 class RoadmapPage(BasePage):
     def get_steps(self):
         current_step = None
+        i = 0
         for tr in self.parser.select(self.document.getroot(), 'table.horaires2 tbody tr'):
             if not 'class' in tr.attrib:
                 continue
             elif tr.attrib['class'] == 'trHautTroncon':
                 current_step = {}
-                current_step['id'] = 0
+                current_step['id'] = i
+                i += 1
                 current_step['start_time'] = self.parse_time(self.parser.select(tr, 'td.formattedHeureDepart p', 1).text.strip())
                 current_step['line'] = self.parser.select(tr, 'td.rechercheResultatColumnMode img')[-1].attrib['alt']
                 current_step['departure'] = to_unicode(self.parser.select(tr, 'td.descDepart p strong', 1).text.strip())
