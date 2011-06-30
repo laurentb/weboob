@@ -30,7 +30,7 @@ from weboob.core.modules import ModuleLoadError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 
-from .base import BackendNotFound, BaseApplication
+from .base import BaseApplication
 
 
 __all__ = ['ConsoleApplication', 'BackendNotGiven']
@@ -42,6 +42,9 @@ class BackendNotGiven(Exception):
         self.backends = backends
         Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
                 'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
+
+class BackendNotFound(Exception):
+    pass
 
 class ConsoleApplication(BaseApplication):
     """
@@ -167,7 +170,8 @@ class ConsoleApplication(BaseApplication):
         try:
             super(ConsoleApplication, klass).run(args)
         except BackendNotFound, e:
-            logging.error(e)
+            print 'Error: Backend "%s" not found.' % e
+            sys.exit(1)
 
     def do(self, function, *args, **kwargs):
         if not 'backends' in kwargs:
@@ -179,12 +183,14 @@ class ConsoleApplication(BaseApplication):
             _id, backend_name = _id.rsplit('@', 1)
         except ValueError:
             backend_name = None
+        backends = [(b.name, b) for b in self.enabled_backends]
         if unique_backend and not backend_name:
-            backends = [(b.name, b) for b in self.enabled_backends]
             if len(backends) == 1:
                 backend_name = backends[0]
             else:
                 raise BackendNotGiven(_id, backends)
+        if not backend_name in dict(backends):
+            raise BackendNotFound(backend_name)
         return _id, backend_name
 
     def caps_included(self, modcaps, caps):

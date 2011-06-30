@@ -33,11 +33,7 @@ from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
 
 
-__all__ = ['BackendNotFound', 'BaseApplication']
-
-
-class BackendNotFound(Exception):
-    pass
+__all__ = ['BaseApplication']
 
 
 class ApplicationStorage(object):
