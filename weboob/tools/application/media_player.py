@@ -28,11 +28,11 @@ __all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
 PLAYERS = (
-    ('parole', 'fd://0'),
-    ('totem', 'fd://0'),
     ('mplayer', '-'),
-    ('vlc', '-'),
-    ('xine', 'stdin:/'),
+    ('vlc',     '-'),
+    ('parole',  'fd://0'),
+    ('totem',   'fd://0'),
+    ('xine',    'stdin:/'),
 )
 
 
