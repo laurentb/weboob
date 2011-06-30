@@ -55,7 +55,7 @@ class AccountsList(CragrBasePage):
                     account.label = div.find('a').text.strip()
                     account.link_id = div.find('a').get('href', '')
                     account.id = div.findall('br')[1].tail.strip()
-                    s = div.find('div').find('span').find('b').text
+                    s = div.find('div').find('b').text
                 account.balance = clean_amount(s)
                 l.append(account)
         return l
