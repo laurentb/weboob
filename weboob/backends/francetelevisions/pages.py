@@ -21,7 +21,7 @@ import datetime
 import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 
 from .video import PluzzVideo
@@ -52,9 +52,18 @@ class IndexPage(BasePage):
             yield video
 
 class VideoPage(BasePage):
+    def on_loaded(self):
+        p = self.parser.select(self.document.getroot(), 'p.alert')
+        if len(p) > 0:
+            raise Exception(p[0].text)
+
     def get_meta_url(self):
-        div = self.parser.select(self.document.getroot(), 'a#current_video', 1)
-        return div.attrib['href']
+        try:
+            div = self.parser.select(self.document.getroot(), 'a#current_video', 1)
+        except BrokenPageError:
+            return None
+        else:
+            return div.attrib['href']
 
     def get_id(self):
         return self.groups[0]

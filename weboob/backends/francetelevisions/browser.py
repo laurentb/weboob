@@ -42,8 +42,11 @@ class PluzzBrowser(BaseBrowser):
         self.location(url)
         assert self.is_on_page(VideoPage)
 
-        metaurl = self.page.get_meta_url()
         id = self.page.get_id()
+        metaurl = self.page.get_meta_url()
+        if metaurl is None:
+            return None
+
         self.location(metaurl)
         assert self.is_on_page(MetaVideoPage)
 
