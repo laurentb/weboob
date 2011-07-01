@@ -189,7 +189,7 @@ class ConsoleApplication(BaseApplication):
                 backend_name = backends[0]
             else:
                 raise BackendNotGiven(_id, backends)
-        if not backend_name in dict(backends):
+        if backend_name is not None and not backend_name in dict(backends):
             raise BackendNotFound(backend_name)
         return _id, backend_name
 
