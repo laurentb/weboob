@@ -391,7 +391,8 @@ class BaseBrowser(mechanize.Browser):
             self._change_location(mechanize.Browser.open(self, *args, **kwargs), no_login=no_login)
         except BrowserRetry:
             if not self.page or not args or self.page.url != args[0]:
-                self.location(keep_args, keep_kwargs)
+                keep_kwargs['no_login'] = True
+                self.location(*keep_args, **keep_kwargs)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
             raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
@@ -464,7 +465,7 @@ class BaseBrowser(mechanize.Browser):
         if not no_login and self.password is not None and not self.is_logged():
             self.logger.debug('!! Relogin !!')
             self.login()
-            return
+            raise BrowserRetry()
 
         if self._cookie:
             self._cookie.save()
