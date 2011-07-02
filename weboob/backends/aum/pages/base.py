@@ -37,6 +37,12 @@ class PageBase(BasePage):
             if img.getAttribute('src') == 'http://s.adopteunmec.com/img/exemple.jpg':
                 raise AdopteBanned('Your account is blocked. You have to unblock by yourself but we can\'t help you.')
 
+    def is_logged(self):
+        for form in self.browser.forms():
+            if form.name == 'form_login':
+                return False
+        return True
+
     def open_contact_list_page(self):
         self.browser.follow_link(url_regex=r"/mail.php$")
 

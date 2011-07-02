@@ -103,10 +103,10 @@ class AuMBrowser(BaseBrowser):
         self.page.login(self.username, self.password)
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        return self.page and self.page.is_logged()
 
     def home(self):
-        return self.location('http://www.adopteunmec.com/')
+        return self.location('http://www.adopteunmec.com/index.php')
 
     def pageaccess(func):
         def inner(self, *args, **kwargs):
