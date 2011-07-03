@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword, BrowserBanned
+from weboob.tools.misc import remove_html_tags
 
 
 __all__ = ['IndexPage', 'LoginPage']
@@ -30,6 +31,15 @@ class IndexPage(BasePage):
 
 
 class LoginPage(BasePage):
+    def on_loaded(self):
+        warns = self.parser.select(self.document.getroot(), 'span.warning')
+        for warn in warns:
+            text = remove_html_tags(self.parser.tostring(warn)).strip()
+            if text.startswith('Your username'):
+                raise BrowserIncorrectPassword(text)
+            if text.startswith('You are banned'):
+                raise BrowserBanned(text)
+
     def login(self, login, password):
         self.browser.select_form(nr=0)
         self.browser['username'] = login
