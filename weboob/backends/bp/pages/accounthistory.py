@@ -21,21 +21,11 @@
 import re
 
 from weboob.capabilities.bank import Operation
-
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import remove_html_tags
 
 
 __all__ = ['AccountHistory']
-
-
-def remove_html_tags(data):
-    p = re.compile(r'<.*?>')
-    return p.sub(' ', data)
-
-
-def remove_extra_spaces(data):
-    p = re.compile(r'\s+')
-    return p.sub(' ', data)
 
 
 class AccountHistory(BasePage):
@@ -50,10 +40,10 @@ class AccountHistory(BasePage):
             operation = Operation(len(operations))
             operation.date = mvt.xpath("./td/span")[0].text
             tmp = mvt.xpath("./td/span")[1]
-            operation.label = remove_extra_spaces(remove_html_tags(self.parser.tostring(tmp)))
+            operation.label = remove_html_tags(self.parser.tostring(tmp)).strip()
 
             r = re.compile(r'\d+')
-            
+
             tmp = mvt.xpath("./td/span/strong")
             if not tmp:
                 tmp = mvt.xpath("./td/span")

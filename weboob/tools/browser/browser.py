@@ -346,7 +346,6 @@ class BaseBrowser(mechanize.Browser):
             self.page = None
             raise self.get_exception(e)(e)
         except (mechanize.BrowserStateError, BrowserRetry), e:
-            self.home()
             raise BrowserUnavailable(e)
 
     def is_on_page(self, pageCls):
