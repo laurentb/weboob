@@ -43,7 +43,7 @@ class AccountsPage(BasePage):
             first_td = tr.getchildren()[0]
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
                 account = Account()
-                account.label = first_td.find('a').text
+                account.label = u"%s"%first_td.find('a').text
                 account.link_id = first_td.find('a').get('href', '')
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
                 s = tr.getchildren()[2].text
@@ -73,7 +73,7 @@ class OperationsPage(BasePage):
                 operation = Operation(index)
                 index += 1
                 operation.date = first_td.text
-                operation.label = tr.getchildren()[2].text.replace('\n',' ')
+                operation.label = u"%s"%tr.getchildren()[2].text.replace('\n',' ')
                 if len(tr.getchildren()[3].text) > 2:
                     s = tr.getchildren()[3].text
                 elif len(tr.getchildren()[4].text) > 2:
