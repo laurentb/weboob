@@ -194,11 +194,15 @@ class TorrentsPage(BasePage):
                     torrent.description = u''
                 torrent.description += u'%s\n\n%s\n' % (title, body)
 
-        div = self.document.getroot().cssselect('div#files_%s,div#filelist_%s,tr#torrent_%s td' % (torrentid, torrentid, torrentid))
-        if div:
+        divs = self.document.getroot().cssselect('div#files_%s,div#filelist_%s,tr#torrent_%s td' % (torrentid, torrentid, torrentid))
+        if divs:
             torrent.files = []
-            for tr in div[0].find('table'):
-                if tr.attrib.get('class', None) != 'colhead_dark':
-                    torrent.files.append(tr.find('td').text)
+            for div in divs:
+                table = div.find('table')
+                if table is None:
+                    continue
+                for tr in table:
+                    if tr.attrib.get('class', None) != 'colhead_dark':
+                        torrent.files.append(tr.find('td').text)
 
         return torrent
