@@ -106,7 +106,7 @@ class ValueBackendPassword(Value):
         try:
             import keyring
             keyring.set_password(self._domain, self.id, passwd)
-        except Exception, e:
+        except Exception:
             self._value = passwd
         else:
             self._value = ''
