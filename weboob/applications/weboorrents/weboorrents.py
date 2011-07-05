@@ -127,15 +127,18 @@ class Weboorrents(ReplApplication):
 
     def do_getfile(self, line):
         """
-        getfile ID FILENAME
+        getfile ID [FILENAME]
 
         Get the .torrent file.
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
         """
-        id, dest = self.parse_command_args(line, 2, 2)
+        id, dest = self.parse_command_args(line, 2, 1)
 
         _id, backend_name = self.parse_id(id)
+
+        if dest is None:
+            dest = '%s.torrent' % _id
 
         for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
             if buf:
