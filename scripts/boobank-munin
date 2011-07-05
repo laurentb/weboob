@@ -151,7 +151,7 @@ class BoobankMuninPlugin(object):
                     except KeyError:
                         pass
             else:
-                accounts = reversed(a for b, a in self.weboob.do('iter_accounts'))
+                accounts = reversed([a for b, a in self.weboob.do('iter_accounts')])
 
             first = True
             for account in accounts:
