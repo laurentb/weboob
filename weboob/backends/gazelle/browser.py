@@ -64,6 +64,8 @@ class GazelleBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, fullid):
+        if not '.' in fullid:
+            return None
         id, torrentid = fullid.split('.', 1)
         self.location(self.buildurl('/torrents.php', id=id, torrentid=torrentid))
 
