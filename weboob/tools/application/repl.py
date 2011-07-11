@@ -201,7 +201,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                     for backend, obj in self.do('fillobj', obj, fields, backends=[obj.backend]):
                         if obj:
                             return obj
-        _id, backend_name = self.parse_id(_id)
+        _id, backend_name = self.parse_id(_id, unique_backend=True)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
         for backend, obj in self.do(method, _id, backends=backend_names):
             if obj:
@@ -446,7 +446,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         return d
 
     # -- default REPL commands ---------
-
     def do_quit(self, arg):
         """
         Quit the application.
