@@ -1,3 +1,17 @@
+Weboob 0.8.4 (2011-07-11)
+	Backend: CrAgr
+	* Fix: account list with CA Toulouse.
+
+	Backend: CreditMutuel
+	* Fix: labels must be unicode strings.
+
+	Backend: Gazelle
+	* Fix: parsing of file lists on some gazelle websites.
+	* Fix: crash when ID is invalid.
+
+	Application: boobank-munin
+	* Fix: syntax error.
+
 Weboob 0.8.3 (2011-06-22)
 	General
 	* Fix: creation of configuration on Mac OS X (#556).

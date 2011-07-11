@@ -29,7 +29,7 @@ __all__ = ['Traveloob']
 
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
-    VERSION = '0.8.3'
+    VERSION = '0.8.4'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for train stations and get departure times.'
     CAPS = ICapTravel

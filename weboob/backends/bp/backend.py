@@ -32,7 +32,7 @@ class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.8.3'
+    VERSION = '0.8.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La banque postale, French bank'
     CONFIG = ValuesDict(Value('login',    label='Account ID'),
