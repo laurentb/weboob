@@ -107,7 +107,7 @@ class WeboobCfg(ReplApplication):
             print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
             return 1
 
-        mail = sys.stdin.read()
+        mail = self.acquire_input()
         if not backend.confirm_account(mail):
             print >>sys.stderr, 'Error: Unable to confirm account creation'
             return 1

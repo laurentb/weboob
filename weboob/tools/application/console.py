@@ -23,6 +23,7 @@ import getpass
 import logging
 import sys
 import os
+import locale
 
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
@@ -186,7 +187,7 @@ class ConsoleApplication(BaseApplication):
         backends = [(b.name, b) for b in self.enabled_backends]
         if unique_backend and not backend_name:
             if len(backends) == 1:
-                backend_name = backends[0]
+                backend_name = backends[0][0]
             else:
                 raise BackendNotGiven(_id, backends)
         if backend_name is not None and not backend_name in dict(backends):
@@ -412,6 +413,13 @@ class ConsoleApplication(BaseApplication):
                 break
 
         return v.get()
+
+    def acquire_input(self):
+        if sys.stdin.isatty():
+            print 'Reading content from stdin... Type ctrl-D ' \
+                  'from an empty line to stop.'
+        text = sys.stdin.read()
+        return text.decode(sys.stdin.encoding or locale.getpreferredencoding())
 
     def bcall_error_handler(self, backend, error, backtrace):
         """

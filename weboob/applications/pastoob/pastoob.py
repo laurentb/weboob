@@ -77,7 +77,7 @@ class Pastoob(ReplApplication):
         The filename can be '-' for reading standard input (pipe).
         """
         if not filename or filename == '-':
-            contents = sys.stdin.read().decode(sys.stdin.encoding or locale.getpreferredencoding())
+            contents = self.acquire_input()
         else:
             try:
                 with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:

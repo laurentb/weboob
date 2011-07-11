@@ -230,12 +230,7 @@ class Boobmsg(ReplApplication):
         """
         receivers, text = self.parse_command_args(line, 2, 1)
         if text is None:
-            if self.interactive:
-                print 'Reading message content from stdin... Type ctrl-D ' \
-                      'from an empty line to post message.'
-            text = sys.stdin.read()
-            if sys.stdin.encoding:
-                text = text.decode(sys.stdin.encoding)
+            text = self.acquire_input()
 
         if self.options.skip_empty and not text.strip():
             return
