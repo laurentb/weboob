@@ -24,8 +24,9 @@ import lxml.html
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages.index import LoginPage, IndexPage, MyPage
+from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage
+from .pages.issues import IssuesPage, IssuePage, NewIssuePage
 
 
 __all__ = ['RedmineBrowser']
@@ -39,8 +40,12 @@ class RedmineBrowser(BaseBrowser):
              # compatibility with redmine 0.9
              'https?://[^/]+/login\?back_url.*':                       MyPage,
              'https?://[^/]+/my/page':                                 MyPage,
+             'https?://[^/]+/projects':                                ProjectsPage,
              'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
              'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
+             'https?://[^/]+/projects/[\w-]+/issues/new':              NewIssuePage,
+             'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
+             'https?://[^/]+/issues/(\d+)':                            IssuePage,
             }
 
     def __init__(self, url, *args, **kwargs):
@@ -52,6 +57,7 @@ class RedmineBrowser(BaseBrowser):
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
         BaseBrowser.__init__(self, *args, **kwargs)
+        self.projects = {}
 
     def is_logged(self):
         return self.is_on_page(LoginPage) or self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1
@@ -100,3 +106,76 @@ class RedmineBrowser(BaseBrowser):
         preview_html.find("legend").drop_tree()
         return lxml.html.tostring(preview_html)
 
+    def query_issues(self, project_name, **kwargs):
+        data = (('project_id',            project_name),
+                ('query[column_names][]', 'tracker'),
+                ('query[column_names][]', 'status'),
+                ('query[column_names][]', 'priority'),
+                ('query[column_names][]', 'subject'),
+                ('query[column_names][]', 'assigned_to'),
+                ('query[column_names][]', 'updated_on'),
+                ('query[column_names][]', 'category'),
+                ('query[column_names][]', 'fixed_version'),
+                ('query[column_names][]', 'done_ratio'),
+                ('query[column_names][]', 'author'),
+                ('query[column_names][]', 'start_date'),
+                ('query[column_names][]', 'due_date'),
+                ('query[column_names][]', 'estimated_hours'),
+                ('query[column_names][]', 'created_on'),
+               )
+        for key, value in kwargs.iteritems():
+            if value:
+                data += (('values[%s][]' % key, value),)
+                data += (('fields[]', key),)
+                data += (('operators[%s]' % key, '~'),)
+
+        self.location('/issues?set_filter=1&per_page=100', urllib.urlencode(data))
+
+        assert self.is_on_page(IssuesPage)
+        return {'project': self.page.get_project(project_name),
+                'iter':    self.page.iter_issues(),
+               }
+
+    def get_issue(self, id):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        return self.page.get_params()
+
+    def update_issue(self, id, message):
+        data = (('_method', 'put'),
+                ('notes', message.encode('utf-8')),
+               )
+        self.openurl('/issues/%s/edit' % id, urllib.urlencode(data))
+
+    def create_issue(self, project, **kwargs):
+        self.location('/projects/%s/issues/new' % project)
+
+        assert self.is_on_page(NewIssuePage)
+        self.page.fill_form(**kwargs)
+
+        assert self.is_on_page(IssuePage)
+        return int(self.page.groups[0])
+
+    def edit_issue(self, id, **kwargs):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        self.page.fill_form(**kwargs)
+
+        assert self.is_on_page(IssuePage)
+        return int(self.page.groups[0])
+
+    def remove_issue(self, id):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        token = self.page.get_authenticity_token()
+
+        data = (('authenticity_token', token),)
+        self.openurl('/issues/%s/destroy' % id, urllib.urlencode(data))
+
+    def iter_projects(self):
+        self.location('/projects')
+
+        return self.page.iter_projects()
