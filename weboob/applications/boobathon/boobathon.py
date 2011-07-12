@@ -130,7 +130,7 @@ class Event(object):
                 member = Member(int(m.group(2)), m.group(1))
                 if member.id == self.my_id:
                     member.is_me = True
-                if member.id == self.winner.id:
+                if self.winner is not None and member.id == self.winner.id:
                     self.winner = member
                 self.members[member.id] = member
             elif self.description is None and len(line) > 0 and line != '{{TOC}}':
