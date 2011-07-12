@@ -29,18 +29,26 @@ from weboob.tools.mech import ClientForm
 class BaseIssuePage(BasePage):
     def parse_datetime(self, text):
         m = re.match('(\d+)/(\d+)/(\d+) (\d+):(\d+) (\w+)', text)
-        if not m:
-            self.logger.warning('Unable to parse "%s"' % text)
-            return text
+        if m:
+            date = datetime.datetime(int(m.group(3)),
+                                     int(m.group(1)),
+                                     int(m.group(2)),
+                                     int(m.group(4)),
+                                     int(m.group(5)))
+            if m.group(6) == 'pm':
+                date += datetime.timedelta(0,12*3600)
+            return date
 
-        date = datetime.datetime(int(m.group(3)),
-                                 int(m.group(1)),
-                                 int(m.group(2)),
-                                 int(m.group(4)),
-                                 int(m.group(5)))
-        if m.group(6) == 'pm':
-            date += datetime.timedelta(0,12*3600)
-        return date
+        m = re.match('(\d+)-(\d+)-(\d+) (\d+):(\d+)', text)
+        if m:
+            return datetime.datetime(int(m.group(1)),
+                                     int(m.group(2)),
+                                     int(m.group(3)),
+                                     int(m.group(4)),
+                                     int(m.group(5)))
+
+        self.logger.warning('Unable to parse "%s"' % text)
+        return text
 
     PROJECT_FIELDS = {'members':    'values_assigned_to_id',
                       'categories': 'values_category_id',
@@ -63,6 +71,14 @@ class BaseIssuePage(BasePage):
         for field, elid in self.PROJECT_FIELDS.iteritems():
             project[field] = list(self.iter_choices(elid))
         return project
+
+    def get_authenticity_token(self):
+        tokens = self.parser.select(self.document.getroot(), 'input[name=authenticity_token]')
+        if len(tokens) == 0:
+            raise IssueError("You doesn't have rights to remove this issue.")
+
+        token = tokens[0].attrib['value']
+        return token
 
 class IssuesPage(BaseIssuePage):
     PROJECT_FIELDS = {'members':    'values_assigned_to_id',
@@ -243,10 +259,4 @@ class IssuePage(NewIssuePage):
 
         return params
 
-    def get_authenticity_token(self):
-        tokens = self.parser.select(self.document.getroot(), 'input[name=authenticity_token]')
-        if len(tokens) == 0:
-            raise IssueError("You doesn't have rights to remove this issue.")
 
-        token = tokens[0].attrib['value']
-        return token

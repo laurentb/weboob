@@ -44,6 +44,7 @@ class RedmineBrowser(BaseBrowser):
              'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
              'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
              'https?://[^/]+/projects/[\w-]+/issues/new':              NewIssuePage,
+             'https?://[^/]+/projects/[\w-]+/issues':                  IssuesPage,
              'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
              'https?://[^/]+/issues/(\d+)':                            IssuePage,
             }
@@ -107,8 +108,11 @@ class RedmineBrowser(BaseBrowser):
         return lxml.html.tostring(preview_html)
 
     def query_issues(self, project_name, **kwargs):
+        self.location('/projects/%s/issues' % project_name)
+        token = self.page.get_authenticity_token()
         data = (('project_id',            project_name),
                 ('query[column_names][]', 'tracker'),
+                ('authenticity_token',    token),
                 ('query[column_names][]', 'status'),
                 ('query[column_names][]', 'priority'),
                 ('query[column_names][]', 'subject'),
