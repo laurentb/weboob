@@ -172,6 +172,9 @@ class NewIssuePage(BaseIssuePage):
         assert status is not None
         self.browser['issue[status_id]'] = [str(status)]
 
+    def set_note(self, message):
+        self.browser['notes'] = message.encode('utf-8')
+
     def fill_form(self, **kwargs):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'issue-form')
         for key, value in kwargs.iteritems():

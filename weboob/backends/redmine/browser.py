@@ -147,10 +147,10 @@ class RedmineBrowser(BaseBrowser):
         return self.page.get_params()
 
     def update_issue(self, id, message):
-        data = (('_method', 'put'),
-                ('notes', message.encode('utf-8')),
-               )
-        self.openurl('/issues/%s/edit' % id, urllib.urlencode(data))
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        self.page.fill_form(note=message)
 
     def create_issue(self, project, **kwargs):
         self.location('/projects/%s/issues/new' % project)
