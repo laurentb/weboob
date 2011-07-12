@@ -21,12 +21,32 @@
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
-
-from .browser import OuiFMBrowser
+from weboob.tools.browser import BaseBrowser, BasePage
 
 
 __all__ = ['OuiFMBackend']
 
+
+class PlayerPage(BasePage):
+    def get_current(self):
+        title = self.parser.select(self.document.getroot(), 'span.titre_en_cours', 1).text
+        artist = self.parser.select(self.document.getroot(), 'span.artiste_en_cours', 1).text
+        return unicode(artist).strip(), unicode(title).strip()
+
+class OuiFMBrowser(BaseBrowser):
+    DOMAIN = u'www.ouifm.fr'
+    PAGES = {r'.*ouifm.fr/player/decode_json.*.php': PlayerPage,
+            }
+
+    def get_current(self, radio):
+        if radio == 'general':
+            _radio = ''
+        else:
+            _radio = '_%s' % radio
+        self.location('/player/decode_json%s.php' % _radio)
+        assert self.is_on_page(PlayerPage)
+
+        return self.page.get_current()
 
 class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'ouifm'

@@ -21,20 +21,42 @@
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
-from .browser import lemouvBrowser
+from weboob.tools.browser import BaseBrowser, BasePage
 
 
-__all__ = ['lemouvBackend']
+__all__ = ['LeMouvBackend']
 
 
-class lemouvBackend(BaseBackend, ICapRadio, ICapCollection):
+class XMLinfos(BasePage):
+    def get_current(self):
+        try:
+            for channel in self.parser.select(self.document.getroot(), 'channel'):
+                title = channel.find('item/song_title').text
+                artist = channel.find('item/artist_name').text
+        except AttributeError:
+            title = "Not defined"
+            artist = "Not defined"
+
+        return unicode(artist).strip(), unicode(title).strip()
+
+class LeMouvBrowser(BaseBrowser):
+    DOMAIN = u'statique.lemouv.fr'
+    PAGES  = {r'.*/files/rfPlayer/mouvRSS\.xml': XMLinfos}
+
+    def get_current(self, radio):
+        self.location('/files/rfPlayer/mouvRSS.xml')
+        assert self.is_on_page(XMLinfos)
+
+        return self.page.get_current()
+
+class LeMouvBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'lemouv'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
     VERSION = '0.9'
     DESCRIPTION = u'The le mouv\' french radio'
     LICENCE = 'AGPLv3+'
-    BROWSER = lemouvBrowser
+    BROWSER = LeMouvBrowser
 
     _RADIOS = {'lemouv': (u'le mouv\'', u'le mouv', u'http://mp3.live.tv-radio.com/lemouv/all/lemouvhautdebit.mp3')}
 
