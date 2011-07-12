@@ -99,8 +99,8 @@ class IssuesPage(BaseIssuePage):
                 continue
             issue = {}
             for td in tr.getiterator('td'):
-                field = td.attrib['class']
-                if field in ('checkbox','todo'):
+                field = td.attrib.get('class', '')
+                if field in ('checkbox','todo',''):
                     continue
 
                 a = td.find('a')
