@@ -4,8 +4,9 @@ Romain Bignon <romain@weboob.org>
         * Manager;
         * Core team;
         * Qt Applications;
-        * AuM, Arte, BNPorc, CanalTP, Dailymotion, DLFP, Fourchan, Gazelle, LCL,
-          OuiFM, Redmine, Yahoo and Youporn backends maintainer.
+        * AuM, Arte, BNPorc, CanalTP, Dailymotion, DLFP, FranceTelevisions,
+          Fourchan, Gazelle, LCL, OuiFM, Redmine, Yahoo and Youporn backends
+          maintainer.
 
 Christophe Benz <christophe.benz@gmail.com>
         * Core team;
@@ -41,7 +42,7 @@ Johann Broudin <johann.broudin@6-8.fr>
         * FranceInter and LeMouv backends maintainer.
 
 Roger Philibert <roger.philibert@gmail.com>
-        * Ehentai and Youjizz backends maintainer.
+        * Ehentai, Izneo and Youjizz backends maintainer.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale backend maintainer.
@@ -53,7 +54,7 @@ Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
 
 Noe Rubinstein <noe.rubinstein@gmail.com>
-        * Contributions on backends.
+        * Contributions on unknown backends.
 
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
