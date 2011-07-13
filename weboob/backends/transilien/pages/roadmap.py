@@ -48,6 +48,10 @@ class RoadmapConfirmPage(BasePage):
         self.select('idDepart', 1)
         self.select('idArrivee', 1)
         self.browser['modeTransport'] = ['0']
+        self.browser['trainRer'] = 'true'
+        self.browser['bus'] = 'false'
+        self.browser['tramway'] = 'true'
+        self.browser['bateau'] = 'false'
         self.browser.submit()
 
 class RoadmapPage(BasePage):
