@@ -50,9 +50,9 @@ class TransilienBackend(BaseBackend, ICapTravel):
                 departure.plateform = d['plateform']
                 yield departure
 
-    def iter_roadmap(self, departure, arrival):
+    def iter_roadmap(self, departure, arrival, filters):
         with self.browser:
-            roadmap = self.browser.get_roadmap(departure, arrival)
+            roadmap = self.browser.get_roadmap(departure, arrival, filters)
 
         for s in roadmap['steps']:
             step = RoadStep(s['id'])

@@ -61,6 +61,16 @@ class RoadStep(CapBaseObject):
         self.add_field('arrival', unicode)
         self.add_field('duration', timedelta)
 
+class RoadmapError(Exception):
+    pass
+
+class RoadmapFilters(CapBaseObject):
+    def __init__(self):
+        CapBaseObject.__init__(self, '')
+
+        self.add_field('departure_time', datetime)
+        self.add_field('arrival_time', datetime)
+
 class ICapTravel(IBaseCap):
     def iter_station_search(self, pattern):
         """
@@ -81,12 +91,13 @@ class ICapTravel(IBaseCap):
         """
         raise NotImplementedError()
 
-    def iter_roadmap(self, departure, arrival):
+    def iter_roadmap(self, departure, arrival, filters):
         """
         Get a roadmap.
 
         @param departure [str]  name of departure station
         @param arrival [str]  name of arrival station
+        @param filters [RoadmapFilters]  filters on search
         @return [iter(RoadStep)]  steps of roadmap
         """
         raise NotImplementedError()

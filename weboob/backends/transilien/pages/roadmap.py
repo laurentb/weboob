@@ -21,18 +21,37 @@
 import re
 import datetime
 
+from weboob.capabilities.travel import RoadmapError
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
+from weboob.tools.mech import ClientForm
 
 
 __all__ = ['RoadmapPage']
 
 
 class RoadmapSearchPage(BasePage):
-    def search(self, departure, arrival):
+    def search(self, departure, arrival, departure_time, arrival_time):
         self.browser.select_form('formHiRecherche')
         self.browser['lieuDepart'] = departure.encode('utf-8')
         self.browser['lieuArrivee'] = arrival.encode('utf-8')
+
+        time = None
+        if departure_time:
+            self.browser['typeHeure'] = ['1']
+            time = departure_time
+        elif arrival_time:
+            self.browser['typeHeure'] = ['-1']
+            time = arrival_time
+
+        if time:
+            try:
+                self.browser['jour'] = ['%d' % time.day]
+                self.browser['mois'] = ['%02d/%d' % (time.month, time.year)]
+                self.browser['heure'] = ['%02d' % time.hour]
+                self.browser['minutes'] = ['%02d' % (time.minute - (time.minute%5))]
+            except ClientForm.ItemNotFoundError:
+                raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
 
 class RoadmapConfirmPage(BasePage):

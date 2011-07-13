@@ -54,11 +54,11 @@ class Transilien(BaseBrowser):
 
         return self.page.iter_routes()
 
-    def get_roadmap(self, departure, arrival):
+    def get_roadmap(self, departure, arrival, filters):
         self.location('/web/site/accueil/etat-trafic/chercher-itineraire/lang/en')
 
         assert self.is_on_page(RoadmapSearchPage)
-        self.page.search(departure, arrival)
+        self.page.search(departure, arrival, filters.departure_time, filters.arrival_time)
 
         assert self.is_on_page(RoadmapConfirmPage)
         self.page.confirm()

@@ -49,7 +49,7 @@ class DeparturesPage(BasePage):
             try :
                 time = datetime.datetime.combine(datetime.date.today(), datetime.time(*[int(x) for x in time.split(':')]))
             except ValueError:
-                self.logger.warning('Unable to parse datetime')
+                self.logger.warning('Unable to parse datetime "%s"' % time)
 
             yield {'type':        to_unicode(code_mission),
                    'time':        time,
