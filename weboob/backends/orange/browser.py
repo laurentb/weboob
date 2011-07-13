@@ -34,8 +34,8 @@ class OrangeBrowser(BaseBrowser):
     PAGES = {
         'http://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
         'http://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
-        'http://smsmms1.orange.fr/M/Sms/sms_write.php.*'   : ComposePage,
-        'http://smsmms1.orange.fr/M/Sms/sms_write.php?command=send' : ConfirmPage,
+        'http://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
+        'http://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
         }
     def get_nb_remaining_free_sms(self):
         self.location("http://smsmms1.orange.fr/M/Sms/sms_write.php")
