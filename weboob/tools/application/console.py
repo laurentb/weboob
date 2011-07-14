@@ -389,7 +389,7 @@ class ConsoleApplication(BaseApplication):
                 else:
                     line = getpass.getpass(question)
             else:
-                self.stdout.write(question)
+                self.stdout.write(question.encode(sys.stdout.encoding or locale.getpreferredencoding()))
                 self.stdout.flush()
                 line = self.stdin.readline()
                 if len(line) == 0:
