@@ -227,12 +227,6 @@ class BaseBrowser(mechanize.Browser):
         self.username = username
         self.password = password
         self.lock = RLock()
-        if self.password and get_home:
-            try:
-                self.home()
-            # Do not abort the build of browser when the website is down.
-            except BrowserUnavailable:
-                pass
 
         if self.DEBUG_HTTP:
             # display messages from httplib
@@ -241,6 +235,13 @@ class BaseBrowser(mechanize.Browser):
         if self.DEBUG_MECHANIZE:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
+
+        if self.password and get_home:
+            try:
+                self.home()
+            # Do not abort the build of browser when the website is down.
+            except BrowserUnavailable:
+                pass
 
     def __enter__(self):
         self.lock.acquire()
