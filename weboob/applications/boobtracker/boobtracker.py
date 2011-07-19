@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import timedelta
 import sys
 
 from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update
@@ -178,6 +179,29 @@ class BoobTracker(ReplApplication):
         id, backend_name = self.parse_id(id, unique_backend=True)
         update = Update(0)
         update.message = text
+
+        self.do('update_issue', id, update, backends=backend_name).wait()
+
+    def do_logtime(self, line):
+        """
+        logtime ISSUE HOURS [TEXT]
+
+        Log spent time on an issue.
+        """
+        id, hours, text = self.parse_command_args(line, 3, 2)
+        if text is None:
+            text = self.acquire_input()
+
+        try:
+            hours = float(hours)
+        except ValueError:
+            print >>sys.stderr, 'Error: HOURS parameter may be a float'
+            return 1
+
+        id, backend_name = self.parse_id(id, unique_backend=True)
+        update = Update(0)
+        update.message = text
+        update.hours = timedelta(hours=hours)
 
         self.do('update_issue', id, update, backends=backend_name).wait()
 
