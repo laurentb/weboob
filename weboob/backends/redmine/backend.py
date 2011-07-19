@@ -234,7 +234,10 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             issue = issue.id
 
         with self.browser:
-            return self.browser.update_issue(issue, update.message)
+            if update.hours:
+                return self.browser.logtime_issue(issue, update.hours, update.message)
+            else:
+                return self.browser.comment_issue(issue, update.message)
 
     def remove_issue(self, issue):
         """

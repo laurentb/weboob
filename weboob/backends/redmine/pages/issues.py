@@ -262,4 +262,13 @@ class IssuePage(NewIssuePage):
 
         return params
 
+class IssueLogTimePage(BasePage):
+    def logtime(self, hours, message):
+        self.browser.select_form(predicate=lambda form: form.attrs.get('action', '').endswith('/edit'))
+        self.browser['time_entry[hours]'] = '%.2f' % hours
+        self.browser['time_entry[comments]'] = message.encode('utf-8')
+        self.browser['time_entry[activity_id]'] = ['8']
+        self.browser.submit()
 
+class IssueTimeEntriesPage(BasePage):
+    pass

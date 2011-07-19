@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .base import IBaseCap, CapBaseObject
 
@@ -106,6 +106,7 @@ class Update(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.add_field('author', User)
         self.add_field('date', datetime)
+        self.add_field('hours', timedelta)
         self.add_field('message', unicode)
         self.add_field('attachments', (list,tuple))
         self.add_field('changes', (list,tuple))

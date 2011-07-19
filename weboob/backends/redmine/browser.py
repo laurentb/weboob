@@ -26,7 +26,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage
-from .pages.issues import IssuesPage, IssuePage, NewIssuePage
+from .pages.issues import IssuesPage, IssuePage, NewIssuePage, IssueLogTimePage, \
+                          IssueTimeEntriesPage
 
 
 __all__ = ['RedmineBrowser']
@@ -47,6 +48,8 @@ class RedmineBrowser(BaseBrowser):
              'https?://[^/]+/projects/[\w-]+/issues':                  IssuesPage,
              'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
              'https?://[^/]+/issues/(\d+)':                            IssuePage,
+             'https?://[^/]+/issues/(\d+)/time_entries/new':           IssueLogTimePage,
+             'https?://[^/]+/projects/[\w-]+/time_entries':            IssueTimeEntriesPage,
             }
 
     def __init__(self, url, *args, **kwargs):
@@ -146,7 +149,13 @@ class RedmineBrowser(BaseBrowser):
         assert self.is_on_page(IssuePage)
         return self.page.get_params()
 
-    def update_issue(self, id, message):
+    def logtime_issue(self, id, hours, message):
+        self.location('/issues/%s/time_entries/new' % id)
+
+        assert self.is_on_page(IssueLogTimePage)
+        self.page.logtime(hours.seconds/3600, message)
+
+    def comment_issue(self, id, message):
         self.location('/issues/%s' % id)
 
         assert self.is_on_page(IssuePage)
