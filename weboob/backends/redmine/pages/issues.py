@@ -271,11 +271,19 @@ class IssuePage(NewIssuePage):
             else:
                 for li in details.findall('li'):
                     field = li.find('strong').text.decode('utf-8')
-                    if len(li.findall('i')) == 2:
-                        last = li.findall('i')[0].text.decode('utf-8')
+                    i = li.findall('i')
+                    new = None
+                    last = None
+                    if len(i) > 0:
+                        if len(i) == 2:
+                            last = i[0].text.decode('utf-8')
+                        new = i[-1].text.decode('utf-8')
+                    elif li.find('strike') is not None:
+                        last = li.find('strike').find('i').text.decode('utf-8')
+                    elif li.find('a') is not None:
+                        new = li.find('a').text.decode('utf-8')
                     else:
-                        last = None
-                    new = li.findall('i')[-1].text.decode('utf-8')
+                        self.logger.warning('Unable to handle change for %s' % field)
                     changes.append((field, last, new))
             update['changes'] = changes
 
