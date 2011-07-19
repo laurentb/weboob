@@ -243,8 +243,13 @@ class IssuePage(NewIssuePage):
             update = {}
             update['id'] = div.find('h4').find('div').find('a').text[1:]
             alist = div.find('h4').findall('a')
-            update['author'] = (int(alist[-2].attrib['href'].split('/')[-1]),
-                                to_unicode(alist[-2].text))
+            if len(alist) == 3:
+                update['author'] = (int(alist[-2].attrib['href'].split('/')[-1]),
+                                    to_unicode(alist[-2].text))
+            else:
+                m = re.match('Updated by (.*)', alist[0].tail.strip())
+                if m:
+                    update['author'] = (0, to_unicode(m.group(1)))
             update['date'] = self.parse_datetime(alist[-1].attrib['title'])
             if div.find('div') is not None:
                 comment = div.find('div')
