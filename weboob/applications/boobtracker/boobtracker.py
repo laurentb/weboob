@@ -56,6 +56,8 @@ class IssueFormatter(IFormatter):
             result += '\nHistory:\n'
             for u in item['history']:
                 result += '* %s%s - %s%s\n' % (self.BOLD, u.date, u.author, self.NC)
+                for change in u.changes:
+                    result += '  - %s%s%s: %s -> %s\n' % (self.BOLD, change.field, self.NC, change.last, change.new)
                 if u.message:
                     result += html2text(u.message)
         return result

@@ -258,6 +258,17 @@ class IssuePage(NewIssuePage):
             else:
                 update['message'] = None
 
+            changes = []
+            for li in self.parser.select(div, 'ul.details', 1).findall('li'):
+                field = li.find('strong').text.decode('utf-8')
+                if len(li.findall('i')) == 2:
+                    last = li.findall('i')[0].text.decode('utf-8')
+                else:
+                    last = None
+                new = li.findall('i')[-1].text.decode('utf-8')
+                changes.append((field, last, new))
+            update['changes'] = changes
+
             params['updates'].append(update)
 
         return params

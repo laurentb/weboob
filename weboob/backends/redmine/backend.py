@@ -21,7 +21,9 @@
 from __future__ import with_statement
 
 from weboob.capabilities.content import ICapContent, Content
-from weboob.capabilities.bugtracker import ICapBugTracker, Issue, Project, User, Version, Status, Update, Attachment, Query
+from weboob.capabilities.bugtracker import ICapBugTracker, Issue, Project, User, \
+                                           Version, Status, Update, Attachment, \
+                                           Query, Change
 from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserHTTPNotFound
@@ -186,6 +188,13 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             update.author = issue.project.find_user(*u['author'])
             update.date = u['date']
             update.message = u['message']
+            update.changes = []
+            for i, (field, last, new) in enumerate(u['changes']):
+                change = Change(i)
+                change.field = field
+                change.last = last
+                change.new = new
+                update.changes.append(change)
             issue.history.append(update)
         issue.author = issue.project.find_user(*params['author'])
         issue.assignee = issue.project.find_user(*params['assignee'])

@@ -101,6 +101,13 @@ class Attachment(CapBaseObject):
     def __repr__(self):
         return '<Attachment %r>' % self.filename
 
+class Change(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.add_field('field', unicode)
+        self.add_field('last', unicode)
+        self.add_field('new', unicode)
+
 class Update(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
@@ -108,8 +115,8 @@ class Update(CapBaseObject):
         self.add_field('date', datetime)
         self.add_field('hours', timedelta)
         self.add_field('message', unicode)
-        self.add_field('attachments', (list,tuple))
-        self.add_field('changes', (list,tuple))
+        self.add_field('attachments', (list,tuple)) # Attachment
+        self.add_field('changes', (list,tuple)) # Change
 
     def __repr__(self):
         return '<Update %r>' % self.id
