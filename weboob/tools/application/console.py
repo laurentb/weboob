@@ -40,7 +40,7 @@ __all__ = ['ConsoleApplication', 'BackendNotGiven']
 class BackendNotGiven(Exception):
     def __init__(self, id, backends):
         self.id = id
-        self.backends = backends
+        self.backends = sorted(backends)
         Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
                 'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
 
