@@ -31,7 +31,4 @@ class DailymotionVideo(BaseVideo):
 
     @classmethod
     def id2url(cls, _id):
-        if _id.isdigit():
-            return 'http://www.dailymotion.com/video/%d' % int(_id)
-        else:
-            return None
+        return 'http://www.dailymotion.com/video/%s' % _id
