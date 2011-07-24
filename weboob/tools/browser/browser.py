@@ -460,12 +460,13 @@ class BaseBrowser(mechanize.Browser):
 
         document = self.get_document(result)
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
-        self.page.on_loaded()
 
         if not no_login and self.password is not None and not self.is_logged():
             self.logger.debug('!! Relogin !!')
             self.login()
             raise BrowserRetry()
+
+        self.page.on_loaded()
 
         if self._cookie:
             self._cookie.save()
