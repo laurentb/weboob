@@ -33,3 +33,9 @@ class YoutubeBrowser(BaseBrowser):
              r'.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
              r'.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
             }
+
+    def get_video_url(self, player_url):
+        self.location(player_url)
+
+        assert self.is_on_page(VideoPage)
+        return self.page.get_video_url()

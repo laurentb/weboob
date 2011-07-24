@@ -46,17 +46,6 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     BROWSER = YoutubeBrowser
 
     URL_RE = re.compile(r'^https?://(?:\w*\.?youtube\.com/(?:watch\?v=|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
-    AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
-    FORMAT_EXTENSIONS = {
-        13: '3gp',
-        17: 'mp4',
-        18: 'mp4',
-        22: 'mp4',
-        37: 'mp4',
-        38: 'video', # You actually don't know if this will be MOV, AVI or whatever
-        43: 'webm',
-        45: 'webm',
-    }
 
     def _entry2video(self, entry):
         """
@@ -72,35 +61,22 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             video.author = to_unicode(entry.media.name.text.strip())
         return video
 
-    def _set_video_url(self, video, format=18):
+    def _set_video_url(self, video):
         """
         In the case of a download, if the user-chosen format is not
         available, the next available format will be used.
         Much of the code for this method is borrowed from youtubeservice.py of Cutetube
         http://maemo.org/packages/view/cutetube/.
         """
-        player_url = YoutubeVideo.id2url(video.id)
-        html = urllib.urlopen(player_url).read()
-        html = ''.join(html.split())
-        formats = {}
-        pos = html.find('","fmt_url_map":"')
-        if (pos != -1):
-            pos2 = html.find('"', pos + 17)
-            fmt_map = urllib.unquote(html[pos + 17:pos2]) + ','
-            parts = fmt_map.split('|')
-            key = parts[0]
-            for p in parts[1:]:
-                idx = p.rfind(',')
-                value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
-                formats[int(key)] = value
-                key = p[idx + 1:]
-        for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
-            if format in formats:
-                video.url = formats.get(format)
-                video.ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
-                return True
+        if video.url:
+            return
 
-        return False
+        player_url = YoutubeVideo.id2url(video.id)
+        with self.browser:
+            url, ext = self.browser.get_video_url(player_url)
+
+        video.url = url
+        video.ext = ext
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)
