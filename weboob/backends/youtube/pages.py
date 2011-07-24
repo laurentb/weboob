@@ -20,28 +20,65 @@
 
 import urllib
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
 
 
-__all__ = ['ForbiddenVideo', 'ForbiddenVideoPage', 'VerifyAgePage', 'VideoPage']
+__all__ = ['LoginPage', 'LoginRedirectPage', 'ForbiddenVideo', 'ForbiddenVideoPage', \
+           'VerifyAgePage', 'VerifyControversyPage', 'VideoPage']
+
+
+class LoginPage(BasePage):
+    def on_loaded(self):
+        errors = []
+        for errdiv in self.parser.select(self.document.getroot(), 'div.errormsg'):
+            errors.append(errdiv.text.encode('utf-8').strip())
+
+        if len(errors) > 0:
+            raise BrowserIncorrectPassword(', '.join(errors))
+
+    def login(self, username, password):
+        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'gaia_loginform')
+        self.browser['Email'] = username
+        self.browser['Passwd'] = password
+        self.browser.submit()
+
+class LoginRedirectPage(BasePage):
+    pass
 
 
 class ForbiddenVideo(Exception):
     pass
 
 
-class ForbiddenVideoPage(BasePage):
+class BaseYoutubePage(BasePage):
+    def is_logged(self):
+        try:
+            self.parser.select(self.document.getroot(), 'span#masthead-user-expander', 1)
+        except BrokenPageError:
+            return False
+        else:
+            return True
+
+class ForbiddenVideoPage(BaseYoutubePage):
     def on_loaded(self):
         element = self.parser.select(self.document.getroot(), '.yt-alert-content', 1)
         raise ForbiddenVideo(element.text.strip())
 
 
-class VerifyAgePage(BasePage):
+class VerifyAgePage(BaseYoutubePage):
     def on_loaded(self):
-        raise ForbiddenVideo('This video or group may contain content that is inappropriate for some users')
+        if not self.is_logged():
+            raise ForbiddenVideo('This video or group may contain content that is inappropriate for some users')
 
+        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'confirm-age-form')
+        self.browser.submit()
 
-class VideoPage(BasePage):
+class VerifyControversyPage(BaseYoutubePage):
+    def on_loaded(self):
+        self.browser.select_form(predicate=lambda form: 'verify_controversy' in form.attrs.get('action', ''))
+        self.browser.submit()
+
+class VideoPage(BaseYoutubePage):
     AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
     FORMAT_EXTENSIONS = {
         13: '3gp',

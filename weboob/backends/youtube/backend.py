@@ -26,8 +26,9 @@ import re
 import urllib
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import YoutubeBrowser
 from .video import YoutubeVideo
@@ -44,8 +45,17 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     DESCRIPTION = 'Youtube videos website'
     LICENSE = 'AGPLv3+'
     BROWSER = YoutubeBrowser
+    CONFIG = BackendConfig(Value('username', label='Email address', default=''),
+                           ValueBackendPassword('password', label='Password', default=''))
 
     URL_RE = re.compile(r'^https?://(?:\w*\.?youtube\.com/(?:watch\?v=|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
+
+    def create_default_browser(self):
+        password = None
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        return self.create_browser(username, password)
 
     def _entry2video(self, entry):
         """

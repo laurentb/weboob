@@ -20,7 +20,9 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import ForbiddenVideoPage, VerifyAgePage, VideoPage
+from .pages import BaseYoutubePage, VideoPage, ForbiddenVideoPage, \
+                   VerifyAgePage, VerifyControversyPage, \
+                   LoginPage, LoginRedirectPage
 
 
 __all__ = ['YoutubeBrowser']
@@ -29,10 +31,22 @@ __all__ = ['YoutubeBrowser']
 class YoutubeBrowser(BaseBrowser):
     DOMAIN = u'youtube.com'
     ENCODING = None
-    PAGES = {r'.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
-             r'.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
-             r'.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
+    PAGES = {r'https?://.*youtube\.com/': BaseYoutubePage,
+             r'https?://.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
+             r'https?://.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
+             r'https?://.*youtube\.com/verify_age\?next_url=(?P<next_url>.+)': VerifyAgePage,
+             r'https?://.*youtube\.com/verify_controversy\?next_url(?P<next_url>.+)': VerifyControversyPage,
+             r'https?://accounts\.youtube\.com/accounts/SetSID.*': LoginRedirectPage,
+             r'https?://www.google.com/accounts/ServiceLogin.*': LoginPage,
             }
+
+    def is_logged(self):
+        logged = not self.is_on_page(BaseYoutubePage) or self.page.is_logged()
+        return logged
+
+    def login(self):
+        self.location('https://www.google.com/accounts/ServiceLogin?uilel=3&service=youtube&passive=true&continue=http%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26nomobiletemp%3D1%26hl%3Den_US%26next%3D%252F&hl=en_US&ltmpl=sso')
+        self.page.login(self.username, self.password)
 
     def get_video_url(self, player_url):
         self.location(player_url)
