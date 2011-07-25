@@ -56,7 +56,7 @@ class PluzzBrowser(BaseBrowser):
         if not pattern:
             self.home()
         else:
-            self.location(self.buildurl('recherche.html', q=pattern))
+            self.location(self.buildurl('recherche.html', q=pattern.encode('utf-8')))
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
