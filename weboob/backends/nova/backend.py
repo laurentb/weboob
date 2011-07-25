@@ -21,13 +21,18 @@
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
 
 
 __all__ = ['NovaBackend']
 
 
 class HistoryPage(BasePage):
+    def on_loaded(self):
+        h2 = self.parser.select(self.document.getroot(), 'h2')
+        if len(h2) > 0 and h2[0].text == 'Site off-line':
+            raise BrowserUnavailable('Website is currently offline')
+
     def get_current(self):
         for div in self.parser.select(self.document.getroot(), 'div#rubrique_contenu div.resultat'):
             artist = self.parser.select(div, 'span#artiste', 1).find('a').text
