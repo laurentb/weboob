@@ -43,7 +43,7 @@ class DLFP(BaseBrowser):
              'https?://.*linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
              'https?://.*linuxfr.org/suivi/[^\.]+': ContentPage,
              'https?://.*linuxfr.org/sondages/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/users/[\w\-_]+/journaux/[^\.]+': ContentPage,
+             'https?://.*linuxfr.org/users/[^\./]+/journaux/[^\.]+': ContentPage,
              'https?://.*linuxfr.org/forums/[^\./]+/posts/[^\.]+': ContentPage,
              'https?://.*linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
              'https?://.*linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
