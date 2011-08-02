@@ -68,7 +68,7 @@ class LCLBrowser(BaseBrowser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.home()
+            self.login()
         return self.page.get_list()
 
     def get_account(self, id):
