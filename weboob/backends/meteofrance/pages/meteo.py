@@ -35,8 +35,14 @@ class WeatherPage(BasePage):
         return int(temp_str.replace(u"\xb0C", "").strip())
 
     def iter_forecast(self):
-        for div in self.document.getiterator('div'):
-            if div.attrib.has_key("id") and div.attrib.get('id').find("jour") != -1:
+        for div in self.document.getiterator('li'):
+            if div.attrib.get('class', '').startswith('jour'):
+                mdate = div.xpath('./dl/dt')[0].text
+                t_low = self.get_temp_without_unit(div.xpath('.//dd[@class="minmax"]/strong')[0].text)
+                t_high = self.get_temp_without_unit(div.xpath('.//dd[@class="minmax"]/strong')[1].text)
+                mtxt = div.xpath('.//dd')[0].text
+                yield Forecast(mdate, t_low, t_high, mtxt, 'C')
+            elif div.attrib.get('class', '').startswith('lijourle'):
                 for em in div.getiterator('em'):
                     templist = em.text_content().split("/")
 
@@ -52,16 +58,11 @@ class WeatherPage(BasePage):
                 yield Forecast(mdate, t_low, t_high, mtxt, "C")
 
     def get_current(self):
-        for div in self.document.getiterator('div'):
-            if div.attrib.has_key("id") and div.attrib.get('id') == "blocDetails0":
-                for em in div.getiterator('em'):
-                    temp = self.get_temp_without_unit(em.text_content())
-                    break
-                for img in div.getiterator("img"):
-                    mtxt = img.attrib["title"]
-                    break
-                mdate = datetime.datetime.now()
-                return Current(mdate, temp, mtxt, "C")
+        div = self.document.getroot().xpath('//div[@class="bloc_details"]/ul/li/dl')[0]
+        mdate = datetime.datetime.now()
+        temp = self.get_temp_without_unit(div.xpath('./dd[@class="minmax"]')[0].text)
+        mtxt = div.find('dd').find('img').attrib['title']
+        return Current(mdate, temp, mtxt, 'C')
 
     def get_city(self):
         """
