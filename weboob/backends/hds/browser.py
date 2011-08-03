@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import ValidationPage, HomePage, HistoryPage, StoryPage
+from .pages import ValidationPage, HomePage, HistoryPage, StoryPage, AuthorPage
 
 # Browser
 class HDSBrowser(BaseBrowser):
@@ -30,6 +30,7 @@ class HDSBrowser(BaseBrowser):
              'http://histoires-de-sexe.net/menu.php': HomePage,
              'http://histoires-de-sexe.net/sexe/histoires-par-date.php.*': HistoryPage,
              'http://histoires-de-sexe.net/sexe.php\?histoire=(?P<id>.+)': StoryPage,
+             'http://histoires-de-sexe.net/fiche.php\?auteur=(?P<name>.+)': AuthorPage,
             }
 
     def iter_stories(self):
@@ -52,3 +53,9 @@ class HDSBrowser(BaseBrowser):
         self.location('/sexe.php?histoire=%d' % id)
         assert self.is_on_page(StoryPage)
         return self.page.get_story()
+
+    def get_author(self, name):
+        self.location(self.buildurl('/fiche.php', auteur=name))
+
+        assert self.is_on_page(AuthorPage)
+        return self.page.get_author()

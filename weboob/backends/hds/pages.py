@@ -33,6 +33,18 @@ class ValidationPage(BasePage):
 class HomePage(BasePage):
     pass
 
+class Author(object):
+    (UNKNOWN,
+     MALE,
+     FEMALE,
+     TRANSEXUAL) = xrange(4)
+
+    def __init__(self, name):
+        self.name = name
+        self.sex = self.UNKNOWN
+        self.email = None
+        self.description = None
+
 class Story(object):
     def __init__(self, id):
         self.id = id
@@ -54,16 +66,16 @@ class HistoryPage(BasePage):
                 story = Story(int(m.group(1)))
                 story.title = link.text.strip()
             else:
-                story.author = link.text.strip()
+                story.author = Author(link.text.strip())
                 date_text = link.tail.strip().split('\n')[-1].strip()
                 m = re.match('(\d+)-(\d+)-(\d+)', date_text)
                 if not m:
                     self.logger.warning('Unable to parse datetime "%s"' % date_text)
                     story = None
                     continue
-                story.date = datetime.datetime(int(m.group(3)),
-                                               int(m.group(2)),
-                                               int(m.group(1)))
+                story.date = datetime.date(int(m.group(3)),
+                                           int(m.group(2)),
+                                           int(m.group(1)))
                 yield story
                 story = None
 
@@ -71,14 +83,33 @@ class StoryPage(BasePage):
     def get_story(self):
         story = Story((self.group_dict['id']))
         story.body = u''
-        story.author = self.parser.select(self.document.getroot(), 'a.t3', 1).text.strip()
+        meta = self.parser.select(self.document.getroot(), 'td.t0', 1)
+        story.author = Author(meta.xpath('./a[@class="t3"]')[0].text.strip())
+        gender = meta.xpath('./a[@class="t0"]')[0].text
+        if 'homme' in gender:
+            story.author.sex = story.author.MALE
+        elif 'femme' in gender:
+            story.author.sex = story.author.FEMALE
+        else:
+            story.author.sex = story.author.TRANSEXUAL
+        email_tag = meta.xpath('./span[@class="police1"]')[0]
+        story.author.email = email_tag.text.strip()
+        for img in email_tag.findall('img'):
+            if img.attrib['src'].endswith('meyle1.gif'):
+                story.author.email += '@'
+            elif img.attrib['src'].endswith('meyle1pouan.gif'):
+                story.author.email += '.'
+            else:
+                self.logger.warning('Unable to know what image is %s' % img.attrib['src'])
+            story.author.email += img.tail.strip()
+
         story.title = self.parser.select(self.document.getroot(), 'h1', 1).text.strip()
         date_text = self.parser.select(self.document.getroot(), 'span.t4', 1).text.strip().split('\n')[-1].strip()
         m = re.match('(\d+)-(\d+)-(\d+)', date_text)
         if m:
-            story.date = datetime.datetime(int(m.group(3)),
-                                           int(m.group(2)),
-                                           int(m.group(1)))
+            story.date = datetime.date(int(m.group(3)),
+                                       int(m.group(2)),
+                                       int(m.group(1)))
         else:
             self.logger.warning('Unable to parse datetime "%s"' % date_text)
 
@@ -91,3 +122,25 @@ class StoryPage(BasePage):
                 story.body += para.tail.strip()
         story.body = story.body.replace(u'\x92', "'").strip()
         return story
+
+
+class AuthorPage(BasePage):
+    def get_author(self):
+        meta = self.parser.select(self.document.getroot(), 'td.t0', 1)
+        author = Author(meta.xpath('./span[@class="t3"]')[0].text.strip())
+        if 'homme' in meta.xpath('./a[@class="t0"]')[0].text:
+            author.sex = author.MALE
+        else:
+            author.sex = author.FEMALE
+
+        author.description = u''
+        for para in meta.getchildren():
+            if para.tag not in ('b', 'br'):
+                continue
+            if para.text is not None:
+                author.description += '\n\n%s' % para.text.strip()
+            if para.tail is not None:
+                author.description += '\n%s' % para.tail.strip()
+        author.description = author.description.replace(u'\x92', "'").strip()
+        return author
+

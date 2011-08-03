@@ -50,6 +50,8 @@ class HDSBackend(BaseBackend, ICapMessages):
                 thread.nb_messages = 1
                 yield thread
 
+    GENDERS = ['<unknown>', 'boy', 'girl', 'transexual']
+
     def get_thread(self, id):
         if isinstance(id, Thread):
             thread = id
@@ -75,12 +77,13 @@ class HDSBackend(BaseBackend, ICapMessages):
         thread.root = Message(thread=thread,
                               id=0,
                               title=story.title,
-                              sender=story.author or u'',
+                              sender=story.author.name,
                               receivers=None,
                               date=thread.date,
                               parent=None,
                               content=story.body,
                               children=[],
+                              signature='Written by a %s (%s)' % (self.GENDERS[story.author.sex], story.author.email),
                               flags=flags)
 
         return thread
