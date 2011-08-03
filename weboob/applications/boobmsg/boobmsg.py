@@ -69,6 +69,14 @@ class MessageFormatter(IFormatter):
             content = item['content']
 
         result += '\n%s' % content
+
+        if item['signature']:
+            if item['flags'] & Message.IS_HTML:
+                signature = html2text(item['signature'])
+            else:
+                signature = item['signature']
+
+            result += '\n-- \n%s' % item['signature']
         return result
 
 
