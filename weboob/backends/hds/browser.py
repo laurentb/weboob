@@ -36,13 +36,10 @@ class HDSBrowser(BaseBrowser):
     def iter_stories(self):
         self.location('/sexe/histoires-par-date.php')
         n = 1
-        while 1:
+        while self.page.get_numerous() == n:
             count = 0
             for count, story in enumerate(self.page.iter_stories()):
                 yield story
-
-            if count < 49:
-                return
 
             n += 1
             self.location('/sexe/histoires-par-date.php?p=%d' % n)
@@ -55,7 +52,7 @@ class HDSBrowser(BaseBrowser):
         return self.page.get_story()
 
     def get_author(self, name):
-        self.location(self.buildurl('/fiche.php', auteur=name))
+        self.location(self.buildurl('/fiche.php', auteur=name.encode('iso-8859-15')))
 
         assert self.is_on_page(AuthorPage)
         return self.page.get_author()
