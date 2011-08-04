@@ -96,6 +96,10 @@ class Videoob(ReplApplication):
             print >>sys.stderr, 'Video not found: %s' %  _id
             return 3
 
+        if not video.url:
+            print >>sys.stderr, 'Error: the direct URL is not available.'
+            return 4
+
         def check_exec(executable):
             with open('/dev/null', 'w') as devnull:
                 process = subprocess.Popen(['which', executable], stdout=devnull)
@@ -143,10 +147,13 @@ class Videoob(ReplApplication):
         if not video:
             print >>sys.stderr, 'Video not found: %s' %  _id
             return 3
+        if not video.url:
+            print >>sys.stderr, 'Error: the direct URL is not available.'
+            return 4
         try:
             player_name = self.config.get('media_player')
             if not player_name:
-                self.logger.debug(u'You can set the media_player key to the player you prefer in the videoob '
+                self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
                                   'configuration file.')
             self.player.play(video, player_name=player_name)
         except (InvalidMediaPlayer, MediaPlayerNotFound), e:
