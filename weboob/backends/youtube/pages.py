@@ -18,6 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import urllib
 
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
@@ -97,22 +102,29 @@ class VideoPage(BaseYoutubePage):
             text = script.text
             if not text:
                 continue
-            pos = text.find('"fmt_url_map": "')
-            if pos >= 0:
-                pos2 = text.find('"', pos + 17)
-                fmt_map = urllib.unquote(text[pos + 17:pos2]) + ','
-                parts = fmt_map.split('|')
-                key = parts[0]
-                for p in parts[1:]:
-                    idx = p.rfind(',')
-                    value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
-                    formats[int(key)] = value
-                    key = p[idx + 1:]
-                break
+
+            pattern = "'PLAYER_CONFIG': "
+            pos = text.find(pattern)
+            if pos < 0:
+                continue
+
+            sub = text[pos+len(pattern):pos+text[pos:].find('\n')]
+            a = json.loads(sub)
+
+            for part in a['args']['url_encoded_fmt_stream_map'].split('&'):
+                key, value = part.split('=', 1)
+                if key != 'itag' or not 'url' in value:
+                    continue
+
+                value = urllib.unquote(value)
+                fmt, url = value.split(',url=')
+                formats[int(fmt)] = url
+
+        # choose the better format to use.
         for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
             if format in formats:
                 url = formats.get(format)
                 ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
                 return url, ext
 
-        return None, None
+        raise BrokenPageError('Unable to find file URL')
