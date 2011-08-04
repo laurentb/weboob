@@ -29,6 +29,10 @@ vi +2 ChangeLog
 
 set_version $VERSION
 
+echo "Generating manpages..."
+tools/make_man.py
+echo -e "done!\n"
+
 echo "Release commit:"
 git commit -a -m "Weboob $VERSION released"
 echo -ne "\n"
