@@ -1,3 +1,25 @@
+Weboob 0.8.5 (2011-08-04)
+	Console applications
+	* Sort backends by name when querying user to select one.
+
+	Backend: Dailymotion
+	* Fix: website allows IDs with alphanumerics chars.
+
+	Backend: DLFP
+	* Fix: regexps to support diaries from authors like “coïn”.
+
+	Backend: MeteoFrance
+	* Fix: parser from upstream website changes.
+
+	Backend: Orange
+	* Fix: handle more URLs (#685).
+
+	Backend: Youtube
+	* Fix: parsing URL because of upstream website changes.
+
+	Application: videoob
+	* Fix: display a warning when no URL is available on media.
+
 Weboob 0.8.4 (2011-07-11)
 	Backend: CrAgr
 	* Fix: account list with CA Toulouse.

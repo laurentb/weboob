@@ -35,7 +35,7 @@ class OrangeBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     NAME = 'orange'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.8.4'
+    VERSION = '0.8.5'
     DESCRIPTION = 'Orange french mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = ValuesDict(Value('login', label='Login'),

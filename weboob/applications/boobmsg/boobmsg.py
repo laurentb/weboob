@@ -163,7 +163,7 @@ class MessagesListFormatter(IFormatter):
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
-    VERSION = '0.8.4'
+    VERSION = '0.8.5'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."

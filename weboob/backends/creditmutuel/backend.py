@@ -32,7 +32,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     NAME = 'creditmutuel'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.8.4'
+    VERSION = '0.8.5'
     DESCRIPTION = u'Crédit Mutuel french bank'
     LICENSE = 'AGPLv3+'
     CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,13}\w$'),

@@ -186,7 +186,7 @@ if options.xdg:
 
 setup(
     name='weboob',
-    version = '0.8.4',
+    version = '0.8.5',
     description='Weboob, Web Out Of Browsers',
     author='Romain Bignon',
     author_email='weboob@weboob.org',
