@@ -20,6 +20,11 @@
 
 from __future__ import with_statement
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import datetime
 import gdata.youtube.service
 import re
@@ -27,6 +32,7 @@ import urllib
 
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend
+from weboob.tools.browser import BrokenPageError
 from weboob.tools.misc import to_unicode
 
 from .browser import YoutubeBrowser
@@ -81,26 +87,32 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         """
         player_url = YoutubeVideo.id2url(video.id)
         html = urllib.urlopen(player_url).read()
-        html = ''.join(html.split())
         formats = {}
-        pos = html.find('","fmt_url_map":"')
-        if (pos != -1):
-            pos2 = html.find('"', pos + 17)
-            fmt_map = urllib.unquote(html[pos + 17:pos2]) + ','
-            parts = fmt_map.split('|')
-            key = parts[0]
-            for p in parts[1:]:
-                idx = p.rfind(',')
-                value = p[:idx].replace('\\/', '/').replace('\u0026', '&').replace(',', '%2C')
-                formats[int(key)] = value
-                key = p[idx + 1:]
+
+        pattern = "'PLAYER_CONFIG': "
+        pos = html.find(pattern)
+        if pos < 0:
+            raise BrokenPageError('Unable to find media URL (PLAYER_CONFIG not found in page)')
+
+        sub = html[pos+len(pattern):pos+html[pos:].find('\n')]
+        a = json.loads(sub)
+
+        for part in a['args']['url_encoded_fmt_stream_map'].split('&'):
+            key, value = part.split('=', 1)
+            if key != 'itag' or not 'url' in value:
+                continue
+
+            value = urllib.unquote(value)
+            fmt, url = value.split(',url=')
+            formats[int(fmt)] = url
+
         for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
             if format in formats:
                 video.url = formats.get(format)
                 video.ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
                 return True
 
-        return False
+        raise BrokenPageError('Unable to find media URL (not available formats (%d))' % len(formats))
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)
