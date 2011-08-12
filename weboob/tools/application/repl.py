@@ -303,16 +303,19 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.set_formatter(formatter_name)
 
         try:
-            return super(ReplApplication, self).onecmd(line)
-        except CallErrors, e:
-            self.bcall_errors_handler(e)
-        except BackendNotGiven, e:
-            print >>sys.stderr, 'Error: %s' % str(e)
-        except NotEnoughArguments, e:
-            print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
-        except (KeyboardInterrupt, EOFError):
-            # ^C during a command process doesn't exit application.
-            print '\nAborted.'
+            try:
+                return super(ReplApplication, self).onecmd(line)
+            except CallErrors, e:
+                self.bcall_errors_handler(e)
+            except BackendNotGiven, e:
+                print >>sys.stderr, 'Error: %s' % str(e)
+            except NotEnoughArguments, e:
+                print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
+            except (KeyboardInterrupt, EOFError):
+                # ^C during a command process doesn't exit application.
+                print '\nAborted.'
+        finally:
+            self.flush()
 
     def emptyline(self):
         """
