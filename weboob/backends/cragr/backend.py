@@ -42,6 +42,7 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.ca-atlantique-vendee.fr': u'Atlantique Vendée',
         'm.ca-aquitaine.fr': u'Aquitaine',
         'm.ca-briepicardie.fr': u'Brie Picardie',
+        'm.ca-centrest.fr': u'Centre Est',
         'm.ca-centrefrance.fr': u'Centre France',
         'm.ca-centreloire.fr': u'Centre Loire',
         'm.ca-centreouest.fr': u'Centre Ouest',
