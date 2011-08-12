@@ -76,7 +76,7 @@ class MessageFormatter(IFormatter):
             else:
                 signature = item['signature']
 
-            result += '\n-- \n%s' % item['signature']
+            result += '\n-- \n%s' % signature
         return result
 
 
