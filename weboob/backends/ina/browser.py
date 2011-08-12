@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages.video import VideoPage
+from .pages.video import VideoPage, BoutiqueVideoPage
 from .pages.search import SearchPage
 from .video import InaVideo
 
@@ -30,8 +30,9 @@ __all__ = ['InaBrowser']
 
 
 class InaBrowser(BaseBrowser):
-    DOMAIN = 'boutique.ina.fr'
-    PAGES = {'http://boutique\.ina\.fr/video/.+\.html': VideoPage,
+    DOMAIN = 'ina.fr'
+    PAGES = {'http://boutique\.ina\.fr/video/.+\.html': BoutiqueVideoPage,
+             'http://www\.ina\.fr/.+\.html': VideoPage,
              'http://boutique\.ina\.fr/recherche/.+': SearchPage,
             }
 
@@ -41,6 +42,6 @@ class InaBrowser(BaseBrowser):
         return self.page.get_video(video)
 
     def iter_search_results(self, pattern):
-        self.location(self.buildurl('/recherche/recherche', search=pattern.encode('utf-8')))
+        self.location(self.buildurl('http://boutique.ina.fr/recherche/recherche', search=pattern.encode('utf-8')))
         assert self.is_on_page(SearchPage)
         return self.page.iter_videos()

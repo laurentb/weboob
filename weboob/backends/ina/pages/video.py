@@ -19,7 +19,6 @@
 
 
 import datetime
-from logging import warning
 import re
 try:
     from urlparse import parse_qs
@@ -32,12 +31,10 @@ from weboob.tools.browser import BrokenPageError
 from ..video import InaVideo
 
 
-__all__ = ['VideoPage']
+__all__ = ['VideoPage', 'BoutiqueVideoPage']
 
 
-class VideoPage(BasePage):
-    URL_REGEXP = re.compile('http://boutique.ina.fr/video/(.+).html')
-
+class BaseVideoPage(BasePage):
     def get_video(self, video):
         date, duration = self.get_date_and_duration()
         if not video:
@@ -53,9 +50,63 @@ class VideoPage(BasePage):
     def get_id(self):
         m = self.URL_REGEXP.match(self.url)
         if m:
-            return unicode(m.group(1))
-        warning('Unable to parse ID')
+            return self.create_id(m.group(1))
+        self.logger.warning('Unable to parse ID')
         return 0
+
+    def get_url(self):
+        qs = parse_qs(self.document.getroot().cssselect('param[name="flashvars"]')[0].attrib['value'])
+        url = 'http://mp4.ina.fr/lecture/lire/id_notice/%s/token_notice/%s' % (qs['id_notice'][0], qs['token_notice'][0])
+        return url
+
+    def parse_date_and_duration(self, text):
+        duration_regexp = re.compile('(.* - )?(.+) - ((.+)h)?((.+)min)?(.+)s')
+        m = duration_regexp.match(text)
+        if m:
+            day, month, year = [int(s) for s in m.group(2).split('/')]
+            date = datetime.datetime(year, month, day)
+            duration = datetime.timedelta(hours=int(m.group(4) if m.group(4) is not None else 0),
+                                          minutes=int(m.group(6) if m.group(6) is not None else 0),
+                                          seconds=int(m.group(7)))
+            return date, duration
+        else:
+            raise BrokenPageError('Unable to parse date and duration')
+
+    def create_id(self, id):
+        raise NotImplementedError()
+
+    def get_date_and_duration(self):
+        raise NotImplementedError()
+
+    def get_title(self):
+        raise NotImplementedError()
+
+    def get_description(self):
+        raise NotImplementedError()
+
+class VideoPage(BaseVideoPage):
+    URL_REGEXP = re.compile('http://www.ina.fr/(.+)\.html')
+
+    def create_id(self, id):
+        return u'www.%s' % id
+
+    def get_date_and_duration(self):
+        qr = self.parser.select(self.document.getroot(), 'div.container-global-qr')[0].find('div').findall('div')[1]
+        return self.parse_date_and_duration(qr.find('h2').tail.strip())
+
+    def get_title(self):
+        qr = self.parser.select(self.document.getroot(), 'div.container-global-qr')[0].find('div').findall('div')[1]
+        return qr.find('h2').text.strip()
+
+    def get_description(self):
+        return self.parser.select(self.document.getroot(), 'div.container-global-qr')[1].find('div').find('p').text.strip()
+
+
+class BoutiqueVideoPage(BaseVideoPage):
+    URL_REGEXP = re.compile('http://boutique.ina.fr/video/(.+).html')
+
+    def create_id(self, id):
+        return u'boutique.%s' % id
 
     def get_description(self):
         el = self.document.getroot().cssselect('div.bloc-produit-haut div.contenu p')[0]
@@ -63,19 +114,9 @@ class VideoPage(BasePage):
             return el.text.strip()
 
     def get_date_and_duration(self):
-        duration_regexp = re.compile('(.+) - ((.+)h)?((.+)min)?(.+)s')
         el = self.document.getroot().cssselect('div.bloc-produit-haut p.date')[0]
         if el is not None:
-            m = duration_regexp.match(el.text.strip())
-            if m:
-                day, month, year = [int(s) for s in m.group(1).split('/')]
-                date = datetime.datetime(year, month, day)
-                duration = datetime.timedelta(hours=int(m.group(3) if m.group(3) is not None else 0),
-                                              minutes=int(m.group(5) if m.group(5) is not None else 0),
-                                              seconds=int(m.group(6)))
-                return date, duration
-            else:
-                raise BrokenPageError('Unable to parse date and duration')
+            return self.parse_date_and_duration(el.text.strip())
         else:
             raise BrokenPageError('Unable to find date and duration element')
 
@@ -85,8 +126,3 @@ class VideoPage(BasePage):
             return unicode(el.text.strip())
         else:
             return None
-
-    def get_url(self):
-        qs = parse_qs(self.document.getroot().cssselect('param[name="flashvars"]')[0].attrib['value'])
-        url = 'http://mp4.ina.fr/lecture/lire/id_notice/%s/token_notice/%s' % (qs['id_notice'][0], qs['token_notice'][0])
-        return url
