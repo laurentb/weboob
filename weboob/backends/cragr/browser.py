@@ -162,7 +162,8 @@ class Cragr(BaseBrowser):
         self['numCompteBeneficiaire'] = ['%s' % self.dict_find_value(target_accounts, to)]
         self['montantPartieEntiere']  = '%s'   % amount_euros
         self['montantPartieDecimale'] = '%02d' % amount_cents
-        self['libelle']               = reason
+        if reason != None:
+            self['libelle'] = reason
         self.submit()
 
         # look for known errors
