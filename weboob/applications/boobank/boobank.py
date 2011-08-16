@@ -70,6 +70,9 @@ class AccountListFormatter(IFormatter):
 
 
     def flush(self):
+        if count < 1:
+            return
+
         result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
         result +=u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
                                                                                '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
