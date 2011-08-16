@@ -70,7 +70,7 @@ class AccountListFormatter(IFormatter):
 
 
     def flush(self):
-        if count < 1:
+        if self.count < 1:
             return
 
         result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
