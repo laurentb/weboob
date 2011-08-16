@@ -209,7 +209,8 @@ class Boobank(ReplApplication):
             self.objects = []
             self.set_formatter('recipient_list')
             self.set_formatter_header(u'Available recipients')
-            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=[backend_name_from]):
+            names = (backend_name_from,) if backend_name_from is not None else None
+            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=names):
                 self.format(recipient)
                 self.add_object(recipient)
             self.flush()
