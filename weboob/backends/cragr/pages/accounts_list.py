@@ -115,6 +115,19 @@ class AccountsList(CragrBasePage):
     def get_transfer_target_accounts(self):
         return self.get_transfer_accounts('numCompteBeneficiaire')
 
+    def expand_history_page_url(self):
+        """
+            When on a page dedicated to list the history of a specific account (see
+            is_account_page), returns the link to expand the history with 25 more results,
+            or False if the link is not present.
+        """
+        # tested on CA centre france
+        a = self.document.xpath('/html/body//div[@class="navlink"]//a[contains(text(), "Voir les 25 suivants")]')
+        if not a:
+            return False
+        else:
+            return a[0].get('href', '')
+
     def next_page_url(self):
         """
             When on a page dedicated to list the history of a specific account (see

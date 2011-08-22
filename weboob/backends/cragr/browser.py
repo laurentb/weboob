@@ -42,6 +42,7 @@ class Cragr(BaseBrowser):
                       'https://[^/]+/accounting/listAccounts':        pages.AccountsList,
                       'https://[^/]+/accounting/listOperations':      pages.AccountsList,
                       'https://[^/]+/accounting/showAccountDetail.+': pages.AccountsList,
+                      'https://[^/]+/accounting/showMoreAccountOperations.*': pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -98,7 +99,18 @@ class Cragr(BaseBrowser):
         page_url = account.link_id
         operations_count = 0
         while (page_url):
+            # 1st, go on the account page
             self.location('https://%s%s' % (self.DOMAIN, page_url))
+
+            # then, expand all history
+            # (it's not a next page, but more operation on one page)
+            # tested on CA centre
+            while True:
+                history_url = self.page.expand_history_page_url()
+                if not history_url :
+                    break
+                self.location(history_url)
+
             for page_operation in self.page.get_history(operations_count):
                 operations_count += 1
                 yield page_operation
