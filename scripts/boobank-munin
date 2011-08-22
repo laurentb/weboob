@@ -25,6 +25,7 @@ import time
 import logging
 from weboob.core import Weboob, CallErrors
 from weboob.capabilities.bank import ICapBank
+from weboob.tools.browser import BrowserIncorrectPassword
 
 class BoobankMuninPlugin(object):
     def __init__(self):
@@ -178,6 +179,9 @@ class BoobankMuninPlugin(object):
     def print_errors(self, errors):
         for backend, err, backtrace in errors:
             print >>sys.stderr, '%s(%s): %s' % (type(err).__name__, backend.name, err)
+            if isinstance(err, BrowserIncorrectPassword):
+                print >>sys.stderr, 'using %s' % backend.browser.password
+                self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': False})
 
     def execute(self):
         if self.check_cache('boobank-munin'):
