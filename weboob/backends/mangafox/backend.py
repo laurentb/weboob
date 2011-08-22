@@ -40,11 +40,8 @@ class DisplayPage(BasePage):
                 gallery=gallery,
                 url=src)
 
-    def next_page_url(self):
-        return self.document.xpath("//a[img[@id='image']]/attribute::href")[0]
-
-    def is_last_page(self):
-        return len(self.document.xpath("//a[img[@id='image']][@href='javascript:void(0);']"))
+    def page_list(self):
+        return self.document.xpath("//select[@onchange='change_page(this)']/option/attribute::value")
 
 class MangafoxBrowser(BaseBrowser):
     PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/[^/]+/.+\.html': DisplayPage }
@@ -53,9 +50,10 @@ class MangafoxBrowser(BaseBrowser):
         self.location(gallery.url)
         assert self.is_on_page(DisplayPage)
 
-        while not self.page.is_last_page():
+        for p in self.page.page_list():
+            self.location('%s.html' % p)
+            assert self.is_on_page(DisplayPage)
             yield self.page.get_page(gallery)
-            self.location(self.page.next_page_url())
 
     def fill_image(self, image, fields):
         if 'data' in fields:
