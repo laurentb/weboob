@@ -41,7 +41,7 @@ class DisplayPage(BasePage):
                 url=src)
 
     def page_list(self):
-        return self.document.xpath("//select[@onchange='change_page(this)']/option/attribute::value")
+        return self.document.xpath("//select[@onchange='change_page(this)'][1]/option/attribute::value")
 
 class MangafoxBrowser(BaseBrowser):
     PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/[^/]+/.+\.html': DisplayPage }
