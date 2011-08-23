@@ -200,7 +200,7 @@ class DLFP(BaseBrowser):
         return (self.page and self.page.is_logged())
 
     def close_session(self):
-        self.openurl('/compte/deconnexion')
+        self.openurl('/compte/deconnexion', {})
 
     def plusse(self, url):
         return self.relevance(url, 'for')
