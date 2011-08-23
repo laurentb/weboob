@@ -44,7 +44,7 @@ class DisplayPage(BasePage):
         return self.document.xpath("//select[@onchange='change_page(this)'][1]/option/attribute::value")
 
 class MangafoxBrowser(BaseBrowser):
-    PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/[^/]+/.+\.html': DisplayPage }
+    PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?.+\.html': DisplayPage }
 
     def iter_gallery_images(self, gallery):
         self.location(gallery.url)
@@ -73,7 +73,7 @@ class MangafoxBackend(BaseBackend, ICapGallery):
             return self.browser.iter_gallery_images(gallery)
 
     def get_gallery(self, _id):
-        match = re.match(r'(?:(?:.+mangafox.com/manga)?/)?([^/]+/[^/]+/[^/]+)', _id)
+        match = re.match(r'(?:(?:.+mangafox.com/manga)?/)?([^/]+/[^/]+(?:/[^/]+)?)', _id)
         if match is None:
             return None
         
