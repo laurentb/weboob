@@ -31,8 +31,10 @@ from .tools import id2url, url2id
 # Browser
 class PhpBB(BaseBrowser):
     PAGES = {'https?://.*/index.php':                 ForumPage,
+             'https?://.*/':                          ForumPage,
              'https?://.*/viewforum.php\?f=(\d+)':    ForumPage,
-             'https?://.*/viewtopic.php\?.*': TopicPage,
+             'https?://.*/search.php\?.*':            ForumPage,
+             'https?://.*/viewtopic.php\?.*':         TopicPage,
              'https?://.*/ucp.php\?mode=login.*':     LoginPage,
             }
 

@@ -55,5 +55,6 @@ def parse_date(s):
          .replace(u'Juin', 'Jun') \
          .replace(u'Juil', 'Jul') \
          .replace(u'Aoû', 'Aug') \
+         .replace(u'Ao\xfbt', 'Aug') \
          .replace(u'Déc', 'Dec')
     return local2utc(_parse_dt(s))

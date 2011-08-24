@@ -41,17 +41,21 @@ class PhpBBBackend(BaseBackend, ICapMessages):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "phpBB forum"
     CONFIG = BackendConfig(Value('url',                     label='URL of forum', regexp='https?://.*'),
-                           Value('username',                label='Username'),
-                           ValueBackendPassword('password', label='Password'),
+                           Value('username',                label='Username', default=''),
+                           ValueBackendPassword('password', label='Password', default=''),
                            ValueInt('thread_unread_messages', label='Limit number of unread messages to retrieve for a thread', default=500)
                           )
     STORAGE = {'seen': {}}
     BROWSER = PhpBB
 
     def create_default_browser(self):
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        else:
+            password = None
         return self.create_browser(self.config['url'].get(),
-                                   self.config['username'].get(),
-                                   self.config['password'].get())
+                                   username, password)
 
     #### ICapMessages ##############################################
 
@@ -174,13 +178,13 @@ class PhpBBBackend(BaseBackend, ICapMessages):
         return self.get_thread(thread)
 
     #### ICapMessagesReply #########################################
-    #def post_message(self, message):
-    #    assert message.thread
+    def post_message(self, message):
+        assert message.thread
 
-    #    with self.browser:
-    #        return self.browser.post_comment(message.thread.id,
-    #                                         message.parent.id,
-    #                                         message.title,
-    #                                         message.content)
+        with self.browser:
+            return self.browser.post_comment(message.thread.id,
+                                             message.parent.id,
+                                             message.title,
+                                             message.content)
 
     OBJECTS = {Thread: fill_thread}
