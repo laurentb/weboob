@@ -149,7 +149,7 @@ class TopicPage(PhpBBPage):
             self.logger.warning('Unable to parse datetime')
         else:
             p = p_tags[0]
-            text = p.find('strong') and p.find('strong').tail
+            text = p.find('strong') is not None and p.find('strong').tail
             if not text:
                 text = p.text[4:]
 
