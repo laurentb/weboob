@@ -27,7 +27,7 @@ from weboob.tools.misc import limit
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import PhpBB
-from .tools import rssid, url2id
+from .tools import rssid, url2id, id2url
 
 
 __all__ = ['PhpBBBackend']
