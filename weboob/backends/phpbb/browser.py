@@ -155,9 +155,14 @@ class PhpBB(BaseBrowser):
             self.page.go_reply()
             assert self.is_on_page(PostingPage)
 
+            # Don't send title because it isn't needed in real use case
+            # and with monboob title is something like:
+            #   Re: [Forum Name] Re: Topic Name
+            if title is not None and title.startswith('Re: '):
+                title = None
             self.page.post(title, content)
 
             assert self.is_on_page(PostingPage)
             error = self.page.get_error_message()
             if error:
-                raise CantSendMessage('Unable to send message: %s' % error)
+                raise CantSendMessage(u'Unable to send message: %s' % error)
