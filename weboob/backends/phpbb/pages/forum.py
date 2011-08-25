@@ -97,10 +97,24 @@ class TopicPage(PhpBBPage):
             self.forum_title = '[%s] ' % text
 
     def next_page_url(self):
-        return self.document.getroot().cssselect('a.right-box')[0].attrib['href']
+        try:
+            return self.parser.select(self.document.getroot(), 'a.right-box', 1).attrib['href']
+        except BrokenPageError:
+            a_list = self.parser.select(self.document.getroot(), 'div.pagination', 1).findall('a')
+            if self.cur_page == self.tot_pages:
+                return '#'
+            return a_list[-1].attrib['href']
 
     def prev_page_url(self):
-        return self.document.getroot().cssselect('a.left-box')[0].attrib['href']
+        try:
+            return self.parser.select(self.document.getroot(), 'a.left-box', 1).attrib['href']
+        except BrokenPageError:
+            a_list = self.parser.select(self.document.getroot(), 'div.pagination', 1).findall('a')
+            if self.cur_page == self.tot_pages:
+                a = a_list[-1]
+            else:
+                a = a_list[-2]
+            return a.attrib['href']
 
     def iter_posts(self):
         for div in self.parser.select(self.document.getroot(), 'div.post'):
