@@ -48,6 +48,9 @@ class PhpBB(BaseBrowser):
         self.BASEPATH = v.path[:v.path.rfind('/')]
         BaseBrowser.__init__(self, *args, **kwargs)
 
+    def absurl(self, rel):
+        return BaseBrowser.absurl(self, '%s/%s' % (self.BASEPATH, rel))
+
     def home(self):
         self.location(self.url)
 
@@ -140,3 +143,6 @@ class PhpBB(BaseBrowser):
             post.parent = self.page.get_last_post_id()
 
         return post
+
+    def post_answer(self, topic, title, content):
+        pass
