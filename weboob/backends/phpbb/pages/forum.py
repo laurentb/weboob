@@ -26,7 +26,7 @@ from .index import PhpBBPage
 from ..tools import parse_date
 
 
-__all__ = ['Link', 'ForumPage', 'TopicPage']
+__all__ = ['Link', 'ForumPage', 'TopicPage', 'PostingPage']
 
 
 class Link(object):
@@ -95,6 +95,9 @@ class TopicPage(PhpBBPage):
             if len(text) >= 20:
                 text = text[:20] + u'…'
             self.forum_title = '[%s] ' % text
+
+    def go_reply(self):
+        self.browser.follow_link(url_regex='posting\.php')
 
     def next_page_url(self):
         try:
@@ -186,3 +189,22 @@ class TopicPage(PhpBBPage):
             id = int(div.attrib['id'][1:])
         return id
 
+
+class PostingPage(PhpBBPage):
+    def post(self, title, content):
+        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'postform')
+        self.browser.set_all_readonly(False)
+        if title:
+            self.browser['subject'] = title.encode('utf-8')
+        self.browser['message'] = content.encode('utf-8')
+
+        # This code on phpbb:
+        #   if ($cancel || ($current_time - $lastclick < 2 && $submit))
+        #   {
+        #       /* ... */
+        #       redirect($redirect);
+        #   }
+        # To prevent that shit because weboob is too fast, we simulate
+        # a value of lastclick 10 seconds before.
+        self.browser['lastclick'] = str(int(self.browser['lastclick']) - 10)
+        self.browser.submit(name='post')

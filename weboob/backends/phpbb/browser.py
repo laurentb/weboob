@@ -25,7 +25,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import LoginPage
-from .pages.forum import ForumPage, TopicPage
+from .pages.forum import ForumPage, TopicPage, PostingPage
 from .tools import id2url, url2id
 
 # Browser
@@ -35,6 +35,7 @@ class PhpBB(BaseBrowser):
              'https?://.*/viewforum.php\?f=(\d+)':    ForumPage,
              'https?://.*/search.php\?.*':            ForumPage,
              'https?://.*/viewtopic.php\?.*':         TopicPage,
+             'https?://.*/posting.php\?.*':           PostingPage,
              'https?://.*/ucp.php\?mode=login.*':     LoginPage,
             }
 
@@ -92,7 +93,7 @@ class PhpBB(BaseBrowser):
         parent = 0
         while 1:
             for post in self.page.iter_posts():
-                if post.id == stop_id:
+                if post.id >= stop_id:
                     return
 
                 post.parent = parent
@@ -116,7 +117,7 @@ class PhpBB(BaseBrowser):
                 if child:
                     child.parent = post.id
                     yield child
-                if post.id == stop_id:
+                if post.id <= stop_id:
                     return
                 child = post
 
@@ -145,4 +146,18 @@ class PhpBB(BaseBrowser):
         return post
 
     def post_answer(self, topic, title, content):
-        pass
+        if topic == 0:
+            raise CantSendMessage('Unable to create new topic for now')
+        else:
+            self.location('%s/%s' % (self.BASEPATH, id2url(topic)))
+            assert self.is_on_page(TopicPage)
+
+            self.page.go_reply()
+            assert self.is_on_page(PostingPage)
+
+            self.page.post(title, content)
+
+            assert self.is_on_page(PostingPage)
+            error = self.page.get_error_message()
+            if error:
+                raise CantSendMessage('Unable to send message: %s' % error)

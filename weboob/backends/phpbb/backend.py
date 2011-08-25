@@ -24,7 +24,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueInt, ValueBackendPassword
 from weboob.tools.misc import limit
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 
 from .browser import PhpBB
 from .tools import rssid, url2id, id2url
@@ -33,7 +33,7 @@ from .tools import rssid, url2id, id2url
 __all__ = ['PhpBBBackend']
 
 
-class PhpBBBackend(BaseBackend, ICapMessages):
+class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'phpbb'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -179,7 +179,7 @@ class PhpBBBackend(BaseBackend, ICapMessages):
         assert message.thread
 
         with self.browser:
-            return self.browser.post_answer(message.thread.id,
+            return self.browser.post_answer(message.thread.id if message.thread else 0,
                                             message.title,
                                             message.content)
 

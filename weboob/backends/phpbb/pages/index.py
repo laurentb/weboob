@@ -28,10 +28,12 @@ class PhpBBPage(BasePage):
         links = self.document.getroot().cssselect('link[type="application/atom+xml"]')
         return links[-1].attrib['href']
 
-class LoginPage(PhpBBPage):
     def get_error_message(self):
         errors = []
-        for div in self.parser.select(self.document.getroot(), 'div.error'):
+        for div in self.parser.select(self.document.getroot(), 'div.error,p.error'):
             if div.text:
                 errors.append(div.text.strip())
         return ', '.join(errors)
+
+class LoginPage(PhpBBPage):
+    pass
