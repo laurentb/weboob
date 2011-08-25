@@ -99,21 +99,10 @@ class PhpBBBackend(BaseBackend, ICapMessages):
                     thread = Thread(thread_id)
                     thread.title = post.title
 
-                flags = Message.IS_HTML
+                m = self._post2message(thread, post)
+                m.parent = parent
                 if last_seen_id < post.id:
-                    flags |= Message.IS_UNREAD
-
-                m = Message(thread=thread,
-                            id=post.id,
-                            title=post.title,
-                            sender=post.author,
-                            receivers=None,
-                            date=post.date,
-                            parent=parent,
-                            content=post.content,
-                            signature=post.signature,
-                            children=[],
-                            flags=flags)
+                    m.flags |= Message.IS_UNREAD
 
                 if parent:
                     parent.children = [m]
@@ -123,6 +112,23 @@ class PhpBBBackend(BaseBackend, ICapMessages):
                 parent = m
 
         return thread
+
+    def _post2message(self, thread, post):
+        signature = post.signature
+        if signature:
+            signature += '<br />'
+        signature += 'URL: %s' % id2url('%s.%s' % (thread.id, post.id))
+        return Message(thread=thread,
+                       id=post.id,
+                       title=post.title,
+                       sender=post.author,
+                       receivers=None,
+                       date=post.date,
+                       parent=None,
+                       content=post.content,
+                       signature=signature,
+                       children=[],
+                       flags=Message.IS_HTML)
 
     def iter_unread_messages(self, thread=None):
         with self.browser:
@@ -142,17 +148,8 @@ class PhpBBBackend(BaseBackend, ICapMessages):
                 if self.config['thread_unread_messages'].get() > 0:
                     iterator = limit(iterator, self.config['thread_unread_messages'].get())
                 for post in iterator:
-                    message = Message(thread=thread,
-                                      id=post.id,
-                                      title=post.title,
-                                      sender=post.author,
-                                      receivers=None,
-                                      date=post.date,
-                                      parent=None,
-                                      content=post.content,
-                                      signature=post.signature,
-                                      children=[],
-                                      flags=Message.IS_UNREAD|Message.IS_HTML)
+                    message = self._post2message(thread, post)
+
                     if child:
                         message.children.append(child)
                         child.parent = message
@@ -182,9 +179,8 @@ class PhpBBBackend(BaseBackend, ICapMessages):
         assert message.thread
 
         with self.browser:
-            return self.browser.post_comment(message.thread.id,
-                                             message.parent.id,
-                                             message.title,
-                                             message.content)
+            return self.browser.post_answer(message.thread.id,
+                                            message.title,
+                                            message.content)
 
     OBJECTS = {Thread: fill_thread}
