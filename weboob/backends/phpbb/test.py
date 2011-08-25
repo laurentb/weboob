@@ -27,6 +27,10 @@ __all__ = ['PhpBBTest']
 class PhpBBTest(BackendTest):
     BACKEND = 'phpbb'
 
-    def test_phpbb(self):
+    def testthreads(self):
         for thread in self.backend.iter_threads():
+            pass
+
+    def test_unread_messages(self):
+        for message in self.backend.iter_unread_messages():
             pass
