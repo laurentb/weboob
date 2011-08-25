@@ -117,7 +117,7 @@ class PhpBBBackend(BaseBackend, ICapMessages):
         signature = post.signature
         if signature:
             signature += '<br />'
-        signature += 'URL: %s/%s' % (self.browser.absurl(id2url('%s.%s' % (thread.id, post.id))))
+        signature += 'URL: %s' % self.browser.absurl(id2url('%s.%s' % (thread.id, post.id)))
         return Message(thread=thread,
                        id=post.id,
                        title=post.title,
