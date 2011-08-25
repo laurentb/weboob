@@ -104,14 +104,17 @@ def to_unicode(text):
     if isinstance(text, unicode):
         return text
     if not isinstance(text, str):
-        text = str(text)
+        try:
+            text = str(text)
+        except UnicodeError:
+            return unicode(text)
     try:
         return unicode(text, 'utf-8')
     except UnicodeError:
         try:
-            return unicode(text, 'iso-8859-1')
+            return unicode(text, 'iso-8859-15')
         except UnicodeError:
-            return unicode(text, 'windows-1252')
+            return unicode(text, 'windows-1252', 'replace')
 
 
 def utc2local(date):
