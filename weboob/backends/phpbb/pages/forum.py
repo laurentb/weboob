@@ -194,6 +194,7 @@ class PostingPage(PhpBBPage):
     def post(self, title, content):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'postform')
         self.browser.set_all_readonly(False)
+
         if title:
             self.browser['subject'] = title.encode('utf-8')
         self.browser['message'] = content.encode('utf-8')
@@ -207,4 +208,11 @@ class PostingPage(PhpBBPage):
         # To prevent that shit because weboob is too fast, we simulate
         # a value of lastclick 10 seconds before.
         self.browser['lastclick'] = str(int(self.browser['lastclick']) - 10)
+
+        # Likewise for create_time, with this check:
+        #   $diff = time() - $creation_time;
+        #   // If creation_time and the time() now is zero we can assume it was not a human doing this (the check for if ($diff)...
+        #   if ($diff && ($diff <= $timespan || $timespan === -1))
+        self.browser['creation_time'] = str(int(self.browser['creation_time']) - 10)
+
         self.browser.submit(name='post')
