@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from time import sleep
 from urlparse import urlsplit, parse_qs
 
 from weboob.tools.browser import BrokenPageError
@@ -213,6 +214,8 @@ class PostingPage(PhpBBPage):
         #   $diff = time() - $creation_time;
         #   // If creation_time and the time() now is zero we can assume it was not a human doing this (the check for if ($diff)...
         #   if ($diff && ($diff <= $timespan || $timespan === -1))
-        self.browser['creation_time'] = str(int(self.browser['creation_time']) - 10)
+        # But as the form_token depends on the create_time value, I can't
+        # change it. But I can wait a second before posting...
+        sleep(1)
 
         self.browser.submit(name='post')
