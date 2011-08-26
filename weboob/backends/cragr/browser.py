@@ -56,16 +56,29 @@ class Cragr(BaseBrowser):
         return True
 
     def is_logged(self):
-        return self.page and self.page.is_logged() or self.is_logging
+        logged = self.page and self.page.is_logged() or self.is_logging
+        self.logger.debug('logged: %s' % (logged and 'yes' or 'no'))
+        return logged
 
     def login(self):
+        """
+        Attempt to log in.
+        Note: this method does nothing if we are already logged in.
+        """
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        self.is_logging = True
-        if not self.is_on_page(pages.LoginPage):
-            self.home()
+        # Do we really need to login?
+        if self.is_logged():
+            self.logger.debug('already logged in')
+            return
 
+        self.is_logging = True
+        # Are we on the good page?
+        if not self.is_on_page(pages.LoginPage):
+            self.logger.debug('going to login page')
+            BaseBrowser.home(self)
+        self.logger.debug('attempting to log in')
         self.page.login(self.username, self.password)
         self.is_logging = False
 
@@ -73,17 +86,39 @@ class Cragr(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        # FIXME we call the login() method that will redirect to the accounts list page.
-        # However, if we are already logged, using the "Comptes" link would be a better approach.
-        # Something like //img[contains(@alt, "Comptes")] may be generic enough.
-        # Note the same hack is used in the do_transfer method.
-        self.login()
+        self.logger.debug('accounts list required')
+        self.home()
         return self.page.get_list()
 
     def home(self):
+        """
+        Ensure we are both logged and on the accounts list.
+        """
+        self.logger.debug('accounts list page required')
+        if self.is_on_page(pages.AccountsList) and self.page.is_accounts_list():
+            self.logger.debug('already on accounts list')
+            return
+
+        # simply go to http(s)://the.doma.in/
         BaseBrowser.home(self)
-        if self.is_on_page(pages.LoginPage) and self.is_logged():
-            self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
+
+        if self.is_on_page(pages.LoginPage):
+            if not self.is_logged():
+                # So, we are not logged on the login page -- what about logging ourselves?
+                self.login()
+                # we assume we are logged in
+            # for some regions, we may stay on the login page once we're
+            # logged in, without being redirected...
+            if self.is_on_page(pages.LoginPage):
+                # ... so we have to move by ourselves
+                self.move_to_accounts_list()
+
+    def move_to_accounts_list(self):
+        """
+        For regions where you can stay on http(s)://the.doma.in/ while you are
+        logged in, move to the accounts list
+        """
+        self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -100,6 +135,7 @@ class Cragr(BaseBrowser):
         operations_count = 0
         while (page_url):
             # 1st, go on the account page
+            self.logger.debug('going on: %s' % page_url)
             self.location('https://%s%s' % (self.DOMAIN, page_url))
 
             # then, expand all history
@@ -133,7 +169,7 @@ class Cragr(BaseBrowser):
         """
         # access the transfer page
         transfer_page_unreachable_message = u'Could not reach the transfer page.'
-        self.login()
+        self.home()
         if not self.page.is_accounts_list():
             raise TransferError(transfer_page_unreachable_message)
 
