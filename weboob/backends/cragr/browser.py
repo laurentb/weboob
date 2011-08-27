@@ -73,11 +73,10 @@ class Cragr(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        # FIXME we call the login() method that will redirect to the accounts list page.
-        # However, if we are already logged, using the "Comptes" link would be a better approach.
-        # Something like //img[contains(@alt, "Comptes")] may be generic enough.
-        # Note the same hack is used in the do_transfer method.
-        self.login()
+        self.home()
+        # if there is no redirection but we are connected, go to a page that will be recognized
+        # as the account list page
+        # this is a hack, a better solution would be to recognize the page regardless of the URL
         return self.page.get_list()
 
     def home(self):
@@ -122,7 +121,7 @@ class Cragr(BaseBrowser):
         """
         # access the transfer page
         transfer_page_unreachable_message = u'Could not reach the transfer page.'
-        self.login()
+        self.home()
         if not self.page.is_accounts_list():
             raise TransferError(transfer_page_unreachable_message)
 
