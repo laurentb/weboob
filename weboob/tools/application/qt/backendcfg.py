@@ -64,7 +64,7 @@ class BackendCfg(QDialog):
 
         self.icon_cache = {}
 
-        for name, backend in self.weboob.modules_loader.loaded.iteritems():
+        for name, backend in reversed(sorted(list(self.weboob.modules_loader.loaded.iteritems()))):
             if not self.caps or backend.has_caps(*self.caps):
                 item = QListWidgetItem(name.capitalize())
 
