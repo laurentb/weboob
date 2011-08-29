@@ -95,7 +95,7 @@ class TopicPage(PhpBBPage):
         self.tot_pages = int(strongs[1].text.strip())
 
         try:
-            url = self.parser.select(self.document.getroot(), 'h2 a', 1).attrib['href']
+            url = self.document.xpath('//h2/a')[-1].attrib['href']
         except BrokenPageError:
             url = self.url
         v = urlsplit(url)
@@ -159,14 +159,14 @@ class TopicPage(PhpBBPage):
         id = div.attrib['id'][1:]
         post = Post(self.forum_id, self.topic_id, id)
 
-        title_tags = body.cssselect('h3 a')
+        title_tags = body.xpath('//h3/a')
         if len(title_tags) == 0:
-            title_tags = self.document.getroot().cssselect('h2 a')
+            title_tags = self.document.xpath('//h2/a')
         if len(title_tags) == 0:
             title = u''
             self.logger.warning('Unable to parse title')
         else:
-            title = title_tags[0].text.strip()
+            title = title_tags[-1].text.strip()
 
         post.title = self.forum_title + title
         for a in profile.cssselect('dt a'):
