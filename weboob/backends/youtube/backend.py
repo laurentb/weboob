@@ -52,7 +52,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     BROWSER = YoutubeBrowser
 
     URL_RE = re.compile(r'^https?://(?:\w*\.?youtube\.com/(?:watch\?v=|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
-    AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
+    AVAILABLE_FORMATS = [38, 37, 45, 22, 43, 35, 34, 18, 6, 5, 17, 13]
     FORMAT_EXTENSIONS = {
         13: '3gp',
         17: 'mp4',
@@ -78,7 +78,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             video.author = to_unicode(entry.media.name.text.strip())
         return video
 
-    def _set_video_url(self, video, format=18):
+    def _set_video_url(self, video, format=38):
         """
         In the case of a download, if the user-chosen format is not
         available, the next available format will be used.
