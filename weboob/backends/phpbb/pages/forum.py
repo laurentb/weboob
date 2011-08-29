@@ -96,7 +96,7 @@ class TopicPage(PhpBBPage):
 
         try:
             url = self.parser.select(self.document.getroot(), 'h2 a', 1).attrib['href']
-        except BrokenPageError, e:
+        except BrokenPageError:
             url = self.url
         v = urlsplit(url)
         args = parse_qs(v.query)

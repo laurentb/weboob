@@ -19,11 +19,6 @@
 
 from __future__ import with_statement
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import re
 
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
@@ -77,7 +72,7 @@ class MangatoshokanBackend(BaseBackend, ICapGallery):
         match = re.match(r'(?:(?:.+mangatoshokan.com/read)?/)?([^/]+(?:/[^/]+)*)', _id)
         if match is None:
             return None
-        
+
         _id = match.group(1)
 
         gallery = BaseGallery(_id, url=('http://www.mangatoshokan.com/read/%s' % _id))
@@ -85,7 +80,7 @@ class MangatoshokanBackend(BaseBackend, ICapGallery):
             return gallery
 
     def fill_gallery(self, gallery, fields):
-        gallery.title = gallery.id 
+        gallery.title = gallery.id
 
     def fill_image(self, image, fields):
         with self.browser:
