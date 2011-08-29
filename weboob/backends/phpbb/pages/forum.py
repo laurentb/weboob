@@ -145,13 +145,13 @@ class TopicPage(PhpBBPage):
         id = div.attrib['id'][1:]
         post = Post(self.topic_id, id)
 
+        title = u''
         title_tags = body.cssselect('h3 a')
         if len(title_tags) == 0:
             title_tags = self.document.getroot().cssselect('h2 a')
         if len(title_tags) == 0:
-            title = u''
             self.logger.warning('Unable to parse title')
-        else:
+        elif title_tags[0].text:
             title = title_tags[0].text.strip()
 
         post.title = self.forum_title + title
