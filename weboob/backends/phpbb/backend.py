@@ -24,10 +24,10 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueInt, ValueBackendPassword
 from weboob.tools.misc import limit
-from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
+from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 
 from .browser import PhpBB
-from .tools import rssid, url2id, id2url
+from .tools import rssid, url2id, id2url, id2topic
 
 
 __all__ = ['PhpBBBackend']
@@ -87,9 +87,9 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             thread = id
             id = thread.id
 
-        thread_id = url2id(id) or id
+        thread_id = url2id(id, nopost=True) or id
         try:
-            last_seen_id = self.storage.get('seen', default={})[url2id(thread_id)]
+            last_seen_id = self.storage.get('seen', default={})[id2topic(thread_id)]
         except KeyError:
             last_seen_id = 0
 
@@ -135,11 +135,10 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
             url = self.browser.get_root_feed_url()
             for article in Newsfeed(url, rssid).iter_entries():
                 id = url2id(article.link)
-                thread_id, message_id = [int(v) for v in id.split('.')]
-                thread = Thread(thread_id)
+                thread = None
 
                 try:
-                    last_seen_id = self.storage.get('seen', default={})[thread.id]
+                    last_seen_id = self.storage.get('seen', default={})[id2topic(id)]
                 except KeyError:
                     last_seen_id = 0
 
@@ -148,6 +147,8 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                 if self.config['thread_unread_messages'].get() > 0:
                     iterator = limit(iterator, self.config['thread_unread_messages'].get())
                 for post in iterator:
+                    if not thread:
+                        thread = Thread('%s.%s' % (post.forum_id, post.topic_id))
                     message = self._post2message(thread, post)
 
                     if child:
@@ -163,12 +164,12 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
 
     def set_message_read(self, message):
         try:
-            last_seen_id = self.storage.get('seen', default={})[message.thread.id]
+            last_seen_id = self.storage.get('seen', default={})[id2topic(message.thread.id)]
         except KeyError:
             last_seen_id = 0
 
         if message.id > last_seen_id:
-            self.storage.set('seen', int(message.thread.id), message.id)
+            self.storage.set('seen', id2topic(message.thread.id), message.id)
             self.storage.save()
 
     def fill_thread(self, thread, fields):
@@ -178,8 +179,20 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     def post_message(self, message):
         assert message.thread
 
+        forum = 0
+        topic = 0
+        if message.thread:
+            try:
+                if '.' in message.thread.id:
+                    forum, topic = [int(i) for i in message.thread.id.split('.', 1)]
+                else:
+                    forum = int(message.thread.id)
+            except ValueError:
+                raise CantSendMessage('Thread ID must be in form "FORUM_ID[.TOPIC_ID]".')
+
         with self.browser:
-            return self.browser.post_answer(message.thread.id if message.thread else 0,
+            return self.browser.post_answer(forum,
+                                            topic,
                                             message.title,
                                             message.content)
 

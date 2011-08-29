@@ -67,10 +67,19 @@ class ForumPage(PhpBBPage):
             link.nb_messages = int(li.cssselect('dd.posts')[0].text.strip()) + 1
             yield link
 
+    def iter_all_forums(self):
+        for option in self.parser.select(self.document.getroot(), 'select#f', 1).findall('option'):
+            value = int(option.attrib['value'])
+            if value < 0 or not option.text:
+                continue
+
+            yield value, option.text.strip(u'» \xa0\n\r')
+
 class Post(object):
-    def __init__(self, topic, id):
+    def __init__(self, forum_id, topic_id, id):
         self.id = int(id)
-        self.topic = topic
+        self.forum_id = forum_id
+        self.topic_id = topic_id
         self.title = u''
         self.author = u''
         self.date = None
@@ -85,9 +94,14 @@ class TopicPage(PhpBBPage):
         self.cur_page = int(strongs[0].text.strip())
         self.tot_pages = int(strongs[1].text.strip())
 
-        v = urlsplit(self.url)
+        try:
+            url = self.parser.select(self.document.getroot(), 'h2 a', 1).attrib['href']
+        except BrokenPageError, e:
+            url = self.url
+        v = urlsplit(url)
         args = parse_qs(v.query)
         self.topic_id = int(args['t'][0])
+        self.forum_id = int(args['f'][0]) if 'f' in args else 0
 
         self.forum_title = u''
         nav = self.parser.select(self.document.getroot(), 'li.icon-home')
@@ -143,15 +157,15 @@ class TopicPage(PhpBBPage):
         profile = div.cssselect('dl.postprofile')[0]
 
         id = div.attrib['id'][1:]
-        post = Post(self.topic_id, id)
+        post = Post(self.forum_id, self.topic_id, id)
 
-        title = u''
         title_tags = body.cssselect('h3 a')
         if len(title_tags) == 0:
             title_tags = self.document.getroot().cssselect('h2 a')
         if len(title_tags) == 0:
+            title = u''
             self.logger.warning('Unable to parse title')
-        elif title_tags[0].text:
+        else:
             title = title_tags[0].text.strip()
 
         post.title = self.forum_title + title

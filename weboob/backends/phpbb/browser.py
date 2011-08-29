@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import urllib
 from urlparse import urlsplit
 
@@ -27,6 +28,10 @@ from weboob.capabilities.messages import CantSendMessage
 from .pages.index import LoginPage
 from .pages.forum import ForumPage, TopicPage, PostingPage
 from .tools import id2url, url2id
+
+
+__all__ = ['PhpBB']
+
 
 # Browser
 class PhpBB(BaseBrowser):
@@ -93,7 +98,7 @@ class PhpBB(BaseBrowser):
         parent = 0
         while 1:
             for post in self.page.iter_posts():
-                if post.id >= stop_id:
+                if stop_id and post.id >= stop_id:
                     return
 
                 post.parent = parent
@@ -145,11 +150,39 @@ class PhpBB(BaseBrowser):
 
         return post
 
-    def post_answer(self, topic, title, content):
-        if topic == 0:
-            raise CantSendMessage('Unable to create new topic for now')
+    def get_forums(self):
+        self.home()
+        return dict(self.page.iter_all_forums())
+
+    def post_answer(self, forum_id, topic_id, title, content):
+        if topic_id == 0:
+            if not forum_id:
+                forums = self.get_forums()
+                forums_prompt = 'Forums list:\n%s' % ('\n'.join(['\t- %s' % f for f in forums.itervalues()]))
+                m = re.match('\[(.*)\] (.*)', title or '')
+                if not m:
+                    raise CantSendMessage('Please enter a title formatted like that:\n\t"[FORUM] SUBJECT"\n\n%s' % forums_prompt)
+
+                forum_id = None
+                for k,v in forums.iteritems():
+                    if v.lower() == m.group(1).lower():
+                        forum_id = k
+                        break
+
+            if not forum_id:
+                raise CantSendMessage('Forum "%s" not found.\n\n%s' % (m.group(1), forums_prompt))
+
+            self.location('%s/posting.php?mode=post&f=%d' % (self.BASEPATH, forum_id))
+
+            assert self.is_on_page(PostingPage)
+            self.page.post(title, content)
+
+            assert self.is_on_page(PostingPage)
+            error = self.page.get_error_message()
+            if error:
+                raise CantSendMessage(u'Unable to send message: %s' % error)
         else:
-            self.location('%s/%s' % (self.BASEPATH, id2url(topic)))
+            self.location('%s/%s' % (self.BASEPATH, id2url(topic_id)))
             assert self.is_on_page(TopicPage)
 
             self.page.go_reply()
@@ -158,7 +191,7 @@ class PhpBB(BaseBrowser):
             # Don't send title because it isn't needed in real use case
             # and with monboob title is something like:
             #   Re: [Forum Name] Re: Topic Name
-            if title is not None and title.startswith('Re: '):
+            if title is not None and title.startswith('Re:'):
                 title = None
             self.page.post(title, content)
 

@@ -24,13 +24,19 @@ from urlparse import urlsplit, parse_qs
 from weboob.tools.misc import local2utc
 
 
-def url2id(url):
+def url2id(url, nopost=False):
     v = urlsplit(url)
     pagename = v.path.split('/')[-1]
     args = parse_qs(v.query)
+    if pagename == 'viewforum.php':
+        return '%d' % int(args['f'][0])
     if pagename == 'viewtopic.php':
-        s = '%d' % int(args['t'][0])
-        if 'p' in args:
+        if 'f' in args:
+            s = '%d' % int(args['f'][0])
+        else:
+            s = '0'
+        s += '.%d' % int(args['t'][0])
+        if 'p' in args and not nopost:
             s += '.%d' % int(args['p'][0])
         return s
 
@@ -39,11 +45,20 @@ def url2id(url):
 def id2url(id):
     v = id.split('.')
     if len(v) == 1:
-        return 'viewtopic.php?t=%d' % int(v[0])
+        return 'viewforum.php?f=%d' % int(v[0])
     if len(v) == 2:
-        return 'viewtopic.php?t=%d&p=%d#p%d' % (int(v[0]),
-                                                int(v[1]),
-                                                int(v[1]))
+        return 'viewtopic.php?f=%d&t=%d' % (int(v[0]), int(v[1]))
+    if len(v) == 3:
+        return 'viewtopic.php?f=%d&t=%d&p=%d#p%d' % (int(v[0]),
+                                                     int(v[1]),
+                                                     int(v[2]),
+                                                     int(v[2]))
+
+def id2topic(id):
+    try:
+        return int(id.split('.')[1])
+    except IndexError:
+        return None
 
 def rssid(id):
     return id
