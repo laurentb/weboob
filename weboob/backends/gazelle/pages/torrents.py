@@ -114,7 +114,7 @@ class TorrentsPage(BasePage):
         if h2 is not None:
             title = h2.text or ''
             if h2.find('a') != None:
-                title += h2.find('a').text + h2.find('a').tail
+                title += (h2.find('a').text or '') + (h2.find('a').tail or '')
         else:
             title = self.browser.parser.select(table, 'div.title_text', 1).text
 
