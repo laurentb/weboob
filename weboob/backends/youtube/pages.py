@@ -84,7 +84,7 @@ class VerifyControversyPage(BaseYoutubePage):
         self.browser.submit()
 
 class VideoPage(BaseYoutubePage):
-    AVAILABLE_FORMATS = [38, 37, 22, 45, 35, 34, 43, 18, 6, 5, 17, 13]
+    AVAILABLE_FORMATS = [38, 37, 45, 22, 43, 35, 34, 18, 6, 5, 17, 13]
     FORMAT_EXTENSIONS = {
         13: '3gp',
         17: 'mp4',
@@ -96,7 +96,7 @@ class VideoPage(BaseYoutubePage):
         45: 'webm',
     }
 
-    def get_video_url(self, format=18):
+    def get_video_url(self, format=38):
         formats = {}
         for script in self.parser.select(self.document.getroot(), 'script'):
             text = script.text
