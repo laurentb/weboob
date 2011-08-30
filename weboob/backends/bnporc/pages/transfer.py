@@ -75,7 +75,7 @@ class TransferPage(BasePage):
         self.browser['C2'] = [recipient.receive_checkbox]
         self.browser['T6'] = str(amount).replace('.', ',')
         if reason:
-            self.browser['T5'] = reason
+            self.browser['T5'] = reason.encode('utf-8')
         self.browser.submit()
 
 
