@@ -29,19 +29,19 @@ __all__ = ['GenericComicReaderBackend']
 
 class DisplayPage(BasePage):
     def get_page(self, gallery):
-        src = self.document.xpath(self.backend.IMG_SRC_XPATH)[0]
+        src = self.document.xpath(self.browser.params['img_src_xpath'])[0]
 
         return BaseImage(src,
                 gallery=gallery,
                 url=src)
 
     def page_list(self):
-        return self.document.xpath(self.backend.PAGE_LIST_XPATH)
+        return self.document.xpath(self.browser.params['page_list_xpath'])
 
 
 class GenericComicReaderBrowser(BaseBrowser):
-    def __init__(self, *args, **kwargs):
-        self.PAGES = self.backend.PAGES
+    def __init__(self, browser_params, *args, **kwargs):
+        self.params = browser_params
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def iter_gallery_images(self, gallery):
@@ -49,7 +49,7 @@ class GenericComicReaderBrowser(BaseBrowser):
         assert self.is_on_page(DisplayPage)
 
         for p in self.page.page_list():
-            self.location(self.backend.PAGE_LOCATION % p)
+            self.location(self.params['page_to_location'] % p)
             assert self.is_on_page(DisplayPage)
             yield self.page.get_page(gallery)
 
@@ -67,6 +67,11 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
     LICENSE = 'AGPLv3+'
     BROWSER = GenericComicReaderBrowser
 
+    def create_default_browser(self):
+        b = self.create_browser(self.BROWSER_PARAMS)
+        b.PAGES = self.PAGES
+        return b
+
     def iter_gallery_images(self, gallery):
         with self.browser:
             return self.browser.iter_gallery_images(gallery)
@@ -82,7 +87,7 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
             else:
                 return None
         
-
+        
         gallery = BaseGallery(_id, url=(self.ID_TO_URL % _id))
         with self.browser:
             return gallery

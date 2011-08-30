@@ -17,75 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement
-
-import re
-
-from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
-from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BasePage
+from ..genericcomicreader.backend import GenericComicReaderBackend, DisplayPage
 
 __all__ = ['MangatoshokanBackend']
 
-class DisplayPage(BasePage):
-    def get_page(self, gallery):
-        src = self.document.xpath("//img[@id='readerPage']/@src")[0]
-
-        return BaseImage(src,
-                gallery=gallery,
-                url=src)
-
-    def page_list(self):
-        return self.document.xpath("(//select[@class='headerSelect'])[1]/option/@value")
-
-class MangatoshokanBrowser(BaseBrowser):
-    DOMAIN = "www.mangatoshokan.com"
-    PAGES = { r'http://.+\.mangatoshokan.com/read/.+': DisplayPage }
-
-    def iter_gallery_images(self, gallery):
-        self.location(gallery.url)
-        assert self.is_on_page(DisplayPage)
-
-        for p in self.page.page_list():
-            self.location('http://%s%s' % (self.DOMAIN, p))
-            assert self.is_on_page(DisplayPage)
-            yield self.page.get_page(gallery)
-
-    def fill_image(self, image, fields):
-        if 'data' in fields:
-            image.data = self.readurl(image.url)
-
-class MangatoshokanBackend(BaseBackend, ICapGallery):
+class MangatoshokanBackend(GenericComicReaderBackend):
     NAME = 'mangatoshokan'
-    MAINTAINER = 'Noé Rubinstein'
-    EMAIL = 'noe.rubinstein@gmail.com'
-    VERSION = '0.9'
-    DESCRIPTION = 'mangatoshokan.com'
-    LICENSE = 'AGPLv3+'
-    BROWSER = MangatoshokanBrowser
-
-    def iter_gallery_images(self, gallery):
-        with self.browser:
-            return self.browser.iter_gallery_images(gallery)
-
-    def get_gallery(self, _id):
-        match = re.match(r'(?:(?:.+mangatoshokan.com/read)?/)?([^/]+(?:/[^/]+)*)', _id)
-        if match is None:
-            return None
-
-        _id = match.group(1)
-
-        gallery = BaseGallery(_id, url=('http://www.mangatoshokan.com/read/%s' % _id))
-        with self.browser:
-            return gallery
-
-    def fill_gallery(self, gallery, fields):
-        gallery.title = gallery.id
-
-    def fill_image(self, image, fields):
-        with self.browser:
-            self.browser.fill_image(image, fields)
-
-    OBJECTS = {
-            BaseGallery: fill_gallery,
-            BaseImage: fill_image }
+    DESCRIPTION = 'Mangatoshokan manga reading site'
+    DOMAIN = "www.mangatoshokan.com"
+    BROWSER_PARAMS = dict(
+        img_src_xpath="//img[@id='readerPage']/@src",
+        page_list_xpath="(//select[@class='headerSelect'])[1]/option/@value",
+        page_to_location='http://%s%%s' % DOMAIN)
+    ID_TO_URL = 'http://www.mangatoshokan.com/read/%s'
+    ID_REGEXP = r'[^/]+(?:/[^/]+)*'
+    URL_REGEXP = r'.+mangatoshokan.com/read/(%s)' % ID_REGEXP
+    PAGES = { r'http://.+mangatoshokan.com/read/.+': DisplayPage }
