@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Roger Philibert
+# Copyright(C) 2010-2011 Noé Rubinstein
 #
 # This file is part of weboob.
 #
@@ -25,28 +25,31 @@ from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
 
-__all__ = ['MangafoxBackend']
+__all__ = ['GenericComicReaderBackend']
 
 class DisplayPage(BasePage):
     def get_page(self, gallery):
-        src = self.document.xpath("//img[@id='image']/attribute::src")[0]
+        src = self.document.xpath(self.backend.IMG_SRC_XPATH)[0]
 
         return BaseImage(src,
                 gallery=gallery,
                 url=src)
 
     def page_list(self):
-        return self.document.xpath("(//select[@onchange='change_page(this)'])[1]/option/@value")
+        return self.document.xpath(self.backend.PAGE_LIST_XPATH)
 
-class MangafoxBrowser(BaseBrowser):
-    PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?.+\.html': DisplayPage }
+
+class GenericComicReaderBrowser(BaseBrowser):
+    def __init__(self, *args, **kwargs):
+        self.PAGES = self.backend.PAGES
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def iter_gallery_images(self, gallery):
         self.location(gallery.url)
         assert self.is_on_page(DisplayPage)
 
         for p in self.page.page_list():
-            self.location('%s.html' % p)
+            self.location(self.backend.PAGE_LOCATION % p)
             assert self.is_on_page(DisplayPage)
             yield self.page.get_page(gallery)
 
@@ -54,27 +57,33 @@ class MangafoxBrowser(BaseBrowser):
         if 'data' in fields:
             image.data = self.readurl(image.url)
 
-class MangafoxBackend(BaseBackend, ICapGallery):
-    NAME = 'mangafox'
-    MAINTAINER = 'Roger Philibert'
-    EMAIL = 'roger.philibert@gmail.com'
+
+class GenericComicReaderBackend(BaseBackend, ICapGallery):
+    NAME = 'genericcomicreader'
+    MAINTAINER = 'Noé Rubinstein'
+    EMAIL = 'noe.rubinstein@gmail.com'
     VERSION = '0.9'
-    DESCRIPTION = 'Mangafox'
+    DESCRIPTION = 'Generic comic reader backend; subclasses implement specific sites'
     LICENSE = 'AGPLv3+'
-    BROWSER = MangafoxBrowser
+    BROWSER = GenericComicReaderBrowser
 
     def iter_gallery_images(self, gallery):
         with self.browser:
             return self.browser.iter_gallery_images(gallery)
 
     def get_gallery(self, _id):
-        match = re.match(r'(?:(?:.+mangafox.com/manga)?/)?([^/]+/[^/]+(?:/[^/]+)?)', _id)
-        if match is None:
-            return None
+        match = re.match(r'^%s$' % self.URL_REGEXP, _id)
+        if match:
+            _id = match.group(1)
+        else:
+            match = re.match(r'^%s$' % self.ID_REGEXP, _id)
+            if match:
+                _id = match.group(0)
+            else:
+                return None
+        
 
-        _id = match.group(1)
-
-        gallery = BaseGallery(_id, url=('http://www.mangafox.com/manga/%s' % _id))
+        gallery = BaseGallery(_id, url=(self.ID_TO_URL % _id))
         with self.browser:
             return gallery
 
@@ -88,3 +97,4 @@ class MangafoxBackend(BaseBackend, ICapGallery):
     OBJECTS = {
             BaseGallery: fill_gallery,
             BaseImage: fill_image }
+
