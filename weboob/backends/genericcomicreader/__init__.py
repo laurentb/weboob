@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Roger Philibert
+# Copyright(C) 2010-2011 Noé Rubinstein
 #
 # This file is part of weboob.
 #
@@ -19,4 +19,4 @@
 
 from .mangafox import MangafoxBackend
 
-__all__ = ['MangafoxBackend']
+__all__ = ['MangafoxBackend', 'MangatoshokanBackend', 'SimplyreaditBackend']
