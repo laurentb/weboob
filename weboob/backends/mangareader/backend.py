@@ -24,7 +24,7 @@ __all__ = ['MangareaderBackend']
 class MangareaderBackend(GenericComicReaderBackend):
     NAME = 'mangareader'
     DESCRIPTION = 'Mangareader manga reading site'
-    DOMAIN = 'http://www.mangareader.net'
+    DOMAIN = 'www.mangareader.net'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='img']/@src",
         page_list_xpath="//select[@id='pageMenu']/option/@value",
