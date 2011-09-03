@@ -112,3 +112,15 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
             BaseGallery: fill_gallery,
             BaseImage: fill_image }
 
+
+class GenericComicReaderTest(BackendTest):
+    def test_download(self):
+        g = self.backend.get_gallery(self.DOWNLOAD_ID)
+        it = self.backend.iter_gallery_images(g)
+        it.next()
+        img = it.next()
+        self.backend.fillobj(img, ('url', 'data'))
+        self.assertTrue(img.url and img.url.startswith('http://'),
+                'URL for first image in gallery "%s" not found: %s' %
+                (img.id, img.url))
+
