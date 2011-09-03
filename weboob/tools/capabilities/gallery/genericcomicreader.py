@@ -24,6 +24,7 @@ import re
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.test import BackendTest
 
 __all__ = ['GenericComicReaderBackend']
 
@@ -74,6 +75,10 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
     def create_default_browser(self):
         b = self.create_browser(self.BROWSER_PARAMS)
         b.PAGES = self.PAGES
+        try:
+            b.DOMAIN = self.DOMAIN
+        except AttributeError:
+            pass
         return b
 
     def iter_gallery_images(self, gallery):

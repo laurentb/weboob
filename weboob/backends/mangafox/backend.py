@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.gallery.genericcomicreader.backend import GenericComicReaderBackend, DisplayPage
+from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderBackend, DisplayPage
 
 __all__ = ['MangafoxBackend']
 
