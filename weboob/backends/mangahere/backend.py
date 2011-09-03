@@ -27,8 +27,7 @@ class MangahereBackend(GenericComicReaderBackend):
     DOMAIN = 'www.mangahere.com'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='image']/@src",
-        page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option/@value",
-        page_to_location="%s")
+        page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option/@value")
     ID_REGEXP = r'[^/]+/[^/]+/[^/]+'
     URL_REGEXP = r'.+mangahere.com/manga/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.mangahere.com/manga/%s'

@@ -27,8 +27,7 @@ class MangatoshokanBackend(GenericComicReaderBackend):
     DOMAIN = "www.mangatoshokan.com"
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='readerPage']/@src",
-        page_list_xpath="(//select[@class='headerSelect'])[1]/option/@value",
-        page_to_location='http://%s%%s' % DOMAIN)
+        page_list_xpath="(//select[@class='headerSelect'])[1]/option/@value")
     ID_TO_URL = 'http://www.mangatoshokan.com/read/%s'
     ID_REGEXP = r'[^/]+(?:/[^/]+)*'
     URL_REGEXP = r'.+mangatoshokan.com/read/(%s)' % ID_REGEXP

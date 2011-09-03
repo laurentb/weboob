@@ -49,7 +49,11 @@ class GenericComicReaderBrowser(BaseBrowser):
         assert self.is_on_page(DisplayPage)
 
         for p in self.page.page_list():
-            self.location(self.params['page_to_location'] % p)
+            if 'page_to_location' in self.params:
+                self.location(self.params['page_to_location'] % p)
+            else:
+                self.location(p)
+
             assert self.is_on_page(DisplayPage)
             yield self.page.get_page(gallery)
 

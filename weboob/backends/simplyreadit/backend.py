@@ -26,8 +26,7 @@ class SimplyreaditBackend(GenericComicReaderBackend):
     DESCRIPTION = 'Simplyreadit manga reading site'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@class='open']/@src",
-        page_list_xpath="(//div[contains(@class,'dropdown_right')]/ul[@class='dropdown'])[1]/li/a/@href",
-        page_to_location="%s")
+        page_list_xpath="(//div[contains(@class,'dropdown_right')]/ul[@class='dropdown'])[1]/li/a/@href")
     ID_TO_URL = 'http://www.simplyread.it/reader/read/%s'
     ID_REGEXP = r'[^/]+(?:/[^/]+)*'
     URL_REGEXP = r'.+simplyread.it/reader/read/(%s)/page/.+' % ID_REGEXP

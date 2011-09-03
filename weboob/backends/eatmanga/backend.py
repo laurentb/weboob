@@ -27,8 +27,7 @@ class EatmangaBackend(GenericComicReaderBackend):
     DOMAIN = 'www.eatmanga.com'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@class='eatmanga_bigimage']/@src",
-        page_list_xpath="(//select[@id='pages'])[1]/option/@value",
-        page_to_location="http://%s%%s" % DOMAIN)
+        page_list_xpath="(//select[@id='pages'])[1]/option/@value")
     ID_REGEXP = r'[^/]+/[^/]+'
     URL_REGEXP = r'.+eatmanga.com/(?:index.php/)?Manga-Scan/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.eatmanga.com/index.php/Manga-Scan/%s'
