@@ -2,8 +2,9 @@
 set -e
 
 case $1 in
--h|--help)
+-h|--help|'')
 	echo "$0 [test] <backend name>"
+	exit
 	;;
 test|tests)
 	TEST_ONLY=1
