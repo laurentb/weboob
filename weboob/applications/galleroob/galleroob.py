@@ -96,9 +96,9 @@ class Galleroob(ReplApplication):
 
         gallery = None
         _id, backend = self.parse_id(_id)
-        for backend, result in self.do('get_gallery', _id, backends=backend):
+        for _backend, result in self.do('get_gallery', _id, backends=backend):
             if result:
-                backend = backend
+                backend = _backend
                 gallery = result
 
         if not gallery:
