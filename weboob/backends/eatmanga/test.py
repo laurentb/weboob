@@ -21,5 +21,6 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 class EatmangaTest(GenericComicReaderTest):
     BACKEND = 'eatmanga'
-    DOWNLOAD_ID = 'Glass-Mask/Glass-Mask-Vol-031'
+    def test_download(self):
+        return self._test_download('Glass-Mask/Glass-Mask-Vol-031')
 

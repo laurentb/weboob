@@ -21,5 +21,6 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 class MangatoshokanTest(GenericComicReaderTest):
     BACKEND = 'mangatoshokan'
-    DOWNLOAD_ID = 'Okujyouhime/Extras/5'
+    def test_download(self):
+        return self._test_download('Okujyouhime/Extras/5')
 

@@ -22,4 +22,5 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 class MangafoxTest(GenericComicReaderTest):
     BACKEND = 'mangafox'
-    DOWNLOAD_ID = 'glass_no_kamen/v02/c000'
+    def test_download(self):
+        return self._test_download('glass_no_kamen/v02/c000')
