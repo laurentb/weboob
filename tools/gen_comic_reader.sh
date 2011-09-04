@@ -79,7 +79,8 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 class $Backend""Test(GenericComicReaderTest):
     BACKEND = '$backend'
-    DOWNLOAD_ID = '$DOWNLOAD_ID'
+    def test_download(self):
+        return self._test_download('$DOWNLOAD_ID')
 "
 
 echo Now please edit files in $BACKEND_DIR
