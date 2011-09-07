@@ -28,6 +28,24 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 __all__ = ['Boobank']
 
 
+class QifFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'label', 'amount')
+
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        result = u''
+        if self.count == 0:
+            result += u'!type:Bank\n'
+        result += u'D%s\n' % item['date'].strftime('%d/%m/%y')
+        result += u'T%s\n' % item['amount']
+        result += u'M%s\n' % item['label']
+        result += u'^\n'
+        return result
+
 class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
 
@@ -114,6 +132,7 @@ class Boobank(ReplApplication):
     EXTRA_FORMATTERS = {'account_list':   AccountListFormatter,
                         'recipient_list': RecipientListFormatter,
                         'transfer':       TransferFormatter,
+                        'qif':            QifFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
