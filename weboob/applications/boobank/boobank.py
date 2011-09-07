@@ -44,6 +44,7 @@ class QifFormatter(IFormatter):
         result += u'T%s\n' % item['amount']
         result += u'M%s\n' % item['label']
         result += u'^\n'
+        self.count += 1
         return result
 
 class TransferFormatter(IFormatter):
