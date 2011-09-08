@@ -46,6 +46,9 @@ class AccountHistory(BasePage):
                 if tds[1].tail: label += tds[1].tail
                 label = label.strip()
                 amount = tds[2].text.replace('.', '').replace(',', '.')
+                (category, useless, label) = label.partition('  ')
+                category = category.strip()
+                label = label.strip()
                 # if we don't have exactly one '.', this is not a floatm try the next
                 operation = Operation(len(self.operations))
                 if amount.count('.') != 1:
@@ -56,6 +59,7 @@ class AccountHistory(BasePage):
 
                 operation.date = d
                 operation.label = label
+                operation.category = category
                 self.operations.append(operation)
 
     def get_operations(self):
