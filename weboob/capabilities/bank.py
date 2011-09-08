@@ -59,6 +59,7 @@ class Operation(CapBaseObject):
         self.add_field('date', (basestring, datetime, date))
         self.add_field('label', unicode)
         self.add_field('amount', float)
+        self.add_field('category', unicode)
 
     def __repr__(self):
         return "<Operation date='%s' label='%s' amount=%s>" % (self.date,
