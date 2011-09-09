@@ -42,8 +42,9 @@ class QifFormatter(IFormatter):
             result += u'!type:Bank\n'
         result += u'D%s\n' % item['date'].strftime('%d/%m/%y')
         result += u'T%s\n' % item['amount']
+        if item['category']:
+            result += u'N%s\n' % item['category']
         result += u'M%s\n' % item['label']
-        result += u'N%s\n' % item['category']
         result += u'^\n'
         self.count += 1
         return result
