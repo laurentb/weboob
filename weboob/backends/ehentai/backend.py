@@ -62,10 +62,19 @@ class EHentaiBackend(BaseBackend, ICapGallery):
         with self.browser:
             return self.browser.iter_gallery_images(gallery)
 
+    ID_REGEXP = r'/?\d+/[\dabcdef]+/?'
+    URL_REGEXP = r'.+/g/(%s)' % ID_REGEXP
     def get_gallery(self, _id):
-        if not re.match(r'(?i)/?\d+/[\dabcdef]+/?', _id):
-            return None
-
+        match = re.match(r'^%s$' % self.URL_REGEXP, _id)
+        if match:
+            _id = match.group(1)
+        else:
+            match = re.match(r'^%s$' % self.ID_REGEXP, _id)
+            if match:
+                _id = match.group(0)
+            else:
+                return None
+        
         gallery = EHentaiGallery(_id)
         with self.browser:
             if self.browser.gallery_exists(gallery):
