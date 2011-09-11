@@ -173,10 +173,12 @@ class AccountsList(CragrBasePage):
         data = re.sub(' +', ' ', data.replace("\n", ' ').strip())
         return data
 
-    def get_history(self, start_index = 0):
+    def get_history(self, start_index = 0, start_offset = 0):
         """
             Returns the history of a specific account. Note that this function
-            expects the current page page to be the one dedicated to this history.
+            expects the current page to be the one dedicated to this history.
+            start_index is the id used for the first created operation.
+            start_offset allows ignoring the `n' first Operations on the page.
         """
         # tested on CA Lorraine, Paris, Toulouse
         # avoir parsing the page as an account-dedicated page if it is not the case
@@ -185,6 +187,7 @@ class AccountsList(CragrBasePage):
 
         index = start_index
         operation = False
+        skipped = 0
 
         body_elmt_list = self.document.xpath('/html/body/*')
 
@@ -229,6 +232,9 @@ class AccountsList(CragrBasePage):
         if table_layout:
             lines = self.document.xpath('id("operationsContent")//table[@class="tb"]/tr')
             for line in lines:
+                if skipped < start_offset:
+                    skipped += 1
+                    continue
                 operation = Operation(index)
                 index += 1
                 operation.date = self.extract_text(line[0])
@@ -237,6 +243,10 @@ class AccountsList(CragrBasePage):
                 yield operation
         elif (not alternate_layout):
             for body_elmt in interesting_divs:
+                if skipped < start_offset:
+                    if self.is_right_aligned_div(body_elmt):
+                        skipped += 1 
+                    continue
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount
                     operation.amount = clean_amount(self.extract_text(body_elmt))
@@ -255,6 +265,9 @@ class AccountsList(CragrBasePage):
                         operation.label = u'Unknown'
         else:
             for i in range(0, len(interesting_divs)/3):
+                if skipped < start_offset:
+                    skipped += 1
+                    continue
                 operation = Operation(index)
                 index += 1
                 # amount

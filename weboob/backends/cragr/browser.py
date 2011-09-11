@@ -131,26 +131,29 @@ class Cragr(BaseBrowser):
         return None
 
     def get_history(self, account):
-        page_url = account.link_id
+        history_url = account.link_id
         operations_count = 0
-        while (page_url):
-            # 1st, go on the account page
-            self.logger.debug('going on: %s' % page_url)
-            self.location('https://%s%s' % (self.DOMAIN, page_url))
 
-            # then, expand all history
-            # (it's not a next page, but more operation on one page)
-            # tested on CA centre
-            while True:
-                history_url = self.page.expand_history_page_url()
-                if not history_url :
-                    break
-                self.location(history_url)
+        # 1st, go on the account page
+        self.logger.debug('going on: %s' % history_url)
+        self.location('https://%s%s' % (self.DOMAIN, history_url))
 
-            for page_operation in self.page.get_history(operations_count):
+        # Some regions have a "Show more" (well, actually "Voir les 25
+        # suivants") link we have to use to get all the operations.
+        # However, it does not show only the 25 next results, it *adds* them
+        # to the current view. Therefore, we have to parse each new page using
+        # an offset, in order to ignore all already-fetched operations.
+        # This especially occurs on CA Centre.
+        use_expand_url = bool(self.page.expand_history_page_url())
+        while (history_url):
+            # we skip "operations_count" operations on each page if we are in the case described above
+            operations_offset = operations_count if use_expand_url else 0
+            for page_operation in self.page.get_history(operations_count, operations_offset):
                 operations_count += 1
                 yield page_operation
-            page_url = self.page.next_page_url()
+            history_url = self.page.expand_history_page_url() if use_expand_url else self.page.next_page_url()
+            self.logger.debug('going on: %s' % history_url)
+            self.location('https://%s%s' % (self.DOMAIN, history_url))
 
     def dict_find_value(self, dictionary, value):
         """
