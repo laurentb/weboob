@@ -60,7 +60,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
         if len(entry.content):
             content = entry.content[0]
         else:
-            content = None
+            content = entry.link
         thread.title = entry.title
         thread.root = Message(thread=thread,
                               id=0,
@@ -86,3 +86,8 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     def set_message_read(self, message):
         self.storage.get('seen', default=[]).append(message.thread.id)
         self.storage.save()
+
+    def fill_thread(self, thread, fields):
+        return self.get_thread(thread)
+
+    OBJECTS = {Thread: fill_thread}
