@@ -269,7 +269,8 @@ class Monboob(ReplApplication):
         if mail.parent:
             reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent.full_id, domain)
         subject = mail.title
-        sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""'), backend.name, domain)
+        sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""') if mail.sender else '',
+                                    backend.name, domain)
 
         # assume that .date is an UTC datetime
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)
