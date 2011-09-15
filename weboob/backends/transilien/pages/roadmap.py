@@ -75,6 +75,14 @@ class RoadmapConfirmPage(BasePage):
 
 class RoadmapPage(BasePage):
     def get_steps(self):
+        errors = []
+        for p in self.parser.select(self.document.getroot(), 'p.errors'):
+            if p.text:
+                errors.append(p.text.strip())
+
+        if len(errors) > 0:
+            raise RoadmapError('Unable to establish a roadmap: %s' % ', '.join(errors))
+
         current_step = None
         i = 0
         for tr in self.parser.select(self.document.getroot(), 'table.horaires2 tbody tr'):
