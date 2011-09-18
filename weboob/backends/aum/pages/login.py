@@ -27,9 +27,10 @@ from weboob.backends.aum.exceptions import AdopteBanned
 from weboob.capabilities.account import AccountRegisterError
 
 from .base import PageBase
+from .home import HomePage
 from ..captcha import Captcha
 
-class LoginPage(PageBase):
+class LoginPage(HomePage):
     def login(self, login, password):
         try:
             self.browser.select_form(name="form_login")
