@@ -265,12 +265,12 @@ class ProfilePage(PageBase):
             if (div.hasAttribute('style') and
                     div.getAttribute('style') == "color:#ffffff;font-size:32px;font-weight:bold;letter-spacing:-2px" and
                     hasattr(div.firstChild, 'data')):
-                if len(div.childNodes) > 1: 
+                if len(div.childNodes) > 1:
                     self.name = div.childNodes[1].data
             if (div.hasAttribute('style') and
                     div.getAttribute('style') == "font-size:12px;font-weight:bold" and
                     hasattr(div.firstChild, 'data')):
-                self.status = div.firstChild.data
+                self.status = div.childNodes[-1].data.strip()
             if div.hasAttribute('background'):
                 m = self.PHOTO_REGEXP.match(div.getAttribute('background'))
                 if m:
