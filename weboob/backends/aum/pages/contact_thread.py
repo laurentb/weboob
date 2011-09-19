@@ -264,11 +264,10 @@ class ContactThreadPage(PageBase):
             p_list = self.document.getElementsByTagName('p')
             for p in p_list:
                 if p.hasAttribute('align') and p.getAttribute('align') == 'center':
-                    error = p.firstChild.data
+                    error = p.childNodes[-1].data.encode('utf-8').strip()
                     break
 
-            raise AdopteCantPostMail(error.encode('utf-8'))
-
+            raise AdopteCantPostMail(error)
 
     """
 <table align=center style="width:700px;background:black">
