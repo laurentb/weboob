@@ -106,7 +106,7 @@ class HaveSex(ReplApplication):
 
         Display a profile
         """
-        _id, backend_name = self.parse_id(id)
+        _id, backend_name = self.parse_id(id, unique_backend=True)
 
         found = 0
         for backend, contact in self.do('get_contact', _id, backends=backend_name):
@@ -125,7 +125,7 @@ class HaveSex(ReplApplication):
 
         Send a query to someone.
         """
-        _id, backend_name = self.parse_id(id)
+        _id, backend_name = self.parse_id(id, unique_backend=True)
 
         for backend, query in self.do('send_query', _id, backends=backend_name):
             print '%s' % query.message
