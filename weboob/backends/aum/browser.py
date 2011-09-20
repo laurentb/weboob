@@ -18,308 +18,252 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import datetime
-import time
 import random
 import urllib
 try:
-    import simplejson
+    import json
 except ImportError:
-    # Python 2.6+ has a module similar to simplejson
-    import json as simplejson
+    import simplejson as json
 
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable
-from weboob.tools.parsers.html5libparser import Html5libParser
-
-from weboob.backends.aum.exceptions import AdopteWait
-
-from weboob.backends.aum.pages.account import AccountPage
-from weboob.backends.aum.pages.home import HomePage
-from weboob.backends.aum.pages.contact_list import ContactListPage
-from weboob.backends.aum.pages.contact_thread import ContactThreadPage
-from weboob.backends.aum.pages.baskets import BasketsPage
-from weboob.backends.aum.pages.profile import ProfilePage
-from weboob.backends.aum.pages.search import SearchPage
-from weboob.backends.aum.pages.login import LoginPage, RedirectPage, BanPage, ErrPage, RegisterPage, \
-                                            RegisterWaitPage, RegisterConfirmPage, ShopPage, InvitePage
-from weboob.backends.aum.pages.edit import EditPhotoPage, EditPhotoCbPage, EditAnnouncePage, \
-                                           EditDescriptionPage, EditSexPage, EditPersonalityPage
-from weboob.backends.aum.pages.wait import WaitPage
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 
 from weboob.capabilities.chat import ChatException, ChatMessage
+from weboob.capabilities.messages import CantSendMessage
 
 
 __all__ = ['AuMBrowser']
 
 
 class AuMBrowser(BaseBrowser):
-    DOMAIN = 'www.adopteunmec.com'
-    ENCODING = 'iso-8859-1'
-    PAGES = {'http://www.adopteunmec.com/': LoginPage,
-             'http://www.adopteunmec.com/index.html': LoginPage,
-             'http://www.adopteunmec.com/index.php': LoginPage,
-             'http://www.adopteunmec.com/loginErr.php.*': ErrPage,
-             'http://www.adopteunmec.com/bans.php.*': BanPage,
-             'http://www.adopteunmec.com/redirect.php\?action=login': RedirectPage,
-             'http://www.adopteunmec.com/wait.php': WaitPage,
-             'http://www.adopteunmec.com/invits.php': InvitePage,
-             'http://www.adopteunmec.com/register2.php': RegisterPage,
-             'http://www.adopteunmec.com/register3.php.*': RegisterWaitPage,
-             'http://www.adopteunmec.com/register4.php.*': RegisterConfirmPage,
-             'http://www.adopteunmec.com/home.php': HomePage,
-             'http://www.adopteunmec.com/shop2c?.php': ShopPage,
-             'http[s]://www.adopteunmec.com/register-pay.php': ShopPage,
-             'http://www.adopteunmec.com/mails.php': ContactListPage,
-             'http://www.adopteunmec.com/mail.php': ContactListPage,
-             'http://www.adopteunmec.com/mails.php\?type=1': BasketsPage,
-             'http://www.adopteunmec.com/mail.php\?type=1': BasketsPage,
-             'http://www.adopteunmec.com/thread.php\?id=([0-9]+)(&see=all)?': ContactThreadPage,
-             'http://www.adopteunmec.com/edit.php\?type=1': EditPhotoPage,
-             'http://s\d+.adopteunmec.com/upload\d.php\?.*': EditPhotoCbPage,
-             'http://www.adopteunmec.com/edit.php\?type=2': EditAnnouncePage,
-             'http://www.adopteunmec.com/edit.php\?type=3': EditDescriptionPage,
-             'http://www.adopteunmec.com/edit.php\?type=4': EditSexPage,
-             'http://www.adopteunmec.com/edit.php\?type=5': EditPersonalityPage,
-             'http://www.adopteunmec.com/search.php.*': SearchPage,
-             'http://www.adopteunmec.com/searchRes.php.*': SearchPage,
-             'http://www.adopteunmec.com/rencontres-femmes/(.*)/([0-9]+)': ProfilePage,
-             'http://www.adopteunmec.com/catalogue-hommes/(.*)/([0-9]+)': ProfilePage,
-             'http://www.adopteunmec.com/view2.php': ProfilePage, # my own profile
-             'http://www.adopteunmec.com/(\w+)': ProfilePage, # a custom profile url
-             'http://www.adopteunmec.com/account.php': AccountPage,
-            }
+    DOMAIN = 'api.adopteunmec.com'
+    APIKEY = 'fb0123456789abcd'
 
-    def __init__(self, *args, **kwargs):
-        kwargs['parser'] = Html5libParser(api='dom')
-        BaseBrowser.__init__(self, *args, **kwargs)
-        self.my_id = 0
+    consts = None
+    my_sex = 0
+    my_id = 0
+    my_name = u''
 
-    def id2url(self, _id):
-        return u'%s://%s/%s' % (self.PROTOCOL, self.DOMAIN, _id)
+    def id2url(self, id):
+        return 'http://www.adopteunmec.com/%s' % id
+
+    def api_request(self, command, action, parameter='', data=None, nologin=False):
+        if data is None:
+            # Always do POST requests.
+            data = ''
+        elif isinstance(data, (list,tuple,dict)):
+            data = urllib.urlencode(data)
+        elif isinstance(data, unicode):
+            data = data.encode('utf-8')
+
+        url = self.buildurl(self.absurl('/api.php'), S=self.APIKEY,
+                                                     C=command,
+                                                     A=action,
+                                                     P=parameter,
+                                                     O='json')
+        buf = self.openurl(url, data)
+
+        try:
+            r = json.load(buf)
+        except ValueError:
+            buf.seek(0)
+            raise ValueError(buf.read())
+
+        if 'errors' in r and len(r['errors']) > 0 and r['errors'][0] in (u'0.0.2', u'1.1.1'):
+            if not nologin:
+                self.login()
+                return self.api_request(command, action, parameter, data, nologin=True)
+            else:
+                raise BrowserIncorrectPassword()
+        return r
 
     def login(self):
-        if not self.is_on_page(LoginPage):
-            self.home()
-        self.page.login(self.username, self.password)
+        r = self.api_request('me', 'login', data={'login': self.username,
+                                                  'pass':  self.password,
+                                                 }, nologin=True)
+        self.my_sex = r['result']['me']['sex']
+        self.my_id = int(r['result']['me']['id'])
+        self.my_name = r['result']['me']['pseudo']
+        return r
 
-    def is_logged(self):
-        return self.page and self.page.is_logged()
+    #def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=None):
+    #    if not self.is_on_page(RegisterPage):
+    #        self.location('http://www.adopteunmec.com/register2.php')
+    #    self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country)
+    #    if godfather:
+    #        if not self.is_on_page(AccountPage):
+    #            self.location('http://www.adopteunmec.com/account.php')
+    #        self.page.set_godfather(godfather)
 
-    def home(self):
-        return self.location('http://www.adopteunmec.com/index.php')
+    #@pageaccess
+    #def add_photo(self, name, f):
+    #    if not self.is_on_page(EditPhotoPage):
+    #        self.location('/edit.php?type=1')
+    #    return self.page.add_photo(name, f)
 
-    def pageaccess(func):
+    #@pageaccess
+    #def set_nickname(self, nickname):
+    #    if not self.is_on_page(EditAnnouncePage):
+    #        self.location('/edit.php?type=2')
+    #    return self.page.set_nickname(nickname)
+
+    #@pageaccess
+    #def set_announce(self, title=None, description=None, lookingfor=None):
+    #    if not self.is_on_page(EditAnnouncePage):
+    #        self.location('/edit.php?type=2')
+    #    return self.page.set_announce(title, description, lookingfor)
+
+    #@pageaccess
+    #def set_description(self, **args):
+    #    if not self.is_on_page(EditDescriptionPage):
+    #        self.location('/edit.php?type=3')
+    #    return self.page.set_description(**args)
+
+    def check_login(func):
         def inner(self, *args, **kwargs):
-            if self.is_on_page(WaitPage):
-                if not self.page.check():
-                    raise AdopteWait(u'Could not connect between 6pm and 1am.')
-                self.home()
-            if not self.page or self.is_on_page(LoginPage) and self.password:
-                self.home()
-
+            if self.my_id == 0:
+                self.login()
             return func(self, *args, **kwargs)
         return inner
 
-    def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=None):
-        if not self.is_on_page(RegisterPage):
-            self.location('http://www.adopteunmec.com/register2.php')
-        self.page.register(password, sex, birthday_d, birthday_m, birthday_y, zipcode, country)
-        if godfather:
-            if not self.is_on_page(AccountPage):
-                self.location('http://www.adopteunmec.com/account.php')
-            self.page.set_godfather(godfather)
+    def get_consts(self):
+        if self.consts is not None:
+            return self.consts
 
-    @pageaccess
-    def add_photo(self, name, f):
-        if not self.is_on_page(EditPhotoPage):
-            self.location('/edit.php?type=1')
-        return self.page.add_photo(name, f)
+        self.consts = []
+        for i in xrange(2):
+            r = self.api_request('me', 'all_values', data={'sex': i})
+            self.consts.append(r['result']['values'])
 
-    @pageaccess
-    def set_nickname(self, nickname):
-        if not self.is_on_page(EditAnnouncePage):
-            self.location('/edit.php?type=2')
-        return self.page.set_nickname(nickname)
+        return self.consts
 
-    @pageaccess
-    def set_announce(self, title=None, description=None, lookingfor=None):
-        if not self.is_on_page(EditAnnouncePage):
-            self.location('/edit.php?type=2')
-        return self.page.set_announce(title, description, lookingfor)
-
-    @pageaccess
-    def set_description(self, **args):
-        if not self.is_on_page(EditDescriptionPage):
-            self.location('/edit.php?type=3')
-        return self.page.set_description(**args)
-
-    @pageaccess
+    @check_login
     def score(self):
-        if time.time() - self.last_update > 60:
-            self.home()
-        return self.page.score()
+        r = self.api_request('member', 'view', data={'id': self.my_id})
+        return int(r['result']['member']['popu']['popu'])
 
-    @pageaccess
+    @check_login
     def get_my_name(self):
-        if time.time() - self.last_update > 60:
-            self.home()
-        return self.page.get_my_name()
+        return self.my_name
 
+    @check_login
     def get_my_id(self):
-        if self.my_id:
-            return self.my_id
-
-        try:
-            if not self.is_on_page(HomePage):
-                self.home()
-        except AdopteWait:
-            self.location('/invits.php')
-
-        self.my_id = self.page.get_my_id()
         return self.my_id
 
-    @pageaccess
+    @check_login
     def nb_new_mails(self):
-        if time.time() - self.last_update > 60:
-            self.home()
-        return self.page.nb_new_mails()
+        r = self.api_request('me', '[default]')
+        return r['result']['news']['newMails']
 
-    @pageaccess
+    @check_login
     def nb_new_baskets(self):
-        if time.time() - self.last_update > 60:
-            self.home()
-        return self.page.nb_new_baskets()
+        r = self.api_request('me', '[default]')
+        return r['result']['news']['newBaskets']
 
-    @pageaccess
+    @check_login
     def nb_new_visites(self):
-        if time.time() - self.last_update > 60:
-            self.home()
-        return self.page.nb_new_visites()
+        r = self.api_request('me', '[default]')
+        return r['result']['news']['newVisits']
 
-    @pageaccess
-    def nb_available_charms(self, reload=False):
-        if reload or not self.is_on_page(HomePage):
-            self.home()
-        return self.page.nb_available_charms()
+    @check_login
+    def nb_available_charms(self):
+        r = self.login()
+        return r['result']['flashs']
 
-    @pageaccess
-    def nb_godchilds(self, reload=False):
-        if reload or not self.is_on_page(HomePage):
-            self.home()
-        return self.page.nb_godchilds()
+    @check_login
+    def nb_godchilds(self):
+        r = self.api_request('member', 'view', data={'id': self.my_id})
+        return int(r['result']['member']['popu']['invits'])
 
-    @pageaccess
+    @check_login
     def get_baskets(self):
-        self.location('/mail.php?type=1')
-        return self.page.get_profiles_ids_list()
+        r = self.api_request('me', 'basket')
+        return r['result']['basket']
 
-    @pageaccess
-    def flush_visits(self):
-        """ Does nothing, only flush new visits to increase my score """
-        self.openurl('/mail.php?type=3')
+    @check_login
+    def get_threads_list(self, count=30):
+        r = self.api_request('message', '[default]', '%d,0' % count)
+        return r['result']['threads']
 
-    @pageaccess
-    def get_threads_list(self):
-        if not self.is_on_page(ContactListPage):
-            self.location('/mail.php')
+    @check_login
+    def get_thread_mails(self, id, count=30):
+        r = self.api_request('message', 'thread', data={'memberId': id, 'count': count})
+        return r['result']['thread']
 
-        return self.page.get_contact_list()
-
-    @pageaccess
-    def get_thread_mails(self, id, full=False):
-        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id) or full:
-            self.page.open_thread_page(id, full)
-        return self.page.mails
-
-    @pageaccess
+    @check_login
     def post_mail(self, id, content):
-        if not self.is_on_page(ContactThreadPage) or self.page.id != int(id):
-            self.page.open_thread_page(id)
-        self.page.post(content)
+        r = self.api_request('message', 'new', data={'memberId': id, 'message': content.encode('utf-8')})
+        if len(r['errors']) > 0:
+            raise CantSendMessage(r['errors'][0])
 
-    @pageaccess
+    @check_login
     def delete_thread(self, id):
-        data = 'delete=true&suppr%%5B%%5D=%s' % id
-        url = 'http://www.adopteunmec.com/mail.php'
-        self.openurl(url, data).read()
+        r = self.api_request('message', 'delete', data={'id_user': id})
+        self.logger.debug('Thread deleted: %r' % r)
 
-        return True
-
-    @pageaccess
+    @check_login
     def send_charm(self, id):
-        result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.debug('Charm: %s' % result)
-        return result.find('noMoreFlashes') < 0
+        r = self.api_request('member', 'addBasket', data={'id': id})
+        return r['errors'] == '0'
 
-    @pageaccess
+    @check_login
     def add_basket(self, id):
-        result = self.openurl('http://www.adopteunmec.com/fajax_addBasket.php?id=%s' % id).read()
-        self.logger.debug('Basket: %s' % result)
-        # TODO check if it works (but it should)
-        return True
+        r = self.api_request('member', 'addBasket', data={'id': id})
+        return r['errors'] == '0'
 
-    @pageaccess
     def deblock(self, id):
         self.readurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id)
         return True
 
-    @pageaccess
     def report_fake(self, id):
         return self.readurl('http://www.adopteunmec.com/fake.php', 'id=%s' % id)
 
-    @pageaccess
     def rate(self, id, what, rating):
         result = self.openurl('http://www.adopteunmec.com/fajax_vote.php', 'member=%s&what=%s&rating=%s' % (id, what, rating)).read()
         return float(result)
 
-    @pageaccess
     def search_profiles(self, **kwargs):
-        self.location('/search.php')
-        self.page.search(**kwargs)
-        return self.page.get_profiles_ids()
+        r = self.api_request('searchs', '[default]')
+        params = r['result']['search']
+        params.pop('query', None)
+        params.update(kwargs)
 
-    @pageaccess
-    def get_profile(self, link):
-        if isinstance(link, basestring):
-            link = link.replace('http://www.adopteunmec.com/', '')
-            if link.startswith('/'):
-                link = link[1:]
-        self.location('/%s' % link)
-        return self.page
+        r = self.api_request('searchs', 'advanced', '30,0', params)
+        ids = [s['id'] for s in r['result']['search']]
+        return set(ids)
 
-    @pageaccess
-    def get_slut_state(self, id):
-        result = self.openurl('http://www.adopteunmec.com/%s' % id).read()
-        if result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0:
-            r = 'online'
-        elif result.find('Cet utilisateur a quitt\xe9 le site<br />') >= 0:
-            r = 'removed'
-        elif result.find('ce profil a \xe9t\xe9 bloqu\xe9 par l\'\xe9quipe de mod\xe9ration<br />') >= 0:
-            r = 'removed'
-        elif result.find('<div align=center style="color:#ff0000;font-size:16px"><br /><br />Cette personne<br>vous a bloqu\xe9</div>') >= 0:
-            r = 'blocked'
-        else:
-            r = 'offline'
+    def get_profile(self, id, with_pics=True):
+        r = self.api_request('member', 'view', data={'id': id})
+        profile = r['result']['member']
+        if with_pics:
+            r = self.api_request('member', 'pictures', data={'id': id})
+            profile['pictures'] = []
+            for pic in r['result']['pictures']:
+                d = {'hidden': False}
+                d.update(pic)
+                profile['pictures'].append(d)
 
-        print 'getSlutState(%s) = %s' % (id, r)
-        return r
+            if len(profile['pictures']) > 0:
+                pic_regex = re.compile('(?P<base_url>http://.+\.adopteunmec\.com/.+/)image(?P<id>.+)\.jpg')
+                pic_max_id = max(int(pic_regex.match(pic['url']).groupdict()['id']) for pic in profile['pictures'])
+                base_url = pic_regex.match(profile['pictures'][0]['url']).groupdict()['base_url']
+                for id in xrange(1, pic_max_id + 1):
+                    url = u'%simage%s.jpg' % (base_url, id)
+                    if not url in [pic['url'] for pic in profile['pictures']]:
+                        profile['pictures'].append({'url': url, u'hidden': True, 'id': u'0', 'rating': 0.0})
 
-    @pageaccess
-    def is_slut_online(self, id):
-        result = self.openurl('http://www.adopteunmec.com/%s' % id).read()
-        r = result.find('<td align="right" style="font-size:12px;font-weight:bold">en ligne</td>') >= 0
-        print 'isSlutOnline(%s) = %s' % (id, r)
-        return r
+        return profile
 
     def _get_chat_infos(self):
         try:
-            json = simplejson.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
+            data = json.load(self.openurl('http://www.adopteunmec.com/1.1_cht_get.php?anticache=%f' % random.random()))
         except ValueError:
             raise BrowserUnavailable()
 
-        if json['error']:
-            raise ChatException(u'Error while getting chat infos. json:\n%s' % json)
-        return json
+        if data['error']:
+            raise ChatException(u'Error while getting chat infos. json:\n%s' % data)
+        return data
 
     def iter_contacts(self):
         def iter_dedupe(contacts):
@@ -329,13 +273,13 @@ class AuMBrowser(BaseBrowser):
                     yield contact
                 yielded_ids.add(contact['id'])
 
-        json = self._get_chat_infos()
-        return iter_dedupe(json['contacts'])
+        data = self._get_chat_infos()
+        return iter_dedupe(data['contacts'])
 
     def iter_chat_messages(self, _id=None):
-        json = self._get_chat_infos()
-        if json['messages'] is not None:
-            for message in json['messages']:
+        data = self._get_chat_infos()
+        if data['messages'] is not None:
+            for message in data['messages']:
                 yield ChatMessage(id_from=message['id_from'], id_to=message['id_to'], message=message['message'], date=message['date'])
 
     def send_chat_message(self, _id, message):

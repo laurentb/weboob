@@ -82,7 +82,7 @@ class ProfilesWalker(Optimization):
             try:
                 with self.browser:
                     profile = self.browser.get_profile(id)
-                self.logger.info(u'Visited profile %s (%s)' % (profile.get_name(), id))
+                self.logger.info(u'Visited profile %s (%s)' % (profile['pseudo'], id))
 
                 # Get score from the aum_score module
                 #d = self.nucentral_core.callService(context.Context.fromComponent(self), 'aum_score', 'score', profile)
