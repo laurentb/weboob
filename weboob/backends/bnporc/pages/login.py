@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from weboob.tools.mech import ClientForm
 import urllib
 from logging import error
@@ -59,8 +60,21 @@ class LoginPage(BasePage):
 
 
 class ConfirmPage(BasePage):
-    pass
+    def get_error(self):
+        for td in self.document.xpath('//td[@class="hdvon1"]'):
+            if td.text:
+                return td.text.strip()
+        return None
 
+    def get_relocate_url(self):
+        script = self.document.xpath('//script')[0]
+        m = re.match('document.location.replace\("(.*)"\)', script.text[script.text.find('document.location.replace'):])
+        if m:
+            return m.group(1)
+
+class MessagePage(BasePage):
+    def on_loaded(self):
+        pass
 
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):
@@ -78,7 +92,12 @@ class ChangePasswordPage(BasePage):
 
         data = {'ch1': code_current,
                 'ch2': code_new,
-                'ch3': code_new
+                'ch3': code_new,
+                'radiobutton3': 'radiobutton',
+                'x': 12,
+                'y': 9,
                }
 
-        self.browser.location('/SAF_CHM_VALID', urllib.urlencode(data))
+        headers = {'Referer': self.url}
+        request = self.browser.request_class('https://www.secure.bnpparibas.net/SAF_CHM_VALID', urllib.urlencode(data), headers)
+        self.browser.location(request)

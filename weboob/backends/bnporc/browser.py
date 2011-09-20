@@ -34,18 +34,18 @@ class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
-    PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
-             '.*SAF_ROP.*':                                 pages.AccountHistory,
+    PAGES = {'.*pageId=unedescomptes.*':                    pages.AccountsList,
+             '.*pageId=releveoperations.*':                 pages.AccountHistory,
              '.*Action=SAF_CHM.*':                          pages.ChangePasswordPage,
-             '.*NS_AVEDT.*':                                pages.AccountComing,
+             '.*pageId=mouvementsavenir.*':                 pages.AccountComing,
              '.*NS_AVEDP.*':                                pages.AccountPrelevement,
              '.*NS_VIRDF.*':                                pages.TransferPage,
              '.*NS_VIRDC.*':                                pages.TransferConfirmPage,
              '.*/NS_VIRDA\?stp=(?P<id>\d+).*':              pages.TransferCompletePage,
-             '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
              '.*type=homeconnex.*':                         pages.LoginPage,
              '.*layout=HomeConnexion.*':                    pages.ConfirmPage,
              '.*SAF_CHM_VALID.*':                           pages.ConfirmPage,
+             '.*Action=DSP_MSG.*':                          pages.MessagePage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -81,8 +81,8 @@ class BNPorc(BaseBrowser):
 
         self.page.change_password(self.password, new_password)
 
-        if not self.is_on_page(pages.ConfirmPage):
-            self.logger.error('Oops, unable to change password')
+        if not self.is_on_page(pages.ConfirmPage) or self.page.get_error() is not None:
+            self.logger.error('Oops, unable to change password (%s)' % (self.page.get_error() if self.is_on_page(pages.ConfirmPage) else 'unknown'))
             return
 
         self.password, self.rotating_password = (new_password, self.password)
@@ -123,16 +123,18 @@ class BNPorc(BaseBrowser):
 
         return None
 
-    def get_history(self, account):
-        if not self.is_on_page(pages.AccountHistory) or self.page.account.id != account.id:
-            self.location('/SAF_ROP?ch4=%s' % account.link_id)
+    def get_history(self, id):
+        self.location('/banque/portail/particulier/FicheA?contractId=%d&pageId=releveoperations&_eventId=changeOperationsPerPage&operationsPerPage=200' % int(id))
         return self.page.get_operations()
 
-    def get_coming_operations(self, account):
-        if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
-            self.location('/NS_AVEDT?ch4=%s' % account.link_id)
+    def get_coming_operations(self, id):
+        if not self.is_on_page(pages.AccountsList):
+            self.location('/NSFR?Action=DSP_VGLOBALE')
+        execution = self.page.get_execution_id()
+        self.location('/banque/portail/particulier/FicheA?externalIAId=IAStatements&contractId=%d&pastOrPendingOperations=2&pageId=mouvementsavenir&execution=%s' % (int(id), execution))
         return self.page.get_operations()
 
+    @check_expired_password
     def get_transfer_accounts(self):
         if not self.is_on_page(pages.TransferPage):
             self.location('/NS_VIRDF')
@@ -140,6 +142,7 @@ class BNPorc(BaseBrowser):
         assert self.is_on_page(pages.TransferPage)
         return self.page.get_accounts()
 
+    @check_expired_password
     def transfer(self, from_id, to_id, amount, reason=None):
         if not self.is_on_page(pages.TransferPage):
             self.location('/NS_VIRDF')

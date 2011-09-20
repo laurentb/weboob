@@ -39,34 +39,12 @@ class AccountsList(BasePage):
     def get_list(self):
         l = []
         for tr in self.document.getiterator('tr'):
-            if tr.attrib.get('class', '') == 'comptes':
+            if not 'class' in tr.attrib and tr.find('td') is not None and tr.find('td').attrib.get('class', '') == 'typeTitulaire':
                 account = Account()
-                for td in tr.getiterator('td'):
-                    if td.attrib.get('headers', '').startswith('Numero_'):
-                        id = td.text
-                        account.id = ''.join(id.split(' ')).strip()
-                    elif td.attrib.get('headers', '').startswith('Libelle_'):
-                        a = td.findall('a')
-                        label = unicode(a[0].text)
-                        account.label = label.strip()
-                        m = self.LINKID_REGEXP.match(a[0].attrib.get('href', ''))
-                        if m:
-                            account.link_id = m.group(1)
-                    elif td.attrib.get('headers', '').startswith('Solde'):
-                        a = td.findall('a')
-                        balance = a[0].text
-                        balance = balance.replace('.','').replace(',','.')
-                        account.balance = float(balance)
-                    elif td.attrib.get('headers', '').startswith('Avenir'):
-                        a = td.findall('a')
-                        # Some accounts don't have a "coming"
-                        if len(a):
-                            coming = a[0].text
-                            coming = coming.replace('.','').replace(',','.')
-                            account.coming = float(coming)
-                        else:
-                            account.coming = NotAvailable
-
+                account.id = tr.xpath('.//td[@class="libelleCompte"]/input')[0].attrib['id'][len('libelleCompte'):]
+                account.label = tr.xpath('.//td[@class="libelleCompte"]/a')[0].text.strip()
+                account.balance = float(tr.findall('td')[3].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
+                account.coming = float(tr.findall('td')[4].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
                 l.append(account)
 
         if len(l) == 0:
@@ -76,3 +54,6 @@ class AccountsList(BasePage):
                 if div.text.strip() == 'Vous avez atteint la date de fin de vie de votre code secret.':
                     raise PasswordExpired(div.text.strip())
         return l
+
+    def get_execution_id(self):
+        return self.document.xpath('//input[@name="execution"]')[0].attrib['value']
