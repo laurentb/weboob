@@ -43,8 +43,11 @@ class AccountsList(BasePage):
                 account = Account()
                 account.id = tr.xpath('.//td[@class="libelleCompte"]/input')[0].attrib['id'][len('libelleCompte'):]
                 account.label = tr.xpath('.//td[@class="libelleCompte"]/a')[0].text.strip()
-                account.balance = float(tr.findall('td')[3].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
-                account.coming = float(tr.findall('td')[4].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
+
+                tds = tr.findall('td')
+                account.balance = float(tds[3].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
+                if tds[4].find('a') is not None:
+                    account.coming = float(tds[4].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n'))
                 l.append(account)
 
         if len(l) == 0:
