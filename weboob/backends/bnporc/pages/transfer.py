@@ -61,6 +61,12 @@ class TransferPage(BasePage):
     def transfer(self, from_id, to_id, amount, reason):
         accounts = self.get_accounts()
 
+        # Transform RIBs to short IDs
+        if len(str(from_id)) == 23:
+            from_id = str(from_id)[5:21]
+        if len(str(to_id)) == 23:
+            to_id = str(to_id)[5:21]
+
         try:
             sender = accounts[from_id]
         except KeyError:
