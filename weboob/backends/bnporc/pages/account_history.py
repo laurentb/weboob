@@ -55,8 +55,8 @@ class AccountHistory(BasePage):
                 if '  ' in op.label:
                     op.category, useless, op.label = [part.strip() for part in op.label.partition('  ')]
 
-            debit = tr.xpath('.//td[@class="debit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n')
-            credit = tr.xpath('.//td[@class="credit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n')
+            debit = tr.xpath('.//td[@class="debit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
+            credit = tr.xpath('.//td[@class="credit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
             if len(debit) > 0:
                 op.amount = - float(debit)
             else:

@@ -57,7 +57,7 @@ class AccountComing(BasePage):
                     if m:
                         label = text % m.groupdict()
 
-                amount = tds[2].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n')
+                amount = tds[2].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
 
                 operation = Operation(len(self.operations))
                 operation.date = d
