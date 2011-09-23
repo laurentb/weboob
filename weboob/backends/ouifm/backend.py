@@ -21,32 +21,11 @@
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import StandardBrowser
 
 
 __all__ = ['OuiFMBackend']
 
-
-class PlayerPage(BasePage):
-    def get_current(self):
-        title = self.parser.select(self.document.getroot(), 'span.titre_en_cours', 1).text
-        artist = self.parser.select(self.document.getroot(), 'span.artiste_en_cours', 1).text
-        return unicode(artist).strip(), unicode(title).strip()
-
-class OuiFMBrowser(BaseBrowser):
-    DOMAIN = u'www.ouifm.fr'
-    PAGES = {r'.*ouifm.fr/player/decode_json.*.php': PlayerPage,
-            }
-
-    def get_current(self, radio):
-        if radio == 'general':
-            _radio = ''
-        else:
-            _radio = '_%s' % radio
-        self.location('/player/decode_json%s.php' % _radio)
-        assert self.is_on_page(PlayerPage)
-
-        return self.page.get_current()
 
 class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'ouifm'
@@ -55,7 +34,7 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     VERSION = '0.9'
     DESCRIPTION = u'The Ouï FM french radio'
     LICENSE = 'AGPLv3+'
-    BROWSER = OuiFMBrowser
+    BROWSER = StandardBrowser
 
     _RADIOS = {'general':     (u'OUÏ FM',            u'OUI FM',                       u'http://ouifm.ice.infomaniak.ch/ouifm-high.mp3'),
                'alternatif':  (u'OUÏ FM Alternatif', u'OUI FM - L\'Alternative Rock', u'http://ouifm.ice.infomaniak.ch/ouifm2.mp3'),
@@ -63,6 +42,9 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
                'blues':       (u'OUÏ FM Blues',      u'OUI FM - Blues',               u'http://ouifm.ice.infomaniak.ch/ouifm4.mp3'),
                'inde':        (u'OUÏ FM Indé',       u'OUI FM - Rock Indé',           u'http://ouifm.ice.infomaniak.ch/ouifm5.mp3'),
               }
+
+    def create_default_browser(self):
+        return self.create_browser(parser='json')
 
     def iter_resources(self, splited_path):
         if len(splited_path) > 0:
@@ -76,6 +58,15 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
             if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 
+    def get_current(self, radio):
+        document = self.browser.location('http://rock.ouifm.fr/dynamic-menu.json')
+        suffix = ''
+        if radio != 'general':
+            suffix = '_%s' % radio
+
+        last = document['last%s' % suffix][0]
+        return last['artiste%s' % suffix].strip(), last['titre%s' % suffix].strip()
+
     def get_radio(self, radio):
         if not isinstance(radio, Radio):
             radio = Radio(radio)
@@ -87,7 +78,7 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.title = title
         radio.description = description
 
-        artist, title = self.browser.get_current(radio.id)
+        artist, title = self.get_current(radio.id)
         current = Emission(0)
         current.artist = artist
         current.title = title
@@ -103,7 +94,7 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
         if 'current' in fields:
             if not radio.current:
                 radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.browser.get_current(radio.id)
+            radio.current.artist, radio.current.title = self.get_current(radio.id)
         return radio
 
     OBJECTS = {Radio: fill_radio}
