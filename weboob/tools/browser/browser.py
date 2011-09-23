@@ -49,7 +49,7 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser']
+           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser', 'StandardBrowser']
 
 
 # Exceptions
@@ -116,17 +116,23 @@ class BasePage(object):
         """
         pass
 
-class BaseBrowser(mechanize.Browser):
-    """
-    Base browser class to navigate on a website.
-    """
+def check_location(func):
+    def inner(self, *args, **kwargs):
+        if args and isinstance(args[0], basestring):
+            url = args[0]
+            if url.startswith('/') and (not self.request or self.request.host != self.DOMAIN):
+                url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
+            url = re.sub('(.*)#.*', r'\1', url)
+
+            args = (url,) + args[1:]
+        return func(self, *args, **kwargs)
+    return inner
+
+class StandardBrowser(mechanize.Browser):
 
     # ------ Class attributes --------------------------------------
 
-    DOMAIN = None
-    PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    PAGES = {}
     USER_AGENTS = {
         'desktop_firefox': 'Mozilla/5.0 (X11; U; Linux x86_64; fr; rv:1.9.2.13) Gecko/20101209 Fedora/3.6.13-1.fc13 Firefox/3.6.13',
         'android': 'Mozilla/5.0 (Linux; U; Android 2.1; en-us; Nexus One Build/ERD62) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17',
@@ -141,33 +147,6 @@ class BaseBrowser(mechanize.Browser):
     responses_dirname = None
     responses_count = 0
 
-    # ------ Abstract methods --------------------------------------
-
-    def home(self):
-        """
-        Go to the home page.
-        """
-        if self.DOMAIN is not None:
-            self.location('%s://%s/' % (self.PROTOCOL, self.DOMAIN))
-
-    def login(self):
-        """
-        Login to the website.
-
-        This function is called when is_logged() returns False and the password
-        attribute is not None.
-        """
-        raise NotImplementedError()
-
-    def is_logged(self):
-        """
-        Return True if we are logged on website. When Browser tries to access
-        to a page, if this method returns False, it calls login().
-
-        It is never called if the password attribute is None.
-        """
-        raise NotImplementedError()
-
     # ------ Browser methods ---------------------------------------
 
     # I'm not a robot, so disable the check of permissions in robots.txt.
@@ -175,22 +154,17 @@ class BaseBrowser(mechanize.Browser):
     default_features.remove('_robots')
     default_features.remove('_refresh')
 
-    def __init__(self, username=None, password=None, firefox_cookies=None,
-                 parser=None, history=NoHistory(), proxy=None, logger=None,
-                 factory=None, get_home=True):
+    def __init__(self, firefox_cookies=None, parser=None, history=NoHistory(), proxy=None, logger=None,
+                       factory=None):
         """
         Constructor of Browser.
 
-        @param username [str] username on website.
-        @param password [str] password on website. If it is None, Browser will
-                              not try to login.
         @param filefox_cookies [str] Path to cookies' sqlite file.
         @param parser [IParser]  parser to use on HTML files.
-        @param hisory [object]  History manager. Default value is an object
-                                which does not keep history.
+        @param history [object]  History manager. Default value is an object
+                                 which does not keep history.
         @param proxy [str]  proxy URL to use.
         @param factory [object] Mechanize factory. None to use Mechanize's default.
-        @param get_home [bool] Try to get the homepage.
         """
         mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
@@ -219,13 +193,9 @@ class BaseBrowser(mechanize.Browser):
 
         if parser is None:
             parser = get_parser()()
-        elif isinstance(parser, (tuple,list)):
+        elif isinstance(parser, (tuple,list,str,unicode)):
             parser = get_parser(parser)()
         self.parser = parser
-        self.page = None
-        self.last_update = 0.0
-        self.username = username
-        self.password = password
         self.lock = RLock()
 
         if self.DEBUG_HTTP:
@@ -236,42 +206,11 @@ class BaseBrowser(mechanize.Browser):
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
 
-        if self.password and get_home:
-            try:
-                self.home()
-            # Do not abort the build of browser when the website is down.
-            except BrowserUnavailable:
-                pass
-
     def __enter__(self):
         self.lock.acquire()
 
     def __exit__(self, t, v, tb):
         self.lock.release()
-
-    def pageaccess(func):
-        def inner(self, *args, **kwargs):
-            if not self.page or self.password and not self.page.is_logged():
-                self.home()
-
-            return func(self, *args, **kwargs)
-        return inner
-
-    @pageaccess
-    def keepalive(self):
-        self.home()
-
-    def check_location(func):
-        def inner(self, *args, **kwargs):
-            if args and isinstance(args[0], basestring):
-                url = args[0]
-                if url.startswith('/') and (not self.request or self.request.host != self.DOMAIN):
-                    url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
-                url = re.sub('(.*)#.*', r'\1', url)
-
-                args = (url,) + args[1:]
-            return func(self, *args, **kwargs)
-        return inner
 
     @check_location
     @retry(BrowserHTTPError, tries=3)
@@ -337,6 +276,155 @@ class BaseBrowser(mechanize.Browser):
         else:
             self.logger.info(msg)
 
+    def get_document(self, result):
+        return self.parser.parse(result, self.ENCODING)
+
+    def location(self, *args, **kwargs):
+        return self.get_document(self.openurl(*args, **kwargs))
+
+    @staticmethod
+    def buildurl(base, *args, **kwargs):
+        """
+        Build an URL and escape arguments.
+        You can give a serie of tuples in *args (and the order is keept), or
+        a dict in **kwargs (but the order is lost).
+
+        Example:
+        >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
+        '/blah.php?a=%26&b=%3D'
+        >>> buildurl('/blah.php', a='&', 'b'='=')
+        '/blah.php?b=%3D&a=%26'
+
+        """
+
+        if not args:
+            args = kwargs
+        if not args:
+            return base
+        else:
+            return '%s?%s' % (base, urllib.urlencode(args))
+
+    def str(self, s):
+        if isinstance(s, unicode):
+            s = s.encode('iso-8859-15', 'replace')
+        return s
+
+    def set_field(self, args, label, field=None, value=None, is_list=False):
+        """
+        Set a value to a form field.
+
+        @param args [dict]  arguments where to look for value.
+        @param label [str]  label in args.
+        @param field [str]  field name. If None, use label instead.
+        @param value [str]  value to give on field.
+        @param is_list [bool]  the field is a list.
+        """
+        try:
+            if not field:
+                field = label
+            if args.get(label, None) is not None:
+                if not value:
+                    if is_list:
+                        if isinstance(is_list, (list, tuple)):
+                            try:
+                                value = [self.str(is_list.index(args[label]))]
+                            except ValueError, e:
+                                if args[label]:
+                                    print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
+                                return
+                        else:
+                            value = [self.str(args[label])]
+                    else:
+                        value = self.str(args[label])
+                self[field] = value
+        except ControlNotFoundError:
+            return
+
+class BaseBrowser(StandardBrowser):
+    """
+    Base browser class to navigate on a website.
+    """
+
+    # ------ Class attributes --------------------------------------
+
+    DOMAIN = None
+    PROTOCOL = 'http'
+    PAGES = {}
+
+    # ------ Abstract methods --------------------------------------
+
+    def home(self):
+        """
+        Go to the home page.
+        """
+        if self.DOMAIN is not None:
+            self.location('%s://%s/' % (self.PROTOCOL, self.DOMAIN))
+
+    def login(self):
+        """
+        Login to the website.
+
+        This function is called when is_logged() returns False and the password
+        attribute is not None.
+        """
+        raise NotImplementedError()
+
+    def is_logged(self):
+        """
+        Return True if we are logged on website. When Browser tries to access
+        to a page, if this method returns False, it calls login().
+
+        It is never called if the password attribute is None.
+        """
+        raise NotImplementedError()
+
+    # ------ Browser methods ---------------------------------------
+
+    def __init__(self, username=None, password=None, firefox_cookies=None,
+                 parser=None, history=NoHistory(), proxy=None, logger=None,
+                 factory=None, get_home=True):
+        """
+        Constructor of Browser.
+
+        @param username [str] username on website.
+        @param password [str] password on website. If it is None, Browser will
+                              not try to login.
+        @param filefox_cookies [str] Path to cookies' sqlite file.
+        @param parser [IParser]  parser to use on HTML files.
+        @param hisory [object]  History manager. Default value is an object
+                                which does not keep history.
+        @param proxy [str]  proxy URL to use.
+        @param factory [object] Mechanize factory. None to use Mechanize's default.
+        @param get_home [bool] Try to get the homepage.
+        """
+        StandardBrowser.__init__(self, firefox_cookies, parser, history, proxy, logger, factory)
+        self.page = None
+        self.last_update = 0.0
+        self.username = username
+        self.password = password
+
+        if self.password and get_home:
+            try:
+                self.home()
+            # Do not abort the build of browser when the website is down.
+            except BrowserUnavailable:
+                pass
+
+    def pageaccess(func):
+        """
+        Decorator to use around a method which access to a page.
+        """
+        def inner(self, *args, **kwargs):
+            if not self.page or self.password and not self.page.is_logged():
+                self.home()
+
+            return func(self, *args, **kwargs)
+        return inner
+
+    @pageaccess
+    def keepalive(self):
+        self.home()
+
     def submit(self, *args, **kwargs):
         """
         Submit the selected form.
@@ -399,9 +487,6 @@ class BaseBrowser(mechanize.Browser):
         except mechanize.BrowserStateError:
             self.home()
             self.location(*keep_args, **keep_kwargs)
-
-    def get_document(self, result):
-        return self.parser.parse(result, self.ENCODING)
 
     # DO NOT ENABLE THIS FUCKING PEACE OF CODE EVEN IF IT WOULD BE BETTER
     # TO SANITARIZE FUCKING HTML.
@@ -470,61 +555,3 @@ class BaseBrowser(mechanize.Browser):
 
         if self._cookie:
             self._cookie.save()
-
-    @staticmethod
-    def buildurl(base, *args, **kwargs):
-        """
-        Build an URL and escape arguments.
-        You can give a serie of tuples in *args (and the order is keept), or
-        a dict in **kwargs (but the order is lost).
-
-        Example:
-        >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
-        '/blah.php?a=%26&b=%3D'
-        >>> buildurl('/blah.php', a='&', 'b'='=')
-        '/blah.php?b=%3D&a=%26'
-
-        """
-
-        if not args:
-            args = kwargs
-        if not args:
-            return base
-        else:
-            return '%s?%s' % (base, urllib.urlencode(args))
-
-    def str(self, s):
-        if isinstance(s, unicode):
-            s = s.encode('iso-8859-15', 'replace')
-        return s
-
-    def set_field(self, args, label, field=None, value=None, is_list=False):
-        """
-        Set a value to a form field.
-
-        @param args [dict]  arguments where to look for value.
-        @param label [str]  label in args.
-        @param field [str]  field name. If None, use label instead.
-        @param value [str]  value to give on field.
-        @param is_list [bool]  the field is a list.
-        """
-        try:
-            if not field:
-                field = label
-            if args.get(label, None) is not None:
-                if not value:
-                    if is_list:
-                        if isinstance(is_list, (list, tuple)):
-                            try:
-                                value = [self.str(is_list.index(args[label]))]
-                            except ValueError, e:
-                                if args[label]:
-                                    print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
-                                return
-                        else:
-                            value = [self.str(args[label])]
-                    else:
-                        value = self.str(args[label])
-                self[field] = value
-        except ControlNotFoundError:
-            return
