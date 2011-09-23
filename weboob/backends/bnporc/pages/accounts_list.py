@@ -48,6 +48,8 @@ class AccountsList(BasePage):
                 account.balance = float(tds[3].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r'))
                 if tds[4].find('a') is not None:
                     account.coming = float(tds[4].find('a').text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r'))
+                else:
+                    account.coming = NotAvailable
                 l.append(account)
 
         if len(l) == 0:
