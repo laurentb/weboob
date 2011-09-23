@@ -46,6 +46,12 @@ def load_builtin():
     from .htmlparser import HTMLParser
     return HTMLParser
 
+def load_json():
+    # This parser doesn't read HTML, don't include it in the
+    # preference_order default value below.
+    from .jsonparser import JsonParser
+    return JsonParser
+
 def get_parser(preference_order=('lxml', 'lxmlsoup', 'html5lib', 'elementtidy', 'builtin')):
     """
     Get a parser from a preference order list.
