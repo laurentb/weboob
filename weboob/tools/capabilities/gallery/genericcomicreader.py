@@ -120,7 +120,4 @@ class GenericComicReaderTest(BackendTest):
         it.next()
         img = it.next()
         self.backend.fillobj(img, ('url', 'data'))
-        self.assertTrue(img.url and img.url.startswith('http://'),
-                'URL for first image in gallery "%s" not found: %s' %
-                (img.id, img.url))
 
