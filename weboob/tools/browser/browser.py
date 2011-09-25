@@ -31,6 +31,7 @@ from threading import RLock
 import time
 import urllib
 import urllib2
+import mimetypes
 
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
@@ -261,7 +262,15 @@ class StandardBrowser(mechanize.Browser):
         if self.responses_dirname is None:
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
-        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count))
+        # get the content-type, remove optionnal charset part
+        mimetype = result.info().get('Content-Type', '').split(';')[0]
+        # due to http://bugs.python.org/issue1043134
+        if mimetype == 'text/plain':
+            ext = '.txt'
+        else:
+            # try to get an extension (and avoid adding 'None')
+            ext = mimetypes.guess_extension(mimetype, False) or ''
+        response_filepath = os.path.join(self.responses_dirname, unicode(self.responses_count)+ext)
         with open(response_filepath, 'w') as f:
             f.write(result.read())
         result.seek(0)
