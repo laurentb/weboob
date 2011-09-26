@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import socket
 from datetime import datetime
 from dateutil.parser import parse as parse_dt
 
@@ -42,10 +43,16 @@ class FieldBool(FieldBase):
         return bool(int(profile[self.key]))
 
 class FieldIP(FieldBase):
+    def get_hostname(self, s):
+        try:
+            return socket.gethostbyaddr(s)[0]
+        except (socket.gaierror, socket.herror):
+            return s
+
     def get_value(self, profile, consts):
-        s = profile[self.key]
+        s = self.get_hostname(profile[self.key])
         if profile[self.key] != profile[self.key2]:
-            s += ' (first %s)' % profile[self.key2]
+            s += ' (first %s)' % self.get_hostname(profile[self.key2])
         return s
 
 class FieldProfileURL(FieldBase):
