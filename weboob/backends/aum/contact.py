@@ -42,6 +42,10 @@ class FieldBool(FieldBase):
     def get_value(self, profile, consts):
         return bool(int(profile[self.key]))
 
+class FieldDist(FieldBase):
+    def get_value(self, profile, consts):
+        return '%.2f km' % float(profile[self.key])
+
 class FieldIP(FieldBase):
     def get_hostname(self, s):
         try:
@@ -141,6 +145,7 @@ class Contact(_Contact):
                                     ('birthday',            FieldStr('birthday')),
                                     ('zipcode',             FieldStr('zip')),
                                     ('location',            FieldStr('city')),
+                                    ('distance',            FieldDist('dist')),
                                     ('country',             FieldStr('country')),
                                     ('eyes',                FieldList('eyes')),
                                     ('hair_color',          FieldList('hair_color')),
@@ -185,12 +190,14 @@ class Contact(_Contact):
         if int(profile['cat']) == 1:
             self.status = Contact.STATUS_ONLINE
             self.status_msg = u'online'
+            self.status_msg = u'since %s' % profile['last_cnx']
         elif int(profile['cat']) == 2:
             self.status = Contact.STATUS_AWAY
             self.status_msg = u'away'
+            self.status_msg = u'connection at %s' % profile['last_cnx']
         elif int(profile['cat']) == 3:
             self.status = Contact.STATUS_OFFLINE
-            self.status_msg = u'last connexion %s' % profile['last_cnx']
+            self.status_msg = u'last connection %s' % profile['last_cnx']
 
         self.summary = html2text(profile['about1']).strip().replace('\n\n', '\n')
         if len(profile['about2']) > 0:
@@ -248,7 +255,7 @@ class Contact(_Contact):
         result += u'URL: %s\n' % self.url
         result += u'Photos:\n'
         for name, photo in self.photos.iteritems():
-            result += u'\t%s\n' % photo
+            result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'\nProfile:\n'
         for head in self.profile:
             result += print_node(head)

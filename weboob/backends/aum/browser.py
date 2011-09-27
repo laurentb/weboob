@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import math
 import re
 import datetime
 import random
@@ -44,6 +45,7 @@ class AuMBrowser(BaseBrowser):
     my_sex = 0
     my_id = 0
     my_name = u''
+    my_coords = (0,0)
 
     def id2url(self, id):
         return 'http://www.adopteunmec.com/%s' % id
@@ -85,6 +87,7 @@ class AuMBrowser(BaseBrowser):
         self.my_sex = r['result']['me']['sex']
         self.my_id = int(r['result']['me']['id'])
         self.my_name = r['result']['me']['pseudo']
+        self.my_coords = (float(r['result']['me']['lat']), float(r['result']['me']['lng']))
         return r
 
     #def register(self, password, sex, birthday_d, birthday_m, birthday_y, zipcode, country, godfather=None):
@@ -236,6 +239,23 @@ class AuMBrowser(BaseBrowser):
     def get_profile(self, id, with_pics=True):
         r = self.api_request('member', 'view', data={'id': id})
         profile = r['result']['member']
+
+        coords = (float(profile['lat']), float(profile['lng']))
+
+        R = 6371
+        lat1 = math.radians(self.my_coords[0])
+        lat2 = math.radians(coords[0])
+        lon1 = math.radians(self.my_coords[1])
+        lon2 = math.radians(coords[1])
+        dLat = lat2 - lat1
+        dLong = lon2 - lon1
+        var1= dLong/2
+        var2= dLat/2
+        a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
+        c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+        profile['dist'] = R * c
+
         if with_pics:
             r = self.api_request('member', 'pictures', data={'id': id})
             profile['pictures'] = []
