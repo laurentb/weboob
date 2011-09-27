@@ -132,7 +132,7 @@ class TorrentsPage(BasePage):
             is_table = True
 
         for tr in table.findall('tr' if is_table else 'div'):
-            if is_table and tr.attrib.get('class', '').startswith('group_torrent'):
+            if is_table and 'group_torrent' in tr.attrib.get('class', ''):
                 tds = tr.findall('td')
 
                 if not len(tds) == 5:
