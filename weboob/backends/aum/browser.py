@@ -240,6 +240,8 @@ class AuMBrowser(BaseBrowser):
         r = self.api_request('member', 'view', data={'id': id})
         profile = r['result']['member']
 
+
+        # Calculate distance in km.
         coords = (float(profile['lat']), float(profile['lng']))
 
         R = 6371
@@ -249,11 +251,8 @@ class AuMBrowser(BaseBrowser):
         lon2 = math.radians(coords[1])
         dLat = lat2 - lat1
         dLong = lon2 - lon1
-        var1= dLong/2
-        var2= dLat/2
         a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
         c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-
         profile['dist'] = R * c
 
         if with_pics:
