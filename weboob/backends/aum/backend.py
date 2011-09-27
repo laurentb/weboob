@@ -148,6 +148,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         if not thread.title:
             thread.title = u'Discussion with %s' % mails['member']['pseudo']
 
+        self.storage.set('sluts', thread.id, 'status', mails['status'])
+        self.storage.save()
+
         for mail in mails['messages']:
             flags = 0
             if self.antispam and not self.antispam.check_mail(mail):
@@ -163,7 +166,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         contacts[mail['id_from']] = self.get_contact(mail['id_from'])
                 if self.antispam and not self.antispam.check_profile(contacts[mail['id_from']].aum_profile):
                     self.logger.info('Skipped a spam-mail-profile from %s' % mails['member']['pseudo'])
-                    self.report_spam(thread.id, mails['id'])
+                    self.report_spam(thread.id)
                     break
 
             if int(mail['id_from']) == self.browser.my_id:
@@ -172,8 +175,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 else:
                     flags |= Message.IS_ACCUSED
 
-
-            self.storage.set('sluts', thread.id, 'status', mails['remoteStatus'])
 
             msg = Message(thread=thread,
                           id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
@@ -232,7 +233,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 slut = self._get_slut(-self.MAGIC_ID_BASKET)
 
                 new_baskets = self.browser.nb_new_baskets()
-                if new_baskets >= 0:
+                if new_baskets > 0:
                     baskets = self.browser.get_baskets()
                     my_name = self.browser.get_my_name()
                     for basket in baskets:
