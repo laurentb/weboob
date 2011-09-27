@@ -39,10 +39,22 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if profile['pseudo'] == '':
             return False
+        if profile['about1'].strip() == profile['about2'].strip():
+            return False
+        if profile['about1'].startswith('salut! je te donne mon msn'):
+            return False
+        if profile['about2'].startswith('cam to cam'):
+            return False
+        if profile['about2'].startswith('je suis une femme tres tres belle et je recherche un homme qui aime le sexe'):
+            return False
+        if profile['about2'].endswith('mmmmmmmmmmmmmmmm'):
+            return False
         return True
 
     def check_mail(self, mail):
         # Spambot with a long first-message.
         if mail['message'].find('Je veux que vous m\'ayez ecrit directement sur le mon e-mail') >= 0:
+            return False
+        if mail['message'].find('ilusa12010@live.fr') >= 0:
             return False
         return True
