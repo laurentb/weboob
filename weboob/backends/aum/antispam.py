@@ -39,7 +39,7 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if profile['pseudo'] == '':
             return False
-        if profile['about1'].strip() == profile['about2'].strip():
+        if len(profile['about1'].strip() > 50) and profile['about1'].strip() == profile['about2'].strip():
             return False
         if profile['about1'].startswith('salut! je te donne mon msn'):
             return False
