@@ -61,7 +61,7 @@ class ProfileFormatter(IFormatter):
         result += u'Status: %s (%s)\n' % (s, item['status_msg'])
         result += u'Photos:\n'
         for name, photo in item['photos'].iteritems():
-            result += u'\t%s\n' % photo
+            result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'Profile:\n'
         for head in item['profile']:
             result += self.print_node(head)
