@@ -127,10 +127,10 @@ class Article(Content):
             self.date = local2utc(self.date)
         except BrokenPageError:
             pass
-        forms = self.browser.parser.select(tree.find('footer'), 'form.button_to')
-        if len(forms) > 0:
-            self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
-            self.relevance_token = self.browser.parser.select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
+        for form in self.browser.parser.select(tree.find('footer'), 'form.button_to'):
+            if form.attrib['action'].endswith('/for'):
+                self.relevance_url = form.attrib['action'].rstrip('for').rstrip('against')
+                self.relevance_token = self.browser.parser.select(form, 'input[name=authenticity_token]', 1).attrib['value']
 
         self.score = int(self.browser.parser.select(tree, 'div.figures figure.score', 1).text)
 
