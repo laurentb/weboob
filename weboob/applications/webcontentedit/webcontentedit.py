@@ -71,7 +71,7 @@ class WebContentEdit(ReplApplication):
                     content.content = u''
                     data = ''
                 f.write(data)
-            paths[path] = content
+            paths[path.encode('utf-8')] = content
 
         params = ''
         editor = os.environ.get('EDITOR', 'vim')
@@ -105,7 +105,7 @@ class WebContentEdit(ReplApplication):
         errors = CallErrors([])
         for content in contents:
             path = [path for path, c in paths.iteritems() if c == content][0]
-            sys.stdout.write('Pushing %s...' % content.id)
+            sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
             sys.stdout.flush()
             try:
                 self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()

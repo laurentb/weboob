@@ -87,19 +87,19 @@ class RedmineBrowser(BaseBrowser):
         return self._userid
 
     def get_wiki_source(self, project, page):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
         return self.page.get_source()
 
     def set_wiki_source(self, project, page, data, message):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
         if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project
             or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
-                                                           project, page))
-        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, page)
+                                                           project, urllib.quote(page.encode('utf-8'))))
+        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
         params = {}
         params['content[text]'] = data.encode('utf-8')
         params['authenticity_token'] = "%s" % self.page.get_authenticity_token()
