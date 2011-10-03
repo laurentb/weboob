@@ -19,6 +19,7 @@
 
 
 import re
+from logging import warning
 
 from weboob.tools.browser import BasePage
 
