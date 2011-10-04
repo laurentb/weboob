@@ -21,6 +21,7 @@
 import atexit
 from cmd import Cmd
 import logging
+import locale
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
@@ -94,7 +95,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.prompt = '%s> ' % self.APPNAME
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
-                                '%s' % self.COPYRIGHT,
+                                self.COPYRIGHT.encode(sys.stdout.encoding or locale.getpreferredencoding()),
                                 'This program is free software: you can redistribute it and/or modify',
                                 'it under the terms of the GNU Affero General Public License as published by',
                                 'the Free Software Foundation, either version 3 of the License, or',
