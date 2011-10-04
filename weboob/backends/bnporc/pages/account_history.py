@@ -35,34 +35,46 @@ class AccountHistory(BasePage):
     def on_loaded(self):
         self.operations = []
 
-        for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):
-            if len(tr.xpath('td[@class="debit"]')) == 0:
-                continue
+        for tr in self.document.getiterator('tr'):
+            if tr.attrib.get('class', '') == 'hdoc1' or tr.attrib.get('class', '') == 'hdotc1':
+                tds = tr.findall('td')
+                if len(tds) != 4:
+                    continue
+                d = date(*reversed([int(x) for x in tds[0].text.split('/')]))
+                label = u''
+                label += tds[1].text
+                label = label.replace(u'\xa0', u'')
+                for child in tds[1].getchildren():
+                    if child.text: label += child.text
+                    if child.tail: label += child.tail
+                if tds[1].tail: label += tds[1].tail
 
-            id = tr.find('td').find('input').attrib['value']
-            op = Operation(id)
-            op.label = tr.findall('td')[2].text.replace(u'\xa0', u'').strip()
-            op.date = date(*reversed([int(x) for x in tr.findall('td')[1].text.split('/')]))
+                label = label.strip()
+                category = NotAvailable
+                for pattern, _cat, _lab in self.LABEL_PATTERNS:
+                    m = re.match(pattern, label)
+                    if m:
+                        category = _cat % m.groupdict()
+                        label = _lab % m.groupdict()
+                        break
+                else:
+                    if '  ' in label:
+                        category, useless, label = [part.strip() for part in label.partition('  ')]
 
-            op.category = NotAvailable
-            for pattern, _cat, _lab in self.LABEL_PATTERNS:
-                m = re.match(pattern, op.label)
-                if m:
-                    op.category = _cat % m.groupdict()
-                    op.label = _lab % m.groupdict()
-                    break
-            else:
-                if '  ' in op.label:
-                    op.category, useless, op.label = [part.strip() for part in op.label.partition('  ')]
+                amount = tds[2].text.replace('.', '').replace(',', '.')
 
-            debit = tr.xpath('.//td[@class="debit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
-            credit = tr.xpath('.//td[@class="credit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
-            if len(debit) > 0:
-                op.amount = - float(debit)
-            else:
-                op.amount = float(credit)
+                # if we don't have exactly one '.', this is not a floatm try the next
+                operation = Operation(len(self.operations))
+                if amount.count('.') != 1:
+                    amount = tds[3].text.replace('.', '').replace(',', '.')
+                    operation.amount = float(amount)
+                else:
+                    operation.amount = - float(amount)
 
-            self.operations.append(op)
+                operation.date = d
+                operation.label = label
+                operation.category = category
+                self.operations.append(operation)
 
     def get_operations(self):
         return self.operations
