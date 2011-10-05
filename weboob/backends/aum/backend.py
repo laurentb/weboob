@@ -164,7 +164,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 if not mail['id_from'] in contacts:
                     with self.browser:
                         contacts[mail['id_from']] = self.get_contact(mail['id_from'])
-                if self.antispam and not self.antispam.check_profile(contacts[mail['id_from']].aum_profile):
+                if self.antispam and not self.antispam.check_contact(contacts[mail['id_from']]):
                     self.logger.info('Skipped a spam-mail-profile from %s' % mails['member']['pseudo'])
                     self.report_spam(thread.id)
                     break
@@ -240,7 +240,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         if basket['isBan'] or parse_dt(basket['date']) <= slut['lastmsg']:
                             continue
                         contact = self.get_contact(basket['id'])
-                        if self.antispam and not self.antispam.check_profile(contact.aum_profile):
+                        if self.antispam and not self.antispam.check_contact(contact):
                             self.logger.info('Skipped a spam-basket from %s' % contact.name)
                             self.report_spam(basket['id'])
                             continue

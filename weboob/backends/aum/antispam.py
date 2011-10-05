@@ -49,6 +49,25 @@ class AntiSpam(object):
             return False
         if profile['about2'].endswith('mmmmmmmmmmmmmmmm'):
             return False
+        if profile['last_ip'].startswith('41.202.'):
+            return False
+        if profile['last_ip'] == '62.157.186.18':
+            return False
+        return True
+
+    def check_contact(self, contact):
+        if not self.check_profile(contact.aum_profile):
+            return False
+
+        ipaddr = contact.profile['info']['IPaddr'].value
+        if ipaddr.split(' ')[0].endswith('.amsterdam.ananoos.net'):
+            return False
+        if ipaddr.rstrip(')').endswith('.afnet.net'):
+            return False
+        if ipaddr.split(' ')[0].endswith('.tedata.net'):
+            return False
+        if ipaddr.split(' ')[0].endswith('kupo.fr'):
+            return False
         return True
 
     def check_mail(self, mail):
