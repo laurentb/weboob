@@ -38,7 +38,7 @@ class ProfileFormatter(IFormatter):
         result = u''
         if node.flags & node.SECTION:
             result += u'\t' * level + node.label + '\n'
-            for sub in node.value:
+            for sub in node.value.itervalues():
                 result += self.print_node(sub, level+1)
         else:
             if isinstance(node.value, (tuple,list)):
@@ -63,7 +63,7 @@ class ProfileFormatter(IFormatter):
         for name, photo in item['photos'].iteritems():
             result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'Profile:\n'
-        for head in item['profile']:
+        for head in item['profile'].itervalues():
             result += self.print_node(head)
         result += u'Description:\n'
         for s in item['summary'].split('\n'):

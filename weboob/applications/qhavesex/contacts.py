@@ -250,7 +250,7 @@ class ContactProfile(QWidget):
             missing_fields.add('profile')
         elif not self.loaded_profile:
             self.loaded_profile = True
-            for head in contact.profile:
+            for head in contact.profile.itervalues():
                 if head.flags & head.HEAD:
                     widget = self.ui.headWidget
                 else:
@@ -265,7 +265,7 @@ class ContactProfile(QWidget):
         if node.flags & node.SECTION:
             value = QWidget()
             value.setLayout(QFormLayout())
-            for sub in node.value:
+            for sub in node.value.itervalues():
                 self.process_node(sub, value)
         elif isinstance(node.value, list):
             value = QLabel('<br />'.join(unicode(s) for s in node.value))

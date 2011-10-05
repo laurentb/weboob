@@ -208,20 +208,20 @@ class Contact(_Contact):
                               url=photo['url'],
                               thumbnail_url=photo['url'].replace('image', 'thumb1_'),
                               hidden=photo['hidden'])
-        self.profile = []
+        self.profile = OrderedDict()
 
         for section, d in self.TABLE.iteritems():
             flags = ProfileNode.SECTION
             if section.startswith('_'):
                 flags |= ProfileNode.HEAD
                 section = section.lstrip('_')
-            s = ProfileNode(section, section.capitalize(), [], flags=flags)
+            s = ProfileNode(section, section.capitalize(), OrderedDict(), flags=flags)
 
             for key, builder in d.iteritems():
                 value = builder.get_value(profile, consts[int(profile['sex'])])
-                s.value.append(ProfileNode(key, key.capitalize().replace('_', ' '), value))
+                s.value[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
 
-            self.profile.append(s)
+            self.profile[section] = s
 
         self.aum_profile = profile
 
@@ -230,7 +230,7 @@ class Contact(_Contact):
             result = u''
             if node.flags & node.SECTION:
                 result += u'\t' * level + node.label + '\n'
-                for sub in node.value:
+                for sub in node.value.itervalues():
                     result += print_node(sub, level+1)
             else:
                 if isinstance(node.value, (tuple,list)):
@@ -257,7 +257,7 @@ class Contact(_Contact):
         for name, photo in self.photos.iteritems():
             result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'\nProfile:\n'
-        for head in self.profile:
+        for head in self.profile.itervalues():
             result += print_node(head)
         result += u'Description:\n'
         for s in self.summary.split('\n'):
