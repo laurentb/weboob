@@ -51,7 +51,13 @@ class AntiSpam(object):
             return False
         if profile['last_ip'].startswith('41.202.'):
             return False
-        if profile['last_ip'] == '62.157.186.18':
+        if profile['last_ip'].startswith('41.250.'):
+            return False
+        if profile['last_ip'].startswith('41.141.'):
+            return False
+        if profile['last_ip'].startswith('194.177.'):
+            return False
+        if profile['last_ip'] in ('62.157.186.18', '198.36.222.8', '212.234.67.61'):
             return False
         return True
 
@@ -59,14 +65,30 @@ class AntiSpam(object):
         if not self.check_profile(contact.aum_profile):
             return False
 
-        ipaddr = contact.profile['info']['IPaddr'].value
-        if ipaddr.split(' ')[0].endswith('.amsterdam.ananoos.net'):
+        ipaddr = contact.profile['info']['IPaddr'].value.split(' ')[0]
+        if contact.profile['info']['IPaddr'].value.rstrip(')').endswith('.afnet.net'):
             return False
-        if ipaddr.rstrip(')').endswith('.afnet.net'):
+        if contact.profile['info']['IPaddr'].value.rstrip(')').endswith('.iam.net.ma'):
             return False
-        if ipaddr.split(' ')[0].endswith('.tedata.net'):
+        if ipaddr.endswith('.amsterdam.ananoos.net'):
             return False
-        if ipaddr.split(' ')[0].endswith('kupo.fr'):
+        if ipaddr.endswith('.tedata.net'):
+            return False
+        if ipaddr.endswith('kupo.fr'):
+            return False
+        if ipaddr.endswith('.static.virginmedia.com'):
+            return False
+        if ipaddr.endswith('frozenway.com'):
+            return False
+        if ipaddr.endswith('.rev.bgtn.net'):
+            return False
+        if ipaddr.endswith('real-vpn.com'):
+            return False
+        if ipaddr.endswith('.nl.ipodah.net'):
+            return False
+        if ipaddr.endswith('.wanamaroc.com'):
+            return False
+        if ipaddr.endswith('.ukservers.com'):
             return False
         return True
 
