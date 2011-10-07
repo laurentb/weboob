@@ -83,11 +83,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def create_default_browser(self):
         return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-    def report_spam(self, id, suppr_id=None):
-        if suppr_id:
-            self.browser.delete_thread(suppr_id)
-        self.browser.report_fake(id)
-        pass
+    def report_spam(self, id):
+        with self.browser:
+            self.browser.delete_thread(id)
+            self.browser.report_fake(id)
 
     # ---- ICapDating methods ---------------------
 
@@ -107,10 +106,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
         for thread in threads:
             if thread['member'].get('isBan', True):
+                with self.browser:
+                    self.browser.delete_thread(thread['member']['id'])
                 continue
             if self.antispam and not self.antispam.check_thread(thread):
                 self.logger.info('Skipped a spam-thread from %s' % thread['pseudo'])
-                self.report_spam(thread['member']['id'], thread['id'])
+                self.report_spam(thread['member']['id'])
                 continue
             t = Thread(int(thread['member']['id']))
             t.flags = Thread.IS_DISCUSSION
@@ -155,7 +156,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             flags = 0
             if self.antispam and not self.antispam.check_mail(mail):
                 self.logger.info('Skipped a spam-mail from %s' % mails['member']['pseudo'])
-                self.report_spam(thread.id, int(mail['id']))
+                self.report_spam(thread.id)
                 break
 
             if parse_dt(mail['date']) > slut['lastmsg']:
@@ -211,10 +212,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 threads = self.browser.get_threads_list()
             for thread in threads:
                 if thread['member'].get('isBan', True):
+                    with self.browser:
+                        self.browser.delete_thread(int(thread['member']['id']))
                     continue
                 if self.antispam and not self.antispam.check_thread(thread):
                     self.logger.info('Skipped a spam-unread-thread from %s' % thread['member']['pseudo'])
-                    self.report_spam(thread['member']['id'], thread['id'])
+                    self.report_spam(thread['member']['id'])
                     continue
                 slut = self._get_slut(thread['member']['id'])
                 if parse_dt(thread['date']) > slut['lastmsg'] or int(thread['status']) != int(slut['status']):
