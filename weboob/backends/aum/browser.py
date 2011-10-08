@@ -23,6 +23,7 @@ import re
 import datetime
 import random
 import urllib
+from htmlentitydefs import codepoint2name
 try:
     import json
 except ImportError:
@@ -227,8 +228,17 @@ class AuMBrowser(BaseBrowser):
 
     @check_login
     def post_mail(self, id, content):
+        new_content = u''
+        for c in content:
+            try:
+                new_content += '&%s;' % codepoint2name[ord(c)]
+            except KeyError:
+                new_content += c
+
+        content = new_content.replace('\n', '<br>').encode('Windows-1252', 'replace')
+
         try:
-            r = self.api_request('message', 'new', data={'memberId': id, 'message': content.encode('utf-8')})
+            self.api_request('message', 'new', data={'memberId': id, 'message': content})
         except AuMException, e:
             raise CantSendMessage(unicode(e))
 
@@ -240,7 +250,7 @@ class AuMBrowser(BaseBrowser):
     @check_login
     def send_charm(self, id):
         try:
-            r = self.api_request('member', 'addBasket', data={'id': id})
+            self.api_request('member', 'addBasket', data={'id': id})
         except AuMException:
             return False
         else:
@@ -249,7 +259,7 @@ class AuMBrowser(BaseBrowser):
     @check_login
     def add_basket(self, id):
         try:
-            r = self.api_request('member', 'addBasket', data={'id': id})
+            self.api_request('member', 'addBasket', data={'id': id})
         except AuMException:
             return False
         else:
