@@ -20,6 +20,7 @@
 
 from datetime import datetime
 
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage
 from .video import CanalplusVideo
@@ -49,7 +50,11 @@ class VideoPage(BasePage):
         video.description = infos.find('DESCRIPTION').text
 
         media = el.find('MEDIA')
-        video.thumbnail = Thumbnail(media.find('IMAGES').find('PETIT').text)
+        url = media.find('IMAGES').find('PETIT').text
+        if url:
+            video.thumbnail = Thumbnail(url)
+        else:
+            video.thumbnail = NotAvailable
         lastest_format = None
         for format in media.find('VIDEOS'):
             if format.text is None:
@@ -70,19 +75,19 @@ class VideoPage(BasePage):
     def iter_results(self):
         for vid in self.document.getchildren():
             yield self.parse_video(vid)
-    
+
     def iter_channel(self):
         for vid in self.document.getchildren():
 	        yield self.parse_video_channel(vid)
-    
+
     def parse_video_channel(self,el):
         _id = el[0].text
         video = CanalplusVideo(_id)
         video.title = el[2][3][0].text
         video.date = datetime.now()
         return video
-        
-    
+
+
     def get_video(self, video, quality):
         _id = self.group_dict['id']
         for vid in self.document.getchildren():
