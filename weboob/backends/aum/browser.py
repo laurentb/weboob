@@ -37,6 +37,32 @@ from weboob.capabilities.messages import CantSendMessage
 __all__ = ['AuMBrowser']
 
 
+class AuMException(Exception):
+    ERRORS = {"0.0.0":  "Bad signature",
+              "0.0.1":  "Malformed request",
+              "0.0.2":  "Not logged",
+              "1.1.1":  "No member has this login",
+              "1.1.2":  "Password don't match",
+              "1.1.3":  "User has been banned",
+              "1.12.1": "Invalid country",
+              "1.12.1": "Invalid region",
+              "4.1.1":  "Thread doesn't exist",
+              "4.1.2":  "Cannot write to this member",
+              "5.1.1":  "Member tergeted doesn't exist",
+              "5.1.2":  "Sex member targeted is not the opposite of the member logged",
+              "5.1.3":  "Not possible to send a charm",
+              "5.1.4":  "Not possible to send a charm because the 5 charms has been already used",
+              "5.1.5":  "Not possible because the guy has already send a charm to this girl",
+              "5.1.6":  "No more money",
+              "5.1.7":  "Not possible to add to basket",
+              "5.2.1":  "Member doesn't exist",
+              "5.3.1":  "Member doesn't exist",
+             }
+
+    def __init__(self, code):
+        Exception.__init__(self, self.ERRORS.get(code, code))
+        self.code = code
+
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'api.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'
@@ -73,12 +99,16 @@ class AuMBrowser(BaseBrowser):
             buf.seek(0)
             raise ValueError(buf.read())
 
-        if 'errors' in r and len(r['errors']) > 0 and r['errors'][0] in (u'0.0.2', u'1.1.1'):
-            if not nologin:
-                self.login()
-                return self.api_request(command, action, parameter, data, nologin=True)
+        if 'errors' in r and r['errors'] != '0' and len(r['errors']) > 0:
+            code = r['errors'][0]
+            if code in (u'0.0.2', u'1.1.1', u'1.1.2'):
+                if not nologin:
+                    self.login()
+                    return self.api_request(command, action, parameter, data, nologin=True)
+                else:
+                    raise BrowserIncorrectPassword(AuMException.ERRORS[code])
             else:
-                raise BrowserIncorrectPassword()
+                raise AuMException(code)
         return r
 
     def login(self):
@@ -197,9 +227,10 @@ class AuMBrowser(BaseBrowser):
 
     @check_login
     def post_mail(self, id, content):
-        r = self.api_request('message', 'new', data={'memberId': id, 'message': content.encode('utf-8')})
-        if len(r['errors']) > 0:
-            raise CantSendMessage(r['errors'][0])
+        try:
+            r = self.api_request('message', 'new', data={'memberId': id, 'message': content.encode('utf-8')})
+        except AuMException, e:
+            raise CantSendMessage(unicode(e))
 
     @check_login
     def delete_thread(self, id):
@@ -208,13 +239,21 @@ class AuMBrowser(BaseBrowser):
 
     @check_login
     def send_charm(self, id):
-        r = self.api_request('member', 'addBasket', data={'id': id})
-        return r['errors'] == '0'
+        try:
+            r = self.api_request('member', 'addBasket', data={'id': id})
+        except AuMException:
+            return False
+        else:
+            return True
 
     @check_login
     def add_basket(self, id):
-        r = self.api_request('member', 'addBasket', data={'id': id})
-        return r['errors'] == '0'
+        try:
+            r = self.api_request('member', 'addBasket', data={'id': id})
+        except AuMException:
+            return False
+        else:
+            return True
 
     def deblock(self, id):
         self.readurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id)
