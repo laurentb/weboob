@@ -42,6 +42,7 @@ class AuMBrowser(BaseBrowser):
     APIKEY = 'fb0123456789abcd'
 
     consts = None
+    search_query = None
     my_sex = 0
     my_id = 0
     my_name = u''
@@ -227,11 +228,11 @@ class AuMBrowser(BaseBrowser):
         return float(result)
 
     def search_profiles(self, **kwargs):
-        r = self.api_request('searchs', '[default]')
-        params = r['result']['search']
-        params.pop('query', None)
-        params.update(kwargs)
+        if self.search_query is None:
+            r = self.api_request('searchs', '[default]')
+            self.search_query = r['result']['search']['query']
 
+        params = json.loads(self.search_query)
         r = self.api_request('searchs', 'advanced', '30,0', params)
         ids = [s['id'] for s in r['result']['search']]
         return set(ids)
