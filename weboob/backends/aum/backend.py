@@ -172,7 +172,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     break
 
             if int(mail['id_from']) == self.browser.my_id:
-                if int(mails['remoteStatus']) == 0:
+                if int(mails['remoteStatus']) == 0 and msg is None:
                     flags |= Message.IS_NOT_ACCUSED
                 else:
                     flags |= Message.IS_ACCUSED
