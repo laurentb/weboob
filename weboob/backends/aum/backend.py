@@ -86,7 +86,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def report_spam(self, id):
         with self.browser:
             self.browser.delete_thread(id)
-            self.browser.report_fake(id)
+            # Do not report fakes to website, to let them to other guys :)
+            #self.browser.report_fake(id)
 
     # ---- ICapDating methods ---------------------
 
