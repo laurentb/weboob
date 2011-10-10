@@ -1,4 +1,4 @@
-.TH TRAVELOOB 1 "08 May 2011" "traveloob 0\&.8"
+.TH TRAVELOOB 1 "10 October 2011" "traveloob 0\&.9"
 .SH NAME
 traveloob
 .SH SYNOPSIS
@@ -22,6 +22,28 @@ Console application allowing to search for train stations and get departure time
 \fBdepartures\fR \fISTATION\fR [\fIARRIVAL\fR]
 .br
 List all departures for a given station.
+.TP
+\fBroadmap\fR \fIDEPARTURE\fR \fIARRIVAL\fR
+.br
+Display the roadmap to travel from DEPARTURE to ARRIVAL.
+.br
+
+.br
+Command\-line parameters:
+.br
+\-\-departure\-time TIME    requested departure time
+.br
+\-\-arrival\-time TIME      requested arrival time
+.br
+
+.br
+TIME might be in form "yyyy\-mm\-dd HH:MM" or "HH:MM".
+.br
+
+.br
+Example:
+.br
+> roadmap Puteaux Aulnay\-sous\-Bois \-\-arrival\-time 22:00
 .TP
 \fBstations\fR \fIPATTERN\fR
 .br
@@ -154,6 +176,12 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+
+.SH TRAVELOOB OPTIONS
+.TP
+\fB\-\-departure\-time=DEPARTURE_TIME\fR
+.TP
+\fB\-\-arrival\-time=ARRIVAL_TIME\fR
 
 .SH LOGGING OPTIONS
 .TP

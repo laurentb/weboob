@@ -1,3 +1,107 @@
+Weboob 0.9 (2011-10-10)
+	General
+	* New backend: Batoto (CapGallery).
+	* New backend: Eatmanga (CapGallery).
+	* New backend: FranceTelevisions (CapVideo).
+	* New backend: HDS (CapMessages).
+	* New backend: Izneo (CapGallery).
+	* New backend: Mangafox (CapGallery).
+	* New backend: Mangahere (CapGallery).
+	* New backend: Mangareader (CapGallery).
+	* New backend: Mangatoshokan (CapGallery).
+	* New backend: Nova (CapRadio).
+	* New backend: PhpBB (CapMessages, CapMessagesReply).
+	* New backend: Simplyread.it (CapGallery).
+	* New application: boobtracker (CapBugTracker).
+	* New script: hds/export.py to export stories from
+	  histoires-de-sexe.net into a sqlite database.
+	* License change to AGPLv3+.
+	* Ability to not save backend passwords. Applications will prompt them
+	  when needed.
+
+	Backend: Arte
+	* Set duration on video results.
+
+	Backend: AuM
+	* Rewrite to use the mobile API.
+
+	Backend: BNPorc
+	* Get operation categories.
+
+	Backend: CrAgr
+	* Get full history.
+	* Optimized operations retrieval for CA Centre.
+	* Fix: parsing accounts list.
+
+	Backend: CreditMutuel
+	* Maine-Anjou, Basse-Normandie bank added.
+
+	Backend: Dailymotion
+	* Fix: parsing duration.
+	* Fix: parsing of lives in search results.
+
+	Backend: DLFP
+	* Fix: disconnection URL needs to be called with POST instead of GET.
+	* Fix: do tests on alpha.linuxfr.org.
+	* Fix: relevance on news/diaries.
+
+	Backend: Gazelle
+	* Handle login errors.
+	* Fix: parsing on several gazelle websites.
+
+	Backend: INA
+	* Support videos on www.ina.fr (in addition to boutique.ina.fr).
+
+	Backend: IPInfoDB
+	* Fix: no crash when there are no coordinates from server.
+
+	Backend: Kickass
+	* Fix: parsing of search results (#663).
+
+	Backend: MediaWiki
+	* Handle errors from API.
+
+	Backend: MeteoFrance
+	* Fix: website changes.
+
+	Backend: Orange
+	* Fix: handling of pages.
+
+	Backend: PirateBay
+	* Fix: parsing of search results.
+
+	Backend: Redmine
+	* Now implements CapBugTracker (#684).
+
+	Backend: Transilien
+	* Supports the roadmap feature (#681).
+
+	Backend: Youtube
+	* Support more URLs.
+	* Support authentication.
+	* Fix: website changes.
+
+	Application: boobank
+	* Add the 'qif' formatter.
+
+	Application: boobank-munin
+	* When handling an incorrect password error, disable backend to
+	  prevent your bank to disable your account (for example with BNP).
+
+	Application: pastoob
+	* Ability to pipe output.
+
+	Application: traveloob
+	* New command 'roadmap' to get the roadmap between to stations. It's
+	  also possible to give a departure or an arrival time (#681).
+
+	Application: videoob
+	* Do not run player in background (#664).
+	* Command 'download' supports mms streams.
+
+	Application: weboorrents
+	* The given filename to command 'getfile' is optional (#683).
+
 Weboob 0.8 (2011-05-08)
 	General
 	* New backend: E-Hentai (CapGallery).
