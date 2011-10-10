@@ -22,9 +22,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, OperationsPage, InfoPage
 
-
 __all__ = ['CreditMutuelBrowser']
-
 
 # Browser
 class CreditMutuelBrowser(BaseBrowser):
@@ -41,7 +39,8 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
-        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
+        #self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
+        #self.currentSubBank = None
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage)
@@ -62,9 +61,12 @@ class CreditMutuelBrowser(BaseBrowser):
         if not self.is_logged() or self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
+        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
+        self.getCurrentSubBank()
+
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi'%self.getCurrentSubBank())
+            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi'%self.currentSubBank)
         return self.page.get_list()
 
     def get_account(self, id):
@@ -83,14 +85,14 @@ class CreditMutuelBrowser(BaseBrowser):
         current_url_parts = current_url.split('/')
         for subbank in self.SUB_BANKS:
             if subbank in current_url_parts:
-                return subbank
+                self.currentSubBank = subbank
 
     def get_history(self, account):
         page_url = account.link_id
         #operations_count = 0
         l_ret = []
         while (page_url):
-            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.getCurrentSubBank(), page_url))
+            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
             #for page_operation in self.page.get_history(operations_count):
             #    operations_count += 1
             #    yield page_operation
