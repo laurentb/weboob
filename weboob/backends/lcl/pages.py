@@ -55,7 +55,7 @@ class AccountsPage(BasePage):
     def get_list(self):
         l = []
         for div in self.document.getiterator('div'):
-            if div.attrib.get('class')=="unCompte-CD" or div.attrib.get('class')=="unCompte-CE":
+            if div.attrib.get('class')=="unCompte-CC" :
                 account = Account()
                 account.id = div.attrib.get('id').replace('-','')
                 for td in div.getiterator('td'):
@@ -77,7 +77,7 @@ class AccountHistoryPage(BasePage):
             text=td.findtext("b")
             if text is None:
                 continue
-            prefix='Solde au'
+            prefix='Opérations effectuées'
             if text.startswith(prefix.decode('utf-8')):
                 table=td.getparent().getparent()
                 for tr in table.iter('tr'):
@@ -86,10 +86,10 @@ class AccountHistoryPage(BasePage):
                         tds=tr.findall('td')
                         d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
                         label=u''+tds[1].find('a').text.strip()
-                        if tds[2].text.strip() != u"":
-                            amount = - float(tds[2].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                        if tds[3].text.strip() != u"":
+                            amount = - float(tds[3].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
                         else:
-                            amount= float(tds[3].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                            amount= float(tds[4].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
                         operation=Operation(len(self.operations))
                         operation.date=d
                         operation.label=label

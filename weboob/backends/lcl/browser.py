@@ -37,7 +37,7 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginResultPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
-        'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvementsPar/accesListeMouvementsPar.*': AccountHistoryPage,
+        'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvementsPro/accesListeMouvementsPro.*':  AccountHistoryPage,
         }
 
     def __init__(self, agency, *args, **kwargs):
