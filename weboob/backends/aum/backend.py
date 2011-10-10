@@ -23,6 +23,7 @@ import email
 import time
 import re
 import datetime
+from html2text import unescape
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
 
@@ -36,7 +37,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
-from weboob.tools.misc import html2text, local2utc
+from weboob.tools.misc import local2utc
 
 from .contact import Contact
 from .captcha import CaptchaError
@@ -184,7 +185,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                           sender=my_name if int(mail['id_from']) == self.browser.my_id else mails['member']['pseudo'],
                           receivers=[my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo']],
                           date=parse_dt(mail['date']),
-                          content=html2text(mail['message'].replace("\r", "<br>")).strip(),
+                          content=unescape(mail['message']).strip(),
                           signature=contacts[mail['id_from']].get_text() if mail['id_from'] in contacts else None,
                           children=[],
                           flags=flags)

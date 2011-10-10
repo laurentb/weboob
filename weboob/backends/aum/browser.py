@@ -235,7 +235,7 @@ class AuMBrowser(BaseBrowser):
             except KeyError:
                 new_content += c
 
-        content = new_content.replace('\n', '<br>').encode('Windows-1252', 'replace')
+        content = new_content.replace('\n', '\r\n').encode('Windows-1252', 'replace')
 
         try:
             self.api_request('message', 'new', data={'memberId': id, 'message': content})
