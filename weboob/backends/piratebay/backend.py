@@ -30,7 +30,7 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.9'
+    VERSION = '0.a'
     DESCRIPTION = 'the pirate bay bittorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = PiratebayBrowser

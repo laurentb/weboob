@@ -34,7 +34,7 @@ class InaBackend(BaseBackend, ICapVideo):
     NAME = 'ina'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.9'
+    VERSION = '0.a'
     DESCRIPTION = 'INA french video archives'
     LICENSE = 'AGPLv3+'
     BROWSER = InaBrowser
