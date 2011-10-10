@@ -104,7 +104,8 @@ class ValueBackendPassword(Value):
             return
 
         try:
-            import keyring
+            # See #706
+            import keyring_DISABLED
             keyring.set_password(self._domain, self.id, passwd)
         except Exception:
             self._value = passwd
@@ -118,25 +119,29 @@ class ValueBackendPassword(Value):
             return ''
 
     def get(self):
-        if self._value == '' and self._domain is not None:
-            try:
-                import keyring
-            except ImportError:
-                return ''
-            else:
-                passwd = keyring.get_password(self._domain, self.id)
-                if passwd is None:
-                    if not self.noprompt and 'login' in self._callbacks:
-                        self._value = self._callbacks['login'](self._domain, self)
-                        if self._value is None:
-                            self._value = ''
-                        else:
-                            self._stored = False
-                    return self._value
-                else:
-                    return passwd
-        else:
+        if self._value != '' or self._domain is None:
             return self._value
+
+        try:
+            # See #706
+            import keyring_DISABLED
+        except ImportError:
+            passwd = None
+        else:
+            passwd = keyring.get_password(self._domain, self.id)
+
+        if passwd is not None:
+            # Password has been read in the keyring.
+            return passwd
+
+        # Prompt user to enter password by hand.
+        if not self.noprompt and 'login' in self._callbacks:
+            self._value = self._callbacks['login'](self._domain, self)
+            if self._value is None:
+                self._value = ''
+            else:
+                self._stored = False
+        return self._value
 
 class ValueInt(Value):
     def __init__(self, *args, **kwargs):
