@@ -4,9 +4,7 @@ Romain Bignon <romain@weboob.org>
         * Manager;
         * Core team;
         * Qt Applications;
-        * AuM, Arte, BNPorc, CanalTP, Dailymotion, DLFP, FranceTelevisions,
-          Fourchan, Gazelle, LCL, OuiFM, Redmine, Yahoo and Youporn backends
-          maintainer.
+        * Maintainer of too many backends.
 
 Christophe Benz <christophe.benz@gmail.com>
         * Core team;
@@ -31,6 +29,10 @@ Laurent Bachelier <laurent@bachelier.name>
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
 
+Noe Rubinstein <noe.rubinstein@gmail.com>
+        * Bototo, Eatmanga, MangaFox, MangaHere, MangaReader, Mangatoshokan
+          and Simplyreadit backends maintainer.
+
 Pierre Mazière <pierre.maziere@gmail.com>
         * LCL backend maintainer;
         * BNPorc fixes.
@@ -52,9 +54,6 @@ Cedric Defortis <cedric@aiur.fr>
 
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
-
-Noe Rubinstein <noe.rubinstein@gmail.com>
-        * Contributions on unknown backends.
 
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
