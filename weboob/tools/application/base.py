@@ -33,11 +33,7 @@ from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
 
 
-__all__ = ['BackendNotFound', 'BaseApplication']
-
-
-class BackendNotFound(Exception):
-    pass
+__all__ = ['BaseApplication']
 
 
 class ApplicationStorage(object):
@@ -293,8 +289,8 @@ class BaseApplication(object):
 
         if self.options.debug or self.options.save_responses:
             level = logging.DEBUG
-            from weboob.tools.browser import BaseBrowser
-            BaseBrowser.DEBUG_MECHANIZE = True
+            from weboob.tools.browser import StandardBrowser
+            StandardBrowser.DEBUG_MECHANIZE = True
             # required to actually display or save the stuff
             logger = logging.getLogger("mechanize")
             logger.setLevel(logging.INFO)
@@ -310,8 +306,8 @@ class BaseApplication(object):
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
-            BaseBrowser.SAVE_RESPONSES = True
-            BaseBrowser.responses_dirname = responses_dirname
+            StandardBrowser.SAVE_RESPONSES = True
+            StandardBrowser.responses_dirname = responses_dirname
             self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))
 
         # file logger

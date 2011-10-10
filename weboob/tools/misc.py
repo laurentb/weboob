@@ -24,6 +24,7 @@ from dateutil import tz
 from logging import warning
 from time import time, sleep
 from tempfile import gettempdir
+import re
 import os
 import sys
 import traceback
@@ -61,6 +62,9 @@ def get_bytes_size(size, unit_name):
         }
     return float(size * unit_data.get(unit_name, 1))
 
+def remove_html_tags(data):
+    p = re.compile(r'<.*?>')
+    return p.sub(' ', data)
 
 try:
     import html2text as h2t
@@ -100,14 +104,17 @@ def to_unicode(text):
     if isinstance(text, unicode):
         return text
     if not isinstance(text, str):
-        text = str(text)
+        try:
+            text = str(text)
+        except UnicodeError:
+            return unicode(text)
     try:
         return unicode(text, 'utf-8')
     except UnicodeError:
         try:
-            return unicode(text, 'iso-8859-1')
+            return unicode(text, 'iso-8859-15')
         except UnicodeError:
-            return unicode(text, 'windows-1252')
+            return unicode(text, 'windows-1252', 'replace')
 
 
 def utc2local(date):

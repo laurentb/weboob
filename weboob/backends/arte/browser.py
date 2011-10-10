@@ -31,19 +31,14 @@ __all__ = ['ArteBrowser']
 class ArteBrowser(BaseBrowser):
     DOMAIN = u'videos.arte.tv'
     ENCODING = None
-    PAGES = {r'http://videos.arte.tv/%(lang)s/videos/arte7.*': IndexPage,
-             r'http://videos.arte.tv/%(lang)s/do_search/videos/%(searchlang)s.*': IndexPage,
-             r'http://videos.arte.tv/%(lang)s/videos/(?P<id>.+)\.html': VideoPage
+    PAGES = {r'http://videos.arte.tv/\w+/videos/arte7.*': IndexPage,
+             r'http://videos.arte.tv/\w+/do_search/videos/.*': IndexPage,
+             r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage
             }
 
     SEARCH_LANG = {'fr': 'recherche', 'de':'suche', 'en': 'search'}
 
     def __init__(self, lang, quality, *args, **kwargs):
-        last_pages = self.PAGES
-        self.PAGES = {}
-        for url, page in last_pages.iteritems():
-            self.PAGES[url % {'lang': lang, 'searchlang': self.SEARCH_LANG[lang]}] = page
-
         BaseBrowser.__init__(self, *args, **kwargs)
         self.lang = lang
         self.quality = quality

@@ -130,7 +130,7 @@ class Event(object):
                 member = Member(int(m.group(2)), m.group(1))
                 if member.id == self.my_id:
                     member.is_me = True
-                if member.id == self.winner.id:
+                if self.winner is not None and member.id == self.winner.id:
                     self.winner = member
                 self.members[member.id] = member
             elif self.description is None and len(line) > 0 and line != '{{TOC}}':
@@ -274,7 +274,7 @@ h2. Attendees
 
 class Boobathon(ReplApplication):
     APPNAME = 'boobathon'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
     DESCRIPTION = 'Console application to participate to a Boobathon.'
     CAPS = ICapContent

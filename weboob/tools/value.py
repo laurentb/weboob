@@ -57,12 +57,90 @@ class Value(object):
             raise ValueError('Value "%s" is not in list: %s' % (
                 v, ', '.join(unicode(s) for s in self.choices.iterkeys())))
 
-    def set_value(self, v):
+    def load(self, domain, v, callbacks):
+        return self.set(v)
+
+    def set(self, v):
         self.check_valid(v)
         self._value = v
 
-    @property
-    def value(self):
+    def dump(self):
+        return self.get()
+
+    def get(self):
+        return self._value
+
+class ValueBackendPassword(Value):
+    _domain = None
+    _callbacks = {}
+    _stored = True
+
+    def __init__(self, *args, **kwargs):
+        kwargs['masked'] = kwargs.pop('masked', True)
+        self.noprompt = kwargs.pop('noprompt', False)
+        Value.__init__(self, *args, **kwargs)
+
+    def load(self, domain, password, callbacks):
+        self._domain = domain
+        self._value = password
+        self._callbacks = callbacks
+
+    def check_valid(self, passwd):
+        if passwd == '':
+            # always allow empty passwords
+            return True
+        return Value.check_valid(self, passwd)
+
+    def set(self, passwd):
+        self.check_valid(passwd)
+        if passwd is None:
+            # no change
+            return
+        self._value = ''
+        if passwd == '':
+            return
+        if self._domain is None:
+            self._value = passwd
+            return
+
+        try:
+            # See #706
+            import keyring_DISABLED
+            keyring.set_password(self._domain, self.id, passwd)
+        except Exception:
+            self._value = passwd
+        else:
+            self._value = ''
+
+    def dump(self):
+        if self._stored:
+            return self._value
+        else:
+            return ''
+
+    def get(self):
+        if self._value != '' or self._domain is None:
+            return self._value
+
+        try:
+            # See #706
+            import keyring_DISABLED
+        except ImportError:
+            passwd = None
+        else:
+            passwd = keyring.get_password(self._domain, self.id)
+
+        if passwd is not None:
+            # Password has been read in the keyring.
+            return passwd
+
+        # Prompt user to enter password by hand.
+        if not self.noprompt and 'login' in self._callbacks:
+            self._value = self._callbacks['login'](self._domain, self)
+            if self._value is None:
+                self._value = ''
+            else:
+                self._stored = False
         return self._value
 
 class ValueInt(Value):
@@ -70,8 +148,7 @@ class ValueInt(Value):
         kwargs['regexp'] = '^\d+$'
         Value.__init__(self, *args, **kwargs)
 
-    @property
-    def value(self):
+    def get(self):
         return int(self._value)
 
 class ValueFloat(Value):
@@ -85,8 +162,7 @@ class ValueFloat(Value):
         except ValueError:
             raise ValueError('Value "%s" is not a float value')
 
-    @property
-    def value(self):
+    def get(self):
         return float(self._value)
 
 class ValueBool(Value):
@@ -100,7 +176,6 @@ class ValueBool(Value):
                                       'n', 'no',  '0', 'false', 'off'):
             raise ValueError('Value "%s" is not a boolean (y/n)' % v)
 
-    @property
-    def value(self):
+    def get(self):
         return (isinstance(self._value, bool) and self._value) or \
                 unicode(self._value).lower() in ('y', 'yes', '1', 'true', 'on')

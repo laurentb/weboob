@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import lemouvBackend
+from .backend import LeMouvBackend
 
 
-__all__ = ['lemouvBackend']
+__all__ = ['LeMouvBackend']

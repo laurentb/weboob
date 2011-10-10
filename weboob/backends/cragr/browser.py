@@ -25,7 +25,6 @@ import mechanize
 from datetime import datetime
 import re
 
-# Browser
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
@@ -37,12 +36,13 @@ class Cragr(BaseBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        self.PAGES = {'https://%s/'              % website:   pages.LoginPage,
-                      'https://%s/.*\.c.*'       % website:   pages.AccountsList,
-                      ('https://%s/login/process' % website) + self.SESSION_REGEXP:   pages.AccountsList,
-                      'https://%s/accounting/listAccounts' % website: pages.AccountsList,
-                      'https://%s/accounting/listOperations' % website: pages.AccountsList,
-                      'https://%s/accounting/showAccountDetail.+' % website: pages.AccountsList,
+        self.PAGES = {'https://[^/]+/':                               pages.LoginPage,
+                      'https://[^/]+/.*\.c.*':                        pages.AccountsList,
+                      'https://[^/]+/login/process%s' % self.SESSION_REGEXP:   pages.AccountsList,
+                      'https://[^/]+/accounting/listAccounts':        pages.AccountsList,
+                      'https://[^/]+/accounting/listOperations':      pages.AccountsList,
+                      'https://[^/]+/accounting/showAccountDetail.+': pages.AccountsList,
+                      'https://[^/]+/accounting/showMoreAccountOperations.*': pages.AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -56,16 +56,29 @@ class Cragr(BaseBrowser):
         return True
 
     def is_logged(self):
-        return self.page and self.page.is_logged() or self.is_logging
+        logged = self.page and self.page.is_logged() or self.is_logging
+        self.logger.debug('logged: %s' % (logged and 'yes' or 'no'))
+        return logged
 
     def login(self):
+        """
+        Attempt to log in.
+        Note: this method does nothing if we are already logged in.
+        """
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        self.is_logging = True
-        if not self.is_on_page(pages.LoginPage):
-            self.home()
+        # Do we really need to login?
+        if self.is_logged():
+            self.logger.debug('already logged in')
+            return
 
+        self.is_logging = True
+        # Are we on the good page?
+        if not self.is_on_page(pages.LoginPage):
+            self.logger.debug('going to login page')
+            BaseBrowser.home(self)
+        self.logger.debug('attempting to log in')
         self.page.login(self.username, self.password)
         self.is_logging = False
 
@@ -73,16 +86,39 @@ class Cragr(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
+        self.logger.debug('accounts list required')
         self.home()
-        # if there is no redirection but we are connected, go to a page that will be recognized
-        # as the account list page
-        # this is a hack, a better solution would be to recognize the page regardless of the URL
         return self.page.get_list()
 
     def home(self):
+        """
+        Ensure we are both logged and on the accounts list.
+        """
+        self.logger.debug('accounts list page required')
+        if self.is_on_page(pages.AccountsList) and self.page.is_accounts_list():
+            self.logger.debug('already on accounts list')
+            return
+
+        # simply go to http(s)://the.doma.in/
         BaseBrowser.home(self)
-        if self.is_on_page(pages.LoginPage) and self.is_logged():
-            self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
+
+        if self.is_on_page(pages.LoginPage):
+            if not self.is_logged():
+                # So, we are not logged on the login page -- what about logging ourselves?
+                self.login()
+                # we assume we are logged in
+            # for some regions, we may stay on the login page once we're
+            # logged in, without being redirected...
+            if self.is_on_page(pages.LoginPage):
+                # ... so we have to move by ourselves
+                self.move_to_accounts_list()
+
+    def move_to_accounts_list(self):
+        """
+        For regions where you can stay on http(s)://the.doma.in/ while you are
+        logged in, move to the accounts list
+        """
+        self.location('%s://%s/accounting/listAccounts' % (self.PROTOCOL, self.DOMAIN))
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -95,14 +131,29 @@ class Cragr(BaseBrowser):
         return None
 
     def get_history(self, account):
-        page_url = account.link_id
+        history_url = account.link_id
         operations_count = 0
-        while (page_url):
-            self.location('https://%s%s' % (self.DOMAIN, page_url))
-            for page_operation in self.page.get_history(operations_count):
+
+        # 1st, go on the account page
+        self.logger.debug('going on: %s' % history_url)
+        self.location('https://%s%s' % (self.DOMAIN, history_url))
+
+        # Some regions have a "Show more" (well, actually "Voir les 25
+        # suivants") link we have to use to get all the operations.
+        # However, it does not show only the 25 next results, it *adds* them
+        # to the current view. Therefore, we have to parse each new page using
+        # an offset, in order to ignore all already-fetched operations.
+        # This especially occurs on CA Centre.
+        use_expand_url = bool(self.page.expand_history_page_url())
+        while (history_url):
+            # we skip "operations_count" operations on each page if we are in the case described above
+            operations_offset = operations_count if use_expand_url else 0
+            for page_operation in self.page.get_history(operations_count, operations_offset):
                 operations_count += 1
                 yield page_operation
-            page_url = self.page.next_page_url()
+            history_url = self.page.expand_history_page_url() if use_expand_url else self.page.next_page_url()
+            self.logger.debug('going on: %s' % history_url)
+            self.location('https://%s%s' % (self.DOMAIN, history_url))
 
     def dict_find_value(self, dictionary, value):
         """

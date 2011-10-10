@@ -34,7 +34,7 @@ __all__ = ['WeboobCfg']
 
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
@@ -107,7 +107,7 @@ class WeboobCfg(ReplApplication):
             print >>sys.stderr, 'Error: backend "%s" does not support accounts management' % backend_name
             return 1
 
-        mail = sys.stdin.read()
+        mail = self.acquire_input()
         if not backend.confirm_account(mail):
             print >>sys.stderr, 'Error: Unable to confirm account creation'
             return 1

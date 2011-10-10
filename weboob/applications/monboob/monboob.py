@@ -85,7 +85,7 @@ class MonboobScheduler(Scheduler):
 
 class Monboob(ReplApplication):
     APPNAME = 'monboob'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Daemon allowing to regularly check for new messages on various websites, ' \
                   'and send an email for each message, and post a reply to a message on a website.'
@@ -129,6 +129,8 @@ class Monboob(ReplApplication):
 
     def get_email_address_ident(self, msg, header):
         s = msg.get(header)
+        if not s:
+            return None
         m = re.match('.*<([^@]*)@(.*)>', s)
         if m:
             return m.group(1)
@@ -267,7 +269,8 @@ class Monboob(ReplApplication):
         if mail.parent:
             reply_id = u'<%s.%s@%s>' % (backend.name, mail.parent.full_id, domain)
         subject = mail.title
-        sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""'), backend.name, domain)
+        sender = u'"%s" <%s@%s>' % (mail.sender.replace('"', '""') if mail.sender else '',
+                                    backend.name, domain)
 
         # assume that .date is an UTC datetime
         date = formatdate(time.mktime(utc2local(mail.date).timetuple()), localtime=True)

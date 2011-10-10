@@ -56,7 +56,9 @@ class BaseGallery(CapBaseObject):
         raise NotImplementedError()
 
 class BaseImage(CapBaseObject):
-    def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded, ext=NotLoaded):
+    def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
+            ext=NotLoaded, gallery=None):
+
         CapBaseObject.__init__(self, unicode(_id))
 
         self.add_field('index', int, index) # usually page number
@@ -64,6 +66,7 @@ class BaseImage(CapBaseObject):
         self.add_field('url', basestring, url)
         self.add_field('ext', basestring, ext)
         self.add_field('data', str)
+        self.add_field('gallery', BaseGallery, gallery)
 
     def __str__(self):
         return self.url

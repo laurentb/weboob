@@ -24,8 +24,10 @@ import lxml.html
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages.index import LoginPage, IndexPage, MyPage
+from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage
+from .pages.issues import IssuesPage, IssuePage, NewIssuePage, IssueLogTimePage, \
+                          IssueTimeEntriesPage
 
 
 __all__ = ['RedmineBrowser']
@@ -39,8 +41,15 @@ class RedmineBrowser(BaseBrowser):
              # compatibility with redmine 0.9
              'https?://[^/]+/login\?back_url.*':                       MyPage,
              'https?://[^/]+/my/page':                                 MyPage,
+             'https?://[^/]+/projects':                                ProjectsPage,
              'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
              'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
+             'https?://[^/]+/projects/[\w-]+/issues/new':              NewIssuePage,
+             'https?://[^/]+/projects/[\w-]+/issues':                  IssuesPage,
+             'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
+             'https?://[^/]+/issues/(\d+)':                            IssuePage,
+             'https?://[^/]+/issues/(\d+)/time_entries/new':           IssueLogTimePage,
+             'https?://[^/]+/projects/[\w-]+/time_entries':            IssueTimeEntriesPage,
             }
 
     def __init__(self, url, *args, **kwargs):
@@ -52,6 +61,7 @@ class RedmineBrowser(BaseBrowser):
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
         BaseBrowser.__init__(self, *args, **kwargs)
+        self.projects = {}
 
     def is_logged(self):
         return self.is_on_page(LoginPage) or self.page and len(self.page.document.getroot().cssselect('a.my-account')) == 1
@@ -77,19 +87,19 @@ class RedmineBrowser(BaseBrowser):
         return self._userid
 
     def get_wiki_source(self, project, page):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
         return self.page.get_source()
 
     def set_wiki_source(self, project, page, data, message):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, page))
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
         if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project
             or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
-                                                           project, page))
-        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, page)
+                                                           project, urllib.quote(page.encode('utf-8'))))
+        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
         params = {}
         params['content[text]'] = data.encode('utf-8')
         params['authenticity_token'] = "%s" % self.page.get_authenticity_token()
@@ -100,3 +110,85 @@ class RedmineBrowser(BaseBrowser):
         preview_html.find("legend").drop_tree()
         return lxml.html.tostring(preview_html)
 
+    def query_issues(self, project_name, **kwargs):
+        self.location('/projects/%s/issues' % project_name)
+        token = self.page.get_authenticity_token()
+        data = (('project_id',            project_name),
+                ('query[column_names][]', 'tracker'),
+                ('authenticity_token',    token),
+                ('query[column_names][]', 'status'),
+                ('query[column_names][]', 'priority'),
+                ('query[column_names][]', 'subject'),
+                ('query[column_names][]', 'assigned_to'),
+                ('query[column_names][]', 'updated_on'),
+                ('query[column_names][]', 'category'),
+                ('query[column_names][]', 'fixed_version'),
+                ('query[column_names][]', 'done_ratio'),
+                ('query[column_names][]', 'author'),
+                ('query[column_names][]', 'start_date'),
+                ('query[column_names][]', 'due_date'),
+                ('query[column_names][]', 'estimated_hours'),
+                ('query[column_names][]', 'created_on'),
+               )
+        for key, value in kwargs.iteritems():
+            if value:
+                data += (('values[%s][]' % key, value),)
+                data += (('fields[]', key),)
+                data += (('operators[%s]' % key, '~'),)
+
+        self.location('/issues?set_filter=1&per_page=100', urllib.urlencode(data))
+
+        assert self.is_on_page(IssuesPage)
+        return {'project': self.page.get_project(project_name),
+                'iter':    self.page.iter_issues(),
+               }
+
+    def get_issue(self, id):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        return self.page.get_params()
+
+    def logtime_issue(self, id, hours, message):
+        self.location('/issues/%s/time_entries/new' % id)
+
+        assert self.is_on_page(IssueLogTimePage)
+        self.page.logtime(hours.seconds/3600, message)
+
+    def comment_issue(self, id, message):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        self.page.fill_form(note=message)
+
+    def create_issue(self, project, **kwargs):
+        self.location('/projects/%s/issues/new' % project)
+
+        assert self.is_on_page(NewIssuePage)
+        self.page.fill_form(**kwargs)
+
+        assert self.is_on_page(IssuePage)
+        return int(self.page.groups[0])
+
+    def edit_issue(self, id, **kwargs):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        self.page.fill_form(**kwargs)
+
+        assert self.is_on_page(IssuePage)
+        return int(self.page.groups[0])
+
+    def remove_issue(self, id):
+        self.location('/issues/%s' % id)
+
+        assert self.is_on_page(IssuePage)
+        token = self.page.get_authenticity_token()
+
+        data = (('authenticity_token', token),)
+        self.openurl('/issues/%s/destroy' % id, urllib.urlencode(data))
+
+    def iter_projects(self):
+        self.location('/projects')
+
+        return self.page.iter_projects()

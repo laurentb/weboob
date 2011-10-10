@@ -21,6 +21,7 @@
 import atexit
 from cmd import Cmd
 import logging
+import locale
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
@@ -94,7 +95,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.prompt = '%s> ' % self.APPNAME
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
-                                '%s' % self.COPYRIGHT,
+                                self.COPYRIGHT.encode(sys.stdout.encoding or locale.getpreferredencoding()),
                                 'This program is free software: you can redistribute it and/or modify',
                                 'it under the terms of the GNU Affero General Public License as published by',
                                 'the Free Software Foundation, either version 3 of the License, or',
@@ -175,11 +176,18 @@ class ReplApplication(Cmd, ConsoleApplication):
                 for index, (name, backend) in enumerate(e.backends):
                     print '%s%d)%s %s%-15s%s   %s' % (self.BOLD, index + 1, self.NC, self.BOLD, name, self.NC,
                         backend.DESCRIPTION)
-                i = int(self.ask('Select a backend to proceed', regexp='^\d+$'))
-                if i < 0 or i > len(e.backends):
-                    print >>sys.stderr, 'Error: %s is not a valid choice' % i
-                    continue
-                backend_name = e.backends[i-1][0]
+                i = self.ask('Select a backend to proceed with "%s"' % id)
+                if not i.isdigit():
+                    if not i in dict(e.backends):
+                        print >>sys.stderr, 'Error: %s is not a valid backend' % i
+                        continue
+                    backend_name = i
+                else:
+                    i = int(i)
+                    if i < 0 or i > len(e.backends):
+                        print >>sys.stderr, 'Error: %s is not a valid choice' % i
+                        continue
+                    backend_name = e.backends[i-1][0]
 
             return id, backend_name
 
@@ -296,16 +304,19 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.set_formatter(formatter_name)
 
         try:
-            return super(ReplApplication, self).onecmd(line)
-        except CallErrors, e:
-            self.bcall_errors_handler(e)
-        except BackendNotGiven, e:
-            print >>sys.stderr, 'Error: %s' % str(e)
-        except NotEnoughArguments, e:
-            print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
-        except (KeyboardInterrupt, EOFError):
-            # ^C during a command process doesn't exit application.
-            print '\nAborted.'
+            try:
+                return super(ReplApplication, self).onecmd(line)
+            except CallErrors, e:
+                self.bcall_errors_handler(e)
+            except BackendNotGiven, e:
+                print >>sys.stderr, 'Error: %s' % str(e)
+            except NotEnoughArguments, e:
+                print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
+            except (KeyboardInterrupt, EOFError):
+                # ^C during a command process doesn't exit application.
+                print '\nAborted.'
+        finally:
+            self.flush()
 
     def emptyline(self):
         """
@@ -439,7 +450,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         return d
 
     # -- default REPL commands ---------
-
     def do_quit(self, arg):
         """
         Quit the application.

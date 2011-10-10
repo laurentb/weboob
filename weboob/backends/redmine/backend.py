@@ -21,8 +21,13 @@
 from __future__ import with_statement
 
 from weboob.capabilities.content import ICapContent, Content
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.capabilities.bugtracker import ICapBugTracker, Issue, Project, User, \
+                                           Version, Status, Update, Attachment, \
+                                           Query, Change
+from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.browser import BrowserHTTPNotFound
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import RedmineBrowser
 
@@ -30,20 +35,24 @@ from .browser import RedmineBrowser
 __all__ = ['RedmineBackend']
 
 
-class RedmineBackend(BaseBackend, ICapContent):
+class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     NAME = 'redmine'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('url',      label='URL of the Redmine website'),
-                        Value('username', label='Login'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(Value('url',      label='URL of the Redmine website'),
+                           Value('username', label='Login'),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = RedmineBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['url'], self.config['username'], self.config['password'])
+        return self.create_browser(self.config['url'].get(),
+                                   self.config['username'].get(),
+                                   self.config['password'].get())
+
+    ############# CapContent ######################################################
 
     def id2path(self, id):
         return id.split('/', 2)
@@ -83,3 +92,193 @@ class RedmineBackend(BaseBackend, ICapContent):
 
         with self.browser:
             return self.browser.get_wiki_preview(project, page, content.content)
+
+    ############# CapCollection ###################################################
+    def iter_resources(self, path):
+        if len(path) == 0:
+            return [Collection(project.id) for project in self.iter_projects()]
+
+        if len(path) == 1:
+            query = Query()
+            query.project = unicode(path[0])
+            return self.iter_issues(query)
+
+        raise CollectionNotFound()
+
+
+    ############# CapBugTracker ###################################################
+    def _build_project(self, project_dict):
+        project = Project(project_dict['name'], project_dict['name'])
+        project.members = [User(int(u[0]), u[1]) for u in project_dict['members']]
+        project.versions = [Version(int(v[0]), v[1]) for v in project_dict['versions']]
+        project.categories = [c[1] for c in project_dict['categories']]
+        # TODO set the value of status
+        project.statuses = [Status(int(s[0]), s[1], 0) for s in project_dict['statuses']]
+        return project
+
+    def iter_issues(self, query):
+        """
+        Iter issues with optionnal patterns.
+
+        @param  query [Query]
+        @return [iter(Issue)] issues
+        """
+        # TODO link between text and IDs.
+        kwargs = {'subject':          query.title,
+                  'author_id':        query.author,
+                  'assigned_to_id':   query.assignee,
+                  'fixed_version_id': query.version,
+                  'category_id':      query.category,
+                  'status_id':        query.status,
+                 }
+        r = self.browser.query_issues(query.project, **kwargs)
+        project = self._build_project(r['project'])
+        for issue in r['iter']:
+            obj = Issue(issue['id'])
+            obj.project = project
+            obj.title = issue['subject']
+            obj.creation = issue['created_on']
+            obj.updated = issue['updated_on']
+
+            if isinstance(issue['author'], tuple):
+                obj.author = project.find_user(*issue['author'])
+            else:
+                obj.author = User(0, issue['author'])
+            if isinstance(issue['assigned_to'], tuple):
+                obj.assignee = project.find_user(*issue['assigned_to'])
+            else:
+                obj.assignee = issue['assigned_to']
+
+            obj.category = issue['category']
+
+            if issue['fixed_version'] is not None:
+                obj.version = project.find_version(*issue['fixed_version'])
+            else:
+                obj.version = None
+            obj.status = project.find_status(issue['status'])
+            yield obj
+
+    def get_issue(self, issue):
+        if isinstance(issue, Issue):
+            id = issue.id
+        else:
+            id = issue
+            issue = Issue(issue)
+
+        try:
+            with self.browser:
+                params = self.browser.get_issue(id)
+        except BrowserHTTPNotFound:
+            return None
+
+        issue.project = self._build_project(params['project'])
+        issue.title = params['subject']
+        issue.body = params['body']
+        issue.creation = params['created_on']
+        issue.updated = params['updated_on']
+        issue.attachments = []
+        for a in params['attachments']:
+            attachment = Attachment(a['id'])
+            attachment.filename = a['filename']
+            attachment.url = a['url']
+            issue.attachments.append(attachment)
+        issue.history = []
+        for u in params['updates']:
+            update = Update(u['id'])
+            update.author = issue.project.find_user(*u['author'])
+            update.date = u['date']
+            update.message = u['message']
+            update.changes = []
+            for i, (field, last, new) in enumerate(u['changes']):
+                change = Change(i)
+                change.field = field
+                change.last = last
+                change.new = new
+                update.changes.append(change)
+            issue.history.append(update)
+        issue.author = issue.project.find_user(*params['author'])
+        issue.assignee = issue.project.find_user(*params['assignee'])
+        issue.category = params['category'][1]
+        issue.version = issue.project.find_version(*params['version'])
+        issue.status = issue.project.find_status(params['status'][1])
+
+        return issue
+
+    def create_issue(self, project):
+        try:
+            with self.browser:
+                r = self.browser.query_issues(project)
+        except BrowserHTTPNotFound:
+            return None
+
+        issue = Issue(0)
+        issue.project = self._build_project(r['project'])
+        return issue
+
+    def post_issue(self, issue):
+        project = issue.project.id
+
+        kwargs = {'title':      issue.title,
+                  'version':    issue.version.id if issue.version else None,
+                  'assignee':   issue.assignee.id if issue.assignee else None,
+                  'category':   issue.category,
+                  'status':     issue.status.id if issue.status else None,
+                  'body':       issue.body,
+                 }
+
+        with self.browser:
+            if int(issue.id) < 1:
+                id = self.browser.create_issue(project, **kwargs)
+            else:
+                id = self.browser.edit_issue(issue.id, **kwargs)
+
+        if id is None:
+            return None
+
+        issue.id = id
+        return issue
+
+    def update_issue(self, issue, update):
+        if isinstance(issue, Issue):
+            issue = issue.id
+
+        with self.browser:
+            if update.hours:
+                return self.browser.logtime_issue(issue, update.hours, update.message)
+            else:
+                return self.browser.comment_issue(issue, update.message)
+
+    def remove_issue(self, issue):
+        """
+        Remove an issue.
+        """
+        if isinstance(issue, Issue):
+            issue = issue.id
+
+        with self.browser:
+            return self.browser.remove_issue(issue)
+
+    def iter_projects(self):
+        """
+        Iter projects.
+
+        @return [iter(Project)] projects
+        """
+        with self.browser:
+            for project in self.browser.iter_projects():
+                yield Project(project['id'], project['name'])
+
+    def get_project(self, id):
+        try:
+            with self.browser:
+                params = self.browser.get_issue(id)
+        except BrowserHTTPNotFound:
+            return None
+
+        return self._build_project(params['project'])
+
+    def fill_issue(self, issue, fields):
+        # currently there isn't cases where an Issue is uncompleted.
+        return issue
+
+    OBJECTS = {Issue: fill_issue}

@@ -20,16 +20,18 @@
 import sys
 import logging
 import re
-from copy import deepcopy
-from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant
+from threading import Event
+from copy import copy
+from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant, QMutex
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette, QMessageBox, \
-                        QSpinBox, QLineEdit, QComboBox, QCheckBox
+                        QSpinBox, QLineEdit, QComboBox, QCheckBox, QInputDialog, \
+                        QLineEdit
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
-from weboob.tools.value import ValueInt, ValueBool
+from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 
 from ..base import BaseApplication
 
@@ -77,12 +79,63 @@ class QtScheduler(IScheduler):
     def run(self):
         self.app.exec_()
 
+class QCallbacksManager(QObject):
+    class Request(object):
+        def __init__(self):
+            self.event = Event()
+            self.answer = None
+
+        def __call__(self):
+            raise NotImplementedError()
+
+    class LoginRequest(Request):
+        def __init__(self, backend_name, value):
+            QCallbacksManager.Request.__init__(self)
+            self.backend_name = backend_name
+            self.value = value
+
+        def __call__(self):
+            password, ok = QInputDialog.getText(None,
+                                                'Password request',
+                                                'Please enter password for %s' % self.backend_name,
+                                                QLineEdit.Password)
+            return password
+
+    def __init__(self, weboob, parent=None):
+        QObject.__init__(self, parent)
+        self.weboob = weboob
+        self.weboob.callbacks['login'] = self.callback(self.LoginRequest)
+        self.mutex = QMutex()
+        self.requests = []
+        self.connect(self, SIGNAL('new_request'), self.do_request)
+
+    def callback(self, klass):
+        def cb(*args, **kwargs):
+            return self.add_request(klass(*args, **kwargs))
+        return cb
+
+    def do_request(self):
+        self.mutex.lock()
+        request = self.requests.pop()
+        request.answer = request()
+        request.event.set()
+        self.mutex.unlock()
+
+    def add_request(self, request):
+        self.mutex.lock()
+        self.requests.append(request)
+        self.mutex.unlock()
+        self.emit(SIGNAL('new_request'))
+        request.event.wait()
+        return request.answer
+
 class QtApplication(QApplication, BaseApplication):
     def __init__(self):
         QApplication.__init__(self, sys.argv)
         self.setApplicationName(self.APPNAME)
 
         BaseApplication.__init__(self)
+        self.cbmanager = QCallbacksManager(self.weboob, self)
 
     def create_weboob(self):
         return Weboob(scheduler=QtScheduler(self))
@@ -196,13 +249,18 @@ class _QtValueStr(QLineEdit):
         if value.masked:
             self.setEchoMode(self.Password)
 
-    def set_data(self, text):
-        self._value.set_value(unicode(text))
-        self.setText(self._value.value)
+    def set_value(self, value):
+        self._value = value
+        self.setText(self._value.get())
 
     def get_value(self):
-        self._value.set_value(unicode(self.text()))
+        self._value.set(unicode(self.text()))
         return self._value
+
+class _QtValueBackendPassword(_QtValueStr):
+    def get_value(self):
+        self._value._domain = None
+        return _QtValueStr.get_value(self)
 
 class _QtValueBool(QCheckBox):
     def __init__(self, value):
@@ -211,12 +269,12 @@ class _QtValueBool(QCheckBox):
         if value.default:
             self.setChecked(True)
 
-    def set_data(self, b):
-        self._value.set_value(b)
-        self.setChecked(self._value.value)
+    def set_value(self, value):
+        self._value = value
+        self.setChecked(self._value.get())
 
     def get_value(self):
-        self._value.set_value(self.isChecked())
+        self._value.set(self.isChecked())
         return self._value
 
 class _QtValueInt(QSpinBox):
@@ -226,12 +284,12 @@ class _QtValueInt(QSpinBox):
         if value.default:
             self.setValue(int(value.default))
 
-    def set_data(self, i):
-        self._value.set_value(i)
-        self.setValue(self._value.value)
+    def set_value(self, value):
+        self._value = value
+        self.setValue(self._value.get())
 
     def get_value(self):
-        self._value.set_value(self.getValue())
+        self._value.set(self.getValue())
         return self._value
 
 class _QtValueChoices(QComboBox):
@@ -243,15 +301,15 @@ class _QtValueChoices(QComboBox):
             if value.default == k:
                 self.setCurrentIndex(self.count()-1)
 
-    def set_data(self, c):
-        self._value.set_value(c)
+    def set_value(self, value):
+        self._value = value
         for i in xrange(self.count()):
-            if unicode(self.itemData(i).toString()) == self._value.value:
+            if unicode(self.itemData(i).toString()) == self._value.get():
                 self.setCurrentIndex(i)
                 return
 
     def get_value(self):
-        self._value.set_value(unicode(self.itemData(self.currentIndex()).toString()))
+        self._value.set(unicode(self.itemData(self.currentIndex()).toString()))
         return self._value
 
 def QtValue(value):
@@ -259,9 +317,11 @@ def QtValue(value):
         klass = _QtValueBool
     elif isinstance(value, ValueInt):
         klass = _QtValueInt
+    elif isinstance(value, ValueBackendPassword):
+        klass = _QtValueBackendPassword
     elif value.choices is not None:
         klass = _QtValueChoices
     else:
         klass = _QtValueStr
 
-    return klass(deepcopy(value))
+    return klass(copy(value))

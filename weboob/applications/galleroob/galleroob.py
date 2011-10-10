@@ -53,7 +53,7 @@ class GalleryListFormatter(IFormatter):
 
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = u'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     CAPS = ICapGallery
@@ -96,9 +96,9 @@ class Galleroob(ReplApplication):
 
         gallery = None
         _id, backend = self.parse_id(_id)
-        for backend, result in self.do('get_gallery', _id, backends=backend):
+        for _backend, result in self.do('get_gallery', _id, backends=backend):
             if result:
-                backend = backend
+                backend = _backend
                 gallery = result
 
         if not gallery:

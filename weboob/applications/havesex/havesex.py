@@ -38,11 +38,11 @@ class ProfileFormatter(IFormatter):
         result = u''
         if node.flags & node.SECTION:
             result += u'\t' * level + node.label + '\n'
-            for sub in node.value:
+            for sub in node.value.itervalues():
                 result += self.print_node(sub, level+1)
         else:
             if isinstance(node.value, (tuple,list)):
-                value = ','.join(unicode(v) for v in node.value)
+                value = ', '.join(unicode(v) for v in node.value)
             else:
                 value = node.value
             result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
@@ -61,9 +61,9 @@ class ProfileFormatter(IFormatter):
         result += u'Status: %s (%s)\n' % (s, item['status_msg'])
         result += u'Photos:\n'
         for name, photo in item['photos'].iteritems():
-            result += u'\t%s\n' % photo
+            result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'Profile:\n'
-        for head in item['profile']:
+        for head in item['profile'].itervalues():
             result += self.print_node(head)
         result += u'Description:\n'
         for s in item['summary'].split('\n'):
@@ -72,7 +72,7 @@ class ProfileFormatter(IFormatter):
 
 class HaveSex(ReplApplication):
     APPNAME = 'havesex'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to interact with various dating websites ' \
                   'and to optimize seduction algorithmically.'
@@ -106,7 +106,7 @@ class HaveSex(ReplApplication):
 
         Display a profile
         """
-        _id, backend_name = self.parse_id(id)
+        _id, backend_name = self.parse_id(id, unique_backend=True)
 
         found = 0
         for backend, contact in self.do('get_contact', _id, backends=backend_name):
@@ -125,7 +125,7 @@ class HaveSex(ReplApplication):
 
         Send a query to someone.
         """
-        _id, backend_name = self.parse_id(id)
+        _id, backend_name = self.parse_id(id, unique_backend=True)
 
         for backend, query in self.do('send_query', _id, backends=backend_name):
             print '%s' % query.message

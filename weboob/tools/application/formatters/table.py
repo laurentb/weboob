@@ -77,6 +77,9 @@ class TableFormatter(IFormatter):
             s += table.get_html_string()
         else:
             s += table.get_string()
+
+        self.queue = []
+
         if self.return_only:
             return s
         else:

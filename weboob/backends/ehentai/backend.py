@@ -21,9 +21,9 @@ from __future__ import with_statement
 
 import re
 from weboob.capabilities.gallery import ICapGallery
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import ratelimit
-from weboob.tools.value import Value, ValuesDict
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import EHentaiBrowser
 from .gallery import EHentaiGallery, EHentaiImage
@@ -36,20 +36,22 @@ class EHentaiBackend(BaseBackend, ICapGallery):
     NAME = 'ehentai'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'E-hentai galleries'
     LICENSE = 'AGPLv3+'
     BROWSER = EHentaiBrowser
-    CONFIG = ValuesDict(
+    CONFIG = BackendConfig(
         Value('domain', label='Domain', default='g.e-hentai.org'),
         Value('username', label='Username', default=''),
-        Value('password', label='Password', default='', masked=True))
+        ValueBackendPassword('password', label='Password'))
 
     def create_default_browser(self):
-        return self.create_browser(
-                self.config['domain'],
-                self.config['username'],
-                self.config['password'])
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(self.config['domain'].get(), username, password)
 
     def iter_search_results(self, pattern=None, sortby=None, max_results=None):
         with self.browser:
@@ -60,10 +62,19 @@ class EHentaiBackend(BaseBackend, ICapGallery):
         with self.browser:
             return self.browser.iter_gallery_images(gallery)
 
+    ID_REGEXP = r'/?\d+/[\dabcdef]+/?'
+    URL_REGEXP = r'.+/g/(%s)' % ID_REGEXP
     def get_gallery(self, _id):
-        if not re.match(r'(?i)/?\d+/[\dabcdef]+/?', _id):
-            return None
-
+        match = re.match(r'^%s$' % self.URL_REGEXP, _id)
+        if match:
+            _id = match.group(1)
+        else:
+            match = re.match(r'^%s$' % self.ID_REGEXP, _id)
+            if match:
+                _id = match.group(0)
+            else:
+                return None
+        
         gallery = EHentaiGallery(_id)
         with self.browser:
             if self.browser.gallery_exists(gallery):

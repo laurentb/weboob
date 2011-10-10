@@ -19,117 +19,94 @@
 
 import re
 
-from .pages.contact_list import ContactItem
-from .pages.profile import ProfilePage
-from .pages.contact_thread import MailParser
-
 
 __all__ = ['AntiSpam']
 
 
 class AntiSpam(object):
-    def check(self, obj):
-        for key, value in self.OBJECTS.iteritems():
-            if isinstance(obj, key):
-                return value(self, obj)
-
-        raise TypeError('Unsupported object %r' % obj)
-
-    def check_contact(self, contact):
-        resume = contact.get_resume()
+    def check_thread(self, thread):
+        resume = thread['title']
 
         # Check if there is an email address in the offer.
         if re.match('^[\w\d\.\-_]+@[\w\d\.]+ vous offre la pos', resume):
             return False
-        if contact.get_name() == 'Ekaterina':
+        if thread['member']['pseudo'] == 'Ekaterina':
             return False
 
         return True
 
     def check_profile(self, profile):
         # The name of profile is in form #123456789
-        if re.match('^#\d+$', profile.get_name()):
+        if profile['pseudo'] == '':
             return False
-        if profile.get_name().strip().lower() in ('ajoute moi', 'a jeute moi', 'ajouter moi'):
+        if len(profile['about1'].strip()) > 30 and profile['about1'].strip() == profile['about2'].strip():
             return False
-        if profile.description.find('h o t m a i l') >= 0:
+        if profile['about1'].startswith('salut! je te donne mon msn'):
             return False
-        if profile.description.find('l i v e f r') >= 0:
+        if profile['about2'].startswith('cam to cam'):
             return False
-        # This pattern in bad french is in several spambots description.
-        if re.match('.*chercher? un m.c tres ch..d.*', profile.description):
+        if profile['about2'].startswith('je suis une femme tres tres belle et je recherche un homme qui aime le sexe'):
             return False
-        if profile.description.find('ajouter moi plan cam') >= 0:
+        if profile['about2'].endswith('mmmmmmmmmmmmmmmm'):
             return False
-        if profile.description.find('plan cam sexy') >= 0:
+        for ipaddr in (profile['last_ip'], profile['first_ip']):
+            if ipaddr.startswith('41.202.'):
+                return False
+            if ipaddr.startswith('41.250.'):
+                return False
+            if ipaddr.startswith('41.141.'):
+                return False
+            if ipaddr.startswith('194.177.'):
+                return False
+            if re.match('105\.13\d.*', ipaddr):
+                return False
+            if ipaddr in ('62.157.186.18', '198.36.222.8', '212.234.67.61'):
+                return False
+        return True
+
+    def check_contact(self, contact):
+        if not self.check_profile(contact.aum_profile):
             return False
-        if profile.description.find('belle dans la cam') >= 0:
-            return False
-        if profile.description.find('pour montre ma cam') >= 0:
-            return False
-        if profile.description.find('show sex') >= 0:
-            return False
-        if profile.description.find('un mec tres chaud') >= 0:
-            return False
-        if profile.description.find('bale chatt') >= 0:
-            return False
-        if profile.description.find('slt tt les mec chaud') >= 0:
-            return False
-        if profile.description.find('tres choud') >= 0:
-            return False
-        if profile.description.find('plan cam') == 0:
-            return False
-        if profile.description.find('cc moi  ') >= 0:
-            return False
-        if profile.description.find('une fille tres chaud') >= 0:
-            return False
-        if profile.description.find(u'tré chau') == 0:
-            return False
-        if profile.description.find('sa va bb') == 0:
-            return False
-        if profile.description.startswith('msn\n\n'):
-            return False
-        if profile.description.endswith('Moi la bonne jeune fille gaie'):
-            return False
-        # Her 'Shopping-list' begins with 'hummm'
-        if profile.description.endswith('Sa shopping-list :\nhummm') or \
-           profile.description.endswith('Sa shopping-list :\nhummmm'):
-            return False
-        if profile.description.strip().endswith('Sa shopping-list :\nEMAIL:'):
-            return False
-        # Part of an email address (camiliasexy1live.fr)
-        if profile.description.find('sexy1live') >= 0:
-            return False
-        # Strange thing...
-        if re.match('.*je suis tres cho\w+d.*', profile.description):
-            return False
-        if re.match('.*je suis tr.s chaud', profile.description):
-            return False
-        # Strange thing...
-        if re.match('.*ma croissance de \d+ sm.*', profile.description):
-            return False
-        if re.match('.*mon\s{2,}msn\s{2,}moi\s{2,}ok\s{2,}.*', profile.description):
-            return False
-        if re.match('.*voila\s{2,}mon\s{2,}msn.*', profile.description):
-            return False
-        if re.match('.*cava tout+ ami.*', profile.description):
-            return False
-        if re.match('.*site\s{2,}de\s{2,}chat\s{2,}et mon msn.*', profile.description):
-            return False
-        # "ajouter  moi :  alussiahotmail.fr"
-        if re.match('^ajouter  moi :\s+\w+\.\w+\n', profile.description):
-            return False
-        if profile.description.find('ajouter moi Oki') >= 0:
-            return False
+
+        first_ip = contact.profile['info']['IPaddr'].value.split(' ')[0]
+        last_ip = contact.profile['info']['IPaddr'].value.rstrip(')')
+        for ipaddr in (first_ip, last_ip):
+            if ipaddr.endswith('.afnet.net'):
+                return False
+            if ipaddr.endswith('.iam.net.ma'):
+                return False
+            if ipaddr.endswith('.amsterdam.ananoos.net'):
+                return False
+            if ipaddr.endswith('.tedata.net'):
+                return False
+            if ipaddr.endswith('kupo.fr'):
+                return False
+            if ipaddr.endswith('.static.virginmedia.com'):
+                return False
+            if ipaddr.endswith('frozenway.com'):
+                return False
+            if ipaddr.endswith('.rev.bgtn.net'):
+                return False
+            if ipaddr.endswith('real-vpn.com'):
+                return False
+            if ipaddr.endswith('.nl.ipodah.net'):
+                return False
+            if ipaddr.endswith('.wanamaroc.com'):
+                return False
+            if ipaddr.endswith('.ukservers.com'):
+                return False
+            if ipaddr.endswith('.startdedicated.com'):
+                return False
+            if ipaddr.endswith('.clients.your-server.de'):
+                return False
+            if ipaddr.endswith('.cba.embratel.net.br'):
+                return False
         return True
 
     def check_mail(self, mail):
         # Spambot with a long first-message.
-        if mail.content.find('Je veux que vous m\'ayez ecrit directement sur le mon e-mail') >= 0:
+        if mail['message'].find('Je veux que vous m\'ayez ecrit directement sur le mon e-mail') >= 0:
+            return False
+        if mail['message'].find('ilusa12010@live.fr') >= 0:
             return False
         return True
-
-    OBJECTS = {ContactItem: check_contact,
-               ProfilePage: check_profile,
-               MailParser:  check_mail,
-              }

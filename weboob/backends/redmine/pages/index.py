@@ -32,3 +32,13 @@ class IndexPage(BasePage):
 
 class MyPage(BasePage):
     pass
+
+class ProjectsPage(BasePage):
+    def iter_projects(self):
+        for ul in self.parser.select(self.document.getroot(), 'ul.projects'):
+            for li in ul.findall('li'):
+                prj = {}
+                link = li.find('div').find('a')
+                prj['id'] = link.attrib['href'].split('/')[-1]
+                prj['name'] = link.text
+                yield prj

@@ -34,6 +34,9 @@ except ImportError:
 __all__ = ['MediawikiBrowser']
 
 
+class APIError(Exception):
+    pass
+
 # Browser
 class MediawikiBrowser(BaseBrowser):
     ENCODING = 'utf-8'
@@ -45,7 +48,7 @@ class MediawikiBrowser(BaseBrowser):
         self.BASEPATH = url_parsed.path
         if self.BASEPATH.endswith('/'):
             self.BASEPATH = self.BASEPATH[:-1]
-            
+
         self.apiurl = apiurl
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -148,7 +151,7 @@ class MediawikiBrowser(BaseBrowser):
         result = self.API_get(data)
         pageid = str(result['query']['pages'].keys()[0])
 
-        if pageid != "-1":    
+        if pageid != "-1":
             for rev in result['query']['pages'][pageid]['revisions']:
                 rev_content = Revision(str(rev['revid']))
                 rev_content.comment = rev['comment']
@@ -165,15 +168,23 @@ class MediawikiBrowser(BaseBrowser):
         '''We don't need to change location, we're using the JSON API here.'''
         pass
 
+    def check_result(self, result):
+        if 'error' in result:
+            raise APIError('%s' % result['error']['info'])
+
     def API_get(self, data):
         '''Submit a GET request to the website
         The JSON data is parsed and returned as a dictionary'''
         data['format'] = 'json'
-        return simplejson.loads(self.readurl(self.buildurl(self.apiurl, **data)), 'utf-8')
+        result = simplejson.loads(self.readurl(self.buildurl(self.apiurl, **data)), 'utf-8')
+        self.check_result(result)
+        return result
 
     def API_post(self, data):
         '''Submit a POST request to the website
         The JSON data is parsed and returned as a dictionary'''
 
         data['format'] = 'json'
-        return simplejson.loads(self.readurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
+        result = simplejson.loads(self.readurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
+        self.check_result(result)
+        return result

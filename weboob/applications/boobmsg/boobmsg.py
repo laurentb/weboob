@@ -69,6 +69,14 @@ class MessageFormatter(IFormatter):
             content = item['content']
 
         result += '\n%s' % content
+
+        if item['signature']:
+            if item['flags'] & Message.IS_HTML:
+                signature = html2text(item['signature'])
+            else:
+                signature = item['signature']
+
+            result += '\n-- \n%s' % signature
         return result
 
 
@@ -163,7 +171,7 @@ class MessagesListFormatter(IFormatter):
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
@@ -230,12 +238,7 @@ class Boobmsg(ReplApplication):
         """
         receivers, text = self.parse_command_args(line, 2, 1)
         if text is None:
-            if self.interactive:
-                print 'Reading message content from stdin... Type ctrl-D ' \
-                      'from an empty line to post message.'
-            text = sys.stdin.read()
-            if sys.stdin.encoding:
-                text = text.decode(sys.stdin.encoding)
+            text = self.acquire_input()
 
         if self.options.skip_empty and not text.strip():
             return

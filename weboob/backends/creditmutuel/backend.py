@@ -19,8 +19,8 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import CreditMutuelBrowser
 
@@ -32,15 +32,15 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     NAME = 'creditmutuel'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = u'Crédit Mutuel french bank'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,13}\w$'),
-                        Value('password', label='Password of account', masked=True))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,13}\w$', masked=False),
+                           ValueBackendPassword('password', label='Password of account'))
     BROWSER = CreditMutuelBrowser
 
     def create_default_browser(self):
-        return self.create_browser( self.config['login'], self.config['password'])
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

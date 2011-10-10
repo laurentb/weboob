@@ -17,14 +17,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 
+from weboob.capabilities.travel import RoadmapFilters
 from weboob.tools.test import BackendTest
 
 class TransilienTest(BackendTest):
     BACKEND = 'transilien'
 
-    def test_transilien(self):
+    def test_departures(self):
         stations = list(self.backend.iter_station_search('defense'))
         self.assertTrue(len(stations) > 0)
 
         list(self.backend.iter_station_departures(stations[0].id))
+
+    def test_roadmap(self):
+        filters = RoadmapFilters()
+        roadmap = list(self.backend.iter_roadmap('Puteaux', u'École Militaire', filters))
+        self.assertTrue(len(roadmap) > 0)
+
+        filters.arrival_time = datetime.datetime.now() + datetime.timedelta(days=1)
+        roadmap = list(self.backend.iter_roadmap('Puteaux', u'Aulnay-sous-Bois', filters))
+        self.assertTrue(len(roadmap) > 0)

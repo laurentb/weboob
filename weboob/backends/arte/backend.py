@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import Value
 
 from .browser import ArteBrowser
 from .video import ArteVideo
@@ -35,16 +35,16 @@ class ArteBackend(BaseBackend, ICapVideo):
     NAME = 'arte'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'Arte french TV'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('lang', label='Lang of videos',
-                              choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
-                        Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
+    CONFIG = BackendConfig(Value('lang', label='Lang of videos',
+                                 choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
+                           Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
     BROWSER = ArteBrowser
 
     def create_default_browser(self):
-        return self.create_browser(lang=self.config['lang'], quality=self.config['quality'])
+        return self.create_browser(lang=self.config['lang'].get(), quality=self.config['quality'].get())
 
     def get_video(self, _id):
         with self.browser:

@@ -114,7 +114,7 @@ class TorrentsPage(BasePage):
         if h2 is not None:
             title = h2.text or ''
             if h2.find('a') != None:
-                title += h2.find('a').text + h2.find('a').tail
+                title += (h2.find('a').text or '') + (h2.find('a').tail or '')
         else:
             title = self.browser.parser.select(table, 'div.title_text', 1).text
 
@@ -132,7 +132,7 @@ class TorrentsPage(BasePage):
             is_table = True
 
         for tr in table.findall('tr' if is_table else 'div'):
-            if is_table and tr.attrib.get('class', '').startswith('group_torrent'):
+            if is_table and 'group_torrent' in tr.attrib.get('class', ''):
                 tds = tr.findall('td')
 
                 if not len(tds) == 5:

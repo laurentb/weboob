@@ -41,7 +41,7 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
-        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
+        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage)

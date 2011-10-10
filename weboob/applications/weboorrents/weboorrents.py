@@ -81,7 +81,7 @@ class TorrentListFormatter(IFormatter):
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
                   'and download .torrent files.'
@@ -127,15 +127,18 @@ class Weboorrents(ReplApplication):
 
     def do_getfile(self, line):
         """
-        getfile ID FILENAME
+        getfile ID [FILENAME]
 
         Get the .torrent file.
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
         """
-        id, dest = self.parse_command_args(line, 2, 2)
+        id, dest = self.parse_command_args(line, 2, 1)
 
         _id, backend_name = self.parse_id(id)
+
+        if dest is None:
+            dest = '%s.torrent' % _id
 
         for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
             if buf:

@@ -28,6 +28,27 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 __all__ = ['Boobank']
 
 
+class QifFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'label', 'amount', 'category')
+
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        result = u''
+        if self.count == 0:
+            result += u'!type:Bank\n'
+        result += u'D%s\n' % item['date'].strftime('%d/%m/%y')
+        result += u'T%s\n' % item['amount']
+        if item['category']:
+            result += u'N%s\n' % item['category']
+        result += u'M%s\n' % item['label']
+        result += u'^\n'
+        self.count += 1
+        return result
+
 class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
 
@@ -70,6 +91,9 @@ class AccountListFormatter(IFormatter):
 
 
     def flush(self):
+        if self.count < 1:
+            return
+
         result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
         result +=u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
                                                                                '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
@@ -102,7 +126,7 @@ class AccountListFormatter(IFormatter):
 
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon, Christophe Benz'
     CAPS = ICapBank
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
@@ -111,6 +135,7 @@ class Boobank(ReplApplication):
     EXTRA_FORMATTERS = {'account_list':   AccountListFormatter,
                         'recipient_list': RecipientListFormatter,
                         'transfer':       TransferFormatter,
+                        'qif':            QifFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
@@ -206,7 +231,8 @@ class Boobank(ReplApplication):
             self.objects = []
             self.set_formatter('recipient_list')
             self.set_formatter_header(u'Available recipients')
-            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=[backend_name_from]):
+            names = (backend_name_from,) if backend_name_from is not None else None
+            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=names):
                 self.format(recipient)
                 self.add_object(recipient)
             self.flush()

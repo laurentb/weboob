@@ -18,10 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 import re
 import urllib
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 
 from .video import ArteVideo
@@ -46,14 +47,29 @@ class IndexPage(BasePage):
                     rating += 1
                 rating_max += 1
 
-            thumb = self.parser.select(div, 'img[class=thumbnail]', 1)
-            thumbnail_url = 'http://videos.arte.tv' + thumb.attrib['src']
+            video = ArteVideo(_id)
+            video.title = title
+            video.rating = rating
+            video.rating_max = rating_max
 
-            yield ArteVideo(_id,
-                            title=title,
-                            rating=rating,
-                            rating_max=rating_max,
-                            thumbnail_url=thumbnail_url)
+            thumb = self.parser.select(div, 'img[class=thumbnail]', 1)
+            video.thumbnail_url = 'http://videos.arte.tv' + thumb.attrib['src']
+
+            try:
+                parts = self.parser.select(div, 'div.duration_thumbnail', 1).text.split(':')
+                if len(parts) == 2:
+                    hours = 0
+                    minutes, seconds = parts
+                elif len(parts) == 3:
+                    hours, minutes, seconds = parts
+                else:
+                    raise BrokenPageError('Unable to parse duration %r' % parts)
+            except BrokenPageError:
+                pass
+            else:
+                video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+
+            yield video
 
 class VideoPage(BasePage):
     def get_video(self, video=None, lang='fr', quality='hd'):

@@ -20,47 +20,53 @@
 from __future__ import with_statement
 
 import email
+import time
 import re
 import datetime
+from html2text import unescape
 from dateutil import tz
+from dateutil.parser import parse as _parse_dt
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound
-from weboob.capabilities.contact import ICapContact, Contact, ContactPhoto, ProfileNode, Query, QueryError
+from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import ICapAccount, StatusField
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable
-from weboob.tools.value import Value, ValuesDict, ValueBool
+from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
+from weboob.tools.misc import local2utc
 
+from .contact import Contact
 from .captcha import CaptchaError
 from .antispam import AntiSpam
 from .browser import AuMBrowser
-from .exceptions import AdopteWait
 from .optim.profiles_walker import ProfilesWalker
 from .optim.visibility import Visibility
-from .optim.priority_connection import PriorityConnection
 from .optim.queries_queue import QueriesQueue
 
 
 __all__ = ['AuMBackend']
 
 
+def parse_dt(s):
+    d = _parse_dt(s)
+    return local2utc(d)
+
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact, ICapAccount):
     NAME = 'aum'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"“Adopte un mec” french dating website"
-    CONFIG = ValuesDict(Value('username',     label='Username'),
-                        Value('password',     label='Password', masked=True),
-                        ValueBool('antispam', label='Enable anti-spam', default=False),
-                        ValueBool('baskets',  label='Get baskets with new messages', default=True))
+    CONFIG = BackendConfig(Value('username',                label='Username'),
+                           ValueBackendPassword('password', label='Password'),
+                           ValueBool('antispam',            label='Enable anti-spam', default=False),
+                           ValueBool('baskets',             label='Get baskets with new messages', default=True))
     STORAGE = {'profiles_walker': {'viewed': []},
-               'priority_connection': {'config': {}, 'fakes': {}},
                'queries_queue': {'queue': []},
                'sluts': {},
               }
@@ -70,26 +76,25 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def __init__(self, *args, **kwargs):
         BaseBackend.__init__(self, *args, **kwargs)
-        if self.config['antispam']:
+        if self.config['antispam'].get():
             self.antispam = AntiSpam()
         else:
             self.antispam = None
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'], self.config['password'])
+        return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-    def report_spam(self, id, suppr_id=None):
-        if suppr_id:
-            self.browser.delete_thread(suppr_id)
-        self.browser.report_fake(id)
-        pass
+    def report_spam(self, id):
+        with self.browser:
+            self.browser.delete_thread(id)
+            # Do not report fakes to website, to let them to other guys :)
+            #self.browser.report_fake(id)
 
     # ---- ICapDating methods ---------------------
 
     def init_optimizations(self):
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
-        self.add_optimization('PRIORITY_CONNECTION', PriorityConnection(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
 
     # ---- ICapMessages methods ---------------------
@@ -99,25 +104,27 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def iter_threads(self):
         with self.browser:
-            contacts = self.browser.get_threads_list()
+            threads = self.browser.get_threads_list()
 
-        for contact in contacts:
-            if not contact.get_id():
+        for thread in threads:
+            if thread['member'].get('isBan', True):
+                with self.browser:
+                    self.browser.delete_thread(thread['member']['id'])
                 continue
-            if self.antispam and not self.antispam.check(contact):
-                self.logger.info('Skipped a spam-thread from %s' % contact.get_name())
-                self.report_spam(contact.get_id(), contact.get_suppr_id())
+            if self.antispam and not self.antispam.check_thread(thread):
+                self.logger.info('Skipped a spam-thread from %s' % thread['pseudo'])
+                self.report_spam(thread['member']['id'])
                 continue
-            thread = Thread(contact.get_id())
-            thread.flags = Thread.IS_DISCUSSION
-            thread.title = 'Discussion with %s' % contact.get_name()
-            yield thread
+            t = Thread(int(thread['member']['id']))
+            t.flags = Thread.IS_DISCUSSION
+            t.title = 'Discussion with %s' % thread['member']['pseudo']
+            yield t
 
-    def get_thread(self, id, profiles=None, contact=None):
+    def get_thread(self, id, contacts=None):
         """
         Get a thread and its messages.
 
-        The 'profiles' and 'contact' parameters are only used for internal calls.
+        The 'contacts' parameters is only used for internal calls.
         """
         thread = None
         if isinstance(id, Thread):
@@ -125,57 +132,61 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             id = thread.id
 
         if not thread:
-            thread = Thread(id)
+            thread = Thread(int(id))
             thread.flags = Thread.IS_DISCUSSION
             full = False
         else:
             full = True
 
         with self.browser:
-            mails = self.browser.get_thread_mails(id, full)
+            mails = self.browser.get_thread_mails(id, 100)
             my_name = self.browser.get_my_name()
 
         child = None
         msg = None
         slut = self._get_slut(id)
-        if not profiles:
-            profiles = {}
-        for mail in mails:
+        if contacts is None:
+            contacts = {}
+
+        if not thread.title:
+            thread.title = u'Discussion with %s' % mails['member']['pseudo']
+
+        self.storage.set('sluts', thread.id, 'status', mails['status'])
+        self.storage.save()
+
+        for mail in mails['messages']:
             flags = 0
-            if self.antispam and not self.antispam.check(mail):
-                self.logger.info('Skipped a spam-mail from %s' % mail.sender)
-                self.report_spam(thread.id, contact and contact.get_suppr_id())
+            if self.antispam and not self.antispam.check_mail(mail):
+                self.logger.info('Skipped a spam-mail from %s' % mails['member']['pseudo'])
+                self.report_spam(thread.id)
                 break
 
-            if mail.date > slut['lastmsg']:
+            if parse_dt(mail['date']) > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
 
-                if not mail.profile_link in profiles:
+                if not mail['id_from'] in contacts:
                     with self.browser:
-                        profiles[mail.profile_link] = self.browser.get_profile(mail.profile_link)
-                if self.antispam and not self.antispam.check(profiles[mail.profile_link]):
-                    self.logger.info('Skipped a spam-mail-profile from %s' % mail.sender)
-                    self.report_spam(thread.id, contact and contact.get_suppr_id())
+                        contacts[mail['id_from']] = self.get_contact(mail['id_from'])
+                if self.antispam and not self.antispam.check_contact(contacts[mail['id_from']]):
+                    self.logger.info('Skipped a spam-mail-profile from %s' % mails['member']['pseudo'])
+                    self.report_spam(thread.id)
                     break
-                mail.signature += u'\n%s' % profiles[mail.profile_link].get_profile_text()
 
-            if mail.sender == my_name:
-                if mail.new:
+            if int(mail['id_from']) == self.browser.my_id:
+                if int(mails['remoteStatus']) == 0 and msg is None:
                     flags |= Message.IS_NOT_ACCUSED
                 else:
                     flags |= Message.IS_ACCUSED
 
-            if not thread.title:
-                thread.title = mail.title
 
             msg = Message(thread=thread,
-                          id=mail.message_id,
-                          title=mail.title,
-                          sender=mail.sender,
-                          receivers=[mail.name if mail.sender == my_name else my_name], # TODO: me
-                          date=mail.date,
-                          content=mail.content,
-                          signature=mail.signature,
+                          id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
+                          title=thread.title,
+                          sender=my_name if int(mail['id_from']) == self.browser.my_id else mails['member']['pseudo'],
+                          receivers=[my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo']],
+                          date=parse_dt(mail['date']),
+                          content=unescape(mail['message']).strip(),
+                          signature=contacts[mail['id_from']].get_text() if mail['id_from'] in contacts else None,
                           children=[],
                           flags=flags)
             if child:
@@ -198,55 +209,57 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def iter_unread_messages(self, thread=None):
         try:
-            profiles = {}
+            contacts = {}
             with self.browser:
-                contacts = self.browser.get_threads_list()
-            for contact in contacts:
-                if not contact.get_id():
+                threads = self.browser.get_threads_list()
+            for thread in threads:
+                if thread['member'].get('isBan', True):
+                    with self.browser:
+                        self.browser.delete_thread(int(thread['member']['id']))
                     continue
-                if self.antispam and not self.antispam.check(contact):
-                    self.logger.info('Skipped a spam-unread-thread from %s' % contact.get_name())
-                    self.report_spam(contact.get_id(), contact.get_suppr_id())
+                if self.antispam and not self.antispam.check_thread(thread):
+                    self.logger.info('Skipped a spam-unread-thread from %s' % thread['member']['pseudo'])
+                    self.report_spam(thread['member']['id'])
                     continue
-                slut = self._get_slut(contact.get_id())
-                if contact.get_lastmsg_date() > slut['lastmsg']:
-                    thread = self.get_thread(contact.get_id(), profiles, contact)
-                    for m in thread.iter_all_messages():
+                slut = self._get_slut(thread['member']['id'])
+                if parse_dt(thread['date']) > slut['lastmsg'] or int(thread['status']) != int(slut['status']):
+                    t = self.get_thread(thread['member']['id'], contacts)
+                    for m in t.iter_all_messages():
                         if m.flags & m.IS_UNREAD:
                             yield m
 
-            if not self.config['baskets']:
+            if not self.config['baskets'].get():
                 return
 
             # Send mail when someone added me in her basket.
             # XXX possibly race condition if a slut adds me in her basket
             #     between the aum.nb_new_baskets() and aum.get_baskets().
             with self.browser:
+                slut = self._get_slut(-self.MAGIC_ID_BASKET)
+
                 new_baskets = self.browser.nb_new_baskets()
-                if new_baskets:
-                    ids = self.browser.get_baskets()
-                    while new_baskets > 0 and len(ids) > new_baskets:
-                        new_baskets -= 1
-                        if ids[new_baskets] == '-1':
+                if new_baskets > 0:
+                    baskets = self.browser.get_baskets()
+                    my_name = self.browser.get_my_name()
+                    for basket in baskets:
+                        if basket['isBan'] or parse_dt(basket['date']) <= slut['lastmsg']:
                             continue
-                        profile = self.browser.get_profile(ids[new_baskets])
-                        if not profile or profile.get_id() == 0:
-                            continue
-                        if self.antispam and not self.antispam.check(profile):
-                            self.logger.info('Skipped a spam-basket from %s' % profile.get_name())
-                            self.report_spam(profile.get_id())
+                        contact = self.get_contact(basket['id'])
+                        if self.antispam and not self.antispam.check_contact(contact):
+                            self.logger.info('Skipped a spam-basket from %s' % contact.name)
+                            self.report_spam(basket['id'])
                             continue
 
-                        thread = Thread(profile.get_id())
-                        thread.title = 'Basket of %s' % profile.get_name()
+                        thread = Thread(int(basket['id']))
+                        thread.title = 'Basket of %s' % contact.name
                         thread.root = Message(thread=thread,
                                               id=self.MAGIC_ID_BASKET,
                                               title=thread.title,
-                                              sender=profile.get_name(),
-                                              receivers=[self.browser.get_my_name()],
-                                              date=None, # now
+                                              sender=contact.name,
+                                              receivers=[my_name],
+                                              date=parse_dt(basket['date']),
                                               content='You are taken in her basket!',
-                                              signature=profile.get_profile_text(),
+                                              signature=contact.get_text(),
                                               children=[],
                                               flags=Message.IS_UNREAD)
                         yield thread.root
@@ -256,25 +269,31 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def set_message_read(self, message):
         if message.id == self.MAGIC_ID_BASKET:
-            # We don't save baskets.
+            # Save the last baskets checks.
+            slut = self._get_slut(-self.MAGIC_ID_BASKET)
+            if slut['lastmsg'] < message.date:
+                slut['lastmsg'] = message.date
+                self.storage.set('sluts', -self.MAGIC_ID_BASKET, slut)
+                self.storage.save()
             return
 
         slut = self._get_slut(message.thread.id)
         if slut['lastmsg'] < message.date:
             slut['lastmsg'] = message.date
-            #slut['msgstatus'] = contact.get_status()
             self.storage.set('sluts', message.thread.id, slut)
             self.storage.save()
 
     def _get_slut(self, id):
+        id = int(id)
         sluts = self.storage.get('sluts')
         if not sluts or not id in sluts:
             slut = {'lastmsg': datetime.datetime(1970,1,1),
-                    'msgstatus': ''}
+                    'status':  0}
         else:
             slut = self.storage.get('sluts', id)
 
-        slut['lastmsg'] = slut['lastmsg'].replace(tzinfo=tz.tzutc())
+        slut['lastmsg'] = slut.get('lastmsg', datetime.datetime(1970,1,1)).replace(tzinfo=tz.tzutc())
+        slut['status'] = int(slut.get('status', 0))
         return slut
 
     # ---- ICapMessagesPost methods ---------------------
@@ -319,59 +338,29 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             if not profile:
                 return None
 
-            _id = profile.id
-
-            if profile.is_online():
-                s = Contact.STATUS_ONLINE
-            else:
-                s = Contact.STATUS_OFFLINE
+            _id = profile['id']
 
             if isinstance(contact, Contact):
                 contact.id = _id
-                contact.name = profile.get_name()
-                contact.status = s
+                contact.name = profile['pseudo']
             else:
-                contact = Contact(_id, profile.get_name(), s)
+                contact = Contact(_id, profile['pseudo'], Contact.STATUS_ONLINE)
             contact.url = self.browser.id2url(_id)
-            contact.status_msg = profile.get_status()
-            contact.summary = profile.description
-            for photo in profile.photos:
-                contact.set_photo(photo['url'].split('/')[-1],
-                                  url=photo['url'],
-                                  thumbnail_url=photo['url'].replace('image', 'thumb1_'),
-                                  hidden=photo['hidden'])
-            contact.profile = []
-
-            stats = ProfileNode('stats', 'Stats', [], flags=ProfileNode.HEAD|ProfileNode.SECTION)
-            for label, value in profile.get_stats().iteritems():
-                stats.value.append(ProfileNode(label, label.capitalize(), value))
-            contact.profile.append(stats)
-
-            for section, d in profile.get_table().iteritems():
-                s = ProfileNode(section, section.capitalize(), [], flags=ProfileNode.SECTION)
-                for key, value in d.iteritems():
-                    s.value.append(ProfileNode(key, key.capitalize(), value))
-                contact.profile.append(s)
-
+            contact.parse_profile(profile, self.browser.get_consts())
             return contact
 
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
             for contact in self.browser.iter_contacts():
                 s = 0
-                if contact['cat'] == 1:
+                if contact['isOnline']:
                     s = Contact.STATUS_ONLINE
-                elif contact['cat'] == 3:
-                    s = Contact.STATUS_OFFLINE
-                elif contact['cat'] == 2:
-                    s = Contact.STATUS_AWAY
                 else:
-                    self.logger.warning('Unknown AuM contact status: %s' % contact['cat'])
+                    s = Contact.STATUS_OFFLINE
 
-                if not status & s or ids and contact['id'] in ids:
+                if not status & s or (ids and not contact['id'] in ids):
                     continue
 
-                # TODO age in contact['birthday']
                 c = Contact(contact['id'], contact['pseudo'], s)
                 c.url = self.browser.id2url(contact['id'])
                 c.status_msg = u'%s old' % contact['birthday']
@@ -437,18 +426,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         @param account  an Account object which describe the account to create
         """
         browser = None
-        bday, bmonth, byear = account.properties['birthday'].value.split('/', 2)
+        bday, bmonth, byear = account.properties['birthday'].get().split('/', 2)
         while not browser:
             try:
-                browser = klass.BROWSER(account.properties['username'].value)
-                browser.register(password=   account.properties['password'].value,
-                                 sex=        (0 if account.properties['sex'].value == 'm' else 1),
+                browser = klass.BROWSER(account.properties['username'].get())
+                browser.register(password=   account.properties['password'].get(),
+                                 sex=        (0 if account.properties['sex'].get() == 'm' else 1),
                                  birthday_d= int(bday),
                                  birthday_m= int(bmonth),
                                  birthday_y= int(byear),
-                                 zipcode=    account.properties['zipcode'].value,
-                                 country=    account.properties['country'].value,
-                                 godfather=  account.properties['godfather'].value)
+                                 zipcode=    account.properties['zipcode'].get(),
+                                 country=    account.properties['country'].get(),
+                                 godfather=  account.properties['godfather'].get())
             except CaptchaError:
                 getLogger('aum').info('Unable to resolve captcha. Retrying...')
                 browser = None
@@ -490,15 +479,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def get_account_status(self):
         with self.browser:
-            try:
-                return (
-                        StatusField('myname', 'My name', self.browser.get_my_name()),
-                        StatusField('score', 'Score', self.browser.score()),
-                        StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
-                        StatusField('godchilds', 'Number of godchilds', self.browser.nb_godchilds()),
-                       )
-            except AdopteWait:
-                return (StatusField('notice', '', u'<h3>You are currently waiting 1am to be able to connect with this account</h3>', StatusField.FIELD_HTML|StatusField.FIELD_TEXT))
+            return (
+                    StatusField('myname', 'My name', self.browser.get_my_name()),
+                    StatusField('score', 'Score', self.browser.score()),
+                    StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
+                    StatusField('godchilds', 'Number of godchilds', self.browser.nb_godchilds()),
+                   )
 
     OBJECTS = {Thread: fill_thread,
                Contact: fill_contact,

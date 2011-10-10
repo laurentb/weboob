@@ -73,6 +73,14 @@ class BackendsConfig(object):
                     continue
             yield instance_name, backend_name, params
 
+    def backend_exists(self, name):
+        """
+        Return True if the backend exists in config.
+        """
+        config = RawConfigParser()
+        config.read(self.confpath)
+        return name in config.sections()
+
     def add_backend(self, instance_name, backend_name, params, edit=False):
         if not instance_name:
             raise ValueError(u'Please give a name to the configured backend.')

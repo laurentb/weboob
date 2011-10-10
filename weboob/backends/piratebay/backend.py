@@ -30,13 +30,9 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'the pirate bay bittorrent tracker'
     LICENSE = 'AGPLv3+'
-    #CONFIG = ValuesDict(Value('domain',   label='Domain (example "ssl.what.cd")'),
-    #                    Value('protocol', label='Protocol to use', choices=('http', 'https')),
-    #                    Value('username', label='Username'),
-    #                    Value('password', label='Password', masked=True))
     BROWSER = PiratebayBrowser
 
     def create_default_browser(self):

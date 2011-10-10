@@ -35,6 +35,9 @@ class ProfileNode(object):
         self.sufix = sufix
         self.flags = flags
 
+    def __getitem__(self, key):
+        return self.value[key]
+
 class ContactPhoto(CapBaseObject):
     def __init__(self, name):
         CapBaseObject.__init__(self, name)
@@ -70,7 +73,7 @@ class Contact(CapBaseObject):
         self.add_field('status_msg', basestring)
         self.add_field('summary', basestring)
         self.add_field('photos', dict, OrderedDict())
-        self.add_field('profile', list)
+        self.add_field('profile', dict)
 
     def set_photo(self, name, **kwargs):
         if not name in self.photos:

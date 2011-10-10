@@ -18,15 +18,27 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
+from logging import warning
+
 from weboob.tools.browser import BasePage
 
 class Message(object):
+    TIMESTAMP_REGEXP = re.compile(r'(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})')
     def __init__(self, id, timestamp, login, message, is_me):
         self.id = id
         self.timestamp = timestamp
         self.login = login
         self.message = message
         self.is_me = is_me
+        self.norloge = timestamp
+        m = self.TIMESTAMP_REGEXP.match(timestamp)
+        if m:
+            self.norloge = '%02d:%02d:%02d' % (int(m.group(4)),
+                                               int(m.group(5)),
+                                               int(m.group(6)))
+        else:
+            warning('Unable to parse timestamp "%s"' % timestamp)
 
 class BoardIndexPage(BasePage):
     def is_logged(self):

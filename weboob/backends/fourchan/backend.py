@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.messages import ICapMessages, Message, Thread
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import Value, ValuesDict
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import Value
 
 from .browser import FourChan
 
@@ -34,10 +34,10 @@ class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = '4chan website'
-    CONFIG = ValuesDict(Value('boards', label='Boards to fetch'))
+    CONFIG = BackendConfig(Value('boards', label='Boards to fetch'))
     STORAGE = {'boards': {}}
     BROWSER = FourChan
 
@@ -100,7 +100,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for board in self.config['boards'].split(' '):
+        for board in self.config['boards'].get().split(' '):
             with self.browser:
                 threads = self.browser.get_threads(board)
             for thread in threads:

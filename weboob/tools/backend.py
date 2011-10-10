@@ -20,10 +20,12 @@
 
 import os
 from threading import RLock
+from copy import copy
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound, IBaseCap, NotLoaded
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
+from weboob.tools.value import ValuesDict
 
 
 __all__ = ['BaseBackend', 'ObjectNotAvailable']
@@ -60,6 +62,61 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.save('backends', self.name)
 
+class BackendConfig(ValuesDict):
+    modname = None
+    instname = None
+    weboob = None
+
+    def load(self, weboob, modname, instname, config, nofail=False):
+        """
+        Load configuration from dict to create an instance.
+
+        @param weboob [Weboob]  weboob object
+        @param modname [str]  name of module
+        @param instname [str]  name of instance of this backend
+        @param params [dict]  parameters to load
+        @param nofail [bool]  if true, this call can't fail.
+        @return [BackendConfig]
+        """
+        cfg = BackendConfig()
+        cfg.modname = modname
+        cfg.instname = instname
+        cfg.weboob = weboob
+        for name, field in self.iteritems():
+            value = config.get(name, None)
+
+            if value is None:
+                if not nofail and field.required:
+                    raise BaseBackend.ConfigError('Backend(%s): Configuration error: Missing parameter "%s" (%s)'
+                                                  % (cfg.instname, name, field.description))
+                value = field.default
+
+            field = copy(field)
+            try:
+                field.load(cfg.instname, value, cfg.weboob.callbacks)
+            except ValueError, v:
+                if not nofail:
+                    raise BaseBackend.ConfigError('Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))
+
+            cfg[name] = field
+        return cfg
+
+    def dump(self):
+        settings = {}
+        for name, value in self.iteritems():
+            settings[name] = value.dump()
+        return settings
+
+    def save(self, edit=True, params=None):
+        assert self.modname is not None
+        assert self.instname is not None
+        assert self.weboob is not None
+
+        dump = self.dump()
+        if params is not None:
+            dump.update(params)
+
+        self.weboob.backends_config.add_backend(self.instname, self.modname, dump, edit)
 
 class BaseBackend(object):
     # Backend name.
@@ -76,7 +133,7 @@ class BaseBackend(object):
     LICENSE = '<unspecified>'
     # Configuration required for this backend.
     # Values must be weboob.tools.value.Value objects.
-    CONFIG = {}
+    CONFIG = BackendConfig()
     # Storage
     STORAGE = {}
     # Browser class
@@ -99,7 +156,7 @@ class BaseBackend(object):
     def __repr__(self):
         return u"<Backend '%s'>" % self.name
 
-    def __init__(self, weboob, name, config, storage, logger=None):
+    def __init__(self, weboob, name, config=None, storage=None, logger=None):
         self.logger = getLogger(name, parent=logger)
         self.weboob = weboob
         self.name = name
@@ -108,23 +165,9 @@ class BaseBackend(object):
         # Private fields (which start with '_')
         self._private_config = dict((key, value) for key, value in config.iteritems() if key.startswith('_'))
 
-        # Configuration of backend
-        self.config = {}
-        for name, field in self.CONFIG.iteritems():
-            value = config.get(name, None)
+        # Load configuration of backend.
+        self.config = self.CONFIG.load(weboob, self.NAME, self.name, config)
 
-            if value is None:
-                if field.required:
-                    raise BaseBackend.ConfigError('Backend(%s): Configuration error: Missing parameter "%s" (%s)' % (self.name, name, field.description))
-                value = field.default
-
-            try:
-                field.set_value(value)
-            except ValueError, v:
-                raise BaseBackend.ConfigError('Backend(%s): Configuration error for field "%s": %s' % (self.name, name, v))
-
-            # field.value is a property which converts string to right type (bool/int/float)
-            self.config[name] = field.value
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
 

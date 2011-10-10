@@ -21,8 +21,10 @@
 from weboob.tools.browser.browser import BrowserIncorrectPassword, BrowserBanned, \
                                          BrowserUnavailable, BrowserRetry, \
                                          BrowserHTTPNotFound, BrowserHTTPError, \
-                                         BasePage, BaseBrowser, BrokenPageError
+                                         BasePage, BaseBrowser, BrokenPageError, \
+                                         StandardBrowser
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser', 'BrokenPageError']
+           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser',
+           'BrokenPageError', 'StandardBrowser']

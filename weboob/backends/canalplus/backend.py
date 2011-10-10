@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import Value
 
 from .browser import CanalplusBrowser
 from .pages import CanalplusVideo
@@ -37,14 +37,14 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'canalplus'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'Canal plus french TV'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
+    CONFIG = BackendConfig(Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
     BROWSER = CanalplusBrowser
 
     def create_default_browser(self):
-        return self.create_browser(quality=self.config['quality'])
+        return self.create_browser(quality=self.config['quality'].get())
 
     def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:

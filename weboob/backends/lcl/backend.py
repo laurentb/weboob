@@ -21,8 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LCLBrowser
 
@@ -34,16 +34,18 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmail.com'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'Le Credit Lyonnais crappy french bank'
     LICENSE = 'AGPLv3+'
-    CONFIG = ValuesDict(Value('login',    label='Account ID', regexp='^\d{1,6}\w$'),
-                        Value('password', label='Password of account', masked=True),
-                        Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,6}\w$', masked=False),
+                           ValueBackendPassword('password', label='Password of account'),
+                           Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['agency'], self.config['login'], self.config['password'])
+        return self.create_browser(self.config['agency'].get(),
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

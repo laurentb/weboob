@@ -57,6 +57,7 @@ class Operation(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('date', (basestring, datetime, date))
+        self.add_field('category', unicode)
         self.add_field('label', unicode)
         self.add_field('amount', float)
 

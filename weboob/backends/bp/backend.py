@@ -19,8 +19,8 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.tools.backend import BaseBackend
-from weboob.tools.value import ValuesDict, Value
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import BPBrowser
 
@@ -32,15 +32,15 @@ class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
     MAINTAINER = 'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La banque postale, French bank'
-    CONFIG = ValuesDict(Value('login',    label='Account ID'),
-                        Value('password', label='Password', masked=True))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = BPBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'], self.config['password'])
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
@@ -56,7 +56,7 @@ class BPBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
-   
+
     def transfer(self, id_from, id_to, amount, reason=None):
         from_account = self.get_account(id_from)
         to_account = self.get_account(id_to)

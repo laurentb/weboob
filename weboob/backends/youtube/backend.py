@@ -20,20 +20,15 @@
 
 from __future__ import with_statement
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 import datetime
 import gdata.youtube.service
 import re
 import urllib
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BrokenPageError
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import YoutubeBrowser
 from .video import YoutubeVideo
@@ -46,23 +41,21 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = 'Youtube videos website'
     LICENSE = 'AGPLv3+'
     BROWSER = YoutubeBrowser
+    CONFIG = BackendConfig(Value('username', label='Email address', default=''),
+                           ValueBackendPassword('password', label='Password', default=''))
 
     URL_RE = re.compile(r'^https?://(?:\w*\.?youtube\.com/(?:watch\?v=|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
-    AVAILABLE_FORMATS = [38, 37, 45, 22, 43, 35, 34, 18, 6, 5, 17, 13]
-    FORMAT_EXTENSIONS = {
-        13: '3gp',
-        17: 'mp4',
-        18: 'mp4',
-        22: 'mp4',
-        37: 'mp4',
-        38: 'video', # You actually don't know if this will be MOV, AVI or whatever
-        43: 'webm',
-        45: 'webm',
-    }
+
+    def create_default_browser(self):
+        password = None
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        return self.create_browser(username, password)
 
     def _entry2video(self, entry):
         """
@@ -78,41 +71,22 @@ class YoutubeBackend(BaseBackend, ICapVideo):
             video.author = to_unicode(entry.media.name.text.strip())
         return video
 
-    def _set_video_url(self, video, format=38):
+    def _set_video_url(self, video):
         """
         In the case of a download, if the user-chosen format is not
         available, the next available format will be used.
         Much of the code for this method is borrowed from youtubeservice.py of Cutetube
         http://maemo.org/packages/view/cutetube/.
         """
+        if video.url:
+            return
+
         player_url = YoutubeVideo.id2url(video.id)
-        html = urllib.urlopen(player_url).read()
-        formats = {}
+        with self.browser:
+            url, ext = self.browser.get_video_url(player_url)
 
-        pattern = "'PLAYER_CONFIG': "
-        pos = html.find(pattern)
-        if pos < 0:
-            raise BrokenPageError('Unable to find media URL (PLAYER_CONFIG not found in page)')
-
-        sub = html[pos+len(pattern):pos+html[pos:].find('\n')]
-        a = json.loads(sub)
-
-        for part in a['args']['url_encoded_fmt_stream_map'].split('&'):
-            key, value = part.split('=', 1)
-            if key != 'itag' or not 'url' in value:
-                continue
-
-            value = urllib.unquote(value)
-            fmt, url = value.split(',url=')
-            formats[int(fmt)] = url
-
-        for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
-            if format in formats:
-                video.url = formats.get(format)
-                video.ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
-                return True
-
-        raise BrokenPageError('Unable to find media URL (not available formats (%d))' % len(formats))
+        video.url = url
+        video.ext = ext
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)

@@ -28,11 +28,11 @@ __all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
 PLAYERS = (
-    ('parole', 'fd://0'),
-    ('totem', 'fd://0'),
     ('mplayer', '-'),
-    ('vlc', '-'),
-    ('xine', 'stdin:/'),
+    ('vlc',     '-'),
+    ('parole',  'fd://0'),
+    ('totem',   'fd://0'),
+    ('xine',    'stdin:/'),
 )
 
 
@@ -92,7 +92,7 @@ class MediaPlayer(object):
         Play media.url with the media player.
         """
         print 'Invoking "%s %s".' % (player_name, media.url)
-        os.spawnlp(os.P_NOWAIT, player_name, player_name, media.url)
+        os.spawnlp(os.P_WAIT, player_name, player_name, media.url)
 
     def _play_rtmp(self, media, player_name):
         """

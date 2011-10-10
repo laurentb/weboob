@@ -1,102 +1,106 @@
-Weboob 0.8.5 (2011-08-04)
-	Console applications
-	* Sort backends by name when querying user to select one.
+Weboob 0.9 (2011-10-10)
+	General
+	* New backend: Batoto (CapGallery).
+	* New backend: Eatmanga (CapGallery).
+	* New backend: FranceTelevisions (CapVideo).
+	* New backend: HDS (CapMessages).
+	* New backend: Izneo (CapGallery).
+	* New backend: Mangafox (CapGallery).
+	* New backend: Mangahere (CapGallery).
+	* New backend: Mangareader (CapGallery).
+	* New backend: Mangatoshokan (CapGallery).
+	* New backend: Nova (CapRadio).
+	* New backend: PhpBB (CapMessages, CapMessagesReply).
+	* New backend: Simplyread.it (CapGallery).
+	* New application: boobtracker (CapBugTracker).
+	* New script: hds/export.py to export stories from
+	  histoires-de-sexe.net into a sqlite database.
+	* License change to AGPLv3+.
+	* Ability to not save backend passwords. Applications will prompt them
+	  when needed.
 
-	Backend: Dailymotion
-	* Fix: website allows IDs with alphanumerics chars.
+	Backend: Arte
+	* Set duration on video results.
 
-	Backend: DLFP
-	* Fix: regexps to support diaries from authors like “coïn”.
+	Backend: AuM
+	* Rewrite to use the mobile API.
 
-	Backend: MeteoFrance
-	* Fix: parser from upstream website changes.
+	Backend: BNPorc
+	* Get operation categories.
 
-	Backend: Orange
-	* Fix: handle more URLs (#685).
-
-	Backend: Youtube
-	* Fix: parsing URL because of upstream website changes.
-
-	Application: videoob
-	* Fix: display a warning when no URL is available on media.
-
-Weboob 0.8.4 (2011-07-11)
 	Backend: CrAgr
-	* Fix: account list with CA Toulouse.
+	* Get full history.
+	* Optimized operations retrieval for CA Centre.
+	* Fix: parsing accounts list.
 
 	Backend: CreditMutuel
-	* Fix: labels must be unicode strings.
+	* Maine-Anjou, Basse-Normandie bank added.
+
+	Backend: Dailymotion
+	* Fix: parsing duration.
+	* Fix: parsing of lives in search results.
+
+	Backend: DLFP
+	* Fix: disconnection URL needs to be called with POST instead of GET.
+	* Fix: do tests on alpha.linuxfr.org.
+	* Fix: relevance on news/diaries.
 
 	Backend: Gazelle
-	* Fix: parsing of file lists on some gazelle websites.
-	* Fix: crash when ID is invalid.
+	* Handle login errors.
+	* Fix: parsing on several gazelle websites.
 
-	Application: boobank-munin
-	* Fix: syntax error.
+	Backend: INA
+	* Support videos on www.ina.fr (in addition to boutique.ina.fr).
 
-Weboob 0.8.3 (2011-06-22)
-	General
-	* Fix: creation of configuration on Mac OS X (#556).
+	Backend: IPInfoDB
+	* Fix: no crash when there are no coordinates from server.
+
+	Backend: Kickass
+	* Fix: parsing of search results (#663).
+
+	Backend: MediaWiki
+	* Handle errors from API.
+
+	Backend: MeteoFrance
+	* Fix: website changes.
+
+	Backend: Orange
+	* Fix: handling of pages.
 
 	Backend: PirateBay
 	* Fix: parsing of search results.
 
 	Backend: Redmine
-	* Fix: handle of URLs when using port and old version of redmine (#675).
+	* Now implements CapBugTracker (#684).
 
-	Application: pastoob
-	* Fix: don't crash if sys.stdout.encoding is None.
+	Backend: Transilien
+	* Supports the roadmap feature (#681).
 
-Weboob 0.8.2 (2011-05-31)
-	Repl Applications
-	* Fix: command 'inspect' crash.
-
-	Backend: AuM
-	* Fix: parsing of author of a basket (#645).
-
-	Backend: Dailymotion
-	* Fix: parsing of duration
-	* Fix: parsing of lives in search results.
-
-	Backend: DLFP
-	* Fix: support of forum URLs.
-
-	Backend: IPInfoDB
-	* Fix: crash when website is not available.
-
-	Backend: KickAss
-	* Fix: fix parsing torrents in results pages (#663).
-
-	Backend: Redmine
-	* Fix: support all wiki page names.
-
-	Backend: YouTube
+	Backend: Youtube
 	* Support more URLs.
-
-	Core
-	* Fix: recursive loop in genericArticle for CapMessage backends.
-
-Weboob 0.8.1 (2011-05-11)
-	General
-	* Fix python 2.5 compatibility.
-
-	Backend: BP
-	* python-lxml is a hard dependency.
-
-	Backend: Geolocip
-	* Fix: support when website is unavailable.
-
-	Backend: IPInfoDB
-	* Fix: crash when no coordinates are given from web server.
-
-	Backend: LeFigaro
-	* Fix: when the feed is wrong.
+	* Support authentication.
+	* Fix: website changes.
 
 	Application: boobank
-	* Fix: restore the account_list formatter for the list command.
+	* Add the 'qif' formatter.
 
-	Application: boobmsg
-	* Fix backends to work with the export_all command.
+	Application: boobank-munin
+	* When handling an incorrect password error, disable backend to
+	  prevent your bank to disable your account (for example with BNP).
+
+	Application: pastoob
+	* Ability to pipe output.
+
+	Application: traveloob
+	* New command 'roadmap' to get the roadmap between to stations. It's
+	  also possible to give a departure or an arrival time (#681).
+
+	Application: videoob
+	* Do not run player in background (#664).
+	* Command 'download' supports mms streams.
+
+	Application: weboorrents
+	* The given filename to command 'getfile' is optional (#683).
 
 Weboob 0.8 (2011-05-08)
 	General

@@ -31,7 +31,7 @@ __all__ = ['SearchPage']
 
 
 class SearchPage(BasePage):
-    URL_REGEXP = re.compile('/video/(.+).html')
+    URL_REGEXP = re.compile(r'/video/(.+)\.html')
 
     def iter_videos(self):
         try:
@@ -40,7 +40,7 @@ class SearchPage(BasePage):
             # It means there are no results.
             return
         for li in ul.findall('li'):
-            id = re.sub(r'/video/(.+)\.html', r'\1', li.find('a').attrib['href'])
+            id = re.sub(self.URL_REGEXP, r'\1', li.find('a').attrib['href'])
 
             thumbnail = 'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
 
@@ -57,7 +57,7 @@ class SearchPage(BasePage):
             else:
                 raise BrokenPageError('Unable to match duration (%r)' % duration)
 
-            yield InaVideo(id,
+            yield InaVideo('boutique.%s' % id,
                            title=title,
                            date=date,
                            duration=duration,

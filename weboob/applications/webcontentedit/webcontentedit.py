@@ -35,7 +35,7 @@ __all__ = ['WebContentEdit']
 
 class WebContentEdit(ReplApplication):
     APPNAME = 'webcontentedit'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to display and edit contents on various websites.'
     CAPS = ICapContent
@@ -48,7 +48,7 @@ class WebContentEdit(ReplApplication):
         """
         contents = []
         for id in line.split():
-            _id, backend_name = self.parse_id(id)
+            _id, backend_name = self.parse_id(id, unique_backend=True)
             backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
             contents += [content for backend, content in self.do('get_content', _id, backends=backend_names) if content]
@@ -71,7 +71,7 @@ class WebContentEdit(ReplApplication):
                     content.content = u''
                     data = ''
                 f.write(data)
-            paths[path] = content
+            paths[path.encode('utf-8')] = content
 
         params = ''
         editor = os.environ.get('EDITOR', 'vim')
@@ -105,7 +105,7 @@ class WebContentEdit(ReplApplication):
         errors = CallErrors([])
         for content in contents:
             path = [path for path, c in paths.iteritems() if c == content][0]
-            sys.stdout.write('Pushing %s...' % content.id)
+            sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
             sys.stdout.flush()
             try:
                 self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()

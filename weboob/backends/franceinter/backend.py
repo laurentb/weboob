@@ -21,17 +21,35 @@
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
-from .browser import FranceInterBrowser
+from weboob.tools.browser import BaseBrowser, BasePage
 
 
 __all__ = ['FranceInterBackend']
 
 
+class XMLinfos(BasePage):
+    def get_current(self):
+        emissions = self.parser.select(self.document.getroot(), 'item')
+        if len(emissions) == 0:
+            return 'No emission'
+        return emissions[0].find('titreemission').text
+
+class FranceInterBrowser(BaseBrowser):
+    DOMAIN = u'metadatas.tv-radio.com'
+    ENCODING = 'iso-8859-1'
+    PAGES  = {r'.*metadatas/franceinterRSS\.xml': XMLinfos}
+
+    def get_current(self, radio):
+        self.location('/metadatas/franceinterRSS.xml')
+        assert self.is_on_page(XMLinfos)
+
+        return self.page.get_current()
+
 class FranceInterBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'franceinter'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'johann.broudin@6-8.fr'
-    VERSION = '0.8.5'
+    VERSION = '0.9'
     DESCRIPTION = u'The france inter french radio'
     LICENCE = 'AGPLv3+'
     BROWSER = FranceInterBrowser
