@@ -20,10 +20,11 @@
 
 from __future__ import with_statement
 
+from datetime import datetime, timedelta
+
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
-from weboob.tools.misc import limit
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
 from weboob.capabilities.content import ICapContent, Content
 
@@ -80,7 +81,9 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                 whats.add(url)
 
         for what in whats:
-            for article in limit(Newsfeed(what, rssid).iter_entries(), 20):
+            for article in Newsfeed(what, rssid).iter_entries():
+                if article.datetime and (datetime.now() - article.datetime) > timedelta(days=60):
+                    continue
                 thread = Thread(article.id)
                 thread.title = article.title
                 if article.datetime:
