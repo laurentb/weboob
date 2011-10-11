@@ -50,7 +50,7 @@ class MiniVideo(QFrame):
         if not backend:
             return
 
-        if video.thumbnail.data:
+        if video.thumbnail and video.thumbnail.data:
             img = QImage.fromData(video.thumbnail.data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 
