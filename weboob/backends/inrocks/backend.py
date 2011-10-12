@@ -18,9 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.lesinrocks.com"
 
-# python2.5 compatibility
-from __future__ import with_statement
-
 from weboob.capabilities.messages import ICapMessages
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperInrocksBrowser
