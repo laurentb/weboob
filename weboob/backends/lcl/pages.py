@@ -55,8 +55,16 @@ class AccountsPage(BasePage):
     def get_list(self):
         l = []
         for div in self.document.getiterator('div'):
-            if div.attrib.get('class')=="unCompte-CC" :
+            if div.attrib.get('class')=="unCompte-CA" or\
+            div.attrib.get('class')=="unCompte-CC" or\
+            div.attrib.get('class')=="unCompte-CD" or\
+            div.attrib.get('class')=="unCompte-CE":
+                #CA=> ? maybe Assurance-vie
+                #CC=> Compte Courant
+                #CD=> Compte Dépôt
+                #CE=> Compte d'Epargne
                 account = Account()
+                account.type=div.attrib.get('class')[-2:]
                 account.id = div.attrib.get('id').replace('-','')
                 for td in div.getiterator('td'):
                     if td.find("div") is not None and td.find("div").attrib.get('class') == 'libelleCompte':
@@ -71,30 +79,40 @@ class AccountsPage(BasePage):
         return l
 
 class AccountHistoryPage(BasePage):
-    def on_loaded(self):
-        self.operations = []
+    def get_specific_operations(self,tableHeaderPrefixes,debitColumns,creditColumns):
+        operations = []
         for td in self.document.iter('td'):
             text=td.findtext("b")
             if text is None:
                 continue
-            prefix='Opérations effectuées'
-            if text.startswith(prefix.decode('utf-8')):
-                table=td.getparent().getparent()
-                for tr in table.iter('tr'):
-                    tr_class=tr.attrib.get('class')
-                    if tr_class == 'tbl1' or tr_class=='tbl2':
-                        tds=tr.findall('td')
-                        d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
-                        label=u''+tds[1].find('a').text.strip()
-                        if tds[3].text.strip() != u"":
-                            amount = - float(tds[3].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                        else:
-                            amount= float(tds[4].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                        operation=Operation(len(self.operations))
-                        operation.date=d
-                        operation.label=label
-                        operation.amount=amount
-                        self.operations.append(operation)
+            for i in range(len(tableHeaderPrefixes)):
+                if text.startswith(tableHeaderPrefixes[i].decode('utf-8')):
+                    tbody=td.getparent().getparent()
+                    for tr in tbody.iter('tr'):
+                        tr_class=tr.attrib.get('class')
+                        if tr_class == 'tbl1' or tr_class=='tbl2':
+                            tds=tr.findall('td')
+                            d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
+                            label=u''+tds[1].find('a').text.strip()
+                            if tds[debitColumns[i]].text.strip() != u"":
+                                amount = - float(tds[debitColumns[i]].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                            else:
+                                amount= float(tds[creditColumns[i]].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                            operation=Operation(len(operations))
+                            operation.date=d
+                            operation.label=label
+                            operation.amount=amount
+                            operations.append(operation)
+        return operations
 
-    def get_operations(self):
-        return self.operations
+    def get_operations(self,account):
+        if account.type=="CA":
+            return [] # Not supported: page example required
+        elif account.type=="CC":
+            return self.get_specific_operations(['Opérations effectuées'],[3],[4])
+        elif account.type=="CD":
+            return self.get_specific_operations(['Solde au'],[2],[3])
+        elif account.type=="CE":
+            return self.get_specific_operations(['Solde au'],[2],[3])
+
+

@@ -37,7 +37,7 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginResultPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
-        'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvementsPro/accesListeMouvementsPro.*': AccountHistoryPage,
+        'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
         }
 
     def __init__(self, agency, *args, **kwargs):
@@ -84,7 +84,7 @@ class LCLBrowser(BaseBrowser):
     def get_history(self,account):
         if not self.is_on_page(AccountHistoryPage) :
             self.location('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, account.link_id))
-        return self.page.get_operations()
+        return self.page.get_operations(account)
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
