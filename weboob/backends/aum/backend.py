@@ -120,7 +120,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             t.title = 'Discussion with %s' % thread['member']['pseudo']
             yield t
 
-    def get_thread(self, id, contacts=None):
+    def get_thread(self, id, contacts=None, get_profiles=False):
         """
         Get a thread and its messages.
 
@@ -164,13 +164,14 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             if parse_dt(mail['date']) > slut['lastmsg']:
                 flags |= Message.IS_UNREAD
 
-                if not mail['id_from'] in contacts:
-                    with self.browser:
-                        contacts[mail['id_from']] = self.get_contact(mail['id_from'])
-                if self.antispam and not self.antispam.check_contact(contacts[mail['id_from']]):
-                    self.logger.info('Skipped a spam-mail-profile from %s' % mails['member']['pseudo'])
-                    self.report_spam(thread.id)
-                    break
+                if get_profiles:
+                    if not mail['id_from'] in contacts:
+                        with self.browser:
+                            contacts[mail['id_from']] = self.get_contact(mail['id_from'])
+                    if self.antispam and not self.antispam.check_contact(contacts[mail['id_from']]):
+                        self.logger.info('Skipped a spam-mail-profile from %s' % mails['member']['pseudo'])
+                        self.report_spam(thread.id)
+                        break
 
             if int(mail['id_from']) == self.browser.my_id:
                 if int(mails['remoteStatus']) == 0 and msg is None:
@@ -223,7 +224,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     continue
                 slut = self._get_slut(thread['member']['id'])
                 if parse_dt(thread['date']) > slut['lastmsg'] or int(thread['status']) != int(slut['status']):
-                    t = self.get_thread(thread['member']['id'], contacts)
+                    t = self.get_thread(thread['member']['id'], contacts, get_profiles=True)
                     for m in t.iter_all_messages():
                         if m.flags & m.IS_UNREAD:
                             yield m
@@ -351,23 +352,36 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
-            for contact in self.browser.iter_contacts():
-                s = 0
-                if contact['isOnline']:
-                    s = Contact.STATUS_ONLINE
-                else:
-                    s = Contact.STATUS_OFFLINE
+            threads = self.browser.get_threads_list(count=100)
+        for thread in threads:
+            contact = thread['member']
+            if contact.get('isBan', True):
+                with self.browser:
+                    self.browser.delete_thread(int(contact['id']))
+                continue
+            s = 0
+            if contact['isOnline']:
+                s = Contact.STATUS_ONLINE
+            else:
+                s = Contact.STATUS_OFFLINE
 
-                if not status & s or (ids and not contact['id'] in ids):
-                    continue
+            if not status & s or (ids and not contact['id'] in ids):
+                continue
 
-                c = Contact(contact['id'], contact['pseudo'], s)
-                c.url = self.browser.id2url(contact['id'])
-                c.status_msg = u'%s old' % contact['birthday']
-                c.set_photo(contact['cover'].split('/')[-1].replace('thumb0_', 'image'),
-                            url=contact['cover'].replace('thumb0_', 'image'),
-                            thumbnail_url=contact['cover'])
-                yield c
+            c = Contact(contact['id'], contact['pseudo'], s)
+            c.url = self.browser.id2url(contact['id'])
+            birthday = _parse_dt(contact['birthday'])
+            age = int((datetime.datetime.now() - birthday).days / 365.25)
+            c.status_msg = u'%s old' % age
+            if int(contact['cover']) > 0:
+                url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
+            else:
+                url = 'http://s.adopteunmec.com/www/img/thumb0.gif'
+
+            c.set_photo('image%s' % contact['cover'],
+                        url=url % {'type': 'image'},
+                        thumbnail_url=url % {'type': 'thumb0_'})
+            yield c
 
     def send_query(self, id):
         if isinstance(id, Contact):
