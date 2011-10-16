@@ -125,8 +125,13 @@ class MessagesManager(QWidget):
             return
 
         self.thread = thread
+        if thread.flags & thread.IS_THREADS:
+            top = self.ui.messagesTree.invisibleRootItem()
+        else:
+            top = None
+
+        self._insert_message(thread.root, top)
         self.showMessage(thread.root)
-        self._insert_message(thread.root, self.ui.messagesTree.invisibleRootItem())
 
         self.ui.messagesTree.expandAll()
 
@@ -139,11 +144,16 @@ class MessagesManager(QWidget):
             item.setForeground(1, QBrush(Qt.darkYellow))
             item.setForeground(2, QBrush(Qt.darkYellow))
 
-        top.addChild(item)
+        if top is not None:
+            # threads
+            top.addChild(item)
+        else:
+            # discussion
+            self.ui.messagesTree.invisibleRootItem().insertChild(0, item)
 
         if message.children is not None:
             for child in message.children:
-                self._insert_message(child, item)
+                self._insert_message(child, top and item)
 
     def _messageSelected(self, item, column):
         message = item.data(0, Qt.UserRole).toPyObject()
