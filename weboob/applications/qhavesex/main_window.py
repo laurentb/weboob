@@ -33,6 +33,7 @@ except ImportError:
 from .ui.main_window_ui import Ui_MainWindow
 from .status import AccountsStatus
 from .contacts import ContactsWidget
+from .events import EventsWidget
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
@@ -48,12 +49,12 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.tabWidget, SIGNAL('currentChanged(int)'), self.tabChanged)
 
-        self.ui.tabWidget.addTab(AccountsStatus(self.weboob), self.tr('Status'))
-        if HAVE_BOOBMSG:
-            self.ui.tabWidget.addTab(MessagesManager(self.weboob), self.tr('Messages'))
-        self.ui.tabWidget.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Optimizations'))
+        self.addTab(AccountsStatus(self.weboob), self.tr('Status'))
+        self.addTab(MessagesManager(self.weboob) if HAVE_BOOBMSG else None, self.tr('Messages'))
+        self.addTab(ContactsWidget(self.weboob), self.tr('Contacts'))
+        self.addTab(EventsWidget(self.weboob), self.tr('Events'))
+        self.addTab(None, self.tr('Calendar'))
+        self.addTab(None, self.tr('Optimizations'))
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
@@ -65,9 +66,22 @@ class MainWindow(QtMainWindow):
             widget = self.ui.tabWidget.widget(self.ui.tabWidget.currentIndex())
             widget.load()
 
+    def addTab(self, widget, title):
+        if widget:
+            self.connect(widget, SIGNAL('display_contact'), self.display_contact)
+            self.ui.tabWidget.addTab(widget, title)
+        else:
+            index = self.ui.tabWidget.addTab(QWidget(), title)
+            self.ui.tabWidget.setTabEnabled(index, False)
+
     def tabChanged(self, i):
         widget = self.ui.tabWidget.currentWidget()
 
         if hasattr(widget, 'load') and not i in self.loaded_tabs:
             widget.load()
             self.loaded_tabs[i] = True
+
+    def display_contact(self, contact):
+        self.ui.tabWidget.setCurrentIndex(2)
+        widget = self.ui.tabWidget.currentWidget()
+        widget.setContact(contact)

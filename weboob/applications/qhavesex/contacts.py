@@ -474,6 +474,9 @@ class ContactsWidget(QWidget):
         if not contact or contact == self.contact:
             return
 
+        if not isinstance(contact, Contact):
+            return self.retrieveContact(contact)
+
         self.ui.tabWidget.clear()
         self.contact = contact
         backend = self.weboob.get_backend(self.contact.backend)
@@ -491,12 +494,15 @@ class ContactsWidget(QWidget):
         if not url:
             return
 
+        self.retrieveContact(url)
+
+    def retrieveContact(self, url):
         backend_name = unicode(self.ui.backendsList.currentText())
         self.ui.urlButton.setEnabled(False)
-        self.url_process = QtDo(self.weboob, self.urlClicked_cb, self.urlClicked_eb)
+        self.url_process = QtDo(self.weboob, self.retrieveContact_cb, self.retrieveContact_eb)
         self.url_process.do('get_contact', url, backends=backend_name)
 
-    def urlClicked_cb(self, backend, contact):
+    def retrieveContact_cb(self, backend, contact):
         if not backend:
             self.url_process = None
             self.ui.urlButton.setEnabled(True)
@@ -505,7 +511,7 @@ class ContactsWidget(QWidget):
         self.ui.urlEdit.clear()
         self.setContact(contact)
 
-    def urlClicked_eb(self, backend, error, backtrace):
+    def retrieveContact_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to get contact:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += u'\n%s\n' % to_unicode(backtrace)
