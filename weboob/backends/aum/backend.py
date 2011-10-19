@@ -100,7 +100,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def iter_events(self):
         all_events = {}
         with self.browser:
-            all_events['baskets'] = (self.browser.get_baskets, 'You are taken in the %s basket')
+            all_events['baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
             all_events['flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
             all_events['visits'] =  (self.browser.get_visits, 'Visited by %s')
         for type, (events, message) in all_events.iteritems():
