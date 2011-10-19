@@ -30,7 +30,7 @@ from dateutil.parser import parse as _parse_dt
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import ICapChat
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
-from weboob.capabilities.dating import ICapDating, OptimizationNotFound
+from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -96,6 +96,32 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         self.add_optimization('PROFILE_WALKER', ProfilesWalker(self.weboob.scheduler, self.storage, self.browser))
         self.add_optimization('VISIBILITY', Visibility(self.weboob.scheduler, self.browser))
         self.add_optimization('QUERIES_QUEUE', QueriesQueue(self.weboob.scheduler, self.storage, self.browser))
+
+    def iter_events(self):
+        all_events = {}
+        with self.browser:
+            all_events['baskets'] = (self.browser.get_baskets, 'You are taken in the %s basket')
+            all_events['flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
+            all_events['visits'] =  (self.browser.get_visits, 'Visited by %s')
+        for type, (events, message) in all_events.iteritems():
+            for event in events():
+                try:
+                    e = Event(event['%sid' % type[0]])
+                except KeyError:
+                    e = Event(event['id'])
+
+                e.date = parse_dt(event['date'])
+                e.type = type
+                if 'member' in event:
+                    e.contact = self._get_partial_contact(event['member'])
+                else:
+                    e.contact = self._get_partial_contact(event)
+
+                if not e.contact:
+                    continue
+
+                e.message = message % e.contact.name
+                yield e
 
     # ---- ICapMessages methods ---------------------
 
@@ -350,38 +376,41 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             contact.parse_profile(profile, self.browser.get_consts())
             return contact
 
+    def _get_partial_contact(self, contact):
+        if contact.get('isBan', True):
+            with self.browser:
+                self.browser.delete_thread(int(contact['id']))
+            return None
+
+        s = 0
+        if contact['isOnline']:
+            s = Contact.STATUS_ONLINE
+        else:
+            s = Contact.STATUS_OFFLINE
+
+        c = Contact(contact['id'], contact['pseudo'], s)
+        c.url = self.browser.id2url(contact['id'])
+        birthday = _parse_dt(contact['birthday'])
+        age = int((datetime.datetime.now() - birthday).days / 365.25)
+        c.status_msg = u'%s old' % age
+        if int(contact['cover']) > 0:
+            url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
+        else:
+            url = 'http://s.adopteunmec.com/www/img/thumb0.gif'
+
+        c.set_photo('image%s' % contact['cover'],
+                    url=url % {'type': 'image'},
+                    thumbnail_url=url % {'type': 'thumb0_'})
+        return c
+
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
         with self.browser:
             threads = self.browser.get_threads_list(count=100)
+
         for thread in threads:
-            contact = thread['member']
-            if contact.get('isBan', True):
-                with self.browser:
-                    self.browser.delete_thread(int(contact['id']))
-                continue
-            s = 0
-            if contact['isOnline']:
-                s = Contact.STATUS_ONLINE
-            else:
-                s = Contact.STATUS_OFFLINE
-
-            if not status & s or (ids and not contact['id'] in ids):
-                continue
-
-            c = Contact(contact['id'], contact['pseudo'], s)
-            c.url = self.browser.id2url(contact['id'])
-            birthday = _parse_dt(contact['birthday'])
-            age = int((datetime.datetime.now() - birthday).days / 365.25)
-            c.status_msg = u'%s old' % age
-            if int(contact['cover']) > 0:
-                url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
-            else:
-                url = 'http://s.adopteunmec.com/www/img/thumb0.gif'
-
-            c.set_photo('image%s' % contact['cover'],
-                        url=url % {'type': 'image'},
-                        thumbnail_url=url % {'type': 'thumb0_'})
-            yield c
+            c = self._get_partial_contact(thread['member'])
+            if c and (c.status & status) and (not ids or c.id in ids):
+                yield c
 
     def send_query(self, id):
         if isinstance(id, Contact):

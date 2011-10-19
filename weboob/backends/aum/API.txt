@@ -338,7 +338,7 @@ Return value:
                  u'news': {u'newBaskets': 0, u'newMails': 1, u'newVisits': 113},
                  u'token': u'9a97a03774c9f440e676c78f48794a7221a67285'}}
 
-me.baskets
+me.basket
 ----------
 
 Return value:
@@ -368,6 +368,77 @@ Return value:
                       u'zip': u'75001'}],
                  u'inBasket': 57,
                  u'token': u'ea7bac8837f6e5bb1e2a3267d6a08b32e388d593'}}
+
+me.flashs
+---------
+
+Return value:
+    {u'errors': [],
+     u'result': {u'all': [{u'date': u'2011-10-19 10:50:43',
+                           u'fid': u'41311269',
+                           u'id': u'12656592',
+                           u'member': {u'alert': u'1',
+                                       u'birthday': u'1986-08-08',
+                                       u'city': u'Armes',
+                                       u'country': u'fr',
+                                       u'cover': u'3',
+                                       u'id': u'12656592',
+                                       u'isBan': False,
+                                       u'isOnline': False,
+                                       u'last_cnx': u'2011-10-19 17:28:00',
+                                       u'list5': u'0',
+                                       u'login': u'@12656592',
+                                       u'mod_level': u'0',
+                                       u'path': u'2/9/5/6/5/6/2/',
+                                       u'pseudo': u'Yayanne',
+                                       u'region': u'5',
+                                       u'sex': 1,
+                                       u'shard': 2,
+                                       u'style': u'0',
+                                       u'table': u'adopteun.girls',
+                                       u'url': u'/api.php?member/view/12656592/Yayanne',
+                                       u'zip': u'58500'},
+                           u'seen': u'2011-10-19 10:54:09'}],
+                 u'count': 1467,
+                 u'news': [],
+                 u'olds': [],
+                 u'popu': u'110350',
+                 u'token': u'3af90dd563431fe6b4c65930d18337c997fac34e'}}
+
+me.visits
+---------
+
+Return value:
+    {u'errors': [],
+     u'result': {u'count': u'607',
+                 u'news': [],
+                 u'offset': 0,
+                 u'olds': [{u'alert': u'0',
+                            u'birthday': u'1985-01-29',
+                            u'city': u'Albi',
+                            u'country': u'fr',
+                            u'cover': u'11',
+                            u'date': u'2011-10-19 17:40:43',
+                            u'id': u'13461054',
+                            u'isBan': False,
+                            u'isOnline': True,
+                            u'last_cnx': u'2011-10-19 17:47:25',
+                            u'list5': u'0',
+                            u'login': u'@13461054',
+                            u'mod_level': u'0',
+                            u'path': u'4/5/0/1/6/4/3/',
+                            u'pseudo': u'Bruume',
+                            u'region': u'15',
+                            u'seen': u'2011-10-19 17:42:55',
+                            u'sex': 1,
+                            u'shard': 4,
+                            u'style': u'0',
+                            u'table': u'adopteun.girls',
+                            u'url': u'/api.php?member/view/13461054/Bruume',
+                            u'vid': u'199226074',
+                            u'zip': u'81000'}],
+                 u'popu': u'110350',
+                 u'token': u'd7380871794008c94971acec82b7b679dd800307'}}
 
 MESSAGE Commands
 ================

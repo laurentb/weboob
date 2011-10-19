@@ -217,6 +217,16 @@ class AuMBrowser(BaseBrowser):
         return r['result']['basket']
 
     @check_login
+    def get_flashs(self):
+        r = self.api_request('me', 'flashs')
+        return r['result']['all']
+
+    @check_login
+    def get_visits(self):
+        r = self.api_request('me', 'visits')
+        return r['result']['news'] + r['result']['olds']
+
+    @check_login
     def get_threads_list(self, count=30):
         r = self.api_request('message', '[default]', '%d,0' % count)
         return r['result']['threads']
