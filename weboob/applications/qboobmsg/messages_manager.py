@@ -49,6 +49,7 @@ class MessagesManager(QWidget):
         self.connect(self.ui.threadsList,  SIGNAL('itemSelectionChanged()'), self._threadChanged)
         self.connect(self.ui.messagesTree, SIGNAL('itemClicked(QTreeWidgetItem *, int)'), self._messageSelected)
         self.connect(self.ui.messagesTree, SIGNAL('itemActivated(QTreeWidgetItem *, int)'), self._messageSelected)
+        self.connect(self.ui.profileButton, SIGNAL('clicked()'), self._profilePressed)
         self.connect(self.ui.replyButton, SIGNAL('clicked()'), self._replyPressed)
         self.connect(self.ui.sendButton, SIGNAL('clicked()'), self._sendPressed)
 
@@ -79,6 +80,7 @@ class MessagesManager(QWidget):
         self.ui.threadsList.clear()
 
         self.hideReply()
+        self.ui.profileButton.hide()
         self.ui.replyButton.setEnabled(False)
         self.ui.backendsList.setEnabled(False)
         self.ui.threadsList.setEnabled(False)
@@ -112,6 +114,7 @@ class MessagesManager(QWidget):
         self.ui.backendsList.setEnabled(False)
         self.ui.threadsList.setEnabled(False)
         self.ui.replyButton.setEnabled(False)
+        self.ui.profileButton.hide()
         self.hideReply()
 
         self.process = QtDo(self.weboob, self._gotThreadMessages)
@@ -197,6 +200,15 @@ class MessagesManager(QWidget):
             item.setForeground(0, QBrush())
             item.setForeground(1, QBrush())
             item.setForeground(2, QBrush())
+
+        if message.thread.flags & message.thread.IS_DISCUSSION:
+            self.ui.profileButton.show()
+        else:
+            self.ui.profileButton.hide()
+
+    def _profilePressed(self):
+        print self.thread.id
+        self.emit(SIGNAL('display_contact'), self.thread.id)
 
     def displayReply(self):
         self.ui.replyButton.setText(self.tr('Cancel'))

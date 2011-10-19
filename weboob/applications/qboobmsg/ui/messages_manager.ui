@@ -143,12 +143,6 @@
            <attribute name="headerShowSortIndicator" stdset="0">
             <bool>true</bool>
            </attribute>
-           <attribute name="headerDefaultSectionSize">
-            <number>150</number>
-           </attribute>
-           <attribute name="headerShowSortIndicator" stdset="0">
-            <bool>true</bool>
-           </attribute>
            <column>
             <property name="text">
              <string>Title</string>
@@ -169,7 +163,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QSplitter" name="splitter_2">
+      <widget class="QSplitter" name="messageSplitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -196,11 +190,22 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QPushButton" name="replyButton">
-           <property name="text">
-            <string>Reply</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="profileButton">
+             <property name="text">
+              <string>Profile</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="replyButton">
+             <property name="text">
+              <string>Reply</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QWidget" name="replyWidget" native="true">
