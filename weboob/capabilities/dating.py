@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap
+import datetime
+
+from .base import IBaseCap, CapBaseObject
+from .contact import Contact
 
 
 __all__ = ['ICapDating']
@@ -47,6 +50,15 @@ class Optimization(object):
     def set_config(self, params):
         raise NotImplementedError()
 
+
+class Event(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.add_field('date', (datetime.datetime))
+        self.add_field('contact', Contact)
+        self.add_field('type', basestring)
+        self.add_field('message', basestring)
+
 class ICapDating(IBaseCap):
     def init_optimizations(self):
         raise NotImplementedError()
@@ -70,3 +82,6 @@ class ICapDating(IBaseCap):
             raise OptimizationNotFound()
 
         return getattr(self, 'OPTIM_%s' % optim)
+
+    def iter_events(self):
+        raise NotImplementedError()
