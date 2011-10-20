@@ -21,7 +21,7 @@ from PyQt4.QtGui import QWidget, QTreeWidgetItem, QImage, QIcon, QPixmap
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.capabilities.base import NotLoaded
-from weboob.tools.application.qt import QtDo
+from weboob.tools.application.qt import QtDo, HTMLDelegate
 
 from .ui.events_ui import Ui_Events
 
@@ -39,6 +39,7 @@ class EventsWidget(QWidget):
         self.connect(self.ui.typeBox, SIGNAL('currentIndexChanged(int)'), self.typeChanged)
         self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.refreshEventsList)
 
+        self.ui.eventsList.setItemDelegate(HTMLDelegate())
         self.ui.eventsList.sortByColumn(1, Qt.DescendingOrder)
 
     def load(self):
@@ -107,16 +108,33 @@ class EventsWidget(QWidget):
         if self.event_filter and self.event_filter != event.type:
             return
 
+        contact = event.contact
+        contact.backend = event.backend
+        status = ''
+
+        if contact.status == contact.STATUS_ONLINE:
+            status = u'Online'
+            status_color = 0x00aa00
+        elif contact.status == contact.STATUS_OFFLINE:
+            status = u'Offline'
+            status_color = 0xff0000
+        elif contact.status == contact.STATUS_AWAY:
+            status = u'Away'
+            status_color = 0xffad16
+        else:
+            status = u'Unknown'
+            status_color = 0xaaaaaa
+
+        if contact.status_msg:
+            status += u' — %s' % contact.status_msg
+
+        name = '<h2>%s</h2><font color="#%06X">%s</font><br /><i>%s</i>' % (contact.name, status_color, status, event.backend)
         date = event.date.strftime('%Y-%m-%d %H:%M')
         type = event.type
-        name = event.contact.name if event.contact else ''
         message = event.message
 
         item = QTreeWidgetItem(None, [name, date, type, message])
         item.setData(0, Qt.UserRole, event)
-
-        contact = event.contact
-        contact.backend = event.backend
         if contact.photos is NotLoaded:
             process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
             process.do('fillobj', contact, ['photos'], backends=contact.backend)
