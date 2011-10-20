@@ -392,7 +392,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         c.url = self.browser.id2url(contact['id'])
         birthday = _parse_dt(contact['birthday'])
         age = int((datetime.datetime.now() - birthday).days / 365.25)
-        c.status_msg = u'%s old' % age
+        c.status_msg = u'%s old, %s' % (age, contact['city'])
         if int(contact['cover']) > 0:
             url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
         else:
