@@ -205,6 +205,11 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 else:
                     flags |= Message.IS_ACCUSED
 
+            signature = u''
+            if mail['src']:
+                signature += u'Sent from my %s\n\n' % mail['src']
+            if mail['id_from'] in contacts:
+                signature += contacts[mail['id_from']].get_text()
 
             msg = Message(thread=thread,
                           id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
@@ -213,7 +218,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                           receivers=[my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo']],
                           date=parse_dt(mail['date']),
                           content=unescape(mail['message']).strip(),
-                          signature=contacts[mail['id_from']].get_text() if mail['id_from'] in contacts else None,
+                          signature=signature,
                           children=[],
                           flags=flags)
             if child:
