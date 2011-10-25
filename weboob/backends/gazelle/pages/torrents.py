@@ -23,9 +23,10 @@ import urlparse
 from logging import warning, debug
 
 from weboob.tools.misc import html2text, get_bytes_size
-from weboob.tools.browser import BasePage
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded
+
+from .base import BasePage
 
 
 __all__ = ['TorrentsPage']
