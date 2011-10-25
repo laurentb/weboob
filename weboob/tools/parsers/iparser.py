@@ -18,6 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
+
+
+__all__ = ['IParser']
+
+
 class IParser(object):
     def parse(self, data, encoding=None):
         """
@@ -34,3 +40,16 @@ class IParser(object):
         Get HTML string from an element.
         """
         raise NotImplementedError()
+
+    def tocleanstring(self, elem):
+        """
+        Get a clean string from an element.
+        """
+        return self.strip(self.tostring(elem))
+
+    def strip(self, data):
+        """
+        Strip a HTML string.
+        """
+        p = re.compile(r'<.*?>')
+        return p.sub(' ', data).strip()

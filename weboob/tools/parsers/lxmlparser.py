@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import lxml.html
 
 from .iparser import IParser
@@ -43,6 +44,16 @@ class LxmlHtmlParser(IParser):
 
     def tostring(self, element):
         return lxml.html.tostring(element, encoding=unicode)
+
+    def tocleanstring(self, element):
+        txt = element.xpath('text()')   # ['foo ', ' bar']
+        txt = ' '.join(txt)             # 'foo   bar'
+        txt = re.sub('\s+', ' ', txt)   # 'foo bar'
+        return txt.strip()
+
+    def strip(self, s):
+        doc = lxml.html.fromstring(s)   # parse html string
+        return self.tocleanstring(doc)
 
     @classmethod
     def select(cls, element, selector, nb=None, method='cssselect'):

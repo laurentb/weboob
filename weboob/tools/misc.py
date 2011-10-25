@@ -24,7 +24,6 @@ from dateutil import tz
 from logging import warning
 from time import time, sleep
 from tempfile import gettempdir
-import re
 import os
 import sys
 import traceback
@@ -61,10 +60,6 @@ def get_bytes_size(size, unit_name):
         'TB': 1024 * 1024 * 1024 * 1024,
         }
     return float(size * unit_data.get(unit_name, 1))
-
-def remove_html_tags(data):
-    p = re.compile(r'<.*?>')
-    return p.sub(' ', data)
 
 try:
     import html2text as h2t
