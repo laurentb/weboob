@@ -42,7 +42,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     VERSION = '0.a'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('url',      label='URL of the Redmine website'),
+    CONFIG = BackendConfig(Value('url',      label='URL of the Redmine website', regexp=r'https?://.*'),
                            Value('username', label='Login'),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = RedmineBrowser

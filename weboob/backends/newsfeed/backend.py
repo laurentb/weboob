@@ -34,7 +34,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     VERSION = '0.a'
     DESCRIPTION = "Loads RSS and Atom feeds from any website"
     LICENSE = "AGPLv3+"
-    CONFIG = BackendConfig(Value('url', label="Atom/RSS feed's url"))
+    CONFIG = BackendConfig(Value('url', label="Atom/RSS feed's url", regexp='https?://.*'))
     STORAGE = {'seen': []}
 
 

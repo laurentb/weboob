@@ -36,8 +36,8 @@ class MediawikiBackend(BaseBackend, ICapContent):
     VERSION = '0.a'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Mediawiki wiki software application'
-    CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/'),
-                           Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php'),
+    CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/', regexp='https?://.*'),
+                           Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php', regexp='https?://.*'),
                            Value('username', label='Login', default=''),
                            ValueBackendPassword('password', label='Password', default=''))
 
