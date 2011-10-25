@@ -20,6 +20,7 @@
 
 from .pages.article import ArticlePage
 from .pages.flashactu import FlashActuPage
+from .pages.special import SpecialPage
 from weboob.tools.browser import BaseBrowser, BasePage
 
 class IndexPage(BasePage):
@@ -29,10 +30,12 @@ class IndexPage(BasePage):
 class NewspaperFigaroBrowser(BaseBrowser):
     "NewspaperFigaroBrowser class"
     PAGES = {
-             "http://www.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
-             "http://www.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
-             "http://www.lefigaro.fr/(?!flash-|bd).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
-             "http://www.lefigaro.fr/": IndexPage,
+             "http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
+             "http://\w+.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
+             "http://\w+.lefigaro.fr/actualite/(\d{4})/(\d{2})/(\d{2})/(.*$)": SpecialPage,
+             "http://\w+.lefigaro.fr/(?!flash-|bd|actualite).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://\w+.lefigaro.fr/actualite-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://\w+.lefigaro.fr/": IndexPage,
             }
 
     def is_logged(self):
