@@ -47,6 +47,7 @@ class AuMException(Exception):
               "1.1.3":  "User has been banned",
               "1.12.1": "Invalid country",
               "1.12.1": "Invalid region",
+              "4.0.1":  "Member not found",
               "4.1.1":  "Thread doesn't exist",
               "4.1.2":  "Cannot write to this member",
               "5.1.1":  "Member tergeted doesn't exist",
