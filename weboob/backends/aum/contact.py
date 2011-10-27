@@ -148,6 +148,7 @@ class Contact(_Contact):
                                     ('location',            FieldStr('city')),
                                     ('distance',            FieldDist('dist')),
                                     ('country',             FieldStr('country')),
+                                    ('phone',               FieldStr('phone')),
                                     ('eyes',                FieldList('eyes')),
                                     ('hair_color',          FieldList('hair_color')),
                                     ('hair_size',           FieldList('hair_size')),
