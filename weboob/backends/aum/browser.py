@@ -79,6 +79,14 @@ class AuMBrowser(BaseBrowser):
     def id2url(self, id):
         return 'http://www.adopteunmec.com/%s' % id
 
+    def url2id(func):
+        def inner(self, id, *args, **kwargs):
+            m = re.match('^http://.*adopteunmec.com.*/(\d+)$', id)
+            if m:
+                id = int(m.group(1))
+            return func(self, id, *args, **kwargs)
+        return inner
+
     def api_request(self, command, action, parameter='', data=None, nologin=False):
         if data is None:
             # Always do POST requests.
@@ -233,11 +241,13 @@ class AuMBrowser(BaseBrowser):
         return r['result']['threads']
 
     @check_login
+    @url2id
     def get_thread_mails(self, id, count=30):
         r = self.api_request('message', 'thread', data={'memberId': id, 'count': count})
         return r['result']['thread']
 
     @check_login
+    @url2id
     def post_mail(self, id, content):
         new_content = u''
         for c in content:
@@ -254,11 +264,13 @@ class AuMBrowser(BaseBrowser):
             raise CantSendMessage(unicode(e))
 
     @check_login
+    @url2id
     def delete_thread(self, id):
         r = self.api_request('message', 'delete', data={'id_user': id})
         self.logger.debug('Thread deleted: %r' % r)
 
     @check_login
+    @url2id
     def send_charm(self, id):
         try:
             self.api_request('member', 'addBasket', data={'id': id})
@@ -268,6 +280,7 @@ class AuMBrowser(BaseBrowser):
             return True
 
     @check_login
+    @url2id
     def add_basket(self, id):
         try:
             self.api_request('member', 'addBasket', data={'id': id})
@@ -276,13 +289,16 @@ class AuMBrowser(BaseBrowser):
         else:
             return True
 
+    @url2id
     def deblock(self, id):
         self.readurl('http://www.adopteunmec.com/fajax_postMessage.php?action=deblock&to=%s' % id)
         return True
 
+    @url2id
     def report_fake(self, id):
         return self.readurl('http://www.adopteunmec.com/fake.php', 'id=%s' % id)
 
+    @url2id
     def rate(self, id, what, rating):
         result = self.openurl('http://www.adopteunmec.com/fajax_vote.php', 'member=%s&what=%s&rating=%s' % (id, what, rating)).read()
         return float(result)
@@ -297,6 +313,7 @@ class AuMBrowser(BaseBrowser):
         ids = [s['id'] for s in r['result']['search']]
         return set(ids)
 
+    @url2id
     def get_profile(self, id, with_pics=True):
         r = self.api_request('member', 'view', data={'id': id})
         profile = r['result']['member']
