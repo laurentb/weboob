@@ -81,7 +81,7 @@ class AuMBrowser(BaseBrowser):
 
     def url2id(func):
         def inner(self, id, *args, **kwargs):
-            m = re.match('^http://.*adopteunmec.com.*/(\d+)$', id)
+            m = re.match('^http://.*adopteunmec.com.*/(\d+)$', str(id))
             if m:
                 id = int(m.group(1))
             return func(self, id, *args, **kwargs)
