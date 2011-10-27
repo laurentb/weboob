@@ -39,8 +39,6 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if profile['pseudo'] == '':
             return False
-        if len(profile['about1'].strip()) > 30 and profile['about1'].strip() == profile['about2'].strip():
-            return False
         if profile['about1'].startswith('salut! je te donne mon msn'):
             return False
         if profile['about2'].startswith('cam to cam'):
@@ -53,6 +51,8 @@ class AntiSpam(object):
             if ipaddr.startswith('41.202.'):
                 return False
             if ipaddr.startswith('41.250.'):
+                return False
+            if ipaddr.startswith('41.251.'):
                 return False
             if ipaddr.startswith('41.141.'):
                 return False
