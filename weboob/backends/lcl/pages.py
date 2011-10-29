@@ -24,6 +24,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.virtkeyboard import VirtKeyboard, VirtKeyboardError
 from logging import error
+import tempfile
 
 class LoginPage(BasePage):
     def myXOR(self,value,seed):
@@ -63,7 +64,7 @@ class LoginPage(BasePage):
 
         for s in symbols.keys():
             try:
-                value=vk.get_symbol_code(symbols[s])
+                vk.get_symbol_code(symbols[s])
             except VirtKeyboardError:
                 if self.browser.responses_dirname is None:
                     self.browser.responses_dirname = \
