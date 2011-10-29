@@ -33,7 +33,7 @@ class LCLBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'https://particuliers.secure.lcl.fr/index.html':   LoginPage,
+        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=PAGEIDENT': LoginPage,
         'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginResultPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
@@ -55,7 +55,8 @@ class LCLBrowser(BaseBrowser):
         assert self.agency.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('%s://%s/index.html' % (self.PROTOCOL, self.DOMAIN),\
+            self.location('%s://%s/everest/UWBI/UWBIAccueil?DEST=PAGEIDENT' \
+                          % (self.PROTOCOL, self.DOMAIN),
                           no_login=True)
 
         if not self.page.login(self.agency, self.username, self.password) or \
