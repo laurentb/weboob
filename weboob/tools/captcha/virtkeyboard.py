@@ -101,6 +101,16 @@ class VirtKeyboard(object):
                 return i
         raise VirtKeyboardError('Symbol not found')
 
+    def check_symbols(self,symbols,dirname):
+        # symbols: dictionary <symbol>:<md5 value>
+        for s in symbols.keys():
+            try:
+                self.get_symbol_code(symbols[s])
+            except VirtKeyboardError:
+                self.generate_MD5(dirname)
+                raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s"\
+                                        % (s,dirname))
+
     def generate_MD5(self,dir):
         for i in self.coords.keys():
             width=self.coords[i][2]-self.coords[i][0]+1
