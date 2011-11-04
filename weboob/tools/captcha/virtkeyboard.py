@@ -122,3 +122,19 @@ class VirtKeyboard(object):
                     matrix[x,y]=self.pixar[self.coords[i][0]+x,self.coords[i][1]+y]
             img.save(dir+"/"+self.md5[i]+".png")
 
+class MappedVirtKeyboard(VirtKeyboard):
+    def __init__(self,file,document,img_element,color):
+        map_id=img_element.attrib.get("usemap")[1:]
+        map=document.find("//map[@id='"+map_id+"']")
+        if map is None:
+            map=document.find("//map[@name='"+map_id+"']")
+
+        coords={}
+        for area in map.getiterator("area"):
+            code=area.attrib.get("onclick")
+            area_coords=[]
+            for coord in area.attrib.get("coords").split(','):
+                area_coords.append(int(coord))
+            coords[code]=tuple(area_coords)
+
+        VirtKeyboard.__init__(self,file,coords,color)
