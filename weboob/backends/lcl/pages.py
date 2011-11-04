@@ -41,13 +41,16 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
 
     url="/UWBI/UWBIAccueil?DEST=GENERATION_CLAVIER"
 
-    def __init__(self,browser,document,color):
-        img=document.find("//img[@id='idImageClavier']")
-        MappedVirtKeyboard.__init__(self,browser.openurl(self.url),document,img,color)
-        if browser.responses_dirname is None:
-            browser.responses_dirname = \
+    color=(255,255,255,255)
+
+    def __init__(self,basepage):
+        img=basepage.document.find("//img[@id='idImageClavier']")
+        MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),
+                                    basepage.document,img,self.color)
+        if basepage.browser.responses_dirname is None:
+            basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
-        self.check_symbols(self.symbols,browser.responses_dirname)
+        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):
         code=MappedVirtKeyboard.get_symbol_code(self,md5sum)
@@ -69,7 +72,7 @@ class LoginPage(BasePage):
 
     def login(self, agency, login, passwd):
         try:
-            vk=LCLVirtKeyboard(self.browser,self.document,(255,255,255,255))
+            vk=LCLVirtKeyboard(self)
         except VirtKeyboardError,err:
             error("Error: %s"%err)
             return False
