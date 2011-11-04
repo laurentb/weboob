@@ -27,26 +27,31 @@ class VirtKeyboardError(Exception):
 
 
 class VirtKeyboard(object):
-    def __init__(self, file,coords,color=None):
+    def __init__(self, file,coords,color):
         # file: virtual keyboard image
         # coords: dictionary <value to return>:<tuple(x1,y1,x2,y2)>
         # color: color of the symbols in the image
         #        depending on the image, it can be a single value or a tuple
-        self.color=color
         img=Image.open(file)
+
         self.bands=img.getbands()
+        if isinstance(color,int) and not isinstance(self.bands,str) and len(self.bands)!=1:
+            raise VirtKeyboardError("Color requires %i component but only 1 is provided" \
+                                    % len(self.bands))
+        if not isinstance(color, int) and len(color)!=len(self.bands):
+            raise VirtKeyboardError("Color requires %i components but %i are provided" \
+                                    % (len(self.bands),len(color)))
+        self.color=color
+
         (self.width,self.height)=img.size
         self.pixar=img.load()
         self.coords={}
         self.md5={}
         for i in coords.keys():
-            if self.color is None:
-                self.coords[i]=coords[i]
-            else:
-                coord=self.get_symbol_coords(coords[i])
-                if coord==(-1,-1,-1,-1):
-                    continue
-                self.coords[i]=coord
+            coord=self.get_symbol_coords(coords[i])
+            if coord==(-1,-1,-1,-1):
+                continue
+            self.coords[i]=coord
             self.md5[i]=self.checksum(self.coords[i])
 
     def get_symbol_coords(self,(x1,y1,x2,y2)):
