@@ -22,7 +22,7 @@ from datetime import date
 from weboob.capabilities.bank import Operation
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.virtkeyboard import VirtKeyboard, VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 from logging import error
 import tempfile
 

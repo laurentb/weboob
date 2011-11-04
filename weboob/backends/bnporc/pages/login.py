@@ -23,7 +23,7 @@ import urllib
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.virtkeyboard import VirtKeyboard,VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
 import tempfile
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
