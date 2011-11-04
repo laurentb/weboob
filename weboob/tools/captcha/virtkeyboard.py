@@ -67,9 +67,8 @@ class VirtKeyboard(object):
                         break;
                     else:
                         break
-            if newY1!=-1 and empty_line:
-                newY2=y-1
-                break
+            if newY1!=-1 and not empty_line:
+                newY2=y
         newX1=-1
         newX2=-1
         for x in range(x1,min(x2+1,self.width)):
@@ -82,9 +81,8 @@ class VirtKeyboard(object):
                         break
                     else:
                         break
-            if newX1!=-1 and empty_column:
-                newX2=x-1
-                break
+            if newX1!=-1 and not empty_column:
+                newX2=x
         return (newX1,newY1,newX2,newY2)
 
     def checksum(self,(x1,y1,x2,y2)):

@@ -46,8 +46,8 @@ class LoginPage(BasePage):
                  '4':'2359eea8671bf112b58264bec0294f71',
                  '5':'82b55b63480114f04fad8c5c4fa5673a',
                  '6':'e074864faeaeabb3be3d118192cd8879',
-                 '7':'753468d88d4810206a6f0ab9c6ef1b16',
-                 '8':'9cc4789a2cb223e8f2d5e676e90264b5',
+                 '7':'af5740e4ca71fadc6f4ae1412d864a1c',
+                 '8':'cab759c574038ad89a0e35cc76ab7214',
                  '9':'828cf0faf86ac78e7f43208907620527'
                 }
 
@@ -105,8 +105,8 @@ class ChangePasswordPage(BasePage):
                  '4':'2359eea8671bf112b58264bec0294f71',
                  '5':'82b55b63480114f04fad8c5c4fa5673a',
                  '6':'e074864faeaeabb3be3d118192cd8879',
-                 '7':'753468d88d4810206a6f0ab9c6ef1b16',
-                 '8':'9cc4789a2cb223e8f2d5e676e90264b5',
+                 '7':'af5740e4ca71fadc6f4ae1412d864a1c',
+                 '8':'cab759c574038ad89a0e35cc76ab7214',
                  '9':'828cf0faf86ac78e7f43208907620527'
                 }
 
