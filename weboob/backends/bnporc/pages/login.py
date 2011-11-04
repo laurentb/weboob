@@ -43,13 +43,15 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
 
     url="/NSImgGrille"
 
-    def __init__(self,browser,document,color):
-        img=document.find("//img[@usemap='#MapGril']")
-        MappedVirtKeyboard.__init__(self,browser.openurl(self.url),document,img,color)
-        if browser.responses_dirname is None:
-            browser.responses_dirname = \
+    color=27
+
+    def __init__(self,basepage):
+        img=basepage.document.find("//img[@usemap='#MapGril']")
+        MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),basepage.document,img,self.color)
+        if basepage.browser.responses_dirname is None:
+            basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
-        self.check_symbols(self.symbols,browser.responses_dirname)
+        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):
         code=MappedVirtKeyboard.get_symbol_code(self,md5sum)
@@ -74,7 +76,7 @@ class LoginPage(BasePage):
 
     def login(self, login, password):
         try:
-            vk=BNPVirtKeyboard(self.browser,self.document,27)
+            vk=BNPVirtKeyboard(self)
         except VirtKeyboardError,err:
             error("Error: %s"%err)
             return False
@@ -96,7 +98,7 @@ class ConfirmPage(BasePage):
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):
         try:
-            vk=BNPVirtKeyboard(self.browser,self.document,27)
+            vk=BNPVirtKeyboard(self)
         except VirtKeyboardError,err:
             error("Error: %s"%err)
             return False
