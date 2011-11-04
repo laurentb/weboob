@@ -23,10 +23,44 @@ import urllib
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard,VirtKeyboardError
 import tempfile
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
+
+class BNPVirtKeyboard(MappedVirtKeyboard):
+    symbols={'0':'9cc4789a2cb223e8f2d5e676e90264b5',
+             '1':'e10b58fc085f9683052d5a63c96fc912',
+             '2':'04ec647e7b3414bcc069f0c54eb55a4c',
+             '3':'fde84fd9bac725db8463554448f1e469',
+             '4':'2359eea8671bf112b58264bec0294f71',
+             '5':'82b55b63480114f04fad8c5c4fa5673a',
+             '6':'e074864faeaeabb3be3d118192cd8879',
+             '7':'af5740e4ca71fadc6f4ae1412d864a1c',
+             '8':'cab759c574038ad89a0e35cc76ab7214',
+             '9':'828cf0faf86ac78e7f43208907620527'
+            }
+
+    url="/NSImgGrille"
+
+    def __init__(self,browser,document,color):
+        img=document.find("//img[@usemap='#MapGril']")
+        MappedVirtKeyboard.__init__(self,browser.openurl(self.url),document,img,color)
+        if browser.responses_dirname is None:
+            browser.responses_dirname = \
+                    tempfile.mkdtemp(prefix='weboob_session_')
+        self.check_symbols(self.symbols,browser.responses_dirname)
+
+    def get_symbol_code(self,md5sum):
+        code=MappedVirtKeyboard.get_symbol_code(self,md5sum)
+        return code[-4:-2]
+
+    def get_string_code(self,string):
+        code=''
+        for c in string:
+            code+=self.get_symbol_code(self.symbols[c])
+        return code
+
 
 
 class LoginPage(BasePage):
@@ -39,45 +73,11 @@ class LoginPage(BasePage):
                 raise BrowserUnavailable(msg)
 
     def login(self, login, password):
-        symbols={'0':'9cc4789a2cb223e8f2d5e676e90264b5',
-                 '1':'e10b58fc085f9683052d5a63c96fc912',
-                 '2':'04ec647e7b3414bcc069f0c54eb55a4c',
-                 '3':'fde84fd9bac725db8463554448f1e469',
-                 '4':'2359eea8671bf112b58264bec0294f71',
-                 '5':'82b55b63480114f04fad8c5c4fa5673a',
-                 '6':'e074864faeaeabb3be3d118192cd8879',
-                 '7':'af5740e4ca71fadc6f4ae1412d864a1c',
-                 '8':'cab759c574038ad89a0e35cc76ab7214',
-                 '9':'828cf0faf86ac78e7f43208907620527'
-                }
-
-        map=self.document.find("//map[@name='MapGril']")
-
-        coords={}
-        for area in map.getiterator("area"):
-            code=area.attrib.get("onclick")[-4:-2]
-            area_coords=[]
-            for coord in area.attrib.get("coords").split(","):
-                area_coords.append(int(coord))
-            coords[code]=tuple(area_coords)
-
         try:
-            vk=VirtKeyboard(self.browser.openurl("/NSImgGrille"),coords,27)
+            vk=BNPVirtKeyboard(self.browser,self.document,27)
         except VirtKeyboardError,err:
-            error("Error: %s" % err)
+            error("Error: %s"%err)
             return False
-
-        for s in symbols.keys():
-            try:
-                vk.get_symbol_code(symbols[s])
-            except VirtKeyboardError:
-                if self.browser.responses_dirname is None:
-                    self.browser.responses_dirname = \
-                            tempfile.mkdtemp(prefix='weboob_session_')
-                vk.generate_MD5(self.browser.responses_dirname)
-                error("Error: Symbol '%s' not found; all symbol hashes are available in %s" \
-                      % (s,self.browser.responses_dirname))
-                return False
 
         self.browser.select_form('logincanalnet')
         # HACK because of fucking malformed HTML, the field isn't recognized by mechanize.
@@ -85,10 +85,7 @@ class LoginPage(BasePage):
         self.browser.set_all_readonly(False)
 
         self.browser['ch1'] = login
-        passwd=''
-        for c in password:
-            passwd+=vk.get_symbol_code(symbols[c])
-        self.browser['ch5'] = passwd
+        self.browser['ch5'] = vk.get_string_code(password)
         self.browser.submit()
 
 
@@ -98,53 +95,14 @@ class ConfirmPage(BasePage):
 
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):
-        symbols={'0':'9cc4789a2cb223e8f2d5e676e90264b5',
-                 '1':'e10b58fc085f9683052d5a63c96fc912',
-                 '2':'04ec647e7b3414bcc069f0c54eb55a4c',
-                 '3':'fde84fd9bac725db8463554448f1e469',
-                 '4':'2359eea8671bf112b58264bec0294f71',
-                 '5':'82b55b63480114f04fad8c5c4fa5673a',
-                 '6':'e074864faeaeabb3be3d118192cd8879',
-                 '7':'af5740e4ca71fadc6f4ae1412d864a1c',
-                 '8':'cab759c574038ad89a0e35cc76ab7214',
-                 '9':'828cf0faf86ac78e7f43208907620527'
-                }
-
-        map=self.document.find("//map[@name='MapGril']")
-
-        coords={}
-        for area in map.getiterator("area"):
-            code=area.attrib.get("onclick")[-4:-2]
-            area_coords=[]
-            for coord in area.attrib.get("coords").split(","):
-                area_coords.append(int(coord))
-            coords[code]=tuple(area_coords)
-
         try:
-            vk=VirtKeyboard(self.browser.openurl("/NSImgGrille"),coords,27)
+            vk=BNPVirtKeyboard(self.browser,self.document,27)
         except VirtKeyboardError,err:
-            error("Error: %s" % err)
+            error("Error: %s"%err)
             return False
 
-        for s in symbols.keys():
-            try:
-                vk.get_symbol_code(symbols[s])
-            except VirtKeyboardError:
-                if self.browser.responses_dirname is None:
-                    self.browser.responses_dirname = \
-                            tempfile.mkdtemp(prefix='weboob_session_')
-                vk.generate_MD5(self.browser.responses_dirname)
-                error("Error: Symbol '%s' not found; all symbol hashes are available in %s" \
-                      % (s,self.browser.responses_dirname))
-                return False
-
-        code_current=''
-        for c in current:
-            code_current+=vk.get_symbol_code(symbols[c])
-
-        code_new=''
-        for c in new:
-            code_new+=vk.get_symbol_code(symbols[c])
+        code_current=vk.get_string_code(current)
+        code_new=vk.get_string_code(new)
 
         data = {'ch1': code_current,
                 'ch2': code_new,
