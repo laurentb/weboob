@@ -156,6 +156,7 @@ class Contact(_Contact):
                                     ('weight',              FieldList('weight')),
                                     ('BMI',                 FieldBMI('size', 'weight')),
                                     ('fat',                 FieldBMI('size', 'weight', fat=True)),
+                                    ('shape',               FieldList('shape')),
                                     ('origins',             FieldList('origins')),
                                     ('signs',               FieldFlags('checks1')),
                                     ('job',                 FieldStr('job')),
