@@ -62,9 +62,11 @@ class AntiSpam(object):
                 return False
             if ipaddr.startswith('41.86.'):
                 return False
+            if ipaddr.startswith('196.47.'):
+                return False
             if re.match('105\.13\d.*', ipaddr):
                 return False
-            if ipaddr in ('62.157.186.18', '198.36.222.8', '212.234.67.61', '203.193.158.210', '41.189.34.180', '41.66.12.36', '196.47.137.21', '213.136.125.122'):
+            if ipaddr in ('62.157.186.18', '198.36.222.8', '212.234.67.61', '203.193.158.210', '41.189.34.180', '41.66.12.36', '196.47.137.21', '213.136.125.122', '41.191.87.188'):
                 return False
         return True
 
@@ -106,6 +108,12 @@ class AntiSpam(object):
             if ipaddr.endswith('.cba.embratel.net.br'):
                 return False
             if ipaddr.endswith('.idstelcom.com'):
+                return False
+            if ipaddr.endswith('proxy.chg-support.com'):
+                return False
+            if ipaddr.endswith('.sprintsvc.net'):
+                return False
+            if ipaddr.endswith('.relakks.com'):
                 return False
         return True
 
