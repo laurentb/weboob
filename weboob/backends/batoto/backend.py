@@ -29,6 +29,6 @@ class BatotoBackend(GenericComicReaderBackend):
         img_src_xpath="//img[@id='comic_page']/@src",
         page_list_xpath="(//select[@id='page_select'])[1]/option/@value")
     ID_REGEXP = r'[^/]+/[^/]+'
-    URL_REGEXP = r'.+batoto.com/read/_/(%s).+' % ID_REGEXP
-    ID_TO_URL = 'http://www.batoto.com/read/_/%s'
+    URL_REGEXP = r'.+batoto.(?:com|net)/read/_/(%s).+' % ID_REGEXP
+    ID_TO_URL = 'http://www.batoto.net/read/_/%s'
     PAGES = { URL_REGEXP: DisplayPage }
