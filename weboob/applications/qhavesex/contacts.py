@@ -279,6 +279,9 @@ class ContactProfile(QWidget):
             logging.warning('Not supported value: %r' % node.value)
             return
 
+        if isinstance(value, QLabel):
+            value.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.TextSelectableByKeyboard|Qt.LinksAccessibleByMouse)
+
         # Insert the value widget into the parent widget, depending
         # of its type.
         if isinstance(widget, QTabWidget):
