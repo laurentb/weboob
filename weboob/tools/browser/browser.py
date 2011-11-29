@@ -438,8 +438,9 @@ class BaseBrowser(StandardBrowser):
         """
         Submit the selected form.
         """
+        nologin = kwargs.pop('nologin', False)
         try:
-            self._change_location(mechanize.Browser.submit(self, *args, **kwargs))
+            self._change_location(mechanize.Browser.submit(self, *args, **kwargs), no_login=nologin)
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             self.page = None
             raise self.get_exception(e)(e)
