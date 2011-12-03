@@ -71,6 +71,15 @@ class FieldPopu(FieldBase):
     def get_value(self, profile, consts):
         return unicode(profile['popu'][self.key])
 
+class FieldPopuRatio(FieldBase):
+    def get_value(self, profile, consts):
+        v1 = float(profile['popu'][self.key])
+        v2 = float(profile['popu'][self.key2])
+        if v2 == 0.0:
+            return 'NaN'
+        else:
+            return '%.2f' % (v1 / v2)
+
 class FieldOld(FieldBase):
     def get_value(self, profile, consts):
         birthday = parse_dt(profile[self.key])
@@ -140,6 +149,7 @@ class Contact(_Contact):
                                     ('invits',              FieldPopu('invits')),
                                     ('bonus',               FieldPopu('bonus')),
                                     ('score',               FieldPopu('popu')),
+                                    ('ratio',               FieldPopuRatio('mails', 'flashs')),
                                   ))),
                  ('details',      OrderedDict((
                                     ('old',                 FieldOld('birthday')),
