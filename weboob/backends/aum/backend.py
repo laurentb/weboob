@@ -206,8 +206,8 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     flags |= Message.IS_ACCUSED
 
             signature = u''
-            #if mail['src']:
-            #    signature += u'Sent from my %s\n\n' % mail['src']
+            if mail.get('src', None):
+                signature += u'Sent from my %s\n\n' % mail['src']
             if mail['id_from'] in contacts:
                 signature += contacts[mail['id_from']].get_text()
 

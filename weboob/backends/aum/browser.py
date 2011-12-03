@@ -77,13 +77,17 @@ class AuMBrowser(BaseBrowser):
     my_coords = (0,0)
 
     def id2url(self, id):
-        return 'http://www.adopteunmec.com/%s' % id
+        return 'http://www.adopteunmec.com/index.php/profile/%s' % id
 
     def url2id(func):
         def inner(self, id, *args, **kwargs):
             m = re.match('^http://.*adopteunmec.com.*/(\d+)$', str(id))
             if m:
                 id = int(m.group(1))
+            else:
+                m = re.match('^http://.*adopteunmec.com/index.php/profile/(\d+).*', str(id))
+                if m:
+                    id = int(m.group(1))
             return func(self, id, *args, **kwargs)
         return inner
 

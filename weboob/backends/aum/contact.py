@@ -63,7 +63,7 @@ class FieldProfileURL(FieldBase):
     def get_value(self, profile, consts):
         id = int(profile[self.key])
         if id > 0:
-            return 'http://www.adopteunmec.com/%d' % id
+            return 'http://www.adopteunmec.com/index.php/profile/%d' % id
         else:
             return ''
 
