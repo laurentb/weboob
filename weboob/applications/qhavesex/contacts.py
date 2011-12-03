@@ -35,6 +35,7 @@ from .ui.contacts_ui import Ui_Contacts
 from .ui.contact_thread_ui import Ui_ContactThread
 from .ui.thread_message_ui import Ui_ThreadMessage
 from .ui.profile_ui import Ui_Profile
+from .ui.notes_ui import Ui_Notes
 
 class ThreadMessage(QFrame):
     """
@@ -194,6 +195,9 @@ class ContactThread(QWidget):
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.process_reply = None
+        
+
+
 
 class ContactProfile(QWidget):
 
@@ -334,6 +338,54 @@ class ContactProfile(QWidget):
                 text += '<br /><font color=#ff0000><i>(Hidden photo)</i></font>'
             self.ui.photoUrlLabel.setText(text)
 
+class ContactNotes(QWidget):
+    """ Widget for storing notes about a contact """
+
+    def __init__(self, weboob, contact, parent=None):
+      QWidget.__init__(self, parent)
+      self.ui = Ui_Notes()
+      self.ui.setupUi(self)
+      
+      self.weboob = weboob
+      self.contact = contact
+      
+      self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb)
+      self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
+      
+      self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
+      
+
+    def _getNotes_cb(self, backend, data):
+        if not backend:
+            self.process = None
+            return
+           
+        self.ui.textEdit.setText(data)
+        
+        
+    def _getNotes_eb(self, backend, error, backtrace):
+        content = unicode(self.tr('Unable to load notes:\n%s\n')) % to_unicode(error)
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % to_unicode(backtrace)
+            QMessageBox.critical(self, self.tr('Error while loading notes'),
+            content, QMessageBox.Ok)
+        
+    def saveNotes(self):
+        text = unicode(self.ui.textEdit.toPlainText())
+        
+        self.process = QtDo(self.weboob, self._saveNotes_cb, self._saveNotes_eb)
+        self.process.do('save_notes', self.contact.id, text, backends=(self.contact.backend,))
+        
+    def _saveNotes_cb(self, backend, data):
+        pass
+    
+    def _saveNotes_eb(self, backend, error, backtrace):
+        content = unicode(self.tr('Unable to save notes:\n%s\n')) % to_unicode(error)
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % to_unicode(backtrace)
+            QMessageBox.critical(self, self.tr('Error while saving notes'),
+            content, QMessageBox.Ok)            
+            
 class IGroup(object):
     def __init__(self, weboob, id, name):
         self.id = id
@@ -490,7 +542,7 @@ class ContactsWidget(QWidget):
         if backend.has_caps(ICapChat):
             self.ui.tabWidget.addTab(QWidget(), self.tr('Chat'))
         self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Notes'))
+        self.ui.tabWidget.addTab(ContactNotes(self.weboob, self.contact), self.tr('Notes'))
 
     def urlClicked(self):
         url = unicode(self.ui.urlEdit.text())
@@ -520,3 +572,5 @@ class ContactsWidget(QWidget):
             content += u'\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while getting contact'),
                              content, QMessageBox.Ok)
+
+
