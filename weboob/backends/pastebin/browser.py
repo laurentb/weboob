@@ -23,7 +23,7 @@ from weboob.tools.browser.decorators import id2url, check_url
 
 from weboob.capabilities.paste import PasteNotFound
 
-from .pages import PastePage, PostPage
+from .pages import PastePage, PostPage, UserPage
 from .paste import PastebinPaste
 
 import urllib
@@ -41,6 +41,7 @@ class PastebinBrowser(BaseBrowser):
     PASTE_URL = 'http://%s/(?P<id>\w+)' % DOMAIN
     API_URL = 'http://%s/api/api_post.php' % DOMAIN
     PAGES = {PASTE_URL: PastePage,
+            'http://%s/u/(?P<username>.+)' % DOMAIN: UserPage,
             'http://%s/' % DOMAIN: PostPage}
 
     def __init__(self, api_key, *args, **kwargs):
