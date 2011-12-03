@@ -94,7 +94,10 @@ class VideoPage(BasePage):
 
         video.title = self.parser.select(div, 'span.title', 1).text
         video.author = self.parser.select(div, 'a.name', 1).text
-        video.description = self.parser.select(div, 'div#video_description', 1).text
+        try:
+            video.description = self.parser.select(div, 'div#video_description', 1).text
+        except BrokenPageError:
+            video.description = u''
         for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):
             if 'id' in script.attrib and script.attrib['id'].startswith('container_player_'):
                 text = script.find('script').text
