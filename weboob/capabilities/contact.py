@@ -129,3 +129,21 @@ class ICapContact(IBaseCap):
         @except QueryError
         """
         raise NotImplementedError()
+      
+    def get_notes(self, id):
+        """
+        Get personal notes about a contact
+      
+        @param id the ID of the contact
+        @return a unicode object
+        """
+        raise NotImplementedError
+        
+    def save_notes(self, id, notes):
+        """
+        Set personal notes about a contact
+        
+        @param id the ID of the contact
+        @param notes the unicode object to save as notes
+        """
+        raise NotImplementedError

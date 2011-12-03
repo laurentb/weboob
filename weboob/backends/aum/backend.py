@@ -69,6 +69,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     STORAGE = {'profiles_walker': {'viewed': []},
                'queries_queue': {'queue': []},
                'sluts': {},
+               'notes': {},
               }
     BROWSER = AuMBrowser
 
@@ -437,6 +438,21 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 if not self.browser.send_charm(id):
                     raise QueryError('No enough charms available')
                 return Query(id, 'A charm has been sent')
+    
+    def get_notes(self, id):
+        if isinstance(id, Contact):
+            id = id.id
+    
+        return self.storage.get('notes', id)
+    
+    def save_notes(self, id, notes):
+        if isinstance(id, Contact):
+            id = id.id
+        
+        self.storage.set('notes', id, notes)
+        self.storage.save()
+        
+        
 
     # ---- ICapChat methods ---------------------
 
