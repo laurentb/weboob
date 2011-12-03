@@ -543,7 +543,7 @@ class BaseBrowser(StandardBrowser):
         # Not found
         if not pageCls:
             self.page = None
-            self.logger.warning('Oh my fucking god, there isn\'t any page corresponding to URL %s' % result.geturl())
+            self.logger.warning('There isn\'t any page corresponding to URL %s' % result.geturl())
             self.save_response(result, warning=True)
             return
 
