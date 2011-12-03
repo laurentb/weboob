@@ -33,7 +33,7 @@ class MediawikiBackend(BaseBackend, ICapContent):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = 'clemux@clemux.info'
-    VERSION = '0.9'
+    VERSION = '0.9.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Mediawiki wiki software application'
     CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/'),

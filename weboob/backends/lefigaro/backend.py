@@ -27,7 +27,7 @@ class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
     "NewspaperFigaroBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.9'
+    VERSION = '0.9.1'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'lefigaro'
