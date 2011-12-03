@@ -281,7 +281,13 @@ class AuMBrowser(BaseBrowser):
             r = self.api_request('searchs', '[default]')
             self.search_query = r['result']['search']['query']
 
-        params = json.loads(self.search_query)
+        params = {}
+        for key, value in json.loads(self.search_query).iteritems():
+            if isinstance(value, dict):
+                for k, v in value.iteritems():
+                    params['%s%s' % (key, k.capitalize())] = v
+            else:
+                params[key] = value or ''
         r = self.api_request('searchs', 'advanced', '30,0', params)
         ids = [s['id'] for s in r['result']['search']]
         return set(ids)
