@@ -79,3 +79,6 @@ class PostPage(BasePastebinPage):
         if expiration:
             self.browser['paste_expire_date'] = [expiration]
         self.browser.submit()
+
+class UserPage(BasePastebinPage):
+    pass
