@@ -179,7 +179,6 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 else:
                     flags |= Message.IS_ACCUSED
 
-
             msg = Message(thread=thread,
                           id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
                           title=thread.title,

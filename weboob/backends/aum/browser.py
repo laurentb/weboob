@@ -76,7 +76,7 @@ class AuMBrowser(BaseBrowser):
     my_coords = (0,0)
 
     def id2url(self, id):
-        return 'http://www.adopteunmec.com/%s' % id
+        return 'http://www.adopteunmec.com/index.php/profile/%s' % id
 
     def api_request(self, command, action, parameter='', data=None, nologin=False):
         if data is None:
