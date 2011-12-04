@@ -133,7 +133,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             threads = self.browser.get_threads_list()
 
         for thread in threads:
-            if thread['member'].get('isBan', False):
+            if thread['member'].get('isBan', thread['member'].get('dead', False)):
                 with self.browser:
                     self.browser.delete_thread(thread['member']['id'])
                 continue
@@ -245,7 +245,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             with self.browser:
                 threads = self.browser.get_threads_list()
             for thread in threads:
-                if thread['member'].get('isBan', False):
+                if thread['member'].get('isBan', thread['member'].get('dead', False)):
                     with self.browser:
                         self.browser.delete_thread(int(thread['member']['id']))
                     continue
@@ -382,7 +382,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             return contact
 
     def _get_partial_contact(self, contact):
-        if contact.get('isBan', False):
+        if contact.get('isBan', contact.get('dead', False)):
             with self.browser:
                 self.browser.delete_thread(int(contact['id']))
             return None
