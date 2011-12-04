@@ -195,7 +195,7 @@ class ContactThread(QWidget):
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.process_reply = None
-        
+
 
 
 
@@ -342,50 +342,61 @@ class ContactNotes(QWidget):
     """ Widget for storing notes about a contact """
 
     def __init__(self, weboob, contact, parent=None):
-      QWidget.__init__(self, parent)
-      self.ui = Ui_Notes()
-      self.ui.setupUi(self)
-      
-      self.weboob = weboob
-      self.contact = contact
-      
-      self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb)
-      self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
-      
-      self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
-      
+        QWidget.__init__(self, parent)
+        self.ui = Ui_Notes()
+        self.ui.setupUi(self)
+
+        self.weboob = weboob
+        self.contact = contact
+
+        self.ui.textEdit.setEnabled(False)
+        self.ui.saveButton.setEnabled(False)
+        self.process = QtDo(self.weboob, self._getNotes_cb, self._getNotes_eb)
+        self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
+
+        self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
+
 
     def _getNotes_cb(self, backend, data):
-        if not backend:
+        if not backend or not data:
             self.process = None
+            self.ui.textEdit.setEnabled(True)
+            self.ui.saveButton.setEnabled(True)
             return
-           
+
         self.ui.textEdit.setText(data)
-        
-        
+
     def _getNotes_eb(self, backend, error, backtrace):
+        self.ui.textEdit.setEnabled(True)
+        self.ui.saveButton.setEnabled(True)
         content = unicode(self.tr('Unable to load notes:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while loading notes'),
             content, QMessageBox.Ok)
-        
+
     def saveNotes(self):
         text = unicode(self.ui.textEdit.toPlainText())
-        
+        self.ui.saveButton.setEnabled(False)
+        self.ui.textEdit.setEnabled(False)
+
         self.process = QtDo(self.weboob, self._saveNotes_cb, self._saveNotes_eb)
         self.process.do('save_notes', self.contact.id, text, backends=(self.contact.backend,))
-        
+
     def _saveNotes_cb(self, backend, data):
+        self.ui.saveButton.setEnabled(True)
+        self.ui.textEdit.setEnabled(True)
         pass
-    
+
     def _saveNotes_eb(self, backend, error, backtrace):
+        self.ui.saveButton.setEnabled(True)
+        self.ui.textEdit.setEnabled(True)
         content = unicode(self.tr('Unable to save notes:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
             QMessageBox.critical(self, self.tr('Error while saving notes'),
-            content, QMessageBox.Ok)            
-            
+            content, QMessageBox.Ok)
+
 class IGroup(object):
     def __init__(self, weboob, id, name):
         self.id = id
