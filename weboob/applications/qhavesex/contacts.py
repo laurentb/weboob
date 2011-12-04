@@ -551,8 +551,10 @@ class ContactsWidget(QWidget):
         if backend.has_caps(ICapMessages):
             self.ui.tabWidget.addTab(ContactThread(self.weboob, self.contact, backend.has_caps(ICapMessagesPost)), self.tr('Messages'))
         if backend.has_caps(ICapChat):
-            self.ui.tabWidget.addTab(QWidget(), self.tr('Chat'))
-        self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar'))
+            self.ui.tabWidget.setTabEnabled(self.ui.tabWidget.addTab(QWidget(), self.tr('Chat')),
+                                            False)
+        self.ui.tabWidget.setTabEnabled(self.ui.tabWidget.addTab(QWidget(), self.tr('Calendar')),
+                                        False)
         self.ui.tabWidget.addTab(ContactNotes(self.weboob, self.contact), self.tr('Notes'))
 
     def urlClicked(self):
