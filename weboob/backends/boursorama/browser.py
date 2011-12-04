@@ -25,7 +25,8 @@ from weboob.backends.boursorama import pages
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-__all__ = ['boursorama']
+
+__all__ = ['Boursorama']
 
 
 class Boursorama(BaseBrowser):

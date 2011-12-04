@@ -18,10 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from logging import error
-
-from weboob.tools.browser import BasePage, BrowserUnavailable
-from lxml import etree
+from weboob.tools.browser import BasePage
 
 
 __all__ = ['LoginPage']

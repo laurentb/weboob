@@ -363,7 +363,7 @@ class AuMBrowser(BaseBrowser):
                 url = '%simage1.jpg' % base_url
                 try:
                     self.openurl(url)
-                except BrowserHTTPNotFound, e:
+                except BrowserHTTPNotFound:
                     pass
                 else:
                     profile['pictures'].append({'url': url, u'hidden': True, 'id': u'0', 'rating': 0.0})
