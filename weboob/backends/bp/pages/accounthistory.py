@@ -39,7 +39,7 @@ class AccountHistory(BasePage):
             operation = Operation(len(operations))
             operation.date = mvt.xpath("./td/span")[0].text
             tmp = mvt.xpath("./td/span")[1]
-            operation.label = self.parser.tocleanstring(tmp)
+            operation.label = unicode(self.parser.tocleanstring(tmp))
 
             r = re.compile(r'\d+')
 
