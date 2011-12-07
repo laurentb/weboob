@@ -389,17 +389,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             return None
 
         s = 0
-        if contact['isOnline']:
+        if contact.get('isOnline', False):
             s = Contact.STATUS_ONLINE
         else:
             s = Contact.STATUS_OFFLINE
 
         c = Contact(contact['id'], contact['pseudo'], s)
         c.url = self.browser.id2url(contact['id'])
-        birthday = _parse_dt(contact['birthday'])
-        age = int((datetime.datetime.now() - birthday).days / 365.25)
-        c.status_msg = u'%s old, %s' % (age, contact['city'])
-        if int(contact['cover']) > 0:
+        if 'birthday' in contact:
+            birthday = _parse_dt(contact['birthday'])
+            age = int((datetime.datetime.now() - birthday).days / 365.25)
+            c.status_msg = u'%s old, %s' % (age, contact['city'])
+        if contact['cover'].isdigit() and int(contact['cover']) > 0:
             url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
         else:
             url = 'http://s.adopteunmec.com/www/img/thumb0.gif'
@@ -438,21 +439,19 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 if not self.browser.send_charm(id):
                     raise QueryError('No enough charms available')
                 return Query(id, 'A charm has been sent')
-    
+
     def get_notes(self, id):
         if isinstance(id, Contact):
             id = id.id
-    
+
         return self.storage.get('notes', id)
-    
+
     def save_notes(self, id, notes):
         if isinstance(id, Contact):
             id = id.id
-        
+
         self.storage.set('notes', id, notes)
         self.storage.save()
-        
-        
 
     # ---- ICapChat methods ---------------------
 

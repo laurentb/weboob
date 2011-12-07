@@ -200,20 +200,21 @@ class Contact(_Contact):
         ))
 
     def parse_profile(self, profile, consts):
-        if int(profile['cat']) == 1:
+        cat = int(profile.get('cat', 3))
+        if cat == 1:
             self.status = Contact.STATUS_ONLINE
             self.status_msg = u'online'
             self.status_msg = u'since %s' % profile['last_cnx']
-        elif int(profile['cat']) == 2:
+        elif cat == 2:
             self.status = Contact.STATUS_AWAY
             self.status_msg = u'away'
             self.status_msg = u'connection at %s' % profile['last_cnx']
-        elif int(profile['cat']) == 3:
+        elif cat == 3:
             self.status = Contact.STATUS_OFFLINE
             self.status_msg = u'last connection %s' % profile['last_cnx']
 
-        self.summary = html2text(profile['about1']).strip().replace('\n\n', '\n')
-        if len(profile['about2']) > 0:
+        self.summary = html2text(profile.get('about1', '')).strip().replace('\n\n', '\n')
+        if len(profile.get('about2', '')) > 0:
             self.summary += u'\n\nLooking for:\n%s' % html2text(profile['about2']).strip().replace('\n\n', '\n')
 
         for photo in profile['pictures']:
@@ -223,18 +224,19 @@ class Contact(_Contact):
                               hidden=photo['hidden'])
         self.profile = OrderedDict()
 
-        for section, d in self.TABLE.iteritems():
-            flags = ProfileNode.SECTION
-            if section.startswith('_'):
-                flags |= ProfileNode.HEAD
-                section = section.lstrip('_')
-            s = ProfileNode(section, section.capitalize(), OrderedDict(), flags=flags)
+        if 'sex' in profile:
+            for section, d in self.TABLE.iteritems():
+                flags = ProfileNode.SECTION
+                if section.startswith('_'):
+                    flags |= ProfileNode.HEAD
+                    section = section.lstrip('_')
+                s = ProfileNode(section, section.capitalize(), OrderedDict(), flags=flags)
 
-            for key, builder in d.iteritems():
-                value = builder.get_value(profile, consts[int(profile['sex'])])
-                s.value[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
+                for key, builder in d.iteritems():
+                    value = builder.get_value(profile, consts[int(profile['sex'])])
+                    s.value[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
 
-            self.profile[section] = s
+                self.profile[section] = s
 
         self.aum_profile = profile
 

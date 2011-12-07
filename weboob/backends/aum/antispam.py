@@ -71,6 +71,9 @@ class AntiSpam(object):
         return True
 
     def check_contact(self, contact):
+        if contact.id == 1:
+            return True
+
         if not self.check_profile(contact.aum_profile):
             return False
 

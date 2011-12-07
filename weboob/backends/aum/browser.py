@@ -326,22 +326,26 @@ class AuMBrowser(BaseBrowser):
     @url2id
     def get_profile(self, id, with_pics=True):
         r = self.api_request('member', 'view', data={'id': id})
+        if not 'result' in r:
+            print r
         profile = r['result']['member']
 
 
         # Calculate distance in km.
-        coords = (float(profile['lat']), float(profile['lng']))
+        profile['dist'] = 0.0
+        if 'lat' in profile and 'lng' in profile:
+            coords = (float(profile['lat']), float(profile['lng']))
 
-        R = 6371
-        lat1 = math.radians(self.my_coords[0])
-        lat2 = math.radians(coords[0])
-        lon1 = math.radians(self.my_coords[1])
-        lon2 = math.radians(coords[1])
-        dLat = lat2 - lat1
-        dLong = lon2 - lon1
-        a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
-        c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-        profile['dist'] = R * c
+            R = 6371
+            lat1 = math.radians(self.my_coords[0])
+            lat2 = math.radians(coords[0])
+            lon1 = math.radians(self.my_coords[1])
+            lon2 = math.radians(coords[1])
+            dLat = lat2 - lat1
+            dLong = lon2 - lon1
+            a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
+            c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+            profile['dist'] = R * c
 
         if with_pics:
             r = self.api_request('member', 'pictures', data={'id': id})
@@ -354,7 +358,7 @@ class AuMBrowser(BaseBrowser):
             base_url = 'http://s%s.adopteunmec.com/%s' % (profile['shard'], profile['path'])
             if len(profile['pictures']) > 0:
                 pic_regex = re.compile('(?P<base_url>http://.+\.adopteunmec\.com/.+/)image(?P<id>.+)\.jpg')
-                pic_max_id = max(int(pic_regex.match(pic['url']).groupdict()['id']) for pic in profile['pictures'])
+                pic_max_id = max((int((lambda m: m and m.groupdict()['id'] or 0)(pic_regex.match(pic['url'])))) for pic in profile['pictures'])
                 for id in xrange(1, pic_max_id + 1):
                     url = u'%simage%s.jpg' % (base_url, id)
                     if not url in [pic['url'] for pic in profile['pictures']]:
