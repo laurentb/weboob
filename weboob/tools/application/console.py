@@ -30,6 +30,7 @@ from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
+from weboob.tools.misc import to_unicode
 
 from .base import BaseApplication
 
@@ -446,7 +447,7 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
             print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
         else:
-            print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
+            print >>sys.stderr, u'Error(%s): %s' % (backend.name, to_unicode(error))
             if logging.root.level == logging.DEBUG:
                 print >>sys.stderr, backtrace
             else:
