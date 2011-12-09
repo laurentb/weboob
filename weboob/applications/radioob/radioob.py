@@ -92,7 +92,7 @@ class Radioob(ReplApplication):
 
         radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
-            print >>sys.stderr, 'Radio not found: ' % _id
+            print >>sys.stderr, 'Radio not found:', _id
             return 1
         try:
             player_name = self.config.get('media_player')
