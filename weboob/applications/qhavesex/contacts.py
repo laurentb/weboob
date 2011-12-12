@@ -300,10 +300,14 @@ class ContactProfile(QWidget):
             logging.warning('Not supported widget: %r' % widget)
 
     def previousClicked(self):
+        if len(self.contact.photos) == 0:
+            return
         self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.contact.photos)
         self.display_photo()
 
     def nextClicked(self):
+        if len(self.contact.photos) == 0:
+            return
         self.displayed_photo_idx = (self.displayed_photo_idx + 1) % len(self.contact.photos)
         self.display_photo()
 

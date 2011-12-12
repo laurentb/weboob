@@ -230,7 +230,8 @@ class StandardBrowser(mechanize.Browser):
             else:
                 return None
         except (mechanize.BrowserStateError, BrowserRetry):
-            self.home()
+            if hasattr(self, 'home'):
+                self.home()
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def get_exception(self, e):
