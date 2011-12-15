@@ -47,6 +47,9 @@ class AntiSpam(object):
             return False
         if profile['about2'].endswith('mmmmmmmmmmmmmmmm'):
             return False
+        return True
+
+        # ipaddr is not available anymore.
         for ipaddr in (profile['last_ip'], profile['first_ip']):
             if ipaddr.startswith('41.202.'):
                 return False
@@ -77,6 +80,9 @@ class AntiSpam(object):
         if not self.check_profile(contact.aum_profile):
             return False
 
+        return True
+
+        # ipaddr is not available anymore.
         first_ip = contact.profile['info']['IPaddr'].value.split(' ')[0]
         last_ip = contact.profile['info']['IPaddr'].value.rstrip(')')
         for ipaddr in (first_ip, last_ip):

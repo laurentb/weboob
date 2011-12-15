@@ -135,7 +135,8 @@ class Contact(_Contact):
     TABLE = OrderedDict((
                  ('_info',        OrderedDict((
                                     ('title',               FieldStr('title')),
-                                    ('IPaddr',              FieldIP('last_ip', 'first_ip')),
+                                    # ipaddr is not available anymore.
+                                    #('IPaddr',              FieldIP('last_ip', 'first_ip')),
                                     ('admin',               FieldBool('admin')),
                                     ('ban',                 FieldBool('isBan')),
                                     ('first',               FieldStr('first_cnx')),
