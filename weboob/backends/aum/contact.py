@@ -125,7 +125,9 @@ class FieldList(FieldBase):
 class Contact(_Contact):
     TABLE = OrderedDict((
                  ('_info',        OrderedDict((
-                                    ('IPaddr',              FieldIP('last_ip', 'first_ip')),
+                                    ('title',               FieldStr('title')),
+                                    # ipaddr is not available anymore.
+                                    #('IPaddr',              FieldIP('last_ip', 'first_ip')),
                                     ('admin',               FieldBool('admin')),
                                     ('ban',                 FieldBool('isBan')),
                                     ('first',               FieldStr('first_cnx')),
