@@ -42,7 +42,7 @@ class LoginPage(BasePage):
                       '163279f1a46082408613d12394e4042a', 'b0a9c740c4cada01eb691b4acda4daea',
                       '3c4307ee92a1f3b571a3c542eafcb330', 'dbccecfa2206bfdb4ca891476404cc68']
 
-        process = lambda i: md5(self.browser.openurl(('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?imgid=%d&0.25122230781963073' % i))[0])
+        process = lambda i: md5(self.browser.openurl(('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?imgid=%d&0.25122230781963073' % i)))
         keypad = [process(i) for i in range(10)]
         correspondance = [keypad.index(i) for i in LOCAL_HASH]
         newpassword = ''.join(str(correspondance[int(c)]) for c in pwd)
