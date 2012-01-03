@@ -138,6 +138,10 @@ class BaseBackend(object):
     STORAGE = {}
     # Browser class
     BROWSER = None
+    # URL to an optional icon.
+    # If you want to create your own icon, create a 'favicon.ico' ico in
+    # the module's directory, and keep the ICON value to None.
+    ICON = None
     # Supported objects to fill
     # The key is the class and the value the method to call to fill
     # Method prototype: method(object, fields)
@@ -185,15 +189,6 @@ class BaseBackend(object):
                 return self.fget(inst)
             else:
                 return self.fget(objtype)
-
-    @classprop
-    def ICON(klass):
-        try:
-            import xdg.IconTheme
-        except ImportError:
-            getLogger(klass.NAME).debug(u'Python xdg module was not found. Please install it to read icon files.')
-        else:
-            return xdg.IconTheme.getIconPath(klass.NAME)
 
     _browser = None
 

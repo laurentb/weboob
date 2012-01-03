@@ -22,14 +22,14 @@
      <widget class="QWidget" name="horizontalLayoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QTreeWidget" name="configuredBackendsList">
+        <widget class="QTreeWidget" name="backendsList">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
          <property name="iconSize">
           <size>
-           <width>48</width>
-           <height>48</height>
+           <width>24</width>
+           <height>24</height>
           </size>
          </property>
          <property name="rootIsDecorated">
@@ -59,12 +59,6 @@
          <attribute name="headerHighlightSections">
           <bool>true</bool>
          </attribute>
-         <attribute name="headerCascadingSectionResizes">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="headerHighlightSections">
-          <bool>true</bool>
-         </attribute>
          <column>
           <property name="text">
            <string>Name</string>
@@ -72,7 +66,7 @@
          </column>
          <column>
           <property name="text">
-           <string>Backend</string>
+           <string>Module</string>
           </property>
          </column>
         </widget>
@@ -131,12 +125,12 @@
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Available backends</string>
+            <string>Available modules:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QListWidget" name="backendsList">
+          <widget class="QListWidget" name="modulesList">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -145,8 +139,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>32</width>
-             <height>32</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="spacing">
@@ -175,7 +169,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QTextEdit" name="backendInfo">
+           <widget class="QTextEdit" name="moduleInfo">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -192,13 +186,6 @@
             <property name="fieldGrowthPolicy">
              <enum>QFormLayout::ExpandingFieldsGrow</enum>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Name:</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QLineEdit" name="nameEdit"/>
             </item>
@@ -220,6 +207,13 @@
              <widget class="QPushButton" name="registerButton">
               <property name="text">
                <string>Register an account...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Name:</string>
               </property>
              </widget>
             </item>
@@ -252,11 +246,11 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>configuredBackendsList</tabstop>
+  <tabstop>backendsList</tabstop>
   <tabstop>addButton</tabstop>
   <tabstop>removeButton</tabstop>
-  <tabstop>backendsList</tabstop>
-  <tabstop>backendInfo</tabstop>
+  <tabstop>modulesList</tabstop>
+  <tabstop>moduleInfo</tabstop>
   <tabstop>nameEdit</tabstop>
   <tabstop>proxyBox</tabstop>
   <tabstop>proxyEdit</tabstop>

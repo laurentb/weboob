@@ -780,8 +780,8 @@ class Boobathon(ReplApplication):
             print "Ok, so leave now, fag."
             sys.exit(0)
 
-    def is_backend_loadable(self, backend):
+    def is_module_loadable(self, module):
         """
         Overload a ConsoleApplication method.
         """
-        return backend.name == 'redmine'
+        return module.name == 'redmine'

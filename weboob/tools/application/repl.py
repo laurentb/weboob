@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2012  Christophe Benz, Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -28,7 +28,6 @@ import sys
 
 from weboob.capabilities.base import FieldNotFound, CapBaseObject
 from weboob.core import CallErrors
-from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import Path
@@ -498,10 +497,8 @@ class ReplApplication(Cmd, ConsoleApplication):
             elif args[1] == 'disable':
                 choices = sorted(enabled_backends_names)
             elif args[1] in ('add', 'register') and len(args) == 3:
-                self.weboob.modules_loader.load_all()
-                for name, module in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                    if not self.CAPS or self.caps_included(module.iter_caps(), self.CAPS.__name__):
-                        choices.append(name)
+                for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.CAPS).iteritems()):
+                    choices.append(name)
             elif args[1] == 'edit':
                 choices = sorted(available_backends_names)
             elif args[1] == 'remove':
@@ -536,14 +533,13 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         for backend_name in given_backend_names:
             if action in ('add', 'register'):
-                try:
-                    module = self.weboob.modules_loader.get_or_load_module(backend_name)
-                except ModuleLoadError:
-                    print >>sys.stderr, 'Backend "%s" does not exist.' % backend_name
+                minfo = self.weboob.repositories.get_module_info(backend_name)
+                if minfo is None:
+                    print >>sys.stderr, 'Module "%s" does not exist.' % backend_name
                     return 1
                 else:
-                    if self.CAPS and not self.caps_included(module.iter_caps(), self.CAPS.__name__):
-                        print >>sys.stderr, 'Backend "%s" is not supported by this application => skipping.' % backend_name
+                    if not minfo.has_caps(self.CAPS):
+                        print >>sys.stderr, 'Module "%s" is not supported by this application => skipping.' % backend_name
                         return 1
             else:
                 if backend_name not in [backend.name for backend in self.weboob.iter_backends()]:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2012  Christophe Benz, Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -28,6 +28,7 @@ import locale
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
+from weboob.core.repositories import IProgress, ModuleInstallError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 from weboob.tools.misc import to_unicode
@@ -84,8 +85,8 @@ class ConsoleApplication(BaseApplication):
                 pass
         return unloaded
 
-    def is_backend_loadable(self, backend):
-        return self.CAPS is None or self.caps_included(backend.iter_caps(), self.CAPS.__name__)
+    def is_module_loadable(self, info):
+        return self.CAPS is None or info.has_caps(self.CAPS)
 
     def load_backends(self, *args, **kwargs):
         if 'errors' in kwargs:
@@ -118,15 +119,14 @@ class ConsoleApplication(BaseApplication):
         return True
 
     def prompt_create_backends(self, default_config=None):
-        self.weboob.modules_loader.load_all()
         r = ''
         while r != 'q':
-            backends = []
-            print '\nAvailable backends:'
-            for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-                if not self.is_backend_loadable(backend):
+            modules = []
+            print '\nAvailable modules:'
+            for name, info in sorted(self.weboob.repositories.get_all_modules_info().iteritems()):
+                if not self.is_module_loadable(info):
                     continue
-                backends.append(name)
+                modules.append(name)
                 loaded = ' '
                 for bi in self.weboob.iter_backends():
                     if bi.NAME == name:
@@ -136,17 +136,17 @@ class ConsoleApplication(BaseApplication):
                             loaded = 2
                         else:
                             loaded += 1
-                print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(backends), self.NC, loaded,
-                                                       self.BOLD, name, self.NC, backend.description)
+                print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(modules), self.NC, loaded,
+                                                       self.BOLD, name, self.NC, info.description)
             print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
-            r = self.ask('Select a backend to add (q to stop)', regexp='^(\d+|q)$')
+            r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q)$')
 
             if str(r).isdigit():
                 i = int(r) - 1
-                if i < 0 or i >= len(backends):
+                if i < 0 or i >= len(modules):
                     print >>sys.stderr, 'Error: %s is not a valid choice' % r
                     continue
-                name = backends[i]
+                name = modules[i]
                 try:
                     inst = self.add_backend(name, default_config)
                     if inst:
@@ -194,15 +194,6 @@ class ConsoleApplication(BaseApplication):
         if backend_name is not None and not backend_name in dict(backends):
             raise BackendNotFound(backend_name)
         return _id, backend_name
-
-    def caps_included(self, modcaps, caps):
-        modcaps = [x.__name__ for x in modcaps]
-        if not isinstance(caps, (list,set,tuple)):
-            caps = (caps,)
-        for cap in caps:
-            if not cap in modcaps:
-                return False
-        return True
 
     # user interaction related methods
 
@@ -258,6 +249,19 @@ class ConsoleApplication(BaseApplication):
 
         return backend_config
 
+    def install_module(self, name):
+        class Progress(IProgress):
+            def progress(self, percent, message):
+                print '=== %s' % message
+
+        try:
+            self.weboob.repositories.install(name, Progress())
+        except ModuleInstallError, e:
+            print >>sys.stderr, 'Unable to install module "%s": %s' % (name, e)
+            return 1
+
+        print ''
+
     def edit_backend(self, name, params=None):
         return self.add_backend(name, params, True)
 
@@ -265,26 +269,29 @@ class ConsoleApplication(BaseApplication):
         if params is None:
             params = {}
 
-        backend = None
+        module = None
         config = None
-        if not edit:
-            try:
-                backend = self.weboob.modules_loader.get_or_load_module(name)
-                config = backend.config
-            except ModuleLoadError:
-                backend = None
-        else:
-            bname, items = self.weboob.backends_config.get_backend(name)
-            try:
-                backend = self.weboob.modules_loader.get_or_load_module(bname)
-            except ModuleLoadError:
-                backend = None
+        try:
+            if not edit:
+                minfo = self.weboob.repositories.get_module_info(name)
+                if minfo is None:
+                    raise ModuleLoadError(name, 'Module does not exist')
+                if not minfo.is_installed():
+                    print 'Module "%s" is available but not installed.' % minfo.name
+                    if self.ask('Do you want to install it now?', default=True):
+                        self.install_module(minfo)
+                    else:
+                        return 1
+                module = self.weboob.modules_loader.get_or_load_module(name)
+                config = module.config
             else:
+                bname, items = self.weboob.backends_config.get_backend(name)
+                module = self.weboob.modules_loader.get_or_load_module(bname)
                 items.update(params)
                 params = items
-                config = backend.config.load(self.weboob, bname, name, params, nofail=True)
-        if not backend:
-            print >>sys.stderr, 'Backend "%s" does not exist. Hint: use the "backends" command.' % name
+                config = module.config.load(self.weboob, bname, name, params, nofail=True)
+        except ModuleLoadError:
+            print >>sys.stderr, 'Module "%s" does not exist. Hint: use the "modules" command.' % name
             return 1
 
         # ask for params non-specified on command-line arguments
@@ -303,20 +310,20 @@ class ConsoleApplication(BaseApplication):
 
         while not edit and self.weboob.backends_config.backend_exists(name):
             print >>sys.stderr, 'Backend instance "%s" already exists in "%s"' % (name, self.weboob.backends_config.confpath)
-            if not self.ask('Add new instance of "%s" backend?' % backend.name, default=False):
+            if not self.ask('Add new backend for module "%s"?' % module.name, default=False):
                 return 1
 
-            name = self.ask('Please give new instance name (could be "%s_1")' % backend.name, regexp=r'^[\w\-_]+$')
+            name = self.ask('Please give new instance name' % module.name, default='%s2' % name, regexp=r'^[\w\-_]+$')
 
         try:
-            config = config.load(self.weboob, backend.name, name, params, nofail=True)
+            config = config.load(self.weboob, module.name, name, params, nofail=True)
             for key, value in params.iteritems():
                 config[key].set(value)
             config.save(edit=edit)
             print 'Backend "%s" successfully added.' % name
             return name
         except BackendAlreadyExists:
-            print >>sys.stderr, 'Instance "%s" already exists.' % name
+            print >>sys.stderr, 'Backend "%s" already exists.' % name
             return 1
 
     def ask(self, question, default=None, masked=False, regexp=None, choices=None):

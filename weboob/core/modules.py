@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import sys
 import logging
-import os
 
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
@@ -77,7 +76,7 @@ class Module(object):
             return None
 
     @property
-    def icon_path(self):
+    def icon(self):
         return self.klass.ICON
 
     def iter_caps(self):
@@ -97,7 +96,8 @@ class Module(object):
 
 
 class ModulesLoader(object):
-    def __init__(self):
+    def __init__(self, repositories):
+        self.repositories = repositories
         self.loaded = {}
         self.logger = getLogger('modules')
 
@@ -110,15 +110,8 @@ class ModulesLoader(object):
         return self.loaded[module_name]
 
     def iter_existing_module_names(self):
-        try:
-            import weboob.backends
-        except ImportError:
-            return
-        for path in weboob.backends.__path__:
-            for root, dirs, files in os.walk(path):
-                if os.path.dirname( root ) == path and '__init__.py' in files:
-                    s = os.path.basename( root )
-                    yield s
+        for name in self.repositories.get_all_modules_info().iterkeys():
+            yield name
 
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
@@ -128,15 +121,26 @@ class ModulesLoader(object):
                 self.logger.warning(e)
 
     def load_module(self, module_name):
-        try:
-            package_name = 'weboob.backends.%s' % module_name
-            module = Module(__import__(package_name, fromlist=[str(package_name)]))
-        except Exception, e:
-            if self.logger.level == logging.DEBUG:
-                self.logger.exception(e)
-            raise ModuleLoadError(module_name, e)
-        if module.name in self.loaded:
-            self.logger.debug('Module "%s" is already loaded from %s' % (module_name, module.package.__path__[0]))
+        if module_name in self.loaded:
+            self.logger.debug('Module "%s" is already loaded from %s' % (module_name, self.loaded[module_name].package.__path__[0]))
             return
-        self.loaded[module.name] = module
+
+        minfo = self.repositories.get_module_info(module_name)
+        if minfo is None:
+            raise ModuleLoadError(module_name, 'No such module')
+        if minfo.path is None:
+            raise ModuleLoadError(module_name, 'Module is not installed')
+
+        try:
+            sys.path.append(minfo.path)
+            try:
+                module = Module(__import__(module_name, fromlist=[str(module_name)]))
+            except Exception, e:
+                if self.logger.level == logging.DEBUG:
+                    self.logger.exception(e)
+                raise ModuleLoadError(module_name, e)
+        finally:
+            sys.path.remove(minfo.path)
+
+        self.loaded[module_name] = module
         self.logger.debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))

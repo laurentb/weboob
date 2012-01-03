@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon
+# Copyright(C) 2010-2012  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -21,17 +21,20 @@
 from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
                         QListWidgetItem, QTextDocument, QVBoxLayout, \
-                        QDialogButtonBox
+                        QDialogButtonBox, QProgressDialog
 from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
 
 import re
+import os
 from logging import warning
 
 from weboob.core.modules import ModuleLoadError
+from weboob.core.repositories import IProgress, ModuleInstallError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
 from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.misc import to_unicode
 from .qt import QtValue
 
 
@@ -41,7 +44,7 @@ class BackendCfg(QDialog):
         self.ui = Ui_BackendCfg()
         self.ui.setupUi(self)
 
-        self.ui.configuredBackendsList.sortByColumn(0, Qt.AscendingOrder)
+        self.ui.backendsList.sortByColumn(0, Qt.AscendingOrder)
 
         self.to_unload = set()
         self.to_load = set()
@@ -57,29 +60,23 @@ class BackendCfg(QDialog):
         # is_enabling is a counter to prevent race conditions.
         self.is_enabling = 0
 
-        self.weboob.modules_loader.load_all()
-
-        self.ui.configuredBackendsList.header().setResizeMode(QHeaderView.ResizeToContents)
+        self.ui.backendsList.header().setResizeMode(QHeaderView.ResizeToContents)
         self.ui.configFrame.hide()
 
         self.icon_cache = {}
 
-        for name, backend in reversed(sorted(list(self.weboob.modules_loader.loaded.iteritems()))):
-            if not self.caps or backend.has_caps(*self.caps):
-                item = QListWidgetItem(name.capitalize())
+        for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).iteritems()):
+            item = QListWidgetItem(name.capitalize())
+            self.set_icon(item, module)
+            self.ui.modulesList.addItem(item)
 
-                if backend.icon_path:
-                    item.setIcon(self.get_icon_cache(backend.icon_path))
+        self.loadBackendsList()
 
-                self.ui.backendsList.addItem(item)
-
-        self.loadConfiguredBackendsList()
-
-        self.connect(self.ui.configuredBackendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
-            self.configuredBackendClicked)
-        self.connect(self.ui.configuredBackendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
-            self.configuredBackendEnabled)
-        self.connect(self.ui.backendsList, SIGNAL('itemSelectionChanged()'), self.backendSelectionChanged)
+        self.connect(self.ui.backendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
+                     self.backendClicked)
+        self.connect(self.ui.backendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
+                     self.backendEnabled)
+        self.connect(self.ui.modulesList, SIGNAL('itemSelectionChanged()'), self.moduleSelectionChanged)
         self.connect(self.ui.proxyBox, SIGNAL('toggled(bool)'), self.proxyEditEnabled)
         self.connect(self.ui.addButton, SIGNAL('clicked()'), self.addEvent)
         self.connect(self.ui.removeButton, SIGNAL('clicked()'), self.removeEvent)
@@ -93,27 +90,66 @@ class BackendCfg(QDialog):
             self.icon_cache[path] = QIcon(QPixmap.fromImage(img))
         return self.icon_cache[path]
 
-    def loadConfiguredBackendsList(self):
-        self.ui.configuredBackendsList.clear()
-        for instance_name, name, params in self.weboob.backends_config.iter_backends():
-            try:
-                backend = self.weboob.modules_loader.get_or_load_module(name)
-            except ModuleLoadError:
-                backend = None
+    def set_icon(self, item, minfo):
+        icon_path = os.path.join(self.weboob.repositories.icons_dir, '%s.png' % minfo.name)
 
-            if not backend or self.caps and not backend.has_caps(*self.caps):
+        icon = self.icon_cache.get(icon_path, None)
+        if icon is None:
+            if not os.path.exists(icon_path):
+                self.weboob.repositories.retrieve_icon(minfo)
+            if not os.path.exists(icon_path):
+                return
+
+            icon = self.get_icon_cache(icon_path)
+
+        try:
+            item.setIcon(icon)
+        except TypeError:
+            item.setIcon(0, icon)
+
+    def askInstallModule(self, minfo):
+        reply = QMessageBox.question(self, self.tr('Install a module'),
+            unicode(self.tr("Module %s is not installed. Do you want to install it?")) % minfo.name,
+            QMessageBox.Yes|QMessageBox.No)
+
+        if reply != QMessageBox.Yes:
+            return False
+
+        return self.installModule(minfo)
+
+    def installModule(self, minfo):
+        pd = QProgressDialog('Installation of %s' % minfo.name, "Cancel", 0, 100, self)
+        pd.setWindowModality(Qt.WindowModal)
+        class Progress(IProgress):
+            def progress(self, percent, message):
+                pd.setValue(int(percent*100))
+                pd.setLabelText(message)
+
+        try:
+            self.weboob.repositories.install(minfo, Progress())
+        except ModuleInstallError, err:
+            QMessageBox.critical(self, self.tr('Install error'),
+                                 unicode(self.tr('Unable to install mode %s: %s' % (minfo.name, err))),
+                                 QMessageBox.Ok)
+        pd.setValue(100)
+        return True
+
+    def loadBackendsList(self):
+        self.ui.backendsList.clear()
+        for instance_name, name, params in self.weboob.backends_config.iter_backends():
+            info = self.weboob.repositories.get_module_info(name)
+            if not info or (self.caps and not info.has_caps(self.caps)):
                 continue
 
             item = QTreeWidgetItem(None, [instance_name, name])
             item.setCheckState(0, Qt.Checked if params.get('_enabled', '1').lower() in ('1', 'y', 'true') \
                 else Qt.Unchecked)
 
-            if backend.icon_path:
-                item.setIcon(0, self.get_icon_cache(backend.icon_path))
+            self.set_icon(item, info)
 
-            self.ui.configuredBackendsList.addTopLevelItem(item)
+            self.ui.backendsList.addTopLevelItem(item)
 
-    def configuredBackendEnabled(self, item, col):
+    def backendEnabled(self, item, col):
         self.is_enabling += 1
 
         instname = unicode(item.text(0))
@@ -131,7 +167,7 @@ class BackendCfg(QDialog):
 
         self.weboob.backends_config.edit_backend(instname, bname, {'_enabled': enabled})
 
-    def configuredBackendClicked(self, item, col):
+    def backendClicked(self, item, col):
         if self.is_enabling:
             self.is_enabling -= 1
             return
@@ -144,7 +180,7 @@ class BackendCfg(QDialog):
         self.editBackend()
 
     def removeEvent(self):
-        item = self.ui.configuredBackendsList.currentItem()
+        item = self.ui.backendsList.currentItem()
         if not item:
             return
 
@@ -163,7 +199,7 @@ class BackendCfg(QDialog):
         except KeyError:
             pass
         self.ui.configFrame.hide()
-        self.loadConfiguredBackendsList()
+        self.loadBackendsList()
 
     def editBackend(self, name=None):
         self.ui.registerButton.hide()
@@ -172,12 +208,12 @@ class BackendCfg(QDialog):
         if name is not None:
             bname, params = self.weboob.backends_config.get_backend(name)
 
-            items = self.ui.backendsList.findItems(bname, Qt.MatchFixedString)
+            items = self.ui.modulesList.findItems(bname, Qt.MatchFixedString)
             if not items:
                 warning('Backend not found')
             else:
-                self.ui.backendsList.setCurrentItem(items[0])
-                self.ui.backendsList.setEnabled(False)
+                self.ui.modulesList.setCurrentItem(items[0])
+                self.ui.modulesList.setEnabled(False)
 
             self.ui.nameEdit.setText(name)
             self.ui.nameEdit.setEnabled(False)
@@ -191,23 +227,26 @@ class BackendCfg(QDialog):
 
             params.pop('_enabled', None)
 
-            backend = self.weboob.modules_loader.loaded[bname]
-            for key, value in backend.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
-                try:
-                    l, widget = self.config_widgets[key]
-                except KeyError:
-                    warning('Key "%s" is not found' % key)
-                else:
-                    widget.set_value(value)
-        else:
-            self.ui.nameEdit.clear()
-            self.ui.nameEdit.setEnabled(True)
-            self.ui.proxyBox.setChecked(False)
-            self.ui.proxyEdit.clear()
-            self.ui.backendsList.setEnabled(True)
-            self.ui.backendsList.setCurrentRow(-1)
+            info = self.weboob.repositories.get_module_info(name)
+            if info.is_installed() or self.askInstallModule(info):
+                backend = self.weboob.modules_loader.get_or_load_module(bname)
+                for key, value in backend.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
+                    try:
+                        l, widget = self.config_widgets[key]
+                    except KeyError:
+                        warning('Key "%s" is not found' % key)
+                    else:
+                        widget.set_value(value)
+                return
 
-    def backendSelectionChanged(self):
+        self.ui.nameEdit.clear()
+        self.ui.nameEdit.setEnabled(True)
+        self.ui.proxyBox.setChecked(False)
+        self.ui.proxyEdit.clear()
+        self.ui.modulesList.setEnabled(True)
+        self.ui.modulesList.setCurrentRow(-1)
+
+    def moduleSelectionChanged(self):
         for key, (label, value) in self.config_widgets.iteritems():
             label.hide()
             value.hide()
@@ -216,48 +255,57 @@ class BackendCfg(QDialog):
             label.deleteLater()
             value.deleteLater()
         self.config_widgets = {}
-        self.ui.backendInfo.clear()
+        self.ui.moduleInfo.clear()
 
-        selection = self.ui.backendsList.selectedItems()
+        selection = self.ui.modulesList.selectedItems()
         if not selection:
             return
 
-        backend = self.weboob.modules_loader.loaded[unicode(selection[0].text()).lower()]
+        minfo = self.weboob.repositories.get_module_info(unicode(selection[0].text()).lower())
+        if not minfo:
+            warning('Module not found')
+            return
 
-        if backend.icon_path:
-            img = QImage(backend.icon_path)
-            self.ui.backendInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'),
-                QVariant(img))
+        if not minfo.is_installed() and not self.askInstallModule(minfo):
+            self.editBackend(None)
+            return
 
-        if not backend.name in [n for n, ign, ign2 in self.weboob.backends_config.iter_backends()]:
-            self.ui.nameEdit.setText(backend.name)
+        module = self.weboob.modules_loader.get_or_load_module(minfo.name)
+
+        icon_path = os.path.join(self.weboob.repositories.icons_dir, '%s.png' % minfo.name)
+        img = QImage(icon_path)
+        self.ui.moduleInfo.document().addResource(QTextDocument.ImageResource, QUrl('mydata://logo.png'),
+            QVariant(img))
+
+        if not module.name in [n for n, ign, ign2 in self.weboob.backends_config.iter_backends()]:
+            self.ui.nameEdit.setText(module.name)
         else:
             self.ui.nameEdit.setText('')
 
-        self.ui.backendInfo.setText(unicode(self.tr(
-           '<h1>%s Backend %s</h1>'
+        self.ui.moduleInfo.setText(to_unicode(self.tr(
+          u'<h1>%s Module %s</h1>'
            '<b>Version</b>: %s<br />'
            '<b>Maintainer</b>: %s<br />'
            '<b>License</b>: %s<br />'
            '%s'
            '<b>Description</b>: %s<br />'
            '<b>Capabilities</b>: %s<br />'))
-           % ('<img src="mydata://logo.png" />' if backend.icon_path else '',
-              backend.name.capitalize(),
-              backend.version,
-              backend.maintainer.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
-              backend.license,
-              (unicode(self.tr('<b>Website</b>: %s<br />')) % backend.website) if backend.website else '',
-              backend.description,
-              ', '.join(sorted(cap.__name__.replace('ICap', '') for cap in backend.iter_caps()))))
+           % ('<img src="mydata://logo.png" />',
+              module.name.capitalize(),
+              module.version,
+              to_unicode(module.maintainer).replace(u'&', u'&amp;').replace(u'<', u'&lt;').replace(u'>', u'&gt;'),
+              module.license,
+              (unicode(self.tr('<b>Website</b>: %s<br />')) % module.website) if module.website else '',
+              module.description,
+              ', '.join(sorted(cap.__name__.replace('ICap', '') for cap in module.iter_caps()))))
 
-        if backend.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and \
-            backend.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
+        if module.has_caps(ICapAccount) and self.ui.nameEdit.isEnabled() and \
+            module.klass.ACCOUNT_REGISTER_PROPERTIES is not None:
             self.ui.registerButton.show()
         else:
             self.ui.registerButton.hide()
 
-        for key, field in backend.config.iteritems():
+        for key, field in module.config.iteritems():
             label = QLabel(u'%s:' % field.label)
             qvalue = QtValue(field)
             self.ui.configLayout.addRow(label, qvalue)
@@ -268,21 +316,21 @@ class BackendCfg(QDialog):
 
     def acceptBackend(self):
         bname = unicode(self.ui.nameEdit.text())
-        selection = self.ui.backendsList.selectedItems()
+        selection = self.ui.modulesList.selectedItems()
 
         if not selection:
-            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                self.tr('Please select a backend'))
+            QMessageBox.critical(self, self.tr('Unable to add a backend'),
+                self.tr('Please select a module'))
             return
 
         try:
-            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+            module = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
         except ModuleLoadError:
-            backend = None
+            module = None
 
-        if not backend:
-            QMessageBox.critical(self, self.tr('Unable to add a configured backend'),
-                self.tr('The selected backend does not exist.'))
+        if not module:
+            QMessageBox.critical(self, self.tr('Unable to add a backend'),
+                self.tr('The selected module does not exist.'))
             return
 
         params = {}
@@ -307,7 +355,7 @@ class BackendCfg(QDialog):
                 QMessageBox.critical(self, self.tr('Missing field'), self.tr('Please specify a proxy URL'))
                 return
 
-        config = backend.config.load(self.weboob, backend.name, bname, {}, nofail=True)
+        config = module.config.load(self.weboob, module.name, bname, {}, nofail=True)
         for key, field in config.iteritems():
             label, qtvalue = self.config_widgets[key]
 
@@ -330,34 +378,34 @@ class BackendCfg(QDialog):
         self.to_load.add(bname)
         self.ui.configFrame.hide()
 
-        self.loadConfiguredBackendsList()
+        self.loadBackendsList()
 
     def rejectBackend(self):
         self.ui.configFrame.hide()
 
     def registerEvent(self):
-        selection = self.ui.backendsList.selectedItems()
+        selection = self.ui.modulesList.selectedItems()
         if not selection:
             return
 
         try:
-            backend = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
+            module = self.weboob.modules_loader.get_or_load_module(unicode(selection[0].text()).lower())
         except ModuleLoadError:
-            backend = None
+            module = None
 
-        if not backend:
+        if not module:
             return
 
         dialog = QDialog(self)
         vbox = QVBoxLayout(dialog)
-        if backend.website:
-            website = 'on the website <b>%s</b>' % backend.website
+        if module.website:
+            website = 'on the website <b>%s</b>' % module.website
         else:
-            website = 'with the backend <b>%s</b>' % backend.name
+            website = 'with the module <b>%s</b>' % module.name
         vbox.addWidget(QLabel('To create an account %s, please give these informations:' % website))
         formlayout = QFormLayout()
         props_widgets = OrderedDict()
-        for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
+        for key, prop in module.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
             widget = QtValue(prop)
             formlayout.addRow(QLabel(u'%s:' % prop.label), widget)
             props_widgets[prop.id] = widget
@@ -387,7 +435,7 @@ class BackendCfg(QDialog):
                         account.properties[key] = v
                 if end:
                     try:
-                        backend.klass.register_account(account)
+                        module.klass.register_account(account)
                     except AccountRegisterError, e:
                         QMessageBox.critical(self, self.tr('Error during register'),
                             unicode(self.tr('Unable to register account %s:<br /><br />%s')) % (website, e))

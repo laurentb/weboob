@@ -23,23 +23,35 @@ try:
 except ImportError, e:
     from pysqlite2 import dbapi2 as sqlite
 
+from weboob.core import Weboob
+from weboob.core.modules import ModuleLoadError
 import sys
 import logging
 level = logging.DEBUG
 logging.basicConfig(stream=sys.stdout, level=level)
 
-from weboob.backends.hds.browser import HDSBrowser
-
 def main(filename):
+    weboob = Weboob()
+    try:
+        hds = weboob.modules_loader.load_module('hds')
+    except ModuleLoadError, e:
+        print >>sys.stderr, 'Unable to load "hds" module: %s' % e
+        return 1
+
     try:
         db = sqlite.connect(database=filename, timeout=10.0)
     except sqlite.OperationalError, err:
-        print 'Unable to open %s database: %s' % (filename, err)
+        print >>sys.stderr, 'Unable to open %s database: %s' % (filename, err)
         return 1
 
     sys.stdout.write('Reading database... ')
     sys.stdout.flush()
-    results = db.execute('SELECT id, author FROM stories')
+    try:
+        results = db.execute('SELECT id, author FROM stories')
+    except sqlite.OperationalError, err:
+        print >>sys.stderr, 'fail!\nUnable to read database: %s' % err
+        return 1
+
     stored = set()
     authors = set()
     for r in results:
@@ -48,7 +60,7 @@ def main(filename):
     stored_authors = set([s[0] for s in db.execute('SELECT name FROM authors')])
     sys.stdout.write('ok\n')
 
-    br = HDSBrowser()
+    br = hds.browser.HDSBrowser()
     to_fetch = set()
     sys.stdout.write('Getting stories list from website... ')
     sys.stdout.flush()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2012 Romain Bignon, Christophe Benz
 #
 # This file is part of weboob.
 #
@@ -75,8 +75,8 @@ class BaseApplication(object):
 
     # Application name
     APPNAME = ''
-    # Configuration and work directory (default: ~/.weboob/)
-    CONFDIR = os.path.join(os.path.expanduser('~'), '.weboob')
+    # Configuration and work directory (if None, use the Weboob instance one)
+    CONFDIR = None
     # Default configuration dict (can only contain key/values)
     CONFIG = {}
     # Default storage tree
@@ -128,6 +128,8 @@ class BaseApplication(object):
     def __init__(self, option_parser=None):
         self.logger = getLogger(self.APPNAME)
         self.weboob = self.create_weboob()
+        if self.CONFDIR is None:
+            self.CONFDIR = self.weboob.workdir
         self.config = None
         self.options = None
         if option_parser is None:

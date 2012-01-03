@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2012 Romain Bignon, Christophe Benz
 #
 # This file is part of weboob.
 #
@@ -24,6 +24,7 @@ import re
 from copy import copy
 
 from weboob.capabilities.account import ICapAccount
+from weboob.core.repositories import IProgress
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
@@ -35,10 +36,10 @@ __all__ = ['WeboobCfg']
 class WeboobCfg(ReplApplication):
     APPNAME = 'weboob-config'
     VERSION = '0.a'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz, Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2012 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
-    COMMANDS_FORMATTERS = {'backends':    'table',
+    COMMANDS_FORMATTERS = {'modules':     'table',
                            'list':        'table',
                            }
     DISABLE_REPL = True
@@ -53,10 +54,10 @@ class WeboobCfg(ReplApplication):
         """
         add NAME [OPTIONS ...]
 
-        Add a configured backend.
+        Add a backend.
         """
         if not line:
-            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
+            print >>sys.stderr, 'You must specify a module name. Hint: use the "modules" command.'
             return 2
         name, options = self.parse_command_args(line, 2, 1)
         if options:
@@ -78,9 +79,9 @@ class WeboobCfg(ReplApplication):
 
     def do_register(self, line):
         """
-        register NAME
+        register MODULE
 
-        Register a new account on a backend.
+        Register a new account on a module.
         """
         self.register_backend(line)
 
@@ -117,15 +118,15 @@ class WeboobCfg(ReplApplication):
         """
         list [CAPS ..]
 
-        Show configured backends.
+        Show backends.
         """
         caps = line.split()
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             backend = self.weboob.modules_loader.get_or_load_module(name)
             if caps and not self.caps_included(backend.iter_caps(), caps):
                 continue
-            row = OrderedDict([('Instance name', instance_name),
-                               ('Backend', name),
+            row = OrderedDict([('Name', instance_name),
+                               ('Module', name),
                                ('Configuration', ', '.join(
                                    '%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].masked \
                                                     else value)) \
@@ -138,7 +139,7 @@ class WeboobCfg(ReplApplication):
         """
         remove NAME
 
-        Remove a configured backend.
+        Remove a backend.
         """
         if not self.weboob.backends_config.remove_backend(instance_name):
             print >>sys.stderr, 'Backend instance "%s" does not exist' % instance_name
@@ -155,7 +156,7 @@ class WeboobCfg(ReplApplication):
 
     def do_enable(self, name):
         """
-        enable NAME
+        enable BACKEND
 
         Enable a disabled backend
         """
@@ -163,7 +164,7 @@ class WeboobCfg(ReplApplication):
 
     def do_disable(self, name):
         """
-        disable NAME
+        disable BACKEND
 
         Disable a backend
         """
@@ -171,7 +172,7 @@ class WeboobCfg(ReplApplication):
 
     def do_edit(self, line):
         """
-        edit NAME
+        edit BACKEND
 
         Edit a backend
         """
@@ -181,20 +182,17 @@ class WeboobCfg(ReplApplication):
             print >>sys.stderr, 'Error: backend "%s" not found' % line
             return 1
 
-    def do_backends(self, line):
+    def do_modules(self, line):
         """
-        backends [CAPS ...]
+        modules [CAPS ...]
 
-        Show available backends.
+        Show available modules.
         """
         caps = line.split()
-        self.weboob.modules_loader.load_all()
-        for name, backend in sorted(self.weboob.modules_loader.loaded.iteritems()):
-            if caps and not self.caps_included(backend.iter_caps(), caps):
-                continue
+        for name, info in sorted(self.weboob.repositories.get_all_modules_info(caps).iteritems()):
             row = OrderedDict([('Name', name),
-                               ('Capabilities', ', '.join(cap.__name__ for cap in backend.iter_caps())),
-                               ('Description', backend.description),
+                               ('Capabilities', ', '.join(info.capabilities)),
+                               ('Description', info.description),
                                ])
             self.format(row)
         self.flush()
@@ -203,40 +201,44 @@ class WeboobCfg(ReplApplication):
         """
         info NAME
 
-        Display information about a backend.
+        Display information about a module.
         """
         if not line:
-            print >>sys.stderr, 'You must specify a backend name. Hint: use the "backends" command.'
+            print >>sys.stderr, 'You must specify a module name. Hint: use the "modules" command.'
             return 2
 
-        try:
-            backend = self.weboob.modules_loader.get_or_load_module(line)
-        except ModuleLoadError:
-            backend = None
-
-        if not backend:
-            print >>sys.stderr, 'Backend "%s" does not exist.' % line
+        minfo = self.weboob.repositories.get_module_info(line)
+        if not minfo:
+            print >>sys.stderr, 'Module "%s" does not exist.' % line
             return 1
 
+        try:
+            module = self.weboob.modules_loader.get_or_load_module(line)
+        except ModuleLoadError:
+            module = None
+
         print '.------------------------------------------------------------------------------.'
-        print '| Backend %-68s |' % backend.name
+        print '| Module %-69s |' % minfo.name
         print "+-----------------.------------------------------------------------------------'"
-        print '| Version         | %s' % backend.version
-        print '| Maintainer      | %s' % backend.maintainer
-        print '| License         | %s' % backend.license
-        print '| Description     | %s' % backend.description
-        print '| Capabilities    | %s' % ', '.join([cap.__name__ for cap in backend.iter_caps()])
-        first = True
-        for key, field in backend.config.iteritems():
-            value = field.label
-            if not field.default is None:
-                value += ' (default: %s)' % field.default
-            if first:
-                print '|                 | '
-                print '| Configuration   | %s: %s' % (key, value)
-                first = False
-            else:
-                print '|                 | %s: %s' % (key, value)
+        print '| Version         | %s' % minfo.version
+        print '| Maintainer      | %s' % minfo.maintainer
+        print '| License         | %s' % minfo.license
+        print '| Description     | %s' % minfo.description
+        print '| Capabilities    | %s' % ', '.join(minfo.capabilities)
+        print '| Installed       | %s%s' % (('yes' if module else 'no'), ' (new version available)' if self.weboob.repositories.versions.get(minfo.name) > minfo.version else '')
+        print '| Location        | %s' % (minfo.url or os.path.join(minfo.path, minfo.name))
+        if module:
+            first = True
+            for key, field in module.config.iteritems():
+                value = field.label
+                if not field.default is None:
+                    value += ' (default: %s)' % field.default
+                if first:
+                    print '|                 | '
+                    print '| Configuration   | %s: %s' % (key, value)
+                    first = False
+                else:
+                    print '|                 | %s: %s' % (key, value)
         print "'-----------------'"
 
     def do_applications(self, line):
@@ -254,3 +256,23 @@ class WeboobCfg(ReplApplication):
                 if m and '__init__.py' in files:
                     applications.add(m.group(1))
         print ' '.join(sorted(applications)).encode('utf-8')
+
+    def do_update(self, line):
+        """
+        update
+
+        Update weboob.
+        """
+        class Progress(IProgress):
+            def progress(self, percent, message):
+                print '=== [%3.0f%%] %s' % (percent*100, message)
+
+        self.weboob.repositories.update(Progress())
+
+    def do_install(self, line):
+        """
+        install MODULE
+
+        Install a module.
+        """
+        self.install_module(line)

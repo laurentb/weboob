@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,6 +25,7 @@ import os
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
+from weboob.core.repositories import Repositories
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
@@ -34,12 +35,12 @@ __all__ = ['Weboob']
 
 
 class Weboob(object):
+    VERSION = '0.a'
     WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, workdir=WORKDIR, backends_filename=None, scheduler=None, storage=None):
+    def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
         self.logger = getLogger('weboob')
-        self.workdir = workdir
         self.backend_instances = {}
         self.callbacks = {'login':   lambda backend_name, value: None,
                           'captcha': lambda backend_name, image: None,
@@ -51,17 +52,24 @@ class Weboob(object):
         self.scheduler = scheduler
 
         # Create WORKDIR
+        if workdir is None:
+            workdir = os.environ.get('WEBOOB_WORKDIR', self.WORKDIR)
+        self.workdir = os.path.realpath(workdir)
+
         if not os.path.exists(self.workdir):
             os.mkdir(self.workdir, 0700)
         elif not os.path.isdir(self.workdir):
             self.logger.warning(u'"%s" is not a directory' % self.workdir)
 
+        # Repositories management
+        self.repositories = Repositories(self.workdir, self.VERSION)
+
         # Backends loader
-        self.modules_loader = ModulesLoader()
+        self.modules_loader = ModulesLoader(self.repositories)
 
         # Backend instances config
         if not backends_filename:
-            backends_filename = os.path.join(self.workdir, self.BACKENDS_FILENAME)
+            backends_filename = os.environ.get('WEBOOB_BACKENDS', os.path.join(self.workdir, self.BACKENDS_FILENAME))
         elif not backends_filename.startswith('/'):
             backends_filename = os.path.join(self.workdir, backends_filename)
         self.backends_config = BackendsConfig(backends_filename)
@@ -100,6 +108,16 @@ class Weboob(object):
                names is not None and instance_name not in names or \
                modules is not None and module_name not in modules:
                 continue
+
+            minfo = self.repositories.get_module_info(module_name)
+            if minfo is None:
+                self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
+                                     'Perhaps a missing repository?' % (module_name, self.backends_config.confpath))
+                continue
+
+            if caps is not None and not minfo.has_caps(caps):
+                continue
+
             module = None
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
@@ -109,8 +127,6 @@ class Weboob(object):
                 self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
                                      'configuration file, but was not found. '
                                      'Hint: is it installed?' % module_name)
-                continue
-            if caps is not None and not module.has_caps(caps):
                 continue
 
             if instance_name in self.backend_instances:
