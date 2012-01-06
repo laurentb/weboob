@@ -20,10 +20,9 @@
 
 import re
 from weboob.tools.mech import ClientForm
-import urllib
 from logging import error
 
-from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.browser import BasePage
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
 import tempfile
 
@@ -50,10 +49,10 @@ class INGVirtKeyboard(VirtKeyboard):
             return False
         url=img.attrib.get("src")
         coords={}
-        coords["11"] = (5, 5, 33, 33) 
+        coords["11"] = (5, 5, 33, 33)
         coords["21"] = (45, 5, 73, 33)
         coords["31"] = (85, 5, 113, 33)
-        coords["41"] = (125, 5, 153, 33) 
+        coords["41"] = (125, 5, 153, 33)
         coords["51"] = (165, 5, 193, 33)
         coords["12"] = (5, 45, 33, 73)
         coords["22"] = (45, 45, 73, 73)
@@ -62,7 +61,7 @@ class INGVirtKeyboard(VirtKeyboard):
         coords["52"] = (165, 45, 193, 73)
 
         VirtKeyboard.__init__(self, basepage.browser.openurl(url), coords, self.color)
-        
+
         if basepage.browser.responses_dirname is None:
             basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
@@ -78,7 +77,7 @@ class INGVirtKeyboard(VirtKeyboard):
                first = False
             codesymbol = self.get_symbol_code(self.symbols[c])
             x = (self.coords[codesymbol][0] + self.coords[codesymbol][2]) / 2 # In the middle
-            y = (self.coords[codesymbol][1] + self.coords[codesymbol][3]) / 2 
+            y = (self.coords[codesymbol][1] + self.coords[codesymbol][3]) / 2
             code+=str(x)
             code+=","
             code+=str(y)
@@ -94,10 +93,10 @@ class LoginPage(BasePage):
 	# First step : login and birthday
         self.browser.select_form('zone1Form')
         self.browser.set_all_readonly(False)
-	self.browser['zone1Form:numClient'] = login 
-	self.browser['zone1Form:dateDay'] = birthday[0:2] 
-	self.browser['zone1Form:dateMonth'] = birthday[2:4] 
-	self.browser['zone1Form:dateYear'] = birthday[4:9] 
+	self.browser['zone1Form:numClient'] = login
+	self.browser['zone1Form:dateDay'] = birthday[0:2]
+	self.browser['zone1Form:dateMonth'] = birthday[2:4]
+	self.browser['zone1Form:dateYear'] = birthday[4:9]
 	self.browser['zone1Form:radioSaveClientNumber'] = False
 	self.browser.submit(nologin=True)
 
@@ -114,9 +113,9 @@ class LoginPage2(BasePage):
             return False
         realpasswd = ""
         span = self.document.find('//span[@id="digitpaddisplayLogin"]')
-        i = 0 
+        i = 0
         for font in span.getiterator('font'):
-           if font.attrib.get('class') == "vide": 
+           if font.attrib.get('class') == "vide":
               realpasswd += password[i]
            i+=1
         self.browser.logger.debug('We are looking for : ' + realpasswd)

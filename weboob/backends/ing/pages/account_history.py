@@ -18,12 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 from datetime import date
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Operation
-from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['AccountHistory']

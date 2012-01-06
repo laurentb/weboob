@@ -19,11 +19,10 @@
 
 
 from .accounts_list import AccountsList
-from .account_coming import AccountComing
 from .account_history import AccountHistory
 from .login import LoginPage, LoginPage2, ConfirmPage, MessagePage
 
 class AccountPrelevement(AccountsList): pass
 
-__all__ = ['AccountsList', 'AccountComing', 'AccountHistory', 'LoginPage',
+__all__ = ['AccountsList', 'AccountHistory', 'LoginPage', 'LoginPage2',
            'ConfirmPage', 'MessagePage', 'AccountPrelevement']

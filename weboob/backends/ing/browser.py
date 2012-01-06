@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser
 from weboob.backends.ing import pages
 
 
@@ -31,7 +31,7 @@ class Ing(BaseBrowser):
     ENCODING =  None # refer to the HTML encoding
     PAGES = {'.*displayTRAccountSummary.*':   pages.AccountsList,
              '.*displayLogin.jsf':            pages.LoginPage,
-             '.*displayLogin.jsf.*':          pages.LoginPage2, 
+             '.*displayLogin.jsf.*':          pages.LoginPage2,
              '.*accountDetail.jsf.*':         pages.AccountHistory
             }
 
@@ -77,7 +77,7 @@ class Ing(BaseBrowser):
 
         return None
 
-    def get_history(self, id): 
+    def get_history(self, id):
         # TODO: It works only with the Compte Courant, Livret A use an another page...
         self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
         return self.page.get_operations()
