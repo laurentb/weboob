@@ -55,7 +55,7 @@ class ComposePage(BasePage):
 
         self.browser.set_all_readonly(False)
 
-        self.browser["corpsms"] = message.content
+        self.browser["corpsms"] = message.content.encode('utf-8')
         self.browser["pays"] = "33"
         self.browser["listetel"] = listetel
         self.browser["reply"] = "2"
