@@ -32,7 +32,8 @@ class Ing(BaseBrowser):
     PAGES = {'.*displayTRAccountSummary.*':   pages.AccountsList,
              '.*displayLogin.jsf':            pages.LoginPage,
              '.*displayLogin.jsf.*':          pages.LoginPage2,
-             '.*accountDetail.jsf.*':         pages.AccountHistory
+             '.*accountDetail.jsf.*':         pages.AccountHistoryCC,
+             '.*displayTRHistoriqueLA.*':     pages.AccountHistoryLA
             }
 
     def __init__(self, *args, **kwargs):
@@ -78,8 +79,15 @@ class Ing(BaseBrowser):
         return None
 
     def get_history(self, id):
-        # TODO: It works only with the Compte Courant, Livret A use an another page...
-        self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
+        account = self.get_account(id)
+        # The first and the second letter of the label are the account type
+        if account.label[0:2] == "CC":
+          self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
+        elif account.label[0:2] == "LA": 
+          # we want "displayTRHistoriqueLA" but this fucking page is not directly available... 
+          self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
+        else: 
+          raise NotImplementedError()
         return self.page.get_operations()
 
     # TODO
