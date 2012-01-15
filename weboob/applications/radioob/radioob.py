@@ -57,7 +57,7 @@ class RadioListFormatter(IFormatter):
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for web radio stations, listen to them and get information ' \
                   'like the current song.'

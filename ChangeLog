@@ -1,3 +1,26 @@
+Weboob 0.9.2 (2012-01-15)
+	Backend: AuM
+	* Fix: searches.
+	* Fix: profiles urls.
+	* Fix: support the new 'dead' field.
+	* Fix: IP addresses are not availables anymore.
+
+	Backend: BP
+	* Fix: List accounts (#730).
+	* Fix: open images in memory instead of saving them in temp files.
+
+	Backend: Francetelevisions
+	* Fix: able to get URLs (for News videos only).
+
+	Backend: Orange
+	* Fix: unicode issue.
+
+	Backend: Pastebin
+	* Handle user pages.
+
+	Backend: Youjizz
+	* Fix: support new media URLs.
+
 Weboob 0.9.1 (2011-12-03)
 	General
 	* Fix compatibility with python2.5.

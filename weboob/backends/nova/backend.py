@@ -54,7 +54,7 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'nova'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     DESCRIPTION = u'Nova french radio'
     LICENSE = 'AGPLv3+'
     BROWSER = NovaBrowser

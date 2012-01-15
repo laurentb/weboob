@@ -35,7 +35,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'BNP Paribas french bank\' website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),

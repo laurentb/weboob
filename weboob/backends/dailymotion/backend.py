@@ -34,7 +34,7 @@ class DailymotionBackend(BaseBackend, ICapVideo):
     NAME = 'dailymotion'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     DESCRIPTION = 'Dailymotion videos website'
     LICENSE = 'AGPLv3+'
     BROWSER = DailymotionBrowser

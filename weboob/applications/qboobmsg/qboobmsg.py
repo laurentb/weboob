@@ -25,7 +25,7 @@ from .main_window import MainWindow
 
 class QBoobMsg(QtApplication):
     APPNAME = 'qboobmsg'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Qt application allowing to read messages on various websites and reply to them.'
     CAPS = ICapMessages

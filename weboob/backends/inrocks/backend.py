@@ -27,7 +27,7 @@ class NewspaperInrocksBackend(GenericNewspaperBackend, ICapMessages):
     "NewspaperInrocksBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'inrocks'

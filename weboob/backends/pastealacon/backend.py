@@ -37,7 +37,7 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastealacon'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     DESCRIPTION = 'Paste a la con paste tool'
     LICENSE = 'AGPLv3+'
     BROWSER = PastealaconBrowser

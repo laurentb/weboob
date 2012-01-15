@@ -34,7 +34,7 @@ class YoujizzBackend(BaseBackend, ICapVideo):
     NAME = 'youjizz'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.9.1'
+    VERSION = '0.9.2'
     DESCRIPTION = 'Youjizz videos website'
     LICENSE = 'AGPLv3+'
     BROWSER = YoujizzBrowser
