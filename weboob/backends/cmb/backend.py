@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Johann Broudin
+# Copyright(C) 2012 Johann Broudin
 #
 # This file is part of weboob.
 #
@@ -43,13 +43,13 @@ class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
-    VERSION = '0.2'
+    VERSION = '0.a'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Credit Mutuel de Bretagne'
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Account ID', masked=False),
             ValueBackendPassword('password', label='Password', masked=True))
-    connected = False
+    cookie = None
     headers = {
             'User-Agent':
                 'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OSX; en-us) ' +
@@ -74,15 +74,13 @@ class CmbBackend(BaseBackend, ICapBank):
         if response.status == 302:
             self.cookie = response.getheader('Set-Cookie').split(';')[0]
             self.cookie += ';'
-            self.connected = True
             return True
         else:
             raise BrowserIncorrectPassword()
         return false
 
     def iter_accounts(self):
-
-        if not self.connected:
+        if not self.cookie:
             self.login()
 
         def do_http():
@@ -95,9 +93,9 @@ class CmbBackend(BaseBackend, ICapBank):
                          headers)
             response = conn.getresponse()
             data = response.read()
-            conn.close
+            conn.close()
             return data
-        
+
         data = do_http()
         parser = etree.HTMLParser()
         tree = etree.parse(StringIO(data), parser)
@@ -121,7 +119,7 @@ class CmbBackend(BaseBackend, ICapBank):
             if tr.get('class') != 'LnTit' and tr.get('class') != 'LnTot':
                 account = Account()
                 td = tr.xpath('td')
-                
+
                 a = td[0].xpath('a')
                 account.label = unicode(a[0].text).strip()
                 href = a[0].get('href')
@@ -155,6 +153,9 @@ class CmbBackend(BaseBackend, ICapBank):
         raise AccountNotFound()
 
     def iter_history(self, account):
+        if not self.cookie:
+            self.login()
+
         page = "/domiweb/prive/particulier/releve/"
         if account.cmbtype == 'D':
             page += "10-releve.act"
@@ -179,8 +180,8 @@ class CmbBackend(BaseBackend, ICapBank):
         data = do_http()
         parser = etree.HTMLParser()
         tree = etree.parse(StringIO(data), parser)
-        
-        
+
+
         tables = tree.xpath('/html/body/table')
         if len(tables) == 0:
             title = tree.xpath('/html/head/title')[0].text
@@ -214,7 +215,7 @@ class CmbBackend(BaseBackend, ICapBank):
                     div = td[2].xpath('div')
                     label = div[0].xpath('a')[0].text.replace('\n','')
                     operation.label = unicode(' '.join(label.split()))
-                    
+
                     amount = td[3].text
                     if amount.count(',') != 1:
                         amount = td[4].text
