@@ -136,9 +136,8 @@ class Weboob(object):
             except ModuleLoadError, e:
                 self.logger.error(e)
             if module is None:
-                self.logger.warning(u'Backend "%s" is referenced in ~/.weboob/backends '
-                                     'configuration file, but was not found. '
-                                     'Hint: is it installed?' % module_name)
+                self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
+                                     'Hint: is it installed?' % (module_name, self.backends_config.confpath))
                 continue
 
             if instance_name in self.backend_instances:
