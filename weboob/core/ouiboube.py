@@ -83,6 +83,18 @@ class Weboob(object):
     def deinit(self):
         self.unload_backends()
 
+    def update(self, progress=None):
+        """
+        Update modules.
+        """
+        self.repositories.update(progress)
+
+        modules_to_check = set([module_name for name, module_name, params in self.backends_config.iter_backends()])
+        for module_name in modules_to_check:
+            minfo = self.repositories.get_module_info(module_name)
+            if minfo and not minfo.is_installed():
+                self.repositories.install(minfo, progress)
+
     class LoadError(Exception):
         def __init__(self, backend_name, exception):
             Exception.__init__(self, unicode(exception))

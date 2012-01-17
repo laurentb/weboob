@@ -267,7 +267,7 @@ class WeboobCfg(ReplApplication):
             def progress(self, percent, message):
                 print '=== [%3.0f%%] %s' % (percent*100, message)
 
-        self.weboob.repositories.update(Progress())
+        self.weboob.update(Progress())
 
     def do_install(self, line):
         """
