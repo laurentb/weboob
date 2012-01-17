@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from societegenerale import pages
+from .pages import LoginPage, AccountsList
 
 
 __all__ = ['SocieteGenerale']
@@ -31,9 +31,9 @@ class SocieteGenerale(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-             'https://particuliers.societegenerale.fr/.*':  pages.LoginPage,
-             '.*restitution/cns_listeprestation.html':      pages.AccountsList,
-#             '.*restitution/cns_detailCav.html.*':          pages.AccountHistory,
+             'https://particuliers.societegenerale.fr/.*':  LoginPage,
+             '.*restitution/cns_listeprestation.html':      AccountsList,
+#             '.*restitution/cns_detailCav.html.*':          AccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
@@ -43,23 +43,23 @@ class SocieteGenerale(BaseBrowser):
         self.location('https://' + self.DOMAIN_LOGIN + '/index.html')
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        if not self.is_on_page(pages.LoginPage):
+        if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN_LOGIN + '/index.html')
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(pages.LoginPage):
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/restitution/cns_listeprestation.html')
 
         return self.page.get_list()
@@ -67,7 +67,7 @@ class SocieteGenerale(BaseBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/restitution/cns_listeprestation.html')
 
         l = self.page.get_list()
@@ -80,7 +80,7 @@ class SocieteGenerale(BaseBrowser):
     def get_history(self, account):
         raise NotImplementedError()
 
-        if not self.is_on_page(pages.AccountHistory) or self.page.account.id != account.id:
+        if not self.is_on_page(AccountHistory) or self.page.account.id != account.id:
             self.location(account.link_id)
         return self.page.get_operations()
 

@@ -22,7 +22,7 @@ from datetime import datetime
 
 from weboob.tools.browser import BrokenPageError
 from weboob.tools.misc import local2utc
-from dlfp.tools import url2id
+from ..tools import url2id
 
 from .index import DLFPPage
 

@@ -19,7 +19,8 @@
 
 
 from weboob.tools.browser import BaseBrowser
-from ing import pages
+from .pages import AccountsList, LoginPage, LoginPage2, \
+                   AccountHistoryCC, AccountHistoryLA
 
 
 __all__ = ['Ing']
@@ -29,11 +30,11 @@ class Ing(BaseBrowser):
     DOMAIN = 'secure.ingdirect.fr'
     PROTOCOL = 'https'
     ENCODING =  None # refer to the HTML encoding
-    PAGES = {'.*displayTRAccountSummary.*':   pages.AccountsList,
-             '.*displayLogin.jsf':            pages.LoginPage,
-             '.*displayLogin.jsf.*':          pages.LoginPage2,
-             '.*accountDetail.jsf.*':         pages.AccountHistoryCC,
-             '.*displayTRHistoriqueLA.*':     pages.AccountHistoryLA
+    PAGES = {'.*displayTRAccountSummary.*':   AccountsList,
+             '.*displayLogin.jsf':            LoginPage,
+             '.*displayLogin.jsf.*':          LoginPage2,
+             '.*accountDetail.jsf.*':         AccountHistoryCC,
+             '.*displayTRHistoriqueLA.*':     AccountHistoryLA
             }
 
     def __init__(self, *args, **kwargs):
@@ -44,7 +45,7 @@ class Ing(BaseBrowser):
         self.location('https://secure.ingdirect.fr/public/displayLogin.jsf')
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -53,14 +54,14 @@ class Ing(BaseBrowser):
         assert self.password.isdigit()
         assert self.birthday.isdigit()
 
-        if not self.is_on_page(pages.LoginPage):
+        if not self.is_on_page(LoginPage):
             self.location('https://secure.ingdirect.fr/public/displayLogin.jsf')
 
         self.page.prelogin(self.username, self.birthday)
 	self.page.login(self.password)
 
     def get_accounts_list(self):
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/general?command=displayTRAccountSummary')
 
         return self.page.get_list()
@@ -68,7 +69,7 @@ class Ing(BaseBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/general?command=displayTRAccountSummary')
 
         l = self.page.get_list()
@@ -83,10 +84,10 @@ class Ing(BaseBrowser):
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
           self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
-        elif account.label[0:2] == "LA": 
-          # we want "displayTRHistoriqueLA" but this fucking page is not directly available... 
+        elif account.label[0:2] == "LA":
+          # we want "displayTRHistoriqueLA" but this fucking page is not directly available...
           self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
-        else: 
+        else:
           raise NotImplementedError()
         return self.page.get_operations()
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" != "" ]; then
-	nosetests -sv $(dirname $0)/../weboob/backends/$1
+	nosetests -sv $(dirname $0)/../modules/$1
 else
-	find $(dirname $0)/../weboob -name test.py | xargs nosetests -sv
+	find $(dirname $0)/../weboob $(dirname $0)/../modules -name test.py | xargs nosetests -sv
 fi

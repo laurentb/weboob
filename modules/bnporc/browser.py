@@ -23,7 +23,10 @@ from logging import warning
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import TransferError, Transfer
-from bnporc import pages
+from .pages import AccountsList, AccountHistory, ChangePasswordPage, \
+                   AccountComing, AccountPrelevement, TransferPage, \
+                   TransferConfirmPage, TransferCompletePage, \
+                   LoginPage, ConfirmPage
 from .errors import PasswordExpired
 
 
@@ -34,18 +37,18 @@ class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
-    PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': pages.AccountsList,
-             '.*SAF_ROP.*':                                 pages.AccountHistory,
-             '.*Action=SAF_CHM.*':                          pages.ChangePasswordPage,
-             '.*NS_AVEDT.*':                                pages.AccountComing,
-             '.*NS_AVEDP.*':                                pages.AccountPrelevement,
-             '.*NS_VIRDF.*':                                pages.TransferPage,
-             '.*NS_VIRDC.*':                                pages.TransferConfirmPage,
-             '.*/NS_VIRDA\?stp=(?P<id>\d+).*':              pages.TransferCompletePage,
-             '.*Action=DSP_VGLOBALE.*':                     pages.LoginPage,
-             '.*type=homeconnex.*':                         pages.LoginPage,
-             '.*layout=HomeConnexion.*':                    pages.ConfirmPage,
-             '.*SAF_CHM_VALID.*':                           pages.ConfirmPage,
+    PAGES = {'.*identifiant=DOSSIER_Releves_D_Operation.*': AccountsList,
+             '.*SAF_ROP.*':                                 AccountHistory,
+             '.*Action=SAF_CHM.*':                          ChangePasswordPage,
+             '.*NS_AVEDT.*':                                AccountComing,
+             '.*NS_AVEDP.*':                                AccountPrelevement,
+             '.*NS_VIRDF.*':                                TransferPage,
+             '.*NS_VIRDC.*':                                TransferConfirmPage,
+             '.*/NS_VIRDA\?stp=(?P<id>\d+).*':              TransferCompletePage,
+             '.*Action=DSP_VGLOBALE.*':                     LoginPage,
+             '.*type=homeconnex.*':                         LoginPage,
+             '.*layout=HomeConnexion.*':                    ConfirmPage,
+             '.*SAF_CHM_VALID.*':                           ConfirmPage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -57,31 +60,31 @@ class BNPorc(BaseBrowser):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        if not self.is_on_page(pages.LoginPage):
+        if not self.is_on_page(LoginPage):
             self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
 
         self.page.login(self.username, self.password)
         self.location('/NSFR?Action=DSP_VGLOBALE', no_login=True)
 
-        if self.is_on_page(pages.LoginPage):
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
     def change_password(self, new_password):
         assert new_password.isdigit() and len(new_password) == 6
 
         self.location('https://www.secure.bnpparibas.net/SAF_CHM?Action=SAF_CHM')
-        assert self.is_on_page(pages.ChangePasswordPage)
+        assert self.is_on_page(ChangePasswordPage)
 
         self.page.change_password(self.password, new_password)
 
-        if not self.is_on_page(pages.ConfirmPage):
+        if not self.is_on_page(ConfirmPage):
             self.logger.error('Oops, unable to change password')
             return
 
@@ -105,7 +108,7 @@ class BNPorc(BaseBrowser):
 
     @check_expired_password
     def get_accounts_list(self):
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
 
         return self.page.get_list()
@@ -113,7 +116,7 @@ class BNPorc(BaseBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
 
         l = self.page.get_list()
@@ -124,30 +127,30 @@ class BNPorc(BaseBrowser):
         return None
 
     def get_history(self, account):
-        if not self.is_on_page(pages.AccountHistory) or self.page.account.id != account.id:
+        if not self.is_on_page(AccountHistory) or self.page.account.id != account.id:
             self.location('/SAF_ROP?ch4=%s' % account.link_id)
         return self.page.get_operations()
 
     def get_coming_operations(self, account):
-        if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
+        if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
             self.location('/NS_AVEDT?ch4=%s' % account.link_id)
         return self.page.get_operations()
 
     def get_transfer_accounts(self):
-        if not self.is_on_page(pages.TransferPage):
+        if not self.is_on_page(TransferPage):
             self.location('/NS_VIRDF')
 
-        assert self.is_on_page(pages.TransferPage)
+        assert self.is_on_page(TransferPage)
         return self.page.get_accounts()
 
     def transfer(self, from_id, to_id, amount, reason=None):
-        if not self.is_on_page(pages.TransferPage):
+        if not self.is_on_page(TransferPage):
             self.location('/NS_VIRDF')
 
         accounts = self.page.get_accounts()
         self.page.transfer(from_id, to_id, amount, reason)
 
-        if not self.is_on_page(pages.TransferCompletePage):
+        if not self.is_on_page(TransferCompletePage):
             raise TransferError('An error occured during transfer')
 
         transfer = Transfer(self.page.get_id())

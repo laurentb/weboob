@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
-from cragr import pages
+from .pages import LoginPage, AccountsList
 import mechanize
 from datetime import datetime
 import re
@@ -36,13 +36,13 @@ class Cragr(BaseBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
-        self.PAGES = {'https://[^/]+/':                               pages.LoginPage,
-                      'https://[^/]+/.*\.c.*':                        pages.AccountsList,
-                      'https://[^/]+/login/process%s' % self.SESSION_REGEXP:   pages.AccountsList,
-                      'https://[^/]+/accounting/listAccounts':        pages.AccountsList,
-                      'https://[^/]+/accounting/listOperations':      pages.AccountsList,
-                      'https://[^/]+/accounting/showAccountDetail.+': pages.AccountsList,
-                      'https://[^/]+/accounting/showMoreAccountOperations.*': pages.AccountsList,
+        self.PAGES = {'https://[^/]+/':                               LoginPage,
+                      'https://[^/]+/.*\.c.*':                        AccountsList,
+                      'https://[^/]+/login/process%s' % self.SESSION_REGEXP:   AccountsList,
+                      'https://[^/]+/accounting/listAccounts':        AccountsList,
+                      'https://[^/]+/accounting/listOperations':      AccountsList,
+                      'https://[^/]+/accounting/showAccountDetail.+': AccountsList,
+                      'https://[^/]+/accounting/showMoreAccountOperations.*': AccountsList,
                      }
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -75,7 +75,7 @@ class Cragr(BaseBrowser):
 
         self.is_logging = True
         # Are we on the good page?
-        if not self.is_on_page(pages.LoginPage):
+        if not self.is_on_page(LoginPage):
             self.logger.debug('going to login page')
             BaseBrowser.home(self)
         self.logger.debug('attempting to log in')
@@ -95,21 +95,21 @@ class Cragr(BaseBrowser):
         Ensure we are both logged and on the accounts list.
         """
         self.logger.debug('accounts list page required')
-        if self.is_on_page(pages.AccountsList) and self.page.is_accounts_list():
+        if self.is_on_page(AccountsList) and self.page.is_accounts_list():
             self.logger.debug('already on accounts list')
             return
 
         # simply go to http(s)://the.doma.in/
         BaseBrowser.home(self)
 
-        if self.is_on_page(pages.LoginPage):
+        if self.is_on_page(LoginPage):
             if not self.is_logged():
                 # So, we are not logged on the login page -- what about logging ourselves?
                 self.login()
                 # we assume we are logged in
             # for some regions, we may stay on the login page once we're
             # logged in, without being redirected...
-            if self.is_on_page(pages.LoginPage):
+            if self.is_on_page(LoginPage):
                 # ... so we have to move by ourselves
                 self.move_to_accounts_list()
 
@@ -254,6 +254,6 @@ class Cragr(BaseBrowser):
         return transfer
 
     #def get_coming_operations(self, account):
-    #    if not self.is_on_page(pages.AccountComing) or self.page.account.id != account.id:
+    #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
     #        self.location('/NS_AVEEC?ch4=%s' % account.link_id)
     #    return self.page.get_operations()

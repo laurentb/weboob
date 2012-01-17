@@ -21,7 +21,7 @@
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from societegenerale.captcha import Captcha, TileError
+from ..captcha import Captcha, TileError
 from lxml import etree
 
 

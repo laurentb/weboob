@@ -21,7 +21,7 @@
 from datetime import datetime
 
 from weboob.tools.test import BackendTest
-from dlfp.browser import DLFP
+from .browser import DLFP
 
 
 __all__ = ['DLFPTest']

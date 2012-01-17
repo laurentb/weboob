@@ -20,7 +20,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from boursorama import pages
+from .pages import LoginPage, AccountsList, AccountHistory
 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -34,9 +34,9 @@ class Boursorama(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-             '.*connexion.phtml.*':  pages.LoginPage,
-             '.*/comptes/synthese.phtml':      pages.AccountsList,
-             '.*/comptes/banque/detail/mouvements.phtml.*': pages.AccountHistory,
+             '.*connexion.phtml.*':                         LoginPage,
+             '.*/comptes/synthese.phtml':                   AccountsList,
+             '.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
@@ -46,23 +46,23 @@ class Boursorama(BaseBrowser):
         self.location('https://' + self.DOMAIN + '/connexion.phtml')
 
     def is_logged(self):
-        return not self.is_on_page(pages.LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
 
-        if not self.is_on_page(pages.LoginPage):
+        if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN + '/connexion.phtml')
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(pages.LoginPage):
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/comptes/synthese.phtml')
 
         return self.page.get_list()
@@ -70,7 +70,7 @@ class Boursorama(BaseBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(pages.AccountsList):
+        if not self.is_on_page(AccountsList):
             self.location('/comptes/synthese.phtml')
 
         l = self.page.get_list()
