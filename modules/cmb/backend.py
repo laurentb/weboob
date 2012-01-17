@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.capabilities.bank import Account, Recipient, Operation
+from weboob.capabilities.bank import Account, Operation
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
@@ -77,7 +77,7 @@ class CmbBackend(BaseBackend, ICapBank):
             return True
         else:
             raise BrowserIncorrectPassword()
-        return false
+        return False
 
     def iter_accounts(self):
         if not self.cookie:
