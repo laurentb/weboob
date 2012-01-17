@@ -1,7 +1,28 @@
 #!/bin/bash
+# stop on failure
+set -e
+BACKEND="${1}"
+[ "${WEBOOB_WORKDIR}" != "" ] || WEBOOB_WORKDIR="${HOME}/.weboob"
+[ "${TMPDIR}" != "" ] || TMPDIR="/tmp"
 
-if [ "$1" != "" ]; then
-	nosetests -sv $(dirname $0)/../modules/$1
+# do not allow undefined variables anymore
+set -u
+WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
+cp "${WEBOOB_WORKDIR}/backends" "${WEBOOB_TMPDIR}/"
+
+WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
+echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
+
+export WEBOOB_WOKDIR="${WEBOOB_TMPDIR}"
+
+# allow failing commands past this point
+set +e
+if [ "${BACKEND}" != "" ]; then
+    nosetests -sv "${WEBOOB_DIR}/modules/${BACKEND}"
 else
-	find $(dirname $0)/../weboob $(dirname $0)/../modules -name test.py | xargs nosetests -sv
+    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name test.py | xargs nosetests -sv
 fi
+
+# safe removal
+rm "${WEBOOB_TMPDIR}"/{backends,sources.list}
+rmdir "${WEBOOB_TMPDIR}"
