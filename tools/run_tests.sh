@@ -13,7 +13,8 @@ cp "${WEBOOB_WORKDIR}/backends" "${WEBOOB_TMPDIR}/"
 WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
-export WEBOOB_WOKDIR="${WEBOOB_TMPDIR}"
+export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
+"${WEBOOB_DIR}/scripts/weboob-config" update
 
 # allow failing commands past this point
 set +e
@@ -24,5 +25,6 @@ else
 fi
 
 # safe removal
+rm -r "${WEBOOB_TMPDIR}"/{icons,repositories,modules}
 rm "${WEBOOB_TMPDIR}"/{backends,sources.list}
 rmdir "${WEBOOB_TMPDIR}"
