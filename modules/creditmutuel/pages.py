@@ -35,6 +35,9 @@ class LoginErrorPage(BasePage):
 class InfoPage(BasePage):
     pass
 
+class UserSpacePage(BasePage):
+    pass
+
 class AccountsPage(BasePage):
     def get_list(self):
         l = []

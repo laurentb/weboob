@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, OperationsPage, InfoPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, OperationsPage, InfoPage
 
 __all__ = ['CreditMutuelBrowser']
 
@@ -33,6 +33,7 @@ class CreditMutuelBrowser(BaseBrowser):
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
              'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
          'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
          'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*' : OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage
             }
