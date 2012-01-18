@@ -23,8 +23,11 @@ if [ "${BACKEND}" != "" ]; then
 else
     find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name test.py | xargs nosetests -sv
 fi
+STATUS=$?
 
 # safe removal
 rm -r "${WEBOOB_TMPDIR}"/{icons,repositories,modules}
 rm "${WEBOOB_TMPDIR}"/{backends,sources.list}
 rmdir "${WEBOOB_TMPDIR}"
+
+exit $STATUS
