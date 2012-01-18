@@ -479,7 +479,7 @@ class Repositories(object):
         elif info.version > installed:
             progress.progress(0.3, 'A new version of this module is available')
         else:
-            raise ModuleInstallError('The last version is already installed')
+            raise ModuleInstallError('The last version of %s is already installed' % info.name)
 
         browser = StandardBrowser()
         progress.progress(0.2, 'Downloading module...')
