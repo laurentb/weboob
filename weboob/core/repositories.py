@@ -280,13 +280,16 @@ class Versions(object):
 
 class IProgress:
     def progress(self, percent, message):
-        pass
+        print '=== [%3.0f%%] %s' % (percent*100, message)
 
 class ModuleInstallError(Exception):
     pass
 
 DEFAULT_SOURCES_LIST = \
 """# List of Weboob repositories
+#
+# The entries below override the entries above (with
+# backends of the same name).
 
 http://updates.weboob.org/%(version)s/main/
 # To enable NSFW backends, uncomment the following line:

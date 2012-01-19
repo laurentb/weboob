@@ -28,7 +28,7 @@ import locale
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
-from weboob.core.repositories import IProgress, ModuleInstallError
+from weboob.core.repositories import ModuleInstallError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 from weboob.tools.misc import to_unicode
@@ -250,12 +250,8 @@ class ConsoleApplication(BaseApplication):
         return backend_config
 
     def install_module(self, name):
-        class Progress(IProgress):
-            def progress(self, percent, message):
-                print '=== %s' % message
-
         try:
-            self.weboob.repositories.install(name, Progress())
+            self.weboob.repositories.install(name)
         except ModuleInstallError, e:
             print >>sys.stderr, 'Unable to install module "%s": %s' % (name, e)
             return 1

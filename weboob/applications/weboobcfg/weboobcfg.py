@@ -24,7 +24,6 @@ import re
 from copy import copy
 
 from weboob.capabilities.account import ICapAccount
-from weboob.core.repositories import IProgress
 from weboob.core.modules import ModuleLoadError
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.ordereddict import OrderedDict
@@ -263,11 +262,7 @@ class WeboobCfg(ReplApplication):
 
         Update weboob.
         """
-        class Progress(IProgress):
-            def progress(self, percent, message):
-                print '=== [%3.0f%%] %s' % (percent*100, message)
-
-        self.weboob.update(Progress())
+        self.weboob.update()
 
     def do_install(self, line):
         """

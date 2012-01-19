@@ -130,14 +130,14 @@ class Weboob(object):
             if caps is not None and not minfo.has_caps(caps):
                 continue
 
+            if not minfo.is_installed():
+                self.repositories.install(minfo)
+
             module = None
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
             except ModuleLoadError, e:
                 self.logger.error(e)
-            if module is None:
-                self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
-                                     'Hint: try to use "weboob-config update"' % (module_name, self.backends_config.confpath))
                 continue
 
             if instance_name in self.backend_instances:
