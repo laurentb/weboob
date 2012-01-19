@@ -228,7 +228,7 @@ class BackendCfg(QDialog):
             params.pop('_enabled', None)
 
             info = self.weboob.repositories.get_module_info(name)
-            if info and (info.is_installed() or self.askInstallModule(info)):
+            if info and (info.is_installed() or self.installModule(info)):
                 backend = self.weboob.modules_loader.get_or_load_module(bname)
                 for key, value in backend.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
                     try:
@@ -266,7 +266,7 @@ class BackendCfg(QDialog):
             warning('Module not found')
             return
 
-        if not minfo.is_installed() and not self.askInstallModule(minfo):
+        if not minfo.is_installed() and not self.installModule(minfo):
             self.editBackend(None)
             return
 

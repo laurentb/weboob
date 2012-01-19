@@ -274,10 +274,7 @@ class ConsoleApplication(BaseApplication):
                     raise ModuleLoadError(name, 'Module does not exist')
                 if not minfo.is_installed():
                     print 'Module "%s" is available but not installed.' % minfo.name
-                    if self.ask('Do you want to install it now?', default=True):
-                        self.install_module(minfo)
-                    else:
-                        return 1
+                    self.install_module(minfo)
                 module = self.weboob.modules_loader.get_or_load_module(name)
                 config = module.config
             else:
