@@ -25,7 +25,7 @@ import os
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
-from weboob.core.repositories import Repositories
+from weboob.core.repositories import Repositories, IProgress
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
@@ -83,7 +83,7 @@ class Weboob(object):
     def deinit(self):
         self.unload_backends()
 
-    def update(self, progress=None):
+    def update(self, progress=IProgress()):
         """
         Update modules.
         """
