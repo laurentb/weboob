@@ -105,13 +105,14 @@ class AuMBrowser(BaseBrowser):
                                                      A=action,
                                                      P=parameter,
                                                      O='json')
-        buf = self.openurl(url, data)
+        buf = self.openurl(url, data).read()
 
         try:
-            r = json.load(buf)
+            r = json.loads(buf[buf.find('{'):])
         except ValueError:
-            buf.seek(0)
-            raise ValueError(buf.read())
+            raise ValueError(buf)
+
+        #pprint(r)
 
         if 'errors' in r and r['errors'] != '0' and len(r['errors']) > 0:
             code = r['errors'][0]
