@@ -103,12 +103,12 @@ class VideoPage(BaseYoutubePage):
             if not text:
                 continue
 
-            pattern = "'PLAYER_CONFIG': "
+            pattern = "yt.playerConfig = "
             pos = text.find(pattern)
             if pos < 0:
                 continue
 
-            sub = text[pos+len(pattern):pos+text[pos:].find('\n')]
+            sub = text[pos+len(pattern):pos+text[pos:].find('\n')].rstrip(';')
             a = json.loads(sub)
 
             for part in a['args']['url_encoded_fmt_stream_map'].split('&'):
@@ -119,6 +119,8 @@ class VideoPage(BaseYoutubePage):
                 value = urllib.unquote(value)
                 fmt, url = value.split(',url=')
                 formats[int(fmt)] = url
+
+            break
 
         # choose the better format to use.
         for format in self.AVAILABLE_FORMATS[self.AVAILABLE_FORMATS.index(format):]:
