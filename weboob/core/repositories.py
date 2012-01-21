@@ -292,12 +292,14 @@ DEFAULT_SOURCES_LIST = \
 # backends of the same name).
 
 http://updates.weboob.org/%(version)s/main/
-# To enable NSFW backends, uncomment the following line:
+
+# To enable Not Safe For Work backends, uncomment the
+# following line:
 #http://updates.weboob.org/%(version)s/nsfw/
 
 # DEVELOPMENT
-# If you want to hack on Weboob backends, you may add a reference
-# to sources, for example:
+# If you want to hack on Weboob modules, you may add a
+# reference to sources, for example:
 #file:///home/rom1/src/weboob/modules/
 """
 
