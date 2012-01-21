@@ -106,20 +106,21 @@ class WeboobRepos(ReplApplication):
                     continue
 
             print 'Create archive for %s' % name
-            with tarfile.open(tarname, 'w:gz') as tar:
-                tar.add(module_path, arcname=name, filter=self._archive_filter)
+            tar = tarfile.open(tarname, 'w:gz')
+            tar.add(module_path, arcname=name, exclude=self._archive_excludes)
+            tar.close()
 
             # Copy icon.
             icon_path = os.path.join(module_path, 'favicon.png')
             if os.path.exists(icon_path):
                 shutil.copy(icon_path, os.path.join(repo_path, '%s.png' % name))
 
-    def _archive_filter(self, tarinfo):
+    def _archive_excludes(self, filename):
         # Skip *.pyc files in tarballs.
-        if tarinfo.name.endswith('.pyc'):
-            return None
+        if filename.endswith('.pyc'):
+            return True
         # Don't include *.png files in tarball
-        if tarinfo.name.endswith('.png'):
-            return None
-        return tarinfo
+        if filename.endswith('.png'):
+            return True
+        return False
 

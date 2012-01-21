@@ -496,8 +496,9 @@ class Repositories(object):
         progress.progress(0.7, 'Setting up module...')
 
         # Extract module from tarball.
-        with tarfile.open('', 'r:gz', fp) as tar:
-            tar.extractall(self.modules_dir)
+        tar = tarfile.open('', 'r:gz', fp)
+        tar.extractall(self.modules_dir)
+        tar.close()
 
         self.versions.set(info.name, info.version)
 
