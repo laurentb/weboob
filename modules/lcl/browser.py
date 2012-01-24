@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, LoginResultPage, FramePage, AccountsPage, AccountHistoryPage
+from .pages import SkipPage, LoginPage, AccountsPage, AccountHistoryPage
 
 
 __all__ = ['LCLBrowser']
@@ -33,11 +33,11 @@ class LCLBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=PAGEIDENT': LoginPage,
-        'https://particuliers.secure.lcl.fr/everest/UWBI/UWBIAccueil\?DEST=IDENTIFICATION': LoginResultPage,
-        'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese/accesSynthese': AccountsPage,
-        'https://particuliers.secure.lcl.fr/outil/UWB2/Accueil\?DEST=INIT': FramePage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
+        'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/selectionnerContrat.*': SkipPage,
+        'https://particuliers.secure.lcl.fr/index.html': SkipPage
         }
 
     def __init__(self, agency, *args, **kwargs):
@@ -55,17 +55,17 @@ class LCLBrowser(BaseBrowser):
         assert self.agency.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('%s://%s/everest/UWBI/UWBIAccueil?DEST=PAGEIDENT' \
+            self.location('%s://%s/outil/UAUT/Authentication/authenticate' \
                           % (self.PROTOCOL, self.DOMAIN),
                           no_login=True)
 
         if not self.page.login(self.agency, self.username, self.password) or \
            not self.is_logged() or \
-           (self.is_on_page(LoginResultPage) and self.page.is_error()) :
+           (self.is_on_page(LoginPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword()
-
-        self.location('%s://%s/outil/UWSP/Synthese/accesSynthese' \
-                      % (self.PROTOCOL, self.DOMAIN))
+        self.location('%s://%s/outil/UWSP/Synthese' \
+                      % (self.PROTOCOL, self.DOMAIN),
+                      no_login=True)
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):

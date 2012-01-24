@@ -25,6 +25,8 @@ from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from logging import error
 import tempfile
+import math
+import random
 
 class LCLVirtKeyboard(MappedVirtKeyboard):
     symbols={'0':'9da2724133f2221482013151735f033c',
@@ -39,14 +41,16 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
              '9':'cc60e5894a9d8e12ee0c2c104c1d5490'
             }
 
-    url="/UWBI/UWBIAccueil?DEST=GENERATION_CLAVIER"
+    url="/outil/UAUT/Clavier/creationClavier?random="
 
     color=(255,255,255,255)
 
     def __init__(self,basepage):
         img=basepage.document.find("//img[@id='idImageClavier']")
+        random.seed()
+        self.url+="%li"%math.floor(long(random.random()*1000000000000000000000))
         MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),
-                                    basepage.document,img,self.color)
+                                    basepage.document,img,self.color,"id")
         if basepage.browser.responses_dirname is None:
             basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
@@ -54,7 +58,7 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
 
     def get_symbol_code(self,md5sum):
         code=MappedVirtKeyboard.get_symbol_code(self,md5sum)
-        return code[-5:-3]
+        return code[-2:]
 
     def get_string_code(self,string):
         code=''
@@ -62,6 +66,8 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
             code+=self.get_symbol_code(self.symbols[c])
         return code
 
+class SkipPage(BasePage):
+    pass
 
 class LoginPage(BasePage):
     def myXOR(self,value,seed):
@@ -81,22 +87,23 @@ class LoginPage(BasePage):
 
         seed=-1
         str="var aleatoire = "
-        for script in self.document.findall("/head/script"):
+        for script in self.document.findall("//script"):
             if(script.text is None or len(script.text)==0):
                 continue
             offset=script.text.find(str)
             if offset!=-1:
-                seed=int(script.text[offset+len(str):offset+len(str)+1])
+                seed=int(script.text[offset+len(str)+1:offset+len(str)+2])
                 break
         if seed==-1:
             error("Variable 'aleatoire' not found")
             return False
 
-        self.browser.select_form(nr=0)
+        self.browser.select_form(
+            predicate=lambda x: x.attrs.get('id','')=='formAuthenticate')
         self.browser.form.set_all_readonly(False)
-        self.browser['agenceId'] = base64.b64encode(self.myXOR(agency,seed))
-        self.browser['compteId'] = base64.b64encode(self.myXOR(login,seed))
-        self.browser['postClavier'] = base64.b64encode(self.myXOR(password,seed))
+        self.browser['agenceId'] = agency
+        self.browser['compteId'] = login
+        self.browser['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
         try:
             self.browser.submit()
         except BrowserUnavailable:
@@ -104,7 +111,6 @@ class LoginPage(BasePage):
             return False
         return True
 
-class LoginResultPage(BasePage):
     def is_error(self):
         for text in self.document.find('body').itertext():
             text=text.strip()
@@ -112,75 +118,81 @@ class LoginResultPage(BasePage):
             needle='Les données saisies sont incorrectes'
             if text.startswith(needle.decode('utf-8')):
                 return True
-
         return False
-
-class FramePage(BasePage):
-    pass
-
 
 class AccountsPage(BasePage):
     def get_list(self):
         l = []
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('class')=="unCompte-CA" or\
-            div.attrib.get('class')=="unCompte-CC" or\
-            div.attrib.get('class')=="unCompte-CD" or\
-            div.attrib.get('class')=="unCompte-CE":
-                #CA=> ? maybe Assurance-vie
-                #CC=> Compte Courant
-                #CD=> Compte Dépôt
-                #CE=> Compte d'Epargne
+        for a in self.document.getiterator('a'):
+            link=a.attrib.get('href')
+            if link is not None and link.startswith("/outil/UWLM/ListeMouvements"):
                 account = Account()
-                account.type=div.attrib.get('class')[-2:]
-                account.id = div.attrib.get('id').replace('-','')
-                for td in div.getiterator('td'):
-                    if td.find("div") is not None and td.find("div").attrib.get('class') == 'libelleCompte':
-                        account.label = td.find("div").text
-                    elif td.find('a') is not None and td.find('a').attrib.get('class') is None:
-                        balance = td.find('a').text.replace(u"\u00A0",'').replace('.','').replace('+','').replace(',','.')
-                        account.balance = float(balance)
-                        account.link_id = td.find('a').attrib.get('href')
-
+                account.link_id=link
+                parameters=link.split("?").pop().split("&")
+                for parameter in parameters:
+                    list=parameter.split("=")
+                    value=list.pop()
+                    name=list.pop()
+                    if name=="agence":
+                        account.id=value
+                    elif name=="compte":
+                        account.id+=value
+                    elif name=="nature":
+                        account.type=value
+                account.label=a.getparent().getprevious().text.strip()
+                balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
+                account.balance=float(balance)
                 l.append(account)
-
         return l
 
 class AccountHistoryPage(BasePage):
-    def get_specific_operations(self,tableHeaderPrefixes,debitColumns,creditColumns):
-        operations = []
-        for td in self.document.iter('td'):
-            text=td.findtext("b")
-            if text is None:
-                continue
-            for i in range(len(tableHeaderPrefixes)):
-                if text.startswith(tableHeaderPrefixes[i].decode('utf-8')):
-                    tbody=td.getparent().getparent()
-                    for tr in tbody.iter('tr'):
-                        tr_class=tr.attrib.get('class')
-                        if tr_class == 'tbl1' or tr_class=='tbl2':
-                            tds=tr.findall('td')
-                            d=date(*reversed([int(x) for x in tds[0].text.split('/')]))
-                            label=u''+tds[1].find('a').text.strip()
-                            if tds[debitColumns[i]].text.strip() != u"":
-                                amount = - float(tds[debitColumns[i]].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                            else:
-                                amount= float(tds[creditColumns[i]].text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
-                            operation=Operation(len(operations))
-                            operation.date=d
-                            operation.label=label
-                            operation.amount=amount
-                            operations.append(operation)
-        return operations
-
     def get_operations(self,account):
-        if account.type=="CA":
-            return [] # Not supported: page example required
-        elif account.type=="CC":
-            return self.get_specific_operations(['Opérations effectuées'],[3],[4])
-        elif account.type=="CD":
-            return self.get_specific_operations(['Solde au'],[2],[3])
-        elif account.type=="CE":
-            return self.get_specific_operations(['Solde au'],[2],[3])
+        operations = []
+        tables=self.document.findall("//table[@class='tagTab pyjama']")
+        table=None
+        for i in range(len(tables)):
+            # Look for the relevant table in the Pro version
+            header=tables[i].getprevious()
+            while str(header.tag)=="<built-in function Comment>":
+                header=header.getprevious()
+            header=header.find("div")
+            if header is not None:
+                header=header.find("span")
+            if header is not None and \
+               header.text.strip().startswith("Opérations effectuées".decode('utf-8')):
+                table=tables[i]
+                break;
+            # Look for the relevant table in the Particulier version
+            header=tables[i].find("thead").find("tr").find("th[@class='titleTab titleTableft']")
+            if header is not None and\
+               header.text.strip().startswith("Solde au"):
+                table=tables[i]
+                break;
+
+        for tr in table.iter('tr'):
+            # skip headers and empty rows
+            if len(tr.findall("th"))!=0 or\
+               len(tr.findall("td"))==0:
+                continue
+            operation=Operation(len(operations))
+            mntColumn=0
+            for td in tr.iter('td'):
+                value=td.attrib.get('id')
+                if value is None:
+                    value=td.attrib.get('class');
+                if value.startswith("date"):
+                    operation.date=date(*reversed([int(x) for x in td.text.split('/')]))
+                elif value.startswith("lib") or value.startswith("opLib"):
+                    # misclosed A tag requires to grab text from td
+                    operation.label=u''.join([txt.strip() for txt in td.itertext()])
+                elif value.startswith("solde") or value.startswith("mnt"):
+                    mntColumn+=1
+                    if td.text.strip() != "":
+                        amount = float(td.text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                        if value.startswith("soldeDeb") or mntColumn==1:
+                            amount=-amount
+                        operation.amount=amount
+            operations.append(operation)
+        return operations
 
 
