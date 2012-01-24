@@ -123,7 +123,9 @@ class VirtKeyboard(object):
             img.save(dir+"/"+self.md5[i]+".png")
 
 class MappedVirtKeyboard(VirtKeyboard):
-    def __init__(self,file,document,img_element,color):
+    def __init__(self,file,document,img_element,color,map_attr):
+        if map_attr is None:       # for backward compatibility
+            map_attr="onclick"
         map_id=img_element.attrib.get("usemap")[1:]
         map=document.find("//map[@id='"+map_id+"']")
         if map is None:
@@ -131,7 +133,7 @@ class MappedVirtKeyboard(VirtKeyboard):
 
         coords={}
         for area in map.getiterator("area"):
-            code=area.attrib.get("onclick")
+            code=area.attrib.get(map_attr)
             area_coords=[]
             for coord in area.attrib.get("coords").split(','):
                 area_coords.append(int(coord))
