@@ -127,7 +127,7 @@ class AccountsPage(BasePage):
             link=a.attrib.get('href')
             if link is not None and link.startswith("/outil/UWLM/ListeMouvements"):
                 account = Account()
-                account.link_id=link
+                account.link_id=link+"&mode=45"
                 parameters=link.split("?").pop().split("&")
                 for parameter in parameters:
                     list=parameter.split("=")
