@@ -20,6 +20,8 @@
 
 from __future__ import with_statement
 
+import re
+
 from weboob.capabilities.video import ICapVideo
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
@@ -51,6 +53,9 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
             return self.browser.iter_search_results(pattern)
 
     def get_video(self, _id):
+        m = re.match('https?://www\.canal-?plus\.fr/.*\?vid=(\d+)', _id)
+        if m:
+            _id = m.group(1)
         with self.browser:
             return self.browser.get_video(_id)
 
