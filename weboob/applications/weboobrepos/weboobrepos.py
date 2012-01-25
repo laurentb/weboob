@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 
 from datetime import datetime
 import tarfile
@@ -24,6 +25,7 @@ import os
 import shutil
 import sys
 from copy import copy
+from contextlib import closing
 
 from weboob.core.repositories import Repository
 
@@ -106,9 +108,8 @@ class WeboobRepos(ReplApplication):
                     continue
 
             print 'Create archive for %s' % name
-            tar = tarfile.open(tarname, 'w:gz')
-            tar.add(module_path, arcname=name, exclude=self._archive_excludes)
-            tar.close()
+            with closing(tarfile.open(tarname, 'w:gz')) as tar:
+                tar.add(module_path, arcname=name, exclude=self._archive_excludes)
 
             # Copy icon.
             icon_path = os.path.join(module_path, 'favicon.png')

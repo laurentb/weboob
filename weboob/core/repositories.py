@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 
 import tarfile
 import posixpath
@@ -25,6 +26,7 @@ import re
 import sys
 import os
 from datetime import datetime
+from contextlib import closing
 
 from .modules import Module
 from weboob.tools.log import getLogger
@@ -499,9 +501,8 @@ class Repositories(object):
         progress.progress(0.7, 'Setting up module...')
 
         # Extract module from tarball.
-        tar = tarfile.open('', 'r:gz', fp)
-        tar.extractall(self.modules_dir)
-        tar.close()
+        with closing(tarfile.open('', 'r:gz', fp)) as tar:
+            tar.extractall(self.modules_dir)
 
         self.versions.set(info.name, info.version)
 
