@@ -32,12 +32,12 @@ class AccountsList(BasePage):
     def get_list(self):
         l = []
         for tr in self.document.getiterator('tr'):
-            if tr.attrib.get('class', '') == 'LGNTableRow':
+            if 'LGNTableRow' in tr.attrib.get('class', '').split():
                 account = Account()
                 for td in tr.getiterator('td'):
                     if td.attrib.get('headers', '') == 'TypeCompte':
                         a = td.find('a')
-                        account.label = a.text
+                        account.label = a.find("span").text
                         account.link_id = a.get('href', '')
 
                     elif td.attrib.get('headers', '') == 'NumeroCompte':
@@ -49,9 +49,9 @@ class AccountsList(BasePage):
                         pass
 
                     elif td.attrib.get('headers', '') == 'Solde':
-                        balance = td.text
-                        balance = balance.replace(u'\xa0','').replace(',','.')
-                        if balance != "":
+                        balance = td.find('div').text
+                        if balance != None:
+                            balance = balance.replace(u'\xa0','').replace(',','.')
                             account.balance = float(balance)
                         else:
                             account.balance = 0.0
