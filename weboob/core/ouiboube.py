@@ -37,7 +37,6 @@ __all__ = ['Weboob']
 
 class Weboob(object):
     VERSION = '0.a'
-    WORKDIR = os.path.join(os.path.expanduser('~'), '.weboob')
     BACKENDS_FILENAME = 'backends'
 
     def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
@@ -81,7 +80,7 @@ class Weboob(object):
         self.create_dir(workdir)
 
         # Repositories management
-        self.repositories = Repositories(datadir, self.VERSION)
+        self.repositories = Repositories(workdir, datadir, self.VERSION)
 
         # Backends loader
         self.modules_loader = ModulesLoader(self.repositories)

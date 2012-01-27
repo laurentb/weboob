@@ -313,16 +313,17 @@ class Repositories(object):
 
     SHARE_DIRS = [MODULES_DIR, REPOSITORIES_DIR, ICONS_DIR]
 
-    def __init__(self, workdir, version):
+    def __init__(self, workdir, datadir, version):
         self.logger = getLogger('repositories')
         self.version = version
         self.workdir = workdir
+        self.datadir = datadir
         self.sources_list = os.path.join(self.workdir, self.SOURCES_LIST)
-        self.modules_dir = os.path.join(self.workdir, self.MODULES_DIR)
-        self.repos_dir = os.path.join(self.workdir, self.REPOSITORIES_DIR)
-        self.icons_dir = os.path.join(self.workdir, self.ICONS_DIR)
+        self.modules_dir = os.path.join(self.datadir, self.MODULES_DIR)
+        self.repos_dir = os.path.join(self.datadir, self.REPOSITORIES_DIR)
+        self.icons_dir = os.path.join(self.datadir, self.ICONS_DIR)
 
-        self.create_dir(self.workdir)
+        self.create_dir(self.datadir)
         self.create_dir(self.repos_dir)
         self.create_dir(self.modules_dir)
         self.create_dir(self.icons_dir)
