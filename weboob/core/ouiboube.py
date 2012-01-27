@@ -73,7 +73,7 @@ class Weboob(object):
                     else:
                         dest = xdg_config_home
                     shutil.move(os.path.join(old_workdir, f), dest)
-                os.unlink(old_workdir)
+                shutil.rmtree(old_workdir)
             workdir = xdg_config_home
             datadir = xdg_data_home
 
