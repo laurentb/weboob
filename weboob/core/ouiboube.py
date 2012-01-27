@@ -21,6 +21,7 @@
 from __future__ import with_statement
 
 import os
+import shutil
 
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, ModuleLoadError
@@ -52,17 +53,35 @@ class Weboob(object):
         self.scheduler = scheduler
 
         # Create WORKDIR
-        if workdir is None:
-            workdir = os.environ.get('WEBOOB_WORKDIR', self.WORKDIR)
-        self.workdir = os.path.realpath(workdir)
+        if workdir is not None:
+            datadir = workdir
+        elif 'WEBOOB_WORKDIR' in os.environ:
+            datadir = workdir = os.environ.get('WEBOOB_WORKDIR')
+        else:
+            old_workdir = os.path.join(os.path.expanduser('~'), '.weboob')
+            xdg_config_home = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config', 'weboob'))
+            xdg_data_home = os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share', 'weboob'))
 
-        if not os.path.exists(self.workdir):
-            os.mkdir(self.workdir, 0700)
-        elif not os.path.isdir(self.workdir):
-            self.logger.warning(u'"%s" is not a directory' % self.workdir)
+            if os.path.isdir(old_workdir):
+                self.logger.warning('You are using "%s" as working directory. Files are moved into %s and %s.'
+                                    % (old_workdir, xdg_config_home, xdg_data_home))
+                self.create_dir(xdg_config_home)
+                self.create_dir(xdg_data_home)
+                for f in os.listdir(old_workdir):
+                    if f in Repositories.SHARE_DIRS:
+                        dest = xdg_data_home
+                    else:
+                        dest = xdg_config_home
+                    shutil.move(os.path.join(old_workdir, f), dest)
+                os.unlink(old_workdir)
+            workdir = xdg_config_home
+            datadir = xdg_data_home
+
+        self.workdir = os.path.realpath(workdir)
+        self.create_dir(workdir)
 
         # Repositories management
-        self.repositories = Repositories(self.workdir, self.VERSION)
+        self.repositories = Repositories(datadir, self.VERSION)
 
         # Backends loader
         self.modules_loader = ModulesLoader(self.repositories)
@@ -76,6 +95,12 @@ class Weboob(object):
 
         # Storage
         self.storage = storage
+
+    def create_dir(self, name):
+        if not os.path.exists(name):
+            os.makedirs(name)
+        elif not os.path.isdir(name):
+            self.logger.error(u'"%s" is not a directory' % name)
 
     def __deinit__(self):
         self.deinit()

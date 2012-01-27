@@ -309,6 +309,8 @@ class Repositories(object):
     REPOSITORIES_DIR = 'repositories'
     ICONS_DIR = 'icons'
 
+    SHARE_DIRS = [MODULES_DIR, REPOSITORIES_DIR, ICONS_DIR]
+
     def __init__(self, workdir, version):
         self.logger = getLogger('repositories')
         self.version = version
@@ -318,6 +320,7 @@ class Repositories(object):
         self.repos_dir = os.path.join(self.workdir, self.REPOSITORIES_DIR)
         self.icons_dir = os.path.join(self.workdir, self.ICONS_DIR)
 
+        self.create_dir(self.workdir)
         self.create_dir(self.repos_dir)
         self.create_dir(self.modules_dir)
         self.create_dir(self.icons_dir)
@@ -335,9 +338,9 @@ class Repositories(object):
 
     def create_dir(self, name):
         if not os.path.exists(name):
-            os.mkdir(name)
+            os.makedirs(name)
         elif not os.path.isdir(name):
-            self.logger.warning(u'"%s" is not a directory' % name)
+            self.logger.error(u'"%s" is not a directory' % name)
 
     def _extend_module_info(self, repos, info):
         if repos.local:

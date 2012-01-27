@@ -237,7 +237,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             except ImportError:
                 pass
             else:
-                history_filepath = os.path.join(self.weboob.WORKDIR, '%s_history' % self.APPNAME)
+                history_filepath = os.path.join(self.weboob.workdir, '%s_history' % self.APPNAME)
                 try:
                     readline.read_history_file(history_filepath)
                 except IOError:
