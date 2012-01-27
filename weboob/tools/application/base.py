@@ -171,7 +171,7 @@ class BaseApplication(object):
 
         if path is None:
             path = os.path.join(self.CONFDIR, self.APPNAME + '.storage')
-        elif not path.startswith('/'):
+        elif not os.path.sep in path:
             path = os.path.join(self.CONFDIR, path)
 
         storage = klass(path)
@@ -197,7 +197,7 @@ class BaseApplication(object):
 
         if path is None:
             path = os.path.join(self.CONFDIR, self.APPNAME)
-        elif not path.startswith('/'):
+        elif not os.path.sep in path:
             path = os.path.join(self.CONFDIR, path)
 
         self.config = klass(path)
@@ -303,31 +303,45 @@ class BaseApplication(object):
         else:
             level = logging.WARNING
 
-        logging.root.setLevel(level)
+        handlers = []
 
         if self.options.save_responses:
             responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % responses_dirname
             StandardBrowser.SAVE_RESPONSES = True
             StandardBrowser.responses_dirname = responses_dirname
-            self.add_logging_file_handler(os.path.join(responses_dirname, 'debug.log'))
+            handlers.append(self.create_logging_file_handler(os.path.join(responses_dirname, 'debug.log')))
 
         # file logger
         if self.options.logging_file:
-            self.add_logging_file_handler(self.options.logging_file)
+            handlers.append(self.create_logging_file_handler(self.options.logging_file))
         else:
-            # stdout logger
-            format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setFormatter(createColoredFormatter(sys.stdout, format))
-            logging.root.addHandler(handler)
+            handlers.append(self.create_default_logger())
+
+        self.setup_logging(level, handlers)
 
         self._handle_options()
         self.handle_application_options()
 
         return args
 
-    def add_logging_file_handler(self, filename):
+    @classmethod
+    def create_default_logger(klass):
+        # stdout logger
+        format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(createColoredFormatter(sys.stdout, format))
+        return handler
+
+    @classmethod
+    def setup_logging(klass, level, handlers):
+        logging.root.handlers = []
+
+        logging.root.setLevel(level)
+        for handler in handlers:
+            logging.root.addHandler(handler)
+
+    def create_logging_file_handler(self, filename):
         try:
             stream = open(filename, 'w')
         except IOError, e:
@@ -337,7 +351,7 @@ class BaseApplication(object):
             format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
             handler = logging.StreamHandler(stream)
             handler.setFormatter(logging.Formatter(format))
-            logging.root.addHandler(handler)
+            return handler
 
     @classmethod
     def run(klass, args=None):
@@ -354,6 +368,8 @@ class BaseApplication(object):
         >>> from weboob.application.myapplication import MyApplication
         >>> MyApplication.run()
         """
+
+        klass.setup_logging(logging.INFO, [klass.create_default_logger()])
 
         if args is None:
             args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
