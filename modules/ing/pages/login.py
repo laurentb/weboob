@@ -44,7 +44,8 @@ class INGVirtKeyboard(VirtKeyboard):
 
 
     def __init__(self,basepage):
-        img=basepage.document.find("//img[@id='mrc:j_id86']")
+        divkeyboard = basepage.document.find("//div[@id='clavierdisplayLogin']")
+        img = divkeyboard.xpath("img")[1]
         if img is None:
             return False
         url=img.attrib.get("src")
