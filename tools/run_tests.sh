@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/bin/sh
+
 # stop on failure
 set -e
+
 BACKEND="${1}"
 if [ -z "${WEBOOB_WORKDIR}" ]; then
     # use the old workdir by default
@@ -28,13 +30,13 @@ set +e
 if [ -n "${BACKEND}" ]; then
     nosetests -sv "${WEBOOB_DIR}/modules/${BACKEND}"
 else
-    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name test.py | xargs nosetests -sv
+    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs nosetests -sv
 fi
 STATUS=$?
 
 # safe removal
-rm -r "${WEBOOB_TMPDIR}"/{icons,repositories,modules}
-rm "${WEBOOB_TMPDIR}"/{backends,sources.list}
+rm -r "${WEBOOB_TMPDIR}/icons" "${WEBOOB_TMPDIR}/repositories" "${WEBOOB_TMPDIR}/modules"
+rm "${WEBOOB_TMPDIR}/backends" "${WEBOOB_TMPDIR}/sources.list"
 rmdir "${WEBOOB_TMPDIR}"
 
 exit $STATUS
