@@ -214,7 +214,7 @@ class Repository(object):
                 print 'ERROR: %s' % e
             else:
                 m = ModuleInfo(module.name)
-                m.version = int(datetime.fromtimestamp(os.path.getmtime(module_path)).strftime('%Y%m%d%H%M'))
+                m.version = self.get_tree_mtime(module_path)
                 m.capabilities = [c.__name__ for c in module.iter_caps()]
                 m.description = module.description
                 m.maintainer = module.maintainer
@@ -225,6 +225,18 @@ class Repository(object):
 
         self.update = int(datetime.now().strftime('%Y%m%d%H%M'))
         self.save(filename)
+
+    @staticmethod
+    def get_tree_mtime(path):
+        mtime = 0
+        for root, dirs, files in os.walk(path):
+            for f in files:
+                if f.endswith('.pyc'):
+                    continue
+                m = int(datetime.fromtimestamp(os.path.getmtime(os.path.join(root, f))).strftime('%Y%m%d%H%M'))
+                mtime = max(mtime, m)
+
+        return mtime
 
     def save(self, filename, private=False):
         """
