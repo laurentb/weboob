@@ -138,8 +138,9 @@ class ConsoleApplication(BaseApplication):
                             loaded += 1
                 print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(modules), self.NC, loaded,
                                                        self.BOLD, name, self.NC, info.description)
+            print '\n%sa) --all--%s               install all backends\n' % (self.BOLD, self.NC)
             print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
-            r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q)$')
+            r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q|a)$')
 
             if str(r).isdigit():
                 i = int(r) - 1
@@ -153,6 +154,16 @@ class ConsoleApplication(BaseApplication):
                         self.load_backends(names=[inst])
                 except (KeyboardInterrupt, EOFError):
                     print '\nAborted.'
+            if r == 'a':
+                for i in range( len(modules) ):
+                    name = modules[i]
+                    print "\n%sInstalling %s%s" % (self.BOLD, name, self.NC)
+                    try:
+                        inst = self.add_backend(name, default_config)
+                        if inst:
+                            self.load_backends(names=[inst])
+                    except (KeyboardInterrupt, EOFError):
+                        print '\nAborted.'
 
             print 'Right right!'
 
