@@ -30,6 +30,7 @@ from tempfile import NamedTemporaryFile
 from datetime import datetime
 from contextlib import closing
 from compileall import compile_dir
+from StringIO import StringIO
 
 from .modules import Module
 from weboob.tools.log import getLogger
@@ -44,6 +45,7 @@ class ModuleInfo(object):
         # path to the local directory containing this module.
         self.path = None
         self.url = None
+        self.repo_url = None
 
         self.version = 0
         self.capabilities = ()
@@ -229,6 +231,8 @@ class Repository(object):
             module.load(dict(config.items(section)))
             if not self.local:
                 module.url = posixpath.join(self.url, '%s.tar.gz' % module.name)
+                module.repo_url = self.url
+                module.signed = self.signed
             self.modules[section] = module
 
     def build_index(self, path, filename):
@@ -573,13 +577,25 @@ class Repositories(object):
             fp = browser.openurl(info.url)
         except BrowserUnavailable, e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
+        tardata = fp.read()
 
-        progress.progress(0.7, 'Setting up module...')
 
         # Extract module from tarball.
         if os.path.isdir(module_dir):
             shutil.rmtree(module_dir)
-        with closing(tarfile.open('', 'r:gz', fp)) as tar:
+        if info.signed and Keyring.find_gpgv():
+            progress.progress(0.5, 'Checking module authenticity...')
+            fpsig = browser.openurl(posixpath.join(info.url + '.sig'))
+            keyring_path = os.path.join(self.keyrings_dir, self.url2filename(info.repo_url))
+            keyring = Keyring(keyring_path)
+            if not keyring.exists():
+                raise ModuleInstallError('No keyring found, please update repos.')
+            if not keyring.is_valid(tardata, fpsig.read()):
+                raise ModuleInstallError('Invalid signature for %s.' % info.name)
+
+
+        progress.progress(0.7, 'Setting up module...')
+        with closing(tarfile.open('', 'r:gz', StringIO(tardata))) as tar:
             tar.extractall(self.modules_dir)
         if not os.path.isdir(module_dir):
             raise ModuleInstallError('The archive for %s looks invalid.' % info.name)
