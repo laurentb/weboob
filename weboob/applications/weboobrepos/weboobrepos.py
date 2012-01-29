@@ -20,6 +20,7 @@
 from __future__ import with_statement
 
 from datetime import datetime
+from time import mktime, strptime
 import tarfile
 import os
 import shutil
@@ -110,6 +111,8 @@ class WeboobRepos(ReplApplication):
             print 'Create archive for %s' % name
             with closing(tarfile.open(tarname, 'w:gz')) as tar:
                 tar.add(module_path, arcname=name, exclude=self._archive_excludes)
+            tar_mtime = mktime(strptime(str(module.version), '%Y%m%d%H%M'))
+            os.utime(tarname, (tar_mtime, tar_mtime))
 
             # Copy icon.
             icon_path = os.path.join(module_path, 'favicon.png')

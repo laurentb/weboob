@@ -211,7 +211,7 @@ class Repository(object):
             try:
                 module = Module(__import__(name, fromlist=[str(name)]))
             except Exception, e:
-                print 'ERROR: %s' % e
+                print >>sys.stderr, 'ERROR: %s' % e
             else:
                 m = ModuleInfo(module.name)
                 m.version = self.get_tree_mtime(module_path)
@@ -227,8 +227,10 @@ class Repository(object):
         self.save(filename)
 
     @staticmethod
-    def get_tree_mtime(path):
+    def get_tree_mtime(path, include_root=False):
         mtime = 0
+        if include_root:
+            mtime = int(datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y%m%d%H%M'))
         for root, dirs, files in os.walk(path):
             for f in files:
                 if f.endswith('.pyc'):
@@ -453,7 +455,7 @@ class Repositories(object):
                     try:
                         repository.retrieve_index(dest_path)
                     except RepositoryUnavailable, e:
-                        print 'Error: %s' % e
+                        print >>sys.stderr, 'Error: %s' % e
                     else:
                         self.repositories.append(repository)
 
