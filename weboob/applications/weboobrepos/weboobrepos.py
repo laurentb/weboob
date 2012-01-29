@@ -115,8 +115,10 @@ class WeboobRepos(ReplApplication):
                     os.remove(krname)
                 # Add all valid keys
                 for keyfile in os.listdir(os.path.join(source_path, r.KEYDIR)):
+                    print 'Adding key %s' % keyfile
                     keypath = os.path.join(source_path, r.KEYDIR, keyfile)
                     subprocess.check_call([gpg,
+                        '--quiet',
                         '--no-default-keyring',
                         '--keyring', krname,
                         '--import', keypath])
