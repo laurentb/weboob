@@ -102,6 +102,7 @@ class WeboobRepos(ReplApplication):
         r.build_index(source_path, index_file)
 
         if r.signed:
+            sigfiles = [r.KEYRING]
             gpg = self._find_gpg()
             if not gpg:
                 raise Exception('Unable to find the gpg executable.')
@@ -120,8 +121,8 @@ class WeboobRepos(ReplApplication):
                     subprocess.check_call([gpg,
                         '--quiet',
                         '--no-default-keyring',
-                        '--keyring', krname,
-                        '--import', keypath])
+                        '--keyring', os.path.realpath(krname),
+                        '--import', os.path.realpath(keypath)])
                 # Does not make much sense in our case
                 if os.path.exists(krname+'~'):
                     os.remove(krname+'~')
@@ -135,6 +136,8 @@ class WeboobRepos(ReplApplication):
 
         for name, module in r.modules.iteritems():
             tarname = os.path.join(repo_path, '%s.tar.gz' % name)
+            if r.signed:
+                sigfiles.append(os.path.basename(tarname))
             module_path = os.path.join(source_path, name)
             if os.path.exists(tarname):
                 tar_mtime = int(datetime.fromtimestamp(os.path.getmtime(tarname)).strftime('%Y%m%d%H%M'))
@@ -151,6 +154,26 @@ class WeboobRepos(ReplApplication):
             icon_path = os.path.join(module_path, 'favicon.png')
             if os.path.exists(icon_path):
                 shutil.copy(icon_path, os.path.join(repo_path, '%s.png' % name))
+
+        if r.signed:
+            for filename in sigfiles:
+                filepath = os.path.realpath(os.path.join(repo_path, filename))
+                sigpath = filepath+'.sig'
+                file_mtime = int(os.path.getmtime(filepath))
+                if os.path.exists(sigpath):
+                    sig_mtime = int(os.path.getmtime(sigpath))
+                if not os.path.exists(sigpath) or sig_mtime < file_mtime:
+                    print 'Signing %s' % filename
+                    if os.path.exists(sigpath):
+                        os.remove(sigpath)
+                    subprocess.check_call([gpg,
+                        '--quiet',
+                        '--detach-sign',
+                        '--output', sigpath,
+                        '--sign', filepath])
+                    os.utime(sigpath, (file_mtime, file_mtime))
+            print 'Signatures are up to date'
+
 
     @staticmethod
     def _find_gpg():
