@@ -156,6 +156,30 @@ class WeboobRepos(ReplApplication):
                 shutil.copy(icon_path, os.path.join(repo_path, '%s.png' % name))
 
         if r.signed:
+            # Find out which keys are allowed to sign
+            fingerprints = [line.strip(':').split(':')[-1]
+                    for line
+                    in subprocess.check_output([gpg,
+                        '--with-fingerprint', '--with-colons',
+                        '--list-public-keys',
+                        '--no-default-keyring',
+                        '--keyring', os.path.realpath(krname)]).splitlines()
+                    if line.startswith('fpr:')]
+            # Find out the first secret key we have that is allowed to sign
+            secret_fingerprint = None
+            for fingerprint in fingerprints:
+                try:
+                    subprocess.check_output([gpg,
+                        '--list-secret-keys', fingerprint],
+                        stderr=subprocess.PIPE)
+                    secret_fingerprint = fingerprint
+                    break
+                except subprocess.CalledProcessError:
+                    pass
+            if secret_fingerprint is None:
+                raise Exception('No suitable secret key found')
+
+            # Check if all files have an up to date signature
             for filename in sigfiles:
                 filepath = os.path.realpath(os.path.join(repo_path, filename))
                 sigpath = filepath+'.sig'
@@ -168,6 +192,7 @@ class WeboobRepos(ReplApplication):
                         os.remove(sigpath)
                     subprocess.check_call([gpg,
                         '--quiet',
+                        '--local-user', secret_fingerprint,
                         '--detach-sign',
                         '--output', sigpath,
                         '--sign', filepath])
