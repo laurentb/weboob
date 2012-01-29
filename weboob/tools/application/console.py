@@ -138,7 +138,7 @@ class ConsoleApplication(BaseApplication):
                             loaded += 1
                 print '%s%d)%s [%s] %s%-15s%s   %s' % (self.BOLD, len(modules), self.NC, loaded,
                                                        self.BOLD, name, self.NC, info.description)
-            print '\n%sa) --all--%s               install all backends\n' % (self.BOLD, self.NC)
+            print '%sa) --all--%s               install all backends' % (self.BOLD, self.NC)
             print '%sq)%s --stop--\n' % (self.BOLD, self.NC)
             r = self.ask('Select a backend to create (q to stop)', regexp='^(\d+|q|a)$')
 
@@ -154,18 +154,20 @@ class ConsoleApplication(BaseApplication):
                         self.load_backends(names=[inst])
                 except (KeyboardInterrupt, EOFError):
                     print '\nAborted.'
-            if r == 'a':
-                for i in range( len(modules) ):
-                    name = modules[i]
-                    print "\n%sInstalling %s%s" % (self.BOLD, name, self.NC)
-                    try:
+            elif r == 'a':
+                try:
+                    for name in modules:
+                        if name in [b.NAME for b in self.weboob.iter_backends()]:
+                            continue
                         inst = self.add_backend(name, default_config)
                         if inst:
                             self.load_backends(names=[inst])
-                    except (KeyboardInterrupt, EOFError):
-                        print '\nAborted.'
+                except (KeyboardInterrupt, EOFError):
+                    print '\nAborted.'
+                else:
+                    break
 
-            print 'Right right!'
+        print 'Right right!'
 
     def _handle_options(self):
         self.load_default_backends()
@@ -303,14 +305,15 @@ class ConsoleApplication(BaseApplication):
         for key, value in config.iteritems():
             if not asked_config:
                 asked_config = True
-                print 'Configuration of backend'
-                print '------------------------'
+                print ''
+                print 'Configuration of backend %s' % module.name
+                print '-------------------------%s' % ('-' * len(module.name))
             if key not in params or edit:
                 params[key] = self.ask(value, default=params[key] if (key in params) else value.default)
             else:
                 print u' [%s] %s: %s' % (key, value.description, '(masked)' if value.masked else params[key])
         if asked_config:
-            print '------------------------'
+            print '-------------------------%s' % ('-' * len(module.name))
 
         while not edit and self.weboob.backends_config.backend_exists(name):
             print >>sys.stderr, 'Backend instance "%s" already exists in "%s"' % (name, self.weboob.backends_config.confpath)
