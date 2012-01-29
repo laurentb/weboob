@@ -25,6 +25,8 @@ import shutil
 import re
 import sys
 import os
+import subprocess
+from tempfile import NamedTemporaryFile
 from datetime import datetime
 from contextlib import closing
 from compileall import compile_dir
@@ -61,7 +63,7 @@ class ModuleInfo(object):
         self.urls = items['urls']
 
     def has_caps(self, caps):
-        if not isinstance(caps, (list,tuple)):
+        if not isinstance(caps, (list, tuple)):
             caps = [caps]
         for c in caps:
             if type(c) == type:
@@ -125,12 +127,12 @@ class Repository(object):
             return self.url[len('file://'):]
         return self.url
 
-    def retrieve_index(self, dest_path):
+    def retrieve_index(self, repo_path):
         """
         Retrieve the index file of this repository. It can use network
         if this is a remote repository.
 
-        @param dest_path [str]  path to save the downloaded index file.
+        @param repo_path [str]  path to save the downloaded index file.
         """
         if self.local:
             # Repository is local, open the file.
@@ -139,7 +141,7 @@ class Repository(object):
                 fp = open(filename, 'r')
             except IOError, e:
                 # This local repository doesn't contain a built modules.list index.
-                self.name = self.url.replace(os.path.sep, '_')
+                self.name = Repositories.url2filename(self.url)
                 self.build_index(self.localurl2path(), filename)
                 fp = open(filename, 'r')
         else:
@@ -157,7 +159,37 @@ class Repository(object):
             self.build_index(self.localurl2path(), filename)
 
         # Save the repository index in ~/.weboob/repositories/
-        self.save(dest_path, private=True)
+        self.save(repo_path, private=True)
+
+    def retrieve_keyring(self, keyring_path):
+        # ignore local
+        if self.local:
+            return
+
+        keyring = Keyring(keyring_path)
+        # prevent previously signed repos from going unsigned
+        if not self.signed and keyring.exists():
+            raise RepositoryUnavailable('Previously signed repository can not go unsigned')
+        if not self.signed:
+            return
+
+        if not keyring.exists() or self.key_update > keyring.version:
+            # This is a remote repository, download file
+            browser = StandardBrowser()
+            try:
+                fpkr = browser.openurl(posixpath.join(self.url, self.KEYRING))
+                fpkrsig = browser.openurl(posixpath.join(self.url, self.KEYRING + '.sig'))
+            except BrowserUnavailable, e:
+                raise RepositoryUnavailable(unicode(e))
+            keyring_data = fpkr.read()
+            sig_data = fpkrsig.read()
+            if keyring.exists():
+                if not keyring.is_valid(keyring_data, sig_data):
+                    raise InvalidSignature('the keyring itself')
+                print 'The keyring was updated (and validated by the previous one).'
+            else:
+                print 'First time saving the keyring, blindly accepted.'
+            keyring.save(keyring_data, self.key_update)
 
     def parse_index(self, fp):
         """
@@ -338,10 +370,11 @@ http://updates.weboob.org/%(version)s/main/
 class Repositories(object):
     SOURCES_LIST = 'sources.list'
     MODULES_DIR = 'modules'
-    REPOSITORIES_DIR = 'repositories'
+    REPOS_DIR = 'repositories'
+    KEYRINGS_DIR = 'keyrings'
     ICONS_DIR = 'icons'
 
-    SHARE_DIRS = [MODULES_DIR, REPOSITORIES_DIR, ICONS_DIR]
+    SHARE_DIRS = [MODULES_DIR, REPOS_DIR, KEYRINGS_DIR, ICONS_DIR]
 
     def __init__(self, workdir, datadir, version):
         self.logger = getLogger('repositories')
@@ -350,12 +383,14 @@ class Repositories(object):
         self.datadir = datadir
         self.sources_list = os.path.join(self.workdir, self.SOURCES_LIST)
         self.modules_dir = os.path.join(self.datadir, self.MODULES_DIR)
-        self.repos_dir = os.path.join(self.datadir, self.REPOSITORIES_DIR)
+        self.repos_dir = os.path.join(self.datadir, self.REPOS_DIR)
+        self.keyrings_dir = os.path.join(self.datadir, self.KEYRINGS_DIR)
         self.icons_dir = os.path.join(self.datadir, self.ICONS_DIR)
 
         self.create_dir(self.datadir)
-        self.create_dir(self.repos_dir)
         self.create_dir(self.modules_dir)
+        self.create_dir(self.repos_dir)
+        self.create_dir(self.keyrings_dir)
         self.create_dir(self.icons_dir)
 
         self.versions = Versions(self.modules_dir)
@@ -375,11 +410,12 @@ class Repositories(object):
         elif not os.path.isdir(name):
             self.logger.error(u'"%s" is not a directory' % name)
 
-    def _extend_module_info(self, repos, info):
-        if repos.local:
-            info.path = repos.localurl2path()
+    def _extend_module_info(self, repo, info):
+        if repo.local:
+            info.path = repo.localurl2path()
         elif self.versions.get(info.name) is not None:
             info.path = self.modules_dir
+
         return info
 
     def get_all_modules_info(self, caps=None):
@@ -459,6 +495,7 @@ class Repositories(object):
         for name in os.listdir(self.repos_dir):
             os.remove(os.path.join(self.repos_dir, name))
 
+        gpgv = Keyring.find_gpgv()
         with open(self.sources_list, 'r') as f:
             for line in f.xreadlines():
                 line = line.strip() % {'version': self.version}
@@ -466,10 +503,17 @@ class Repositories(object):
                 if m:
                     print 'Getting %s' % line
                     repository = Repository(line)
-                    dest_path = os.path.join(self.repos_dir, '%02d-%s' % (len(self.repositories),
-                                                                          repository.url.replace(os.path.sep, '_')))
+                    filename = self.url2filename(repository.url)
+                    prio_filename = '%02d-%s' % (len(self.repositories), filename)
+                    repo_path = os.path.join(self.repos_dir, prio_filename)
+                    keyring_path = os.path.join(self.keyrings_dir, filename)
                     try:
-                        repository.retrieve_index(dest_path)
+                        repository.retrieve_index(repo_path)
+                        if gpgv:
+                            repository.retrieve_keyring(keyring_path)
+                        else:
+                            print >>sys.stderr, 'Cannot find gpgv to check for repository authenticity.'
+                            print >>sys.stderr, 'You should install GPG for better security.'
                     except RepositoryUnavailable, e:
                         print >>sys.stderr, 'Error: %s' % e
                     else:
@@ -548,3 +592,80 @@ class Repositories(object):
         self.retrieve_icon(info)
 
         progress.progress(1.0, 'Module %s has been installed!' % info.name)
+
+    @staticmethod
+    def url2filename(url):
+        """
+        Get a safe file name for an URL
+        All non-alphanumeric characters are replaced by _.
+        """
+        return ''.join([l if l.isalnum() else '_' for l in url])
+
+
+class InvalidSignature(Exception):
+    def __init__(self, filename):
+        self.filename = filename
+        Exception.__init__(self, 'Invalid signature for %s' % filename)
+
+
+class Keyring(object):
+    EXTENSION = '.gpg'
+
+    def __init__(self, path):
+        self.path = path + self.EXTENSION
+        self.vpath = path + '.version'
+        self.version = 0
+        # We must have both files, else it is invalid
+        if not os.path.exists(self.vpath) and os.path.exists(self.path):
+            os.remove(self.path)
+        if os.path.exists(self.vpath) and not os.path.exists(self.path):
+            os.remove(self.vpath)
+
+        if self.exists():
+            with open(self.vpath, 'r') as f:
+                self.version = int(f.read().strip())
+
+    def exists(self):
+        return os.path.exists(self.path)
+
+    def save(self, keyring_data, version):
+        with open(self.path, 'wb') as fp:
+            fp.write(keyring_data)
+        self.version = version
+        with open(self.vpath, 'wb') as fp:
+            fp.write(str(version))
+
+    @staticmethod
+    def find_gpgv():
+        if os.getenv('GPGV_EXECUTABLE'):
+            return os.getenv('GPGV_EXECUTABLE')
+        paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+        for path in paths:
+            fpath = os.path.join(path, 'gpgv')
+            if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                return fpath
+
+    def is_valid(self, data, sigdata):
+        """
+        Check if the data is signed by an accepted key.
+        data and sigdata should be strings.
+        """
+        gpgv = self.find_gpgv()
+        with NamedTemporaryFile(suffix='.sig') as sigfile:
+            sigfile.write(sigdata)
+            sigfile.flush()  # very important
+            assert isinstance(data, basestring)
+            # Yes, all of it is necessary
+            proc = subprocess.Popen([gpgv,
+                    '--status-fd', '1',
+                    '--keyring', os.path.realpath(self.path),
+                    os.path.realpath(sigfile.name),
+                    '-'],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            out, err = proc.communicate(data)
+            if proc.returncode or 'GOODSIG' not in out or 'VALIDSIG' not in out:
+                print >>sys.stderr, out, err
+                return False
+        return True
