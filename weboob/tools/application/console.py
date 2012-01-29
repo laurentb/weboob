@@ -296,8 +296,8 @@ class ConsoleApplication(BaseApplication):
                 items.update(params)
                 params = items
                 config = module.config.load(self.weboob, bname, name, params, nofail=True)
-        except ModuleLoadError:
-            print >>sys.stderr, 'Module "%s" does not exist. Hint: use the "modules" command.' % name
+        except ModuleLoadError, e:
+            print >>sys.stderr, 'Unable to load module "%s": %s' % (name, e)
             return 1
 
         # ask for params non-specified on command-line arguments
