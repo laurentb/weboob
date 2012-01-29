@@ -27,6 +27,7 @@ import sys
 import os
 from datetime import datetime
 from contextlib import closing
+from compileall import compile_dir
 
 from .modules import Module
 from weboob.tools.log import getLogger
@@ -523,6 +524,8 @@ class Repositories(object):
             tar.extractall(self.modules_dir)
         if not os.path.isdir(module_dir):
             raise ModuleInstallError('The archive for %s looks invalid.' % info.name)
+        # Precompile
+        compile_dir(module_dir, quiet=True)
 
         self.versions.set(info.name, info.version)
 
