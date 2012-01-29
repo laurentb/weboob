@@ -7,7 +7,6 @@ Romain Bignon <romain@weboob.org>
         * Maintainer of too many backends.
 
 Christophe Benz <christophe.benz@gmail.com>
-        * Core team;
         * Packaging;
         * Bouygues, INA, SFR and Youtube backends maintainer.
 
@@ -61,6 +60,9 @@ Cedric Defortis <cedric@aiur.fr>
 
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
+
+theo <theocrite@theocrite.org>
+        * Ergonomics enhancements.
 
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
