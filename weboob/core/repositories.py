@@ -499,8 +499,9 @@ class Repositories(object):
         if info.is_local():
             raise ModuleInstallError('%s is available on local.' % info.name)
 
+        module_dir = os.path.join(self.modules_dir, info.name)
         installed = self.versions.get(info.name)
-        if installed is None:
+        if installed is None or not os.path.exists(module_dir):
             progress.progress(0.3, 'Module is not installed yet')
         elif info.version > installed:
             progress.progress(0.3, 'A new version of this module is available')
@@ -517,7 +518,6 @@ class Repositories(object):
         progress.progress(0.7, 'Setting up module...')
 
         # Extract module from tarball.
-        module_dir = os.path.join(self.modules_dir, info.name)
         if os.path.isdir(module_dir):
             shutil.rmtree(module_dir)
         with closing(tarfile.open('', 'r:gz', fp)) as tar:
