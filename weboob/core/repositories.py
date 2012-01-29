@@ -516,8 +516,13 @@ class Repositories(object):
         progress.progress(0.7, 'Setting up module...')
 
         # Extract module from tarball.
+        module_dir = os.path.join(self.modules_dir, info.name)
+        if os.path.isdir(module_dir):
+            shutil.rmtree(module_dir)
         with closing(tarfile.open('', 'r:gz', fp)) as tar:
             tar.extractall(self.modules_dir)
+        if not os.path.isdir(module_dir):
+            raise ModuleInstallError('The archive for %s looks invalid.' % info.name)
 
         self.versions.set(info.name, info.version)
 
