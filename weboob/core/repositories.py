@@ -91,6 +91,8 @@ class RepositoryUnavailable(Exception):
 
 class Repository(object):
     INDEX = 'modules.list'
+    KEYDIR = '.keys'
+    KEYRING = 'trusted.gpg'
 
     def __init__(self, url):
         self.url = url
@@ -98,6 +100,8 @@ class Repository(object):
         self.update = 0
         self.maintainer = u''
         self.local = None
+        self.signed = False
+        self.key_update = 0
 
         self.modules = {}
 
@@ -170,6 +174,8 @@ class Repository(object):
             self.name = items['name']
             self.update = int(items['update'])
             self.maintainer = items['maintainer']
+            self.signed = bool(int(items.get('signed', '0')))
+            self.key_update = int(items.get('key_update', '0'))
         except KeyError, e:
             raise RepositoryUnavailable('Missing global parameters in repository: %s' % e)
         except ValueError, e:
@@ -203,10 +209,17 @@ class Repository(object):
         print 'Rebuild index'
         self.modules.clear()
 
+        if os.path.isdir(os.path.join(path, self.KEYDIR)):
+            self.signed = True
+            self.key_update = self.get_tree_mtime(os.path.join(path, self.KEYDIR), True)
+        else:
+            self.signed = False
+            self.key_update = 0
+
         sys.path.append(path)
         for name in sorted(os.listdir(path)):
             module_path = os.path.join(path, name)
-            if not os.path.isdir(module_path) or '.' in name:
+            if not os.path.isdir(module_path) or '.' in name or name == self.KEYDIR:
                 continue
 
             try:
@@ -252,6 +265,8 @@ class Repository(object):
         config.set(DEFAULTSECT, 'name', self.name)
         config.set(DEFAULTSECT, 'update', self.update)
         config.set(DEFAULTSECT, 'maintainer', self.maintainer)
+        config.set(DEFAULTSECT, 'signed', int(self.signed))
+        config.set(DEFAULTSECT, 'key_update', self.key_update)
         if private:
             config.set(DEFAULTSECT, 'url', self.url)
 

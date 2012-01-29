@@ -25,6 +25,7 @@ import tarfile
 import os
 import shutil
 import sys
+import subprocess
 from copy import copy
 from contextlib import closing
 
@@ -100,6 +101,36 @@ class WeboobRepos(ReplApplication):
 
         r.build_index(source_path, index_file)
 
+        if r.signed:
+            gpg = self._find_gpg()
+            if not gpg:
+                raise Exception('Unable to find the gpg executable.')
+            krname = os.path.join(repo_path, r.KEYRING)
+            if os.path.exists(krname):
+                kr_mtime = int(datetime.fromtimestamp(os.path.getmtime(krname)).strftime('%Y%m%d%H%M'))
+            if not os.path.exists(krname) or kr_mtime < r.key_update:
+                print 'Generate keyring'
+                # Remove all existing keys
+                if os.path.exists(krname):
+                    os.remove(krname)
+                # Add all valid keys
+                for keyfile in os.listdir(os.path.join(source_path, r.KEYDIR)):
+                    keypath = os.path.join(source_path, r.KEYDIR, keyfile)
+                    subprocess.check_call([gpg,
+                        '--no-default-keyring',
+                        '--keyring', krname,
+                        '--import', keypath])
+                # Does not make much sense in our case
+                if os.path.exists(krname+'~'):
+                    os.remove(krname+'~')
+                if not os.path.exists(krname):
+                    raise Exception('No valid key file found.')
+                kr_mtime = mktime(strptime(str(r.key_update), '%Y%m%d%H%M'))
+                os.utime(krname, (kr_mtime, kr_mtime))
+            else:
+                print 'Keyring is up to date'
+
+
         for name, module in r.modules.iteritems():
             tarname = os.path.join(repo_path, '%s.tar.gz' % name)
             module_path = os.path.join(source_path, name)
@@ -118,6 +149,16 @@ class WeboobRepos(ReplApplication):
             icon_path = os.path.join(module_path, 'favicon.png')
             if os.path.exists(icon_path):
                 shutil.copy(icon_path, os.path.join(repo_path, '%s.png' % name))
+
+    @staticmethod
+    def _find_gpg():
+        if os.getenv('GPG_EXECUTABLE'):
+            return os.getenv('GPG_EXECUTABLE')
+        paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+        for path in paths:
+            fpath = os.path.join(path, 'gpg')
+            if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                return fpath
 
     def _archive_excludes(self, filename):
         # Skip *.pyc files in tarballs.
