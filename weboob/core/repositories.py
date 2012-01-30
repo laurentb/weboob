@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -561,55 +561,57 @@ class Repositories(object):
         else:
             raise ValueError('"module" parameter might be a ModuleInfo object or a string, not %r' % module)
 
-        if info.is_local():
-            raise ModuleInstallError('%s is available on local.' % info.name)
+        module = info
 
-        module_dir = os.path.join(self.modules_dir, info.name)
-        installed = self.versions.get(info.name)
+        if module.is_local():
+            raise ModuleInstallError('%s is available on local.' % module.name)
+
+        module_dir = os.path.join(self.modules_dir, module.name)
+        installed = self.versions.get(module.name)
         if installed is None or not os.path.exists(module_dir):
             progress.progress(0.3, 'Module is not installed yet')
-        elif info.version > installed:
+        elif module.version > installed:
             progress.progress(0.3, 'A new version of this module is available')
         else:
-            raise ModuleInstallError('The last version of %s is already installed' % info.name)
+            raise ModuleInstallError('The last version of %s is already installed' % module.name)
 
         browser = StandardBrowser()
         progress.progress(0.2, 'Downloading module...')
         try:
-            fp = browser.openurl(info.url)
+            fp = browser.openurl(module.url)
         except BrowserUnavailable, e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
         tardata = fp.read()
 
 
-        # Extract module from tarball.
         if os.path.isdir(module_dir):
             shutil.rmtree(module_dir)
-        if info.signed and Keyring.find_gpgv():
+        if module.signed and Keyring.find_gpgv():
             progress.progress(0.5, 'Checking module authenticity...')
-            fpsig = browser.openurl(posixpath.join(info.url + '.sig'))
-            keyring_path = os.path.join(self.keyrings_dir, self.url2filename(info.repo_url))
+            fpsig = browser.openurl(posixpath.join(module.url + '.sig'))
+            keyring_path = os.path.join(self.keyrings_dir, self.url2filename(module.repo_url))
             keyring = Keyring(keyring_path)
             if not keyring.exists():
                 raise ModuleInstallError('No keyring found, please update repos.')
             if not keyring.is_valid(tardata, fpsig.read()):
-                raise ModuleInstallError('Invalid signature for %s.' % info.name)
+                raise ModuleInstallError('Invalid signature for %s.' % module.name)
 
 
+        # Extract module from tarball.
         progress.progress(0.7, 'Setting up module...')
         with closing(tarfile.open('', 'r:gz', StringIO(tardata))) as tar:
             tar.extractall(self.modules_dir)
         if not os.path.isdir(module_dir):
-            raise ModuleInstallError('The archive for %s looks invalid.' % info.name)
+            raise ModuleInstallError('The archive for %s looks invalid.' % module.name)
         # Precompile
         compile_dir(module_dir, quiet=True)
 
-        self.versions.set(info.name, info.version)
+        self.versions.set(module.name, module.version)
 
         progress.progress(0.9, 'Downloading icon...')
-        self.retrieve_icon(info)
+        self.retrieve_icon(module)
 
-        progress.progress(1.0, 'Module %s has been installed!' % info.name)
+        progress.progress(1.0, 'Module %s has been installed!' % module.name)
 
     @staticmethod
     def url2filename(url):
