@@ -159,23 +159,25 @@ class WeboobRepos(ReplApplication):
             # Find out which keys are allowed to sign
             fingerprints = [line.strip(':').split(':')[-1]
                     for line
-                    in subprocess.check_output([gpg,
+                    in subprocess.Popen([gpg,
                         '--with-fingerprint', '--with-colons',
                         '--list-public-keys',
                         '--no-default-keyring',
-                        '--keyring', os.path.realpath(krname)]).splitlines()
+                        '--keyring', os.path.realpath(krname)],
+                        stdout=subprocess.PIPE).communicate()[0].splitlines()
                     if line.startswith('fpr:')]
             # Find out the first secret key we have that is allowed to sign
             secret_fingerprint = None
             for fingerprint in fingerprints:
-                try:
-                    subprocess.check_output([gpg,
-                        '--list-secret-keys', fingerprint],
-                        stderr=subprocess.PIPE)
-                    secret_fingerprint = fingerprint
-                    break
-                except subprocess.CalledProcessError:
-                    pass
+                proc = subprocess.Popen([gpg,
+                    '--list-secret-keys', fingerprint],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+                proc.communicate()
+                # if failed
+                if proc.returncode:
+                    continue
+                secret_fingerprint = fingerprint
             if secret_fingerprint is None:
                 raise Exception('No suitable secret key found')
 
