@@ -584,8 +584,7 @@ class Repositories(object):
         tardata = fp.read()
 
 
-        if os.path.isdir(module_dir):
-            shutil.rmtree(module_dir)
+        # Check signature
         if module.signed and Keyring.find_gpgv():
             progress.progress(0.5, 'Checking module authenticity...')
             fpsig = browser.openurl(posixpath.join(module.url + '.sig'))
@@ -598,6 +597,8 @@ class Repositories(object):
 
 
         # Extract module from tarball.
+        if os.path.isdir(module_dir):
+            shutil.rmtree(module_dir)
         progress.progress(0.7, 'Setting up module...')
         with closing(tarfile.open('', 'r:gz', StringIO(tardata))) as tar:
             tar.extractall(self.modules_dir)
