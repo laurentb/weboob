@@ -26,6 +26,7 @@ import re
 import sys
 import os
 import subprocess
+import hashlib
 from tempfile import NamedTemporaryFile
 from datetime import datetime
 from contextlib import closing
@@ -192,6 +193,7 @@ class Repository(object):
             else:
                 print 'First time saving the keyring, blindly accepted.'
             keyring.save(keyring_data, self.key_update)
+            print keyring
 
     def parse_index(self, fp):
         """
@@ -685,3 +687,10 @@ class Keyring(object):
                 print >>sys.stderr, out, err
                 return False
         return True
+
+    def __str__(self):
+        if self.exists():
+            with open(self.vpath, 'r') as f:
+                h = hashlib.sha1(f.read()).hexdigest()
+            return 'Keyring version %s, checksum %s' % (self.version, h)
+        return 'NO KEYRING'
