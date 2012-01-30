@@ -80,9 +80,9 @@ class SocieteGenerale(BaseBrowser):
     def get_history(self, account):
         raise NotImplementedError()
 
-        if not self.is_on_page(AccountHistory) or self.page.account.id != account.id:
-            self.location(account.link_id)
-        return self.page.get_operations()
+        #if not self.is_on_page(AccountHistory) or self.page.account.id != account.id:
+        #    self.location(account.link_id)
+        #return self.page.get_operations()
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
