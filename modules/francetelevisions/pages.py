@@ -22,6 +22,7 @@ import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.capabilities.base import NotAvailable
 
 
 from .video import PluzzVideo
@@ -41,11 +42,15 @@ class IndexPage(BasePage):
             _id = m.group(1)
             video = PluzzVideo(_id)
             video.title = self.parser.select(div, 'h4 a', 1).text
-            m = re.match('(\d+)/(\d+)/(\d+)', self.parser.select(div, 'p.date', 1).text)
-            if m:
-                video.date = datetime.datetime(int(m.group(3)),
-                                               int(m.group(2)),
-                                               int(m.group(1)))
+
+            # Date is not available anymore on search results.
+            video.date = NotAvailable
+            #m = re.match('(\d+)/(\d+)/(\d+)', self.parser.select(div, 'p.date', 1).text)
+            #if m:
+            #    video.date = datetime.datetime(int(m.group(3)),
+            #                                   int(m.group(2)),
+            #                                   int(m.group(1)))
+
             url = self.parser.select(div, 'img.illustration', 1).attrib['src']
             video.thumbnail = Thumbnail('http://www.pluzz.fr/%s' % url)
 
