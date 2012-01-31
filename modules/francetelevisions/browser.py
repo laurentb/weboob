@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011  Romain Bignon
+# Copyright(C) 2011-2012  Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,10 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+
+from lxml import etree
+
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import IndexPage, VideoPage, MetaVideoPage
+from .pages import IndexPage, VideoPage
 from .video import PluzzVideo
 
 
@@ -29,12 +33,11 @@ __all__ = ['PluzzBrowser']
 
 class PluzzBrowser(BaseBrowser):
     DOMAIN = 'pluzz.fr'
-    ENCODING = None
+    ENCODING = 'ISO-8859-1'
     PAGES = {r'http://[w\.]*pluzz.fr/?': IndexPage,
              r'http://[w\.]*pluzz.fr/recherche.html.*': IndexPage,
              r'http://[w\.]*pluzz.fr/[-\w]+/.*': IndexPage,
              r'http://[w\.]*pluzz.fr/((?!recherche).+)\.html': VideoPage,
-             r'http://info\.francetelevisions\.fr/\?id-video=.*': MetaVideoPage,
             }
 
     @id2url(PluzzVideo.id2url)
@@ -42,15 +45,15 @@ class PluzzBrowser(BaseBrowser):
         self.location(url)
         assert self.is_on_page(VideoPage)
 
-        id = self.page.get_id()
-        metaurl = self.page.get_meta_url()
-        if metaurl is None:
-            return None
+        _id = self.page.get_id()
+        if video is None:
+            video = PluzzVideo(_id)
 
-        self.location(metaurl)
-        assert self.is_on_page(MetaVideoPage)
+        infourl = self.page.get_info_url()
+        if infourl is not None:
+            self.parse_info(self.openurl(infourl).read(), video)
 
-        return self.page.get_video(id, video)
+        return video
 
     def iter_search_results(self, pattern):
         if not pattern:
@@ -60,3 +63,25 @@ class PluzzBrowser(BaseBrowser):
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
+
+    def parse_info(self, data, video):
+        parser = etree.XMLParser(encoding='utf-8')
+        root = etree.XML(data, parser)
+        assert root.tag == 'oeuvre'
+
+        video.title = root.findtext('titre')
+
+        hours, minutes, seconds = root.findtext('duree').split(':')
+        video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+
+        for vid in root.find('videos'):
+            if vid.findtext('statut') == 'ONLINE' and vid.findtext('format') == 'wmv':
+                video.url =  vid.findtext('url')
+
+        date = root.findtext('diffusions/diffusion')
+        if date:
+            video.date =  datetime.datetime.strptime(date, '%d/%m/%Y %H:%M')
+
+        video.description = root.findtext('synopsis')
+
+        return video
