@@ -20,8 +20,9 @@
 
 import re
 import datetime
+from dateutil.parser import parse as parse_dt
 
-
+from weboob.tools.browser import BrokenPageError
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -39,8 +40,11 @@ class VideoPage(PornPage):
         return video
 
     def get_url(self):
-        download_div = self.parser.select(self.document.getroot(), '#download', 1)
-        a = self.parser.select(download_div, 'a', 1)
+        download_div = self.parser.select(self.document.getroot(), 'div#tab-general-download ul li')
+        if len(download_div) < 1:
+            raise BrokenPageError('Unable to find file URL')
+
+        a = self.parser.select(download_div[0], 'a', 1)
         m = re.match('^(\w+) - .*', a.text)
         if m:
             ext = m.group(1).lower()
@@ -49,27 +53,25 @@ class VideoPage(PornPage):
         return a.attrib['href'], ext
 
     def get_title(self):
-        element = self.parser.select(self.document.getroot(), '#videoArea h1', 1)
-        return unicode(element.getchildren()[0].tail).strip()
-
-    DATE_REGEXP = re.compile("\w+ (\w+) (\d+) (\d+):(\d+):(\d+) (\d+)")
-    MONTH2I = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        element = self.parser.select(self.document.getroot(), '#videoCanvas h1', 1)
+        return element.text.strip().decode('utf-8')
 
     def set_details(self, v):
-        details_div = self.parser.select(self.document.getroot(), '#details', 1)
-        for li in details_div.getiterator('li'):
-            span = li.find('span')
+        for li in self.parser.select(self.document.getroot(), 'div#tab-general-details ul li'):
+            span = li.find('b')
             name = span.text.strip()
             value = span.tail.strip()
 
             if name == 'Duration:':
-                seconds = minutes = 0
-                for word in value.split():
-                    if word.endswith('min'):
-                        minutes = int(word[:word.find('min')])
-                    elif word.endswith('sec'):
-                        seconds = int(word[:word.find('sec')])
-                v.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
+                m = re.match('((\d+)hrs)?((\d+)min)?(\d+)?', value)
+                if not m:
+                    raise BrokenPageError('Unable to parse datetime: %r' % value)
+                hours = m.group(2) or 0
+                minutes = m.group(4) or 0
+                seconds = m.group(5) or 0
+                v.duration = datetime.timedelta(hours=int(hours),
+                                                minutes=int(minutes),
+                                                seconds=int(seconds))
             elif name == 'Submitted:':
                 author = li.find('i')
                 if author is None:
@@ -83,12 +85,4 @@ class VideoPage(PornPage):
                 v.rating = float(r[0])
                 v.rating_max = float(r[2])
             elif name == 'Date:':
-                m = self.DATE_REGEXP.match(value)
-                if m:
-                    month = self.MONTH2I.index(m.group(1))
-                    day = int(m.group(2))
-                    hour = int(m.group(3))
-                    minute = int(m.group(4))
-                    second = int(m.group(5))
-                    year = int(m.group(6))
-                    v.date = datetime.datetime(year, month, day, hour, minute, second)
+                v.date = parse_dt(value)

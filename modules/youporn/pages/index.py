@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import datetime
 
 from .base import PornPage
@@ -29,47 +30,45 @@ __all__ = ['IndexPage']
 
 class IndexPage(PornPage):
     def iter_videos(self):
-        uls = self.document.getroot().cssselect("ul[class=clearfix]")
-        if not uls:
-            return
+        for li in self.document.getroot().xpath('//ul/li[@class="videoBox"]'):
+            a = li.find('a')
+            if a is None or a.find('img') is None:
+                continue
 
-        for ul in uls:
-            for li in ul.findall('li'):
-                a = li.find('a')
-                if a is None or a.find('img') is None:
-                    continue
+            thumbnail_url = a.find('img').attrib['src']
 
-                thumbnail_url = a.find('img').attrib['src']
+            h1 = li.find('h1')
+            a = h1.find('a')
+            if a is None:
+                continue
 
-                h1 = li.find('h1')
-                a = h1.find('a')
-                if a is None:
-                    continue
+            url = a.attrib['href']
+            _id = url[len('/watch/'):]
+            _id = _id[:_id.find('/')]
+            title = a.text.strip()
 
-                url = a.attrib['href']
-                _id = url[len('/watch/'):]
-                _id = _id[:_id.find('/')]
-                title = a.text.strip()
+            hours = minutes = seconds = 0
+            div = li.cssselect('h2[class=duration]')
+            if len(div) > 0:
+                pack = [int(s) for s in div[0].text.strip().split(':')]
+                if len(pack) == 3:
+                    hours, minutes, seconds = pack
+                elif len(pack) == 2:
+                    minutes, seconds = pack
 
-                minutes = seconds = 0
-                div = li.cssselect('div[class=duration_views]')
-                if div:
-                    h2 = div[0].find('h2')
-                    minutes = int(h2.text.strip())
-                    seconds = int(h2.find('span').tail.strip())
+            rating = 0
+            rating_max = 0
+            div = li.cssselect('div.stars')
+            if div:
+                m = re.match('.*star-(\d).*', div[0].attrib.get('class', ''))
+                if m:
+                    rating = int(m.group(1))
+                    rating_max = 5
 
-                rating = 0
-                rating_max = 0
-                div = li.cssselect('div[class=rating]')
-                if div:
-                    p = div[0].find('p')
-                    rating = float(p.text.strip())
-                    rating_max = float(p.find('span').text.strip()[2:])
-
-                yield YoupornVideo(int(_id),
-                                   title=title,
-                                   rating=rating,
-                                   rating_max=rating_max,
-                                   duration=datetime.timedelta(minutes=minutes, seconds=seconds),
-                                   thumbnail_url=thumbnail_url,
-                                   )
+            yield YoupornVideo(int(_id),
+                               title=title,
+                               rating=rating,
+                               rating_max=rating_max,
+                               duration=datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds),
+                               thumbnail_url=thumbnail_url,
+                               )
