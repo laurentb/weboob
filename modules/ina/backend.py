@@ -47,6 +47,7 @@ class InaBackend(BaseBackend, ICapVideo):
             return self.browser.iter_search_results(pattern)
 
     def fill_video(self, video, fields):
+        return video
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:

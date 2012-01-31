@@ -56,8 +56,9 @@ class BaseVideoPage(BasePage):
 
     def get_url(self):
         qs = parse_qs(self.document.getroot().cssselect('param[name="flashvars"]')[0].attrib['value'])
-        url = 'http://mp4.ina.fr/lecture/lire/id_notice/%s/token_notice/%s' % (qs['id_notice'][0], qs['token_notice'][0])
-        return url
+        s = self.browser.readurl('http://boutique.ina.fr/player/infovideo/id_notice/%s' % qs['id_notice'][0])
+        s = s[s.find('<Media>')+7:s.find('</Media>')]
+        return '%s/pkey/%s' % (s, qs['pkey'][0])
 
     def parse_date_and_duration(self, text):
         duration_regexp = re.compile('(.* - )?(.+) - ((.+)h)?((.+)min)?(.+)s')
@@ -103,7 +104,7 @@ class VideoPage(BaseVideoPage):
 
 
 class BoutiqueVideoPage(BaseVideoPage):
-    URL_REGEXP = re.compile('http://boutique.ina.fr/video/(.+).html')
+    URL_REGEXP = re.compile('http://boutique.ina.fr/(audio|video)/(.+).html')
 
     def create_id(self, id):
         return u'boutique.%s' % id

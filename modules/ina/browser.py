@@ -31,7 +31,7 @@ __all__ = ['InaBrowser']
 
 class InaBrowser(BaseBrowser):
     DOMAIN = 'ina.fr'
-    PAGES = {'http://boutique\.ina\.fr/video/.+\.html': BoutiqueVideoPage,
+    PAGES = {'http://boutique\.ina\.fr/(video|audio)/.+\.html': BoutiqueVideoPage,
              'http://www\.ina\.fr/.+\.html': VideoPage,
              'http://boutique\.ina\.fr/recherche/.+': SearchPage,
             }
