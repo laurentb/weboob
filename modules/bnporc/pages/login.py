@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from weboob.tools.mech import ClientForm
 import urllib
-from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard,VirtKeyboardError
@@ -78,7 +78,7 @@ class LoginPage(BasePage):
         try:
             vk=BNPVirtKeyboard(self)
         except VirtKeyboardError,err:
-            error("Error: %s"%err)
+            self.logger.error("Error: %s"%err)
             return False
 
         self.browser.select_form('logincanalnet')
@@ -92,23 +92,60 @@ class LoginPage(BasePage):
 
 
 class ConfirmPage(BasePage):
-    pass
+    def get_error(self):
+        for td in self.document.xpath('//td[@class="hdvon1"]'):
+            if td.text:
+                return td.text.strip()
+        return None
 
+    def get_relocate_url(self):
+        script = self.document.xpath('//script')[0]
+        m = re.match('document.location.replace\("(.*)"\)', script.text[script.text.find('document.location.replace'):])
+        if m:
+            return m.group(1)
+
+class MessagePage(BasePage):
+    def on_loaded(self):
+        pass
 
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):
         try:
             vk=BNPVirtKeyboard(self)
         except VirtKeyboardError,err:
-            error("Error: %s"%err)
+            self.logger.error("Error: %s"%err)
             return False
+
+        from mechanize import Cookie
+        c = Cookie(0, 'wbo_segment_369721', 'AA%7CAB%7C%7C%7C',
+                      None, False,
+                      '.secure.bnpparibas.net', True, True,
+                      '/', False,
+                      False,
+                      None,
+                      False,
+                      None,
+                      None,
+                      {})
+        cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
+
+        cookiejar.set_cookie(c)
+
 
         code_current=vk.get_string_code(current)
         code_new=vk.get_string_code(new)
 
-        data = {'ch1': code_current,
-                'ch2': code_new,
-                'ch3': code_new
-               }
+        data = (('ch1', code_current.replace('4', '3')),
+                ('ch2', code_new),
+                ('radiobutton3', 'radiobutton'),
+                ('ch3', code_new),
+                ('x', 23),
+                ('y', 13),
+               )
 
-        self.browser.location('/SAF_CHM_VALID', urllib.urlencode(data))
+        headers = {'Referer': self.url}
+        #headers = {'Referer': "https://www.secure.bnpparibas.net/SAF_CHM?Action=SAF_CHM&Origine=SAF_CHM&stp=%s" % (int(datetime.now().strftime('%Y%m%d%H%M%S')))}
+        #import time
+        #time.sleep(10)
+        request = self.browser.request_class('https://www.secure.bnpparibas.net/SAF_CHM_VALID', urllib.urlencode(data), headers)
+        self.browser.location(request)

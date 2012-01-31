@@ -29,7 +29,7 @@ __all__ = ['AccountComing']
 
 
 class AccountComing(BasePage):
-    LABEL_PATTERNS = [('^FACTURECARTEDU(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})(?P<text>.*)',
+    LABEL_PATTERNS = [('^FACTURE CARTE DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)',
                           u'CB %(yy)s-%(mm)s-%(dd)s: %(text)s'),
                       ('^PRELEVEMENT(?P<text>.*)', 'Order: %(text)s'),
                       ('^ECHEANCEPRET(?P<text>.*)', u'Loan payment n°%(text)s'),
@@ -38,20 +38,18 @@ class AccountComing(BasePage):
     def on_loaded(self):
         self.operations = []
 
-        for tr in self.document.getiterator('tr'):
-            if tr.attrib.get('class', '') == 'hdoc1' or tr.attrib.get('class', '') == 'hdotc1':
+        for tr in self.document.xpath('//table[@id="tableauOperations"]//tr'):
+            if 'typeop' in tr.attrib:
                 tds = tr.findall('td')
                 if len(tds) != 3:
                     continue
-                d = tds[0].getchildren()[0].attrib.get('name', '')
-                d = date(int(d[0:4]), int(d[4:6]), int(d[6:8]))
-                label = u''
-                label += tds[1].text or u''
+                d = tr.attrib['dateop']
+                d = date(int(d[4:8]), int(d[2:4]), int(d[0:2]))
+                label = tds[1].text or u''
                 label = label.replace(u'\xa0', u'')
                 for child in tds[1].getchildren():
                     if child.text: label += child.text
                     if child.tail: label += child.tail
-                if tds[1].tail: label += tds[1].tail
                 label = label.strip()
 
                 for pattern, text in self.LABEL_PATTERNS:
@@ -59,7 +57,7 @@ class AccountComing(BasePage):
                     if m:
                         label = text % m.groupdict()
 
-                amount = tds[2].text.replace('.', '').replace(',', '.')
+                amount = tds[2].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
 
                 operation = Operation(len(self.operations))
                 operation.date = d

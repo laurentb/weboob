@@ -22,10 +22,10 @@ from .accounts_list import AccountsList
 from .account_coming import AccountComing
 from .account_history import AccountHistory
 from .transfer import TransferPage, TransferConfirmPage, TransferCompletePage
-from .login import LoginPage, ConfirmPage, ChangePasswordPage
+from .login import LoginPage, ConfirmPage, ChangePasswordPage, MessagePage
 
 class AccountPrelevement(AccountsList): pass
 
 __all__ = ['AccountsList', 'AccountComing', 'AccountHistory', 'LoginPage',
-           'ConfirmPage', 'AccountPrelevement', 'ChangePasswordPage',
+           'ConfirmPage', 'MessagePage', 'AccountPrelevement', 'ChangePasswordPage',
            'TransferPage', 'TransferConfirmPage', 'TransferCompletePage']

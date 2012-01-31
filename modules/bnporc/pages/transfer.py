@@ -23,6 +23,7 @@ import re
 from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
+from ..errors import PasswordExpired
 
 
 __all__ = ['TransferPage', 'TransferConfirmPage', 'TransferCompletePage']
@@ -36,6 +37,11 @@ class Account(object):
         self.receive_checkbox = receive_checkbox
 
 class TransferPage(BasePage):
+    def on_loaded(self):
+        for td in self.document.xpath('//td[@class="hdvon1"]'):
+            if td.text and 'Vous avez atteint le seuil de' in td.text:
+                raise PasswordExpired(td.text.strip())
+
     def get_accounts(self):
         accounts = OrderedDict()
         for table in self.document.getiterator('table'):
@@ -54,6 +60,12 @@ class TransferPage(BasePage):
 
     def transfer(self, from_id, to_id, amount, reason):
         accounts = self.get_accounts()
+
+        # Transform RIBs to short IDs
+        if len(str(from_id)) == 23:
+            from_id = str(from_id)[5:21]
+        if len(str(to_id)) == 23:
+            to_id = str(to_id)[5:21]
 
         try:
             sender = accounts[from_id]
