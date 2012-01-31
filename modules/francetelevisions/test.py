@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011  Romain Bignon
+# Copyright(C) 2011-2012  Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -24,7 +24,8 @@ class PluzzTest(BackendTest):
     BACKEND = 'francetelevisions'
 
     def test_francetelevisions(self):
-        l = list(self.backend.iter_search_results('jt'))
+        # If the test fails, it might be good news!
+        l = list(self.backend.iter_search_results('Plus belle la vie'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
