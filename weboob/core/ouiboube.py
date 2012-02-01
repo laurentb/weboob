@@ -124,6 +124,28 @@ class Weboob(object):
             Exception.__init__(self, unicode(exception))
             self.backend_name = backend_name
 
+    def load_backend(self, module_name, params=None, storage=None):
+        """
+        Load a single backend.
+        """
+        minfo = self.repositories.get_module_info(module_name)
+        if minfo is None:
+            self.logger.warning(u'Backend "%s" does not exist.' % module_name)
+            return
+
+        if not minfo.is_installed():
+            self.repositories.install(minfo)
+
+        module = None
+        try:
+            module = self.modules_loader.get_or_load_module(module_name)
+        except ModuleLoadError, e:
+            self.logger.error(e)
+            return
+
+        backend_instance = module.create_instance(self, module_name, params, storage)
+        return backend_instance
+
     def load_backends(self, caps=None, names=None, modules=None, storage=None, errors=None):
         """
         Load backends.
