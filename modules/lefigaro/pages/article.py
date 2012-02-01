@@ -33,10 +33,36 @@ class ArticlePage(GenericNewsPage):
         remove_from_selector_list(self.parser, element_body, [self.element_title_selector])
         drop_comments(element_body)
         try_drop_tree(self.parser, element_body, "script")
+        try_drop_tree(self.parser, element_body, "liste")
 
-        try_remove_from_selector_list(self.parser, element_body, ["div.infos", "div.photo", "div.art_bandeau_bottom", "div.view", "span.auteur_long", "#toolsbar", 'link'])
+        try_remove_from_selector_list(self.parser, element_body, ["div#article-comments", "div.infos", "div.photo", "div.art_bandeau_bottom", "div.view", "span.auteur_long", "#toolsbar", 'link'])
+
+        for image in self.parser.select(element_body, 'img'):
+            if image.attrib['src'].endswith('coeur-.gif'):
+                image.drop_tree()
+
+        for div in self.parser.select(element_body, 'div'):
+            if div.text == ' Player Figaro BFM ':
+                obj = div.getnext()
+                a = obj.getnext()
+                if obj.tag == 'object':
+                    obj.drop_tree()
+                if a.tag == 'a' and 'BFM' in a.text:
+                    a.drop_tree()
+                div.drop_tree()
+
+
+        # This part of the article seems manually generated.
+        for crappy_title in self.parser.select(element_body, 'p strong'):
+            if crappy_title.text == 'LIRE AUSSI :' or crappy_title.text == 'LIRE AUSSI:':
+                # Remove if it has only links
+                for related in crappy_title.getparent().itersiblings(tag='p'):
+                    if len(related) == len(list(related.iterchildren(tag='a'))):
+                        related.drop_tree()
+                    else:
+                        break
+                crappy_title.drop_tree()
 
         element_body.find_class("texte")[0].drop_tag()
         element_body.tag = "div"
         return self.parser.tostring(element_body)
-

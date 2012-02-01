@@ -30,10 +30,8 @@ def try_remove(parser, base_element, selector):
 
 
 def try_drop_tree(parser, base_element, selector):
-    try:
-        parser.select(base_element, selector, 1).drop_tree()
-    except BrokenPageError:
-        pass
+    for el in parser.select(base_element, selector):
+        el.drop_tree()
 
 def remove_from_selector_list(parser, base_element, selector_list):
     for selector in selector_list:
