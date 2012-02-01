@@ -155,8 +155,7 @@ class StandardBrowser(mechanize.Browser):
     default_features.remove('_robots')
     default_features.remove('_refresh')
 
-    def __init__(self, firefox_cookies=None, parser=None, history=NoHistory(), proxy=None, logger=None,
-                       factory=None):
+    def __init__(self, firefox_cookies=None, parser=None, history=NoHistory(), proxy=None, logger=None, factory=None, responses_dirname=None):
         """
         Constructor of Browser.
 
@@ -206,6 +205,8 @@ class StandardBrowser(mechanize.Browser):
         if self.DEBUG_MECHANIZE:
             # Enable log messages from mechanize.Browser
             self.set_debug_redirects(True)
+
+        self.responses_dirname = responses_dirname
 
     def __enter__(self):
         self.lock.acquire()
@@ -263,6 +264,8 @@ class StandardBrowser(mechanize.Browser):
         if self.responses_dirname is None:
             self.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
             print >>sys.stderr, 'Debug data will be saved in this directory: %s' % self.responses_dirname
+        elif not os.path.isdir(self.responses_dirname):
+            os.makedirs(self.responses_dirname)
         # get the content-type, remove optionnal charset part
         mimetype = result.info().get('Content-Type', '').split(';')[0]
         # due to http://bugs.python.org/issue1043134
@@ -392,7 +395,7 @@ class BaseBrowser(StandardBrowser):
 
     def __init__(self, username=None, password=None, firefox_cookies=None,
                  parser=None, history=NoHistory(), proxy=None, logger=None,
-                 factory=None, get_home=True):
+                 factory=None, get_home=True, responses_dirname=None):
         """
         Constructor of Browser.
 
@@ -407,7 +410,7 @@ class BaseBrowser(StandardBrowser):
         @param factory [object] Mechanize factory. None to use Mechanize's default.
         @param get_home [bool] Try to get the homepage.
         """
-        StandardBrowser.__init__(self, firefox_cookies, parser, history, proxy, logger, factory)
+        StandardBrowser.__init__(self, firefox_cookies, parser, history, proxy, logger, factory, responses_dirname)
         self.page = None
         self.last_update = 0.0
         self.username = username

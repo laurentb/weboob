@@ -227,6 +227,9 @@ class BaseBackend(object):
             kwargs['proxy'] = os.environ['HTTP_PROXY']
         kwargs['logger'] = self.logger
 
+        if self.BROWSER.SAVE_RESPONSES and self.BROWSER.responses_dirname:
+            kwargs.setdefault('responses_dirname', os.path.join(self.BROWSER.responses_dirname, self.name))
+
         return self.BROWSER(*args, **kwargs)
 
     @classmethod
