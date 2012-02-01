@@ -266,7 +266,7 @@ class Repository(object):
             try:
                 module = Module(__import__(name, fromlist=[str(name)]))
             except Exception, e:
-                print >>sys.stderr, 'ERROR: %s' % e
+                print >>sys.stderr, 'Unable to build module %s: %s' % (name, e)
             else:
                 m = ModuleInfo(module.name)
                 m.version = self.get_tree_mtime(module_path)
