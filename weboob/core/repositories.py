@@ -120,6 +120,9 @@ class Repository(object):
             with open(self.url, 'r') as fp:
                 self.parse_index(fp)
 
+    def __repr__(self):
+        return '<Repository %r>' % self.name
+
     def localurl2path(self):
         """
         Get a local path of a file:// URL.
@@ -457,7 +460,7 @@ class Repositories(object):
         Load repositories from ~/.weboob/repositories/.
         """
         self.repositories = []
-        for name in os.listdir(self.repos_dir):
+        for name in sorted(os.listdir(self.repos_dir)):
             repository = Repository(os.path.join(self.repos_dir, name))
             self.repositories.append(repository)
 
