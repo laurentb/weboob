@@ -536,8 +536,14 @@ class BaseBrowser(StandardBrowser):
         page_groups = None
         page_group_dict = None
         for key, value in self.PAGES.items():
-            regexp = re.compile('^%s$' % key)
-            m = regexp.match(result.geturl())
+            if isinstance(key, basestring):
+                if not key.startswith('^') and not key.endswith('$'):
+                    regexp = re.compile('^%s$' % key)
+                else:
+                    regexp = re.compile(key)
+            else:
+                regexp = key
+            m = regexp.search(result.geturl())
             if m:
                 pageCls = value
                 page_groups = m.groups()
