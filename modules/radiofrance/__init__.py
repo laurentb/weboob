@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
+# * -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2011-2012  Johann Broudin, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,11 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.test import BackendTest
+from .backend import RadioFranceBackend
 
-class LeMouvTest(BackendTest):
-    BACKEND = 'lemouv'
 
-    def test_lemouv(self):
-        l = list(self.backend.iter_resources([]))
-        self.assertTrue(len(l) > 0)
+__all__ = ['RadioFranceBackend']
+
