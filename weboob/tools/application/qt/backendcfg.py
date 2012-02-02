@@ -33,10 +33,28 @@ from weboob.core.repositories import IProgress, ModuleInstallError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.tools.application.qt.backendcfg_ui import Ui_BackendCfg
+from weboob.tools.application.qt.reposdlg_ui import Ui_RepositoriesDlg
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.misc import to_unicode
 from .qt import QtValue
 
+
+class RepositoriesDialog(QDialog):
+    def __init__(self, filename, parent=None):
+        QDialog.__init__(self, parent)
+        self.filename = filename
+        self.ui = Ui_RepositoriesDlg()
+        self.ui.setupUi(self)
+
+        self.connect(self.ui.buttonBox, SIGNAL('accepted()'), self.save)
+
+        with open(self.filename, 'r') as fp:
+            self.ui.reposEdit.setPlainText(fp.read())
+
+    def save(self):
+        with open(self.filename, 'w') as fp:
+            fp.write(self.ui.reposEdit.toPlainText())
+        self.accept()
 
 class IconFetcher(QThread):
     def __init__(self, weboob, item, minfo):
@@ -48,6 +66,17 @@ class IconFetcher(QThread):
     def run(self):
         self.weboob.repositories.retrieve_icon(self.minfo)
         self.emit(SIGNAL('retrieved'), self)
+
+class ProgressDialog(IProgress, QProgressDialog):
+    def __init__(self, *args, **kwargs):
+        QProgressDialog.__init__(self, *args, **kwargs)
+
+    def progress(self, percent, message):
+        self.setValue(int(percent*100))
+        self.setLabelText(message)
+
+    def error(self, message):
+        QMessageBox.critical(self, self.tr('Error'), '%s' % message, QMessageBox.Ok)
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
@@ -77,13 +106,11 @@ class BackendCfg(QDialog):
         self.icon_cache = {}
         self.icon_threads = {}
 
-        for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).iteritems()):
-            item = QListWidgetItem(name.capitalize())
-            self.set_icon(item, module)
-            self.ui.modulesList.addItem(item)
-
+        self.loadModules()
         self.loadBackendsList()
 
+        self.connect(self.ui.updateButton, SIGNAL('clicked()'), self.updateModules)
+        self.connect(self.ui.repositoriesButton, SIGNAL('clicked()'), self.editRepositories)
         self.connect(self.ui.backendsList, SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
                      self.backendClicked)
         self.connect(self.ui.backendsList, SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
@@ -133,6 +160,32 @@ class BackendCfg(QDialog):
 
         self.icon_threads.pop(minfo.name, None)
 
+    def updateModules(self):
+        self.ui.configFrame.hide()
+        pd = ProgressDialog('Update of modules', "Cancel", 0, 100, self)
+        pd.setWindowModality(Qt.WindowModal)
+        try:
+            self.weboob.repositories.update(pd)
+        except ModuleInstallError, err:
+            QMessageBox.critical(self, self.tr('Update error'),
+                                 unicode(self.tr('Unable to update modules: %s' % (err))),
+                                 QMessageBox.Ok)
+        pd.setValue(100)
+        self.loadModules()
+        QMessageBox.information(self, self.tr('Update of modules'),
+                                self.tr('Modules updated!'), QMessageBox.Ok)
+
+    def editRepositories(self):
+        if RepositoriesDialog(self.weboob.repositories.sources_list).exec_():
+            self.updateModules()
+
+    def loadModules(self):
+        self.ui.modulesList.clear()
+        for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).iteritems()):
+            item = QListWidgetItem(name.capitalize())
+            self.set_icon(item, module)
+            self.ui.modulesList.addItem(item)
+
     def askInstallModule(self, minfo):
         reply = QMessageBox.question(self, self.tr('Install a module'),
             unicode(self.tr("Module %s is not installed. Do you want to install it?")) % minfo.name,
@@ -144,18 +197,14 @@ class BackendCfg(QDialog):
         return self.installModule(minfo)
 
     def installModule(self, minfo):
-        pd = QProgressDialog('Installation of %s' % minfo.name, "Cancel", 0, 100, self)
+        pd = ProgressDialog('Installation of %s' % minfo.name, "Cancel", 0, 100, self)
         pd.setWindowModality(Qt.WindowModal)
-        class Progress(IProgress):
-            def progress(self, percent, message):
-                pd.setValue(int(percent*100))
-                pd.setLabelText(message)
 
         try:
-            self.weboob.repositories.install(minfo, Progress())
+            self.weboob.repositories.install(minfo, pd)
         except ModuleInstallError, err:
             QMessageBox.critical(self, self.tr('Install error'),
-                                 unicode(self.tr('Unable to install mode %s: %s' % (minfo.name, err))),
+                                 unicode(self.tr('Unable to install module %s: %s' % (minfo.name, err))),
                                  QMessageBox.Ok)
         pd.setValue(100)
         return True
