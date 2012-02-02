@@ -36,7 +36,6 @@ __all__ = ['BNPorc']
 class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
-    DEBUG_HTTP = True
     ENCODING = None # refer to the HTML encoding
     PAGES = {'.*pageId=unedescomptes.*':                    AccountsList,
              '.*pageId=releveoperations.*':                 AccountHistory,
