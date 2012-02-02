@@ -464,6 +464,9 @@ class Repositories(object):
             repository = Repository(os.path.join(self.repos_dir, name))
             self.repositories.append(repository)
 
+    def get_module_icon_path(self, module):
+        return os.path.join(self.icons_dir, '%s.png' % module.name)
+
     def retrieve_icon(self, module):
         """
         Retrieve the icon of a module and save it in ~/.weboob/icons/.
@@ -471,7 +474,7 @@ class Repositories(object):
         if not isinstance(module, ModuleInfo):
             module = self.get_module_info(module)
 
-        dest_path = os.path.join(self.icons_dir, '%s.png' % module.name)
+        dest_path = self.get_module_icon_path(module)
 
         if module.is_local():
             icon_path = os.path.join(module.path, module.name, 'favicon.png')

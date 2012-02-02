@@ -22,7 +22,7 @@ from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
                         QListWidgetItem, QTextDocument, QVBoxLayout, \
                         QDialogButtonBox, QProgressDialog
-from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl
+from PyQt4.QtCore import SIGNAL, Qt, QVariant, QUrl, QThread
 
 import re
 import os
@@ -37,6 +37,17 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.misc import to_unicode
 from .qt import QtValue
 
+
+class IconFetcher(QThread):
+    def __init__(self, weboob, item, minfo):
+        QThread.__init__(self)
+        self.weboob = weboob
+        self.items = [item]
+        self.minfo = minfo
+
+    def run(self):
+        self.weboob.repositories.retrieve_icon(self.minfo)
+        self.emit(SIGNAL('retrieved'), self)
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
@@ -64,6 +75,7 @@ class BackendCfg(QDialog):
         self.ui.configFrame.hide()
 
         self.icon_cache = {}
+        self.icon_threads = {}
 
         for name, module in sorted(self.weboob.repositories.get_all_modules_info(self.caps).iteritems()):
             item = QListWidgetItem(name.capitalize())
@@ -91,21 +103,35 @@ class BackendCfg(QDialog):
         return self.icon_cache[path]
 
     def set_icon(self, item, minfo):
-        icon_path = os.path.join(self.weboob.repositories.icons_dir, '%s.png' % minfo.name)
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
 
         icon = self.icon_cache.get(icon_path, None)
+        if icon is None and not os.path.exists(icon_path):
+            if minfo.name in self.icon_threads:
+                self.icon_threads[minfo.name].items.append(item)
+            else:
+                thread = IconFetcher(self.weboob, item, minfo)
+                self.connect(thread, SIGNAL('retrieved'), lambda t: self._set_icon(t.items, t.minfo))
+                self.icon_threads[minfo.name] = thread
+                thread.start()
+            return
+
+        self._set_icon([item], minfo)
+
+    def _set_icon(self, items, minfo):
+        icon_path = self.weboob.repositories.get_module_icon_path(minfo)
+        icon = self.get_icon_cache(icon_path)
+
         if icon is None:
-            if not os.path.exists(icon_path):
-                self.weboob.repositories.retrieve_icon(minfo)
-            if not os.path.exists(icon_path):
-                return
+            return
 
-            icon = self.get_icon_cache(icon_path)
+        for item in items:
+            try:
+                item.setIcon(icon)
+            except TypeError:
+                item.setIcon(0, icon)
 
-        try:
-            item.setIcon(icon)
-        except TypeError:
-            item.setIcon(0, icon)
+        self.icon_threads.pop(minfo.name, None)
 
     def askInstallModule(self, minfo):
         reply = QMessageBox.question(self, self.tr('Install a module'),
