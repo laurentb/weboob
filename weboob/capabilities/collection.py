@@ -60,5 +60,5 @@ class Ressource(object):
     pass
 
 class ICapCollection(IBaseCap):
-    def iter_resources(self, splited_path):
+    def iter_resources(self, split_path):
         raise NotImplementedError()

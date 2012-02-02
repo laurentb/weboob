@@ -74,8 +74,8 @@ class Transfer(CapBaseObject):
         self.add_field('recipient', (int, long, basestring))
 
 class ICapBank(ICapCollection):
-    def iter_resources(self, splited_path):
-        if len(splited_path) > 0:
+    def iter_resources(self, split_path):
+        if len(split_path) > 0:
             raise CollectionNotFound()
 
         return self.iter_accounts()

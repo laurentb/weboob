@@ -155,8 +155,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
     _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
     _RSS_RADIOS = ('francemusique', )
 
-    def iter_resources(self, splited_path):
-        if len(splited_path) > 0:
+    def iter_resources(self, split_path):
+        if len(split_path) > 0:
             raise CollectionNotFound()
 
         for id in sorted(self._RADIOS.iterkeys()):

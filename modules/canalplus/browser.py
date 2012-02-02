@@ -77,7 +77,7 @@ class CanalplusBrowser(BaseBrowser):
         self.location(url)
         return self.page.get_video(video, self.quality)
 
-    def iter_resources(self, splited_path):
+    def iter_resources(self, split_path):
         self.home()
         collections = self.page.collections
 
@@ -90,4 +90,4 @@ class CanalplusBrowser(BaseBrowser):
 
             return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])
 
-        return walk_res(splited_path, collections)
+        return walk_res(split_path, collections)

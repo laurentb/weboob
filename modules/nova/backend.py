@@ -62,8 +62,8 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     _RADIOS = {'nova':     (u'Radio Nova',  u'Radio nova',   u'http://broadcast.infomaniak.net:80/radionova-high.mp3'),
               }
 
-    def iter_resources(self, splited_path):
-        if len(splited_path) > 0:
+    def iter_resources(self, split_path):
+        if len(split_path) > 0:
             raise CollectionNotFound()
 
         for id in self._RADIOS.iterkeys():

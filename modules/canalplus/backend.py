@@ -71,6 +71,6 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
 
     OBJECTS = {CanalplusVideo: fill_video}
 
-    def iter_resources(self, splited_path):
+    def iter_resources(self, split_path):
         with self.browser:
-            return self.browser.iter_resources(splited_path)
+            return self.browser.iter_resources(split_path)

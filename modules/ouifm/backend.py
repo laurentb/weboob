@@ -46,8 +46,8 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(parser='json')
 
-    def iter_resources(self, splited_path):
-        if len(splited_path) > 0:
+    def iter_resources(self, split_path):
+        if len(split_path) > 0:
             raise CollectionNotFound()
 
         for id in self._RADIOS.iterkeys():
