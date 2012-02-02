@@ -418,16 +418,18 @@ class ReplApplication(Cmd, ConsoleApplication):
             doc = getattr(self, 'do_' + command).__doc__
         except AttributeError:
             return None
-        if doc:
-            doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
-            if not doc.startswith(command):
-                doc = '%s\n\n%s' % (command, doc)
-            if short:
-                doc = doc.split('\n')[0]
-                if not doc.startswith(command):
-                    doc = command
+        if not doc:
+            return '%s' % command
 
-            return doc
+        doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
+        if not doc.startswith(command):
+            doc = '%s\n\n%s' % (command, doc)
+        if short:
+            doc = doc.split('\n')[0]
+            if not doc.startswith(command):
+                doc = command
+
+        return doc
 
     def get_commands_doc(self):
         names = set(name for name in self.get_names() if name.startswith('do_'))
