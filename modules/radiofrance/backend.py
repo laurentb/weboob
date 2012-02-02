@@ -159,7 +159,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
         if len(splited_path) > 0:
             raise CollectionNotFound()
 
-        for id in self._RADIOS.iterkeys():
+        for id in sorted(self._RADIOS.iterkeys()):
             yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
