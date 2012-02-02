@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2012 Nicolas Duhamel, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -27,6 +27,9 @@ class Path(object):
 
 
     def extend(self, user_input):
+        """
+        Add a new part to the current path
+        """
 
         user_input = urllib.quote_plus(user_input)
         user_input = posixpath.normpath(user_input)
@@ -49,8 +52,17 @@ class Path(object):
         self._working_path = final_parse
 
     def restore(self):
+        """
+        Go to the previous path
+        """
         self._working_path = self._previous
 
+    def home(self):
+        """
+        Go to the root
+        """
+        self._previous = self._working_path
+        self._working_path = []
 
     def get(self):
         return copy.copy(self._working_path)

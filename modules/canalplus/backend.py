@@ -27,7 +27,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 
 from .browser import CanalplusBrowser
-from .pages import CanalplusVideo
+from .video import CanalplusVideo
 
 from weboob.capabilities.collection import ICapCollection
 

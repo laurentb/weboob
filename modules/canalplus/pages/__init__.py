@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .initpage import InitPage
-from .video import CanalplusVideo
 from .videopage import VideoPage
 
-__all__ = ['InitPage', 'VideoPage',  'CanalplusVideo']
+__all__ = ['InitPage', 'VideoPage']

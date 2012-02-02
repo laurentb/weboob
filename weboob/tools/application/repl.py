@@ -854,6 +854,14 @@ class ReplApplication(Cmd, ConsoleApplication):
         for obj in self.objects:
             if isinstance(obj, CapBaseObject):
                 self.format(obj)
+            elif isinstance(obj, Collection):
+                if obj.id and obj.title:
+                    print u'Collection: %s%s%s (%s)' % \
+                        (self.BOLD, obj.id, self.NC, obj.title)
+                elif obj.id:
+                    print u'Collection: %s%s%s' % (self.BOLD, obj.id, self.NC)
+                else:
+                    print obj
             else:
                 print obj.title
 
@@ -861,13 +869,15 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def do_cd(self, line):
         """
-        cd PATH
+        cd [PATH]
 
         Follow a path.
+        If empty, return home.
         """
-        line = line.encode('utf-8')
-
-        self.working_path.extend(line)
+        if not len(line.strip()):
+            self.working_path.home()
+        else:
+            self.working_path.extend(line)
 
         objects = self._fetch_objects()
         if len(objects) == 0:

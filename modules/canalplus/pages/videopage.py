@@ -23,7 +23,7 @@ from datetime import datetime
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage
-from .video import CanalplusVideo
+from ..video import CanalplusVideo
 
 
 __all__ = ['VideoPage']
@@ -78,7 +78,7 @@ class VideoPage(BasePage):
 
     def iter_channel(self):
         for vid in self.document.getchildren():
-	        yield self.parse_video_channel(vid)
+            yield self.parse_video_channel(vid)
 
     def parse_video_channel(self,el):
         _id = el[0].text

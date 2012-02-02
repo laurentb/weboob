@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2012  Nicolas Duhamel, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -21,44 +21,79 @@ from .base import IBaseCap
 
 __all__ = ['ICapCollection', 'Collection', 'CollectionNotFound']
 
+
 class CollectionNotFound(Exception):
-    def __init__(self, msg=None):
-        if msg is None:
+    def __init__(self, split_path=None):
+        if split_path is not None:
+            msg = 'Collection not found: %s' % '/'.join(split_path)
+        else:
             msg = 'Collection not found'
         Exception.__init__(self, msg)
 
 
 class Children(object):
+    """
+    Dynamic property of a Collection.
+    Returns a list, either by calling a function or because
+    it already has the list.
+    """
     def __get__(self, obj, type=None):
-        if callable(obj._childrenfct):
-            return obj._childrenfct(obj.id)
-        else:
-            return obj._children
+        if obj._children is None:
+            if callable(obj._fct):
+                obj._children = obj._fct(obj.id)
+        return obj._children or []
 
-    def __set__(self, obj, value):
-        obj._childrenfct = value
 
 class Collection(object):
     """
-    _childrenfct
-    _children
-    appendchild
-    children return iterator
+    Collection of objects.
+    Should provide a way to be filled, either by providing the children
+    right away, or a function. The function will be called once with the id
+    as an argument if there were no children provided, but only on demand.
+    It can be found in a list of objects, it indicantes a "folder"
+    you can hop into.
+    id and title should be unicode.
     """
     children = Children()
 
-    def __init__(self, title=None, children=None):
+    def __init__(self, _id=None, title=None, children=None, fct=None):
+        self.id = _id
         self.title = title
-        self._children = children if children else []
-        self._childrenfct = None
+        # It does not make sense to have both at init
+        assert not (fct is not None and children is not None)
+        self._children = children
+        self._fct = fct
 
-    def appendchild(self, child):
-        self._children.append(child)
+    def __iter__(self):
+        return iter(self.children)
 
+    def __unicode__(self):
+        if self.title and self.id:
+            return u'%s (%s)' % (self.id, self.title)
+        elif self.id:
+            return u'%s' % self.id
+        else:
+            return u'Unknown collection'
 
-class Ressource(object):
-    pass
 
 class ICapCollection(IBaseCap):
+    def _flatten_resources(self, resources, clean_only=False):
+        """
+        Expand all collections in a list
+        If clean_only is True, do not expand collections, only remove them.
+        """
+        lst = list()
+        for resource in resources:
+            if isinstance(resource, (list, Collection)):
+                if not clean_only:
+                    lst.extend(self._flatten_resources(resource))
+            else:
+                lst.append(resource)
+        return lst
+
     def iter_resources(self, split_path):
+        """
+        split_path is a list, either empty (root path) or with one or many
+        components.
+        """
         raise NotImplementedError()

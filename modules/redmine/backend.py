@@ -94,16 +94,17 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
             return self.browser.get_wiki_preview(project, page, content.content)
 
     ############# CapCollection ###################################################
-    def iter_resources(self, path):
-        if len(path) == 0:
-            return [Collection(project.id) for project in self.iter_projects()]
+    def iter_resources(self, split_path):
+        if len(split_path) == 0:
+            return [Collection(project.id, project.name, fct=self.iter_issues)
+                    for project in self.iter_projects()]
 
-        if len(path) == 1:
+        if len(split_path) == 1:
             query = Query()
-            query.project = unicode(path[0])
+            query.project = unicode(split_path[0])
             return self.iter_issues(query)
 
-        raise CollectionNotFound()
+        raise CollectionNotFound(split_path)
 
 
     ############# CapBugTracker ###################################################

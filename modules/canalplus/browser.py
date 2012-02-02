@@ -25,7 +25,8 @@ import lxml.etree
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import InitPage, CanalplusVideo, VideoPage
+from .pages import InitPage, VideoPage
+from .video import CanalplusVideo
 
 from weboob.capabilities.collection import Collection, CollectionNotFound
 
@@ -85,9 +86,12 @@ class CanalplusBrowser(BaseBrowser):
             if len(path) == 0 or not isinstance(collections, (list, Collection)):
                 return collections
             i = path[0]
-            if i not in [collection.title for collection in collections]:
-                raise CollectionNotFound()
+            matches = [collection
+                        for collection in collections
+                        if collection.id == i or collection.title == i]
+            if not len(matches):
+                raise CollectionNotFound(path)
 
-            return walk_res(path[1:], [collection.children for collection in collections if collection.title == i][0])
+            return walk_res(path[1:], matches[0])
 
         return walk_res(split_path, collections)

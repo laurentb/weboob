@@ -26,24 +26,24 @@ __all__ = ['InitPage']
 
 
 class InitPage(BasePage):
-    
     def on_loaded(self):
         self.collections = []
-        
-        def do(id):
-            self.browser.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/" + id)
+
+        def do(_id):
+            self.browser.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % _id)
             return self.browser.page.iter_channel()
 
-        ### Parse liste des channels
+        # Parse the list of channels
         for elem in self.document[2].getchildren():
-            coll = Collection()
+            children = []
             for e in elem.getchildren():
                 if e.tag == "NOM":
-                    coll.title = e.text.strip().encode('utf-8')
+                    _id = e.text.strip()
                 elif e.tag == "SELECTIONS":
                     for select in e:
-                        sub = Collection(title=select[1].text.strip().encode('utf-8'))
-                        sub.id = select[0].text
-                        sub.children = do
-                        coll.appendchild(sub)
+                        sub = Collection(_id=select[0].text,
+                                title=select[1].text.strip(),
+                                fct=do)
+                        children.append(sub)
+            coll = Collection(_id, children=children)
             self.collections.append(coll)
