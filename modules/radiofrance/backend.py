@@ -23,6 +23,14 @@ from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
 
+from StringIO import StringIO
+from time import time
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 
 __all__ = ['RadioFranceBackend']
 
@@ -45,6 +53,17 @@ class RadioFranceBrowser(BaseBrowser):
         assert self.is_on_page(DataPage)
 
         return self.page.get_title()
+
+    def get_current_direct(self, id):
+        json_data = self.openurl('http://www.%s.fr/sites/default/files/direct.json?_=%s' % (id, int(time())))
+        data = json.load(json_data)
+
+        document = self.parser.parse(StringIO(data.get('html')))
+        artist = document.findtext('//span[@class="artiste"]')
+        title = document.findtext('//span[@class="titre"]')
+        artist = unicode(artist) if artist else None
+        title = unicode(title) if title else None
+        return (artist, title)
 
 
 class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
@@ -72,6 +91,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
                         'franceinfo',
                         'lemouv',
                         )
+
+    _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
 
     _SD_RADIOS = ('franceinfo', )
 
@@ -115,12 +136,19 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
         if 'current' in fields:
             if not radio.current:
                 radio.current = Emission(0)
+            radio.current.artist = None
+            radio.current.title = None
             if radio.id in self._PLAYERJS_RADIOS:
-                radio.current.artist = None
                 radio.current.title = self.browser.get_current_playerjs(radio.id)
-            else:
-                radio.current.artist = None
-                radio.current.title = None
+            if radio.id in self._DIRECTJSON_RADIOS:
+                artist, title = self.browser.get_current_direct(radio.id)
+                if artist:
+                    radio.current.artist = artist
+                if title:
+                    if radio.current.title:
+                        radio.current.title = "%s [%s]" % (title, radio.current.title)
+                    else:
+                        radio.current.title = title
         return radio
 
     OBJECTS = {Radio: fill_radio}
