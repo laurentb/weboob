@@ -355,6 +355,9 @@ class IProgress:
     def progress(self, percent, message):
         print '=== [%3.0f%%] %s' % (percent*100, message)
 
+    def error(self, message):
+        print >>sys.stderr, 'ERROR: %s' % message
+
 class ModuleInstallError(Exception):
     pass
 
@@ -513,7 +516,7 @@ class Repositories(object):
                 line = line.strip() % {'version': self.version}
                 m = re.match('(file|https?)://.*', line)
                 if m:
-                    print 'Getting %s' % line
+                    progress.progress(0.0, 'Getting %s' % line)
                     repository = Repository(line)
                     filename = self.url2filename(repository.url)
                     prio_filename = '%02d-%s' % (len(self.repositories), filename)
@@ -524,10 +527,10 @@ class Repositories(object):
                         if gpgv:
                             repository.retrieve_keyring(keyring_path)
                         else:
-                            print >>sys.stderr, 'Cannot find gpgv to check for repository authenticity.'
-                            print >>sys.stderr, 'You should install GPG for better security.'
+                            progress.error('Cannot find gpgv to check for repository authenticity.\n'
+                                           'You should install GPG for better security.')
                     except RepositoryUnavailable, e:
-                        print >>sys.stderr, 'Error: %s' % e
+                        progress.error('Unable to load repository: %s' % e)
                     else:
                         self.repositories.append(repository)
 
