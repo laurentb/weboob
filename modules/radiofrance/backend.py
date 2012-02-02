@@ -166,7 +166,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
         self.fillobj(radio, ('current', ))
 
         stream = Stream(0)
-        stream.title = u'128kbits/s'
+        stream.title = u'128kbits/s' if hd else u'32kbits/s'
         stream.url = url
         radio.streams = [stream]
         return radio
