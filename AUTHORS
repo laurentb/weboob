@@ -6,34 +6,34 @@ Romain Bignon <romain@weboob.org>
         * Qt Applications;
         * Maintainer of too many backends.
 
-Christophe Benz <christophe.benz@gmail.com>
-        * Packaging;
-        * Bouygues, INA, SFR and Youtube backends maintainer.
-
-Julien Veyssier <julien.veyssier@aiur.fr>
-        * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
-          backends maintainer.
+Laurent Bachelier <laurent@bachelier.name>
+        * Core team;
+        * Pastealacon, PasteBin and RadioFrance backends maintainer.
 
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
         * Ecrans, Inrocks, LeFigaro, Minutes20 and Transilien backends
           maintainer.
 
-Nicolas Duhamel <nicolas@jombi.fr>
-        * BP, CanalPlus and Orange backends maintainer.
-
-Laurent Bachelier <laurent@bachelier.name>
-        * Pastealacon and PasteBin backends maintainer.
-
-Clément Schreiner <clemux@clemux.info>
-        * MediaWiki and Newsfeed backends maintainer.
-
 Noe Rubinstein <noe.rubinstein@gmail.com>
         * Bototo, Eatmanga, MangaFox, MangaHere, MangaReader, Mangatoshokan
           and Simplyreadit backends maintainer.
 
-Johann Broudin <johann.broudin@6-8.fr>
-        * CMB, FranceInter and LeMouv backends maintainer.
+Julien Veyssier <julien.veyssier@aiur.fr>
+        * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
+          backends maintainer.
+
+Christophe Benz <christophe.benz@gmail.com>
+        * Bouygues, INA, SFR and Youtube backends maintainer.
+
+Nicolas Duhamel <nicolas@jombi.fr>
+        * BP, CanalPlus and Orange backends maintainer.
+
+Roger Philibert <roger.philibert@gmail.com>
+        * Ehentai, Izneo and Youjizz backends maintainer.
+
+Clément Schreiner <clemux@clemux.info>
+        * MediaWiki and Newsfeed backends maintainer.
 
 Pierre Mazière <pierre.maziere@gmail.com>
         * LCL backend maintainer;
@@ -41,9 +41,6 @@ Pierre Mazière <pierre.maziere@gmail.com>
 
 Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
-
-Roger Philibert <roger.philibert@gmail.com>
-        * Ehentai, Izneo and Youjizz backends maintainer.
 
 Florent Fourcot <florent.fourcot@resel.fr>
         * INL backend maintainer;
@@ -54,6 +51,9 @@ Gabriel Kerneis <kerneis@pps.jussieu.fr>
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
         * SocieteGenerale backend maintainer.
+
+Johann Broudin <johann.broudin@6-8.fr>
+        * CMB backend maintainer.
 
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance backend maintainer.
@@ -69,6 +69,9 @@ Laurent Dufréchou <laurent.dufrechou@gmail.com>
 
 leto <leto@weboob.org>
         * AuM anti-spam updates.
+
+Camille Baldock <camille.baldock@student.ecp.fr>
+        * Fixes on BP.
 
 Luc Didry <luc@didry.org>
         * Fixes on LCL.
