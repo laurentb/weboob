@@ -140,3 +140,9 @@ class Radioob(ReplApplication):
             self.format(radio)
         self.flush()
 
+    def do_ls(self, line):
+        count = self.options.count
+        self.options.count = None
+        ret = super(Radioob, self).do_ls(line)
+        self.options.count = count
+        return ret
