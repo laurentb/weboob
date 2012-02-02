@@ -52,7 +52,7 @@ def load_json():
     from .jsonparser import JsonParser
     return JsonParser
 
-def get_parser(preference_order=('lxml', 'lxmlsoup', 'html5lib', 'elementtidy', 'builtin')):
+def get_parser(preference_order=('lxml', 'lxmlsoup')):
     """
     Get a parser from a preference order list.
     This allows Weboob to run on systems without lxml, which is the default parser.
