@@ -253,15 +253,17 @@ class BackendCfg(QDialog):
 
             params.pop('_enabled', None)
 
-            info = self.weboob.repositories.get_module_info(name)
+            info = self.weboob.repositories.get_module_info(bname)
             if info and (info.is_installed() or self.installModule(info)):
-                backend = self.weboob.modules_loader.get_or_load_module(bname)
-                for key, value in backend.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
+                module = self.weboob.modules_loader.get_or_load_module(bname)
+                for key, value in module.config.load(self.weboob, bname, name, params, nofail=True).iteritems():
                     try:
                         l, widget = self.config_widgets[key]
                     except KeyError:
                         warning('Key "%s" is not found' % key)
                     else:
+                        # Do not prompt user for value (for example a password if it is empty).
+                        value.noprompt = True
                         widget.set_value(value)
                 return
 
