@@ -104,8 +104,8 @@ class ValueBackendPassword(Value):
             return
 
         try:
-            # See #706
-            import keyring_DISABLED
+            raise ImportError('Keyrings are disabled (see #706)')
+            import keyring
             keyring.set_password(self._domain, self.id, passwd)
         except Exception:
             self._value = passwd
@@ -123,8 +123,8 @@ class ValueBackendPassword(Value):
             return self._value
 
         try:
-            # See #706
-            import keyring_DISABLED
+            raise ImportError('Keyrings are disabled (see #706)')
+            import keyring
         except ImportError:
             passwd = None
         else:
