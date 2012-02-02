@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
 
@@ -156,11 +156,17 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
     _RSS_RADIOS = ('francemusique', )
 
     def iter_resources(self, split_path):
-        if len(split_path) > 0:
+        if len(split_path) == 1 and split_path[0] == 'francebleu':
+            for id in sorted(self._RADIOS.iterkeys()):
+                if id.startswith('fb'):
+                    yield self.get_radio(id)
+        elif len(split_path) == 0:
+            for id in sorted(self._RADIOS.iterkeys()):
+                if not id.startswith('fb'):
+                    yield self.get_radio(id)
+            yield Collection('francebleu', self.iter_resources('francebleu'))
+        else:
             raise CollectionNotFound()
-
-        for id in sorted(self._RADIOS.iterkeys()):
-            yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
         for radio in self.iter_resources([]):
