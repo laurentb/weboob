@@ -905,7 +905,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         return objects
 
     def complete_cd(self, text, line, begidx, endidx):
-        directories = ['..']
+        directories = set(['..'])
         mline = line.partition(' ')[2]
         offs = len(mline) - len(text)
 
@@ -914,7 +914,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         for obj in self.objects:
             if isinstance(obj, Collection):
-                directories.append(obj.title)
+                directories.add(obj.id)
+                if obj.title:
+                    directories.add(obj.title)
 
         return [s[offs:] for s in directories if s.startswith(mline)]
 
