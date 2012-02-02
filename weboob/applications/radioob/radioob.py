@@ -118,7 +118,7 @@ class Radioob(ReplApplication):
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        radio = self.get_object(_id, 'get_radio')
+        radio = self.get_object(_id, 'get_radio', ['streams', 'current'])
         if not radio:
             print >>sys.stderr, 'Radio not found:', _id
             return 3

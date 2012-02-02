@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
@@ -41,6 +42,7 @@ class DataPage(BasePage):
             title = unicode(metas.text_content()).strip()
             if len(title):
                 return title
+
 
 class RssPage(BasePage):
     def get_title(self):
@@ -189,6 +191,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
         else:
             url = self._MP3_URL % (radio.id, radio.id)
 
+        # This should be asked demand, but is required for now as Radioob
+        # does not require it.
         self.fillobj(radio, ('current', ))
 
         stream = Stream(0)
@@ -199,23 +203,24 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            if not radio.current:
-                radio.current = Emission(0)
-            radio.current.artist = None
-            radio.current.title = None
+            artist = None
+            title = None
             if radio.id in self._PLAYERJS_RADIOS:
-                radio.current.title = self.browser.get_current_playerjs(radio.id)
+                title = self.browser.get_current_playerjs(radio.id)
             if radio.id in self._DIRECTJSON_RADIOS:
-                artist, title = self.browser.get_current_direct(radio.id)
-                if artist:
-                    radio.current.artist = artist
-                if title:
-                    if radio.current.title:
-                        radio.current.title = "%s [%s]" % (title, radio.current.title)
+                artist, dtitle = self.browser.get_current_direct(radio.id)
+                if dtitle:
+                    if title:
+                        title = "%s [%s]" % (dtitle, title)
                     else:
-                        radio.current.title = title
+                        title = dtitle
             if radio.id in self._RSS_RADIOS:
-                radio.current.title = self.browser.get_current_rss(radio.id)
+                title = self.browser.get_current_rss(radio.id)
+            if title:
+                if not radio.current or radio.current is NotLoaded:
+                    radio.current = Emission(0)
+                radio.current.title = title
+                radio.current.arist = artist
         return radio
 
     OBJECTS = {Radio: fill_radio}
