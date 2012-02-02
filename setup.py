@@ -82,7 +82,7 @@ else:
 
 def build_qt():
     print 'Building Qt applications'
-    pyuic4 = check_executable('pyuic4', 'To disable Qt applications, use --no-qt.')
+    pyuic4 = check_executable('pyuic4', 'Install PyQt4-devel or disable Qt applications (with --no-qt).')
 
     if sys.platform == 'win32':
         env={ 'PYUIC' : pyuic4, 'PATH':os.environ['PATH']}
