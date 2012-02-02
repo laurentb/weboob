@@ -42,15 +42,34 @@ class DataPage(BasePage):
             if len(title):
                 return title
 
+class RssPage(BasePage):
+    def get_title(self):
+        titles = []
+        for heading in self.parser.select(self.document.getroot(), 'h1, h2, h3, h4'):
+            # Remove newlines/multiple spaces
+            words = heading.text_content()
+            if words:
+                for word in unicode(words).split():
+                    titles.append(word)
+        if len(titles):
+            return ' '.join(titles)
+
 
 class RadioFranceBrowser(BaseBrowser):
     DOMAIN = None
     ENCODING = 'UTF-8'
-    PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage}
+    PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
+            r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage}
 
     def get_current_playerjs(self, id):
         self.location('http://www.%s.fr/playerjs/direct/donneesassociees/html?guid=' % id)
         assert self.is_on_page(DataPage)
+
+        return self.page.get_title()
+
+    def get_current_rss(self, id):
+        self.location('http://players.tv-radio.com/radiofrance/metadatas/%sRSS.html' % id)
+        assert self.is_on_page(RssPage)
 
         return self.page.get_title()
 
@@ -134,6 +153,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
                         )
 
     _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
+    _RSS_RADIOS = ('francemusique', )
 
     def iter_resources(self, splited_path):
         if len(splited_path) > 0:
@@ -188,6 +208,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
                         radio.current.title = "%s [%s]" % (title, radio.current.title)
                     else:
                         radio.current.title = title
+            if radio.id in self._RSS_RADIOS:
+                radio.current.title = self.browser.get_current_rss(radio.id)
         return radio
 
     OBJECTS = {Radio: fill_radio}
