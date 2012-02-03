@@ -82,7 +82,7 @@ class MediaPlayer(object):
             player_name = self.guess_player_name()
             if player_name is None:
                 raise MediaPlayerNotFound()
-        if media.url.find('rtmp') == 0:
+        if media.url.startswith('rtmp'):
             self._play_rtmp(media, player_name)
         else:
             self._play_default(media, player_name)

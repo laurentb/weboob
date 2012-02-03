@@ -115,11 +115,11 @@ class Videoob(ReplApplication):
                 ext = 'avi'
             dest = '%s.%s' % (video.id, ext)
 
-        if video.url.find('rtmp') == 0:
+        if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
                 return 1
             args = ('rtmpdump', '-r', video.url, '-o', dest)
-        elif video.url.find('mms') == 0:
+        elif video.url.startswith('mms'):
             if not check_exec('mimms'):
                 return 1
             args = ('mimms', video.url, dest)
