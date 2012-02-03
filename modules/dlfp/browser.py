@@ -21,7 +21,7 @@
 import urllib
 import re
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
@@ -34,22 +34,22 @@ from .tools import id2url, url2id
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'
-    PAGES = {'https?://.*linuxfr.org/?': IndexPage,
-             'https?://.*linuxfr.org/compte/connexion': LoginPage,
-             'https?://.*linuxfr.org/news/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/wiki/(?!nouveau)[^/]+': ContentPage,
-             'https?://.*linuxfr.org/wiki': WikiEditPage,
-             'https?://.*linuxfr.org/wiki/nouveau': WikiEditPage,
-             'https?://.*linuxfr.org/wiki/[^\.]+/modifier': WikiEditPage,
-             'https?://.*linuxfr.org/suivi/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/sondages/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/users/[^\./]+/journaux/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/forums/[^\./]+/posts/[^\.]+': ContentPage,
-             'https?://.*linuxfr.org/nodes/(\d+)/comments/(\d+)': CommentPage,
-             'https?://.*linuxfr.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
-             'https?://.*linuxfr.org/nodes/(\d+)/comments': NodePage,
-             'https?://.*linuxfr.org/nodes/(\d+)/tags/nouveau': NewTagPage,
-             'https?://.*linuxfr.org/board/index.xml': BoardIndexPage,
+    PAGES = {'https?://[^/]*linuxfr\.org/?': IndexPage,
+             'https?://[^/]*linuxfr\.org/compte/connexion': LoginPage,
+             'https?://[^/]*linuxfr\.org/news/[^\.]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/wiki/(?!nouveau)[^/]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/wiki': WikiEditPage,
+             'https?://[^/]*linuxfr\.org/wiki/nouveau': WikiEditPage,
+             'https?://[^/]*linuxfr\.org/wiki/[^\.]+/modifier': WikiEditPage,
+             'https?://[^/]*linuxfr\.org/suivi/[^\.]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/sondages/[^\.]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/users/[^\./]+/journaux/[^\.]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/forums/[^\./]+/posts/[^\.]+': ContentPage,
+             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments/(\d+)': CommentPage,
+             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments/nouveau': NewCommentPage,
+             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments': NodePage,
+             'https?://[^/]*linuxfr\.org/nodes/(\d+)/tags/nouveau': NewTagPage,
+             'https?://[^/]*linuxfr\.org/board/index.xml': BoardIndexPage,
             }
 
     last_board_msg_id = None
@@ -145,6 +145,8 @@ class DLFP(BaseBrowser):
                 content = self.page.get_comment(int(m.group(1)))
             else:
                 content = self.page.get_article()
+        else:
+            raise BrokenPageError('Not on a content or comment page (%r)' % self.page)
 
         if _id is not None:
             content.id = _id
