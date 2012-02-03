@@ -22,69 +22,12 @@ from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BasePage
 
-from StringIO import StringIO
-from time import time
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
+from .browser import RadioFranceBrowser
 
 
 __all__ = ['RadioFranceBackend']
-
-
-class DataPage(BasePage):
-    def get_title(self):
-        for metas in self.parser.select(self.document.getroot(), 'div.metas'):
-            title = unicode(metas.text_content()).strip()
-            if len(title):
-                return title
-
-
-class RssPage(BasePage):
-    def get_title(self):
-        titles = []
-        for heading in self.parser.select(self.document.getroot(), 'h1, h2, h3, h4'):
-            # Remove newlines/multiple spaces
-            words = heading.text_content()
-            if words:
-                for word in unicode(words).split():
-                    titles.append(word)
-        if len(titles):
-            return ' '.join(titles)
-
-
-class RadioFranceBrowser(BaseBrowser):
-    DOMAIN = None
-    ENCODING = 'UTF-8'
-    PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
-            r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage}
-
-    def get_current_playerjs(self, id):
-        self.location('http://www.%s.fr/playerjs/direct/donneesassociees/html?guid=' % id)
-        assert self.is_on_page(DataPage)
-
-        return self.page.get_title()
-
-    def get_current_rss(self, id):
-        self.location('http://players.tv-radio.com/radiofrance/metadatas/%sRSS.html' % id)
-        assert self.is_on_page(RssPage)
-
-        return self.page.get_title()
-
-    def get_current_direct(self, id):
-        json_data = self.openurl('http://www.%s.fr/sites/default/files/direct.json?_=%s' % (id, int(time())))
-        data = json.load(json_data)
-
-        document = self.parser.parse(StringIO(data.get('html')))
-        artist = document.findtext('//span[@class="artiste"]')
-        title = document.findtext('//span[@class="titre"]')
-        artist = unicode(artist) if artist else None
-        title = unicode(title) if title else None
-        return (artist, title)
 
 
 class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
