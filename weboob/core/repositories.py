@@ -270,7 +270,7 @@ class Repository(object):
             else:
                 m = ModuleInfo(module.name)
                 m.version = self.get_tree_mtime(module_path)
-                m.capabilities = [c.__name__ for c in module.iter_caps()]
+                m.capabilities = list(set([c.__name__ for c in module.iter_caps()]))
                 m.description = module.description
                 m.maintainer = module.maintainer
                 m.license = module.license
