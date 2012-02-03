@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.browser import BaseBrowser, BasePage, BrokenPageError
 
 from StringIO import StringIO
 from time import time
@@ -52,11 +52,26 @@ class RssPage(BasePage):
             return ' '.join(titles)
 
 
+class RssAntennaPage(BasePage):
+    ENCODING = 'ISO-8859-1'
+    def get_track(self):
+        # This information is not always available
+        try:
+            marquee = self.parser.select(self.document.getroot(), 'marquee', 1)
+            track = self.parser.select(marquee, 'font b', 2)
+            artist = unicode(track[0].text).strip() or None
+            title = unicode(track[1].text).strip() or None
+            return (artist, title)
+        except BrokenPageError:
+            return (None, None)
+
+
 class RadioFranceBrowser(BaseBrowser):
     DOMAIN = None
     ENCODING = 'UTF-8'
     PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
-            r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage}
+        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
+        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS_a_lantenne.html': RssAntennaPage}
 
     def get_current_playerjs(self, _id):
         self.location('http://www.%s.fr/playerjs/direct/donneesassociees/html?guid=' % _id)
@@ -80,3 +95,11 @@ class RadioFranceBrowser(BaseBrowser):
         artist = unicode(artist) if artist else None
         title = unicode(title) if title else None
         return (artist, title)
+
+    def get_current_antenna(self, _id):
+        self.ENCODING = RssAntennaPage.ENCODING
+        self.location('http://players.tv-radio.com/radiofrance/metadatas/%sRSS_a_lantenne.html' % _id)
+        assert self.is_on_page(RssAntennaPage)
+        result = self.page.get_track()
+        self.ENCODING = RadioFranceBrowser.ENCODING
+        return result
