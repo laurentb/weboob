@@ -167,7 +167,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
                 if not radio.current or radio.current is NotLoaded:
                     radio.current = Emission(0)
                 radio.current.title = title
-                radio.current.arist = artist
+                radio.current.artist = artist
         return radio
 
     OBJECTS = {Radio: fill_radio}
