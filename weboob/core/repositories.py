@@ -369,10 +369,6 @@ DEFAULT_SOURCES_LIST = \
 
 http://updates.weboob.org/%(version)s/main/
 
-# To enable Not Safe For Work backends, uncomment the
-# following line:
-#http://updates.weboob.org/%(version)s/nsfw/
-
 # DEVELOPMENT
 # If you want to hack on Weboob modules, you may add a
 # reference to sources, for example:
