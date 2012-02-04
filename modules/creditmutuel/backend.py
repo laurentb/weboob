@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import ICapBank, AccountNotFound, Recipient, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -62,3 +62,25 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         for history in self.browser.get_history(account):
             yield history
+
+    def iter_transfer_recipients(self, ignored):
+        for account in self.browser.get_accounts_list().itervalues():
+            recipient = Recipient()
+            recipient.id = account.id
+            recipient.label = account.label
+            yield recipient
+
+    def transfer(self, account, to, amount, reason=None):
+        if isinstance(account, Account):
+            account = account.id
+
+        try:
+            assert account.isdigit()
+            assert to.isdigit()
+            amount = float(amount)
+        except (AssertionError, ValueError):
+            raise AccountNotFound()
+
+        with self.browser:
+            return self.browser.transfer(account, to, amount, reason)
+

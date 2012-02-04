@@ -35,6 +35,9 @@ class LoginErrorPage(BasePage):
 class InfoPage(BasePage):
     pass
 
+class TransfertPage(BasePage):
+    pass
+
 class UserSpacePage(BasePage):
     pass
 

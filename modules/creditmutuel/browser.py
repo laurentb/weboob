@@ -19,8 +19,10 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.capabilities.bank import Transfer, TransferError
+from datetime import datetime
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, OperationsPage, InfoPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, OperationsPage, InfoPage, TransfertPage
 
 __all__ = ['CreditMutuelBrowser']
 
@@ -35,7 +37,8 @@ class CreditMutuelBrowser(BaseBrowser):
          'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
          'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*' : OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage
+         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*' : TransfertPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -48,7 +51,6 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def home(self):
         return self.location('https://www.creditmutuel.fr/groupe/fr/index.html')
-
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -111,6 +113,55 @@ class CreditMutuelBrowser(BaseBrowser):
 
         return l_ret
 
+    def transfer(self, account, to, amount, reason=None):
+        # access the transfer page
+        transfert_url = 'WI_VPLV_VirUniSaiCpt.asp?RAZ=ALL&Cat=6&PERM=N&CHX=A'
+        self.location('https://%s/%s/fr/banque/%s'%(self.DOMAIN, self.currentSubBank, transfert_url))
+
+        # fill the form
+        self.select_form(name='FormVirUniSaiCpt')
+        self['IDB']     = [account[-1]]
+        self['ICR'] = [to[-1]]
+        self['MTTVIR']  = '%s'   % str(amount).replace('.',',')
+        if reason != None:
+            self['LIBDBT'] = reason
+            self['LIBCRT'] = reason
+        self.submit()
+
+        # look for known errors
+        content = unicode(self.response().get_data(), self.ENCODING)
+        insufficient_amount_message     = u'Montant insuffisant.'
+        maximum_allowed_balance_message = u'Solde maximum autorisé dépassé.'
+
+        if content.find(insufficient_amount_message) != -1:
+            raise TransferError('The amount you tried to transfer is too low.')
+
+        if content.find(maximum_allowed_balance_message) != -1:
+            raise TransferError('The maximum allowed balance for the target account has been / would be reached.')
+
+        # look for the known "all right" message
+        ready_for_transfer_message = u'Confirmez un virement entre vos comptes'
+        if not content.find(ready_for_transfer_message):
+            raise TransferError('The expected message "%s" was not found.' % ready_for_transfer_message)
+
+        # submit the confirmation form
+        self.select_form(name='FormVirUniCnf')
+        submit_date = datetime.now()
+        self.submit()
+
+        # look for the known "everything went well" message
+        content = unicode(self.response().get_data(), self.ENCODING)
+        transfer_ok_message = u'Votre virement a été exécuté ce jour'
+        if not content.find(transfer_ok_message):
+            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
+
+        # We now have to return a Transfer object
+        transfer = Transfer(submit_date.strftime('%Y%m%d%H%M%S'))
+        transfer.amount = amount
+        transfer.origin = account
+        transfer.recipient = to
+        transfer.date = submit_date
+        return transfer
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
