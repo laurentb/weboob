@@ -22,4 +22,3 @@ from .backend import RadioFranceBackend
 
 
 __all__ = ['RadioFranceBackend']
-

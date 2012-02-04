@@ -19,18 +19,19 @@
 
 
 from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
 
 
-from .browser import RadioFranceBrowser
+from .browser import RadioFranceBrowser, RadioFranceVideo
 
 
 __all__ = ['RadioFranceBackend']
 
 
-class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
+class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     NAME = 'radiofrance'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
@@ -170,4 +171,23 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection):
                 radio.current.artist = artist
         return radio
 
-    OBJECTS = {Radio: fill_radio}
+    # avoid warning, but TODO
+    # http://www.franceculture.fr/recherche/key%3DYOURSEARCH%2526type%3Demission
+    # http://www.franceinter.fr/recherche/key%3DYOURSEARCH%2526tri%3Dpertinence%2526theme%3Ddefault%2526type%3Demission
+    def iter_search_results(self, *args, **kwargs):
+        return []
+
+    def get_video(self, _id):
+        with self.browser:
+            video = self.browser.get_video(_id)
+        return video
+
+    def fill_video(self, video, fields):
+        if 'url' in fields:
+            with self.browser:
+                video.url = self.browser.get_url(video.id)
+
+        return video
+
+    OBJECTS = {Radio: fill_radio,
+            RadioFranceVideo: fill_video}

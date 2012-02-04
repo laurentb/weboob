@@ -18,9 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BaseBrowser, BasePage, BrokenPageError
+from weboob.capabilities.video import BaseVideo
+from weboob.tools.browser.decorators import id2url
 
 from StringIO import StringIO
 from time import time
+import re
+import urlparse
 
 try:
     import json
@@ -28,7 +32,42 @@ except ImportError:
     import simplejson as json
 
 
-__all__ = ['RadioFranceBrowser']
+__all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
+
+
+class RadioFranceVideo(BaseVideo):
+    RADIOS = ('franceinter', 'franceculture')
+
+    @classmethod
+    def id2url(cls, _id):
+        radio_id, replay_id = _id.split('-', 2)
+        return 'http://www.%s.fr/player/reecouter?play=%s' % \
+            (radio_id, replay_id)
+
+
+class PlayerPage(BasePage):
+    URL = r'^http://www\.(?P<radio_id>%s)\.fr/player/reecouter\?play=(?P<replay_id>\d+)$' \
+        % '|'.join(RadioFranceVideo.RADIOS)
+    MP3_REGEXP = re.compile(r'sites%2Fdefault.+.(?:MP3|mp3)')
+
+    def get_url(self):
+        radio_id = self.groups[0]
+        player = self.parser.select(self.document.getroot(), '#rfPlayer embed', 1)
+        urlparams = urlparse.parse_qs(player.attrib['src'])
+        return 'http://www.%s.fr/%s' % (radio_id, urlparams['urlAOD'][0])
+
+
+class ReplayPage(BasePage):
+    URL = r'^http://www\.(?P<radio_id>%s)\.fr/emission-.+$' \
+            % '|'.join(RadioFranceVideo.RADIOS)
+
+    def get_id(self):
+        radio_id = self.groups[0]
+        for node in self.parser.select(self.document.getroot(), 'div.node-rf_diffusion'):
+            match = re.match(r'^node-(\d+)$', node.attrib.get('id', ''))
+            if match:
+                player_id = match.groups()[0]
+        return (radio_id, player_id)
 
 
 class DataPage(BasePage):
@@ -54,6 +93,7 @@ class RssPage(BasePage):
 
 class RssAntennaPage(BasePage):
     ENCODING = 'ISO-8859-1'
+
     def get_track(self):
         # This information is not always available
         try:
@@ -71,7 +111,9 @@ class RadioFranceBrowser(BaseBrowser):
     ENCODING = 'UTF-8'
     PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
         r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
-        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS_a_lantenne.html': RssAntennaPage}
+        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS_a_lantenne.html': RssAntennaPage,
+        PlayerPage.URL: PlayerPage,
+        ReplayPage.URL: ReplayPage}
 
     def get_current_playerjs(self, _id):
         self.location('http://www.%s.fr/playerjs/direct/donneesassociees/html?guid=' % _id)
@@ -103,3 +145,23 @@ class RadioFranceBrowser(BaseBrowser):
         result = self.page.get_track()
         self.ENCODING = RadioFranceBrowser.ENCODING
         return result
+
+    @id2url(RadioFranceVideo.id2url)
+    def get_video(self, url):
+        radio_id = replay_id = None
+        match = re.match(PlayerPage.URL, url)
+        if match:
+            radio_id, replay_id = match.groups()
+        elif re.match(ReplayPage.URL, url):
+            self.location(url)
+            assert self.is_on_page(ReplayPage)
+            radio_id, replay_id = self.page.get_id()
+        if radio_id and replay_id:
+            _id = '%s-%s' % (radio_id, replay_id)
+            return RadioFranceVideo(_id)
+
+    @id2url(RadioFranceVideo.id2url)
+    def get_url(self, url):
+        self.location(url)
+        assert self.is_on_page(PlayerPage)
+        return self.page.get_url()
