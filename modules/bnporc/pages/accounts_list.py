@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
@@ -31,8 +29,6 @@ __all__ = ['AccountsList']
 
 
 class AccountsList(BasePage):
-    LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
-
     def on_loaded(self):
         pass
 
