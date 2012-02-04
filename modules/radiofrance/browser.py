@@ -38,6 +38,10 @@ __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
 class RadioFranceVideo(BaseVideo):
     RADIOS = ('franceinter', 'franceculture')
 
+    def __init__(self, *args, **kwargs):
+        BaseVideo.__init__(self, *args, **kwargs)
+        self.ext = 'mp3'
+
     @classmethod
     def id2url(cls, _id):
         radio_id, replay_id = _id.split('-', 2)
