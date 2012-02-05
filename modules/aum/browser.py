@@ -356,23 +356,6 @@ class AuMBrowser(BaseBrowser):
                 d.update(pic)
                 profile['pictures'].append(d)
 
-            base_url = 'http://s%s.adopteunmec.com/%s' % (profile['shard'], profile['path'])
-            if len(profile['pictures']) > 0:
-                pic_regex = re.compile('(?P<base_url>http://.+\.adopteunmec\.com/.+/)image(?P<id>.+)\.jpg')
-                pic_max_id = max((int((lambda m: m and m.groupdict()['id'] or 0)(pic_regex.match(pic['url'])))) for pic in profile['pictures'])
-                for id in xrange(1, pic_max_id + 1):
-                    url = u'%simage%s.jpg' % (base_url, id)
-                    if not url in [pic['url'] for pic in profile['pictures']]:
-                        profile['pictures'].append({'url': url, u'hidden': True, 'id': u'0', 'rating': 0.0})
-            else:
-                url = '%simage1.jpg' % base_url
-                try:
-                    self.openurl(url)
-                except BrowserUnavailable:
-                    pass
-                else:
-                    profile['pictures'].append({'url': url, u'hidden': True, 'id': u'0', 'rating': 0.0})
-
         return profile
 
     def _get_chat_infos(self):
