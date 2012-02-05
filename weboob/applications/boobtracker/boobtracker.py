@@ -207,11 +207,6 @@ class BoobTracker(ReplApplication):
 
         self.do('update_issue', id, update, backends=backend_name).wait()
 
-    def complete_remove(self, text, line, *ignored):
-        args = line.split(' ')
-        if len(args) == 2:
-            return self._complete_object()
-
     def do_remove(self, line):
         """
         remove ISSUE
