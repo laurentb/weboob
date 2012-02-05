@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.tools.browser import BasePage
 from weboob.capabilities.torrent import Torrent
 
@@ -30,17 +29,16 @@ class TorrentsPage(BasePage):
     def unit(self, n, u):
         m = {'B': 1,
                 'KB': 1024,
-                'MB': 1024*1024,
-                'GB': 1024*1024*1024,
-                'TB': 1024*1024*1024*1024,
+                'MB': 1024 * 1024,
+                'GB': 1024 * 1024 * 1024,
+                'TB': 1024 * 1024 * 1024 * 1024,
                 }
-        #return float(n.replace(',', '')) * m.get(u, 1)
-        return float(n*m[u])
+        return float(n * m[u])
 
     def iter_torrents(self):
         table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
         for tr in table.getiterator('tr'):
-            if tr.get('class','') != "header":
+            if tr.get('class', '') != "header":
                 td = tr.getchildren()[1]
                 div = td.getchildren()[0]
                 link = div.find('a').attrib['href']
@@ -51,7 +49,7 @@ class TorrentsPage(BasePage):
                 url = a.attrib['href']
 
                 size = td.find('font').text.split(',')[1].strip()
-                u = size.split(' ')[1].split(u'\xa0')[1].replace('i','')
+                u = size.split(' ')[1].split(u'\xa0')[1].replace('i', '')
                 size = size.split(' ')[1].split(u'\xa0')[0]
 
                 seed = tr.getchildren()[2].text
@@ -60,42 +58,47 @@ class TorrentsPage(BasePage):
                 torrent = Torrent(idt,
                                   title,
                                   url=url,
-                                  size=self.unit(float(size),u),
+                                  size=self.unit(float(size), u),
                                   seeders=int(seed),
                                   leechers=int(leech))
                 yield torrent
 
+
 class TorrentPage(BasePage):
     def get_torrent(self, id):
         for div in self.document.getiterator('div'):
-            if div.attrib.get('id','') == 'title':
+            if div.attrib.get('id', '') == 'title':
                 title = div.text.strip()
-            elif div.attrib.get('class','') == 'download':
-                url = div.getchildren()[0].attrib.get('href','')
-            elif div.attrib.get('id','') == 'details':
+            elif div.attrib.get('class', '') == 'download':
+                # the last link is now the one with http
+                url = self.parser.select(div, 'a')[-1].attrib.get('href', '')
+                # https fails on the download server, so strip it
+                if url.startswith('https://'):
+                    url = url.replace('https://', 'http://', 1)
+            elif div.attrib.get('id', '') == 'details':
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
                 if len(div.getchildren()) > 1 \
-                        and div.getchildren()[1].attrib.get('class','') == 'col2' :
+                and div.getchildren()[1].attrib.get('class', '') == 'col2':
                     child_to_explore = div.getchildren()[1]
                 else:
                     child_to_explore = div.getchildren()[0]
                 prev_child_txt = "none"
-                seed="-1"
-                leech="-1"
+                seed = "-1"
+                leech = "-1"
                 for ch in child_to_explore.getchildren():
                     if prev_child_txt == "Seeders:":
                         seed = ch.text
                     if prev_child_txt == "Leechers:":
                         leech = ch.text
                     prev_child_txt = ch.text
-            elif div.attrib.get('class','') == 'nfo':
+            elif div.attrib.get('class', '') == 'nfo':
                 description = div.getchildren()[0].text
         torrent = Torrent(id, title)
-        torrent.url = url
+        torrent.url = url or None
         torrent.size = size
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
-        torrent.description = description
+        torrent.description = description.strip()
         torrent.files = ['NYI']
 
         return torrent
