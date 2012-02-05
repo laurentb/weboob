@@ -34,7 +34,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
     NAME = 'fourchan'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.a'
+    VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = '4chan website'
     CONFIG = BackendConfig(Value('boards', label='Boards to fetch'))

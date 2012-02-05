@@ -35,7 +35,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     NAME = 'radiofrance'
     MAINTAINER = 'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '0.a'
+    VERSION = '0.b'
     DESCRIPTION = u'The radios of Radio France (Inter, Culture, Le Mouv\', etc.)'
     LICENSE = 'AGPLv3+'
     BROWSER = RadioFranceBrowser

@@ -35,7 +35,7 @@ class INGBackend(BaseBackend, ICapBank):
     NAME = 'ing'
     MAINTAINER = 'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.a'
+    VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'ING french bank\' website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),

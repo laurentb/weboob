@@ -37,7 +37,7 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'phpbb'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.a'
+    VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "phpBB forum"
     CONFIG = BackendConfig(Value('url',                     label='URL of forum', regexp='https?://.*'),

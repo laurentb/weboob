@@ -30,7 +30,7 @@ class TransilienBackend(BaseBackend, ICapTravel):
     NAME = 'transilien'
     MAINTAINER = u'Julien Hébert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.a'
+    VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "Transports in Paris"
     BROWSER = Transilien

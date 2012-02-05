@@ -278,7 +278,7 @@ class MasstransitHildon():
 class Masstransit(BaseApplication):
     "Application Class"
     APPNAME = 'masstransit'
-    VERSION = '0.a'
+    VERSION = '0.b'
     COPYRIGHT = 'Copyright(C) 2010-2011 Julien Hébert'
 
     def main(self, argv):
