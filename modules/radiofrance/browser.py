@@ -31,6 +31,11 @@ try:
 except ImportError:
     import simplejson as json
 
+try:
+    from urlparse import parse_qs
+except ImportError:
+    from cgi import parse_qs
+
 
 __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
 
@@ -57,7 +62,7 @@ class PlayerPage(BasePage):
     def get_url(self):
         radio_id = self.groups[0]
         player = self.parser.select(self.document.getroot(), '#rfPlayer embed', 1)
-        urlparams = urlparse.parse_qs(player.attrib['src'])
+        urlparams = parse_qs(player.attrib['src'])
         return 'http://www.%s.fr/%s' % (radio_id, urlparams['urlAOD'][0])
 
 
