@@ -142,5 +142,8 @@ class ModulesLoader(object):
         finally:
             sys.path.remove(minfo.path)
 
+        if module.version != self.repositories.version:
+            raise ModuleLoadError(module_name, "Module requires Weboob %s, but you use Weboob %s" % (module.version, self.repositories.version))
+
         self.loaded[module_name] = module
         self.logger.debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))
