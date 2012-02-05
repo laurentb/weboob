@@ -172,11 +172,11 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                 radio.current.artist = artist
         return radio
 
-    # avoid warning, but TODO
+    # TODO
     # http://www.franceculture.fr/recherche/key%3DYOURSEARCH%2526type%3Demission
     # http://www.franceinter.fr/recherche/key%3DYOURSEARCH%2526tri%3Dpertinence%2526theme%3Ddefault%2526type%3Demission
-    def iter_search_results(self, *args, **kwargs):
-        return []
+    #def iter_search_results(self, *args, **kwargs):
+    #    return []
 
     def get_video(self, _id):
         with self.browser:

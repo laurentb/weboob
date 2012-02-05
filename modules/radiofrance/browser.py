@@ -24,7 +24,6 @@ from weboob.tools.browser.decorators import id2url
 from StringIO import StringIO
 from time import time
 import re
-import urlparse
 
 try:
     import json

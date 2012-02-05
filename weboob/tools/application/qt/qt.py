@@ -31,6 +31,7 @@ from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
+from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 
 from ..base import BaseApplication
@@ -164,9 +165,17 @@ class QtDo(QObject):
         self.process.callback_thread(self.thread_cb, self.thread_eb)
 
     def default_eb(self, backend, error, backtrace):
-        # TODO display a messagebox
-        msg = u'%s' % error
-        if logging.root.level == logging.DEBUG:
+        msg = unicode(error)
+        if isinstance(error, BrowserIncorrectPassword):
+            if not msg:
+                msg = 'Invalid login/password.'
+        elif isinstance(error, BrowserUnavailable):
+            if not msg:
+                msg = 'website is unavailable.'
+        elif isinstance(error, NotImplementedError):
+            msg = 'This feature is not supported by this backend.\n\n' \
+                  'To help the maintainer of this backend implement this feature, please contact: %s <%s>' % (backend.MAINTAINER, backend.EMAIL)
+        elif logging.root.level == logging.DEBUG:
             msg += '<br />'
             ul_opened = False
             for line in backtrace.split('\n'):
@@ -184,7 +193,8 @@ class QtDo(QObject):
                 msg += '</li></ul>'
             print >>sys.stderr, error
             print >>sys.stderr, backtrace
-        QMessageBox.critical(None, self.tr('Error'), msg, QMessageBox.Ok)
+        QMessageBox.critical(None, unicode(self.tr('Error with backend %s')) % backend.name,
+                             msg, QMessageBox.Ok)
 
     def local_cb(self, backend, data):
         self.cb(backend, data)
