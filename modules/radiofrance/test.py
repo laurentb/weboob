@@ -19,14 +19,20 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.radio import Radio
 
 
 class RadioFranceTest(BackendTest):
     BACKEND = 'radiofrance'
 
     def test_get_radios(self):
-        l = list(self.backend.iter_resources([]))
-        self.assertTrue(len(l) > 0)
+        l = list(self.backend.iter_resources(objs=[Radio], split_path=[]))
+        self.assertTrue(0 < len(l) < 30)
+        l = list(self.backend.iter_resources(objs=[Radio], split_path=['francebleu']))
+        self.assertTrue(len(l) > 30)
+        l = list(self.backend.iter_resources(objs=[BaseVideo], split_path=[]))
+        self.assertEquals(len(l), 0)
 
     def test_get_video(self):
         # this should be available up to 24/10/2014 15h00

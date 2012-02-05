@@ -21,7 +21,7 @@
 from datetime import timedelta
 import sys
 
-from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update
+from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
@@ -93,6 +93,7 @@ class BoobTracker(ReplApplication):
                            'search':  'issues_list',
                            'ls':      'issues_list',
                           }
+    COLLECTION_OBJECTS = (Project, Issue, )
 
     def add_application_options(self, group):
         group.add_option('--author')

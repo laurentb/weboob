@@ -23,7 +23,7 @@ import subprocess
 import sys
 import os
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -66,6 +66,7 @@ class Videoob(ReplApplication):
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
     COMMANDS_FORMATTERS = {'search': 'video_list',
                            'ls': 'video_list'}
+    COLLECTION_OBJECTS = (BaseVideo, )
 
     nsfw = True
 

@@ -102,22 +102,23 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     _RSS_RADIOS = ('francemusique', )
     _ANTENNA_RADIOS = ('fip', )
 
-    def iter_resources(self, split_path):
-        if len(split_path) == 1 and split_path[0] == 'francebleu':
-            for _id in sorted(self._RADIOS.iterkeys()):
-                if _id.startswith('fb'):
-                    yield self.get_radio(_id)
-        elif len(split_path) == 0:
-            for _id in sorted(self._RADIOS.iterkeys()):
-                if not _id.startswith('fb'):
-                    yield self.get_radio(_id)
-            yield Collection('francebleu', 'France Bleu',
-                    children=self.iter_resources(['francebleu']))
-        else:
-            raise CollectionNotFound(split_path)
+    def iter_resources(self, objs, split_path):
+        if Radio in objs:
+            if len(split_path) == 1 and split_path[0] == 'francebleu':
+                for _id in sorted(self._RADIOS.iterkeys()):
+                    if _id.startswith('fb'):
+                        yield self.get_radio(_id)
+            elif len(split_path) == 0:
+                for _id in sorted(self._RADIOS.iterkeys()):
+                    if not _id.startswith('fb'):
+                        yield self.get_radio(_id)
+                yield Collection('francebleu', 'France Bleu',
+                        children=self.iter_resources(objs, ['francebleu']))
+            else:
+                raise CollectionNotFound(split_path)
 
     def iter_radios_search(self, pattern):
-        for radio in self._flatten_resources(self.iter_resources([])):
+        for radio in self._flatten_resources(self.iter_resources((Radio, ), [])):
             if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 

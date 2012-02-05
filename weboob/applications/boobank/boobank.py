@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import ICapBank, Account, Operation
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -142,6 +142,7 @@ class Boobank(ReplApplication):
                            'list':        'account_list',
                            'transfer':    'transfer',
                           }
+    COLLECTION_OBJECTS = (Account, Operation, )
 
     def _complete_account(self, exclude=None):
         if exclude:

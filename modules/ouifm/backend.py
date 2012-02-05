@@ -46,15 +46,16 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(parser='json')
 
-    def iter_resources(self, split_path):
-        if len(split_path) > 0:
-            raise CollectionNotFound(split_path)
+    def iter_resources(self, objs, split_path):
+        if Radio in objs:
+            if len(split_path) > 0:
+                raise CollectionNotFound(split_path)
 
-        for id in self._RADIOS.iterkeys():
-            yield self.get_radio(id)
+            for id in self._RADIOS.iterkeys():
+                yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
-        for radio in self.iter_resources([]):
+        for radio in self.iter_resources((Radio, ), []):
             if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 

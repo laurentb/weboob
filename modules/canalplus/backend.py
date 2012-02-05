@@ -22,7 +22,7 @@ from __future__ import with_statement
 
 import re
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 
@@ -71,6 +71,7 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
 
     OBJECTS = {CanalplusVideo: fill_video}
 
-    def iter_resources(self, split_path):
-        with self.browser:
-            return self.browser.iter_resources(split_path)
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            with self.browser:
+                return self.browser.iter_resources(split_path)

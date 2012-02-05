@@ -91,7 +91,7 @@ class ICapCollection(IBaseCap):
                 lst.append(resource)
         return lst
 
-    def iter_resources(self, split_path):
+    def iter_resources(self, objs, split_path):
         """
         split_path is a list, either empty (root path) or with one or many
         components.

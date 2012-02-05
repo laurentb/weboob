@@ -19,10 +19,11 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.radio import Radio
 
 class NovaTest(BackendTest):
     BACKEND = 'nova'
 
     def test_nova(self):
-        l = list(self.backend.iter_resources([]))
+        l = list(self.backend.iter_resources((Radio, ), []))
         self.assertTrue(len(l) > 0)

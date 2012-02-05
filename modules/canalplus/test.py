@@ -19,6 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
 
 class CanalPlusTest(BackendTest):
     BACKEND = 'canalplus'
@@ -29,3 +30,10 @@ class CanalPlusTest(BackendTest):
         v = l[0]
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+
+    def test_ls(self):
+        l = list(self.backend.iter_resources((BaseVideo, ), []))
+        self.assertTrue(len(l) > 0)
+
+        l = list(self.backend.iter_resources((BaseVideo, ), ['SPORT']))
+        self.assertTrue(len(l) > 0)

@@ -80,6 +80,9 @@ class ReplApplication(Cmd, ConsoleApplication):
     DEFAULT_FORMATTER = 'multiline'
     COMMANDS_FORMATTERS = {}
 
+    # Objects to allow in do_ls / do_cd
+    COLLECTION_OBJECTS = tuple()
+
     weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'inspect', 'logging', 'select', 'quit', 'ls', 'cd'])
     hidden_commands = set(['EOF'])
 
@@ -849,7 +852,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         List objects in current path.
         """
-        self.objects = self._fetch_objects()
+        self.objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for obj in self.objects:
             if isinstance(obj, CapBaseObject):
@@ -879,21 +882,22 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.working_path.extend(line)
 
-        objects = self._fetch_objects()
+        objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
         if len(objects) == 0:
             print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
             self.working_path.restore()
             return 1
 
-        self.objects = objects
         self._change_prompt()
 
-    def _fetch_objects(self):
+    def _fetch_objects(self, objs):
         objects = []
-        path = self.working_path.get()
+        split_path = self.working_path.get()
 
         try:
-            for backend, res in self.do('iter_resources', path, caps=ICapCollection):
+            for backend, res in self.do('iter_resources',
+                    objs=objs, split_path=split_path,
+                    caps=ICapCollection):
                 objects.append(res)
         except CallErrors, errors:
             for backend, error, backtrace in errors.errors:
@@ -910,7 +914,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         offs = len(mline) - len(text)
 
         if len(self.objects) == 0:
-            self.objects = self._fetch_objects()
+            self.objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for obj in self.objects:
             if isinstance(obj, Collection):

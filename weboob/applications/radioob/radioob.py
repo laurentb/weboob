@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.radio import ICapRadio
+from weboob.capabilities.radio import ICapRadio, Radio
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -66,6 +66,7 @@ class Radioob(ReplApplication):
     COMMANDS_FORMATTERS = {'ls':     'radio_list',
                            'search': 'radio_list',
                           }
+    COLLECTION_OBJECTS = (Radio, )
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
