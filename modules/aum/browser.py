@@ -29,7 +29,7 @@ try:
 except ImportError:
     import simplejson as json
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPNotFound
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 
 from weboob.capabilities.chat import ChatException, ChatMessage
 from weboob.capabilities.messages import CantSendMessage
@@ -368,7 +368,7 @@ class AuMBrowser(BaseBrowser):
                 url = '%simage1.jpg' % base_url
                 try:
                     self.openurl(url)
-                except BrowserHTTPNotFound:
+                except BrowserUnavailable:
                     pass
                 else:
                     profile['pictures'].append({'url': url, u'hidden': True, 'id': u'0', 'rating': 0.0})
