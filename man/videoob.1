@@ -1,4 +1,4 @@
-.TH VIDEOOB 1 "10 October 2011" "videoob 0\&.9"
+.TH VIDEOOB 1 "05 February 2012" "videoob 0\&.a"
 .SH NAME
 videoob
 .SH SYNOPSIS
@@ -23,6 +23,10 @@ Console application allowing to search for videos on various websites, play and 
 * francetelevisions (France Televisions video website)
 .br
 * ina (INA french video archives)
+.br
+* nolifetv (NolifeTV videos website)
+.br
+* radiofrance (The radios of Radio France (Inter, Culture, Le Mouv', etc.))
 .br
 * youjizz (Youjizz videos website)
 .br
@@ -84,9 +88,11 @@ ACTION is one of the following (default: list):
 .br
 * remove    remove a backend
 .TP
-\fBcd\fR \fIPATH\fR
+\fBcd\fR [\fIPATH\fR]
 .br
 Follow a path.
+.br
+If empty, return home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br

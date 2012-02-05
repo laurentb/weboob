@@ -1,3 +1,116 @@
+Weboob 0.a (2012-02-05)
+	General
+	* New backend: Boursorama (CapBank).
+	* New backend: CMB (CapBank).
+	* New backend: HSBC (CapBank).
+	* New backend: ING (CapBank).
+	* New backend: Nolifetv (CapVideo).
+	* New backend: RadioFrance (CapVideo, CapRadio) which merges
+	  FranceInter and LeMouv backends.
+	* Support repositories to manage backends (#747).
+	* Support XDG Base Directory Specification (#765).
+	* Make CapCollection understandable and usable by humans.
+
+	Console applications
+	* Ability to add all supported modules at once.
+	* With -a, try to separate saved responses by backend (#661).
+
+	Qt applications
+	* Verbose error messages (#775).
+
+	Backend: AuM
+	* Display the 'title' field on contact profiles.
+	* Get events (baskets, charms and visits).
+	* Add city in status message.
+	* Add 'Sent with my iPhone' in mail signatures when needed.
+	* Display at least one photo url in profile even if there isn't any
+	  visible.
+	* Add a 'ratio' field.
+	* Fix: getting contacts list.
+	* Fix: support new API.
+	* Fix: ipaddr is not available anymore.
+	* Fix: do not crash if there are php errors before json.
+
+	Backend: Batoto
+	* Change .com to .net.
+
+	Backend: BNP
+	* Fix: website changed (#769).
+
+	Backend: BP
+	* Fix: website changed.
+	* Fix: open images in memory instead of saving them in temp files.
+
+	Backend: CanalPlus
+	* Support https?://www\.canal-?plus\.fr/.*\?vid=(\d+) urls.
+
+	Backend: CreditMutuel
+	* Internal transfer implemented.
+	* Fix: website changed.
+
+	Backend: Dailymotion
+	* Fix: support missing descriptions.
+
+	Backend: DLFP
+	* Limit feed entries by date instead of number of results.
+
+	Backend: FranceTelevisions
+	* Fix: website changed.
+
+	Backend: Gazelle
+	* Handle general errors when website is unavailable.
+
+	Backend: INA
+	* Fix: parsing of URLs.
+
+	Backend: Kickass
+	* Fix: website changed.
+
+	Backend: LCL
+	* Add support for various types of accounts.
+	* List 45 days history by default.
+	* Fix: website changed.
+
+	Backend: LeFigaro
+	* Better cleanup of generic articles (#725).
+	* Fix: website changed.
+
+	Backend: Orange
+	* Fix: unicode errors.
+
+	Backend: Pastebin
+	* Handle user pages.
+
+	Backend: Piratebay
+	* Fix: website changed.
+
+	Backend: SocieteGenerale
+	* Fix: website changed.
+
+	Backend: Youjizz
+	* Fix: video URLs have changed.
+
+	Backend: Youporn
+	* Fix: website changed.
+
+	Backend: Youtube
+	* Fix: website changed.
+
+	Application: QBoobMsg
+	* When a thread is a discussion, display messages linearly.
+	* Add a button 'Profile'.
+
+	Application: QHaveSex
+	* Add a 'Events' tab.
+	* Add a 'Notes' tab for taking notes about a contact.
+
+	Application: QVideoob
+	* Fix: crash when there is no thumbnail on a video (#708).
+
+	Application: weboob-config-qt
+	* Ability to edit sources.list, update repositories and install
+	  modules.
+
 Weboob 0.9 (2011-10-10)
 	General
 	* New backend: Batoto (CapGallery).

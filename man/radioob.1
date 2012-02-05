@@ -1,4 +1,4 @@
-.TH RADIOOB 1 "10 October 2011" "radioob 0\&.9"
+.TH RADIOOB 1 "05 February 2012" "radioob 0\&.a"
 .SH NAME
 radioob
 .SH SYNOPSIS
@@ -14,13 +14,11 @@ radioob
 Console application allowing to search for web radio stations, listen to them and get information like the current song.
 
 .SS Supported websites:
-* franceinter (The france inter french radio)
-.br
-* lemouv (The le mouv' french radio)
-.br
 * nova (Nova french radio)
 .br
 * ouifm (The Ouï FM french radio)
+.br
+* radiofrance (The radios of Radio France (Inter, Culture, Le Mouv', etc.))
 .SH RADIOOB COMMANDS
 .TP
 \fBinfo\fR \fIID\fR
@@ -64,9 +62,11 @@ ACTION is one of the following (default: list):
 .br
 * remove    remove a backend
 .TP
-\fBcd\fR \fIPATH\fR
+\fBcd\fR [\fIPATH\fR]
 .br
 Follow a path.
+.br
+If empty, return home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -138,7 +138,7 @@ Availables: debug, info, warning, error.
 .TP
 \fBls\fR
 .br
-List objects in current path.
+List radios
 .TP
 \fBquit\fR
 .br

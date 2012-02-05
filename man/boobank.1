@@ -1,4 +1,4 @@
-.TH BOOBANK 1 "10 October 2011" "boobank 0\&.9"
+.TH BOOBANK 1 "05 February 2012" "boobank 0\&.a"
 .SH NAME
 boobank
 .SH SYNOPSIS
@@ -16,11 +16,19 @@ Console application allowing to list your bank accounts and get their balance, d
 .SS Supported websites:
 * bnporc (BNP Paribas french bank' website)
 .br
+* boursorama (Boursorama french bank's website)
+.br
 * bp (La banque postale, French bank)
+.br
+* cmb (Credit Mutuel de Bretagne)
 .br
 * cragr (Credit Agricole french bank's website)
 .br
 * creditmutuel (Crédit Mutuel french bank)
+.br
+* hsbc (HSBC bank' website)
+.br
+* ing (ING french bank' website)
 .br
 * lcl (Le Credit Lyonnais crappy french bank)
 .br
@@ -82,9 +90,11 @@ ACTION is one of the following (default: list):
 .br
 * remove    remove a backend
 .TP
-\fBcd\fR \fIPATH\fR
+\fBcd\fR [\fIPATH\fR]
 .br
 Follow a path.
+.br
+If empty, return home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
