@@ -87,7 +87,7 @@ class TorrentsPage(BasePage):
                     if title:
                         title += u' (%s)' % tds[i].find('a').text
                     else:
-                        title = tds[i].find('a').text
+                        title = ' - '.join([a.text for a in tds[i].findall('a')])
                     url = urlparse.urlparse(tds[i].find('a').attrib['href'])
                     params = parse_qs(url.query)
                     if 'torrentid' in params:
@@ -98,7 +98,10 @@ class TorrentsPage(BasePage):
                         if not m:
                             continue
                         id = '%s.%s' % (params['id'][0], m.group(1))
-                    size, unit = tds[i+3].text.split()
+                    try:
+                        size, unit = tds[i+3].text.split()
+                    except ValueError:
+                        size, unit = tds[i+2].text.split()
                     size = get_bytes_size(float(size.replace(',','')), unit)
                     seeders = int(tds[-2].text)
                     leechers = int(tds[-1].text)
