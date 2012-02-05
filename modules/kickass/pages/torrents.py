@@ -25,6 +25,7 @@ except ImportError:
 from urlparse import urlsplit
 
 from weboob.capabilities.torrent import Torrent
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
@@ -71,8 +72,9 @@ class TorrentPage(BasePage):
     def get_torrent(self, id):
         seed = 0
         leech = 0
-        description = 'No description'
-        url = 'No Url found'
+        description = NotAvailable
+        url = NotAvailable
+        title = NotAvailable
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
                 try:
@@ -99,6 +101,7 @@ class TorrentPage(BasePage):
                 url = a.attrib.get('href', '')
 
         size = 0
+        u = ''
         for span in self.document.getiterator('span'):
             # sometimes there are others span, this is not so sure but the size of the children list
             # is enough to know if this is the right span
@@ -114,7 +117,8 @@ class TorrentPage(BasePage):
 
         torrent = Torrent(id, title)
         torrent.url = url
-        torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
+        if torrent.url:
+            torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
         torrent.size = get_bytes_size(size, u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)

@@ -27,24 +27,24 @@ __all__ = ['KickassBrowser']
 
 
 class KickassBrowser(BaseBrowser):
-    DOMAIN = 'kickasstorrents.com'
+    DOMAIN = 'kat.ph'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://fr.(kickasstorrents.com|kat.ph)/new/.*field=seeders&sorder=desc': TorrentsPage,
-        'http://fr.(kickasstorrents.com|kat.ph)/.*.html': TorrentPage,
+        'http://kat.ph/new/.*field=seeders&sorder=desc': TorrentsPage,
+        'http://kat.ph/.*.html': TorrentPage,
         }
 
     def home(self):
-        return self.location('http://kickasstorrents.com')
+        return self.location('http://kat.ph')
 
     def iter_torrents(self, pattern):
-        self.location('http://fr.kickasstorrents.com/new/?q=%s&field=seeders&sorder=desc' % pattern.encode('utf-8'))
+        self.location('http://kat.ph/new/?q=%s&field=seeders&sorder=desc' % pattern.encode('utf-8'))
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('http://fr.kickasstorrents.com/%s.html' % id)
+        self.location('http://kat.ph/%s.html' % id)
         assert self.is_on_page(TorrentPage)
         return self.page.get_torrent(id)
