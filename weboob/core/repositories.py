@@ -39,6 +39,11 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from ConfigParser import RawConfigParser, DEFAULTSECT
 
+class WeboobBrowser(StandardBrowser):
+    @classmethod
+    def set_version(klass, version):
+        klass.USER_AGENT = 'weboob/%s' % version
+
 class ModuleInfo(object):
     def __init__(self, name):
         self.name = name
@@ -152,7 +157,7 @@ class Repository(object):
                 fp = open(filename, 'r')
         else:
             # This is a remote repository, download file
-            browser = StandardBrowser()
+            browser = WeboobBrowser()
             try:
                 fp = browser.openurl(posixpath.join(self.url, self.INDEX))
             except BrowserUnavailable, e:
@@ -181,7 +186,7 @@ class Repository(object):
 
         if not keyring.exists() or self.key_update > keyring.version:
             # This is a remote repository, download file
-            browser = StandardBrowser()
+            browser = WeboobBrowser()
             try:
                 fpkr = browser.openurl(posixpath.join(self.url, self.KEYRING))
                 fpkrsig = browser.openurl(posixpath.join(self.url, self.KEYRING + '.sig'))
@@ -387,6 +392,8 @@ class Repositories(object):
     def __init__(self, workdir, datadir, version):
         self.logger = getLogger('repositories')
         self.version = version
+        WeboobBrowser.set_version(version)
+
         self.workdir = workdir
         self.datadir = datadir
         self.sources_list = os.path.join(self.workdir, self.SOURCES_LIST)
@@ -486,7 +493,7 @@ class Repositories(object):
         else:
             icon_url = module.url.replace('.tar.gz', '.png')
 
-        browser = StandardBrowser()
+        browser = WeboobBrowser()
         try:
             icon = browser.openurl(icon_url)
         except BrowserUnavailable:
@@ -580,7 +587,7 @@ class Repositories(object):
         else:
             raise ModuleInstallError('The last version of %s is already installed' % module.name)
 
-        browser = StandardBrowser()
+        browser = WeboobBrowser()
         progress.progress(0.2, 'Downloading module...')
         try:
             fp = browser.openurl(module.url)
