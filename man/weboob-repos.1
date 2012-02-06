@@ -1,0 +1,120 @@
+.TH WEBOOB-REPOS 1 "05 February 2012" "weboob-repos 0\&.a"
+.SH NAME
+weboob-repos
+.SH SYNOPSIS
+.B weboob\-repos
+[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
+.br
+.B weboob\-repos
+[\-\-help] [\-\-version]
+
+.SH DESCRIPTION
+.LP
+
+Weboob\-repos is a console application to manage a Weboob Repository.
+
+.SS Supported websites:
+
+.SH WEBOOB\-REPOS COMMANDS
+.TP
+\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
+.br
+Select used backends.
+.br
+
+.br
+ACTION is one of the following (default: list):
+.br
+* enable    enable given backends
+.br
+* disable   disable given backends
+.br
+* only      enable given backends and disable the others
+.br
+* list      display enabled and available backends
+.br
+* add       add a backend
+.br
+* register  register a new account on a website
+.br
+* edit      edit a backend
+.br
+* remove    remove a backend
+.TP
+\fBbuild\fR \fISOURCE\fR \fIREPOSITORY\fR
+.br
+Build backends contained in SOURCE to REPOSITORY.
+.br
+
+.br
+Example:
+.br
+$ weboob\-repos build $HOME/src/weboob/modules /var/www/updates.weboob.org/0.a/
+.TP
+\fBcreate\fR \fINAME\fR [\fIPATH\fR]
+.br
+Create a new repository. If PATH is missing, create repository
+.br
+on the current directory.
+
+.SH OPTIONS
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
+what backend(s) to enable (comma separated)
+
+.SH LOGGING OPTIONS
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+display debug messages
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+display only error messages
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+display info messages
+.TP
+\fB\-\-logging\-file=LOGGING_FILE\fR
+file to save logs
+.TP
+\fB\-a\fR, \fB\-\-save\-responses\fR
+save every response
+
+.SH RESULTS OPTIONS
+.TP
+\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
+filter result items to display given a boolean expression
+.TP
+\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
+get a maximum number of results (all backends merged)
+.TP
+\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
+select result item keys to display (comma separated)
+
+.SH FORMATTING OPTIONS
+.TP
+\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
+select output formatter (csv, htmltable, multiline, simple, table, webkit)
+.TP
+\fB\-\-no\-header\fR
+do not display header
+.TP
+\fB\-\-no\-keys\fR
+do not display item keys
+.TP
+\fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
+file to export result
+
+.SH COPYRIGHT
+Copyright(C) 2012 Romain Bignon
+.LP
+For full COPYRIGHT see COPYING file with weboob package.
+.LP
+.RE
+.SH FILES
+"~/.weboob/backends" 
