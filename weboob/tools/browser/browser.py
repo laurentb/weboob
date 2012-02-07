@@ -125,6 +125,8 @@ def check_location(func):
                 url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
             url = re.sub('(.*)#.*', r'\1', url)
 
+            if isinstance(url, unicode):
+                url = url.encode('utf-8')
             args = (url,) + args[1:]
         return func(self, *args, **kwargs)
     return inner
