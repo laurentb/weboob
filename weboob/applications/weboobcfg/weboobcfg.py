@@ -121,13 +121,13 @@ class WeboobCfg(ReplApplication):
         """
         caps = line.split()
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
-            backend = self.weboob.modules_loader.get_or_load_module(name)
-            if caps and not self.caps_included(backend.iter_caps(), caps):
+            module = self.weboob.modules_loader.get_or_load_module(name)
+            if caps and not module.has_caps(*caps):
                 continue
             row = OrderedDict([('Name', instance_name),
                                ('Module', name),
                                ('Configuration', ', '.join(
-                                   '%s=%s' % (key, ('*****' if key in backend.config and backend.config[key].masked \
+                                   '%s=%s' % (key, ('*****' if key in module.config and module.config[key].masked \
                                                     else value)) \
                                    for key, value in params.iteritems())),
                                ])
