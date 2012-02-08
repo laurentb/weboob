@@ -51,9 +51,14 @@ class AccountList(BasePage):
             account.link_id = tmp.get("href")
 
             tmp = line.xpath("./td/span/strong")
-            tmp_id = tmp[0].text
-            tmp_balance = tmp[1].text
-            account.id = tmp_id 
+            if len(tmp) >= 2:
+                tmp_id = tmp[0].text
+                tmp_balance = tmp[1].text
+            else:
+                tmp_id = line.xpath("./td//span")[1].text
+                tmp_balance = tmp[0].text
+
+            account.id = tmp_id
             account.balance = float(''.join(tmp_balance.replace('.','').replace(',','.').split()))
             self.account_list.append(account)
 
