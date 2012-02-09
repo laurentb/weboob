@@ -443,8 +443,8 @@ class ContactsWidget(QWidget):
         self.photo_processes = {}
 
         self.ui.groupBox.addItem('All', MetaGroup(self.weboob, 'all', self.tr('All')))
-        self.ui.groupBox.addItem('Onlines', MetaGroup(self.weboob, 'online', self.tr('Online')))
-        self.ui.groupBox.addItem('Offlines', MetaGroup(self.weboob, 'offline', self.tr('Offline')))
+        self.ui.groupBox.addItem('Online', MetaGroup(self.weboob, 'online', self.tr('Online')))
+        self.ui.groupBox.addItem('Offline', MetaGroup(self.weboob, 'offline', self.tr('Offline')))
         self.ui.groupBox.setCurrentIndex(1)
 
         self.connect(self.ui.groupBox, SIGNAL('currentIndexChanged(int)'), self.groupChanged)
