@@ -202,9 +202,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
             if int(mail['id_from']) == self.browser.my_id:
                 if int(mails['remoteStatus']) == 0 and msg is None:
-                    flags |= Message.IS_NOT_ACCUSED
+                    flags |= Message.IS_NOT_RECEIVED
                 else:
-                    flags |= Message.IS_ACCUSED
+                    flags |= Message.IS_RECEIVED
 
             signature = u''
             if mail.get('src', None):

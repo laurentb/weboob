@@ -54,9 +54,9 @@ class ThreadMessage(QFrame):
 
         self.ui.nameLabel.setText(message.sender)
         header = time.strftime('%Y-%m-%d %H:%M:%S', message.date.timetuple())
-        if message.flags & message.IS_NOT_ACCUSED:
+        if message.flags & message.IS_NOT_RECEIVED:
             header += u' — <font color=#ff0000>Unread</font>'
-        elif message.flags & message.IS_ACCUSED:
+        elif message.flags & message.IS_RECEIVED:
             header += u' — <font color=#00ff00>Read</font>'
         self.ui.headerLabel.setText(header)
         if message.flags & message.IS_HTML:

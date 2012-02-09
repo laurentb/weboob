@@ -30,8 +30,8 @@ __all__ = ['ICapMessages', 'ICapMessagesPost', 'Message', 'Thread', 'CantSendMes
 class Message(CapBaseObject):
     IS_HTML = 0x001          # The content is HTML formatted
     IS_UNREAD = 0x002        # The message is unread
-    IS_ACCUSED = 0x004       # The receiver has read this message
-    IS_NOT_ACCUSED = 0x008   # The receiver has not read this message
+    IS_RECEIVED = 0x004       # The receiver has read this message
+    IS_NOT_RECEIVED = 0x008   # The receiver has not read this message
 
     def __init__(self, thread, id,
                        title=NotLoaded,

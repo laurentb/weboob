@@ -134,9 +134,9 @@ class MessagesListFormatter(IFormatter):
             flags += 'N'
         else:
             flags += '-'
-        if message.flags & message.IS_NOT_ACCUSED:
+        if message.flags & message.IS_NOT_RECEIVED:
             flags += 'U'
-        elif message.flags & message.IS_ACCUSED:
+        elif message.flags & message.IS_RECEIVED:
             flags += 'R'
         else:
             flags += '-'

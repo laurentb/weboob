@@ -180,9 +180,9 @@ class MessagesManager(QWidget):
             content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
 
         extra = u''
-        if message.flags & message.IS_NOT_ACCUSED:
+        if message.flags & message.IS_NOT_RECEIVED:
             extra += u'<b>Status</b>: <font color=#ff0000>Unread</font><br />'
-        elif message.flags & message.IS_ACCUSED:
+        elif message.flags & message.IS_RECEIVED:
             extra += u'<b>Status</b>: <font color=#00ff00>Read</font><br />'
         elif message.flags & message.IS_UNREAD:
             extra += u'<b>Status</b>: <font color=#0000ff>New</font><br />'
