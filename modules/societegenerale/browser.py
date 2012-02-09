@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountsList
+from .pages import LoginPage, AccountsList, BadLoginPage
 
 
 __all__ = ['SocieteGenerale']
@@ -32,6 +32,7 @@ class SocieteGenerale(BaseBrowser):
     ENCODING = None # refer to the HTML encoding
     PAGES = {
              'https://particuliers.societegenerale.fr/.*':  LoginPage,
+             'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
 #             '.*restitution/cns_detailCav.html.*':          AccountHistory,
             }
@@ -55,7 +56,8 @@ class SocieteGenerale(BaseBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(LoginPage):
+        if self.is_on_page(LoginPage) or \
+           self.is_on_page(BadLoginPage):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
