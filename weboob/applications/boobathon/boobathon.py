@@ -525,7 +525,7 @@ class Boobathon(ReplApplication):
         """
         members
 
-        Display members informations.
+        Display members information.
         """
         self.event.load()
         for member in self.event.members.itervalues():
