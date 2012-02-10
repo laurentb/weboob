@@ -66,7 +66,8 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                              duration=to_unicode(datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))),
                              thumbnail_url=to_unicode(entry.media.thumbnail[0].url.strip()),
                              )
-        video.author = entry.author[0].name.text.strip()
+        if entry.author[0].name.text:
+            video.author = entry.author[0].name.text.strip()
         if entry.media.name:
             video.author = to_unicode(entry.media.name.text.strip())
         return video
