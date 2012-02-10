@@ -99,7 +99,7 @@ class VideoobWeb(BaseApplication):
                 videos = [dict(title=video.title,
                                page_url=video.page_url,
                                url=video.url if video.url else '/download?id=%s' % video.id,
-                               thumbnail_url=video.thumbnail_url,
+                               thumbnail_url=video.thumbnail.url,
                              ) \
                          for video in backend.iter_search_results(pattern=q, nsfw=nsfw)]
                 if videos:

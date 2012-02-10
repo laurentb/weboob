@@ -20,7 +20,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.applications.videoob_web import VideoobWeb
+from videoob_web import VideoobWeb
 
 
 if __name__ == '__main__':
