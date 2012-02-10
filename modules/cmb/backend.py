@@ -35,10 +35,6 @@ from StringIO import StringIO
 
 __all__ = ['CmbBackend']
 
-class WrongLoginOrPassword(Exception):
-     def __init__(self):
-        return
-
 class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
     MAINTAINER = 'Johann Broudin'
