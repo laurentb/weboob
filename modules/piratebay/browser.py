@@ -34,13 +34,13 @@ class PiratebayBrowser(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    PAGES = {'https://thepiratebay.se': IndexPage,
+    PAGES = {'https://thepiratebay.se/': IndexPage,
              'https://thepiratebay.se/search/.*/0/7/0': TorrentsPage,
              'https://thepiratebay.se/torrent/.*': TorrentPage
              }
 
     def home(self):
-        return self.location('https://thepiratebay.se')
+        return self.location('https://thepiratebay.se/')
 
     def iter_torrents(self, pattern):
         self.location('https://thepiratebay.se/search/%s/0/7/0' % urllib.quote_plus(pattern.encode('utf-8')))

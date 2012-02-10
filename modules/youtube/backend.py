@@ -42,7 +42,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.b'
-    DESCRIPTION = 'Youtube videos website'
+    DESCRIPTION = 'YouTube video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = YoutubeBrowser
     CONFIG = BackendConfig(Value('username', label='Email address', default=''),

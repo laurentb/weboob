@@ -41,7 +41,7 @@ class CmbBackend(BaseBackend, ICapBank):
     EMAIL = 'Johann.Broudin@6-8.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'Credit Mutuel de Bretagne'
+    DESCRIPTION = u'Crédit Mutuel de Bretagne French bank website'
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Account ID', masked=False),
             ValueBackendPassword('password', label='Password', masked=True))

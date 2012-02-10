@@ -37,7 +37,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'BNP Paribas french bank\' website'
+    DESCRIPTION = 'BNP Paribas French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
                            ValueBackendPassword('rotating_password',

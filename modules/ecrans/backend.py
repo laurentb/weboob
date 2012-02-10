@@ -23,15 +23,15 @@ from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBa
 from .browser import NewspaperEcransBrowser
 from .tools import rssid
 
+
 class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
-    "NewspaperEcransBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'ecrans'
-    DESCRIPTION = u'Ecrans French news website'
+    DESCRIPTION = u'Écrans French news website'
     BROWSER = NewspaperEcransBrowser
     RSS_FEED = 'http://www.ecrans.fr/spip.php?page=backend'
     RSSID = rssid

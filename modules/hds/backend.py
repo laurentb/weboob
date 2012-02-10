@@ -35,7 +35,7 @@ class HDSBackend(BaseBackend, ICapMessages):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = "histoires-de-sexe.net french erotic novels"
+    DESCRIPTION = u"Histoires de Sexe French erotic novels"
     STORAGE = {'seen': []}
     BROWSER = HDSBrowser
 

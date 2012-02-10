@@ -23,7 +23,7 @@ __all__ = ['MangahereBackend']
 
 class MangahereBackend(GenericComicReaderBackend):
     NAME = 'mangahere'
-    DESCRIPTION = 'Mangahere manga reading site'
+    DESCRIPTION = 'Manga Here manga reading website'
     DOMAIN = 'www.mangahere.com'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='image']/@src",

@@ -33,7 +33,7 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u"IP Addresses geolocalisation with the site www.geolocip.com"
+    DESCRIPTION = u"GeolocIP IP addresses geolocation service"
     BROWSER = BaseBrowser
 
     def create_default_browser(self):

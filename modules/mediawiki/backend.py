@@ -35,7 +35,7 @@ class MediawikiBackend(BaseBackend, ICapContent):
     EMAIL = 'clemux@clemux.info'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'Mediawiki wiki software application'
+    DESCRIPTION = 'Wikis running MediaWiki, like Wikipedia'
     CONFIG = BackendConfig(Value('url',      label='URL of the Mediawiki website', default='http://en.wikipedia.org/', regexp='https?://.*'),
                            Value('apiurl',   label='URL of the Mediawiki website\'s API', default='http://en.wikipedia.org/w/api.php', regexp='https?://.*'),
                            Value('username', label='Login', default=''),

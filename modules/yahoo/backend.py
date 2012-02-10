@@ -39,7 +39,7 @@ class YahooBackend(BaseBackend, ICapWeather):
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
-    DESCRIPTION = 'Yahoo'
+    DESCRIPTION = 'Yahoo!'
     LICENSE = 'AGPLv3+'
     BROWSER = BaseBrowser
     WEATHER_URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'

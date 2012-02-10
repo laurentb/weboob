@@ -37,10 +37,10 @@ class INGBackend(BaseBackend, ICapBank):
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'ING french bank\' website'
+    DESCRIPTION = 'ING Direct French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
-			   ValueBackendPassword('birthday',   label='Birthday', regexp='^(\d{8}|)$', masked=False)
+                           ValueBackendPassword('birthday',   label='Birthday', regexp='^(\d{8}|)$', masked=False)
                           )
     BROWSER = Ing
 

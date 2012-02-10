@@ -34,7 +34,7 @@ class HSBCBackend(BaseBackend, ICapBank):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'HSBC bank\' website'
+    DESCRIPTION = 'HSBC France bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d+|)$'))
     BROWSER = HSBC

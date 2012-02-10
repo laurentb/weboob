@@ -23,7 +23,7 @@ __all__ = ['SimplyreaditBackend']
 
 class SimplyreaditBackend(GenericComicReaderBackend):
     NAME = 'simplyreadit'
-    DESCRIPTION = 'Simplyreadit manga reading site'
+    DESCRIPTION = 'SimplyReadIt manga reading website'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@class='open']/@src",
         page_list_xpath="(//div[contains(@class,'dropdown_right')]/ul[@class='dropdown'])[1]/li/a/@href")

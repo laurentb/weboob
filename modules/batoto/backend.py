@@ -23,7 +23,7 @@ __all__ = ['BatotoBackend']
 
 class BatotoBackend(GenericComicReaderBackend):
     NAME = 'batoto'
-    DESCRIPTION = 'Batoto manga reading site'
+    DESCRIPTION = 'Batoto manga reading website'
     DOMAIN = 'www.batoto.com'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='comic_page']/@src",

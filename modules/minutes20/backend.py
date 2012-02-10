@@ -24,14 +24,13 @@ from .browser import Newspaper20minutesBrowser
 from .tools import rssid
 
 class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
-    "Newspaper20minutesBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'minutes20'
-    DESCRIPTION = u'20minutes French news  website'
+    DESCRIPTION = u'2 Minutes French newspaper website'
     BROWSER = Newspaper20minutesBrowser
     RSS_FEED = 'http://www.20minutes.fr/rss/20minutes.xml'
     RSSID = rssid

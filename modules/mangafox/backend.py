@@ -23,7 +23,7 @@ __all__ = ['MangafoxBackend']
 
 class MangafoxBackend(GenericComicReaderBackend):
     NAME = 'mangafox'
-    DESCRIPTION = 'Mangafox manga reading site'
+    DESCRIPTION = 'Manga Fox manga reading website'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='image']/attribute::src",
         page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option/@value",

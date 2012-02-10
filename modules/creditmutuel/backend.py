@@ -33,7 +33,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.b'
-    DESCRIPTION = u'Crédit Mutuel french bank'
+    DESCRIPTION = u'Crédit Mutuel French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,13}\w$', masked=False),
                            ValueBackendPassword('password', label='Password of account'))

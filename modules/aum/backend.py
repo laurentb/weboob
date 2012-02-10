@@ -61,7 +61,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u"“Adopte un mec” french dating website"
+    DESCRIPTION = u'"Adopte un Mec" French dating website'
     CONFIG = BackendConfig(Value('username',                label='Username'),
                            ValueBackendPassword('password', label='Password'),
                            ValueBool('antispam',            label='Enable anti-spam', default=False),

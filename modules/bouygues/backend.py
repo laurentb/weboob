@@ -35,7 +35,7 @@ class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.b'
-    DESCRIPTION = 'Bouygues french mobile phone provider'
+    DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),
                            ValueBackendPassword('password', label='Password'))

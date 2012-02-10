@@ -68,7 +68,7 @@ class IzneoBackend(BaseBackend, ICapGallery):
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     VERSION = '0.b'
-    DESCRIPTION = 'Izneo'
+    DESCRIPTION = 'Izneo digital comics'
     LICENSE = 'AGPLv3+'
     BROWSER = IzneoBrowser
 
@@ -80,7 +80,7 @@ class IzneoBackend(BaseBackend, ICapGallery):
         match = re.match(r'(?:(?:.+izneo.com/)?readv2-)?(\d+-\d+)/?$', _id)
         if match is None:
             return None
-        
+
         _id = match.group(1)
 
         gallery = BaseGallery(_id, url=('http://www.izneo.com/readv2-%s' % _id))

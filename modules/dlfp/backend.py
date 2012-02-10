@@ -41,7 +41,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = "Da Linux French Page"
+    DESCRIPTION = "Da Linux French Page news website"
     CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
                            ValueBackendPassword('password', label='Password'),
                            ValueBool('get_news',            label='Get newspapers', default=True),

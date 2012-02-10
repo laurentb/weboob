@@ -23,7 +23,7 @@ __all__ = ['EatmangaBackend']
 
 class EatmangaBackend(GenericComicReaderBackend):
     NAME = 'eatmanga'
-    DESCRIPTION = 'Eatmanga manga reading site'
+    DESCRIPTION = 'EatManga manga reading website'
     DOMAIN = 'www.eatmanga.com'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@class='eatmanga_bigimage']/@src",

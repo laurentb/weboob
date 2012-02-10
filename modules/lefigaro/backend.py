@@ -24,16 +24,13 @@ from .browser import NewspaperFigaroBrowser
 from .tools import rssid
 
 class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
-    "NewspaperFigaroBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'lefigaro'
-    DESCRIPTION = u'Lefigaro French news website'
+    DESCRIPTION = u'Le Figaro French newspaper website'
     BROWSER = NewspaperFigaroBrowser
     RSS_FEED = 'http://rss.lefigaro.fr/lefigaro/laune?format=xml'
     RSSID = rssid
-
-

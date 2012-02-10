@@ -24,14 +24,13 @@ from .browser import NewspaperInrocksBrowser
 from .tools import rssid
 
 class NewspaperInrocksBackend(GenericNewspaperBackend, ICapMessages):
-    "NewspaperInrocksBackend class"
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'inrocks'
-    DESCRIPTION = u'Inrock French news website'
+    DESCRIPTION = u'Les Inrocks French news website'
     BROWSER = NewspaperInrocksBrowser
     RSS_FEED = 'http://www.lesinrocks.com/fileadmin/rss/actus.xml'
     RSSID = rssid
