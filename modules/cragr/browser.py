@@ -131,6 +131,9 @@ class Cragr(BaseBrowser):
         return None
 
     def get_history(self, account):
+        # some accounts may exist without a link to any history page
+        if account.link_id is None:
+            return
         history_url = account.link_id
         operations_count = 0
 

@@ -46,18 +46,26 @@ class AccountsList(CragrBasePage):
                 account = Account()
                 if div.getchildren()[0].tag == 'a':
                     # This is at least present on CA Nord-Est
+                    # Note: we do not know yet how history-less accounts are displayed by this layout
                     account.label = ' '.join(div.find('a').text.split()[:-1])
                     account.link_id = div.find('a').get('href', '')
                     account.id = div.find('a').text.split()[-1]
                     s = div.find('div').find('b').find('span').text
                 else:
                     # This is at least present on CA Toulouse
-                    account.label = div.find('a').text.strip()
-                    account.link_id = div.find('a').get('href', '')
+                    first_link = div.find('a')
+                    if first_link is not None:
+                        account.label   = first_link.text.strip()
+                        account.link_id = first_link.get('href', '')
+                    else:
+                        # there is no link to any history page for accounts like "PEA" or "TITRES"
+                        account.label   = div.findall('br')[0].tail.strip()
+                        account.link_id = None
                     account.id = div.findall('br')[1].tail.strip()
-                    s = div.find('div').find('b').text
+                    s = div.xpath('//b')[-1].text
                 account.balance = clean_amount(s)
-                l.append(account)
+                if account.label:
+                    l.append(account)
         return l
 
     def is_accounts_list(self):
