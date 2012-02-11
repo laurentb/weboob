@@ -34,6 +34,7 @@ class PapTest(BackendTest):
         query.cost_max = 900
         query.cities = []
         for city in self.backend.search_city('paris'):
+            city.backend = self.backend.name
             query.cities.append(city)
 
         results = list(self.backend.search_housings(query))
