@@ -26,6 +26,21 @@ from .base import IBaseCap, CapBaseObject
 __all__ = ['ICapHousing']
 
 
+class HousingPhoto(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.add_field('url', basestring)
+        self.add_field('data', str)
+
+    def __iscomplete__(self):
+        return self.data
+
+    def __str__(self):
+        return self.url
+
+    def __repr__(self):
+        return u'<HousingPhoto "%s" data=%do>' % (self.id, len(self.data) if self.data else 0)
+
 class Housing(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
@@ -38,6 +53,7 @@ class Housing(CapBaseObject):
         self.add_field('station', basestring)
         self.add_field('text', basestring)
         self.add_field('phone', basestring)
+        self.add_field('photos', list)
 
 class Query(CapBaseObject):
     def __init__(self):

@@ -20,9 +20,10 @@
 
 import json
 
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BaseBrowser
 
-from .pages import SearchResultsPage, HousingPage
+from .pages import SearchResultsPage, HousingPage, HousingPhotosPage
 
 
 __all__ = ['SeLogerBrowser']
@@ -36,6 +37,7 @@ class SeLogerBrowser(BaseBrowser):
          'http://www.seloger.com/(pre)?recherche.htm.*': SearchResultsPage,
          'http://www.seloger.com/annonces.htm.*': SearchResultsPage,
          'http://www.seloger.com/annonces/.*': HousingPage,
+         'http://www.seloger.com/\d+/incl_detail_annonce_load_diapo_new.htm': HousingPhotosPage,
         }
 
     def search_geo(self, pattern):
@@ -62,4 +64,9 @@ class SeLogerBrowser(BaseBrowser):
         self.location('/%d/detail_new.htm' % int(id))
 
         assert self.is_on_page(HousingPage)
-        return self.page.get_housing(obj)
+        housing = self.page.get_housing(obj)
+
+        self.location('/%d/incl_detail_annonce_load_diapo_new.htm' % int(id))
+        housing.photos = list(self.page.iter_photos()) or NotAvailable
+
+        return housing

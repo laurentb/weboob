@@ -23,10 +23,10 @@ from datetime import date
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing
+from weboob.capabilities.housing import Housing, HousingPhoto
 
 
-__all__ = ['SearchResultsPage', 'HousingPage']
+__all__ = ['SearchResultsPage', 'HousingPage', 'HousingPhotosPage']
 
 
 def sanitarize_cost(t):
@@ -98,3 +98,10 @@ class HousingPage(BasePage):
             housing.location = NotAvailable
 
         return housing
+
+class HousingPhotosPage(BasePage):
+    def iter_photos(self):
+        for i, li in enumerate(self.document.getroot().xpath('//li')):
+            photo = HousingPhoto(i)
+            photo.url = li.attrib['rel'].split('|')[0]
+            yield photo

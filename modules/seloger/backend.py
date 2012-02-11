@@ -68,7 +68,13 @@ class SeLogerBackend(BaseBackend, ICapHousing):
 
     def fill_housing(self, housing, fields):
         with self.browser:
-            return self.browser.get_housing(housing.id)
+            if fields != ['photos'] or not housing.photos:
+                housing = self.browser.get_housing(housing.id)
+            if 'photos' in fields:
+                for photo in housing.photos:
+                    if not photo.data:
+                        photo.data = self.browser.readurl(photo.url)
+        return housing
 
     OBJECTS = {Housing: fill_housing,
               }
