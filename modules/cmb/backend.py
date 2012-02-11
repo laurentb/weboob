@@ -107,9 +107,9 @@ class CmbBackend(BaseBackend, ICapBank):
                 tree = etree.parse(StringIO(data), parser)
                 table = tree.xpath('/html/body/table')
                 if len(table) == 0:
-                    raise BrokenPageError
+                    raise BrokenPageError()
             else:
-                raise BrokenPageError
+                raise BrokenPageError()
 
         for tr in table[1].getiterator('tr'):
             if tr.get('class') != 'LnTit' and tr.get('class') != 'LnTot':
@@ -189,9 +189,9 @@ class CmbBackend(BaseBackend, ICapBank):
                 tree = etree.parse(StringIO(data), parser)
                 tables = tree.xpath('/html/body/table')
                 if len(tables) == 0:
-                    raise BrokenPageError
+                    raise BrokenPageError()
             else:
-                raise BrokenPageError
+                raise BrokenPageError()
 
         i = 0
 

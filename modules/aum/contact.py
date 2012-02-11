@@ -32,7 +32,7 @@ class FieldBase:
         self.key2 = key2
 
     def get_value(self, value, consts):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 class FieldStr(FieldBase):
     def get_value(self, profile, consts):

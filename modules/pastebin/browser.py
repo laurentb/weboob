@@ -119,7 +119,7 @@ class PastebinBrowser(BaseBrowser):
             self._validate_api_response(res)
         except BadAPIRequest, e:
             if str(e) == 'invalid login':
-                raise BrowserIncorrectPassword
+                raise BrowserIncorrectPassword()
             else:
                 raise e
         self.user_key = res
