@@ -67,7 +67,7 @@ class ModuleInfo(object):
         self.description = to_unicode(items['description'])
         self.maintainer = to_unicode(items['maintainer'])
         self.license = to_unicode(items['license'])
-        self.icon = items['icon']
+        self.icon = items['icon'].strip() or None
         self.urls = items['urls']
 
     def has_caps(self, caps):
@@ -482,16 +482,15 @@ class Repositories(object):
 
         dest_path = self.get_module_icon_path(module)
 
-        if module.is_local():
-            icon_path = os.path.join(module.path, module.name, 'favicon.png')
-            if module.path and os.path.exists(icon_path):
-                shutil.copy(icon_path, dest_path)
-            return
-
-        if module.icon:
-            icon_url = module.icon
-        else:
-            icon_url = module.url.replace('.tar.gz', '.png')
+        icon_url = module.icon
+        if not icon_url:
+            if module.is_local():
+                icon_path = os.path.join(module.path, module.name, 'favicon.png')
+                if module.path and os.path.exists(icon_path):
+                    shutil.copy(icon_path, dest_path)
+                return
+            else:
+                icon_url = module.url.replace('.tar.gz', '.png')
 
         browser = WeboobBrowser()
         try:
