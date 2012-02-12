@@ -12,11 +12,12 @@ if [ -z "${WEBOOB_WORKDIR}" ]; then
     [ -d "${XDG_CONFIG_HOME}/weboob" ] && WEBOOB_WORKDIR="${XDG_CONFIG_HOME}/weboob"
 fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
+[ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
 
 # do not allow undefined variables anymore
 set -u
 WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
-cp "${WEBOOB_WORKDIR}/backends" "${WEBOOB_TMPDIR}/"
+cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/"
 
 # path to sources
 WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
