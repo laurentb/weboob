@@ -24,6 +24,7 @@ from copy import copy
 from threading import Thread, Event, RLock, Timer
 
 from weboob.capabilities.base import CapBaseObject
+from weboob.capabilities.collection import Collection
 from weboob.tools.misc import get_backtrace
 from weboob.tools.log import getLogger
 
@@ -92,6 +93,7 @@ class BackendsCall(object):
             if isinstance(result, CapBaseObject):
                 if self.condition and not self.condition.is_valid(result):
                     return
+            if isinstance(result, (CapBaseObject, Collection)):
                 result.backend = backend.name
             self.responses.append((backend, result))
             self.response_event.set()

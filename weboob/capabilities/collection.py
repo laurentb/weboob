@@ -55,6 +55,7 @@ class Collection(object):
     id and title should be unicode.
     """
     children = Children()
+    backend = None
 
     def __init__(self, _id=None, title=None, children=None, fct=None):
         self.id = _id

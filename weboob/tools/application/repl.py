@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012  Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2012  Christophe Benz, Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -136,6 +136,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         self._interactive = False
         self.objects = []
+        self.collections = []
         self.working_path = Path()
 
     @property
@@ -149,6 +150,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.prompt = '%s> ' % (self.APPNAME)
         self.objects = []
+        self.collections = []
 
     def change_path(self, path):
         self.working_path.fromstring(path)
@@ -164,7 +166,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if self.interactive:
             try:
                 obj = self.objects[int(id) - 1]
-            except (IndexError,ValueError):
+            except (IndexError, ValueError):
                 pass
             else:
                 if isinstance(obj, CapBaseObject):
@@ -197,7 +199,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if self.interactive:
             try:
                 obj = self.objects[int(_id) - 1]
-            except (IndexError,ValueError):
+            except (IndexError, ValueError):
                 pass
             else:
                 if isinstance(obj, CapBaseObject):
@@ -213,10 +215,12 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def unload_backends(self, *args, **kwargs):
         self.objects = []
+        self.collections = []
         return ConsoleApplication.unload_backends(self, *args, **kwargs)
 
     def load_backends(self, *args, **kwargs):
         self.objects = []
+        self.collections = []
         return ConsoleApplication.load_backends(self, *args, **kwargs)
 
     def main(self, argv):
@@ -245,6 +249,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                     readline.read_history_file(history_filepath)
                 except IOError:
                     pass
+
                 def savehist():
                     readline.write_history_file(history_filepath)
                 atexit.register(savehist)
@@ -852,21 +857,26 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         List objects in current path.
         """
-        self.objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+        self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for obj in self.objects:
             if isinstance(obj, CapBaseObject):
                 self.format(obj)
-            elif isinstance(obj, Collection):
-                if obj.id and obj.title:
-                    print u'Collection: %s%s%s (%s)' % \
-                        (self.BOLD, obj.id, self.NC, obj.title)
-                elif obj.id:
-                    print u'Collection: %s%s%s' % (self.BOLD, obj.id, self.NC)
-                else:
-                    print obj
             else:
-                print obj.title
+                print obj
+
+        if self.collections:
+            print
+            print 'Collections:'
+            for collection in self.collections:
+                if collection.id and collection.title:
+                    print u'%s* (%s) %s (%s)%s' % \
+                    (self.BOLD, collection.id, collection.title, collection.backend, self.NC)
+                elif collection.id:
+                    print u'%s* (%s) (%s)%s' % \
+                    (self.BOLD, collection.id, collection.backend, self.NC)
+                else:
+                    print collection
 
         self.flush()
 
@@ -882,23 +892,29 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.working_path.extend(line)
 
-        objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
-        if len(objects) == 0:
+        objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+        if len(objects) + len(collections) == 0:
             print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
             self.working_path.restore()
             return 1
 
         self._change_prompt()
+        self.objects = objects
+        self.collections = collections
 
     def _fetch_objects(self, objs):
         objects = []
+        collections = []
         split_path = self.working_path.get()
 
         try:
             for backend, res in self.do('iter_resources',
                     objs=objs, split_path=split_path,
                     caps=ICapCollection):
-                objects.append(res)
+                if isinstance(res, Collection):
+                    collections.append(res)
+                else:
+                    objects.append(res)
         except CallErrors, errors:
             for backend, error, backtrace in errors.errors:
                 if isinstance(error, CollectionNotFound):
@@ -906,21 +922,20 @@ class ReplApplication(Cmd, ConsoleApplication):
                 else:
                     self.bcall_error_handler(backend, error, backtrace)
 
-        return objects
+        return (objects, collections)
 
     def complete_cd(self, text, line, begidx, endidx):
         directories = set(['..'])
         mline = line.partition(' ')[2]
         offs = len(mline) - len(text)
 
-        if len(self.objects) == 0:
-            self.objects = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+        if len(self.collections) == 0:
+            self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
-        for obj in self.objects:
-            if isinstance(obj, Collection):
-                directories.add(obj.id)
-                if obj.title:
-                    directories.add(obj.title)
+        for collection in self.collections:
+            directories.add(collection.id)
+            if collection.title:
+                directories.add(collection.title)
 
         return [s[offs:] for s in directories if s.startswith(mline)]
 
