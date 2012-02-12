@@ -66,7 +66,12 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
             suffix = '_%s' % radio
 
         last = document['last%s' % suffix][0]
-        return last['artiste%s' % suffix].strip(), last['titre%s' % suffix].strip()
+        artist = last['artiste%s' % suffix]
+        title = last['titre%s' % suffix]
+        if artist and title:
+            return last['artiste%s' % suffix].strip(), last['titre%s' % suffix].strip()
+        else:
+            return artist, title
 
     def get_radio(self, radio):
         if not isinstance(radio, Radio):
