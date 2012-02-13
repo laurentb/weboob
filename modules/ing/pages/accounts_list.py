@@ -34,16 +34,20 @@ class AccountsList(BasePage):
 
     def get_list(self):
         l = []
+        ids = []
         for td in self.document.xpath('.//td[@nowrap="nowrap"]'):
             account = Account()
             link = td.xpath('.//a')[0]
             account.id = re.search('\d', link.attrib['href']).group(0)
-            account.label = link.text
-            urltofind = './/a[@href="' + link.attrib['href'] + '"]'
-            linkbis = self.document.xpath(urltofind).pop() 
-            account.balance = float(linkbis.text.replace('.', '').replace(',','.'))
-            account.coming = NotAvailable
-            l.append(account)
+            if not ( account.id in ids ) :
+                ids.append( account.id )
+                account.label = link.text
+                urltofind = './/a[@href="' + link.attrib['href'] + '"]'
+                linkbis = self.document.xpath(urltofind).pop()
+                if linkbis.text == link.text :
+                    linkbis=self.document.xpath(urltofind)[1]
+                account.balance = float( linkbis.text.replace('.','').replace(' ', '').replace(',','.') )
+                account.coming = NotAvailable
+                l.append(account)
 
-        return l
-
+        return l 
