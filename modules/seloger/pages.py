@@ -30,7 +30,7 @@ __all__ = ['SearchResultsPage', 'HousingPage']
 
 
 class SearchResultsPage(BasePage):
-    def sanitarize_cost(t):
+    def sanitarize_cost(self, t):
         return int(float(t.strip(u' \t\u20ac\xa0c€\n\r').replace(u'\xa0', u'').replace(',', '.')))
 
     def iter_housings(self):
