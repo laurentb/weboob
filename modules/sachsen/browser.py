@@ -43,26 +43,24 @@ class SachsenBrowser(BaseBrowser):
         self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
 
     def get_rivers_list(self):
-        if self.cache_list == None:
-            if not self.is_on_page(ListPage): 
+        if self.cache_list is None:
+            if not self.is_on_page(ListPage):
                 self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
                 self.cache_list = self.page.get_rivers_list()
         return self.cache_list
 
-    def get_history(self, id):
+    def iter_history(self, id):
         self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' %int(id))
-        return self.page.get_history()
+        return self.page.iter_history()
 
-    def last_seen(self, id): 
+    def last_seen(self, id):
         self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' %int(id))
-        return self.page.last_seen() 
+        return self.page.last_seen()
 
     def search(self, pattern):
-        if self.cache_list == None:
+        if self.cache_list is None:
             self.get_rivers_list()
-        l = []
+
         for gauge in self.cache_list:
             if gauge.name.__contains__(pattern) or gauge.river.__contains__(pattern):
-                l.append(gauge)
-
-        return l
+                yield gauge

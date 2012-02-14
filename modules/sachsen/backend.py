@@ -35,7 +35,7 @@ class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
     BROWSER = SachsenBrowser
 
     def iter_gauge_history(self, id):
-        return self.browser.get_history(id)
+        return self.browser.iter_history(id)
 
     def get_last_measure(self, id):
         return self.browser.last_seen(id)
