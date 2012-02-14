@@ -27,9 +27,9 @@ __all__ = ['ICapHousing']
 
 
 class HousingPhoto(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('url', basestring)
+    def __init__(self, url):
+        CapBaseObject.__init__(self, url.split('/')[-1])
+        self.add_field('url', basestring, url)
         self.add_field('data', str)
 
     def __iscomplete__(self):
@@ -45,8 +45,8 @@ class Housing(CapBaseObject):
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('title', basestring)
-        self.add_field('area', int)
-        self.add_field('cost', int)
+        self.add_field('area', (int,float))
+        self.add_field('cost', (int,float))
         self.add_field('currency', basestring)
         self.add_field('date', date)
         self.add_field('location', basestring)
@@ -54,6 +54,7 @@ class Housing(CapBaseObject):
         self.add_field('text', basestring)
         self.add_field('phone', basestring)
         self.add_field('photos', list)
+        self.add_field('details', dict)
 
 class Query(CapBaseObject):
     def __init__(self):

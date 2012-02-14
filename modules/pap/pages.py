@@ -107,4 +107,7 @@ class HousingPage(BasePage):
         else:
             housing.text = p.text.strip()
 
+        housing.details = NotAvailable
+        housing.photos = NotAvailable
+
         return housing
