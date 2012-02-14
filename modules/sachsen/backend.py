@@ -34,17 +34,14 @@ class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
     DESCRIPTION = u"Level of Sachsen river"
     BROWSER = SachsenBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
-    def get_list(self):
-        return self.browser.get_rivers_list()
-
-    def get_history(self, id):
+    def iter_gauge_history(self, id):
         return self.browser.get_history(id)
 
-    def last(self, id):
+    def get_last_measure(self, id):
         return self.browser.last_seen(id)
- 
-    def search(self, pattern):
-        return self.browser.search(pattern)
+
+    def iter_gauges(self, pattern=None):
+        if pattern is None:
+            return self.browser.get_rivers_list()
+        else:
+            return self.browser.search(pattern)

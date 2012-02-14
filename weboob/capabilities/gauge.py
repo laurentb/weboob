@@ -28,13 +28,13 @@ class Gauge(CapBaseObject):
         CapBaseObject.__init__(self, id)
 
         self.add_field('name', basestring)
-	self.add_field('river', basestring)
+        self.add_field('river', basestring)
         self.add_field('level', float)
         self.add_field('flow', float)
         self.add_field('lastdate', datetime)
         self.add_field('forecast', basestring)
 
-class GaugeHistory(CapBaseObject):
+class GaugeMeasure(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, None)
 
@@ -42,22 +42,30 @@ class GaugeHistory(CapBaseObject):
         self.add_field('flow', float)
         self.add_field('date', datetime)
 
-
 class ICapWaterLevel(IBaseCap):
-    def get_lastlevel(self):
+    def iter_gauge_history(self, id):
+        """
+        Get history of a gauge.
+
+        @param id [str]  ID of the river
+        @return [iter(GaugeMeasure)]
+        """
         raise NotImplementedError()
 
-    def get_list(self):
+    def get_last_measure(self, id):
+        """
+        Get last measure of the gauge.
+
+        @param id [str] ID of the gauge.
+        @return [GaugeMeasure]
+        """
         raise NotImplementedError()
 
-    def get_history(self, id):
+    def iter_gauges(self, pattern=None):
+        """
+        Iter gauges.
+
+        @param pattern [str] if specified, used to search gauges
+        @return [iter(Gauge)]
+        """
         raise NotImplementedError()
-
-    def last(self, id):
-        raise NotImplementedError()
-
-    def search(self, pattern):
-        raise NotImplementedError()
-
-
-

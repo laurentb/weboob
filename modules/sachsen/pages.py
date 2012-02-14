@@ -17,17 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, date, time 
+from datetime import datetime, date, time
 from weboob.tools.browser import BasePage
 
-from weboob.capabilities.gauge import Gauge, GaugeHistory
+from weboob.capabilities.gauge import Gauge, GaugeMeasure
 from weboob.capabilities.base import NotAvailable
 
 __all__ = ['ListPage', 'HistoryPage']
 
 class ListPage(BasePage):
-    def get_rivers_list(self): 
-        l = []
+    def get_rivers_list(self):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
             data = pegel.attrib['onmouseover'].strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
@@ -44,31 +43,28 @@ class ListPage(BasePage):
             except:
                 gauge.level = NotAvailable
             try:
-                gauge.flow = float(data[4])  
+                gauge.flow = float(data[4])
             except:
                 gauge.flow = NotAvailable
             bildforecast = data[5]
-            if bildforecast.__eq__("pf_gerade.png"): 
+            if bildforecast.__eq__("pf_gerade.png"):
                 gauge.forecast = "stable"
             elif bildforecast.__eq__("pf_unten.png"):
                 gauge.forecast = "Go down"
-            else: 
+            else:
                 gauge.forecast = NotAvailable
-                
-            l.append(gauge)
 
-        return l 
+            yield gauge
 
 class HistoryPage(BasePage):
     def get_history(self):
-        l = []
-        table = self.document.getroot().cssselect('table[width="215"]') 
+        table = self.document.getroot().cssselect('table[width="215"]')
         first = True
         for line in table[0].cssselect("tr"):
             if first:
                 first = False
                 continue
-            history = GaugeHistory()
+            history = GaugeMeasure()
             leveldate = date(*reversed([int(x) for x in line[0].text_content().split(' ')[0].split(".")]))
             leveltime = time(*[int(x) for x in line[0].text_content().split(' ')[1].split(":")])
             history.date = datetime.combine(leveldate, leveltime)
@@ -81,9 +77,8 @@ class HistoryPage(BasePage):
                 history.flow = float(line[2].text_content())
             except:
                 history.flow = NotAvailable
-            l.append(history)
-    
-        return l
+
+            yield history
 
     def first_value(self, table, index):
         first = NotAvailable
@@ -99,8 +94,8 @@ class HistoryPage(BasePage):
 
     def last_seen(self):
         tables = self.document.getroot().cssselect('table[width="215"]')
-        gauge = GaugeHistory()
+        gauge = GaugeMeasure()
         gauge.level = self.first_value(tables, 1)
         gauge.flow = self.first_value(tables, 2)
 
-        return gauge 
+        return gauge
