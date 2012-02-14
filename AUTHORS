@@ -32,6 +32,10 @@ Nicolas Duhamel <nicolas@jombi.fr>
 Roger Philibert <roger.philibert@gmail.com>
         * Ehentai, Izneo and Youjizz backends maintainer.
 
+Florent Fourcot <weboob@flo.fourcot.fr>
+        * Sachsen and ING backends maintainer;
+        * BNPorc patches.
+
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
 
@@ -41,10 +45,6 @@ Pierre Mazière <pierre.maziere@gmail.com>
 
 Xavier Guerrin <xavier@tuxfamily.org>
         * CrAgr backend maintainer.
-
-Florent Fourcot <florent.fourcot@resel.fr>
-        * INL backend maintainer;
-        * BNPorc patches.
 
 Gabriel Kerneis <kerneis@pps.jussieu.fr>
         * Boursorama backend maintainer.
