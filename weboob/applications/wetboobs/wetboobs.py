@@ -20,6 +20,7 @@
 from datetime import datetime
 
 from weboob.capabilities.weather import ICapWeather
+from weboob.capabilities.gauge import ICapWaterLevel
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -78,58 +79,42 @@ class WetBoobs(ReplApplication):
     VERSION = '0.b'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to display weather and forecasts in your city.'
-    CAPS = ICapWeather
+    CAPS = (ICapWeather, ICapWaterLevel)
+    DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
                         'current':   CurrentFormatter,
                         'forecasts': ForecastsFormatter,
                        }
-    COMMANDS_FORMATTERS = {'search':    'cities',
+    COMMANDS_FORMATTERS = {'cities':    'cities',
                            'current':   'current',
                            'forecasts': 'forecasts',
                           }
 
-    cities = []
-
-    def do_search(self, pattern):
+    def do_cities(self, pattern):
         """
-        search PATTERN
+        cities PATTERN
 
         Search cities.
         """
-        self.cities = []
-        for backend, city in self.do('iter_city_search', pattern):
+        for backend, city in self.do('iter_city_search', pattern, caps=ICapWeather):
+            self.add_object(city)
             self.format(city)
-            self.cities.append(city)
         self.flush()
-
-    def parse_id(self, id):
-        if self.interactive:
-            try:
-                city = self.cities[int(id) - 1]
-            except (IndexError,ValueError):
-                pass
-            else:
-                id = '%s@%s' % (city.id, city.backend)
-        return ReplApplication.parse_id(self, id)
-
-    def _complete_id(self):
-        return ['%s@%s' % (city.id, city.backend) for city in self.cities]
 
     def complete_current(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_current(self, line):
         """
         current CITY_ID
 
-        Get current weather for specified city. Use the 'search' command to find
-        its ID.
+        Get current weather for specified city. Use the 'cities' command to find them.
         """
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
-        for backend, current in self.do('get_current', _id, backends=backend_name):
+        for backend, current in self.do('get_current', _id, backends=backend_name, caps=ICapWeather):
             if current:
                 self.format(current)
         self.flush()
@@ -137,17 +122,61 @@ class WetBoobs(ReplApplication):
     def complete_forecasts(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return self._complete_id()
+            return self._complete_object()
 
     def do_forecasts(self, line):
         """
         forecasts CITY_ID
 
-        Get forecasts for specified city. Use the 'search' command to find
-        its ID.
+        Get forecasts for specified city. Use the 'cities' command to find them.
         """
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
-        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name):
+        for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
             self.format(forecast)
+        self.flush()
+
+    def do_gauges(self, pattern):
+        """
+        rivers [PATTERN]
+
+        List all rivers. If PATTERN is specified, search on a pattern.
+        """
+        for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapWaterLevel):
+            self.add_object(gauge)
+            self.format(gauge)
+        self.flush()
+
+    def complete_gauge(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
+    def do_gauge(self, line):
+        """
+        gauge GAUGE_ID
+
+        Get history of a specific gauge (use 'rivers' to find them).
+        """
+        gauge, = self.parse_command_args(line, 1, 1)
+        _id, backend_name = self.parse_id(gauge)
+        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapWaterLevel):
+            self.format(measure)
+        self.flush()
+
+    def complete_last_gauge_measure(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
+    def do_last_gauge_measure(self, line):
+        """
+        last_gauge_measure GAUGE_ID
+
+        Get last measure of a gauge (use 'rivers' to find them).
+        """
+        gauge, = self.parse_command_args(line, 1, 1)
+        _id, backend_name = self.parse_id(gauge)
+        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapWaterLevel):
+            self.format(measure)
         self.flush()
