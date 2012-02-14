@@ -28,6 +28,39 @@ from weboob.tools.application.formatters.iformatter import IFormatter
 __all__ = ['Flatboob']
 
 
+class HousingFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'title', 'cost', 'currency', 'area', 'date', 'text')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        result = u'%s%s%s\n' % (self.BOLD, item['title'], self.NC)
+        result += 'ID: %s\n' % item['id']
+        result += 'Cost: %s%s\n' % (item['cost'], item['currency'])
+        result += u'Area: %sm²\n' % (item['area'])
+        if item['date']:
+            result += 'Date: %s\n' % item['date'].strftime('%Y-%m-%d')
+        result += 'Phone: %s\n' % item['phone']
+        if item['location']:
+            result += 'Location: %s\n' % item['location']
+        if item['station']:
+            result += 'Station: %s\n' % item['station']
+
+        if item['photos']:
+            result += '\n%sPhotos%s\n' % (self.BOLD, self.NC)
+            for photo in item['photos']:
+                result += ' * %s\n' % photo.url
+
+        result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
+        result += item['text']
+
+        if item['details']:
+            result += '\n\n%sDetails%s\n' % (self.BOLD, self.NC)
+            for key, value in item['details'].iteritems():
+                result += ' %s: %s\n' % (key, value)
+        return result
+
 class HousingListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'cost', 'text')
 
@@ -56,8 +89,11 @@ class Flatboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = 'Console application to search a house.'
     CAPS = ICapHousing
-    EXTRA_FORMATTERS = {'housing_list': HousingListFormatter}
+    EXTRA_FORMATTERS = {'housing_list': HousingListFormatter,
+                        'housing':      HousingFormatter,
+                       }
     COMMANDS_FORMATTERS = {'search': 'housing_list',
+                           'info': 'housing',
                           }
 
     def main(self, argv):
@@ -121,12 +157,17 @@ class Flatboob(ReplApplication):
             return int(r)
         return None
 
+    def complete_info(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
     def do_info(self, _id):
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        housing = self.get_object(_id, 'get_housing')
+        housing = self.get_object(_id, 'get_housing', [])
         if not housing:
             print >>sys.stderr, 'Housing not found: %s' %  _id
             return 3
