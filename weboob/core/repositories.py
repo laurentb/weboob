@@ -92,7 +92,7 @@ class ModuleInfo(object):
                 ('description', self.description),
                 ('maintainer', self.maintainer),
                 ('license', self.license),
-                ('icon', self.icon),
+                ('icon', self.icon or ''),
                 ('urls', self.urls),
                )
 
