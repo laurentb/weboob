@@ -32,10 +32,11 @@ class SeLogerBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'www.seloger.com'
     ENCODING = 'utf-8'
+    USER_AGENT = BaseBrowser.USER_AGENTS['android']
     PAGES = {
          'http://www.seloger.com/(pre)?recherche.htm.*': SearchResultsPage,
          'http://www.seloger.com/annonces.htm.*': SearchResultsPage,
-         'http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(\d+)': HousingPage,
+         'http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(\d+)(&noAudiotel=\d)?': HousingPage,
         }
 
     def search_geo(self, pattern):
@@ -59,7 +60,7 @@ class SeLogerBrowser(BaseBrowser):
         return self.page.iter_housings()
 
     def get_housing(self, id, obj=None):
-        self.location(self.buildurl('http://ws.seloger.com/annonceDetail.xml', idAnnonce=id))
+        self.location(self.buildurl('http://ws.seloger.com/annonceDetail.xml', idAnnonce=id, noAudiotel=1))
 
         assert self.is_on_page(HousingPage)
         housing = self.page.get_housing(obj)
