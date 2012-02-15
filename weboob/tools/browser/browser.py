@@ -227,18 +227,21 @@ class StandardBrowser(mechanize.Browser):
 
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
-            if if_fail == 'raise':
+        except (mechanize.BrowserStateError, mechanize.response_seek_wrapper,
+                urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
+            if isinstance(e, mechanize.BrowserStateError) and hasattr(self, 'home'):
+                self.home()
+                return mechanize.Browser.open(self, *args, **kwargs)
+            elif if_fail == 'raise':
                 raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
                 return None
-        except (mechanize.BrowserStateError, BrowserRetry):
-            if hasattr(self, 'home'):
-                self.home()
+        except BrowserRetry, e:
             return mechanize.Browser.open(self, *args, **kwargs)
 
     def get_exception(self, e):
-        if isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() == 404:
+        if (isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() in (404, 403)) or \
+           isinstance(e, mechanize.BrowserStateError):
             return BrowserHTTPNotFound
         else:
             return BrowserHTTPError
