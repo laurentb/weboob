@@ -96,6 +96,7 @@ def build_qt():
     if sys.platform != 'win32':
         subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qvideoob/ui'], env=env )
     subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qwebcontentedit/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qflatboob/ui'], env=env )
     subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/tools/application/qt'], env=env )
 
 class Options:
@@ -145,7 +146,7 @@ scripts = set(os.listdir('scripts'))
 packages = set(find_packages())
 
 hildon_scripts = set(('masstransit',))
-qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit'))
+qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob'))
 
 if not options.hildon:
     scripts = scripts - hildon_scripts
@@ -168,6 +169,8 @@ qt_packages = set((
     'weboob.applications.qweboobcfg.ui',
     'weboob.applications.qwebcontentedit',
     'weboob.applications.qwebcontentedit.ui'
+    'weboob.applications.qflatboob',
+    'weboob.applications.qflatboob.ui'
     ))
 
 if not options.hildon:

@@ -201,11 +201,13 @@ class QtDo(QObject):
         if not backend:
             self.disconnect(self, SIGNAL('cb'), self.local_cb)
             self.disconnect(self, SIGNAL('eb'), self.local_eb)
+            self.process = None
 
     def local_eb(self, backend, error, backtrace):
         self.eb(backend, error, backtrace)
         self.disconnect(self, SIGNAL('cb'), self.local_cb)
         self.disconnect(self, SIGNAL('eb'), self.local_eb)
+        self.process = None
 
     def thread_cb(self, backend, data):
         self.emit(SIGNAL('cb'), backend, data)
