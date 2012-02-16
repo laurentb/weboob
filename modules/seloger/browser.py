@@ -34,8 +34,7 @@ class SeLogerBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['android']
     PAGES = {
-         'http://www.seloger.com/(pre)?recherche.htm.*': SearchResultsPage,
-         'http://www.seloger.com/annonces.htm.*': SearchResultsPage,
+         'http://ws.seloger.com/search.xml.*': SearchResultsPage,
          'http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(\d+)(&noAudiotel=\d)?': HousingPage,
         }
 
@@ -52,9 +51,11 @@ class SeLogerBrowser(BaseBrowser):
                 'px_loyermin':   cost_min or '',
                 'surfacemax':    area_max or '',
                 'surfacemin':    area_min or '',
+                'tri':           'd_dt_crea',
                }
 
-        self.location(self.buildurl('/prerecherche.htm', **data))
+        self.location(self.buildurl('http://ws.seloger.com/search.xml', **data))
+
         assert self.is_on_page(SearchResultsPage)
 
         return self.page.iter_housings()

@@ -30,35 +30,26 @@ __all__ = ['SearchResultsPage', 'HousingPage']
 
 
 class SearchResultsPage(BasePage):
-    def sanitarize_cost(self, t):
-        return int(float(t.strip(u' \t\u20ac\xa0c€\n\r').replace(u'\xa0', u'').replace(',', '.')))
-
     def iter_housings(self):
-        for div in self.document.getroot().cssselect('div.ann_ann_border'):
-            id = div.find('a').attrib['id'][3:]
-            housing = Housing(id)
-
-            head = div.cssselect('div.rech_headerann')[0]
-            housing.title = head.xpath('.//span[@class="mea1"]/a')[0].text.strip()
-
-            parts = head.xpath('.//span[@class="mea2"]')[0].text.strip().split('+')
-            housing.cost = self.sanitarize_cost(parts[0])
-            if len(parts) > 1:
-                for span in head.xpath('.//span[@class="addprixfr"]/span/strong'):
-                    if span.text.strip() == u'Charges\xa0:':
-                        housing.cost += self.sanitarize_cost(span.tail)
+        for a in self.document.getroot().xpath('//annonce'):
+            housing = Housing(a.find('idannonce').text)
+            housing.title = a.find('titre').text
+            housing.date = parse_date(a.find('dtfraicheur').text)
+            housing.cost = float(a.find('prix').text)
             housing.currency = u'€'
+            housing.area = float(a.find('surface').text)
+            housing.text = a.find('descriptif').text.strip()
+            housing.location = a.find('ville').text
+            try:
+                housing.station = a.find('proximite').text
+            except AttributeError:
+                housing.station = NotAvailable
 
-            sub = div.xpath('.//div[@class="rech_desc_right_photo"]')[0]
-            span = sub.xpath('./span[@class="mea7"]')
-            if len(span) > 0:
-                housing.text = '%s - %s' % (span[0].text.strip(), span[0].tail.strip())
-            else:
-                housing.text = div.xpath('.//div[@class="rech_ville"]')[0].tail.strip()
-            housing.text = housing.text.replace('\r\n', ' ')
-            housing.location = sub.xpath('.//div[@class="rech_ville"]/strong')[0].text.strip()
+            housing.photos = []
+            for photo in a.xpath('./photos/photo'):
+                url = photo.find('stdurl').text
+                housing.photos.append(HousingPhoto(url))
 
-            housing.date = date(*map(int, reversed(sub.xpath('.//div[@class="rech_majref"]/strong')[0].tail.strip('- \xa0\r\t\n').split('/'))))
             yield housing
 
 class HousingPage(BasePage):

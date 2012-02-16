@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.housing import ICapHousing, City, Housing
+from weboob.capabilities.housing import ICapHousing, City, Housing, HousingPhoto
 from weboob.tools.backend import BaseBackend
 
 from .browser import SeLogerBrowser
@@ -38,11 +38,13 @@ class SeLogerBackend(BaseBackend, ICapHousing):
 
     def search_housings(self, query):
         cities = [c.id for c in query.cities if c.backend == self.name]
+        if len(cities) == 0:
+            return list([])
+
         with self.browser:
-            for housing in self.browser.search_housings(cities,
-                                                        query.area_min, query.area_max,
-                                                        query.cost_min, query.cost_max):
-                yield housing
+            return self.browser.search_housings(cities,
+                                                query.area_min, query.area_max,
+                                                query.cost_min, query.cost_max)
 
     def get_housing(self, housing):
         if isinstance(housing, Housing):
@@ -76,5 +78,12 @@ class SeLogerBackend(BaseBackend, ICapHousing):
                         photo.data = self.browser.readurl(photo.url)
         return housing
 
+    def fill_photo(self, photo, fields):
+        with self.browser:
+            if 'data' in fields and photo.url and not photo.data:
+                photo.data = self.browser.readurl(photo.url)
+        return photo
+
     OBJECTS = {Housing: fill_housing,
+               HousingPhoto: fill_photo,
               }
