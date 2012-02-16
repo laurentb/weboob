@@ -58,8 +58,8 @@ class Weboob(object):
             datadir = workdir = os.environ.get('WEBOOB_WORKDIR')
         else:
             old_workdir = os.path.join(os.path.expanduser('~'), '.weboob')
-            xdg_config_home = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config', 'weboob'))
-            xdg_data_home = os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share', 'weboob'))
+            xdg_config_home = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
+            xdg_data_home = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local')), 'share', 'weboob')
 
             if os.path.isdir(old_workdir):
                 self.logger.warning('You are using "%s" as working directory. Files are moved into %s and %s.'
