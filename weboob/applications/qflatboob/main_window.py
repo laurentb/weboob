@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel
+from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
@@ -126,6 +126,18 @@ class MainWindow(QtMainWindow):
         item.setText(u'<h2>%s</h2><i>%s — %s%s (%s)</i><br />%s' % (housing.title, housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
                                                         housing.cost, housing.currency, housing.backend, housing.text))
         item.setData(Qt.UserRole, housing)
+
+        if housing.photos is NotLoaded:
+            process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
+            process.do('fillobj', housing, ['photos'], backends=housing.backend)
+            self.process_photo[housing.id] = process
+        elif len(housing.photos) > 0:
+            if not self.setPhoto(housing, item):
+                photo = housing.photos[0]
+                process = QtDo(self.weboob, lambda b, p: self.setPhoto(housing, item))
+                process.do('fillobj', photo, ['data'], backends=housing.backend)
+                self.process_photo[housing.id] = process
+
         self.ui.housingsList.addItem(item)
 
     def housingSelected(self, item):
@@ -136,6 +148,28 @@ class MainWindow(QtMainWindow):
 
         self.process = QtDo(self.weboob, self.gotHousing)
         self.process.do('fillobj', housing, backends=housing.backend)
+
+    def setPhoto(self, housing, item):
+        if not housing:
+            return False
+
+        try:
+            self.process_photo.pop(housing.id, None)
+        except KeyError:
+            pass
+
+        img = None
+        for photo in housing.photos:
+            if photo.data:
+                img = QImage.fromData(photo.data)
+                break
+
+        if img:
+            item.setIcon(QIcon(QPixmap.fromImage(img)))
+            return True
+
+        return False
+
 
     def setHousing(self, housing, nottext='Loading...'):
         self.housing = housing
@@ -152,7 +186,10 @@ class MainWindow(QtMainWindow):
         self.ui.locationLabel.setText(housing.location or nottext)
         self.ui.stationLabel.setText(housing.station or nottext)
 
-        self.ui.descriptionEdit.setText(housing.text or nottext)
+        if housing.text:
+            self.ui.descriptionEdit.setText(housing.text.replace('\n', '<br/>'))
+        else:
+            self.ui.descriptionEdit.setText(nottext)
 
         while self.ui.detailsFrame.layout().count() > 0:
             child = self.ui.detailsFrame.layout().takeAt(0)
@@ -205,10 +242,7 @@ class MainWindow(QtMainWindow):
             self.process_photo[photo.id] = QtDo(self.weboob, lambda b,p: self.display_photo())
             self.process_photo[photo.id].do('fillobj', photo, ['data'], backends=self.housing.backend)
 
-            if photo.thumbnail_data:
-                data = photo.thumbnail_data
-            else:
-                return
+            return
 
         img = QImage.fromData(data)
         img = img.scaledToWidth(self.width()/3)
