@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
 from dateutil.parser import parse as parse_date
 
 from weboob.tools.browser import BasePage
