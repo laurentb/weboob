@@ -31,7 +31,10 @@ __all__ = ['Entry', 'Newsfeed']
 
 class Entry:
     def __init__(self, entry, rssid_func=None):
-        self.id = entry.id
+        if rssid_func:
+            self.id = rssid_func(entry)
+        else:
+            self.id = entry.id
 
         if entry.has_key("link"):
             self.link = entry["link"]
@@ -64,9 +67,6 @@ class Entry:
                 self.content.append(i.value)
         elif self.summary:
             self.content.append(self.summary)
-
-        if rssid_func:
-            self.id = rssid_func(self)
 
 class Newsfeed:
     def __init__(self, url, rssid_func=None):
