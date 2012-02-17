@@ -68,7 +68,7 @@ class MainWindow(QtMainWindow):
         for name in self.config.get('queries', default={}).iterkeys():
             self.ui.queriesList.addItem(name)
             if name == select_name:
-                self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList))
+                self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList)-1)
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
 
     def addQuery(self):
@@ -100,6 +100,9 @@ class MainWindow(QtMainWindow):
     def refreshHousingsList(self):
         name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
         q = self.config.get('queries', name)
+
+        if q is None:
+            return q
 
         self.ui.housingsList.clear()
         self.ui.queriesList.setEnabled(False)
