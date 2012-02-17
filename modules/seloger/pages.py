@@ -63,7 +63,7 @@ class HousingPage(BasePage):
 
         housing.title = details.find('titre').text
         housing.text = details.find('descriptif').text.strip()
-        housing.cost = int(details.find('prix').text)
+        housing.cost = float(details.find('prix').text)
         housing.currency = u'€'
         housing.date = parse_date(details.find('dtfraicheur').text)
         housing.area = float(details.find('surface').text)
@@ -91,5 +91,7 @@ class HousingPage(BasePage):
         housing.details = {}
         for detail in details.xpath('./details/detail'):
             housing.details[detail.find('libelle').text.strip()] = detail.find('valeur').text or 'N/A'
+
+        housing.details['Reference'] = details.find('reference').text
 
         return housing

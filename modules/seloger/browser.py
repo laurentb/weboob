@@ -42,7 +42,7 @@ class SeLogerBrowser(BaseBrowser):
         fp = self.openurl(self.buildurl('http://www.seloger.com/js,ajax,villequery_v3.htm', ville=pattern, mode=1))
         return json.load(fp)
 
-    def search_housings(self, cities, area_min, area_max, cost_min, cost_max):
+    def search_housings(self, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
         data = {'ci':            ','.join(cities),
                 'idtt':          1, #location
                 'idtypebien':    1, #appart
@@ -53,6 +53,9 @@ class SeLogerBrowser(BaseBrowser):
                 'surfacemin':    area_min or '',
                 'tri':           'd_dt_crea',
                }
+
+        if nb_rooms:
+            data['nb_pieces'] = nb_rooms
 
         self.location(self.buildurl('http://ws.seloger.com/search.xml', **data))
 

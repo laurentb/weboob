@@ -64,6 +64,7 @@ class Query(CapBaseObject):
         self.add_field('area_max', int)
         self.add_field('cost_min', int)
         self.add_field('cost_max', int)
+        self.add_field('nb_rooms', int)
 
 class City(CapBaseObject):
     def __init__(self, id):

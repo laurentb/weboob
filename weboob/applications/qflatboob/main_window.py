@@ -85,6 +85,10 @@ class MainWindow(QtMainWindow):
             query['area_max'] = querydlg.ui.areaMax.value()
             query['cost_min'] = querydlg.ui.costMin.value()
             query['cost_max'] = querydlg.ui.costMax.value()
+            try:
+                query['nb_rooms'] = int(querydlg.ui.nbRooms.itemText(querydlg.ui.nbRooms.currentIndex()))
+            except ValueError:
+                query['nb_rooms'] = 0
             self.config.set('queries', name, query)
             self.config.save()
 
@@ -112,6 +116,7 @@ class MainWindow(QtMainWindow):
         query.area_max = int(q['area_max']) or None
         query.cost_min = int(q['cost_min']) or None
         query.cost_max = int(q['cost_max']) or None
+        query.nb_rooms = int(q['nb_rooms']) or None
 
         self.process = QtDo(self.weboob, self.addHousing)
         self.process.do('search_housings', query)
@@ -123,8 +128,8 @@ class MainWindow(QtMainWindow):
             return
 
         item = QListWidgetItem()
-        item.setText(u'<h2>%s</h2><i>%s — %s%s (%s)</i><br />%s' % (housing.title, housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
-                                                        housing.cost, housing.currency, housing.backend, housing.text))
+        item.setText(u'<h2>%s</h2><i>%s — %sm² — %s%s (%s)</i><br />%s' % (housing.title, housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
+                                                        housing.area, housing.cost, housing.currency, housing.backend, housing.text))
         item.setData(Qt.UserRole, housing)
 
         if housing.photos is NotLoaded:
@@ -225,11 +230,13 @@ class MainWindow(QtMainWindow):
     def display_photo(self):
         if not self.housing.photos:
             self.ui.photoUrlLabel.setText('')
+            self.ui.photoLabel.setText('')
             return
 
         if self.displayed_photo_idx >= len(self.housing.photos):
             self.displayed_photo_idx = len(self.housing.photos) - 1
         if self.displayed_photo_idx < 0:
+            self.ui.photoLabel.setText('')
             self.ui.photoUrlLabel.setText('')
             return
 

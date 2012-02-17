@@ -145,6 +145,7 @@ class Flatboob(ReplApplication):
         query.area_max = self.ask_int('Enter max area')
         query.cost_min = self.ask_int('Enter min cost')
         query.cost_max = self.ask_int('Enter max cost')
+        query.nb_rooms = self.ask_int('Enter number of rooms')
 
         self.change_path('/housings')
         for backend, housing in self.do('search_housings', query):

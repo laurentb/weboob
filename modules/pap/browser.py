@@ -42,7 +42,7 @@ class PapBrowser(BaseBrowser):
         fp = self.openurl(self.buildurl('http://www.pap.fr/index/ac-geo', q=pattern))
         return json.load(fp)
 
-    def search_housings(self, cities, area_min, area_max, cost_min, cost_max):
+    def search_housings(self, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
         data = {'geo_objets_ids': ','.join(cities),
                 'surface[min]':   area_min or '',
                 'surface[max]':   area_max or '',
@@ -54,6 +54,11 @@ class PapBrowser(BaseBrowser):
                 'submit':         'rechercher',
                 'typesbien[]':    'appartement',
                }
+
+        if nb_rooms:
+            data['nb_pieces[min]'] = nb_rooms
+            data['nb_pieces[max]'] = nb_rooms
+
         self.location('/annonce/', urllib.urlencode(data))
         assert self.is_on_page(SearchResultsPage)
 
