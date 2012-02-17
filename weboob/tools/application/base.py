@@ -31,6 +31,7 @@ from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.backend import ObjectNotAvailable
 from weboob.tools.log import createColoredFormatter, getLogger
+from weboob.tools.misc import to_unicode
 
 
 __all__ = ['BaseApplication']
@@ -372,7 +373,7 @@ class BaseApplication(object):
         klass.setup_logging(logging.INFO, [klass.create_default_logger()])
 
         if args is None:
-            args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or arg) for arg in sys.argv]
+            args = [(sys.stdin.encoding and arg.decode(sys.stdin.encoding) or to_unicode(arg)) for arg in sys.argv]
 
         try:
             app = klass()
