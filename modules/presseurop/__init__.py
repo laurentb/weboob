@@ -1,7 +1,7 @@
-"NewspaperEcransBackend init"
+"NewspaperPresseuropBackend init"
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011  Julien Hebert
+# Copyright(C) 2012  Florent Fourcot
 #
 # This file is part of weboob.
 #

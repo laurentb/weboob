@@ -1,8 +1,7 @@
-"tools for lefigaro backend"
+"tools for presseurop backend"
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011  Julien Hebert
-#
+# Copyright(C) 2012  Florent Fourcot 
 # This file is part of weboob.
 #
 # weboob is free software: you can redistribute it and/or modify
@@ -20,17 +19,6 @@
 
 
 import re
-def id2url(_id):
-    "return an url from an id"
-    regexp2 = re.compile("(\w+).([0-9]+).(.*$)")
-    match = regexp2.match(_id)
-    if match:
-        return 'http://www.20minutes.fr/%s/%s/%s' % (   match.group(1),
-                                                        match.group(2),
-                                                        match.group(3))
-    else:
-        raise ValueError("id doesn't match")
-
 def url2id(url):
     "return an id from an url"
     regexp = re.compile(".*/([0-9]+)-.*")

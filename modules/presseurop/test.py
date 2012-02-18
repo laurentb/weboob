@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon
+# Copyright(C) 2012 Florent Fourcot
 #
 # This file is part of weboob.
 #
