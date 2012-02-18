@@ -50,6 +50,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
         self.connect(self.ui.addQueryButton, SIGNAL('clicked()'), self.addQuery)
         self.connect(self.ui.editQueryButton, SIGNAL('clicked()'), self.editQuery)
+        self.connect(self.ui.removeQueryButton, SIGNAL('clicked()'), self.removeQuery)
         self.connect(self.ui.bookmarksButton, SIGNAL('clicked()'), self.displayBookmarks)
         self.connect(self.ui.housingsList, SIGNAL('itemClicked(QListWidgetItem*)'), self.housingSelected)
         self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
@@ -73,20 +74,28 @@ class MainWindow(QtMainWindow):
     def reloadQueriesList(self, select_name=None):
         self.disconnect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
         self.ui.queriesList.clear()
-        to_select = None
         for name in self.config.get('queries', default={}).iterkeys():
             self.ui.queriesList.addItem(name)
             if name == select_name:
-                to_select = len(self.ui.queriesList)-1
+                self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList)-1)
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
 
-        if to_select is not None:
-            self.ui.queriesList.setCurrentIndex(to_select)
+        if select_name is not None:
+            self.queryChanged()
+
+    def removeQuery(self):
+        name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
+        queries = self.config.get('queries')
+        queries.pop(name, None)
+        self.config.set('queries', queries)
+        self.config.save()
+
+        self.reloadQueriesList()
+        self.queryChanged()
 
     def editQuery(self):
         name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
         self.addQuery(name)
-        self.queryChanged()
 
     def addQuery(self, name=None):
         querydlg = QueryDialog(self.weboob, self)
