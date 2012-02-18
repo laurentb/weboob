@@ -261,6 +261,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>nameEdit</tabstop>
+  <tabstop>cityEdit</tabstop>
+  <tabstop>resultsList</tabstop>
+  <tabstop>citiesList</tabstop>
+  <tabstop>nbRooms</tabstop>
+  <tabstop>areaMin</tabstop>
+  <tabstop>areaMax</tabstop>
+  <tabstop>costMin</tabstop>
+  <tabstop>costMax</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

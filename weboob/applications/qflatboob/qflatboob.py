@@ -31,7 +31,7 @@ class QFlatBoob(QtApplication):
     DESCRIPTION = 'Qt application to find housings.'
     CAPS = ICapHousing
     CONFIG = {'queries': {}}
-    STORAGE = {'bookmarks': [], 'read': []}
+    STORAGE = {'bookmarks': [], 'read': [], 'notes': {}}
 
     def main(self, argv):
         self.load_backends(ICapHousing)

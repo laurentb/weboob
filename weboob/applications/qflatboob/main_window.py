@@ -52,7 +52,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.editQueryButton, SIGNAL('clicked()'), self.editQuery)
         self.connect(self.ui.removeQueryButton, SIGNAL('clicked()'), self.removeQuery)
         self.connect(self.ui.bookmarksButton, SIGNAL('clicked()'), self.displayBookmarks)
-        self.connect(self.ui.housingsList, SIGNAL('itemClicked(QListWidgetItem*)'), self.housingSelected)
+        self.connect(self.ui.housingsList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.housingSelected)
         self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
         self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
         self.connect(self.ui.bookmark, SIGNAL('stateChanged(int)'), self.bookmarkChanged)
@@ -65,6 +65,10 @@ class MainWindow(QtMainWindow):
 
         if len(self.config.get('queries')) == 0:
             self.addQuery()
+
+    def closeEvent(self, event):
+        self.setHousing(None)
+        QtMainWindow.closeEvent(self, event)
 
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapHousing,), self)
@@ -183,6 +187,21 @@ class MainWindow(QtMainWindow):
             self.process_bookmarks[id] = QtDo(self.weboob, self.addHousing)
             self.process_bookmarks[id].do('get_housing', _id, backends=backend_name)
 
+    def setHousingItemAttrs(self, item):
+        housing = item.data(Qt.UserRole).toPyObject()
+
+        text =  u'<h2>%s</h2>' % housing.title
+        text += u'<i>%s — %sm² — %s%s (%s)</i>' % (housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
+                                                   housing.area, housing.cost, housing.currency, housing.backend)
+        text += u'<br />%s' % housing.text
+        text += u'<br /><font color="#008800">%s</font>' % self.storage.get('notes', housing.fullid, default='')
+        item.setText(text)
+
+        if housing.fullid in self.storage.get('bookmarks'):
+            item.setBackground(QBrush(QColor(255, 224, 219)))
+        elif not housing.fullid in self.storage.get('read'):
+            item.setBackground(QBrush(QColor(219, 224, 255)))
+
     def addHousing(self, backend, housing):
         if not backend:
             self.ui.queriesList.setEnabled(True)
@@ -191,14 +210,8 @@ class MainWindow(QtMainWindow):
             return
 
         item = QListWidgetItem()
-        item.setText(u'<h2>%s</h2><i>%s — %sm² — %s%s (%s)</i><br />%s' % (housing.title, housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
-                                                        housing.area, housing.cost, housing.currency, housing.backend, housing.text))
         item.setData(Qt.UserRole, housing)
-
-        if housing.fullid in self.storage.get('bookmarks'):
-            item.setBackground(QBrush(QColor(255, 224, 219)))
-        elif not housing.fullid in self.storage.get('read'):
-            item.setBackground(QBrush(QColor(219, 224, 255)))
+        self.setHousingItemAttrs(item)
 
         if housing.photos is NotLoaded:
             process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
@@ -216,7 +229,7 @@ class MainWindow(QtMainWindow):
         if housing.fullid in self.process_bookmarks:
             self.process_bookmarks.pop(housing.fullid)
 
-    def housingSelected(self, item):
+    def housingSelected(self, item, prev):
         housing = item.data(Qt.UserRole).toPyObject()
         self.ui.queriesFrame.setEnabled(False)
 
@@ -227,6 +240,9 @@ class MainWindow(QtMainWindow):
         self.storage.save()
 
         self.setHousing(housing)
+
+        if prev:
+            self.setHousingItemAttrs(prev)
 
         self.process = QtDo(self.weboob, self.gotHousing)
         self.process.do('fillobj', housing, backends=housing.backend)
@@ -257,7 +273,14 @@ class MainWindow(QtMainWindow):
 
 
     def setHousing(self, housing, nottext='Loading...'):
+        if self.housing is not None:
+            self.saveNotes()
+
         self.housing = housing
+
+        if self.housing is None:
+            self.ui.housingFrame.hide()
+            return
 
         self.ui.housingFrame.show()
 
@@ -277,6 +300,8 @@ class MainWindow(QtMainWindow):
             self.ui.descriptionEdit.setText(housing.text.replace('\n', '<br/>'))
         else:
             self.ui.descriptionEdit.setText(nottext)
+
+        self.ui.notesEdit.setText(self.storage.get('notes', housing.fullid, default=''))
 
         while self.ui.detailsFrame.layout().count() > 0:
             child = self.ui.detailsFrame.layout().takeAt(0)
@@ -304,6 +329,12 @@ class MainWindow(QtMainWindow):
         elif self.housing.fullid in bookmarks:
             bookmarks.remove(self.housing.fullid)
         self.storage.set('bookmarks', list(bookmarks))
+        self.storage.save()
+
+    def saveNotes(self):
+        if not self.housing:
+            return
+        self.storage.set('notes', self.housing.fullid, unicode(self.ui.notesEdit.toPlainText()))
         self.storage.save()
 
     def previousClicked(self):

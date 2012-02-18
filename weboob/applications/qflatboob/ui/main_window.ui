@@ -70,6 +70,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <property name="iconSize">
            <size>
             <width>128</width>
@@ -106,7 +109,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QSplitter" name="splitter_4">
+          <widget class="QSplitter" name="splitter_5">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -406,17 +409,36 @@
              </item>
             </layout>
            </widget>
-           <widget class="QSplitter" name="splitter_3">
+           <widget class="QSplitter" name="splitter_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <widget class="QTextEdit" name="descriptionEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-               <horstretch>0</horstretch>
-               <verstretch>50</verstretch>
-              </sizepolicy>
+            <widget class="QSplitter" name="splitter_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
+             <widget class="QTextEdit" name="descriptionEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+                <horstretch>0</horstretch>
+                <verstretch>50</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QTextEdit" name="notesEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="acceptRichText">
+               <bool>false</bool>
+              </property>
+             </widget>
             </widget>
             <widget class="QFrame" name="detailsFrame">
              <property name="frameShape">
@@ -473,6 +495,18 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>addQueryButton</tabstop>
+  <tabstop>queriesList</tabstop>
+  <tabstop>editQueryButton</tabstop>
+  <tabstop>removeQueryButton</tabstop>
+  <tabstop>housingsList</tabstop>
+  <tabstop>bookmarksButton</tabstop>
+  <tabstop>bookmark</tabstop>
+  <tabstop>previousButton</tabstop>
+  <tabstop>nextButton</tabstop>
+  <tabstop>descriptionEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
