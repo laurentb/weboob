@@ -21,13 +21,13 @@
 from weboob.tools.misc import iter_fields
 
 
-__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded', 
+__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded',
     'CapBaseObject']
 
 
 class FieldNotFound(Exception):
     def __init__(self, obj, field):
-        Exception.__init__(self, 
+        Exception.__init__(self,
             u'Field "%s" not found for object %s' % (field, obj))
 
 
@@ -71,6 +71,10 @@ class CapBaseObject(object):
     def __init__(self, id, backend=None):
         self.id = id
         self.backend = backend
+
+    @property
+    def fullid(self):
+        return '%s@%s' % (self.id, self.backend)
 
     def add_field(self, name, type, value=NotLoaded):
         """
