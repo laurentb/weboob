@@ -30,14 +30,14 @@ from weboob.tools.newsfeed import Newsfeed
 class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.a'
+    VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'presseurop'
     DESCRIPTION = u'Presseurop website'
     BROWSER = NewspaperPresseuropBrowser
     RSSID = rssid
-    CONFIG = BackendConfig(Value('lang', label='Lang of articles', 
+    CONFIG = BackendConfig(Value('lang', label='Lang of articles',
                            choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es' : 'es', 'it' : 'it', 'nl' : 'nl', 'pl' : 'pl', 'pt' : 'pt', 'ro' : 'ro'}, default='fr'))
 
     def __init__(self, *args, **kwargs):
