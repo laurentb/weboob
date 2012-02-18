@@ -26,15 +26,15 @@ Julien Veyssier <julien.veyssier@aiur.fr>
 Christophe Benz <christophe.benz@gmail.com>
         * Bouygues, INA, SFR and Youtube backends maintainer.
 
+Florent Fourcot <weboob@flo.fourcot.fr>
+        * ING, Presseurop and Sachsen backends maintainer;
+        * BNPorc patches.
+
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
 
 Roger Philibert <roger.philibert@gmail.com>
         * Ehentai, Izneo and Youjizz backends maintainer.
-
-Florent Fourcot <weboob@flo.fourcot.fr>
-        * Sachsen and ING backends maintainer;
-        * BNPorc patches.
 
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
