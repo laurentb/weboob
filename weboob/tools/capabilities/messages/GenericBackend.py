@@ -72,7 +72,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
         return thread
 
     def iter_threads(self):
-        for article in Newsfeed(self.RSS_FEED, self.RSSID).iter_entries():
+        for article in Newsfeed(self.RSS_FEED, GenericNewspaperBackend.RSSID).iter_entries():
             thread = Thread(article.id)
             thread.title =  article.title
             thread.date = article.datetime

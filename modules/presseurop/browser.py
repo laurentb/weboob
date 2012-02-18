@@ -39,7 +39,6 @@ class NewspaperPresseuropBrowser(BaseBrowser):
 
     def get_content(self, _id):
         "return page article content"
-        print _id
         self.location(_id)
         return self.page.get_article(_id)
 
