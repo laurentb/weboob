@@ -41,6 +41,7 @@ class MainWindow(QtMainWindow):
         self.housing = None
         self.displayed_photo_idx = 0
         self.process_photo = {}
+        self.process_bookmarks = {}
 
         self.ui.housingsList.setItemDelegate(HTMLDelegate())
         self.ui.housingFrame.hide()
@@ -48,9 +49,11 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
         self.connect(self.ui.addQueryButton, SIGNAL('clicked()'), self.addQuery)
+        self.connect(self.ui.bookmarksButton, SIGNAL('clicked()'), self.displayBookmarks)
         self.connect(self.ui.housingsList, SIGNAL('itemClicked(QListWidgetItem*)'), self.housingSelected)
         self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
         self.connect(self.ui.nextButton, SIGNAL('clicked()'), self.nextClicked)
+        self.connect(self.ui.bookmark, SIGNAL('stateChanged(int)'), self.bookmarkChanged)
 
         self.reloadQueriesList()
         self.refreshHousingsList()
@@ -107,6 +110,7 @@ class MainWindow(QtMainWindow):
 
         self.ui.housingsList.clear()
         self.ui.queriesList.setEnabled(False)
+        self.ui.bookmarksButton.setEnabled(False)
 
         query = Query()
         query.cities = []
@@ -125,9 +129,22 @@ class MainWindow(QtMainWindow):
         self.process = QtDo(self.weboob, self.addHousing)
         self.process.do('search_housings', query)
 
+    def displayBookmarks(self):
+        self.ui.housingsList.clear()
+        self.ui.queriesList.setEnabled(False)
+        self.ui.queriesList.setCurrentIndex(-1)
+        self.ui.bookmarksButton.setEnabled(False)
+
+        self.processes = {}
+        for id in self.storage.get('bookmarks'):
+            _id, backend_name = id.rsplit('@', 1)
+            self.process_bookmarks[id] = QtDo(self.weboob, self.addHousing)
+            self.process_bookmarks[id].do('get_housing', _id, backends=backend_name)
+
     def addHousing(self, backend, housing):
         if not backend:
             self.ui.queriesList.setEnabled(True)
+            self.ui.bookmarksButton.setEnabled(True)
             self.process = None
             return
 
@@ -136,7 +153,9 @@ class MainWindow(QtMainWindow):
                                                         housing.area, housing.cost, housing.currency, housing.backend, housing.text))
         item.setData(Qt.UserRole, housing)
 
-        if not '%s@%s' % (housing.id, housing.backend) in self.storage.get('read'):
+        if housing.fullid in self.storage.get('bookmarks'):
+            item.setBackground(QBrush(QColor(255, 224, 219)))
+        elif not housing.fullid in self.storage.get('read'):
             item.setBackground(QBrush(QColor(219, 224, 255)))
 
         if housing.photos is NotLoaded:
@@ -152,13 +171,16 @@ class MainWindow(QtMainWindow):
 
         self.ui.housingsList.addItem(item)
 
+        if housing.fullid in self.process_bookmarks:
+            self.process_bookmarks.pop(housing.fullid)
+
     def housingSelected(self, item):
         housing = item.data(Qt.UserRole).toPyObject()
         self.ui.queriesFrame.setEnabled(False)
 
         item.setBackground(QBrush())
         read = set(self.storage.get('read'))
-        read.add('%s@%s' % (housing.id, housing.backend))
+        read.add(housing.fullid)
         self.storage.set('read', list(read))
         self.storage.save()
 
@@ -196,6 +218,8 @@ class MainWindow(QtMainWindow):
 
         self.display_photo()
 
+        self.ui.bookmark.setChecked(housing.fullid in self.storage.get('bookmarks'))
+
         self.ui.titleLabel.setText('<h1>%s</h1>' % housing.title)
         self.ui.areaLabel.setText(u'%s m²' % housing.area)
         self.ui.costLabel.setText(u'%s %s' % (housing.cost, housing.currency))
@@ -227,6 +251,15 @@ class MainWindow(QtMainWindow):
             return
 
         self.setHousing(housing, nottext='')
+
+    def bookmarkChanged(self, state):
+        bookmarks = set(self.storage.get('bookmarks'))
+        if state == Qt.Checked:
+            bookmarks.add(self.housing.fullid)
+        elif self.housing.fullid in bookmarks:
+            bookmarks.remove(self.housing.fullid)
+        self.storage.set('bookmarks', list(bookmarks))
+        self.storage.save()
 
     def previousClicked(self):
         if len(self.housing.photos) == 0:
