@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon
+from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon, QBrush, QColor
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
@@ -29,12 +29,13 @@ from .ui.main_window_ui import Ui_MainWindow
 from .query import QueryDialog
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, weboob, parent=None):
+    def __init__(self, config, storage, weboob, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         self.config = config
+        self.storage = storage
         self.weboob = weboob
         self.process = None
         self.housing = None
@@ -135,6 +136,9 @@ class MainWindow(QtMainWindow):
                                                         housing.area, housing.cost, housing.currency, housing.backend, housing.text))
         item.setData(Qt.UserRole, housing)
 
+        if not '%s@%s' % (housing.id, housing.backend) in self.storage.get('read'):
+            item.setBackground(QBrush(QColor(219, 224, 255)))
+
         if housing.photos is NotLoaded:
             process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
             process.do('fillobj', housing, ['photos'], backends=housing.backend)
@@ -151,6 +155,12 @@ class MainWindow(QtMainWindow):
     def housingSelected(self, item):
         housing = item.data(Qt.UserRole).toPyObject()
         self.ui.queriesFrame.setEnabled(False)
+
+        item.setBackground(QBrush())
+        read = set(self.storage.get('read'))
+        read.add('%s@%s' % (housing.id, housing.backend))
+        self.storage.set('read', list(read))
+        self.storage.save()
 
         self.setHousing(housing)
 

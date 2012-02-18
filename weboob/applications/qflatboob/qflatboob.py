@@ -31,11 +31,13 @@ class QFlatBoob(QtApplication):
     DESCRIPTION = 'Qt application to find housings.'
     CAPS = ICapHousing
     CONFIG = {'queries': {}}
+    STORAGE = {'bookmarks': [], 'read': []}
 
     def main(self, argv):
         self.load_backends(ICapHousing)
+        self.create_storage()
         self.load_config(klass=YamlConfig)
 
-        self.main_window = MainWindow(self.config, self.weboob)
+        self.main_window = MainWindow(self.config, self.storage, self.weboob)
         self.main_window.show()
         return self.weboob.loop()
