@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QDialog, QListWidgetItem
+from PyQt4.QtGui import QDialog, QListWidgetItem, QMessageBox
 from PyQt4.QtCore import SIGNAL, Qt
 
 from weboob.tools.application.qt import QtDo, HTMLDelegate
@@ -39,6 +39,7 @@ class QueryDialog(QDialog):
         self.connect(self.ui.cityEdit, SIGNAL('returnPressed()'), self.searchCity)
         self.connect(self.ui.resultsList, SIGNAL('itemDoubleClicked(QListWidgetItem*)'), self.insertCity)
         self.connect(self.ui.citiesList, SIGNAL('itemDoubleClicked(QListWidgetItem*)'), self.removeCity)
+        self.connect(self.ui.buttonBox, SIGNAL('accepted()'), self.okButton)
 
     def keyPressEvent(self, event):
         """
@@ -60,11 +61,15 @@ class QueryDialog(QDialog):
             self.search_process = None
             self.ui.cityEdit.setEnabled(True)
             return
-        item = QListWidgetItem()
-        item.setText('<b>%s</b> (%s)' % (city.name, backend.name))
-        item.setData(Qt.UserRole, city)
+        item = self.buildCityItem(city)
         self.ui.resultsList.addItem(item)
         self.ui.resultsList.sortItems()
+
+    def buildCityItem(self, city):
+        item = QListWidgetItem()
+        item.setText('<b>%s</b> (%s)' % (city.name, city.backend))
+        item.setData(Qt.UserRole, city)
+        return item
 
     def insertCity(self, i):
         item = QListWidgetItem()
@@ -73,5 +78,15 @@ class QueryDialog(QDialog):
         self.ui.citiesList.addItem(item)
 
     def removeCity(self, item):
-        print item
         self.ui.citiesList.removeItemWidget(item)
+
+    def okButton(self):
+        if not self.ui.nameEdit.text():
+            QMessageBox.critical(self, self.tr('Error'), self.tr('Please enter a name to your query.'), QMessageBox.Ok)
+            return
+
+        if self.ui.citiesList.count() == 0:
+            QMessageBox.critical(self, self.tr('Error'), self.tr('Please add at least one city.'), QMessageBox.Ok)
+            return
+
+        self.accept()

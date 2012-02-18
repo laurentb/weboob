@@ -49,6 +49,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
         self.connect(self.ui.addQueryButton, SIGNAL('clicked()'), self.addQuery)
+        self.connect(self.ui.editQueryButton, SIGNAL('clicked()'), self.editQuery)
         self.connect(self.ui.bookmarksButton, SIGNAL('clicked()'), self.displayBookmarks)
         self.connect(self.ui.housingsList, SIGNAL('itemClicked(QListWidgetItem*)'), self.housingSelected)
         self.connect(self.ui.previousButton, SIGNAL('clicked()'), self.previousClicked)
@@ -61,6 +62,9 @@ class MainWindow(QtMainWindow):
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
 
+        if len(self.config.get('queries')) == 0:
+            self.addQuery()
+
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapHousing,), self)
         if bckndcfg.run():
@@ -69,14 +73,43 @@ class MainWindow(QtMainWindow):
     def reloadQueriesList(self, select_name=None):
         self.disconnect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
         self.ui.queriesList.clear()
+        to_select = None
         for name in self.config.get('queries', default={}).iterkeys():
             self.ui.queriesList.addItem(name)
             if name == select_name:
-                self.ui.queriesList.setCurrentIndex(len(self.ui.queriesList)-1)
+                to_select = len(self.ui.queriesList)-1
         self.connect(self.ui.queriesList, SIGNAL('currentIndexChanged(int)'), self.queryChanged)
 
-    def addQuery(self):
+        if to_select is not None:
+            self.ui.queriesList.setCurrentIndex(to_select)
+
+    def editQuery(self):
+        name = unicode(self.ui.queriesList.itemText(self.ui.queriesList.currentIndex()))
+        self.addQuery(name)
+        self.queryChanged()
+
+    def addQuery(self, name=None):
         querydlg = QueryDialog(self.weboob, self)
+        if name is not None:
+            query = self.config.get('queries', name)
+            querydlg.ui.nameEdit.setText(name)
+            querydlg.ui.nameEdit.setEnabled(False)
+            for c in query['cities']:
+                city = City(c['id'])
+                city.backend = c['backend']
+                city.name = c['name']
+                item = querydlg.buildCityItem(city)
+                querydlg.ui.citiesList.addItem(item)
+
+            querydlg.ui.areaMin.setValue(query['area_min'])
+            querydlg.ui.areaMax.setValue(query['area_max'])
+            querydlg.ui.costMin.setValue(query['cost_min'])
+            querydlg.ui.costMax.setValue(query['cost_max'])
+            for i in xrange(querydlg.ui.nbRooms.count()):
+                if querydlg.ui.nbRooms.itemText(i) == str(query['nb_rooms']):
+                    querydlg.ui.nbRooms.setCurrentIndex(i)
+                    break
+
         if querydlg.exec_():
             name = unicode(querydlg.ui.nameEdit.text())
             query = {}
@@ -98,7 +131,7 @@ class MainWindow(QtMainWindow):
 
             self.reloadQueriesList(name)
 
-    def queryChanged(self, i):
+    def queryChanged(self, i=None):
         self.refreshHousingsList()
 
     def refreshHousingsList(self):
@@ -198,6 +231,9 @@ class MainWindow(QtMainWindow):
         except KeyError:
             pass
 
+        if not housing.photos:
+            return False
+
         img = None
         for photo in housing.photos:
             if photo.data:
@@ -262,29 +298,29 @@ class MainWindow(QtMainWindow):
         self.storage.save()
 
     def previousClicked(self):
-        if len(self.housing.photos) == 0:
+        if not self.housing.photos or len(self.housing.photos) == 0:
             return
         self.displayed_photo_idx = (self.displayed_photo_idx - 1) % len(self.housing.photos)
         self.display_photo()
 
     def nextClicked(self):
-        if len(self.housing.photos) == 0:
+        if not self.housing.photos or len(self.housing.photos) == 0:
             return
         self.displayed_photo_idx = (self.displayed_photo_idx + 1) % len(self.housing.photos)
         self.display_photo()
 
     def display_photo(self):
         if not self.housing.photos:
-            self.ui.photoUrlLabel.setText('')
-            self.ui.photoLabel.setText('')
+            self.ui.photosFrame.hide()
             return
 
         if self.displayed_photo_idx >= len(self.housing.photos):
             self.displayed_photo_idx = len(self.housing.photos) - 1
         if self.displayed_photo_idx < 0:
-            self.ui.photoLabel.setText('')
-            self.ui.photoUrlLabel.setText('')
+            self.ui.photosFrame.hide()
             return
+
+        self.ui.photosFrame.show()
 
         photo = self.housing.photos[self.displayed_photo_idx]
         if photo.data:
