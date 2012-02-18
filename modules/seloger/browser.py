@@ -59,9 +59,17 @@ class SeLogerBrowser(BaseBrowser):
 
         self.location(self.buildurl('http://ws.seloger.com/search.xml', **data))
 
-        assert self.is_on_page(SearchResultsPage)
+        while 1:
+            assert self.is_on_page(SearchResultsPage)
 
-        return self.page.iter_housings()
+            for housing in self.page.iter_housings():
+                yield housing
+
+            url = self.page.next_page_url()
+            if url is None:
+                return
+
+            self.location(url)
 
     def get_housing(self, id, obj=None):
         self.location(self.buildurl('http://ws.seloger.com/annonceDetail.xml', idAnnonce=id, noAudiotel=1))

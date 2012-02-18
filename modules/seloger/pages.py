@@ -29,6 +29,13 @@ __all__ = ['SearchResultsPage', 'HousingPage']
 
 
 class SearchResultsPage(BasePage):
+    def next_page_url(self):
+        urls = self.document.getroot().xpath('//pagesuivante')
+        if len(urls) == 0:
+            return None
+        else:
+            return urls[0].text
+
     def iter_housings(self):
         for a in self.document.getroot().xpath('//annonce'):
             housing = Housing(a.find('idannonce').text)
