@@ -33,6 +33,7 @@ from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
+from weboob.tools.misc import to_unicode
 
 from ..base import BaseApplication
 
@@ -176,21 +177,21 @@ class QtDo(QObject):
             msg = 'This feature is not supported by this backend.\n\n' \
                   'To help the maintainer of this backend implement this feature, please contact: %s <%s>' % (backend.MAINTAINER, backend.EMAIL)
         elif logging.root.level == logging.DEBUG:
-            msg += '<br />'
+            msg += u'<br />'
             ul_opened = False
             for line in backtrace.split('\n'):
                 m = re.match('  File (.*)', line)
                 if m:
                     if not ul_opened:
-                        msg += '<ul>'
+                        msg += u'<ul>'
                         ul_opened = True
                     else:
-                        msg += '</li>'
-                    msg += '<li><b>%s</b>' % m.group(1)
+                        msg += u'</li>'
+                    msg += u'<li><b>%s</b>' % m.group(1)
                 else:
-                    msg += '<br />%s' % line
+                    msg += u'<br />%s' % to_unicode(line)
             if ul_opened:
-                msg += '</li></ul>'
+                msg += u'</li></ul>'
             print >>sys.stderr, error
             print >>sys.stderr, backtrace
         QMessageBox.critical(None, unicode(self.tr('Error with backend %s')) % backend.name,
