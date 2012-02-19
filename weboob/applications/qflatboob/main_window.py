@@ -42,17 +42,17 @@ class HousingListWidgetItem(QListWidgetItem):
         text =  u'<h2>%s</h2>' % self.housing.title
         text += u'<i>%s — %sm² — %s%s (%s)</i>' % (self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
                                                    self.housing.area, self.housing.cost, self.housing.currency, self.housing.backend)
-        text += u'<br />%s' % self.housing.text
-        text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='')
+        text += u'<br />%s' % self.housing.text.strip()
+        text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='').strip().replace('\n', '<br />')
         self.setText(text)
 
         if not self.housing.fullid in storage.get('read'):
-            self.setBackground(QBrush(QColor(219, 224, 255)))
+            self.setBackground(QBrush(QColor(200, 200, 255)))
             self.read = False
         else:
             self.read = True
             if self.housing.fullid in storage.get('bookmarks'):
-                self.setBackground(QBrush(QColor(255, 224, 219)))
+                self.setBackground(QBrush(QColor(255, 200, 200)))
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
@@ -215,7 +215,6 @@ class MainWindow(QtMainWindow):
 
     def addHousing(self, backend, housing):
         if not backend:
-            print self.ui.housingsList.model()
             self.ui.queriesList.setEnabled(True)
             self.ui.bookmarksButton.setEnabled(True)
             self.process = None
@@ -244,7 +243,6 @@ class MainWindow(QtMainWindow):
         housing = item.housing
         self.ui.queriesFrame.setEnabled(False)
 
-        item.setBackground(QBrush())
         read = set(self.storage.get('read'))
         read.add(housing.fullid)
         self.storage.set('read', list(read))
@@ -345,7 +343,11 @@ class MainWindow(QtMainWindow):
     def saveNotes(self):
         if not self.housing:
             return
-        self.storage.set('notes', self.housing.fullid, unicode(self.ui.notesEdit.toPlainText()))
+        txt = unicode(self.ui.notesEdit.toPlainText()).strip()
+        if len(txt) > 0:
+            self.storage.set('notes', self.housing.fullid, txt)
+        else:
+            self.storage.delete('notes', self.housing.fullid)
         self.storage.save()
 
     def previousClicked(self):
