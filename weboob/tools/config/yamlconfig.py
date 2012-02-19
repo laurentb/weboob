@@ -79,8 +79,7 @@ class YamlConfig(IConfig):
         try:
             v = v[args[-1]]
         except KeyError:
-            v[args[-1]] = default
-            v = v[args[-1]]
+            v = default
 
         return v
 
