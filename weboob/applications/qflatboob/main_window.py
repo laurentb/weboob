@@ -28,6 +28,28 @@ from weboob.capabilities.base import NotLoaded
 from .ui.main_window_ui import Ui_MainWindow
 from .query import QueryDialog
 
+class HousingListWidgetItem(QListWidgetItem):
+    def __init__(self, housing, *args, **kwargs):
+        QListWidgetItem.__init__(self, *args, **kwargs)
+        self.housing = housing
+
+    def __lt__(self, other):
+        return (float(self.housing.cost) / float(self.housing.area)) < \
+               (float(other.housing.cost) / float(other.housing.area))
+
+    def setAttrs(self, storage):
+        text =  u'<h2>%s</h2>' % self.housing.title
+        text += u'<i>%s — %sm² — %s%s (%s)</i>' % (self.housing.date.strftime('%Y-%m-%d') if self.housing.date else 'Unknown',
+                                                   self.housing.area, self.housing.cost, self.housing.currency, self.housing.backend)
+        text += u'<br />%s' % self.housing.text
+        text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='')
+        self.setText(text)
+
+        if self.housing.fullid in storage.get('bookmarks'):
+            self.setBackground(QBrush(QColor(255, 224, 219)))
+        elif not self.housing.fullid in storage.get('read'):
+            self.setBackground(QBrush(QColor(219, 224, 255)))
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
         QtMainWindow.__init__(self, parent)
@@ -187,31 +209,16 @@ class MainWindow(QtMainWindow):
             self.process_bookmarks[id] = QtDo(self.weboob, self.addHousing)
             self.process_bookmarks[id].do('get_housing', _id, backends=backend_name)
 
-    def setHousingItemAttrs(self, item):
-        housing = item.data(Qt.UserRole).toPyObject()
-
-        text =  u'<h2>%s</h2>' % housing.title
-        text += u'<i>%s — %sm² — %s%s (%s)</i>' % (housing.date.strftime('%Y-%m-%d') if housing.date else 'Unknown',
-                                                   housing.area, housing.cost, housing.currency, housing.backend)
-        text += u'<br />%s' % housing.text
-        text += u'<br /><font color="#008800">%s</font>' % self.storage.get('notes', housing.fullid, default='')
-        item.setText(text)
-
-        if housing.fullid in self.storage.get('bookmarks'):
-            item.setBackground(QBrush(QColor(255, 224, 219)))
-        elif not housing.fullid in self.storage.get('read'):
-            item.setBackground(QBrush(QColor(219, 224, 255)))
-
     def addHousing(self, backend, housing):
         if not backend:
+            print self.ui.housingsList.model()
             self.ui.queriesList.setEnabled(True)
             self.ui.bookmarksButton.setEnabled(True)
             self.process = None
             return
 
-        item = QListWidgetItem()
-        item.setData(Qt.UserRole, housing)
-        self.setHousingItemAttrs(item)
+        item = HousingListWidgetItem(housing)
+        item.setAttrs(self.storage)
 
         if housing.photos is NotLoaded:
             process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
@@ -230,7 +237,7 @@ class MainWindow(QtMainWindow):
             self.process_bookmarks.pop(housing.fullid)
 
     def housingSelected(self, item, prev):
-        housing = item.data(Qt.UserRole).toPyObject()
+        housing = item.housing
         self.ui.queriesFrame.setEnabled(False)
 
         item.setBackground(QBrush())
@@ -242,7 +249,7 @@ class MainWindow(QtMainWindow):
         self.setHousing(housing)
 
         if prev:
-            self.setHousingItemAttrs(prev)
+            prev.setAttrs(self.storage)
 
         self.process = QtDo(self.weboob, self.gotHousing)
         self.process.do('fillobj', housing, backends=housing.backend)
