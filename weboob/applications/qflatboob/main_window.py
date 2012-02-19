@@ -32,10 +32,11 @@ class HousingListWidgetItem(QListWidgetItem):
     def __init__(self, housing, *args, **kwargs):
         QListWidgetItem.__init__(self, *args, **kwargs)
         self.housing = housing
+        self.read = False
 
     def __lt__(self, other):
-        return (float(self.housing.cost) / float(self.housing.area)) < \
-               (float(other.housing.cost) / float(other.housing.area))
+        return '%s%s' % (self.read, float(self.housing.cost) / float(self.housing.area)) < \
+               '%s%s' % (other.read, float(other.housing.cost) / float(other.housing.area))
 
     def setAttrs(self, storage):
         text =  u'<h2>%s</h2>' % self.housing.title
@@ -45,10 +46,13 @@ class HousingListWidgetItem(QListWidgetItem):
         text += u'<br /><font color="#008800">%s</font>' % storage.get('notes', self.housing.fullid, default='')
         self.setText(text)
 
-        if self.housing.fullid in storage.get('bookmarks'):
-            self.setBackground(QBrush(QColor(255, 224, 219)))
-        elif not self.housing.fullid in storage.get('read'):
+        if not self.housing.fullid in storage.get('read'):
             self.setBackground(QBrush(QColor(219, 224, 255)))
+            self.read = False
+        else:
+            self.read = True
+            if self.housing.fullid in storage.get('bookmarks'):
+                self.setBackground(QBrush(QColor(255, 224, 219)))
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
