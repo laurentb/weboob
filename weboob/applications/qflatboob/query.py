@@ -47,6 +47,12 @@ class QueryDialog(QDialog):
         """
         event.ignore()
 
+    def selectComboValue(self, box, value):
+        for i in xrange(box.count()):
+            if box.itemText(i) == str(value):
+                box.setCurrentIndex(i)
+                break
+
     def searchCity(self):
         pattern = unicode(self.ui.cityEdit.text())
         self.ui.resultsList.clear()

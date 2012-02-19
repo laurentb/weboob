@@ -57,8 +57,12 @@ class Housing(CapBaseObject):
         self.add_field('details', dict)
 
 class Query(CapBaseObject):
+    TYPE_RENT = 0
+    TYPE_SALE = 1
+
     def __init__(self):
         CapBaseObject.__init__(self, '')
+        self.add_field('type', int)
         self.add_field('cities', (list,tuple))
         self.add_field('area_min', int)
         self.add_field('area_max', int)

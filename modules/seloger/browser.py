@@ -21,6 +21,7 @@
 import json
 
 from weboob.tools.browser import BaseBrowser
+from weboob.capabilities.housing import Query
 
 from .pages import SearchResultsPage, HousingPage
 
@@ -42,17 +43,26 @@ class SeLogerBrowser(BaseBrowser):
         fp = self.openurl(self.buildurl('http://www.seloger.com/js,ajax,villequery_v3.htm', ville=pattern, mode=1))
         return json.load(fp)
 
-    def search_housings(self, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
+    TYPES = {Query.TYPE_RENT: 1,
+             Query.TYPE_SALE: 2
+            }
+
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
         data = {'ci':            ','.join(cities),
-                'idtt':          1, #location
+                'idtt':          self.TYPES.get(type, 1),
                 'idtypebien':    1, #appart
                 'org':           'advanced_search',
-                'px_loyermax':   cost_max or '',
-                'px_loyermin':   cost_min or '',
                 'surfacemax':    area_max or '',
                 'surfacemin':    area_min or '',
                 'tri':           'd_dt_crea',
                }
+
+        if type == Query.TYPE_SALE:
+            data['pxmax'] = cost_max or ''
+            data['pxmin'] = cost_min or ''
+        else:
+            data['px_loyermax'] = cost_max or ''
+            data['px_loyermin'] = cost_min or ''
 
         if nb_rooms:
             data['nb_pieces'] = nb_rooms

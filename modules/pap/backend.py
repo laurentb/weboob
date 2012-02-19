@@ -41,7 +41,7 @@ class PapBackend(BaseBackend, ICapHousing):
             return list()
 
         with self.browser:
-            return self.browser.search_housings(cities, query.nb_rooms,
+            return self.browser.search_housings(query.type, cities, query.nb_rooms,
                                                 query.area_min, query.area_max,
                                                 query.cost_min, query.cost_max)
 

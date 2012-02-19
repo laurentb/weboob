@@ -22,6 +22,7 @@ import urllib
 import json
 
 from weboob.tools.browser import BaseBrowser
+from weboob.capabilities.housing import Query
 
 from .pages import SearchResultsPage, HousingPage
 
@@ -42,13 +43,16 @@ class PapBrowser(BaseBrowser):
         fp = self.openurl(self.buildurl('http://www.pap.fr/index/ac-geo', q=pattern))
         return json.load(fp)
 
-    def search_housings(self, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
+    TYPES = {Query.TYPE_RENT: 'location',
+             Query.TYPE_SALE: 'vente',
+            }
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
         data = {'geo_objets_ids': ','.join(cities),
                 'surface[min]':   area_min or '',
                 'surface[max]':   area_max or '',
                 'prix[min]':      cost_min or '',
                 'prix[max]':      cost_max or '',
-                'produit':        'location',
+                'produit':        self.TYPES.get(type, 'location'),
                 'recherche':      1,
                 'nb_resultats_par_page': 40,
                 'submit':         'rechercher',

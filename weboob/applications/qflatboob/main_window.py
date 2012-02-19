@@ -23,7 +23,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.housing import ICapHousing, Query, City
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import NotLoaded, NotAvailable
 
 from .ui.main_window_ui import Ui_MainWindow
 from .query import QueryDialog
@@ -35,8 +35,8 @@ class HousingListWidgetItem(QListWidgetItem):
         self.read = False
 
     def __lt__(self, other):
-        return '%s%s' % (self.read, float(self.housing.cost) / float(self.housing.area)) < \
-               '%s%s' % (other.read, float(other.housing.cost) / float(other.housing.area))
+        return '%s%s' % (self.read, float(self.housing.cost or 0) / float(self.housing.area or 1)) < \
+               '%s%s' % (other.read, float(other.housing.cost or 0) / float(other.housing.area or 1))
 
     def setAttrs(self, storage):
         text =  u'<h2>%s</h2>' % self.housing.title
@@ -53,6 +53,8 @@ class HousingListWidgetItem(QListWidgetItem):
             self.read = True
             if self.housing.fullid in storage.get('bookmarks'):
                 self.setBackground(QBrush(QColor(255, 200, 200)))
+            elif self.background().color() != QColor(0,0,0):
+                self.setBackground(QBrush())
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
@@ -140,18 +142,17 @@ class MainWindow(QtMainWindow):
                 item = querydlg.buildCityItem(city)
                 querydlg.ui.citiesList.addItem(item)
 
+            querydlg.ui.typeBox.setCurrentIndex(int(query.get('type', 0)))
             querydlg.ui.areaMin.setValue(query['area_min'])
             querydlg.ui.areaMax.setValue(query['area_max'])
             querydlg.ui.costMin.setValue(query['cost_min'])
             querydlg.ui.costMax.setValue(query['cost_max'])
-            for i in xrange(querydlg.ui.nbRooms.count()):
-                if querydlg.ui.nbRooms.itemText(i) == str(query['nb_rooms']):
-                    querydlg.ui.nbRooms.setCurrentIndex(i)
-                    break
+            querydlg.selectComboValue(querydlg.ui.nbRooms, query['nb_rooms'])
 
         if querydlg.exec_():
             name = unicode(querydlg.ui.nameEdit.text())
             query = {}
+            query['type'] = querydlg.ui.typeBox.currentIndex()
             query['cities'] = []
             for i in xrange(len(querydlg.ui.citiesList)):
                 item = querydlg.ui.citiesList.item(i)
@@ -185,6 +186,7 @@ class MainWindow(QtMainWindow):
         self.ui.bookmarksButton.setEnabled(False)
 
         query = Query()
+        query.type = int(q.get('type', 0))
         query.cities = []
         for c in q['cities']:
             city = City(c['id'])
@@ -227,7 +229,7 @@ class MainWindow(QtMainWindow):
             process = QtDo(self.weboob, lambda b, c: self.setPhoto(c, item))
             process.do('fillobj', housing, ['photos'], backends=housing.backend)
             self.process_photo[housing.id] = process
-        elif len(housing.photos) > 0:
+        elif housing.photos is not NotAvailable and len(housing.photos) > 0:
             if not self.setPhoto(housing, item):
                 photo = housing.photos[0]
                 process = QtDo(self.weboob, lambda b, p: self.setPhoto(housing, item))
@@ -240,21 +242,25 @@ class MainWindow(QtMainWindow):
             self.process_bookmarks.pop(housing.fullid)
 
     def housingSelected(self, item, prev):
-        housing = item.housing
-        self.ui.queriesFrame.setEnabled(False)
+        if item is not None:
+            housing = item.housing
+            self.ui.queriesFrame.setEnabled(False)
 
-        read = set(self.storage.get('read'))
-        read.add(housing.fullid)
-        self.storage.set('read', list(read))
-        self.storage.save()
+            read = set(self.storage.get('read'))
+            read.add(housing.fullid)
+            self.storage.set('read', list(read))
+            self.storage.save()
+
+            self.process = QtDo(self.weboob, self.gotHousing)
+            self.process.do('fillobj', housing, backends=housing.backend)
+
+        else:
+            housing = None
 
         self.setHousing(housing)
 
         if prev:
             prev.setAttrs(self.storage)
-
-        self.process = QtDo(self.weboob, self.gotHousing)
-        self.process.do('fillobj', housing, backends=housing.backend)
 
     def setPhoto(self, housing, item):
         if not housing:

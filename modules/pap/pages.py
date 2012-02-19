@@ -51,7 +51,11 @@ class SearchResultsPage(BasePage):
             id = a.attrib['href'].split('-')[-1]
             housing = Housing(id)
             housing.title = a.text.strip()
-            housing.cost = int(div.cssselect('td.prix')[0].text.strip(u' \t\u20ac\xa0€\n\r'))
+            m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
+            if m:
+                housing.area = float(m.group(3))
+
+            housing.cost = float(div.cssselect('td.prix')[0].text.strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
             housing.currency = u'€'
 
             m = self.DATE_RE.match(div.cssselect('p.date-publication')[0].text.strip())
@@ -75,6 +79,8 @@ class SearchResultsPage(BasePage):
             else:
                 housing.text = p.text.strip()
 
+            housing.photos = NotAvailable
+
             yield housing
 
 class HousingPage(BasePage):
@@ -84,12 +90,12 @@ class HousingPage(BasePage):
 
         parts = div.find('h1').text.split(' - ')
         housing.title = parts[0].strip()
-        housing.cost = int(parts[1].strip(u' \t\u20ac\xa0€\n\r'))
+        housing.cost = float(parts[1].strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
         housing.currency = u'€'
 
-        m = re.match('(\w+) ([\w\s]+) (\d+)\xa0m\xb2 (.*)', housing.title)
+        m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
         if m:
-            housing.area = int(m.group(3))
+            housing.area = float(m.group(3))
 
         housing.date = housing.station = housing.location = housing.phone = NotAvailable
 

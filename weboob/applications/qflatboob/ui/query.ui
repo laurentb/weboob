@@ -34,6 +34,20 @@
        <widget class="QLineEdit" name="nameEdit"/>
       </item>
       <item>
+       <widget class="QComboBox" name="typeBox">
+        <item>
+         <property name="text">
+          <string>Rent</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Sale</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
          <string>Cities</string>
