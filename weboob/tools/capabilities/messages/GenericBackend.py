@@ -85,10 +85,11 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
 
     def iter_unread_messages(self, thread=None):
         for thread in self.iter_threads():
+            if thread.id in self.storage.get('seen', default={}):
+                continue
             self.fill_thread(thread, 'root')
             for msg in thread.iter_all_messages():
-                if msg.flags & msg.IS_UNREAD:
-                    yield msg
+                yield msg
 
     def set_message_read(self, message):
         self.storage.set(
