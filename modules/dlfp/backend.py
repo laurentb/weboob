@@ -90,7 +90,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                     thread.date = article.datetime
                 yield thread
 
-    def get_thread(self, id):
+    def get_thread(self, id, getseen=True):
         if isinstance(id, Thread):
             thread = id
             id = thread.id
@@ -127,39 +127,46 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                               flags=flags)
 
         for com in content.comments:
-            self._insert_comment(com, thread.root)
+            self._insert_comment(com, thread.root, getseen)
 
         return thread
 
-    def _insert_comment(self, com, parent):
+    def _insert_comment(self, com, parent, getseen=True):
         """"
         Insert 'com' comment and its children in the parent message.
         """
         flags = Message.IS_HTML
         if not com.id in self.storage.get('seen', parent.thread.id, 'comments', default=[]):
             flags |= Message.IS_UNREAD
-
-        message = Message(thread=parent.thread,
-                          id=com.id,
-                          title=com.title,
-                          sender=com.author or u'',
-                          receivers=None,
-                          date=com.date,
-                          parent=parent,
-                          content=com.body,
-                          signature=com.signature + \
-                                    '<br />'.join(['Score: %d' % com.score,
-                                                   'URL: %s' % com.url]),
-                          children=[],
-                          flags=flags)
-
+        
+        if getseen or flags & Message.IS_UNREAD:
+            com.parse()
+            print "coin !"
+            message = Message(thread=parent.thread,
+                              id=com.id,
+                              title=com.title,
+                              sender=com.author or u'',
+                              receivers=None,
+                              date=com.date,
+                              parent=parent,
+                              content=com.body,
+                              signature=com.signature + \
+                                        '<br />'.join(['Score: %d' % com.score,
+                                                       'URL: %s' % com.url]),
+                              children=[],
+                              flags=flags)
+        else:
+            message = Message(thread=parent.thread,
+                              id=com.id,
+                              children=[],
+                              flags=flags)
         parent.children.append(message)
         for sub in com.comments:
-            self._insert_comment(sub, message)
+            self._insert_comment(sub, message, getseen)
 
     def iter_unread_messages(self, thread=None):
         for thread in self.iter_threads():
-            self.fill_thread(thread, 'root')
+            self.fill_thread(thread, 'root', False)
             for m in thread.iter_all_messages():
                 if m.flags & m.IS_UNREAD:
                     yield m
@@ -169,8 +176,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
 
-    def fill_thread(self, thread, fields):
-        return self.get_thread(thread)
+    def fill_thread(self, thread, fields, getseen=True):
+        return self.get_thread(thread, getseen)
 
     #### ICapMessagesReply #########################################
     def post_message(self, message):

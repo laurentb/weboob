@@ -51,23 +51,31 @@ class Comment(Content):
         Content.__init__(self, article.browser)
         self.reply_id = reply_id
         self.signature = u''
-
+        self.preurl = article.url
+        self.div = div
         self.id = div.attrib['id'].split('-')[1]
-        self.url = '%s#%s' % (article.url, div.attrib['id'])
-        self.title = unicode(self.browser.parser.select(div.find('h2'), 'a.title', 1).text)
+        subs = div.find('ul')
+        if subs is not None:
+            for sub in subs.findall('li'):
+                comment = Comment(article, sub, self.id)
+                self.comments.append(comment)
+
+    def parse(self):
+        self.url = '%s#%s' % (self.preurl, self.div.attrib['id'])
+        self.title = unicode(self.browser.parser.select(self.div.find('h2'), 'a.title', 1).text)
         try:
-            a = self.browser.parser.select(div.find('p'), 'a[rel=author]', 1)
+            a = self.browser.parser.select(self.div.find('p'), 'a[rel=author]', 1)
         except BrokenPageError:
             self.author = 'Anonyme'
             self.username = None
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.date = datetime.strptime(self.browser.parser.select(div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
+        self.date = datetime.strptime(self.browser.parser.select(self.div.find('p'), 'time', 1).attrib['datetime'].split('+')[0],
                                       '%Y-%m-%dT%H:%M:%S')
         self.date = local2utc(self.date)
 
-        content = div.find('div')
+        content = self.div.find('div')
         try:
             signature = self.browser.parser.select(content, 'p.signature', 1)
         except BrokenPageError:
@@ -78,17 +86,11 @@ class Comment(Content):
             self.signature = self.browser.parser.tostring(signature)
         self.body = self.browser.parser.tostring(content)
 
-        self.score = int(self.browser.parser.select(div.find('p'), 'span.score', 1).text)
-        forms = self.browser.parser.select(div.find('footer'), 'form.button_to')
+        self.score = int(self.browser.parser.select(self.div.find('p'), 'span.score', 1).text)
+        forms = self.browser.parser.select(self.div.find('footer'), 'form.button_to')
         if len(forms) > 0:
             self.relevance_url = forms[0].attrib['action'].rstrip('for').rstrip('against')
             self.relevance_token = self.browser.parser.select(forms[0], 'input[name=authenticity_token]', 1).attrib['value']
-
-        subs = div.find('ul')
-        if subs is not None:
-            for sub in subs.findall('li'):
-                comment = Comment(article, sub, self.id)
-                self.comments.append(comment)
 
     def iter_all_comments(self):
         for comment in self.comments:
