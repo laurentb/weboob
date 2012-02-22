@@ -91,6 +91,8 @@ class Boursorama(BaseBrowser):
         target = date.today() - relativedelta( months = 2 )
         self.location(account.link_id + ("&month=%d&year=%d" % (target.month, target.year)))
         operations += self.page.get_operations()
+        for index, op in enumerate(operations):
+            op.id = index
 
         return operations
 
