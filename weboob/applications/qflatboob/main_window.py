@@ -222,6 +222,9 @@ class MainWindow(QtMainWindow):
             self.process = None
             return
 
+        if not housing:
+            return
+
         item = HousingListWidgetItem(housing)
         item.setAttrs(self.storage)
 
