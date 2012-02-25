@@ -320,7 +320,7 @@ class ConsoleApplication(BaseApplication):
             if not self.ask('Add new backend for module "%s"?' % module.name, default=False):
                 return 1
 
-            name = self.ask('Please give new instance name' % module.name, default='%s2' % name, regexp=r'^[\w\-_]+$')
+            name = self.ask('Please give new instance name', default='%s2' % name, regexp=r'^[\w\-_]+$')
 
         try:
             config = config.load(self.weboob, module.name, name, params, nofail=True)
