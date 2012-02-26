@@ -32,7 +32,7 @@ class HousingListWidgetItem(QListWidgetItem):
     def __init__(self, housing, *args, **kwargs):
         QListWidgetItem.__init__(self, *args, **kwargs)
         self.housing = housing
-        self.read = False
+        self.read = True
 
     def __lt__(self, other):
         return '%s%s' % (self.read, float(self.housing.cost or 0) / float(self.housing.area or 1)) < \
@@ -49,12 +49,10 @@ class HousingListWidgetItem(QListWidgetItem):
         if not self.housing.fullid in storage.get('read'):
             self.setBackground(QBrush(QColor(200, 200, 255)))
             self.read = False
-        else:
-            self.read = True
-            if self.housing.fullid in storage.get('bookmarks'):
-                self.setBackground(QBrush(QColor(255, 200, 200)))
-            elif self.background().color() != QColor(0,0,0):
-                self.setBackground(QBrush())
+        elif self.housing.fullid in storage.get('bookmarks'):
+            self.setBackground(QBrush(QColor(255, 200, 200)))
+        elif self.background().color() != QColor(0,0,0):
+            self.setBackground(QBrush())
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
