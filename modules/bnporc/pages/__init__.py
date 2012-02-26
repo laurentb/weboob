@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon
+# Copyright(C) 2009-2012  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -19,8 +19,7 @@
 
 
 from .accounts_list import AccountsList
-from .account_coming import AccountComing
-from .account_history import AccountHistory
+from .transactions import AccountHistory, AccountComing
 from .transfer import TransferPage, TransferConfirmPage, TransferCompletePage
 from .login import LoginPage, ConfirmPage, ChangePasswordPage, MessagePage
 

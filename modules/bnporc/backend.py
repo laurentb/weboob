@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -40,7 +40,7 @@ class BNPorcBackend(BaseBackend, ICapBank):
     DESCRIPTION = 'BNP Paribas French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
-                           ValueBackendPassword('rotating_password',
+                           ValueBackendPassword('rotating_password', default='',
                                  label='Password to set when the allowed uses are exhausted (6 digits)',
                                  regexp='^(\d{6}|)$'))
     BROWSER = BNPorc
@@ -76,13 +76,11 @@ class BNPorcBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            for history in self.browser.get_history(account.id):
-                yield history
+            return self.browser.iter_history(account.id)
 
     def iter_operations(self, account):
         with self.browser:
-            for coming in self.browser.get_coming_operations(account.id):
-                yield coming
+            return self.browser.iter_coming_operations(account.id)
 
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_transfer_accounts().itervalues():

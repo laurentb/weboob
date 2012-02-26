@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon
+# Copyright(C) 2009-2012  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -129,16 +129,41 @@ class BNPorc(BaseBrowser):
 
         return None
 
-    def get_history(self, id):
-        self.location('/banque/portail/particulier/FicheA?contractId=%d&pageId=releveoperations&_eventId=changeOperationsPerPage&operationsPerPage=200' % int(id))
-        return self.page.get_operations()
+    #def get_history(self, id):
+    #    data = {'contactId':         int(id),
+    #            'pageId':            'releveoperations',
+    #            '_eventId':          'pastOperations',
+    #            'operationsPerPage': 200,
+    #            'groupId':           -2
+    #           }
+    #    self.location('/banque/portail/particulier/FicheA#pageId=releveoperations', urllib.urlencode(data))
+    #    return self.page.get_operations()
 
-    def get_coming_operations(self, id):
+    #def get_coming_operations(self, id):
+    #    if not self.is_on_page(AccountsList):
+    #        self.location('/NSFR?Action=DSP_VGLOBALE')
+    #    execution = self.page.get_execution_id()
+
+    #    data = {'externalIAId':            'IAStatements',
+    #            'contactId':               int(id),
+    #            'pastOrPendingOperations': 2,
+    #            'pageId':                  'mouvementsavenir',
+    #            'execution':               execution,
+    #           }
+    #    self.location('/banque/portail/particulier/FicheA#pageId=mouvementsavenir', urllib.urlencode(data))
+    #    return self.page.get_operations()
+
+
+    def iter_history(self, id):
+        self.location('/banque/portail/particulier/FicheA?contractId=%d&pageId=releveoperations&_eventId=changeOperationsPerPage&operationsPerPage=200' % int(id))
+        return self.page.iter_operations()
+
+    def iter_coming_operations(self, id):
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
         execution = self.page.get_execution_id()
         self.location('/banque/portail/particulier/FicheA?externalIAId=IAStatements&contractId=%d&pastOrPendingOperations=2&pageId=mouvementsavenir&execution=%s' % (int(id), execution))
-        return self.page.get_operations()
+        return self.page.iter_operations()
 
     @check_expired_password
     def get_transfer_accounts(self):
