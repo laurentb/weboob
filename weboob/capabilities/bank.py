@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -24,8 +24,7 @@ from .base import CapBaseObject
 from .collection import ICapCollection, CollectionNotFound
 
 
-__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank',
-    'Operation']
+__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 'Transaction']
 
 
 class AccountNotFound(Exception):
@@ -53,16 +52,29 @@ class Account(Recipient):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
 
 
-class Operation(CapBaseObject):
+class Transaction(CapBaseObject):
+    TYPE_UNKNOWN      = 0
+    TYPE_TRANSFER     = 1
+    TYPE_ORDER        = 2
+    TYPE_CHECK        = 3
+    TYPE_DEPOSIT      = 4
+    TYPE_PAYBACK      = 5
+    TYPE_WITHDRAWAL   = 6
+    TYPE_CARD         = 7
+    TYPE_LOAN_PAYMENT = 8
+    TYPE_BANK         = 9
+
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
         self.add_field('date', (basestring, datetime, date))
+        self.add_field('type', int, self.TYPE_UNKNOWN)
+        self.add_field('text', unicode)
         self.add_field('category', unicode)
         self.add_field('label', unicode)
         self.add_field('amount', float)
 
     def __repr__(self):
-        return "<Operation date='%s' label='%s' amount=%s>" % (self.date,
+        return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
             self.label, self.amount)
 
 class Transfer(CapBaseObject):
@@ -87,10 +99,22 @@ class ICapBank(ICapCollection):
     def get_account(self, _id):
         raise NotImplementedError()
 
-    def iter_operations(self, account):
+    def iter_history(self, account):
+        """
+        Iter history of transactions on a specific account.
+
+        @param account [Account]
+        @return [iter(Transaction)]
+        """
         raise NotImplementedError()
 
-    def iter_history(self, account):
+    def iter_coming(self, account):
+        """
+        Iter coming transactions on a specific account.
+
+        @param account [Account]
+        @return [iter(Transaction)]
+        """
         raise NotImplementedError()
 
     def iter_transfer_recipients(self, account):
