@@ -76,11 +76,11 @@ class BNPorcBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            return self.browser.iter_history(account.id)
+            return self.browser.iter_history(account.link_id)
 
     def iter_operations(self, account):
         with self.browser:
-            return self.browser.iter_coming_operations(account.id)
+            return self.browser.iter_coming_operations(account.link_id)
 
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_transfer_accounts().itervalues():
