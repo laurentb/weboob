@@ -53,4 +53,6 @@ class WeboobCli(ReplApplication):
         for backend, obj in self.do(cmd, *args):
             self.format(obj)
 
+        self.flush()
+
         return 0
