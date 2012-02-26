@@ -20,7 +20,7 @@
 
 import sys
 
-from weboob.capabilities.bank import ICapBank, Account, Operation
+from weboob.capabilities.bank import ICapBank, Account, Transaction
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -29,7 +29,7 @@ __all__ = ['Boobank']
 
 
 class QifFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'date', 'label', 'amount', 'category')
+    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
 
     count = 0
 
@@ -44,9 +44,42 @@ class QifFormatter(IFormatter):
         result += u'T%s\n' % item['amount']
         if item['category']:
             result += u'N%s\n' % item['category']
-        result += u'M%s\n' % item['label']
+        result += u'M%s\n' % item['raw']
         result += u'^\n'
         self.count += 1
+        return result
+
+class TransactionsFormatter(IFormatter):
+    MANDATORY_FIELDS = ('date', 'label', 'amount')
+    TYPES = ['', 'Transfer', 'Order', 'Check', 'Deposit', 'Payback', 'Withdrawal', 'Card', 'Loan', 'Bank']
+
+    count = 0
+
+    def flush(self):
+        if self.count < 1:
+            return
+        self.count = 0
+
+    def format_dict(self, item):
+        self.count += 1
+
+        result = u''
+        if self.count == 1:
+            result += ' Date         Type         Label                                                  Amount \n'
+            result += '------------+------------+---------------------------------------------------+-----------\n'
+
+        try:
+            _type = self.TYPES[item['type']]
+        except IndexError:
+            _type = ''
+
+        if not _type and item['category']:
+            _type = item['category']
+
+        label = item['label']
+        if not label:
+            label = item['raw']
+        result += ' %-10s   %-12s %-50s %10.2f' % (item['date'].strftime('%Y-%m-%d'), _type, label[:50], item['amount'])
         return result
 
 class TransferFormatter(IFormatter):
@@ -123,7 +156,6 @@ class AccountListFormatter(IFormatter):
             self.tot_coming += item['coming']
         return result
 
-
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '0.b'
@@ -136,13 +168,16 @@ class Boobank(ReplApplication):
                         'recipient_list': RecipientListFormatter,
                         'transfer':       TransferFormatter,
                         'qif':            QifFormatter,
+                        'ops_list':       TransactionsFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
                            'list':        'account_list',
                            'transfer':    'transfer',
+                           'history':     'ops_list',
+                           'coming':      'ops_list',
                           }
-    COLLECTION_OBJECTS = (Account, Operation, )
+    COLLECTION_OBJECTS = (Account, Transaction, )
 
     def _complete_account(self, exclude=None):
         if exclude:
