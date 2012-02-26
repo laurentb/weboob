@@ -21,7 +21,7 @@
 from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 from weboob.capabilities.base import NotAvailable
 
 __all__ = ['AccountHistoryCC', 'AccountHistoryLA']
@@ -36,7 +36,7 @@ class AccountHistoryCC(BasePage):
         for tr in table.xpath('tr'):
             id = i
             texte = tr.text_content().split('\n')
-            op = Operation(id)
+            op = Transaction(id)
             op.label = texte[2]
             op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
             op.category = texte[4]
@@ -50,30 +50,30 @@ class AccountHistoryCC(BasePage):
     def get_operations(self):
         return self.operations
 
-class AccountHistoryLA(BasePage): 
-    
+class AccountHistoryLA(BasePage):
+
     def on_loaded(self):
         self.operations = []
-        i = 1 
+        i = 1
         history = self.document.xpath('//tr[@align="center"]')
         history.pop(0)
         for tr in history:
            id = i
            texte = tr.text_content().strip().split('\n')
-           op = Operation(id)
+           op = Transaction(id)
            # The size is not the same if there are two dates or only one
            length = len(texte)
-           op.label = unicode(texte[length - 2].strip())
+           op.raw = unicode(texte[length - 2].strip())
            op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
            op.category = NotAvailable
-           
+
            amount =  texte[length - 1].replace('\t','').strip().replace('.', '').replace(u'€', '').replace(',', '.').replace(u'\xa0', u'')
            op.amount = float(amount)
 
 
            self.operations.append(op)
            i += 1
-           
+
 
     def get_operations(self):
         return self.operations

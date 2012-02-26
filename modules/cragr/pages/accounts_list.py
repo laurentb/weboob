@@ -21,7 +21,7 @@
 import re
 from weboob.capabilities.bank import Account
 from .base import CragrBasePage
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 
 def clean_amount(amount):
     """
@@ -187,7 +187,7 @@ class AccountsList(CragrBasePage):
             Returns the history of a specific account. Note that this function
             expects the current page to be the one dedicated to this history.
             start_index is the id used for the first created operation.
-            start_offset allows ignoring the `n' first Operations on the page.
+            start_offset allows ignoring the `n' first Transactions on the page.
         """
         # tested on CA Lorraine, Paris, Toulouse
         # avoir parsing the page as an account-dedicated page if it is not the case
@@ -244,17 +244,17 @@ class AccountsList(CragrBasePage):
                 if skipped < start_offset:
                     skipped += 1
                     continue
-                operation = Operation(index)
+                operation = Transaction(index)
                 index += 1
                 operation.date = self.extract_text(line[0])
-                operation.label = self.extract_text(line[1])
+                operation.raw = self.extract_text(line[1])
                 operation.amount = clean_amount(self.extract_text(line[2]))
                 yield operation
         elif (not alternate_layout):
             for body_elmt in interesting_divs:
                 if skipped < start_offset:
                     if self.is_right_aligned_div(body_elmt):
-                        skipped += 1 
+                        skipped += 1
                     continue
                 if (self.is_right_aligned_div(body_elmt)):
                     # this is the second line of an operation entry, displaying the amount
@@ -264,20 +264,20 @@ class AccountsList(CragrBasePage):
                     # this is the first line of an operation entry, displaying the date and label
                     data = self.extract_text(body_elmt)
                     matches = re.findall('^([012][0-9]|3[01])/(0[1-9]|1[012]).(.+)$', data)
-                    operation = Operation(index)
+                    operation = Transaction(index)
                     index += 1
                     if (matches):
                         operation.date  = u'%s/%s' % (matches[0][0], matches[0][1])
-                        operation.label = u'%s'    % matches[0][2]
+                        operation.raw = u'%s'    % matches[0][2]
                     else:
                         operation.date  = u'01/01'
-                        operation.label = u'Unknown'
+                        operation.raw = u'Unknown'
         else:
             for i in range(0, len(interesting_divs)/3):
                 if skipped < start_offset:
                     skipped += 1
                     continue
-                operation = Operation(index)
+                operation = Transaction(index)
                 index += 1
                 # amount
                 operation.amount = clean_amount(self.extract_text(interesting_divs[(i*3)+1]))
@@ -288,5 +288,5 @@ class AccountsList(CragrBasePage):
                 #label
                 data = self.extract_text(interesting_divs[(i*3)+2])
                 data = re.sub(' +', ' ', data)
-                operation.label = u'%s' % data
+                operation.raw = u'%s' % data
                 yield operation

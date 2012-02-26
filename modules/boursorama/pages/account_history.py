@@ -22,7 +22,7 @@
 from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 
 
 __all__ = ['AccountHistory']
@@ -56,7 +56,7 @@ class AccountHistory(BasePage):
                     amount = amount.strip(u' \n\t\x80').replace(' ', '').replace(',', '.')
 
                     # if we don't have exactly one '.', this is not a floatm try the next
-                    operation = Operation(len(self.operations))
+                    operation = Transaction(len(self.operations))
                     operation.amount = float(amount)
 
                     operation.date = d

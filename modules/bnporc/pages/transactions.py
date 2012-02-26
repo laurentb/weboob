@@ -50,13 +50,13 @@ class TransactionsBasePage(BasePage):
 
     def parse_text(self, op):
         op.category = NotAvailable
-        if '  ' in op.text:
+        if '  ' in op.raw:
             op.category, useless, op.label = [part.strip() for part in op.label.partition('  ')]
         else:
-            op.label = op.text
+            op.label = op.raw
 
         for pattern, _type, _label in self.LABEL_PATTERNS:
-            m = pattern.match(op.text)
+            m = pattern.match(op.raw)
             if m:
                 op.type = _type
                 op.label = (_label % m.groupdict()).strip()
@@ -70,7 +70,7 @@ class AccountHistory(TransactionsBasePage):
 
             id = tr.find('td').find('input').attrib['value']
             op = Transaction(id)
-            op.text = tr.findall('td')[2].text.replace(u'\xa0', u'').strip()
+            op.raw = tr.findall('td')[2].text.replace(u'\xa0', u'').strip()
             op.date = date(*reversed([int(x) for x in tr.findall('td')[1].text.split('/')]))
 
             self.parse_text(op)
@@ -105,7 +105,7 @@ class AccountComing(TransactionsBasePage):
                 i += 1
                 operation = Transaction(i)
                 operation.date = d
-                operation.text = text.strip()
+                operation.raw = text.strip()
                 self.parse_text(operation)
                 operation.amount = float(amount)
                 yield operation

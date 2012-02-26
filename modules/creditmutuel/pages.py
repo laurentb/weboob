@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Account
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
@@ -44,7 +44,7 @@ class UserSpacePage(BasePage):
 class AccountsPage(BasePage):
     def get_list(self):
         l = []
-        
+
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
@@ -76,10 +76,10 @@ class OperationsPage(BasePage):
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
-                operation = Operation(index)
+                operation = Transaction(index)
                 index += 1
                 operation.date = first_td.text
-                operation.label = u"%s"%tr.getchildren()[2].text.replace('\n',' ')
+                operation.raw = u"%s"%tr.getchildren()[2].text.replace('\n',' ')
                 if len(tr.getchildren()[3].text) > 2:
                     s = tr.getchildren()[3].text
                 elif len(tr.getchildren()[4].text) > 2:

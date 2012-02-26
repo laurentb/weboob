@@ -22,7 +22,7 @@ import re
 from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Account, Operation
+from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 
 
@@ -52,14 +52,31 @@ class AccountsListPage(BasePage):
             yield account
 
 class HistoryPage(BasePage):
+    LABEL_PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), Transaction.TYPE_TRANSFER,   '%(text)s'),
+                      (re.compile('^PRLV (?P<text>.*)'),        Transaction.TYPE_ORDER,      '%(text)s'),
+                      (re.compile('^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
+                                                                Transaction.TYPE_CARD,       '%(mm)s/%(dd)s: %(text)s'),
+                      (re.compile('^DAB (?P<text>.*)'),         Transaction.TYPE_WITHDRAWAL, '%(text)s'),
+                      (re.compile('^CHEQUE$'),                  Transaction.TYPE_CHECK,      'CHEQUE'),
+                      (re.compile('^COTIS\.? (?P<text>.*)'),       Transaction.TYPE_BANK,       '%(text)s'),
+                      (re.compile('^REMISE (?P<text>.*)'),      Transaction.TYPE_DEPOSIT,    '%(text)s'),
+                     ]
+
     def get_operations(self):
         for script in self.document.getiterator('script'):
             if script.text is None or script.text.find('\nCL(0') < 0:
                 continue
 
             for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)','([\d -\.,]+)','\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
-                op = Operation(m.group(1))
-                op.label = m.group(4)
+                op = Transaction(m.group(1))
+                op.raw = m.group(4)
+                for pattern, _type, _label in self.LABEL_PATTERNS:
+                    mm = pattern.match(op.raw)
+                    if mm:
+                        op.type = _type
+                        op.label = re.sub('[ ]+', ' ', _label % mm.groupdict()).strip()
+                        break
+
                 op.amount = float(m.group(5).replace('.','').replace(',','.').replace(' ', '').strip(u' \t\u20ac\xa0€\n\r'))
                 op.date = date(*reversed([int(x) for x in m.group(3).split('/')]))
                 op.category = NotAvailable

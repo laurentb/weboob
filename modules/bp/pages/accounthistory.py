@@ -20,7 +20,7 @@
 
 import re
 
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 from weboob.tools.browser import BasePage
 
 
@@ -36,10 +36,10 @@ class AccountHistory(BasePage):
         operations = []
 
         for mvt in mvt_ligne:
-            operation = Operation(len(operations))
+            operation = Transaction(len(operations))
             operation.date = mvt.xpath("./td/span")[0].text
             tmp = mvt.xpath("./td/span")[1]
-            operation.label = unicode(self.parser.tocleanstring(tmp))
+            operation.raw = unicode(self.parser.tocleanstring(tmp))
 
             r = re.compile(r'\d+')
 

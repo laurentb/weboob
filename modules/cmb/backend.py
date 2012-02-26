@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
-from weboob.capabilities.bank import Account, Operation
+from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
@@ -201,7 +201,7 @@ class CmbBackend(BaseBackend, ICapBank):
             for tr in table.getiterator('tr'):
                 if (tr.get('class') != 'LnTit' and
                     tr.get('class') != 'LnTot'):
-                    operation = Operation(i)
+                    operation = Transaction(i)
                     td = tr.xpath('td')
 
                     div = td[1].xpath('div')
@@ -210,7 +210,7 @@ class CmbBackend(BaseBackend, ICapBank):
 
                     div = td[2].xpath('div')
                     label = div[0].xpath('a')[0].text.replace('\n','')
-                    operation.label = unicode(' '.join(label.split()))
+                    operation.raw = unicode(' '.join(label.split()))
 
                     amount = td[3].text
                     if amount.count(',') != 1:

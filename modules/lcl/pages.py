@@ -19,7 +19,7 @@
 
 import base64
 from datetime import date
-from weboob.capabilities.bank import Operation
+from weboob.capabilities.bank import Transaction
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -174,7 +174,7 @@ class AccountHistoryPage(BasePage):
             if len(tr.findall("th"))!=0 or\
                len(tr.findall("td"))==0:
                 continue
-            operation=Operation(len(operations))
+            operation=Transaction(len(operations))
             mntColumn=0
             for td in tr.iter('td'):
                 value=td.attrib.get('id')
@@ -184,7 +184,7 @@ class AccountHistoryPage(BasePage):
                     operation.date=date(*reversed([int(x) for x in td.text.split('/')]))
                 elif value.startswith("lib") or value.startswith("opLib"):
                     # misclosed A tag requires to grab text from td
-                    operation.label=u''.join([txt.strip() for txt in td.itertext()])
+                    operation.raw=u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("solde") or value.startswith("mnt"):
                     mntColumn+=1
                     if td.text.strip() != "":
