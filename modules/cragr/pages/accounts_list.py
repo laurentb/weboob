@@ -19,6 +19,7 @@
 
 
 import re
+from datetime import date
 from weboob.capabilities.bank import Account
 from .base import CragrBasePage
 from weboob.capabilities.bank import Transaction
@@ -182,6 +183,34 @@ class AccountsList(CragrBasePage):
         data = re.sub(' +', ' ', data.replace("\n", ' ').strip())
         return data
 
+    def fallback_date(self):
+        """
+            Returns a fallback, default date.
+        """
+        default_date_obj = date.today()
+        default_date_obj.month = 1
+        default_date_obj.day = 1
+        return default_date_obj
+
+    def date_from_string(self, string):
+        """
+            Builds a date object from a 'DD/MM' string
+        """
+        matches = re.search('([012]?[0-9]|3[01])\s*/\s*(0?[1-9]|1[012])', string)
+        if matches is None:
+            return self.fallback_date()
+        return self.date_from_day_month(int(matches[1]), int(matches[2]))
+
+    def date_from_day_month(self, day, month):
+        today = date.today()
+        # This bank provides dates using the 'DD/MM' string, so we have to
+        # determine the most possible year by ourselves
+        if ((month > today.month) or (month == today.month and day > today.day)):
+            year = today.year - 1
+        else:
+            year = today.year
+        return date(year, month, day)
+
     def get_history(self, start_index = 0, start_offset = 0):
         """
             Returns the history of a specific account. Note that this function
@@ -246,7 +275,7 @@ class AccountsList(CragrBasePage):
                     continue
                 operation = Transaction(index)
                 index += 1
-                operation.date = self.extract_text(line[0])
+                operation.date = self.date_from_string(self.extract_text(line[0]))
                 operation.raw = self.extract_text(line[1])
                 operation.amount = clean_amount(self.extract_text(line[2]))
                 yield operation
@@ -267,10 +296,10 @@ class AccountsList(CragrBasePage):
                     operation = Transaction(index)
                     index += 1
                     if (matches):
-                        operation.date  = u'%s/%s' % (matches[0][0], matches[0][1])
+                        operation.date  = self.date_from_day_month(int(matches[0][0]), int(matches[0][1]))
                         operation.raw = u'%s'    % matches[0][2]
                     else:
-                        operation.date  = u'01/01'
+                        operation.date  = self.default_date()
                         operation.raw = u'Unknown'
         else:
             for i in range(0, len(interesting_divs)/3):
@@ -283,8 +312,7 @@ class AccountsList(CragrBasePage):
                 operation.amount = clean_amount(self.extract_text(interesting_divs[(i*3)+1]))
                 # date
                 data = self.extract_text(interesting_divs[i*3])
-                matches = re.findall('^([012][0-9]|3[01])/(0[1-9]|1[012])', data)
-                operation.date = u'%s/%s' % (matches[0][0], matches[0][1]) if (matches) else u'01/01'
+                operation.date = self.date_from_string(date)
                 #label
                 data = self.extract_text(interesting_divs[(i*3)+2])
                 data = re.sub(' +', ' ', data)

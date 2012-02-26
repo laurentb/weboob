@@ -58,7 +58,7 @@ class HistoryPage(BasePage):
                                                                 Transaction.TYPE_CARD,       '%(mm)s/%(dd)s: %(text)s'),
                       (re.compile('^DAB (?P<text>.*)'),         Transaction.TYPE_WITHDRAWAL, '%(text)s'),
                       (re.compile('^CHEQUE$'),                  Transaction.TYPE_CHECK,      'CHEQUE'),
-                      (re.compile('^COTIS\.? (?P<text>.*)'),       Transaction.TYPE_BANK,       '%(text)s'),
+                      (re.compile('^COTIS\.? (?P<text>.*)'),    Transaction.TYPE_BANK,       '%(text)s'),
                       (re.compile('^REMISE (?P<text>.*)'),      Transaction.TYPE_DEPOSIT,    '%(text)s'),
                      ]
 
