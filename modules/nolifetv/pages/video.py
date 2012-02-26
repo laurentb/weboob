@@ -23,7 +23,7 @@ import urllib
 
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.misc import to_unicode
 
 from ..video import NolifeTVVideo
@@ -59,7 +59,11 @@ class VideoPage(BasePage):
 
         div = self.parser.select(self.document.getroot(), 'div#informations_video', 1)
         video.title = self.parser.select(div, 'div#ligne_titre_big', 1).text
-        video.description = self.parser.select(div, 'div#ligne_titre_small', 1).text
+        try:
+            video.description = self.parser.select(div, 'div#ligne_titre_small', 1).text
+        except BrokenPageError:
+            video.description = NotAvailable
+
         video.thumbnail = Thumbnail(self.parser.select(div, 'div#icone_video img', 1).attrib['src'])
         try:
             video.date = parse_dt(self.parser.select(div, 'div#infos_complementaires', 1).find('p').text.strip())
