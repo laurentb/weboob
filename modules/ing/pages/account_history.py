@@ -27,10 +27,19 @@ from weboob.capabilities.base import NotAvailable
 __all__ = ['AccountHistoryCC', 'AccountHistoryLA']
 
 
+
+
 class AccountHistoryCC(BasePage):
+    types = { 
+        'Carte achat': Transaction.TYPE_CARD, 
+        'Virement': Transaction.TYPE_TRANSFER,
+        'Carte retrait': Transaction.TYPE_WITHDRAWAL,
+        u'Prélèvement': Transaction.TYPE_ORDER,
+        'Autre': Transaction.TYPE_UNKNOWN,
+         }
 
     def on_loaded(self):
-        self.operations = []
+        self.transactions = []
         table = self.document.findall('//tbody')[0]
         i = 1
         for tr in table.xpath('tr'):
@@ -38,22 +47,24 @@ class AccountHistoryCC(BasePage):
             texte = tr.text_content().split('\n')
             op = Transaction(id)
             op.label = texte[2]
+            op.raw = texte[2] # nothing to parse
             op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
             op.category = texte[4]
+            op.type = self.types.get(texte[4], Transaction.TYPE_UNKNOWN)
 
             amount = texte[5].replace('\t','').strip().replace(u'€', '').replace(',', '.').replace(u'\xa0', u'')
             op.amount = float(amount)
 
-            self.operations.append(op)
+            self.transactions.append(op)
             i += 1
 
-    def get_operations(self):
-        return self.operations
+    def get_transactions(self):
+        return self.transactions
 
 class AccountHistoryLA(BasePage):
 
     def on_loaded(self):
-        self.operations = []
+        self.transactions = []
         i = 1
         history = self.document.xpath('//tr[@align="center"]')
         history.pop(0)
@@ -71,10 +82,10 @@ class AccountHistoryLA(BasePage):
            op.amount = float(amount)
 
 
-           self.operations.append(op)
+           self.transactions.append(op)
            i += 1
 
 
-    def get_operations(self):
-        return self.operations
+    def get_transactions(self):
+        return self.transactions
 

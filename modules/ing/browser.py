@@ -89,7 +89,7 @@ class Ing(BaseBrowser):
           self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
         else:
           raise NotImplementedError()
-        return self.page.get_operations()
+        return self.page.get_transactions()
 
     # TODO
     # def get_coming_operations
