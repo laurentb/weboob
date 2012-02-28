@@ -65,16 +65,16 @@ class TransactionsFormatter(IFormatter):
 
         result = u''
         if self.count == 1:
-            result += ' Date         Type         Label                                                  Amount \n'
+            result += ' Date         Category     Label                                                  Amount \n'
             result += '------------+------------+---------------------------------------------------+-----------\n'
 
-        try:
-            _type = self.TYPES[item['type']]
-        except IndexError:
-            _type = ''
-
-        if not _type and item['category']:
+        if item['category']:
             _type = item['category']
+        else:
+            try:
+                _type = self.TYPES[item['type']]
+            except IndexError:
+                _type = ''
 
         label = item['label']
         if not label:
