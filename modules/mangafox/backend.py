@@ -26,7 +26,7 @@ class MangafoxBackend(GenericComicReaderBackend):
     DESCRIPTION = 'Manga Fox manga reading website'
     BROWSER_PARAMS = dict(
         img_src_xpath="//img[@id='image']/attribute::src",
-        page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option/@value",
+        page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option[text()!='Comments']/@value",
         page_to_location="%s.html")
     ID_REGEXP = r'[^/]+/[^/]+(?:/[^/]+)?'
     URL_REGEXP = r'.+mangafox.com/manga/(%s).+' % ID_REGEXP
