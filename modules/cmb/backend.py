@@ -25,7 +25,7 @@ from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 
-from re import match
+from re import match, compile, sub
 from httplib import HTTPSConnection
 from urllib import urlencode
 
@@ -45,6 +45,45 @@ class CmbBackend(BaseBackend, ICapBank):
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Account ID', masked=False),
             ValueBackendPassword('password', label='Password', masked=True))
+    LABEL_PATTERNS = [
+            (   # card
+                compile('^CARTE (?P<text>.*)'),
+                Transaction.TYPE_CARD,
+                '%(text)s'
+            ),
+            (   # order
+                compile('^PRLV (?P<text>.*)'),
+                Transaction.TYPE_ORDER,
+                '%(text)s'
+            ),
+            (   # withdrawal
+                compile('^RET DAB (?P<text>.*)'),
+                Transaction.TYPE_WITHDRAWAL,
+                '%(text)s'
+            ),
+            (   # loan payment
+                compile('^ECH (?P<text>.*)'),
+                Transaction.TYPE_LOAN_PAYMENT,
+                '%(text)s'
+            ),
+            (   # transfer
+                compile('^VIR (?P<text>.*)'),
+                Transaction.TYPE_TRANSFER,
+                '%(text)s'
+            ),
+            (   # payback
+                compile('^ANN (?P<text>.*)'),
+                Transaction.TYPE_PAYBACK,
+                '%(text)s'
+            ),
+            (   # bank
+                compile('^F (?P<text>.*)'),
+                Transaction.TYPE_BANK,
+                '%(text)s'
+            )
+            ]
+
+
     cookie = None
     headers = {
             'User-Agent':
@@ -211,12 +250,17 @@ class CmbBackend(BaseBackend, ICapBank):
                     div = td[2].xpath('div')
                     label = div[0].xpath('a')[0].text.replace('\n','')
                     operation.raw = unicode(' '.join(label.split()))
+                    for pattern, _type, _label in self.LABEL_PATTERNS:
+                        mm = pattern.match(operation.raw)
+                        if mm:
+                            operation.type = _type
+                            operation.label = sub('[ ]+', ' ', _label % mm.groupdict()).strip()
+                            break
 
                     amount = td[3].text
                     if amount.count(',') != 1:
                         amount = td[4].text
                         amount = amount.replace(',','.').replace(u'\xa0','')
-                        print repr(amount)
                         operation.amount = float(amount)
                     else:
                         amount = amount.replace(',','.').replace(u'\xa0','')
