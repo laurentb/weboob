@@ -24,6 +24,7 @@ WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
+export PYTHONPATH="${WEBOOB_DIR}"
 "${WEBOOB_DIR}/scripts/weboob-config" update
 
 # allow failing commands past this point
