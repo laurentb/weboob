@@ -141,7 +141,6 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         
         if getseen or flags & Message.IS_UNREAD:
             com.parse()
-            print "coin !"
             message = Message(thread=parent.thread,
                               id=com.id,
                               title=com.title,
