@@ -164,9 +164,9 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
- "~/.weboob/backends" """ % application.COPYRIGHT
+ "~/.config/weboob/backends" """ % application.COPYRIGHT
     if len(app.CONFIG) > 0:
-        footer += '\n\n "~/.weboob/%s"' % app.APPNAME
+        footer += '\n\n "~/.config/weboob/%s"' % app.APPNAME
 
     # Skip internal applications.
     footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/applications/%s" % application.APPNAME
