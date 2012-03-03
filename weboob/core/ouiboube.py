@@ -143,7 +143,7 @@ class Weboob(object):
             self.logger.error(e)
             return
 
-        backend_instance = module.create_instance(self, module_name, params, storage)
+        backend_instance = module.create_instance(self, module_name, params or {}, storage)
         return backend_instance
 
     def load_backends(self, caps=None, names=None, modules=None, storage=None, errors=None):
