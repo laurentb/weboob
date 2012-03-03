@@ -53,6 +53,9 @@ class AccountsPage(BasePage):
                 account = Account()
                 account.label = u"%s"%first_td.find('a').text.strip()
                 account.link_id = first_td.find('a').get('href', '')
+                if account.link_id.startswith('POR_SyntheseLst'):
+                    continue
+
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
                 s = tr.getchildren()[2].text
                 if s.strip() == "":
@@ -76,19 +79,24 @@ class OperationsPage(BasePage):
     def get_history(self):
         index = 0
         for tr in self.document.getiterator('tr'):
-            first_td = tr.getchildren()[0]
-            if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
+            tds = tr.getchildren()
+            if len(tds) < 4:
+                continue
+
+            if tds[0].attrib.get('class', '') == 'i g' or \
+               tds[0].attrib.get('class', '') == 'p g' or \
+               tds[0].attrib.get('class', '').endswith('_c1 c _c1'):
                 operation = Transaction(index)
                 index += 1
 
-                d = first_td.text.strip().split('/')
+                d = tds[0].text.strip().split('/')
                 operation.date = date(*reversed([int(x) for x in d]))
 
-                operation.raw = u"%s"%tr.getchildren()[2].text.replace('\n',' ').strip()
-                if len(tr.getchildren()[3].text) > 2:
-                    s = tr.getchildren()[3].text
-                elif len(tr.getchildren()[4].text) > 2:
-                    s = tr.getchildren()[4].text
+                operation.raw = tds[-3].text.replace('\n',' ').strip()
+                if tds[-1].text is not None and len(tds[-1].text) > 2:
+                    s = tds[-1].text.strip()
+                elif tds[-1].text is not None and len(tds[-2].text) > 2:
+                    s = tds[-2].text.strip()
                 else:
                     s = "0"
                 balance = u''
@@ -103,4 +111,3 @@ class OperationsPage(BasePage):
     def next_page_url(self):
         """ TODO pouvoir passer à la page des opérations suivantes """
         return 0
-

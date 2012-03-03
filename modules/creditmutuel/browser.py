@@ -37,6 +37,8 @@ class CreditMutuelBrowser(BaseBrowser):
          'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
          'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*' : OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*' : OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*' : OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage,
          'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*' : TransfertPage
             }
@@ -95,18 +97,21 @@ class CreditMutuelBrowser(BaseBrowser):
         #operations_count = 0
         l_ret = []
         while (page_url):
-            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
+            if page_url.startswith('/'):
+                self.location(page_url)
+            else:
+                self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
             #for page_operation in self.page.get_history(operations_count):
             #    operations_count += 1
             #    yield page_operation
-            
+
             ## FONCTIONNE
             #for op in self.page.get_history():
             #    yield op
 
             ## FONTIONNE
             #return self.page.get_history()
-            
+
             for op in self.page.get_history():
                 l_ret.append(op)
             page_url = self.page.next_page_url()
