@@ -1,6 +1,8 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2011  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -18,6 +20,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .havesex import HaveSex
+from weboob.applications.havedate import HaveDate
 
-__all__ = ['HaveSex']
+
+if __name__ == '__main__':
+    HaveDate.run()

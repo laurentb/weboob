@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=QHavesex
+Name=QHaveDate
 Comment=Optimize your probabilities to have sex on dating websites
-Exec=qhavesex
-Icon=qhavesex
+Exec=qhavedate
+Icon=qhavedate
 Terminal=false
 Type=Application
 StartupNotify=true

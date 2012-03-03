@@ -92,7 +92,7 @@ def build_qt():
         extraMakeFlag = []
 
     subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qboobmsg/ui'], env=env )
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qhavesex/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qhavedate/ui'], env=env )
     if sys.platform != 'win32':
         subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qvideoob/ui'], env=env )
     subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qwebcontentedit/ui'], env=env )
@@ -146,7 +146,7 @@ scripts = set(os.listdir('scripts'))
 packages = set(find_packages())
 
 hildon_scripts = set(('masstransit',))
-qt_scripts = set(('qboobmsg', 'qhavesex', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob'))
+qt_scripts = set(('qboobmsg', 'qhavedate', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob'))
 
 if not options.hildon:
     scripts = scripts - hildon_scripts
@@ -161,8 +161,8 @@ hildon_packages = set((
 qt_packages = set((
     'weboob.applications.qboobmsg',
     'weboob.applications.qboobmsg.ui',
-    'weboob.applications.qhavesex',
-    'weboob.applications.qhavesex.ui',
+    'weboob.applications.qhavedate',
+    'weboob.applications.qhavedate.ui',
     'weboob.applications.qvideoob',
     'weboob.applications.qvideoob.ui',
     'weboob.applications.qweboobcfg',

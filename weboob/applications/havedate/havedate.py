@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -27,7 +27,7 @@ from weboob.capabilities.dating import ICapDating, OptimizationNotFound
 from weboob.capabilities.contact import Contact
 
 
-__all__ = ['HaveSex']
+__all__ = ['HaveDate']
 
 
 class ProfileFormatter(IFormatter):
@@ -70,10 +70,10 @@ class ProfileFormatter(IFormatter):
             result += u'\t%s\n' % s
         return result
 
-class HaveSex(ReplApplication):
-    APPNAME = 'havesex'
+class HaveDate(ReplApplication):
+    APPNAME = 'havedate'
     VERSION = '0.b'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = 'Console application allowing to interact with various dating websites ' \
                   'and to optimize seduction algorithmically.'
     STORAGE_FILENAME = 'dating.storage'
