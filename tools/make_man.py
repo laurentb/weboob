@@ -169,8 +169,7 @@ For full COPYRIGHT see COPYING file with weboob package.
         footer += '\n\n "~/.weboob/%s"' % app.APPNAME
 
     # Skip internal applications.
-    if not '-' in application.APPNAME:
-        footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/%s" % application.APPNAME.capitalize()
+    footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/applications/%s" % application.APPNAME
 
     mantext = u"%s\n%s\n%s\n%s" % (header, name, helptext, footer)
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
