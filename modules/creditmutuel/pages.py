@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import date
+
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bank import Transaction
@@ -49,7 +51,7 @@ class AccountsPage(BasePage):
             first_td = tr.getchildren()[0]
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
                 account = Account()
-                account.label = u"%s"%first_td.find('a').text
+                account.label = u"%s"%first_td.find('a').text.strip()
                 account.link_id = first_td.find('a').get('href', '')
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
                 s = tr.getchildren()[2].text
@@ -78,8 +80,11 @@ class OperationsPage(BasePage):
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
                 operation = Transaction(index)
                 index += 1
-                operation.date = first_td.text
-                operation.raw = u"%s"%tr.getchildren()[2].text.replace('\n',' ')
+
+                d = first_td.text.strip().split('/')
+                operation.date = date(*reversed([int(x) for x in d]))
+
+                operation.raw = u"%s"%tr.getchildren()[2].text.replace('\n',' ').strip()
                 if len(tr.getchildren()[3].text) > 2:
                     s = tr.getchildren()[3].text
                 elif len(tr.getchildren()[4].text) > 2:
