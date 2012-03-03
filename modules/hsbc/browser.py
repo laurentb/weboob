@@ -54,7 +54,7 @@ class HSBC(BaseBrowser):
         assert self.password.isdigit()
 
         data = {'Ident': self.username}
-        r = self.readurl('https://client.hsbc.fr/cgi-bin/emcgi?Appl=WEBACC', urllib.urlencode(data))
+        r = self.readurl('https://client.hsbc.fr/cgi-bin/emcgi?Appl=WEBACC', urllib.urlencode(data), if_fail='raise')
         m = re.search('sessionid=([^ "]+)', r, flags=re.MULTILINE)
         if not m:
             raise BrowserIncorrectPassword()
