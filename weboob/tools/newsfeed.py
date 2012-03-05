@@ -68,6 +68,11 @@ class Entry:
         elif self.summary:
             self.content.append(self.summary)
 
+        if entry.has_key("wfw_commentrss"):
+            self.rsscomment = entry["wfw_commentrss"]
+        else:
+            self.rsscomment = None
+
         if rssid_func:
             self.id = rssid_func(self)
 
