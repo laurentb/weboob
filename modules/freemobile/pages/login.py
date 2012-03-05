@@ -25,6 +25,7 @@ from weboob.tools.browser import BasePage
 __all__ = ['LoginPage']
 
 class FreeKeyboard(object):
+    DEBUG = False
     symbols={'0':'001111111111110011111111111111111111111111111110000000000011110000000000011111111111111111011111111111111001111111111110',
              '1':'001110000000000001110000000000001110000000000011111111111111111111111111111111111111111111000000000000000000000000000000',
              '2':'011110000001111011110000111111111000001111111110000011110011110000111100011111111111000011011111110000011001111000000011',
@@ -50,12 +51,15 @@ class FreeKeyboard(object):
                 for y in range(12, 27):
                     (r, g, b) = matrix[x,y]
                     # If the pixel is "red" enough 
-                    if (g*g + b*b)  < r*r:
+                    if g + b  < 450:
                         s += "1"
                     else:
                         s += "0"
             
             self.fingerprints.append(s)
+            if self.DEBUG:
+                image.save('/tmp/' + s + '.png')
+        
 
     def get_symbol_code(self,digit):
         fingerprint = self.symbols[digit]
@@ -64,10 +68,12 @@ class FreeKeyboard(object):
             if string.__eq__(fingerprint):
                 return i
             i += 1
-        # Image contains some noise, and the match is not alaways perfect 
+        # Image contains some noise, and the match is not always perfect 
         # (this is why we can't use md5 hashs)
-        # But if we can't find the perfect one, we can take one with smalls errors
+        # But if we can't find the perfect one, we can take the best one
         i = 0
+        best = 0
+        result = None
         for string in self.fingerprints:
             j = 0
             match = 0
@@ -75,9 +81,11 @@ class FreeKeyboard(object):
                 if bit == fingerprint[j]:
                     match += 1
                 j += 1
-            if match > 115:
-                return i
+            if match > best:
+                best = match 
+                result = i
             i += 1
+        return result
  
         # TODO : exception
 
