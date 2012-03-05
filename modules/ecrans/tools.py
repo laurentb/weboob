@@ -33,7 +33,12 @@ def id2url(_id):
 
 def url2id(url):
     "return an id from an url"
-    return url
+    regexp =  re.compile("(^.*),([0-9]+)\.html$")
+    match = regexp.match(url)
+    if match: 
+        return match.group(2)
+    else:
+        raise ValueError("Can't find an id for the url")
 
 def rssid(entry):
     return url2id(entry.id)
