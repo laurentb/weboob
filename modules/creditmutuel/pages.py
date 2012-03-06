@@ -21,6 +21,7 @@
 from datetime import date
 
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bank import Transaction
 
@@ -92,7 +93,7 @@ class OperationsPage(BasePage):
                 d = tds[0].text.strip().split('/')
                 operation.date = date(*reversed([int(x) for x in d]))
 
-                operation.raw = tds[-3].text.replace('\n',' ').strip()
+                operation.raw = to_unicode(tds[-3].text.replace('\n',' ').strip())
                 if tds[-1].text is not None and len(tds[-1].text) > 2:
                     s = tds[-1].text.strip()
                 elif tds[-1].text is not None and len(tds[-2].text) > 2:
