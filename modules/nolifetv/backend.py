@@ -21,7 +21,8 @@
 from __future__ import with_statement
 
 from weboob.capabilities.video import ICapVideo
-from weboob.tools.backend import BaseBackend
+from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.backend import BaseBackend, BackendConfig
 
 from .browser import NolifeTVBrowser
 from .video import NolifeTVVideo
@@ -38,6 +39,16 @@ class NolifeTVBackend(BaseBackend, ICapVideo):
     DESCRIPTION = 'NolifeTV French video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = NolifeTVBrowser
+    CONFIG = BackendConfig(Value('username',                  label='Username', default=''),
+                           ValueBackendPassword('password',   label='Password', default=''))
+
+    def create_default_browser(self):
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(username, password)
 
     def get_video(self, _id):
         with self.browser:

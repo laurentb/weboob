@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.browser.decorators import id2url
 
 from .pages.index import IndexPage
@@ -37,6 +37,31 @@ class NolifeTVBrowser(BaseBrowser):
     PAGES = {r'http://online.nolife-tv.com/index.php\??': IndexPage,
              r'http://online.nolife-tv.com/': IndexPage,
              r'http://online.nolife-tv.com/index.php\?id=(?P<id>.+)': VideoPage}
+
+    def is_logged(self):
+        if self.password is None:
+            return True
+
+        login = self.page.document.getroot().cssselect('div#form_login')
+        return len(login) == 0
+
+    def login(self):
+        if self.password is None:
+            return
+
+        params = {'cookieuser':        1,
+                  'do':                'login',
+                  'securitytoken':     'guest',
+                  'vb_login_username': self.username,
+                  'vb_login_password': self.password,
+                 }
+
+        self.readurl('http://forum.nolife-tv.com/login.php?do=login', urllib.urlencode(params))
+
+        self.location('/', no_login=True)
+
+        if not self.is_logged():
+            raise BrowserIncorrectPassword()
 
     @id2url(NolifeTVVideo.id2url)
     def get_video(self, url, video=None):

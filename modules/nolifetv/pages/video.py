@@ -41,21 +41,15 @@ class VideoPage(BasePage):
         _id = to_unicode(self.group_dict['id'])
         if video is None:
             video = NolifeTVVideo(_id)
-        #title_el = self.parser.select(self.document.getroot(), 'title', 1)
-        #video.title = to_unicode(title_el.text.strip())
 
-        ## youjizz HTML is crap, we must parse it with regexps
-        #data = lxml.html.tostring(self.document.getroot())
-        #m = re.search(r'<strong>.*?Runtime.*?</strong> (.+?)<br.*>', data)
-        #if m:
-        #    txt = m.group(1).strip()
-        #    if txt == 'Unknown':
-        #        video.duration = NotAvailable
-        #    else:
-        #        minutes, seconds = (int(v) for v in to_unicode(txt).split(':'))
-        #        video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
-        #else:
-        #    raise BrokenPageError('Unable to retrieve video duration')
+        # Check if video is external.
+        try:
+            div = self.parser.select(self.document.getroot(), 'div#message_lien_ext', 1)
+        except BrokenPageError:
+            pass
+        else:
+            link = div.find('a').attrib['href']
+            raise ForbiddenVideo('Video is only available here: %s' % link)
 
         div = self.parser.select(self.document.getroot(), 'div#informations_video', 1)
         video.title = self.parser.select(div, 'div#ligne_titre_big', 1).text
@@ -86,7 +80,7 @@ class VideoPage(BasePage):
             values = dict([urllib.splitvalue(s) for s in data.split('&')])
 
             if not 'url' in values:
-                raise ForbiddenVideo(values['message'].decode('iso-8859-15'))
+                raise ForbiddenVideo(values.get('message', 'Not available').decode('iso-8859-15'))
             video.url = values['url']
 
         return video
