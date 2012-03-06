@@ -19,6 +19,7 @@
 
 
 import Image
+import time
 
 from weboob.tools.browser import BasePage
 
@@ -38,6 +39,7 @@ class FreeKeyboard(object):
              '9':'001111111000110011111111100111111111111100111110000001100011110000001100011111111111111111011111111111111001111111111110'
             }
     fingerprints = []
+    basepage = None
 
     def __init__(self,basepage):
         for htmlimg in basepage.document.xpath('//img[@class="ident_chiffre_img pointer"]'):
@@ -50,25 +52,26 @@ class FreeKeyboard(object):
             for x in range(15, 23):
                 for y in range(12, 27):
                     (r, g, b) = matrix[x,y]
-                    # If the pixel is "red" enough 
+                    # If the pixel is "red" enough
                     if g + b  < 450:
                         s += "1"
                     else:
                         s += "0"
-            
+
             self.fingerprints.append(s)
+            self.basepage = basepage
             if self.DEBUG:
                 image.save('/tmp/' + s + '.png')
-        
+
 
     def get_symbol_code(self,digit):
         fingerprint = self.symbols[digit]
         i = 0
-        for string in self.fingerprints: 
+        for string in self.fingerprints:
             if string.__eq__(fingerprint):
                 return i
             i += 1
-        # Image contains some noise, and the match is not always perfect 
+        # Image contains some noise, and the match is not always perfect
         # (this is why we can't use md5 hashs)
         # But if we can't find the perfect one, we can take the best one
         i = 0
@@ -82,11 +85,12 @@ class FreeKeyboard(object):
                     match += 1
                 j += 1
             if match > best:
-                best = match 
+                best = match
                 result = i
             i += 1
+        self.basepage.browser.logger.debug(self.fingerprints[result] + " match " + digit)
         return result
- 
+
         # TODO : exception
 
     def get_string_code(self,string):
@@ -96,6 +100,11 @@ class FreeKeyboard(object):
             code+=str(codesymbol)
         return code
 
+    def get_small(self, string):
+        for c in string:
+            time.sleep(0.4)
+            url = 'https://mobile.free.fr/moncompte/chiffre.php?pos=' + c + '&small=1'
+            fichier = self.basepage.browser.openurl(url)
 
 
 class LoginPage(BasePage):
@@ -103,12 +112,14 @@ class LoginPage(BasePage):
         pass
 
     def login(self, login, password):
-        vk = FreeKeyboard(self) 
+        vk = FreeKeyboard(self)
 
         # Fucking form without name...
         self.browser.select_form(nr=0)
         self.browser.set_all_readonly(False)
-        self.browser['login_abo'] = vk.get_string_code(login)
+        code = vk.get_string_code(login)
+        self.browser['login_abo'] = code
+        vk.get_small(code)
         self.browser['pwd_abo'] = password
         self.browser.submit(nologin=True)
 
