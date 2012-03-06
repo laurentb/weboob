@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://www.ecrans.fr"
 
-import time 
+import time
 
-from weboob.capabilities.messages import ICapMessages, Thread
+from weboob.capabilities.messages import ICapMessages
 from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBackend
 from .browser import NewspaperEcransBrowser
 from .tools import rssid, url2id
-from weboob.tools.newsfeed import Newsfeed
 
 class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
@@ -54,14 +53,14 @@ class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
         if time.time() - lastpurge > 7200:
             self.storage.set('lastpurge', time.time())
             # Get lasts 20 articles
-            for id in self.storage.get('seen', default={}): 
+            for id in self.storage.get('seen', default={}):
                  l.append((int(url2id(id)), id))
             l.sort()
             l.reverse()
             tosave = [v[1] for v in l[0:19]]
             toremove = set([v for v in self.storage.get('seen', default={})]).difference(tosave)
-            for id in toremove: 
+            for id in toremove:
                 self.storage.delete('seen', id)
-                
+
         self.storage.save()
 

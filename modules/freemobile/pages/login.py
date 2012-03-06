@@ -104,7 +104,7 @@ class FreeKeyboard(object):
         for c in string:
             time.sleep(0.4)
             url = 'https://mobile.free.fr/moncompte/chiffre.php?pos=' + c + '&small=1'
-            fichier = self.basepage.browser.openurl(url)
+            self.basepage.browser.openurl(url)
 
 
 class LoginPage(BasePage):
