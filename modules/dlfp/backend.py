@@ -92,18 +92,20 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                 yield thread
 
     def get_thread(self, id, getseen=True):
-        if isinstance(id, Thread):
+        if not isinstance(id, Thread):
+            thread = None
+        else:
             thread = id
             id = thread.id
-        else:
-            thread = None
 
-        oldhash = self.storage.get('hash', id, default="")
-        newhash = self.browser.get_hash(thread._rsscomment)
-        if not getseen and oldhash == newhash:
-            return None
-        self.storage.set('hash', id, newhash)
-        self.storage.save()
+            # Check if we have seen all comments of this thread.
+            oldhash = self.storage.get('hash', id, default="")
+            newhash = self.browser.get_hash(thread._rsscomment)
+            if not getseen and oldhash == newhash:
+                return None
+            self.storage.set('hash', id, newhash)
+            self.storage.save()
+
         with self.browser:
             content = self.browser.get_content(id)
 
