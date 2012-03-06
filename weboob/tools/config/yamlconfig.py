@@ -25,6 +25,13 @@ import tempfile
 import logging
 import yaml
 
+try:
+    from yaml import CLoader as Loader
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Loader
+    from yaml import Dumper
+
 from .iconfig import IConfig, ConfigError
 
 
@@ -42,7 +49,7 @@ class YamlConfig(IConfig):
         logging.debug(u'Loading application configuration file: %s.' % self.path)
         try:
             with open(self.path, 'r') as f:
-                self.values = yaml.load(f)
+                self.values = yaml.load(f, Loader=Loader)
             logging.debug(u'Application configuration file loaded: %s.' % self.path)
         except IOError:
             self.save()
@@ -55,7 +62,7 @@ class YamlConfig(IConfig):
         # write in a temporary file to avoid corruption problems
         fd, path = tempfile.mkstemp(dir=os.path.dirname(self.path))
         with os.fdopen(fd, 'w') as f:
-            yaml.dump(self.values, f)
+            yaml.dump(self.values, f, Dumper=Dumper)
         os.rename(path, self.path)
 
     def get(self, *args, **kwargs):
