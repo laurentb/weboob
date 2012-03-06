@@ -56,6 +56,8 @@ class PastebinTest(BackendTest):
         p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡', public=False)
         self.backend.post_paste(p1, max_age=600)
         assert p1.id
+        # not related to testing special chars, but check if the paste is
+        # really private since test_post() tests the contrary
         assert p1.public is False
 
         # this should use the raw method to get the contents

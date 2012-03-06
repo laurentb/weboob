@@ -51,7 +51,7 @@ class PastePage(LoginPage):
         paste.contents = self.parser.select(self.document.getroot(),
                 '//textarea[@id="paste_code"]', 1, 'xpath').text
         visibility_text = self.parser.select(header,
-                '//div[@class="paste_box_line1"]//img', 1, 'xpath').attrib['alt']
+                '//div[@class="paste_box_line1"]//img', 1, 'xpath').attrib['title']
         if visibility_text.startswith('Public'):
             paste.public = True
         elif visibility_text.startswith('Private'):
