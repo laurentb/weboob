@@ -86,6 +86,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                     continue
                 thread = Thread(article.id)
                 thread.title = article.title
+                thread._rsscomment = article.rsscomment
                 if article.datetime:
                     thread.date = article.datetime
                 yield thread
@@ -97,6 +98,12 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         else:
             thread = None
 
+        oldhash = self.storage.get('hash', id, default="")
+        newhash = self.browser.get_hash(thread._rsscomment)
+        if not getseen and oldhash == newhash:
+            return None
+        self.storage.set('hash', id, newhash)
+        self.storage.save()
         with self.browser:
             content = self.browser.get_content(id)
 
@@ -138,7 +145,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         flags = Message.IS_HTML
         if not com.id in self.storage.get('seen', parent.thread.id, 'comments', default=[]):
             flags |= Message.IS_UNREAD
-        
+
         if getseen or flags & Message.IS_UNREAD:
             com.parse()
             message = Message(thread=parent.thread,

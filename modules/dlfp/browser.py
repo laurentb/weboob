@@ -20,12 +20,14 @@
 
 import urllib
 import re
+import hashlib
+import lxml
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserHTTPError, BrowserIncorrectPassword, BrokenPageError
 from weboob.capabilities.messages import CantSendMessage
 
 from .pages.index import IndexPage, LoginPage
-from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage, NewTagPage
+from .pages.news import ContentPage, NewCommentPage, NodePage, CommentPage, NewTagPage, RSSComment
 from .pages.board import BoardIndexPage
 from .pages.wiki import WikiEditPage
 from .tools import id2url, url2id
@@ -50,6 +52,7 @@ class DLFP(BaseBrowser):
              'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments': NodePage,
              'https?://[^/]*linuxfr\.org/nodes/(\d+)/tags/nouveau': NewTagPage,
              'https?://[^/]*linuxfr\.org/board/index.xml': BoardIndexPage,
+             'https?://[^/]*linuxfr\.org/nodes/(\d+)/comments.atom': RSSComment,
             }
 
     last_board_msg_id = None
@@ -127,6 +130,11 @@ class DLFP(BaseBrowser):
             return self.page.get_preview_html()
         elif self.is_on_page(ContentPage):
             return self.page.get_article().body
+
+    def get_hash(self, url):
+        self.location(url)
+        myhash = hashlib.md5(lxml.etree.tostring(self.page.document)).hexdigest()
+        return myhash
 
     def get_content(self, _id):
         url, _id = self.parse_id(_id)
