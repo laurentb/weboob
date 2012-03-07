@@ -96,7 +96,7 @@ class WetBoobs(ReplApplication):
 
         Search cities.
         """
-        self.change_path('/cities')
+        self.change_path(['cities'])
         for backend, city in self.do('iter_city_search', pattern, caps=ICapWeather):
             self.add_object(city)
             self.format(city)
@@ -143,7 +143,7 @@ class WetBoobs(ReplApplication):
 
         List all rivers. If PATTERN is specified, search on a pattern.
         """
-        self.change_path('/gauges')
+        self.change_path([u'gauges'])
         for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapWaterLevel):
             self.add_object(gauge)
             self.format(gauge)

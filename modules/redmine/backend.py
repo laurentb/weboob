@@ -97,7 +97,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     def iter_resources(self, objs, split_path):
         if Project in objs or Issue in objs:
             if len(split_path) == 0:
-                return [Collection(project.id, project.name, fct=self.iter_issues)
+                return [Collection([project.id], project.name)
                         for project in self.iter_projects()]
 
             if len(split_path) == 1:

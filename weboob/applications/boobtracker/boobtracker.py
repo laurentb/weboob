@@ -136,7 +136,7 @@ class BoobTracker(ReplApplication):
         query.category = self.options.category
         query.status = self.options.status
 
-        self.change_path('/%s/search' % query.project)
+        self.change_path([query.project, u'search'])
         for backend, issue in self.do('iter_issues', query, backends=backends):
             self.add_object(issue)
             self.format(issue)

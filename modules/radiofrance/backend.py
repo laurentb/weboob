@@ -104,7 +104,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
-            if len(split_path) == 1 and split_path[0] == 'francebleu':
+            if split_path == [u'francebleu']:
                 for _id in sorted(self._RADIOS.iterkeys()):
                     if _id.startswith('fb'):
                         yield self.get_radio(_id)
@@ -112,13 +112,12 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                 for _id in sorted(self._RADIOS.iterkeys()):
                     if not _id.startswith('fb'):
                         yield self.get_radio(_id)
-                yield Collection('francebleu', 'France Bleu',
-                        children=self.iter_resources(objs, ['francebleu']))
+                yield Collection(['francebleu'], 'France Bleu')
             else:
                 raise CollectionNotFound(split_path)
 
     def iter_radios_search(self, pattern):
-        for radio in self._flatten_resources(self.iter_resources((Radio, ), [])):
+        for radio in self.iter_resources_flat((Radio, ), []):
             if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 yield radio
 

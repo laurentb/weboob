@@ -175,7 +175,7 @@ class Weboorrents(ReplApplication):
 
         Search torrents.
         """
-        self.change_path('/search')
+        self.change_path([u'search'])
         if not pattern:
             pattern = None
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')

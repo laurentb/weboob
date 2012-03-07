@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import IBaseCap
+from .base import IBaseCap, CapBaseObject
 
 __all__ = ['ICapCollection', 'Collection', 'CollectionNotFound']
 
@@ -31,42 +31,18 @@ class CollectionNotFound(Exception):
         Exception.__init__(self, msg)
 
 
-class Children(object):
+class Collection(CapBaseObject):
     """
-    Dynamic property of a Collection.
-    Returns a list, either by calling a function or because
-    it already has the list.
-    """
-    def __get__(self, obj, type=None):
-        if obj._children is None:
-            if callable(obj._fct):
-                obj._children = obj._fct(obj.id)
-        return obj._children or []
+    A Collection is a "fake" object returned in results, which shows you can get
+    more results if you go into its path.
 
-
-class Collection(object):
+    It is a dumb object, it must not contain callbacks to a backend.
     """
-    Collection of objects.
-    Should provide a way to be filled, either by providing the children
-    right away, or a function. The function will be called once with the id
-    as an argument if there were no children provided, but only on demand.
-    It can be found in a list of objects, it indicantes a "folder"
-    you can hop into.
-    id and title should be unicode.
-    """
-    children = Children()
-    backend = None
-
-    def __init__(self, _id=None, title=None, children=None, fct=None):
-        self.id = _id
+    def __init__(self, split_path, backend=None, title=None):
+        self.split_path = split_path
         self.title = title
-        # It does not make sense to have both at init
-        assert not (fct is not None and children is not None)
-        self._children = children
-        self._fct = fct
-
-    def __iter__(self):
-        return iter(self.children)
+        _id = split_path[-1] if len(split_path) else None
+        CapBaseObject.__init__(self, _id, backend)
 
     def __unicode__(self):
         if self.title and self.id:
@@ -78,19 +54,19 @@ class Collection(object):
 
 
 class ICapCollection(IBaseCap):
-    def _flatten_resources(self, resources, clean_only=False):
+    def iter_resources_flat(self, objs, split_path, clean_only=False):
         """
-        Expand all collections in a list
-        If clean_only is True, do not expand collections, only remove them.
+        Call iter_resources() to fetch all resources in the tree.
+        If clean_only is True, do not explore paths, only remove them.
+        split_path is used to set the starting path.
         """
-        lst = list()
-        for resource in resources:
-            if isinstance(resource, (list, Collection)):
+        for resource in self.iter_resources(objs, split_path):
+            if isinstance(resource, Collection):
                 if not clean_only:
-                    lst.extend(self._flatten_resources(resource))
+                    for res in self.iter_resources_flat(objs, resource.split_path):
+                        yield res
             else:
-                lst.append(resource)
-        return lst
+                yield resource
 
     def iter_resources(self, objs, split_path):
         """

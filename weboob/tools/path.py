@@ -16,64 +16,80 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import urllib
-import posixpath
-import copy
+from copy import copy
+from posixpath import sep, join
 
-class Path(object):
+
+class WorkingPath(object):
     def __init__(self):
-        self._working_path = []
-        self._previous = self._working_path
+        self.split_path = []
+        self.previous = copy(self.split_path)
 
-
-    def extend(self, user_input):
+    def cd1(self, user_input):
         """
-        Add a new part to the current path
+        Append *one* level to the current path.
+        This means that separators (/) will get escaped.
         """
+        split_path = self.get()
+        split_path.append(user_input)
+        self.location(split_path)
 
-        user_input = urllib.quote_plus(user_input)
-        user_input = posixpath.normpath(user_input)
-
-        escape = lambda s: s.replace('/', '%2F')
-        current_path = map(escape, self._working_path)
-
-        abspath =  posixpath.normpath(posixpath.join('/' + '/'.join(current_path), user_input))
-
-        abspath = abspath.split('/')[1:]
-        while len(abspath) > 0 and abspath[0] == u'': del abspath[0]
-
-        final_parse = map(urllib.unquote_plus, abspath)
-
-        self._previous = self._working_path
-
-        if len(final_parse) == 0:
-            self._working_path = []
-
-        self._working_path = final_parse
+    def location(self, split_path):
+        """
+        Go to a new path, and store the previous path.
+        """
+        self.previous = self.get()
+        self.split_path = split_path
 
     def restore(self):
         """
         Go to the previous path
         """
-        self._working_path = self._previous
+        self.split_path, self.previous = self.previous, self.split_path
 
     def home(self):
         """
         Go to the root
         """
-        self._previous = self._working_path
-        self._working_path = []
+        self.location([])
+
+    def up(self):
+        """
+        Go up one directory
+        """
+        self.location(self.split_path[:-1])
 
     def get(self):
-        return copy.copy(self._working_path)
+        """
+        Get the current working path
+        """
+        return copy(self.split_path)
 
-    def fromstring(self, path):
-        if path[0] == '/':
-            path = path[1:]
-        escape = lambda s: s.replace('\/', '/')
-        self._working_path = map(escape, path.split('/'))
+    def __unicode__(self):
+        return join(sep, *[s.replace(u'/', u'\/') for s in self.split_path])
 
-    def tostring(self):
-        escape = lambda s: s.replace('/', '\/')
-        path = map(escape, self._working_path)
-        return '/' + '/'.join(path)
+
+def test():
+    wp = WorkingPath()
+    assert wp.get() == []
+    assert unicode(wp) == u'/'
+    wp.cd1(u'lol')
+    assert wp.get() == [u'lol']
+    assert unicode(wp) == u'/lol'
+    wp.cd1(u'cat')
+    assert wp.get() == [u'lol', u'cat']
+    assert unicode(wp) == u'/lol/cat'
+    wp.restore()
+    assert unicode(wp) == u'/lol'
+    wp.home()
+    assert wp.get() == []
+    assert unicode(wp) == u'/'
+    wp.up()
+    assert wp.get() == []
+    assert unicode(wp) == u'/'
+    wp.location(['aa / aa', 'bbbb'])
+    assert unicode(wp) == u'/aa \/ aa/bbbb'
+    wp.up()
+    assert unicode(wp) == u'/aa \/ aa'
+    wp.cd1(u'héhé/hé')
+    assert unicode(wp) == u'/aa \/ aa/héhé\/hé'

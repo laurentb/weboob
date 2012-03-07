@@ -28,13 +28,13 @@ from weboob.tools.browser.decorators import id2url
 from .pages import InitPage, VideoPage
 from .video import CanalplusVideo
 
-from weboob.capabilities.collection import Collection, CollectionNotFound
+from weboob.capabilities.collection import CollectionNotFound
 
 __all__ = ['CanalplusBrowser']
 
 
 class XMLParser(object):
-     def parse(self, data, encoding=None):
+    def parse(self, data, encoding=None):
         if encoding is None:
             parser = None
         else:
@@ -60,11 +60,8 @@ class CanalplusBrowser(BaseBrowser):
         }
 
     def __init__(self, quality, *args, **kwargs):
-        BaseBrowser.__init__(self, parser= self.PARSER, *args, **kwargs)
-        if quality in self.FORMATS:
-            self.quality = self.FORMATS[quality]
-        else:
-            self.quality = 'HD'
+        BaseBrowser.__init__(self, parser=self.PARSER, *args, **kwargs)
+        self.quality = self.FORMATS.get(quality, self.FORMATS['hd'])
 
     def home(self):
         self.location('http://service.canal-plus.com/video/rest/initPlayer/cplus/')
@@ -79,19 +76,33 @@ class CanalplusBrowser(BaseBrowser):
         return self.page.get_video(video, self.quality)
 
     def iter_resources(self, split_path):
-        self.home()
-        collections = self.page.collections
+        if not self.is_on_page(InitPage):
+            self.home()
+        channels = self.page.get_channels()
 
-        def walk_res(path, collections):
-            if len(path) == 0 or not isinstance(collections, (list, Collection)):
-                return collections
-            i = path[0]
-            matches = [collection
-                        for collection in collections
-                        if collection.id == i or collection.title == i]
-            if not len(matches):
-                raise CollectionNotFound(path)
+        if len(split_path) == 0:
+            for channel in channels:
+                if len(channel.split_path) == 1:
+                    yield channel
+        elif len(split_path) == 1:
+            for channel in channels:
+                if len(channel.split_path) == 2 and split_path[0] == channel.split_path[0]:
+                        yield channel
+        elif len(split_path) == 2:
+            subchannels = self.iter_resources(split_path[0:1])
+            channel = None
+            for subchannel in subchannels:
+                # allow matching by title for backward compatibility (for now)
+                if split_path[0] == subchannel.split_path[0] and \
+                    split_path[1] in (subchannel.split_path[1], subchannel.title):
+                        channel = subchannel
+            if channel:
+                self.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % channel.id)
+                assert self.is_on_page(VideoPage)
+                for video in self.page.iter_channel():
+                    yield video
+            else:
+                raise CollectionNotFound(split_path)
 
-            return walk_res(path[1:], matches[0])
-
-        return walk_res(split_path, collections)
+        else:
+            raise CollectionNotFound(split_path)

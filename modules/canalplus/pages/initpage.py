@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2012 Nicolas Duhamel, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -26,24 +26,19 @@ __all__ = ['InitPage']
 
 
 class InitPage(BasePage):
-    def on_loaded(self):
-        self.collections = []
-
-        def do(_id):
-            self.browser.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % _id)
-            return self.browser.page.iter_channel()
-
-        # Parse the list of channels
+    def get_channels(self):
+        """
+        Extract all possible channels (paths) from the page
+        """
+        channels = list()
         for elem in self.document[2].getchildren():
-            children = []
             for e in elem.getchildren():
                 if e.tag == "NOM":
-                    _id = e.text.strip()
+                    name = e.text.strip()
+                    channels.append(Collection([name]))
                 elif e.tag == "SELECTIONS":
                     for select in e:
-                        sub = Collection(_id=select[0].text,
-                                title=select[1].text.strip(),
-                                fct=do)
-                        children.append(sub)
-            coll = Collection(_id, children=children)
-            self.collections.append(coll)
+                        sub = Collection([name, select[0].text],
+                                title=select[1].text.strip())
+                        channels.append(sub)
+        return channels

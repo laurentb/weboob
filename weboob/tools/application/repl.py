@@ -30,7 +30,7 @@ from weboob.capabilities.base import FieldNotFound, CapBaseObject
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
-from weboob.tools.path import Path
+from weboob.tools.path import WorkingPath
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
 
@@ -137,23 +137,22 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._interactive = False
         self.objects = []
         self.collections = []
-        self.working_path = Path()
+        self.working_path = WorkingPath()
 
     @property
     def interactive(self):
         return self._interactive
 
     def _change_prompt(self):
-        path = self.working_path.tostring()
-        if len(path) > 0 and path != '/':
-            self.prompt = '%s:%s> ' % (self.APPNAME, path)
+        if len(self.working_path.get()):
+            self.prompt = u'%s:%s> ' % (self.APPNAME, unicode(self.working_path))
         else:
-            self.prompt = '%s> ' % (self.APPNAME)
+            self.prompt = u'%s> ' % (self.APPNAME)
         self.objects = []
         self.collections = []
 
-    def change_path(self, path):
-        self.working_path.fromstring(path)
+    def change_path(self, split_path):
+        self.working_path.location(split_path)
         self._change_prompt()
 
     def add_object(self, obj):
@@ -885,16 +884,19 @@ class ReplApplication(Cmd, ConsoleApplication):
         cd [PATH]
 
         Follow a path.
-        If empty, return home.
+        ".." is a special case and goes up one directory.
+        "" is a special case and goes home.
         """
         if not len(line.strip()):
             self.working_path.home()
+        elif line.strip() == '..':
+            self.working_path.up()
         else:
-            self.working_path.extend(line)
+            self.working_path.cd1(line)
 
         objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
         if len(objects) + len(collections) == 0:
-            print >>sys.stderr, "Path: %s not found" % self.working_path.tostring()
+            print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
             self.working_path.restore()
             return 1
 

@@ -135,7 +135,7 @@ class Radioob(ReplApplication):
         If PATTERN is not given, this command will list all the radios.
         """
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'All radios')
-        self.change_path('/search')
+        self.change_path([u'search'])
         for backend, radio in self.do('iter_radios_search', pattern=pattern):
             self.add_object(radio)
             self.format(radio)
