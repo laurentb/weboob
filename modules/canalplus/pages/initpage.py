@@ -34,11 +34,12 @@ class InitPage(BasePage):
         for elem in self.document[2].getchildren():
             for e in elem.getchildren():
                 if e.tag == "NOM":
-                    name = e.text.strip()
+                    name = unicode(e.text.strip())
                     channels.append(Collection([name]))
                 elif e.tag == "SELECTIONS":
                     for select in e:
-                        sub = Collection([name, select[0].text],
-                                title=select[1].text.strip())
+                        subname = unicode(select[1].text.strip())
+                        sub = Collection([name, subname])
+                        sub._link_id = select[0].text
                         channels.append(sub)
         return channels

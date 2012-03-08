@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2012 Nicolas Duhamel, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -90,18 +90,14 @@ class CanalplusBrowser(BaseBrowser):
                         yield channel
         elif len(split_path) == 2:
             subchannels = self.iter_resources(split_path[0:1])
-            channel = None
-            for subchannel in subchannels:
-                # allow matching by title for backward compatibility (for now)
-                if split_path[0] == subchannel.split_path[0] and \
-                    split_path[1] in (subchannel.split_path[1], subchannel.title):
-                        channel = subchannel
-            if channel:
-                self.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % channel.id)
+            try:
+                channel = [subchannel for subchannel in subchannels
+                            if split_path == subchannel.split_path][0]
+                self.location("http://service.canal-plus.com/video/rest/getMEAs/cplus/%s" % channel._link_id)
                 assert self.is_on_page(VideoPage)
                 for video in self.page.iter_channel():
                     yield video
-            else:
+            except IndexError:
                 raise CollectionNotFound(split_path)
 
         else:

@@ -107,6 +107,15 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
 
             raise CollectionNotFound(split_path)
 
+    def _is_collection_valid(self, objs, split_path):
+        if len(split_path) == 0:
+            return True
+        if Issue in objs and len(split_path) == 1:
+            for project in self.browser.iter_projects():
+                if split_path[0] in (project['id'], project['name']):
+                    return True
+            return self.get_project(split_path[0]) is not None
+        return False
 
     ############# CapBugTracker ###################################################
     def _build_project(self, project_dict):

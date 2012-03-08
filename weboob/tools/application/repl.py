@@ -894,15 +894,15 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.working_path.cd1(line)
 
-        objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
-        if len(objects) + len(collections) == 0:
+        collections = [res for backend, res in self.do('get_collection',
+                    objs=self.COLLECTION_OBJECTS, split_path=self.working_path.get(),
+                    caps=ICapCollection) if res is not None]
+        if len(collections):
+            self._change_prompt()
+        else:
             print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
             self.working_path.restore()
             return 1
-
-        self._change_prompt()
-        self.objects = objects
-        self.collections = collections
 
     def _fetch_objects(self, objs):
         objects = []
@@ -927,7 +927,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         return (objects, collections)
 
     def complete_cd(self, text, line, begidx, endidx):
-        directories = set(['..'])
+        directories = set()
+        if len(self.working_path.get()):
+            directories.add('..')
         mline = line.partition(' ')[2]
         offs = len(mline) - len(text)
 
@@ -935,9 +937,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for collection in self.collections:
-            directories.add(collection.id)
-            if collection.title:
-                directories.add(collection.title)
+            directories.add(collection.id.encode(sys.stdout.encoding or locale.getpreferredencoding()))
 
         return [s[offs:] for s in directories if s.startswith(mline)]
 

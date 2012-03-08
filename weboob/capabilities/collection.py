@@ -38,7 +38,7 @@ class Collection(CapBaseObject):
 
     It is a dumb object, it must not contain callbacks to a backend.
     """
-    def __init__(self, split_path, backend=None, title=None):
+    def __init__(self, split_path, title=None, backend=None):
         self.split_path = split_path
         self.title = title
         _id = split_path[-1] if len(split_path) else None
@@ -74,3 +74,30 @@ class ICapCollection(IBaseCap):
         components.
         """
         raise NotImplementedError()
+
+    def get_collection(self, objs, split_path):
+        """
+        Get a collection for a given split path.
+        If the path is invalid (i.e. can't be handled by this module),
+        it should return None.
+        """
+        collection = Collection(split_path, None, self.name)
+        if self._is_collection_valid(objs, collection.split_path):
+            return collection
+
+    def _is_collection_valid(self, objs, split_path):
+        """
+        Tests if a collection is valid.
+        For compatibility reasons, and to provide a default way, it checks if
+        the collection has at least one object in it. However, it is not very
+        efficient or exact, and you are encouraged to override this method.
+        """
+        # Root
+        if len(split_path) == 0:
+            return True
+        try:
+            i = self.iter_resources(objs, split_path)
+            i.next()
+            return True
+        except (StopIteration, CollectionNotFound):
+            return False
