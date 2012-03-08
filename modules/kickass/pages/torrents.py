@@ -22,6 +22,7 @@ try:
     from urlparse import parse_qs
 except ImportError:
     from cgi import parse_qs
+
 from urlparse import urlsplit
 
 from weboob.capabilities.torrent import Torrent
@@ -59,13 +60,13 @@ class TorrentsPage(BasePage):
                 seed = tr.getchildren()[4].text
                 leech = tr.getchildren()[5].text
 
-                yield Torrent(idt,
-                              title,
-                              url=url,
-                              filename=parse_qs(urlsplit(url).query).get('title', [None])[0],
-                              size=get_bytes_size(size, u),
-                              seeders=int(seed),
-                              leechers=int(leech))
+                torrent = Torrent(idt, title)
+                torrent.url = url
+                torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
+                torrent.size = get_bytes_size(size, u)
+                torrent.seeders = int(seed)
+                torrent.leechers = int(leech)
+                yield torrent
 
 
 class TorrentPage(BasePage):
@@ -105,7 +106,7 @@ class TorrentPage(BasePage):
         for span in self.document.getiterator('span'):
             # sometimes there are others span, this is not so sure but the size of the children list
             # is enough to know if this is the right span
-            if (span.attrib.get('class', '') == 'folder' or span.attrib.get('class', '') == 'folderopen') and len(span.getchildren())>2:
+            if (span.attrib.get('class', '') == 'folder' or span.attrib.get('class', '') == 'folderopen') and len(span.getchildren()) > 2:
                 size = span.getchildren()[1].tail
                 u = span.getchildren()[2].text
                 size = float(size.split(': ')[1].replace(',', '.'))

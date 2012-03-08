@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Laurent Bachelier
+# Copyright(C) 2010-2012 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -19,26 +19,26 @@
 
 from datetime import datetime
 
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject
 
 
 __all__ = ['ICapTorrent', 'Torrent']
 
 
 class Torrent(CapBaseObject):
-    def __init__(self, id, name, date=NotLoaded, size=NotLoaded, url=NotLoaded,
-                       seeders=NotLoaded, leechers=NotLoaded, files=NotLoaded,
-                       description=NotLoaded, filename=NotLoaded):
+    def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
         self.add_field('name', basestring, name)
-        self.add_field('size', (int,long,float), size)
-        self.add_field('date', datetime, date)
-        self.add_field('url', basestring, url)
-        self.add_field('seeders', int, seeders)
-        self.add_field('leechers', int, leechers)
-        self.add_field('files', list, files)
-        self.add_field('description', basestring, description)
-        self.add_field('filename', basestring, filename) # suggested name of the .torrent file
+        self.add_field('size', (int, long, float))
+        self.add_field('date', datetime)
+        self.add_field('url', basestring)
+        self.add_field('magnet', basestring)
+        self.add_field('seeders', int)
+        self.add_field('leechers', int)
+        self.add_field('files', list)
+        self.add_field('description', basestring)
+        self.add_field('filename', basestring)  # suggested name of the .torrent file
+
 
 class ICapTorrent(IBaseCap):
     def iter_torrents(self, pattern):

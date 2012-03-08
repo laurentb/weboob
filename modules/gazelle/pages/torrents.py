@@ -39,6 +39,7 @@ __all__ = ['TorrentsPage']
 
 class TorrentsPage(BasePage):
     TORRENTID_REGEXP = re.compile('torrents\.php\?action=download&id=(\d+)')
+
     def format_url(self, url):
         return '%s://%s/%s' % (self.browser.PROTOCOL,
                                self.browser.DOMAIN,
@@ -75,7 +76,7 @@ class TorrentsPage(BasePage):
                     if len(tds) == 7:
                         # Under a group
                         i = 0
-                    elif len(tds) in (8,9):
+                    elif len(tds) in (8, 9):
                         # An alone torrent
                         i = len(tds) - 1
                         while i >= 0 and tds[i].find('a') is None:
@@ -102,16 +103,15 @@ class TorrentsPage(BasePage):
                         size, unit = tds[i+3].text.split()
                     except ValueError:
                         size, unit = tds[i+2].text.split()
-                    size = get_bytes_size(float(size.replace(',','')), unit)
+                    size = get_bytes_size(float(size.replace(',', '')), unit)
                     seeders = int(tds[-2].text)
                     leechers = int(tds[-1].text)
 
-                    torrent = Torrent(id,
-                                      title,
-                                      url=self.format_url(url),
-                                      size=size,
-                                      seeders=seeders,
-                                      leechers=leechers)
+                    torrent = Torrent(id, title)
+                    torrent.url = self.format_url(url)
+                    torrent.size = size
+                    torrent.seeders = seeders
+                    torrent.leechers = leechers
                     yield torrent
                 else:
                     debug('unknown attrib: %s' % tr.attrib)

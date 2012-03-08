@@ -55,12 +55,11 @@ class TorrentsPage(BasePage):
                 seed = tr.getchildren()[2].text
                 leech = tr.getchildren()[3].text
 
-                torrent = Torrent(idt,
-                                  title,
-                                  url=url,
-                                  size=self.unit(float(size), u),
-                                  seeders=int(seed),
-                                  leechers=int(leech))
+                torrent = Torrent(idt, title)
+                torrent.url = url
+                torrent.size = self.unit(float(size), u)
+                torrent.seeders = int(seed)
+                torrent.leechers = int(leech)
                 yield torrent
 
 

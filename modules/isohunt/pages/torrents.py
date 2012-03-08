@@ -32,7 +32,7 @@ class TorrentsPage(BasePage):
             if tr.attrib.get('class', '') == 'hlRow':
                 # sometimes the first tr also has the attribute hlRow
                 # i use that to ditinct it from the others
-                if tr.attrib.has_key('onmouseout'):
+                if 'onmouseout' in tr.attrib:
                     atitle = tr.getchildren()[2].getchildren()[1]
                     title = atitle.text
                     if not title:
@@ -42,7 +42,7 @@ class TorrentsPage(BasePage):
                             title += bold.text
                         if bold.tail:
                             title += bold.tail
-                    idt = tr.getchildren()[2].getchildren()[0].attrib.get('href','')
+                    idt = tr.getchildren()[2].getchildren()[0].attrib.get('href', '')
                     idt = idt.split('/')[2]
                     size = tr.getchildren()[3].text
                     u = size[-2:]
@@ -50,12 +50,12 @@ class TorrentsPage(BasePage):
                     seed = tr.getchildren()[4].text
                     leech = tr.getchildren()[5].text
                     url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
-                    yield Torrent(idt,
-                                  title,
-                                  url=url,
-                                  size=get_bytes_size(size, u),
-                                  seeders=int(seed),
-                                  leechers=int(leech))
+                    torrent = Torrent(idt, title)
+                    torrent.url = url
+                    torrent.size = get_bytes_size(size, u)
+                    torrent.seeders = int(seed)
+                    torrent.leechers = int(leech)
+                    yield torrent
 
 
 class TorrentPage(BasePage):
@@ -95,7 +95,7 @@ class TorrentPage(BasePage):
                         description = p.getchildren()[1].tail
                 if count_p_found == 2:
                     if p.getchildren()[0].text == 'Directory:':
-                        files.append(p.getchildren()[0].tail.strip()+'/')
+                        files.append(p.getchildren()[0].tail.strip() + '/')
                     else:
                         files.append(p.getchildren()[0].tail.strip())
 
