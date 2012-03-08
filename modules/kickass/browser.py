@@ -32,7 +32,7 @@ class KickassBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://kat.ph/new/.*field=seeders&sorder=desc': TorrentsPage,
+        'http://kat.ph/usearch/.*field=seeders&sorder=desc': TorrentsPage,
         'http://kat.ph/.*.html': TorrentPage,
         }
 
@@ -40,7 +40,7 @@ class KickassBrowser(BaseBrowser):
         return self.location('http://kat.ph')
 
     def iter_torrents(self, pattern):
-        self.location('http://kat.ph/new/?q=%s&field=seeders&sorder=desc' % pattern.encode('utf-8'))
+        self.location('http://kat.ph/usearch/%s/?field=seeders&sorder=desc' % pattern.encode('utf-8'))
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 

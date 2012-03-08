@@ -22,6 +22,7 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import KickassBrowser
 
+from urllib import quote_plus
 
 __all__ = ['KickassBackend']
 
@@ -49,4 +50,4 @@ class KickassBackend(BaseBackend, ICapTorrent):
         return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):
-        return self.browser.iter_torrents(pattern.replace(' ','+'))
+        return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
