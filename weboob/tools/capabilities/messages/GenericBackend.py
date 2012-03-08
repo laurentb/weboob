@@ -20,6 +20,7 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
+import time 
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
@@ -33,6 +34,8 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
     STORAGE = {'seen': {}}
     RSS_FEED = None
     RSSID = None
+    URL2ID = None
+    RSSSIZE = 0
 
     def get_thread(self, _id):
         if isinstance(_id, Thread):
@@ -101,6 +104,22 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
                 message.thread.id,
                 'comments',
                 default=[]) + [message.id])
+
+        if self.URL2ID and self.RSSSIZE != 0:
+            url2id = self.URL2ID
+            lastpurge = self.storage.get('lastpurge', default=0)
+            l = []
+            if time.time() - lastpurge > 7200:
+                self.storage.set('lastpurge', time.time())
+                for id in self.storage.get('seen', default={}):
+                     l.append((int(url2id(id)), id))
+                l.sort()
+                l.reverse()
+                tosave = [v[1] for v in l[0:self.RSSSIZE + 10]]
+                toremove = set([v for v in self.storage.get('seen', default={})]).difference(tosave)
+                for id in toremove:
+                    self.storage.delete('seen', id)
+
         self.storage.save()
 
     OBJECTS = {Thread: fill_thread}
