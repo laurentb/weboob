@@ -102,7 +102,7 @@ class WeboobRepos(ReplApplication):
         r.build_index(source_path, index_file)
 
         if r.signed:
-            sigfiles = [r.KEYRING]
+            sigfiles = [r.KEYRING, Repository.INDEX]
             gpg = self._find_gpg()
             if not gpg:
                 raise Exception('Unable to find the gpg executable.')
