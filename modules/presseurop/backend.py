@@ -23,7 +23,7 @@ from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBa
 from weboob.tools.backend import BackendConfig
 from weboob.tools.value import Value
 from .browser import NewspaperPresseuropBrowser
-from .tools import rssid
+from .tools import rssid, url2id
 from weboob.tools.newsfeed import Newsfeed
 
 
@@ -36,7 +36,9 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     NAME = 'presseurop'
     DESCRIPTION = u'Presseurop website'
     BROWSER = NewspaperPresseuropBrowser
-    RSSID = rssid
+    RSSID = staticmethod(rssid)
+    URL2ID = staticmethod(url2id)
+    RSSSIZE = 50
     CONFIG = BackendConfig(Value('lang', label='Lang of articles',
                            choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es' : 'es', 'it' : 'it', 'nl' : 'nl', 'pl' : 'pl', 'pt' : 'pt', 'ro' : 'ro'}, default='fr'))
 

@@ -25,5 +25,5 @@ def url2id(url):
     id = regexp.match(url).group(1)
     return id
 
-def rssid(self, entry):
+def rssid(entry):
     return url2id(entry.link)
