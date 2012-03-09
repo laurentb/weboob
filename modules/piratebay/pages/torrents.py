@@ -98,7 +98,7 @@ class TorrentPage(BasePage):
                         leech = ch.text
                     prev_child_txt = ch.text
             elif div.attrib.get('class', '') == 'nfo':
-                description = div.getchildren()[0].text
+                description = div.getchildren()[0].text.strip()
         torrent = Torrent(id, title)
         torrent.url = url or NotAvailable
         torrent.magnet = magnet

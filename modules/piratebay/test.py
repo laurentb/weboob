@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2012 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,11 +18,25 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.torrent import MagnetOnly
+
+from random import choice
 
 class PiratebayTest(BackendTest):
     BACKEND = 'piratebay'
 
     def test_torrent(self):
-        l = list(self.backend.iter_torrents('debian'))
-        if len(l) > 0:
-            self.backend.get_torrent_file(l[0].id)
+        # try something popular so we sometimes get a magnet-only torrent
+        l = list(self.backend.iter_torrents('ubuntu linux'))
+        if len(l):
+            torrent = choice(l)
+            full_torrent = self.backend.get_torrent(torrent.id)
+            assert torrent.name
+            assert full_torrent.name == torrent.name
+            # I assume descriptions can be empty
+            assert isinstance(full_torrent.description, basestring)
+            try:
+                assert self.backend.get_torrent_file(torrent.id)
+            except MagnetOnly, e:
+                assert e.magnet.startswith('magnet:')
+                assert e.magnet == full_torrent.magnet

@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.tools.backend import BaseBackend
+from weboob.capabilities.base import NotAvailable
 
 from .browser import PiratebayBrowser
 
 
 __all__ = ['PiratebayBackend']
-
 
 class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
@@ -46,6 +46,8 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
         if not torrent:
             return None
 
+        if torrent.url is NotAvailable and torrent.magnet:
+            raise MagnetOnly(torrent.magnet)
         return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):
