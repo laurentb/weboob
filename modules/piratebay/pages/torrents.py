@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2012 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.torrent import Torrent
+from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['TorrentsPage']
@@ -65,15 +66,21 @@ class TorrentsPage(BasePage):
 
 class TorrentPage(BasePage):
     def get_torrent(self, id):
+        url = None
+        magnet = None
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'title':
                 title = div.text.strip()
             elif div.attrib.get('class', '') == 'download':
-                # the last link is now the one with http
-                url = self.parser.select(div, 'a')[-1].attrib.get('href', '')
-                # https fails on the download server, so strip it
-                if url.startswith('https://'):
-                    url = url.replace('https://', 'http://', 1)
+                for link in self.parser.select(div, 'a'):
+                    href = link.attrib.get('href', '')
+                    # https fails on the download server, so strip it
+                    if href.startswith('https://'):
+                        href = href.replace('https://', 'http://', 1)
+                    if href.startswith('magnet:'):
+                        magnet = href
+                    elif len(href):
+                        url = href
             elif div.attrib.get('id', '') == 'details':
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
                 if len(div.getchildren()) > 1 \
@@ -93,7 +100,8 @@ class TorrentPage(BasePage):
             elif div.attrib.get('class', '') == 'nfo':
                 description = div.getchildren()[0].text
         torrent = Torrent(id, title)
-        torrent.url = url or None
+        torrent.url = url or NotAvailable
+        torrent.magnet = magnet
         torrent.size = size
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
