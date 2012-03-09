@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier, Laurent Bachelier
+# Copyright(C) 2010-2012 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -79,7 +79,7 @@ class TorrentPage(BasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
                 try:
-                    description = div.text_content()
+                    description = div.text_content().strip()
                 except UnicodeDecodeError:
                     description = 'Description with invalid UTF-8.'
             elif div.attrib.get('class', '') == 'seedBlock':
@@ -93,12 +93,13 @@ class TorrentPage(BasePage):
                 else:
                     leech = 0
 
-        for h in self.document.getiterator('h1'):
-            if h.attrib.get('class', '') == 'torrentName':
-                title = h.getchildren()[0].getchildren()[0].text
+        title = self.parser.select(self.document.getroot(),
+                'h1.torrentName span', 1)
+        title = title.text
 
         for a in self.document.getiterator('a'):
-            if ('Download' in a.attrib.get('title', '')) and ('torrent file' in a.attrib.get('title', '')):
+            if ('Download' in a.attrib.get('title', '')) \
+            and ('torrent file' in a.attrib.get('title', '')):
                 url = a.attrib.get('href', '')
 
         size = 0
@@ -106,7 +107,9 @@ class TorrentPage(BasePage):
         for span in self.document.getiterator('span'):
             # sometimes there are others span, this is not so sure but the size of the children list
             # is enough to know if this is the right span
-            if (span.attrib.get('class', '') == 'folder' or span.attrib.get('class', '') == 'folderopen') and len(span.getchildren()) > 2:
+            if (span.attrib.get('class', '') == 'folder' \
+                or span.attrib.get('class', '') == 'folderopen') \
+            and len(span.getchildren()) > 2:
                 size = span.getchildren()[1].tail
                 u = span.getchildren()[2].text
                 size = float(size.split(': ')[1].replace(',', '.'))

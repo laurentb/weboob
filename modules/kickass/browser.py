@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages.torrents import TorrentsPage, TorrentPage
+from .pages import TorrentsPage, TorrentPage
 
 
 __all__ = ['KickassBrowser']
