@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2012 Nicolas Duhamel, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,16 +17,36 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from datetime import datetime
 
+from weboob.tools.browser import BasePage
+from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from weboob.tools.browser import BasePage
-from ..video import CanalplusVideo
+
+from .video import CanalplusVideo
+
+__all__ = ['ChannelsPage', 'VideoPage']
 
 
-__all__ = ['VideoPage']
+class ChannelsPage(BasePage):
+    def get_channels(self):
+        """
+        Extract all possible channels (paths) from the page
+        """
+        channels = list()
+        for elem in self.document[2].getchildren():
+            for e in elem.getchildren():
+                if e.tag == "NOM":
+                    name = unicode(e.text.strip())
+                    channels.append(Collection([name]))
+                elif e.tag == "SELECTIONS":
+                    for select in e:
+                        subname = unicode(select[1].text.strip())
+                        sub = Collection([name, subname])
+                        sub._link_id = select[0].text
+                        channels.append(sub)
+        return channels
 
 
 class VideoPage(BasePage):
@@ -80,13 +100,12 @@ class VideoPage(BasePage):
         for vid in self.document.getchildren():
             yield self.parse_video_channel(vid)
 
-    def parse_video_channel(self,el):
+    def parse_video_channel(self, el):
         _id = el[0].text
         video = CanalplusVideo(_id)
         video.title = el[2][3][0].text
         video.date = datetime.now()
         return video
-
 
     def get_video(self, video, quality):
         _id = self.group_dict['id']

@@ -25,7 +25,7 @@ import lxml.etree
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import InitPage, VideoPage
+from .pages import ChannelsPage, VideoPage
 from .video import CanalplusVideo
 
 from weboob.capabilities.collection import CollectionNotFound
@@ -46,7 +46,7 @@ class CanalplusBrowser(BaseBrowser):
     DOMAIN = u'service.canal-plus.com'
     ENCODING = 'utf-8'
     PAGES = {
-        r'http://service.canal-plus.com/video/rest/initPlayer/cplus/': InitPage,
+        r'http://service.canal-plus.com/video/rest/initPlayer/cplus/': ChannelsPage,
         r'http://service.canal-plus.com/video/rest/search/cplus/.*': VideoPage,
         r'http://service.canal-plus.com/video/rest/getVideosLiees/cplus/(?P<id>.+)': VideoPage,
         r'http://service.canal-plus.com/video/rest/getMEAs/cplus/.*': VideoPage,
@@ -76,7 +76,7 @@ class CanalplusBrowser(BaseBrowser):
         return self.page.get_video(video, self.quality)
 
     def iter_resources(self, split_path):
-        if not self.is_on_page(InitPage):
+        if not self.is_on_page(ChannelsPage):
             self.home()
         channels = self.page.get_channels()
 
