@@ -32,6 +32,8 @@ import time
 import urllib
 import urllib2
 import mimetypes
+from contextlib import closing
+from gzip import GzipFile
 
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
@@ -529,6 +531,16 @@ class BaseBrowser(StandardBrowser):
     #        response.set_data(new)
     #        print time.time()
     #    mechanize.Browser._set_response(self, response, *args, **kwargs)
+
+    def _set_response(self, response, *args, **kwargs):
+        # Support Gzip, because mechanize does not, and some websites always send gzip
+        if response and hasattr(response, 'set_data'):
+            headers = response.info()
+            if headers.get('Content-Encoding', '') == 'gzip':
+                with closing(GzipFile(fileobj=response, mode='rb')) as gz:
+                    data = gz.read()
+                response.set_data(data)
+        mechanize.Browser._set_response(self, response, *args, **kwargs)
 
     def _change_location(self, result, no_login=False):
         """
