@@ -25,6 +25,12 @@ from .base import IBaseCap, CapBaseObject
 __all__ = ['ICapTorrent', 'Torrent']
 
 
+class MagnetOnly(Exception):
+    def __init__(self, magnet):
+        self.magnet = magnet
+        Exception.__init__(self, 'Only magnet URL is available')
+
+
 class Torrent(CapBaseObject):
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)

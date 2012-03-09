@@ -21,16 +21,17 @@ from __future__ import with_statement
 
 import sys
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.core import CallErrors
 
 
 __all__ = ['Weboorrents']
 
 
 def sizeof_fmt(num):
-    for x in ['bytes','KB','MB','GB','TB']:
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
         if num < 1024.0:
             return "%-4.1f%s" % (num, x)
         num /= 1024.0
@@ -142,18 +143,28 @@ class Weboorrents(ReplApplication):
         if dest is None:
             dest = '%s.torrent' % _id
 
-        for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
-            if buf:
-                if dest == '-':
-                    print buf
+        try:
+            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
+                if buf:
+                    if dest == '-':
+                        print buf
+                    else:
+                        try:
+                            with open(dest, 'w') as f:
+                                f.write(buf)
+                        except IOError, e:
+                            print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                            return 1
+                    return
+        except CallErrors, errors:
+            for backend, error, backtrace in errors:
+                if isinstance(error, MagnetOnly):
+                    print >>sys.stderr, u'Error(%s): No direct URL available, ' \
+                    u'please provide this magnet URL ' \
+                    u'to your client:\n%s' % (backend, error.magnet)
+                    return 4
                 else:
-                    try:
-                        with open(dest, 'w') as f:
-                            f.write(buf)
-                    except IOError, e:
-                        print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
-                        return 1
-                return
+                    self.bcall_error_handler(backend, error, backtrace)
 
         print >>sys.stderr, 'Torrent "%s" not found' % id
         return 3
