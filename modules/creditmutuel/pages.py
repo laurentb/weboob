@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from datetime import date
 
 from weboob.tools.browser import BasePage
@@ -58,6 +59,10 @@ class AccountsPage(BasePage):
                     continue
 
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
+
+                if not account.id.isdigit():
+                    continue
+
                 s = tr.getchildren()[2].text
                 if s.strip() == "":
                     s = tr.getchildren()[1].text
@@ -77,6 +82,18 @@ class AccountsPage(BasePage):
         return 0
 
 class OperationsPage(BasePage):
+    LABEL_PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), Transaction.TYPE_TRANSFER,   '%(text)s'),
+                      (re.compile('^PRLV (?P<text>.*)'),        Transaction.TYPE_ORDER,      '%(text)s'),
+                      (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
+                                                                Transaction.TYPE_CARD,       '%(mm)s/%(dd)s: %(text)s'),
+                      (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+'),
+                                                                Transaction.TYPE_WITHDRAWAL, '%(mm)s/%(dd)s: %(text)s'),
+                      (re.compile('^CHEQUE$'),                  Transaction.TYPE_CHECK,      'CHEQUE'),
+                      (re.compile('^COTIS\.? (?P<text>.*)'),    Transaction.TYPE_BANK,       '%(text)s'),
+                      (re.compile('^REMISE (?P<text>.*)'),      Transaction.TYPE_DEPOSIT,    '%(text)s'),
+                     ]
+
+
     def get_history(self):
         index = 0
         for tr in self.document.getiterator('tr'):
@@ -93,7 +110,30 @@ class OperationsPage(BasePage):
                 d = tds[0].text.strip().split('/')
                 operation.date = date(*reversed([int(x) for x in d]))
 
-                operation.raw = to_unicode(tds[-3].text.replace('\n',' ').strip())
+                # Find different parts of label
+                parts = []
+                if len(tds[-3].findall('a')) > 0:
+                    parts = [a.text.strip() for a in tds[-3].findall('a')]
+                else:
+                    parts.append(tds[-3].text.strip())
+                    if tds[-3].find('br') is not None:
+                        parts.append(tds[-3].find('br').tail.strip())
+
+                # To simplify categorization of CB, reverse order of parts to separate
+                # location and institution.
+                if parts[0].startswith('PAIEMENT CB'):
+                    parts.reverse()
+
+                operation.raw = to_unicode(re.sub(u'[ ]+', u' ', u' '.join(parts).replace(u'\n', u' ')))
+
+                # Categorization
+                for pattern, _type, _label in self.LABEL_PATTERNS:
+                    mm = pattern.match(operation.raw)
+                    if mm:
+                        operation.type = _type
+                        operation.label = to_unicode(_label % mm.groupdict()).strip()
+                        break
+
                 if tds[-1].text is not None and len(tds[-1].text) > 2:
                     s = tds[-1].text.strip()
                 elif tds[-1].text is not None and len(tds[-2].text) > 2:
