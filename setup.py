@@ -191,15 +191,27 @@ setup(
     name='weboob',
     version = '0.b',
     description='Weboob, Web Out Of Browsers',
+    long_description=open('README').read(),
     author='Romain Bignon',
     author_email='weboob@weboob.org',
     maintainer='Romain Bignon',
     maintainer_email='romain@weboob.org',
-    license='AGPLv3+',
-    url='http://www.weboob.org',
+    url='http://weboob.org/',
+    license='GNU AGPL 3',
+    classifiers=[
+        'Environment :: Console',
+        'Environment :: X11 Applications :: Qt',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
+        'Topic :: Communications :: Email',
+        'Topic :: Internet :: WWW/HTTP',
+    ],
+
     packages=packages,
     scripts=[os.path.join('scripts', script) for script in scripts],
-
     data_files=data_files,
 
     install_requires=[
