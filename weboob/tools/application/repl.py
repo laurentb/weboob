@@ -88,13 +88,6 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def __init__(self):
         Cmd.__init__(self)
-        # XXX can't use bold prompt because:
-        # 1. it causes problems when trying to get history (lines don't start
-        #    at the right place).
-        # 2. when typing a line longer than term width, cursor goes at start
-        #    of the same line instead of new line.
-        #self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
-        self.prompt = '%s> ' % self.APPNAME
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
                                 '',
                                 self.COPYRIGHT.encode(sys.stdout.encoding or locale.getpreferredencoding()),
@@ -135,21 +128,27 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
-        self.objects = []
-        self.collections = []
         self.working_path = WorkingPath()
+        self._change_prompt()
 
     @property
     def interactive(self):
         return self._interactive
 
     def _change_prompt(self):
-        if len(self.working_path.get()):
-            self.prompt = u'%s:%s> ' % (self.APPNAME, unicode(self.working_path))
-        else:
-            self.prompt = u'%s> ' % (self.APPNAME)
         self.objects = []
         self.collections = []
+        # XXX can't use bold prompt because:
+        # 1. it causes problems when trying to get history (lines don't start
+        #    at the right place).
+        # 2. when typing a line longer than term width, cursor goes at start
+        #    of the same line instead of new line.
+        #self.prompt = self.BOLD + '%s> ' % self.APPNAME + self.NC
+        if len(self.working_path.get()):
+            wp_enc = unicode(self.working_path).encode(sys.stdout.encoding or locale.getpreferredencoding())
+            self.prompt = '%s:%s> ' % (self.APPNAME, wp_enc)
+        else:
+            self.prompt = '%s> ' % (self.APPNAME)
 
     def change_path(self, split_path):
         self.working_path.location(split_path)
