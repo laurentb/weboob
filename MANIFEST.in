@@ -1,3 +1,8 @@
+include COPYING
+include INSTALL
+include README
+include AUTHORS
+include ChangeLog
 include desktop/*
 include icons/*
 include man/*
