@@ -82,22 +82,21 @@ class ICapCollection(IBaseCap):
         it should return None.
         """
         collection = Collection(split_path, None, self.name)
-        if self._is_collection_valid(objs, collection.split_path):
-            return collection
+        return self.validate_collection(objs, collection) or collection
 
-    def _is_collection_valid(self, objs, split_path):
+    def validate_collection(self, objs, collection):
         """
         Tests if a collection is valid.
         For compatibility reasons, and to provide a default way, it checks if
         the collection has at least one object in it. However, it is not very
         efficient or exact, and you are encouraged to override this method.
+        You can replace the collection object entirely by returning a new one.
         """
         # Root
-        if len(split_path) == 0:
-            return True
+        if len(collection.split_path) == 0:
+            return
         try:
-            i = self.iter_resources(objs, split_path)
+            i = self.iter_resources(objs, collection.split_path)
             i.next()
-            return True
-        except (StopIteration, CollectionNotFound):
-            return False
+        except StopIteration:
+            raise CollectionNotFound(collection.split_path)

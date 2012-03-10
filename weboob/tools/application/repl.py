@@ -893,10 +893,23 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.working_path.cd1(line)
 
-        collections = [res for backend, res in self.do('get_collection',
-                    objs=self.COLLECTION_OBJECTS, split_path=self.working_path.get(),
-                    caps=ICapCollection) if res is not None]
+        collections = []
+        try:
+            for backend, res in self.do('get_collection',
+                        objs=self.COLLECTION_OBJECTS, split_path=self.working_path.get(),
+                        caps=ICapCollection):
+                if res:
+                    collections.append(res)
+        except CallErrors, errors:
+            for backend, error, backtrace in errors.errors:
+                if isinstance(error, CollectionNotFound):
+                    pass
+                else:
+                    self.bcall_error_handler(backend, error, backtrace)
         if len(collections):
+            # update the path from the collection if possible
+            if len(collections) == 1:
+                self.working_path.split_path = collections[0].split_path
             self._change_prompt()
         else:
             print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
@@ -933,7 +946,14 @@ class ReplApplication(Cmd, ConsoleApplication):
         offs = len(mline) - len(text)
 
         if len(self.collections) == 0:
-            self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+            try:
+                self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+            except CallErrors, errors:
+                for backend, error, backtrace in errors.errors:
+                    if isinstance(error, CollectionNotFound):
+                        pass
+                    else:
+                        self.bcall_error_handler(backend, error, backtrace)
 
         for collection in self.collections:
             directories.add(collection.id.encode(sys.stdout.encoding or locale.getpreferredencoding()))
