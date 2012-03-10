@@ -45,11 +45,12 @@ class AccountsList(CragrBasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag in ('a', 'br'):
                 account = Account()
+                account._link_id = None
                 if div.getchildren()[0].tag == 'a':
                     # This is at least present on CA Nord-Est
                     # Note: we do not know yet how history-less accounts are displayed by this layout
                     account.label = ' '.join(div.find('a').text.split()[:-1])
-                    account.link_id = div.find('a').get('href', '')
+                    account._link_id = div.find('a').get('href', '')
                     account.id = div.find('a').text.split()[-1]
                     s = div.find('div').find('b').find('span').text
                 else:
@@ -57,12 +58,12 @@ class AccountsList(CragrBasePage):
                     first_link = div.find('a')
                     if first_link is not None:
                         account.label   = first_link.text.strip()
-                        account.link_id = first_link.get('href', '')
+                        account._link_id = first_link.get('href', '')
                         s = div.find('div').find('b').text
                     else:
                         # there is no link to any history page for accounts like "PEA" or "TITRES"
                         account.label   = div.findall('br')[0].tail.strip()
-                        account.link_id = None
+                        account._link_id = None
                         s = div.xpath('following-sibling::div//b')[0].text
                     account.id = div.findall('br')[1].tail.strip()
                 account.balance = clean_amount(s)

@@ -40,7 +40,7 @@ class AccountsList(BasePage):
                        elif td.attrib.get('class', '') == 'account-name':
                            a = td.find('a')
                            account.label = a.text
-                           account.link_id = a.get('href', '')
+                           account._link_id = a.get('href', '')
 
                        elif td.attrib.get('class', '') == 'account-number':
                            id = td.text

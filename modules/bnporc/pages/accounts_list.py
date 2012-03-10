@@ -38,7 +38,7 @@ class AccountsList(BasePage):
             if tr.find('td') is not None and tr.find('td').attrib.get('class', '') == 'typeTitulaire':
                 account = Account()
                 account.id = tr.xpath('.//td[@class="libelleCompte"]/input')[0].attrib['id'][len('libelleCompte'):]
-                account.link_id = account.id
+                account._link_id = account.id
                 if len(str(account.id)) == 23:
                     account.id = str(account.id)[5:21]
 

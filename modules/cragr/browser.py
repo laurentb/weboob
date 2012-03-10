@@ -132,9 +132,9 @@ class Cragr(BaseBrowser):
 
     def get_history(self, account):
         # some accounts may exist without a link to any history page
-        if account.link_id is None:
+        if account._link_id is None:
             return
-        history_url = account.link_id
+        history_url = account._link_id
         operations_count = 0
 
         # 1st, go on the account page
@@ -258,5 +258,5 @@ class Cragr(BaseBrowser):
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
-    #        self.location('/NS_AVEEC?ch4=%s' % account.link_id)
+    #        self.location('/NS_AVEEC?ch4=%s' % account._link_id)
     #    return self.page.get_operations()

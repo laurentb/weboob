@@ -76,6 +76,8 @@ class BNPorc(BaseBrowser):
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
+        #self.readurl('/SAF_SOA?Action=6')
+
     def change_password(self, new_password):
         assert new_password.isdigit() and len(new_password) == 6
 
@@ -84,6 +86,9 @@ class BNPorc(BaseBrowser):
         buf = buf[:buf.find('"')]
         self.location(buf)
         assert self.is_on_page(ChangePasswordPage)
+
+        #self.readurl('/banque/portail/particulier/bandeau')
+        #self.readurl('/common/vide.htm')
 
         self.page.change_password(self.password, new_password)
 

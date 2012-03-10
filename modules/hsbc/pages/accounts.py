@@ -41,9 +41,9 @@ class AccountsListPage(BasePage):
 
             a = tds[0].findall('a')[-1]
             account.label = a.text.strip()
-            account.link_id = a.attrib['href']
+            account._link_id = a.attrib['href']
 
-            if not 'CPT_IdPrestation' in account.link_id:
+            if not 'CPT_IdPrestation' in account._link_id:
                 continue
 
             tag = tds[2].find('font')

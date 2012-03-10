@@ -54,8 +54,8 @@ class AccountsPage(BasePage):
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
                 account = Account()
                 account.label = u"%s"%first_td.find('a').text.strip()
-                account.link_id = first_td.find('a').get('href', '')
-                if account.link_id.startswith('POR_SyntheseLst'):
+                account._link_id = first_td.find('a').get('href', '')
+                if account._link_id.startswith('POR_SyntheseLst'):
                     continue
 
                 account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]

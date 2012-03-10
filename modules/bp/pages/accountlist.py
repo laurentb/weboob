@@ -48,7 +48,7 @@ class AccountList(BasePage):
             account = Account()
             tmp = line.xpath("./td//a")[0]
             account.label = tmp.text
-            account.link_id = tmp.get("href")
+            account._link_id = tmp.get("href")
 
             tmp = line.xpath("./td/span/strong")
             if len(tmp) >= 2:

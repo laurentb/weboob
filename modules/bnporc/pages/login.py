@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import time
 import re
 from weboob.tools.mech import ClientForm
 import urllib
@@ -41,13 +42,13 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
              '9':'828cf0faf86ac78e7f43208907620527'
             }
 
-    url="/NSImgGrille"
+    url="/NSImgGrille?timestamp=%d"
 
     color=27
 
     def __init__(self,basepage):
         img=basepage.document.find("//img[@usemap='#MapGril']")
-        MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),basepage.document,img,self.color)
+        MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url % time.time()),basepage.document,img,self.color)
         if basepage.browser.responses_dirname is None:
             basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
@@ -135,7 +136,7 @@ class ChangePasswordPage(BasePage):
         code_current=vk.get_string_code(current)
         code_new=vk.get_string_code(new)
 
-        data = (('ch1', code_current.replace('4', '3')),
+        data = (('ch1', code_current),
                 ('ch2', code_new),
                 ('radiobutton3', 'radiobutton'),
                 ('ch3', code_new),

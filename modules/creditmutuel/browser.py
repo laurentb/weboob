@@ -93,7 +93,7 @@ class CreditMutuelBrowser(BaseBrowser):
                 self.currentSubBank = subbank
 
     def get_history(self, account):
-        page_url = account.link_id
+        page_url = account._link_id
         #operations_count = 0
         l_ret = []
         while (page_url):
@@ -170,5 +170,5 @@ class CreditMutuelBrowser(BaseBrowser):
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
-    #        self.location('/NS_AVEEC?ch4=%s' % account.link_id)
+    #        self.location('/NS_AVEEC?ch4=%s' % account._link_id)
     #    return self.page.get_operations()

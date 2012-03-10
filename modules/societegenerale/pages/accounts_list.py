@@ -38,7 +38,7 @@ class AccountsList(BasePage):
                     if td.attrib.get('headers', '') == 'TypeCompte':
                         a = td.find('a')
                         account.label = a.find("span").text
-                        account.link_id = a.get('href', '')
+                        account._link_id = a.get('href', '')
 
                     elif td.attrib.get('headers', '') == 'NumeroCompte':
                         id = td.text

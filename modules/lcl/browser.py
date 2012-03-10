@@ -84,10 +84,10 @@ class LCLBrowser(BaseBrowser):
 
     def get_history(self,account):
         if not self.is_on_page(AccountHistoryPage) :
-            self.location('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, account.link_id))
+            self.location('%s://%s%s' % (self.PROTOCOL, self.DOMAIN, account._link_id))
         return self.page.get_operations(account)
 
     #def get_coming_operations(self, account):
     #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
-    #        self.location('/NS_AVEEC?ch4=%s' % account.link_id)
+    #        self.location('/NS_AVEEC?ch4=%s' % account._link_id)
     #    return self.page.get_operations()

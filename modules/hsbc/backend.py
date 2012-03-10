@@ -57,5 +57,5 @@ class HSBCBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            for history in self.browser.get_history(account.link_id):
+            for history in self.browser.get_history(account._link_id):
                 yield history

@@ -81,15 +81,15 @@ class Boursorama(BaseBrowser):
         return None
 
     def get_history(self, account):
-        self.location(account.link_id)
+        self.location(account._link_id)
         operations = self.page.get_operations()
         # load last month as well
         target = date.today() - relativedelta( months = 1 )
-        self.location(account.link_id + ("&month=%d&year=%d" % (target.month, target.year)))
+        self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
         operations += self.page.get_operations()
         # and the month before, just in case you're greedy
         target = date.today() - relativedelta( months = 2 )
-        self.location(account.link_id + ("&month=%d&year=%d" % (target.month, target.year)))
+        self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
         operations += self.page.get_operations()
         for index, op in enumerate(operations):
             op.id = index

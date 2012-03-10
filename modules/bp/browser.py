@@ -90,7 +90,7 @@ class BPBrowser(BaseBrowser):
         return self.page.get_account(id)
 
     def get_history(self, Account):
-        self.location(Account.link_id)
+        self.location(Account._link_id)
         return self.page.get_history()
 
     def make_transfer(self, from_account, to_account, amount):
