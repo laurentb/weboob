@@ -43,14 +43,12 @@ class Recipient(CapBaseObject):
 
 class Account(Recipient):
     TYPE_UNKNOWN          = 0
-    TYPE_CHECKING         = 1
-    TYPE_LIABILITY        = 2
-    TYPE_ASSET            = 3
-    TYPE_INVESTMENT       = 4
-    TYPE_LOAN             = 5
-    TYPE_CASH             = 6
-    TYPE_CREDIT_CARD      = 7
-    TYPE_SAVINGS          = 8
+    TYPE_CHECKING         = 1  # Transaction, everyday transactions
+    TYPE_SAVINGS          = 2  # Savings/Deposit, can be used for everyday banking
+    TYPE_DEPOSIT          = 3  # Term or Fixed Deposit, has time/amount constraints
+    TYPE_LOAN             = 4
+    TYPE_MARKET           = 5  # Stock market or other variable investments
+    TYPE_JOINT            = 6  # Joint account
 
     def __init__(self):
         Recipient.__init__(self)
