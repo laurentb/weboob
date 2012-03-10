@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+import re
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.collection import Collection
@@ -38,15 +39,22 @@ class ChannelsPage(BasePage):
         for elem in self.document[2].getchildren():
             for e in elem.getchildren():
                 if e.tag == "NOM":
-                    name = unicode(e.text.strip())
-                    channels.append(Collection([name]))
+                    fid, name = self._clean_name(e.text)
+                    channels.append(Collection([fid], name))
                 elif e.tag == "SELECTIONS":
                     for select in e:
-                        subname = unicode(select[1].text.strip())
-                        sub = Collection([name, subname])
+                        sub_fid, subname = self._clean_name(select[1].text)
+                        sub = Collection([fid, sub_fid], subname)
                         sub._link_id = select[0].text
                         channels.append(sub)
         return channels
+
+    def _clean_name(self, name):
+        name = unicode(name.strip())
+        if name == name.upper():
+            name = name.capitalize()
+        friendly_id = re.sub(ur"['/_ \(\)\-\+]+", u'-', name).strip(u'-').lower()
+        return friendly_id, name
 
 
 class VideoPage(BasePage):
