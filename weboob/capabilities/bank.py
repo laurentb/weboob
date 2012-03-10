@@ -42,11 +42,21 @@ class Recipient(CapBaseObject):
         self.add_field('label', basestring)
 
 class Account(Recipient):
+    TYPE_UNKNOWN          = 0
+    TYPE_CHECKING         = 1
+    TYPE_LIABILITY        = 2
+    TYPE_ASSET            = 3
+    TYPE_INVESTMENT       = 4
+    TYPE_LOAN             = 5
+    TYPE_CASH             = 6
+    TYPE_CREDIT_CARD      = 7
+    TYPE_SAVINGS          = 8
+
     def __init__(self):
         Recipient.__init__(self)
+        self.add_field('type', int, self.TYPE_UNKNOWN)
         self.add_field('balance', float)
         self.add_field('coming', float)
-        self.link_id = None
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
