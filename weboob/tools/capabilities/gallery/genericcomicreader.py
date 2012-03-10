@@ -72,6 +72,12 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
     LICENSE = 'AGPLv3+'
     BROWSER = GenericComicReaderBrowser
 
+    BROWSER_PARAMS = {}
+    ID_REGEXP = None
+    URL_REGEXP = None
+    ID_TO_URL = None
+    PAGES = {}
+
     def create_default_browser(self):
         b = self.create_browser(self.BROWSER_PARAMS)
         b.PAGES = self.PAGES
@@ -95,8 +101,8 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
                 _id = match.group(0)
             else:
                 return None
-        
-        
+
+
         gallery = BaseGallery(_id, url=(self.ID_TO_URL % _id))
         with self.browser:
             return gallery
