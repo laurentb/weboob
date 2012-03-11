@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2012 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -49,8 +49,8 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     EXPIRATIONS = {
         600: '10M',
         3600: '1H',
-        3600*24: '1D',
-        3600*24*30: '1M',
+        3600 * 24: '1D',
+        3600 * 24 * 30: '1M',
         False: 'N',
     }
 

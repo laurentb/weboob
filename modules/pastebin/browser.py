@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2012 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserIncorrectPassword
 from weboob.tools.browser.decorators import id2url, check_url
+from weboob.tools.ordereddict import OrderedDict
 
 from weboob.capabilities.paste import PasteNotFound
 
@@ -31,6 +32,7 @@ import re
 
 __all__ = ['PastebinBrowser']
 
+
 class BadAPIRequest(Exception):
     pass
 
@@ -40,9 +42,11 @@ class PastebinBrowser(BaseBrowser):
     ENCODING = 'UTF-8'
     PASTE_URL = 'http://%s/(?P<id>\w+)' % DOMAIN
     API_URL = 'http://%s/api/api_post.php' % DOMAIN
-    PAGES = {PASTE_URL: PastePage,
-            'http://%s/u/(?P<username>.+)' % DOMAIN: UserPage,
-            'http://%s/' % DOMAIN: PostPage}
+    PAGES = OrderedDict((
+            ('http://%s/u/(?P<username>.+)' % DOMAIN, UserPage),
+            ('http://%s/' % DOMAIN, PostPage),
+            (PASTE_URL, PastePage),
+    ))
 
     def __init__(self, api_key, *args, **kwargs):
         self.api_key = api_key

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Laurent Bachelier
+# Copyright(C) 2011-2012 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -22,6 +22,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 
 __all__ = ['PastePage', 'PostPage']
 
+
 class BasePastebinPage(BasePage):
     def is_logged(self):
         header = self.parser.select(self.document.getroot(),
@@ -32,8 +33,7 @@ class BasePastebinPage(BasePage):
             if link.text == 'login':
                 return False
 
-# XXX hack, since all pages are detected as a PostPage we make PastePage
-# inherit LoginPage
+
 class LoginPage(BasePastebinPage):
     def login(self, username, password):
         self.browser.select_form(nr=1)
@@ -42,7 +42,7 @@ class LoginPage(BasePastebinPage):
         self.browser.submit()
 
 
-class PastePage(LoginPage):
+class PastePage(BasePastebinPage):
     def fill_paste(self, paste):
         header = self.parser.select(self.document.getroot(),
                 'id("content_left")//div[@class="paste_box_info"]', 1, 'xpath')
@@ -79,6 +79,7 @@ class PostPage(BasePastebinPage):
         if expiration:
             self.browser['paste_expire_date'] = [expiration]
         self.browser.submit()
+
 
 class UserPage(BasePastebinPage):
     pass
