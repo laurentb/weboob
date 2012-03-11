@@ -112,7 +112,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                 for _id in sorted(self._RADIOS.iterkeys()):
                     if not _id.startswith('fb'):
                         yield self.get_radio(_id)
-                yield Collection(['francebleu'], 'France Bleu')
+                yield Collection([u'francebleu'], u'France Bleu')
             else:
                 raise CollectionNotFound(split_path)
 

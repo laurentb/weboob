@@ -96,16 +96,14 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     ############# CapCollection ###################################################
     def iter_resources(self, objs, split_path):
         if Project in objs or Issue in objs:
+            self._restrict_level(split_path, 1)
             if len(split_path) == 0:
                 return [Collection([project.id], project.name)
                         for project in self.iter_projects()]
-
-            if len(split_path) == 1:
+            elif len(split_path) == 1:
                 query = Query()
                 query.project = unicode(split_path[0])
                 return self.iter_issues(query)
-
-            raise CollectionNotFound(split_path)
 
     def validate_collection(self, objs, collection):
         if len(collection.split_path) == 0:

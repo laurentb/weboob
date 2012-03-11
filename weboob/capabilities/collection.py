@@ -100,3 +100,7 @@ class ICapCollection(IBaseCap):
             i.next()
         except StopIteration:
             raise CollectionNotFound(collection.split_path)
+
+    def _restrict_level(self, split_path, lmax=0):
+        if len(split_path) > lmax:
+            raise CollectionNotFound(split_path)
