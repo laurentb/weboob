@@ -867,12 +867,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             print
             print 'Collections:'
             for collection in self.collections:
-                if collection.id and collection.title:
+                if collection.basename and collection.title:
                     print u'%s* (%s) %s (%s)%s' % \
-                    (self.BOLD, collection.id, collection.title, collection.backend, self.NC)
-                elif collection.id:
+                    (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
+                elif collection.basename:
                     print u'%s* (%s) (%s)%s' % \
-                    (self.BOLD, collection.id, collection.backend, self.NC)
+                    (self.BOLD, collection.basename, collection.backend, self.NC)
                 else:
                     print collection
 
@@ -956,7 +956,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                         self.bcall_error_handler(backend, error, backtrace)
 
         for collection in self.collections:
-            directories.add(collection.id.encode(sys.stdout.encoding or locale.getpreferredencoding()))
+            directories.add(collection.basename.encode(sys.stdout.encoding or locale.getpreferredencoding()))
 
         return [s[offs:] for s in directories if s.startswith(mline)]
 

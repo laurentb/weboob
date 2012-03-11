@@ -106,15 +106,15 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
                 return self.iter_issues(query)
 
     def validate_collection(self, objs, collection):
-        if len(collection.split_path) == 0:
+        if collection.level == 0:
             return
-        if Issue in objs and len(collection.split_path) == 1:
+        if Issue in objs and collection.level == 1:
             for project in self.iter_projects():
-                if collection.split_path[0] == project.id:
+                if collection.basename == project.id:
                     return Collection([project.id], project.name)
             # if the project is not found by ID, try again by name
             for project in self.iter_projects():
-                if collection.split_path[0] == project.name:
+                if collection.basename == project.name:
                     return Collection([project.id], project.name)
         raise CollectionNotFound(collection.split_path)
 

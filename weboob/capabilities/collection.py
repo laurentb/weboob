@@ -41,7 +41,7 @@ class Collection(CapBaseObject):
     def __init__(self, split_path, title=None, backend=None):
         self.split_path = split_path
         self.title = title
-        _id = split_path[-1] if len(split_path) else None
+        _id = self.basename
         CapBaseObject.__init__(self, _id, backend)
 
     def __unicode__(self):
@@ -51,6 +51,18 @@ class Collection(CapBaseObject):
             return u'%s' % self.id
         else:
             return u'Unknown collection'
+
+    @property
+    def basename(self):
+        return self.split_path[-1] if self.level else None
+
+    @property
+    def parent(self):
+        return self.split_path[0:-1] if self.level else None
+
+    @property
+    def level(self):
+        return len(self.split_path)
 
 
 class ICapCollection(IBaseCap):
@@ -93,7 +105,7 @@ class ICapCollection(IBaseCap):
         You can replace the collection object entirely by returning a new one.
         """
         # Root
-        if len(collection.split_path) == 0:
+        if collection.level == 0:
             return
         try:
             i = self.iter_resources(objs, collection.split_path)
@@ -104,3 +116,25 @@ class ICapCollection(IBaseCap):
     def _restrict_level(self, split_path, lmax=0):
         if len(split_path) > lmax:
             raise CollectionNotFound(split_path)
+
+
+def test():
+    c = Collection([])
+    assert c.basename is None
+    assert c.parent is None
+    assert c.level == 0
+
+    c = Collection([u'lol'])
+    assert c.basename == u'lol'
+    assert c.parent == []
+    assert c.level == 1
+
+    c = Collection([u'lol', u'cat'])
+    assert c.basename == u'cat'
+    assert c.parent == [u'lol']
+    assert c.level == 2
+
+    c = Collection([u'w', u'e', u'e', u'b', u'o', u'o', u'b'])
+    assert c.basename == u'b'
+    assert c.parent == [u'w', u'e', u'e', u'b', u'o', u'o']
+    assert c.level == 7
