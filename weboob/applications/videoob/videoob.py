@@ -24,7 +24,7 @@ import sys
 import os
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import NotLoaded, NotAvailable
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import IFormatter
@@ -49,9 +49,9 @@ class VideoListFormatter(IFormatter):
         else:
             result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['title'], self.NC)
         result += '            %s' % (item['duration'] if item['duration'] else item['date'])
-        if item['author'] is not NotLoaded:
+        if item['author'] not in (NotLoaded, NotAvailable, None):
             result += ' - %s' % item['author']
-        if item['rating'] is not NotLoaded:
+        if item['rating'] not in (NotLoaded, NotAvailable, None):
             result += u' (%s/%s)' % (item['rating'], item['rating_max'])
         return result
 
