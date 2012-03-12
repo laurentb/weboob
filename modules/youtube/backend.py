@@ -25,7 +25,9 @@ import gdata.youtube.service
 import re
 import urllib
 
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.video import ICapVideo
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
 from weboob.tools.value import ValueBackendPassword, Value
@@ -61,11 +63,11 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         """
         Parse an entry returned by gdata and return a Video object.
         """
-        video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()),
-                             title=to_unicode(entry.media.title.text.strip()),
-                             duration=to_unicode(datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))),
-                             thumbnail_url=to_unicode(entry.media.thumbnail[0].url.strip()),
-                             )
+        video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()))
+        video.title = to_unicode(entry.media.title.text.strip())
+        video.duration = datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))
+        video.thumbnail = Thumbnail(to_unicode(entry.media.thumbnail[0].url.strip()))
+
         if entry.author[0].name.text:
             video.author = entry.author[0].name.text.strip()
         if entry.media.name:
@@ -104,6 +106,8 @@ class YoutubeBackend(BaseBackend, ICapVideo):
 
         video = self._entry2video(entry)
         self._set_video_url(video)
+
+        video.set_empty_fields(NotAvailable)
         return video
 
     def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):

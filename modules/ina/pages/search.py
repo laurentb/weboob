@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -21,8 +21,8 @@
 import datetime
 import re
 
-from weboob.tools.browser import BasePage
-from weboob.tools.browser import BrokenPageError
+from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 from ..video import InaVideo
 
@@ -42,24 +42,21 @@ class SearchPage(BasePage):
         for li in ul.findall('li'):
             id = re.sub(self.URL_REGEXP, r'\1', li.find('a').attrib['href'])
 
-            thumbnail = 'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
+            video = InaVideo('boutique.%s' % id)
 
-            title = self.parser.select(li, 'p.titre', 1).text
+            video.thumbnail = Thumbnail('http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src'])
+
+            video.title = self.parser.select(li, 'p.titre', 1).text
 
             date = self.parser.select(li, 'p.date', 1).text
             day, month, year = [int(s) for s in date.split('/')]
-            date = datetime.datetime(year, month, day)
+            video.date = datetime.datetime(year, month, day)
 
             duration = self.parser.select(li, 'p.duree', 1).text
             m = re.match(r'((\d+)h)?((\d+)min)?(\d+)s', duration)
             if m:
-                duration = datetime.timedelta(hours=int(m.group(2) or 0), minutes=int(m.group(4) or 0), seconds=int(m.group(5)))
+                video.duration = datetime.timedelta(hours=int(m.group(2) or 0), minutes=int(m.group(4) or 0), seconds=int(m.group(5)))
             else:
                 raise BrokenPageError('Unable to match duration (%r)' % duration)
 
-            yield InaVideo('boutique.%s' % id,
-                           title=title,
-                           date=date,
-                           duration=duration,
-                           thumbnail_url=thumbnail,
-                          )
+            yield video

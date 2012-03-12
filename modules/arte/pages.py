@@ -23,6 +23,8 @@ import re
 import urllib
 
 from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities import NotAvailable
 
 
 from .video import ArteVideo
@@ -53,7 +55,7 @@ class IndexPage(BasePage):
             video.rating_max = rating_max
 
             thumb = self.parser.select(div, 'img[class=thumbnail]', 1)
-            video.thumbnail_url = 'http://videos.arte.tv' + thumb.attrib['src']
+            video.thumbnail = Thumbnail('http://videos.arte.tv' + thumb.attrib['src'])
 
             try:
                 parts = self.parser.select(div, 'div.duration_thumbnail', 1).text.split(':')
@@ -69,6 +71,8 @@ class IndexPage(BasePage):
             else:
                 video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
 
+            video.set_empty_fields(NotAvailable, ('url',))
+
             yield video
 
 class VideoPage(BasePage):
@@ -77,6 +81,7 @@ class VideoPage(BasePage):
             video = ArteVideo(self.group_dict['id'])
         video.title = self.get_title()
         video.url = self.get_url(lang, quality)
+        video.set_empty_fields(NotAvailable)
         return video
 
     def get_title(self):

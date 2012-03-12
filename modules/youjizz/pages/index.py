@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Roger Philibert
+# Copyright(C) 2010-2012 Roger Philibert
 #
 # This file is part of weboob.
 #
@@ -21,8 +21,8 @@
 import datetime
 import re
 
-from weboob.tools.browser import BasePage
-from weboob.tools.browser import BrokenPageError
+from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 from ..video import YoujizzVideo
 
@@ -38,10 +38,12 @@ class IndexPage(BasePage):
             url = a.attrib['href']
             _id = re.sub(r'/videos/(.+)\.html', r'\1', url)
 
-            thumbnail_url = span.find('.//img').attrib['src']
+            video = YoujizzVideo(_id)
+
+            video.thumbnail = Thumbnail(span.find('.//img').attrib['src'])
 
             title_el = self.parser.select(span, 'span#title1', 1)
-            title = title_el.text.strip()
+            video.title = title_el.text.strip()
 
             time_span = self.parser.select(span, 'span.thumbtime span', 1)
             time_txt = time_span.text.strip().replace(';', ':')
@@ -52,9 +54,6 @@ class IndexPage(BasePage):
             else:
                 raise BrokenPageError('Unable to parse the video duration: %s' % time_txt)
 
+            video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
 
-            yield YoujizzVideo(_id,
-                               title=title,
-                               duration=datetime.timedelta(minutes=minutes, seconds=seconds),
-                               thumbnail_url=thumbnail_url,
-                               )
+            yield video

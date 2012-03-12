@@ -25,8 +25,8 @@ try:
 except ImportError:
     from cgi import parse_qs
 
-from weboob.tools.browser import BasePage
-from weboob.tools.browser import BrokenPageError
+from weboob.capabilities import NotAvailable
+from weboob.tools.browser import BasePage, BrokenPageError
 
 from ..video import InaVideo
 
@@ -45,6 +45,8 @@ class BaseVideoPage(BasePage):
         video.date = date
         video.duration = duration
         video.description = self.get_description()
+
+        video.set_empty_fields(NotAvailable)
         return video
 
     def get_id(self):

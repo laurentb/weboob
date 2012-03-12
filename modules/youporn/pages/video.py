@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -22,6 +22,7 @@ import re
 import datetime
 from dateutil.parser import parse as parse_dt
 
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BrokenPageError
 
 from .base import PornPage
@@ -37,6 +38,8 @@ class VideoPage(PornPage):
         video.title = self.get_title()
         video.url, video.ext = self.get_url()
         self.set_details(video)
+
+        video.set_empty_fields(NotAvailable)
         return video
 
     def get_url(self):

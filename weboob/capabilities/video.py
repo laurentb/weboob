@@ -20,7 +20,7 @@
 
 from datetime import datetime, timedelta
 
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject, NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
 
 
@@ -31,25 +31,21 @@ class BaseVideo(CapBaseObject):
     Represents a video.
     This object has to be inherited to specify how to calculate the URL of the video from its ID.
     """
-    def __init__(self, _id, title=NotLoaded, url=NotLoaded, author=NotLoaded, duration=NotLoaded, date=NotLoaded,
-                 rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
+
+    def __init__(self, _id):
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('title', basestring, title)
-        self.add_field('url', basestring, url)
+        self.add_field('title', basestring)
+        self.add_field('url', basestring)
         self.add_field('ext', basestring)
-        self.add_field('author', basestring, author)
+        self.add_field('author', basestring)
         self.add_field('description', basestring)
-        self.add_field('duration', (int,long,timedelta), duration)
-        self.add_field('date', datetime, date)
-        self.add_field('rating', (int,long,float), rating)
-        self.add_field('rating_max', (int,long,float), rating_max)
-        self.add_field('thumbnail', Thumbnail, thumbnail)
-        self.add_field('nsfw', bool, nsfw)
-
-        # XXX remove this and fix all backends
-        if thumbnail_url is not None and self.thumbnail is NotLoaded:
-            self.thumbnail = Thumbnail(thumbnail_url)
+        self.add_field('duration', (int,long,timedelta))
+        self.add_field('date', datetime)
+        self.add_field('rating', (int,long,float), NotAvailable)
+        self.add_field('rating_max', (int,long,float), NotAvailable)
+        self.add_field('thumbnail', Thumbnail)
+        self.add_field('nsfw', bool, False)
 
     @classmethod
     def id2url(cls, _id):

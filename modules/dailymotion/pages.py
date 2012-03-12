@@ -22,7 +22,7 @@ import urllib
 import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities import NotAvailable
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage, BrokenPageError
 
@@ -73,8 +73,8 @@ class IndexPage(BasePage):
             rating_div = self.parser.select(div, 'div.small_stars', 1)
             video.rating_max = self.get_rate(rating_div)
             video.rating = self.get_rate(rating_div.find('div'))
-            # XXX missing date
-            video.date = NotAvailable
+
+            video.set_empty_fields(NotAvailable, ('url',))
             yield video
 
     def get_rate(self, div):
@@ -108,5 +108,7 @@ class VideoPage(BasePage):
                 else:
                     mediaURL = urllib.unquote(mobj.group(1))
                 video.url = mediaURL
+
+        video.set_empty_fields(NotAvailable)
 
         return video

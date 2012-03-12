@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -20,6 +20,9 @@
 
 import re
 import datetime
+
+from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -45,7 +48,10 @@ class IndexPage(PornPage):
             url = a.attrib['href']
             _id = url[len('/watch/'):]
             _id = _id[:_id.find('/')]
-            title = a.text.strip()
+
+            video = YoupornVideo(int(_id))
+            video.title = a.text.strip()
+            video.thumbnail = Thumbnail(thumbnail_url)
 
             hours = minutes = seconds = 0
             div = li.cssselect('h2[class=duration]')
@@ -56,19 +62,15 @@ class IndexPage(PornPage):
                 elif len(pack) == 2:
                     minutes, seconds = pack
 
-            rating = 0
-            rating_max = 0
+            video.duration = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+
             div = li.cssselect('div.stars')
             if div:
                 m = re.match('.*star-(\d).*', div[0].attrib.get('class', ''))
                 if m:
-                    rating = int(m.group(1))
-                    rating_max = 5
+                    video.rating = int(m.group(1))
+                    video.rating_max = 5
 
-            yield YoupornVideo(int(_id),
-                               title=title,
-                               rating=rating,
-                               rating_max=rating_max,
-                               duration=datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds),
-                               thumbnail_url=thumbnail_url,
-                               )
+            video.set_empty_fields(NotAvailable, ('url', 'author'))
+
+            yield video
