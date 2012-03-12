@@ -40,7 +40,7 @@ class PapBrowser(BaseBrowser):
         }
 
     def search_geo(self, pattern):
-        fp = self.openurl(self.buildurl('http://www.pap.fr/index/ac-geo', q=pattern))
+        fp = self.openurl(self.buildurl('http://www.pap.fr/index/ac-geo', q=pattern.encode('utf-8')))
         return json.load(fp)
 
     TYPES = {Query.TYPE_RENT: 'location',

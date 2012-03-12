@@ -40,7 +40,7 @@ class SeLogerBrowser(BaseBrowser):
         }
 
     def search_geo(self, pattern):
-        fp = self.openurl(self.buildurl('http://www.seloger.com/js,ajax,villequery_v3.htm', ville=pattern, mode=1))
+        fp = self.openurl(self.buildurl('http://www.seloger.com/js,ajax,villequery_v3.htm', ville=pattern.encode('utf-8'), mode=1))
         return json.load(fp)
 
     TYPES = {Query.TYPE_RENT: 1,
