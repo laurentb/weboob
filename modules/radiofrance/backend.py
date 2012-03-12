@@ -175,7 +175,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     # TODO
     # http://www.franceculture.fr/recherche/key%3DYOURSEARCH%2526type%3Demission
     # http://www.franceinter.fr/recherche/key%3DYOURSEARCH%2526tri%3Dpertinence%2526theme%3Ddefault%2526type%3Demission
-    #def iter_search_results(self, *args, **kwargs):
+    #def search_videos(self, *args, **kwargs):
     #    return []
 
     def get_video(self, _id):

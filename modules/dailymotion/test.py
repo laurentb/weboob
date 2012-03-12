@@ -24,7 +24,7 @@ class DailymotionTest(BackendTest):
     BACKEND = 'dailymotion'
 
     def test_dailymotion(self):
-        l = list(self.backend.iter_search_results('chirac'))
+        l = list(self.backend.search_videos('chirac'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

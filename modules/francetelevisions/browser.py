@@ -55,7 +55,7 @@ class PluzzBrowser(BaseBrowser):
 
         return video
 
-    def iter_search_results(self, pattern):
+    def search_videos(self, pattern):
         if not pattern:
             self.home()
         else:

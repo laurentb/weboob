@@ -42,7 +42,7 @@ class DailymotionBrowser(BaseBrowser):
         self.location(url)
         return self.page.get_video(video)
 
-    def iter_search_results(self, pattern, sortby):
+    def search_videos(self, pattern, sortby):
         if not pattern:
             self.home()
         else:

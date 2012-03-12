@@ -106,7 +106,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         self._set_video_url(video)
         return video
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()

@@ -24,7 +24,7 @@ class YoutubeTest(BackendTest):
     BACKEND = 'youtube'
 
     def test_youtube(self):
-        l = list(self.backend.iter_search_results('lol'))
+        l = list(self.backend.search_videos('lol'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

@@ -51,7 +51,7 @@ class ArteBrowser(BaseBrowser):
     def home(self):
         self.location('http://videos.arte.tv/fr/videos/arte7')
 
-    def iter_search_results(self, pattern):
+    def search_videos(self, pattern):
         if not pattern:
             self.home()
         else:

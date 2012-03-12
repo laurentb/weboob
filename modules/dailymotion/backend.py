@@ -44,9 +44,9 @@ class DailymotionBackend(BaseBackend, ICapVideo):
             return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rated', 'visited', None]
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
-            return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
+            return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:

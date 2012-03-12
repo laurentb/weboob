@@ -44,11 +44,11 @@ class YoupornBackend(BaseBackend, ICapVideo):
             return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         if not nsfw:
             return set()
         with self.browser:
-            return self.browser.iter_search_results(pattern, self.SORTBY[sortby])
+            return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:

@@ -224,7 +224,7 @@ class Videoob(ReplApplication):
 
         self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
         self.change_path('/search')
-        for backend, video in self.do('iter_search_results', pattern=pattern, nsfw=self.nsfw,
+        for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
             self.add_object(video)
             self.format(video)

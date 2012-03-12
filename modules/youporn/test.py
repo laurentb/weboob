@@ -24,9 +24,9 @@ class YoupornTest(BackendTest):
     BACKEND = 'youporn'
 
     def test_youporn(self):
-        self.assertTrue(len(self.backend.iter_search_results('penis', nsfw=False)) == 0)
+        self.assertTrue(len(self.backend.search_videos('penis', nsfw=False)) == 0)
 
-        l = list(self.backend.iter_search_results('ass to mouth', nsfw=True))
+        l = list(self.backend.search_videos('ass to mouth', nsfw=True))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

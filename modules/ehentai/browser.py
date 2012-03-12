@@ -51,7 +51,7 @@ class EHentaiBrowser(BaseBrowser):
     def _gallery_page(self, gallery, n):
         return gallery.url + ('?p=%d' % n)
 
-    def iter_search_results(self, pattern):
+    def search_gallery(self, pattern):
         self.location(self.buildurl('/', f_search=pattern.encode('utf-8')))
         assert self.is_on_page(IndexPage)
         return self.page.iter_galleries()

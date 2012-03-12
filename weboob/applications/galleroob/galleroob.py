@@ -74,7 +74,7 @@ class Galleroob(ReplApplication):
 
         self.set_formatter_header(u'Search pattern: %s' %
             pattern if pattern else u'Latest galleries')
-        for backend, gallery in self.do('iter_search_results',
+        for backend, gallery in self.do('search_gallery',
                 pattern=pattern, max_results=self.options.count):
             self.add_object(gallery)
             self.format(gallery)

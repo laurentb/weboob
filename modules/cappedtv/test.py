@@ -19,7 +19,7 @@ class CappedTest(BackendTest):
     BACKEND = 'cappedtv'
 
     def test_capped(self):
-        l = list(self.backend.iter_search_results('kewlers'))
+        l = list(self.backend.search_videos('kewlers'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

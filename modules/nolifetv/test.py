@@ -25,7 +25,7 @@ class NolifeTVTest(BackendTest):
     BACKEND = 'nolifetv'
 
     def test_nolife(self):
-        l = list(self.backend.iter_search_results('nolife'))
+        l = list(self.backend.search_videos('nolife'))
         self.assertTrue(len(l) > 0)
         for v in l:
             try:

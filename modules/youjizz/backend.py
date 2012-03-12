@@ -44,11 +44,11 @@ class YoujizzBackend(BaseBackend, ICapVideo):
             video = self.browser.get_video(_id)
         return video
 
-    def iter_search_results(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         if not nsfw:
             return set()
         with self.browser:
-            return self.browser.iter_search_results(pattern)
+            return self.browser.search_videos(pattern)
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:

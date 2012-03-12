@@ -53,9 +53,9 @@ class EHentaiBackend(BaseBackend, ICapGallery):
             password = None
         return self.create_browser(self.config['domain'].get(), username, password)
 
-    def iter_search_results(self, pattern=None, sortby=None, max_results=None):
+    def search_gallery(self, pattern=None, sortby=None, max_results=None):
         with self.browser:
-            return self.browser.iter_search_results(pattern)
+            return self.browser.search_gallery(pattern)
 
     def iter_gallery_images(self, gallery):
         self.fillobj(gallery, ('url',))
@@ -74,7 +74,7 @@ class EHentaiBackend(BaseBackend, ICapGallery):
                 _id = match.group(0)
             else:
                 return None
-        
+
         gallery = EHentaiGallery(_id)
         with self.browser:
             if self.browser.gallery_exists(gallery):

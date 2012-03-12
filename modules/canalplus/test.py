@@ -25,7 +25,7 @@ class CanalPlusTest(BackendTest):
     BACKEND = 'canalplus'
 
     def test_canalplus(self):
-        l = list(self.backend.iter_search_results('guignol'))
+        l = list(self.backend.search_videos('guignol'))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))

@@ -70,7 +70,7 @@ class ICapVideo(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def iter_search_results(self, pattern=None, sortby=SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=SEARCH_RELEVANCE, nsfw=False, max_results=None):
         """
         Iter results of a search on a pattern. Note that if pattern is None,
         it get the latest videos.
