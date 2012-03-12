@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+from __future__ import with_statement
+
 import glob
 import subprocess
 import os
 import sys
+
 
 def check_executable(executable):
     with open('/dev/null', 'w') as devnull:
@@ -13,6 +16,7 @@ def check_executable(executable):
     else:
         print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
         sys.exit(1)
+
 
 def install_xdg():
     print 'installing desktop menu files'

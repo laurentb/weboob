@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 
 from PyQt4.QtGui import QDialog, QTreeWidgetItem, QLabel, QFormLayout, \
                         QMessageBox, QPixmap, QImage, QIcon, QHeaderView, \
@@ -56,6 +57,7 @@ class RepositoriesDialog(QDialog):
             fp.write(self.ui.reposEdit.toPlainText())
         self.accept()
 
+
 class IconFetcher(QThread):
     def __init__(self, weboob, item, minfo):
         QThread.__init__(self)
@@ -67,16 +69,18 @@ class IconFetcher(QThread):
         self.weboob.repositories.retrieve_icon(self.minfo)
         self.emit(SIGNAL('retrieved'), self)
 
+
 class ProgressDialog(IProgress, QProgressDialog):
     def __init__(self, *args, **kwargs):
         QProgressDialog.__init__(self, *args, **kwargs)
 
     def progress(self, percent, message):
-        self.setValue(int(percent*100))
+        self.setValue(int(percent * 100))
         self.setLabelText(message)
 
     def error(self, message):
         QMessageBox.critical(self, self.tr('Error'), '%s' % message, QMessageBox.Ok)
+
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):

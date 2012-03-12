@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
-
 
 from .browser import RadioFranceBrowser, RadioFranceVideo
 
@@ -40,8 +40,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     LICENSE = 'AGPLv3+'
     BROWSER = RadioFranceBrowser
 
-    _MP3_URL =  u'http://mp3.live.tv-radio.com/%s/all/%s.mp3'
-    _MP3_HD_URL =  u'http://mp3.live.tv-radio.com/%s/all/%shautdebit.mp3'
+    _MP3_URL = u'http://mp3.live.tv-radio.com/%s/all/%s.mp3'
+    _MP3_HD_URL = u'http://mp3.live.tv-radio.com/%s/all/%shautdebit.mp3'
     _RADIOS = {'franceinter': (u'France Inter', True),
         'franceculture': (u'France Culture', True),
         'franceinfo': (u'France Info', False),

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
+
 import sys
 import os
 from re import search, sub
@@ -114,8 +116,8 @@ class Galleroob(ReplApplication):
         try:
             os.mkdir(dest)
         except OSError:
-            pass # ignore error on existing directory
-        os.chdir(dest) # fail here if dest couldn't be created
+            pass  # ignore error on existing directory
+        os.chdir(dest)  # fail here if dest couldn't be created
 
         i = 0
         for img in backend.iter_gallery_images(gallery):
@@ -123,9 +125,9 @@ class Galleroob(ReplApplication):
             if i < first:
                 continue
 
-            backend.fillobj(img, ('url','data'))
+            backend.fillobj(img, ('url', 'data'))
             if img.data is None:
-                backend.fillobj(img, ('url','data'))
+                backend.fillobj(img, ('url', 'data'))
                 if img.data is None:
                     print >>sys.stderr, "Couldn't get page %d, exiting" % i
                     break
@@ -135,7 +137,6 @@ class Galleroob(ReplApplication):
                 ext = ext.group(1)
             else:
                 ext = "jpg"
-
 
             name = '%03d.%s' % (i, ext)
             print 'Writing file %s' % name
@@ -155,7 +156,7 @@ class Galleroob(ReplApplication):
 
         gallery = self.get_object(_id, 'get_gallery')
         if not gallery:
-            print >>sys.stderr, 'Gallery not found: %s' %  _id
+            print >>sys.stderr, 'Gallery not found: %s' % _id
             return 3
         self.format(gallery)
         self.flush()

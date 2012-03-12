@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import with_statement
 
 from weboob.capabilities.bill import ICapBill, SubscriptionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -58,16 +59,14 @@ class FreeMobileBackend(BaseBackend, ICapBill):
         else:
             raise SubscriptionNotFound()
 
-    
     def iter_history(self, subscription):
         raise NotImplementedError()
-    
+
     def get_pdf(self, account):
         raise NotImplementedError()
 
     # The subscription is actually useless, but maybe for the futur...
-    def get_details(self, subscription): 
+    def get_details(self, subscription):
         with self.browser:
             for detail in self.browser.get_details():
                 yield detail
-
