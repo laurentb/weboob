@@ -23,5 +23,5 @@ class CappedTest(BackendTest):
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startwith('http://'), 'URL for video "%s" not found' % (v.id, v.url))
+        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
         self.backend.browser.openurl(v.url)
