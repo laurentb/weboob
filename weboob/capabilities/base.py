@@ -107,6 +107,15 @@ class CapBaseObject(object):
                 return False
         return True
 
+    def set_empty_fields(self, value, excepts=()):
+        """
+        Set the same value on all empty fields.
+        """
+        for key, old_value in self.iter_fields():
+            if old_value in (None, NotLoaded, NotAvailable) and \
+               not key in excepts:
+                setattr(self, key, value)
+
     def iter_fields(self):
         """
         Iterate on the FIELDS keys and values.
