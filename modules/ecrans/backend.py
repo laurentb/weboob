@@ -35,5 +35,6 @@ class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     RSS_FEED = 'http://www.ecrans.fr/spip.php?page=backend'
     RSSID = staticmethod(rssid)
     URL2ID = staticmethod(url2id) 
-    RSSSIZE = 10 
+    # RSS Size is actually 10, but some articles are not sorted by publication date 
+    RSSSIZE = 40 
 
