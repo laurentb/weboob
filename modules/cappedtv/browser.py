@@ -18,6 +18,7 @@ from weboob.tools.browser import BrokenPageError
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 from weboob.capabilities.video import BaseVideo
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -43,9 +44,16 @@ class IndexPage(BasePage):
         for vidbackdrop in vidbackdrop_list:
             url = self.parser.select(vidbackdrop, 'a', 1).attrib['href']
             _id = url[2:]
-            title = self.parser.select(vidbackdrop, 'div.vidTitle a', 1).text
-            author = self.parser.select(vidbackdrop, 'div.vidAuthor a', 1).text
+
+            video = CappedVideo(_id)
+            video.set_empty_fields(NotAvailable, ('url',))
+
+            video.title = self.parser.select(vidbackdrop, 'div.vidTitle a', 1).text
+            video.author = self.parser.select(vidbackdrop, 'div.vidAuthor a', 1).text
+
             thumbnail_url = 'http://cdn.capped.tv/pre/%s.png' % _id
+            video.thumbnail = Thumbnail(thumbnail_url)
+
             #we get the description field
             duration_tmp = self.parser.select(vidbackdrop, 'div.vidInfo', 1)
             #we remove tabs and spaces
@@ -65,7 +73,9 @@ class IndexPage(BasePage):
             else:
                 raise BrokenPageError('Unable to parse duration %r' % duration_tmp)
 
-            yield CappedVideo(_id=_id, title=title, author=author, thumbnail_url=thumbnail_url, duration=datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds)))
+            video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+
+            yield video
 
 
 
@@ -75,11 +85,12 @@ class VideoPage(BasePage):
         _id = to_unicode(self.group_dict['id'])
         if video is None:
             video = CappedVideo(_id)
+            video.set_empty_fields(NotAvailable)
+
         title_tmp = self.parser.select(self.document.getroot(), 'title', 1)
         video.title = to_unicode(title_tmp.text.strip())
 
         # Videopages doesn't have duration information (only results pages)
-        video.duration = NotAvailable
         video.url = 'http://cdn.capped.tv/vhq/%s.mp4' % _id
         return video
 
