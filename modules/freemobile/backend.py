@@ -66,7 +66,10 @@ class FreeMobileBackend(BaseBackend, ICapBill):
     def iter_history(self, subscription):
         raise NotImplementedError()
 
-    def get_pdf(self, account):
+    def get_get_bill(self, subscription, id):
+        raise NotImplementedError()
+
+    def iter_bill(self, subscription):
         raise NotImplementedError()
 
     # The subscription is actually useless, but maybe for the futur...
