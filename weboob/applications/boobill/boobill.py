@@ -97,3 +97,23 @@ class Boobill(ReplApplication):
         for backend, history in self.do(do, backends=names):
             self.format(history)
         self.flush()
+
+    def do_bills(self, id):
+        """
+        bills Id
+
+        Get the list of bills documents
+        """
+
+        id, backend_name = self.parse_id(id)
+        if not id:
+            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            return 2
+        names = (backend_name,) if backend_name is not None else None
+
+        def do(backend):
+            return backend.iter_bills(id)
+
+        for backend, date in self.do(do, backends=names):
+            self.format(date)
+        self.flush()
