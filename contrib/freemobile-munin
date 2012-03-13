@@ -158,6 +158,7 @@ else {
 			doubleprint("0 \n");
 		}
 	}
+	close(CACHE);
 }
 
 sub doubleprint {
