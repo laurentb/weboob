@@ -20,11 +20,31 @@
 
 import sys
 
-from weboob.capabilities.bill import ICapBill, Detail
+from weboob.capabilities.bill import ICapBill, Detail, Subscription
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 
 __all__ = ['Boobill']
+
+
+class SubscriptionsFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'label')
+    count = 0
+
+    def flush(self):
+        self.count = 0
+
+    def format_dict(self, item):
+        self.count += 1
+
+        if self.interactive:
+            backend = item['id'].split('@', 1)[1]
+            id = '#%d (%s)' % (self.count, backend)
+        else:
+            id = item['id']
+
+        return u'%s%s%s %s' % (self.BOLD, id, self.NC, item['label'])
 
 
 class Boobill(ReplApplication):
@@ -33,7 +53,14 @@ class Boobill(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get and download bills.'
     CAPS = ICapBill
+    COLLECTION_OBJECTS = (Subscription, )
+    EXTRA_FORMATTERS = {'subscriptions':   SubscriptionsFormatter,
+                        }
     DEFAULT_FORMATTER = 'table'
+    COMMANDS_FORMATTERS = {'subscriptions':   'subscriptions',
+                           'ls':              'subscriptions',
+                          }
+
 
     def main(self, argv):
         self.load_config()
