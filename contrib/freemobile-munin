@@ -33,6 +33,9 @@ WARNING: Some monitored options are *not* tested by author
 
 =cut
 use warnings;
+# Munin doesn't like utf-8 :-(
+use encoding "iso-8859-1";
+use Encode; 
 
 my @monitored = split(/ /, $ENV{'freemonitored'} || 'voice sms');
 my $cachefile = $ENV{'HOME'} . '/.config/weboob/munin/freemobile-munin';
@@ -96,6 +99,7 @@ my $cache;
 my $expr;
 
 if ($ARGV[0] and $ARGV[0] eq "config") {
+	binmode STDOUT, ":encoding(iso-8859-1)";
 	print "graph_title Conso Free\n";
 	print "graph_vlabel Suivi conso du forfait Free Mobile\n";
 	print "graph_category weboob\n";
