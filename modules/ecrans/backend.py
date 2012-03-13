@@ -23,6 +23,7 @@ from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBa
 from .browser import NewspaperEcransBrowser
 from .tools import rssid, url2id
 
+
 class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
@@ -34,7 +35,6 @@ class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     BROWSER = NewspaperEcransBrowser
     RSS_FEED = 'http://www.ecrans.fr/spip.php?page=backend'
     RSSID = staticmethod(rssid)
-    URL2ID = staticmethod(url2id) 
-    # RSS Size is actually 10, but some articles are not sorted by publication date 
-    RSSSIZE = 40 
-
+    URL2ID = staticmethod(url2id)
+    # RSS Size is actually 10, but some articles are not sorted by publication date
+    RSSSIZE = 40

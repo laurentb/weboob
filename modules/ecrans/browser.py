@@ -22,7 +22,6 @@ from .pages.article import ArticlePage
 from weboob.tools.browser import BaseBrowser
 
 
-
 class NewspaperEcransBrowser(BaseBrowser):
     "NewspaperEcransBrowser class"
     PAGES = {

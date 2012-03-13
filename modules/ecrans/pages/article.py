@@ -19,19 +19,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, remove_from_selector_list, try_remove_from_selector_list, try_drop_tree
+
+
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
-        self.element_author_selector    = "p.auteur>a"
-        self.element_body_selector      = "div.bloc_article_01"
+        self.element_author_selector = "p.auteur>a"
+        self.element_body_selector = "div.bloc_article_01"
 
     def get_body(self):
         element_body = self.get_element_body()
-        remove_from_selector_list(self.parser, element_body, ["p.auteur", "h4" ])
+        remove_from_selector_list(self.parser, element_body, ["p.auteur", "h4"])
         try_remove_from_selector_list(self.parser, element_body, ["p.tag", "div.alire", self.element_title_selector, "h4"])
         try_drop_tree(self.parser, element_body, "script")
 
         return self.parser.tostring(element_body)
-
