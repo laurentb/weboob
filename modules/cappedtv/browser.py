@@ -100,7 +100,7 @@ class CappedBrowser(BaseBrowser):
     PROTOCOL = 'http'
     ENCODING = None
     PAGES = OrderedDict((
-            (r'http://capped\.tv', IndexPage),
+            (r'http://capped\.tv/?', IndexPage),
             (r'http://capped\.tv/newest', IndexPage),
             (r'http://capped\.tv/mostviews', IndexPage),
             (r'http://capped\.tv/leastviews', IndexPage),
