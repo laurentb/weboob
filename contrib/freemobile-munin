@@ -6,22 +6,22 @@
 freemobile - Plugin to monitor a freemobile subscription
 copy this script to /etc/munin/plugins/freemobile
 
-=note1 
+=note1
 
 You have to manually create the folder:
- $HOME/.config/weboob/munin/ 
+ $HOME/.config/weboob/munin/
 
 =head1 CONFIGURATION
 
-You need to configure the user and the home PATH like that: 
+You need to configure the user and the home PATH like that:
 
 [freemobile]
 env.HOME /home/florent
 user florent
 group florent
 
-You can configure the list of monitored data with the ligne: 
-env.freemonitored voice sms mms data 
+You can configure the list of monitored data with the ligne:
+env.freemonitored voice sms mms data
 
 Others monitored options: voicetoint voiceint smsint mmsint dataint
 
@@ -32,13 +32,13 @@ use warnings;
 
 my @monitored = split(/ /, $ENV{'freemonitored'} || 'voice sms');
 my $cachefile = $ENV{'HOME'} . '/.config/weboob/munin/freemobile-munin';
-my $weboob = "/usr/local/bin/weboob-cli ICapBill get_details coin -f table |";
+my $weboob = "/usr/bin/env weboob-cli ICapBill get_details coin -f table |";
 
 my %label = (
         'voice' => "Voix en France (min)\n",
-	'voicetoint' => "Voix vers l'international (min)\n", 
+	'voicetoint' => "Voix vers l'international (min)\n",
         'sms' => "SMS en France\n",
-        'mms' => "MMS en France",
+        'mms' => "MMS en France\n",
 	'data' => "Data en France\n",
 	'voiceint' => "Voix à l\'international (min)\n",
 	'smsint' => "SMS à l\'international\n",
@@ -50,24 +50,24 @@ my %linenum = (
         'voice' => 3,
 	'voicetoint' => 3,
         'sms' => 5,
-        'mms' => 6, 
-        'data' => 7, 
-        'voiceint' => 8, 
-        'smsint' => 9, 
-        'mmsint' => 10, 
+        'mms' => 6,
+        'data' => 7,
+        'voiceint' => 8,
+        'smsint' => 9,
+        'mmsint' => 10,
         'dataint' => 11
         );
 
 my %regexp = (
         'voice' => 'Consommation : (\d+)h(\d+)min(\d+)s',
 	'voicetoint' => 'International : (\d+)h(\d+)min(\d+)s',
-        'sms' => 'Conso SMS                  \| (\d+) \/ (\d+)',
+        'sms' => 'Conso SMS                  \| (\d+) \/ (.*)',
         'mms' => 'Vous avez consommé (\d+) MMS',
-        'data' => 'Vous avez consommé (\d+) o',
+        'data' => 'Vous avez consommé ([\d\-]+) Mo',
         'voiceint' => 'Appels émis (\d+)h(\d+)min(\d+)s',
         'smsint' => 'Conso SMS (international)  \| (\d+)',
         'mmsint' => 'Vous avez consommé (\d+) MMS',
-        'dataint' => 'Vous avez consommé (\d+) o'
+        'dataint' => 'Vous avez consommé ([\d\-]+) Mo'
         );
 
 my %post = (
@@ -86,7 +86,7 @@ my @lines;
 my $cache;
 my $expr;
 
-if ($ARGV[0] and $ARGV[0] eq "config") { 
+if ($ARGV[0] and $ARGV[0] eq "config") {
 	print "graph_title Conso Free\n";
 	print "graph_vlabel Suivi conso du forfait 2 euros\n";
 	print "graph_category weboob\n";
@@ -97,14 +97,14 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
 	}
 }
 else {
-	my $first = 1; 
+	my $first = 1;
 	my $time = time();
 	# Check if cache exist and not older than 3 hours
 	if (open(CACHE, "< " . $cachefile)) {
 		$cache = 1;
-		LOOP: while(<CACHE>) { 
+		LOOP: while(<CACHE>) {
 			if ($first) {
-				if ($time - $_ > 10800) { 
+				if ($time - $_ > 10800) {
 					$cache = 0;
 					last;
 				}
@@ -122,7 +122,7 @@ else {
 	open(CACHE, "> " . $cachefile) or die "Failed to open file $cachefile";
 	open(DATA, $weboob)   or die "Couldn't execute program: $!";
 	LOOP: while (<DATA>) {
-		push(@lines,$_);	
+		push(@lines,$_);
 	}
 	close(DATA);
 	print CACHE time(). "\n";
