@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
 

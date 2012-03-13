@@ -19,7 +19,7 @@
 
 from datetime import datetime, date
 from .base import CapBaseObject
-from .collection import ICapCollection, CollectionNotFound
+from .collection import ICapCollection
 
 
 __all__ = ['Subscription', 'SubscriptionNotFound', 'ICapBill', 'Detail']

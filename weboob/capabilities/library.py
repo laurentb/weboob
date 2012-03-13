@@ -19,7 +19,7 @@
 
 from datetime import datetime, date
 
-from .collection import ICapCollection, CollectionNotFound
+from .collection import ICapCollection
 from .base import CapBaseObject
 
 
