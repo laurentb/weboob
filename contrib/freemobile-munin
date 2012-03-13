@@ -110,6 +110,7 @@ if ($ARGV[0] and $ARGV[0] eq "config") {
 	}
 }
 else {
+	my $refresh;
 	my $first = 1;
 	my $time = time();
 	# Check if cache exist and not older than 3 hours
@@ -118,8 +119,11 @@ else {
 		LOOP: while(<CACHE>) {
 			if ($first) {
 				if ($time - $_ > $refreshtime) {
-					$cache = 0;
+					$refresh = 0;
 					last;
+				}
+				else {
+					$refresh = 1;
 				}
 				$first = 0;
 			}
@@ -129,7 +133,7 @@ else {
 		}
 	}
 	close(CACHE);
-	exit if $cache;
+	exit if $cache and $refresh;
 
 	# Open cache for writing and execute weboob
 	open(CACHE, "> " . $cachefile) or die "Failed to open file $cachefile";
