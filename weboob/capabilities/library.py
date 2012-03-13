@@ -39,8 +39,7 @@ class Book(CapBaseObject):
 class ICapBook(ICapCollection):
     def iter_resources(self, objs, split_path):
         if Book in objs:
-            if len(split_path) > 0:
-                raise CollectionNotFound(split_path)
+            self._restrict_level(split_path)
 
             return self.iter_books()
 
