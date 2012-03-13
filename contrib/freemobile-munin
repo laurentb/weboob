@@ -63,7 +63,7 @@ my %regexp = (
 	'voicetoint' => 'International : (\d+)h(\d+)min(\d+)s',
         'sms' => 'Conso SMS                  \| (\d+) \/ (.*)',
         'mms' => 'Vous avez consommé (\d+) MMS',
-        'data' => 'Vous avez consommé ([\d\-]+) Mo',
+        'data' => 'Vous avez consommé ([\d\-\.]+) Mo',
         'voiceint' => 'Appels émis (\d+)h(\d+)min(\d+)s',
         'smsint' => 'Conso SMS (international)  \| (\d+)',
         'mmsint' => 'Vous avez consommé (\d+) MMS',
@@ -88,7 +88,7 @@ my $expr;
 
 if ($ARGV[0] and $ARGV[0] eq "config") {
 	print "graph_title Conso Free\n";
-	print "graph_vlabel Suivi conso du forfait 2 euros\n";
+	print "graph_vlabel Suivi conso du forfait Free Mobile\n";
 	print "graph_category weboob\n";
 	print "graph_args -l 0\n";
 	foreach (@monitored) {
