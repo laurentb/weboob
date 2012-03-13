@@ -24,6 +24,7 @@ You can configure the list of monitored data with the ligne:
 env.freemonitored voice sms mms data
 
 Others monitored options: voicetoint voiceint smsint mmsint dataint
+                          specialvoice
 
 The cache timeout is 3 hours by default. You can change this value 
 with env.cache_expire.
@@ -40,19 +41,21 @@ my $weboob = "/usr/bin/env weboob-cli ICapBill get_details coin -f table |";
 
 my %label = (
         'voice' => "Voix en France (min)\n",
-	'voicetoint' => "Voix vers l'international (min)\n",
+        'voicetoint' => "Voix vers l'international (min)\n",
+        'specialvoice' => "Numéro spéciaux (min) \n",
         'sms' => "SMS en France\n",
         'mms' => "MMS en France\n",
-	'data' => "Data en France\n",
-	'voiceint' => "Voix à l\'international (min)\n",
-	'smsint' => "SMS à l\'international\n",
-	'mmsint' => "MMS à l\'international\n",
-	'dataint' => "Data à l\'international\n"
+        'data' => "Data en France\n",
+        'voiceint' => "Voix à l\'international (min)\n",
+        'smsint' => "SMS à l\'international\n",
+        'mmsint' => "MMS à l\'international\n",
+        'dataint' => "Data à l\'international\n"
         );
 
 my %linenum = (
         'voice' => 3,
-	'voicetoint' => 3,
+        'voicetoint' => 3,
+        'specialvoice' => 4,
         'sms' => 5,
         'mms' => 6,
         'data' => 7,
@@ -64,7 +67,8 @@ my %linenum = (
 
 my %regexp = (
         'voice' => 'Consommation : (\d+)h(\d+)min(\d+)s',
-	'voicetoint' => 'International : (\d+)h(\d+)min(\d+)s',
+        'voicetoint' => 'International : (\d+)h(\d+)min(\d+)s',
+        'specialvoice' => '\| (\d+)h(\d+) min (\d+)s',
         'sms' => 'Conso SMS                  \| (\d+) \/ (.*)',
         'mms' => 'Vous avez consommé (\d+) MMS',
         'data' => 'Vous avez consommé ([\d\-\.]+) Mo',
@@ -77,6 +81,7 @@ my %regexp = (
 my %post = (
         'voice' => 'postvoice',
 	'voicetoint' => 'postvoice',
+	'specialvoice' => 'postvoice',
         'sms' => 'simplepost',
         'mms' => 'simplepost',
         'data' => 'simplepost',
@@ -162,4 +167,3 @@ sub simplepost {
         my @args = split(/ /,$_[0]);
         doubleprint("$args[0] \n");
 }
-
