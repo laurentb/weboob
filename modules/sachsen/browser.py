@@ -50,11 +50,11 @@ class SachsenBrowser(BaseBrowser):
         return self.cache_list
 
     def iter_history(self, id):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' %int(id))
+        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(id))
         return self.page.iter_history()
 
     def last_seen(self, id):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' %int(id))
+        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(id))
         return self.page.last_seen()
 
     def search(self, pattern):

@@ -19,11 +19,12 @@
 
 from datetime import datetime, date, time
 from weboob.tools.browser import BasePage
-
 from weboob.capabilities.gauge import Gauge, GaugeMeasure
 from weboob.capabilities.base import NotAvailable
 
+
 __all__ = ['ListPage', 'HistoryPage']
+
 
 class ListPage(BasePage):
     def get_rivers_list(self):
@@ -58,6 +59,7 @@ class ListPage(BasePage):
             l.append(gauge)
         return l
 
+
 class HistoryPage(BasePage):
     def iter_history(self):
         table = self.document.getroot().cssselect('table[width="215"]')
@@ -85,13 +87,13 @@ class HistoryPage(BasePage):
     def first_value(self, table, index):
         first = NotAvailable
         for lignes in table[0].cssselect("tr"):
-           try:
-              valeur = float(lignes[index].text_content())
-              if (valeur > 1.0):
-                 first = valeur
-                 return first
-           except:
-              continue
+            try:
+                valeur = float(lignes[index].text_content())
+                if (valeur > 1.0):
+                    first = valeur
+                return first
+            except:
+                continue
         return first
 
     def last_seen(self):
