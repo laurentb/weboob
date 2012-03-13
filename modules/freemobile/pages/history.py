@@ -73,6 +73,10 @@ class DetailsPage(BasePage):
         return self.details
 
 
+def _get_date(detail):
+    return detail.datetime
+
+
 class HistoryPage(BasePage):
     calls = []
 
@@ -95,4 +99,4 @@ class HistoryPage(BasePage):
                 self.calls.append(detail)
 
     def get_calls(self):
-        return self.calls
+        return sorted(self.calls, key=_get_date, reverse=True)
