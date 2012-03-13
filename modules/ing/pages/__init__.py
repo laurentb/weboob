@@ -22,7 +22,9 @@ from .accounts_list import AccountsList
 from .account_history import AccountHistoryCC, AccountHistoryLA
 from .login import LoginPage, LoginPage2, ConfirmPage, MessagePage
 
-class AccountPrelevement(AccountsList): pass
 
-__all__ = ['AccountsList', 'AccountHistoryCC', 'AccountHistoryLA', 'LoginPage', 'LoginPage2',
-           'ConfirmPage', 'MessagePage', 'AccountPrelevement']
+class AccountPrelevement(AccountsList):
+    pass
+
+__all__ = ['AccountsList', 'AccountHistoryCC', 'AccountHistoryLA', 'LoginPage',
+           'LoginPage2', 'ConfirmPage', 'MessagePage', 'AccountPrelevement']

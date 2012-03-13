@@ -38,9 +38,16 @@ class INGBackend(BaseBackend, ICapBank):
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'ING Direct French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
-                           ValueBackendPassword('birthday',   label='Birthday', regexp='^(\d{8}|)$', masked=False)
+    CONFIG = BackendConfig(ValueBackendPassword('login',
+                                                label='Account ID',
+                                                masked=False),
+                           ValueBackendPassword('password',
+                                                label='Password',
+                                                regexp='^(\d{6}|)$'),
+                           ValueBackendPassword('birthday',
+                                                label='Birthday',
+                                                regexp='^(\d{8}|)$',
+                                                masked=False)
                           )
     BROWSER = Ing
 
@@ -72,4 +79,3 @@ class INGBackend(BaseBackend, ICapBank):
         with self.browser:
             for coming in self.browser.get_coming_operations(account.id):
                 yield coming
-

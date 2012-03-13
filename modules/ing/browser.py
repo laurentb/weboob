@@ -29,7 +29,7 @@ __all__ = ['Ing']
 class Ing(BaseBrowser):
     DOMAIN = 'secure.ingdirect.fr'
     PROTOCOL = 'https'
-    ENCODING =  None # refer to the HTML encoding
+    ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*displayTRAccountSummary.*':   AccountsList,
              '.*displayLogin.jsf':            LoginPage,
              '.*displayLogin.jsf.*':          LoginPage2,
@@ -38,7 +38,7 @@ class Ing(BaseBrowser):
             }
 
     def __init__(self, *args, **kwargs):
-	self.birthday = kwargs.pop('birthday', None)
+        self.birthday = kwargs.pop('birthday', None)
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
@@ -55,10 +55,11 @@ class Ing(BaseBrowser):
         assert self.birthday.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://secure.ingdirect.fr/public/displayLogin.jsf')
+            self.location('https://secure.ingdirect.fr/\
+                           public/displayLogin.jsf')
 
         self.page.prelogin(self.username, self.birthday)
-	self.page.login(self.password)
+        self.page.login(self.password)
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):
@@ -83,12 +84,16 @@ class Ing(BaseBrowser):
         account = self.get_account(id)
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
-          self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
+            self.location('https://secure.ingdirect.fr/\
+                          protected/pages/cc/accountDetail.jsf')
         elif account.label[0:2] == "LA":
-          # we want "displayTRHistoriqueLA" but this fucking page is not directly available...
-          self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
+            # we want "displayTRHistoriqueLA" but this fucking page
+            # is not directly available...
+            self.location('https://secure.ingdirect.fr/\
+                           general?command=goToAccount&account=%d&zone=COMPTE'\
+                            % int(id))
         else:
-          raise NotImplementedError()
+            raise NotImplementedError()
         return self.page.get_transactions()
 
     # TODO

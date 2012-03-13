@@ -27,11 +27,9 @@ from weboob.capabilities.base import NotAvailable
 __all__ = ['AccountHistoryCC', 'AccountHistoryLA']
 
 
-
-
 class AccountHistoryCC(BasePage):
-    types = { 
-        'Carte achat': Transaction.TYPE_CARD, 
+    types = {
+        'Carte achat': Transaction.TYPE_CARD,
         'Virement': Transaction.TYPE_TRANSFER,
         'Carte retrait': Transaction.TYPE_WITHDRAWAL,
         u'Prélèvement': Transaction.TYPE_ORDER,
@@ -47,12 +45,13 @@ class AccountHistoryCC(BasePage):
             texte = tr.text_content().split('\n')
             op = Transaction(id)
             op.label = texte[2]
-            op.raw = texte[2] # nothing to parse
+            op.raw = texte[2]  # nothing to parse
             op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
             op.category = texte[4]
             op.type = self.types.get(texte[4], Transaction.TYPE_UNKNOWN)
 
-            amount = texte[5].replace('\t','').strip().replace(u'€', '').replace(',', '.').replace(u'\xa0', u'')
+            amount = texte[5].replace('\t', '').strip().replace(u'€', '').\
+                              replace(',', '.').replace(u'\xa0', u'')
             op.amount = float(amount)
 
             self.transactions.append(op)
@@ -60,6 +59,7 @@ class AccountHistoryCC(BasePage):
 
     def get_transactions(self):
         return self.transactions
+
 
 class AccountHistoryLA(BasePage):
 
@@ -69,23 +69,22 @@ class AccountHistoryLA(BasePage):
         history = self.document.xpath('//tr[@align="center"]')
         history.pop(0)
         for tr in history:
-           id = i
-           texte = tr.text_content().strip().split('\n')
-           op = Transaction(id)
-           # The size is not the same if there are two dates or only one
-           length = len(texte)
-           op.raw = unicode(texte[length - 2].strip())
-           op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
-           op.category = NotAvailable
+            id = i
+            texte = tr.text_content().strip().split('\n')
+            op = Transaction(id)
+            # The size is not the same if there are two dates or only one
+            length = len(texte)
+            op.raw = unicode(texte[length - 2].strip())
+            op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
+            op.category = NotAvailable
 
-           amount =  texte[length - 1].replace('\t','').strip().replace('.', '').replace(u'€', '').replace(',', '.').replace(u'\xa0', u'')
-           op.amount = float(amount)
+            amount = texte[length - 1].replace('\t', '').strip().\
+                                       replace('.', '').replace(u'€', '').\
+                                       replace(',', '.').replace(u'\xa0', u'')
+            op.amount = float(amount)
 
-
-           self.transactions.append(op)
-           i += 1
-
+            self.transactions.append(op)
+            i += 1
 
     def get_transactions(self):
         return self.transactions
-

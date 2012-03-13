@@ -23,33 +23,34 @@ from weboob.tools.mech import ClientForm
 from logging import error
 
 from weboob.tools.browser import BasePage
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 import tempfile
+
 
 __all__ = ['LoginPage', 'LoginPage2', 'ConfirmPage', 'ChangePasswordPage']
 
+
 class INGVirtKeyboard(VirtKeyboard):
-    symbols={'0':'327208d491507341908cf6920f26b586',
-             '1':'615ff37b15645da106cebc4605b399de',
-             '2':'fb04e648c93620f8b187981f9742b57e',
-             '3':'b786d471a70de83657d57bdedb6a2f38',
-             '4':'41b5501219e8d8f6d3b0baef3352ce88',
-             '5':'c72b372fb035160f2ff8dae59cd7e174',
-             '6':'392fa79e9a1749f5c8c0170f6a8ec68b',
-             '7':'fb495b5cf7f46201af0b4977899b56d4',
-             '8':'e8fea1e1aa86f8fca7f771db9a1dca4d',
-             '9':'82e63914f2e52ec04c11cfc6fecf7e08'
-            }
-    color=64
+    symbols = {'0': '327208d491507341908cf6920f26b586',
+               '1': '615ff37b15645da106cebc4605b399de',
+               '2': 'fb04e648c93620f8b187981f9742b57e',
+               '3': 'b786d471a70de83657d57bdedb6a2f38',
+               '4': '41b5501219e8d8f6d3b0baef3352ce88',
+               '5': 'c72b372fb035160f2ff8dae59cd7e174',
+               '6': '392fa79e9a1749f5c8c0170f6a8ec68b',
+               '7': 'fb495b5cf7f46201af0b4977899b56d4',
+               '8': 'e8fea1e1aa86f8fca7f771db9a1dca4d',
+               '9': '82e63914f2e52ec04c11cfc6fecf7e08'
+              }
+    color = 64
 
-
-    def __init__(self,basepage):
+    def __init__(self, basepage):
         divkeyboard = basepage.document.find("//div[@id='clavierdisplayLogin']")
         img = divkeyboard.xpath("img")[1]
         if img is None:
             return False
-        url=img.attrib.get("src")
-        coords={}
+        url = img.attrib.get("src")
+        coords = {}
         coords["11"] = (5, 5, 33, 33)
         coords["21"] = (45, 5, 73, 33)
         coords["31"] = (85, 5, 113, 33)
@@ -66,66 +67,66 @@ class INGVirtKeyboard(VirtKeyboard):
         if basepage.browser.responses_dirname is None:
             basepage.browser.responses_dirname = \
                     tempfile.mkdtemp(prefix='weboob_session_')
-        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
+        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
-    def get_string_code(self,string):
-        code=''
+    def get_string_code(self, string):
+        code = ''
         first = True
         for c in string:
             if not first:
-               code+=","
-            else :
-               first = False
+                code += ","
+            else:
+                first = False
             codesymbol = self.get_symbol_code(self.symbols[c])
-            x = (self.coords[codesymbol][0] + self.coords[codesymbol][2]) / 2 # In the middle
+            x = (self.coords[codesymbol][0] + self.coords[codesymbol][2]) / 2
             y = (self.coords[codesymbol][1] + self.coords[codesymbol][3]) / 2
-            code+=str(x)
-            code+=","
-            code+=str(y)
+            code += str(x)
+            code += ","
+            code += str(y)
         return code
-
 
 
 class LoginPage(BasePage):
     def on_loaded(self):
-         pass
+        pass
 
     def prelogin(self, login, birthday):
-	# First step : login and birthday
+        # First step : login and birthday
         self.browser.select_form('zone1Form')
         self.browser.set_all_readonly(False)
-	self.browser['zone1Form:numClient'] = login
-	self.browser['zone1Form:dateDay'] = birthday[0:2]
-	self.browser['zone1Form:dateMonth'] = birthday[2:4]
-	self.browser['zone1Form:dateYear'] = birthday[4:9]
-	self.browser['zone1Form:radioSaveClientNumber'] = False
-	self.browser.submit(nologin=True)
+        self.browser['zone1Form:numClient'] = login
+        self.browser['zone1Form:dateDay'] = birthday[0:2]
+        self.browser['zone1Form:dateMonth'] = birthday[2:4]
+        self.browser['zone1Form:dateYear'] = birthday[4:9]
+        self.browser['zone1Form:radioSaveClientNumber'] = False
+        self.browser.submit(nologin=True)
+
 
 class LoginPage2(BasePage):
     def on_loaded(self):
         pass
 
     def login(self, password):
-	# 2) And now, the virtual Keyboard
+        # 2) And now, the virtual Keyboard
         try:
-            vk=INGVirtKeyboard(self)
-        except VirtKeyboardError,err:
-            error("Error: %s"%err)
+            vk = INGVirtKeyboard(self)
+        except VirtKeyboardError, err:
+            error("Error: %s" % err)
             return False
         realpasswd = ""
         span = self.document.find('//span[@id="digitpaddisplayLogin"]')
         i = 0
         for font in span.getiterator('font'):
-           if font.attrib.get('class') == "vide":
-              realpasswd += password[i]
-           i+=1
+            if font.attrib.get('class') == "vide":
+                realpasswd += password[i]
+            i += 1
         self.browser.logger.debug('We are looking for : ' + realpasswd)
         self.browser.select_form('mrc')
         self.browser.set_all_readonly(False)
-        self.browser.logger.debug("Coordonates: "+ vk.get_string_code(realpasswd))
+        self.browser.logger.debug("Coordonates: " + vk.get_string_code(realpasswd))
         self.browser.controls.append(ClientForm.TextControl('text', 'mrc:mrg', {'value': ''}))
         self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': ''}))
-        self.browser['AJAXREQUEST']='_viewRoot'
+        self.browser['AJAXREQUEST'] = '_viewRoot'
         self.browser['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
         self.browser['mrc:mrg'] = 'mrc:mrg'
         self.browser.submit(nologin=True)
@@ -144,11 +145,12 @@ class ConfirmPage(BasePage):
         if m:
             return m.group(1)
 
+
 class MessagePage(BasePage):
     def on_loaded(self):
         pass
 
+
 class ChangePasswordPage(BasePage):
     def on_loaded(self):
         pass
-
