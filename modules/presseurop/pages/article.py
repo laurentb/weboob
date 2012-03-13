@@ -19,14 +19,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
+
+
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for presseurop"
-    
+
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
-        self.element_author_selector    = "div.content-author>a"
-        self.element_body_selector      = "div.block"
+        self.element_author_selector = "div.content-author>a"
+        self.element_body_selector = "div.block"
 
     def get_body(self):
         element_body = self.get_element_body()

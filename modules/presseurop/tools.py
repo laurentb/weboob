@@ -1,7 +1,7 @@
 "tools for presseurop backend"
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Florent Fourcot 
+# Copyright(C) 2012  Florent Fourcot
 # This file is part of weboob.
 #
 # weboob is free software: you can redistribute it and/or modify
@@ -19,11 +19,14 @@
 
 
 import re
+
+
 def url2id(url):
     "return an id from an url"
     regexp = re.compile(".*/([0-9]+)-.*")
     id = regexp.match(url).group(1)
     return id
+
 
 def rssid(entry):
     return url2id(entry.link)

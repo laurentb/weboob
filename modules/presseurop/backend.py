@@ -40,7 +40,7 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     URL2ID = staticmethod(url2id)
     RSSSIZE = 50
     CONFIG = BackendConfig(Value('lang', label='Lang of articles',
-                           choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es' : 'es', 'it' : 'it', 'nl' : 'nl', 'pl' : 'pl', 'pt' : 'pt', 'ro' : 'ro'}, default='fr'))
+                           choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl', 'pl': 'pl', 'pt': 'pt', 'ro': 'ro'}, default='fr'))
 
     def __init__(self, *args, **kwargs):
         GenericNewspaperBackend.__init__(self, *args, **kwargs)
@@ -49,7 +49,6 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     def iter_threads(self):
         for article in Newsfeed(self.RSS_FEED, self.RSSID).iter_entries():
             thread = Thread(article.link)
-            thread.title =  article.title
+            thread.title = article.title
             thread.date = article.datetime
             yield(thread)
-

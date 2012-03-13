@@ -41,4 +41,3 @@ class NewspaperPresseuropBrowser(BaseBrowser):
         "return page article content"
         self.location(_id)
         return self.page.get_article(_id)
-
