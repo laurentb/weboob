@@ -41,6 +41,8 @@ class DetailsPage(BasePage):
 
     def on_loaded(self):
 
+        num = self.document.xpath('//div[@class="infosLigneDetail"]')[0].text
+        num = num.split("-")[2].strip()
         divnat = self.document.xpath('//div[@class="national"]')[0]
         divs = divnat.xpath('div[@class="detail"]')
         divvoice = divs.pop(0)
@@ -62,6 +64,7 @@ class DetailsPage(BasePage):
             mydate = trbill.find('td/input').attrib['onclick'].split("'")[1]
             bill = Bill()
             bill.label = mydate
+            bill.id = num + "." + mydate
             bill.date = date(int(mydate[0:4]), int(mydate[4:6]), int(mydate[6:8]))
             bill.format = 'html'
             self.datebills.append(bill)
@@ -78,7 +81,7 @@ class DetailsPage(BasePage):
 
             self.details.append(detail)
 
-    def get_details(self):
+    def get_details(self, parentid):
         return self.details
 
     def date_bills(self):

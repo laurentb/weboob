@@ -129,7 +129,8 @@ class Boobill(ReplApplication):
         """
         bills Id
 
-        Get the list of bills documents
+        Get the list of bills documents for subscription 
+        id is the identifier of the backend
         """
 
         id, backend_name = self.parse_id(id)
@@ -144,3 +145,37 @@ class Boobill(ReplApplication):
         for backend, date in self.do(do, backends=names):
             self.format(date)
         self.flush()
+
+    def do_download(self, line):
+        """
+        download Id [FILENAME]
+
+        download the bill 
+        id is the identifier of the bill (hint: try bills command)
+        FILENAME is where to write the file. If FILENAME is '-',
+        the file is written to stdout.
+        """
+        id, dest = self.parse_command_args(line, 2, 1)
+        id, backend_name = self.parse_id(id)
+        if not id:
+            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            return 2
+        names = (backend_name,) if backend_name is not None else None
+
+        if dest is None:
+            dest = id
+
+        for backend, buf in self.do('download_bill', id, backends=names):
+            if buf:
+                if dest == "-":
+                    print buf
+                else:
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(buf)
+                    except IOError, e:
+                        print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                        return 1
+                return
+
+

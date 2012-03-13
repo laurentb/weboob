@@ -19,7 +19,7 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.bill import ICapBill, SubscriptionNotFound
+from weboob.capabilities.bill import ICapBill, SubscriptionNotFound, BillNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -68,14 +68,18 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             for history in self.browser.get_history():
                 yield history
 
-    def get_bill(self, subscription, id):
-        raise NotImplementedError()
+    def get_bill(self, id):
+        with self.browser:
+            bill = self.browser.get_bill(id)
+        if bill:
+            return bill
+        else:
+            raise BillNotFound()
 
     def iter_bills(self, subscription):
         with self.browser:
             sub = self.get_subscription(subscription)
-            for bill in self.browser.iter_bills():
-                bill.idparent = sub.id
+            for bill in self.browser.iter_bills(sub.id):
                 yield bill
 
     # The subscription is actually useless, but maybe for the futur...
@@ -83,3 +87,7 @@ class FreeMobileBackend(BaseBackend, ICapBill):
         with self.browser:
             for detail in self.browser.get_details():
                 yield detail
+
+    def download_bill(self, id):
+        with self.browser:
+            return self.browser.download_bill(id)

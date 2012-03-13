@@ -85,7 +85,23 @@ class Freemobile(BaseBrowser):
             self.location('/moncompte/index.php?page=suiviconso')
         return self.page.get_details()
 
-    def iter_bills(self):
+    def iter_bills(self, parentid):
         if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
         return self.page.date_bills()
+
+    def get_bill(self, id):
+        assert isinstance(id, basestring)
+
+        if not self.is_on_page(DetailsPage):
+            self.location('/moncompte/index.php?page=suiviconso')
+        l = self.page.date_bills()
+        for a in l:
+            if a.id == id:
+                return a
+
+    def download_bill(self, id):
+        assert isinstance(id, basestring)
+        date = id.split('.')[1]
+
+        return self.readurl('/moncompte/ajax.php?page=facture&mode=html&date=' + date)

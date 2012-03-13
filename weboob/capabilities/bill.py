@@ -31,6 +31,14 @@ class SubscriptionNotFound(Exception):
             msg = 'Subscription not found'
         Exception.__init__(self, msg)
 
+
+class BillNotFound(Exception):
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = 'Bill not found'
+        Exception.__init__(self, msg)
+
+
 class Detail(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
@@ -69,7 +77,10 @@ class ICapBill(ICapCollection):
     def iter_history(self, subscription):
         raise NotImplementedError()
 
-    def get_bill(self, subscription, id):
+    def get_bill(self, id):
+        raise NotImplementedError()
+
+    def download_bill(self, id):
         raise NotImplementedError()
 
     def iter_bills(self, subscription):
