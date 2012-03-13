@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bill import Detail
+from weboob.capabilities.bill import Detail, Bill
 from datetime import datetime, date, time
 
 
@@ -37,6 +37,7 @@ def convert_price(div):
 
 class DetailsPage(BasePage):
     details = []
+    datebills = []
 
     def on_loaded(self):
 
@@ -57,6 +58,14 @@ class DetailsPage(BasePage):
         divint = self.document.xpath('//div[@class="international hide"]')[0]
         self.iter_divs(divint.xpath('div[@class="detail"]'), True)
 
+        for trbill in self.document.xpath('//tr[@class="derniereFacture"]'):
+            mydate = trbill.find('td/input').attrib['onclick'].split("'")[1]
+            bill = Bill()
+            bill.label = mydate
+            bill.date = date(int(mydate[0:4]), int(mydate[4:6]), int(mydate[6:8]))
+            bill.format = 'html'
+            self.datebills.append(bill)
+
     def iter_divs(self, divs, inter=False):
         for div in divs:
             detail = Detail()
@@ -71,6 +80,9 @@ class DetailsPage(BasePage):
 
     def get_details(self):
         return self.details
+
+    def date_bills(self):
+        return self.datebills
 
 
 def _get_date(detail):

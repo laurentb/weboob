@@ -83,5 +83,9 @@ class Freemobile(BaseBrowser):
     def get_details(self):
         if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
-        test = self.page.get_details()
-        return test
+        return self.page.get_details()
+
+    def iter_bills(self):
+        if not self.is_on_page(DetailsPage):
+            self.location('/moncompte/index.php?page=suiviconso')
+        return self.page.date_bills()

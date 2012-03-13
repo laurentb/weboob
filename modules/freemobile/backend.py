@@ -68,11 +68,15 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             for history in self.browser.get_history():
                 yield history
 
-    def get_get_bill(self, subscription, id):
+    def get_bill(self, subscription, id):
         raise NotImplementedError()
 
-    def iter_bill(self, subscription):
-        raise NotImplementedError()
+    def iter_bills(self, subscription):
+        with self.browser:
+            sub = self.get_subscription(subscription)
+            for bill in self.browser.iter_bills():
+                bill.idparent = sub.id
+                yield bill
 
     # The subscription is actually useless, but maybe for the futur...
     def get_details(self, subscription):
