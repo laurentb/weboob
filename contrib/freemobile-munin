@@ -25,6 +25,9 @@ env.freemonitored voice sms mms data
 
 Others monitored options: voicetoint voiceint smsint mmsint dataint
 
+The cache timeout is 3 hours by default. You can change this value 
+with env.cache_expire.
+
 WARNING: Some monitored options are *not* tested by author
 
 =cut
@@ -32,6 +35,7 @@ use warnings;
 
 my @monitored = split(/ /, $ENV{'freemonitored'} || 'voice sms');
 my $cachefile = $ENV{'HOME'} . '/.config/weboob/munin/freemobile-munin';
+my $refreshtime = $ENV{'cache_expire'} || 10800; 
 my $weboob = "/usr/bin/env weboob-cli ICapBill get_details coin -f table |";
 
 my %label = (
@@ -104,7 +108,7 @@ else {
 		$cache = 1;
 		LOOP: while(<CACHE>) {
 			if ($first) {
-				if ($time - $_ > 10800) {
+				if ($time - $_ > $refreshtime) {
 					$cache = 0;
 					last;
 				}
