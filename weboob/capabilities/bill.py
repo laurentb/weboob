@@ -61,9 +61,11 @@ class ICapBill(ICapCollection):
     def iter_history(self, subscription):
         raise NotImplementedError()
 
-    # XXX : should be an other Cap ? 
-    def get_pdf(self, subscription):
+    def get_bill(self, subscription, id):
         raise NotImplementedError()
-  
+
+    def iter_bill(self, subscription):
+        raise NotImplementedError()
+
     def get_details(self, subscription):
         raise NotImplementedError()
