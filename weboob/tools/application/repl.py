@@ -32,7 +32,7 @@ from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFou
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
 from weboob.tools.ordereddict import OrderedDict
-from weboob.capabilities.collection import Collection, ICapCollection, CollectionNotFound
+from weboob.capabilities.collection import Collection, BaseCollection, ICapCollection, CollectionNotFound
 
 from .console import BackendNotGiven, ConsoleApplication
 from .formatters.load import FormattersLoader, FormatterLoadError
@@ -864,19 +864,13 @@ class ReplApplication(Cmd, ConsoleApplication):
                 print obj
 
         if self.collections:
-            print
-            print 'Collections:'
             for collection in self.collections:
                 if collection.basename and collection.title:
-                    print u'%s* (%s) %s (%s)%s' % \
+                    print u'%s~ (%s) %s (%s)%s' % \
                     (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
-                elif collection.basename:
-                    print u'%s* (%s) (%s)%s' % \
-                    (self.BOLD, collection.basename, collection.backend, self.NC)
                 else:
-                    print collection
-
-        self.flush()
+                    print u'%s~ (%s) (%s)%s' % \
+                    (self.BOLD, collection.basename, collection.backend, self.NC)
 
     def do_cd(self, line):
         """
@@ -938,6 +932,13 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         return (objects, collections)
 
+    def all_collections(self):
+        """
+        Get all objects that are collections: regular objects and fake dumb objects.
+        """
+        obj_collections = [obj for obj in self.objects if isinstance(obj, BaseCollection)]
+        return obj_collections + self.collections
+
     def complete_cd(self, text, line, begidx, endidx):
         directories = set()
         if len(self.working_path.get()):
@@ -945,7 +946,8 @@ class ReplApplication(Cmd, ConsoleApplication):
         mline = line.partition(' ')[2]
         offs = len(mline) - len(text)
 
-        if len(self.collections) == 0:
+        # refresh only if needed
+        if len(self.objects) == 0 and len(self.collections) == 0:
             try:
                 self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
             except CallErrors, errors:
@@ -955,7 +957,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                     else:
                         self.bcall_error_handler(backend, error, backtrace)
 
-        for collection in self.collections:
+        collections = self.all_collections()
+        for collection in collections:
             directories.add(collection.basename.encode(sys.stdout.encoding or locale.getpreferredencoding()))
 
         return [s[offs:] for s in directories if s.startswith(mline)]

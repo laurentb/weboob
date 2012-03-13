@@ -19,7 +19,7 @@
 
 from .base import IBaseCap, CapBaseObject
 
-__all__ = ['ICapCollection', 'Collection', 'CollectionNotFound']
+__all__ = ['ICapCollection', 'BaseCollection', 'Collection', 'CollectionNotFound']
 
 
 class CollectionNotFound(Exception):
@@ -31,38 +31,48 @@ class CollectionNotFound(Exception):
         Exception.__init__(self, msg)
 
 
-class Collection(CapBaseObject):
+class BaseCollection(CapBaseObject):
+    """
+    Inherit from this if you want to create an object that is *also* a Collection.
+    However, this probably will not work properly for now.
+    """
+    def __init__(self, split_path):
+        self.split_path = split_path
+
+    @property
+    def basename(self):
+        return self.split_path[-1] if self.path_level else None
+
+    @property
+    def parent_path(self):
+        return self.split_path[0:-1] if self.path_level else None
+
+    @property
+    def path_level(self):
+        return len(self.split_path)
+
+
+class Collection(BaseCollection):
     """
     A Collection is a "fake" object returned in results, which shows you can get
     more results if you go into its path.
 
     It is a dumb object, it must not contain callbacks to a backend.
+
+    Do not inherit from this class if you want to make a regular CapBaseObject
+    a Collection, use BaseCollection instead.
     """
-    def __init__(self, split_path, title=None, backend=None):
-        self.split_path = split_path
+    def __init__(self, split_path, title=None):
         self.title = title
-        _id = self.basename
-        CapBaseObject.__init__(self, _id, backend)
+        BaseCollection.__init__(self, split_path)
 
     def __unicode__(self):
-        if self.title and self.id:
-            return u'%s (%s)' % (self.id, self.title)
-        elif self.id:
-            return u'%s' % self.id
+        if self.title and self.basename:
+            return u'%s (%s)' % (self.basename, self.title)
+        elif self.basename:
+            return u'%s' % self.basename
         else:
             return u'Unknown collection'
-
-    @property
-    def basename(self):
-        return self.split_path[-1] if self.level else None
-
-    @property
-    def parent(self):
-        return self.split_path[0:-1] if self.level else None
-
-    @property
-    def level(self):
-        return len(self.split_path)
 
 
 class ICapCollection(IBaseCap):
@@ -93,7 +103,7 @@ class ICapCollection(IBaseCap):
         If the path is invalid (i.e. can't be handled by this module),
         it should return None.
         """
-        collection = Collection(split_path, None, self.name)
+        collection = Collection(split_path, None)
         return self.validate_collection(objs, collection) or collection
 
     def validate_collection(self, objs, collection):
@@ -105,7 +115,7 @@ class ICapCollection(IBaseCap):
         You can replace the collection object entirely by returning a new one.
         """
         # Root
-        if collection.level == 0:
+        if collection.path_level == 0:
             return
         try:
             i = self.iter_resources(objs, collection.split_path)
@@ -121,20 +131,20 @@ class ICapCollection(IBaseCap):
 def test():
     c = Collection([])
     assert c.basename is None
-    assert c.parent is None
-    assert c.level == 0
+    assert c.parent_path is None
+    assert c.path_level == 0
 
     c = Collection([u'lol'])
     assert c.basename == u'lol'
-    assert c.parent == []
-    assert c.level == 1
+    assert c.parent_path == []
+    assert c.path_level == 1
 
     c = Collection([u'lol', u'cat'])
     assert c.basename == u'cat'
-    assert c.parent == [u'lol']
-    assert c.level == 2
+    assert c.parent_path == [u'lol']
+    assert c.path_level == 2
 
     c = Collection([u'w', u'e', u'e', u'b', u'o', u'o', u'b'])
     assert c.basename == u'b'
-    assert c.parent == [u'w', u'e', u'e', u'b', u'o', u'o']
-    assert c.level == 7
+    assert c.parent_path == [u'w', u'e', u'e', u'b', u'o', u'o']
+    assert c.path_level == 7

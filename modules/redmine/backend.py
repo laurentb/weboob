@@ -106,9 +106,9 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
                 return self.iter_issues(query)
 
     def validate_collection(self, objs, collection):
-        if collection.level == 0:
+        if collection.path_level == 0:
             return
-        if Issue in objs and collection.level == 1:
+        if Issue in objs and collection.path_level == 1:
             for project in self.iter_projects():
                 if collection.basename == project.id:
                     return Collection([project.id], project.name)

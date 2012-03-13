@@ -82,11 +82,11 @@ class CanalplusBrowser(BaseBrowser):
 
         if len(split_path) == 0:
             for channel in channels:
-                if channel.level == 1:
+                if channel.path_level == 1:
                     yield channel
         elif len(split_path) == 1:
             for channel in channels:
-                if channel.level == 2 and split_path == channel.parent:
+                if channel.path_level == 2 and split_path == channel.parent_path:
                         yield channel
         elif len(split_path) == 2:
             subchannels = self.iter_resources(split_path[0:1])
