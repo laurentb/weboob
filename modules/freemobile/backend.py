@@ -36,8 +36,12 @@ class FreeMobileBackend(BaseBackend, ICapBill):
     VERSION = '0.b'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Free Mobile website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False, regexp='^(\d{8}|)$'),
-                           ValueBackendPassword('password',   label='Password')
+    CONFIG = BackendConfig(ValueBackendPassword('login',
+                                                label='Account ID',
+                                                masked=False,
+                                                regexp='^(\d{8}|)$'),
+                           ValueBackendPassword('password',
+                                                label='Password')
                           )
     BROWSER = Freemobile
 

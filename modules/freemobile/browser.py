@@ -27,10 +27,10 @@ __all__ = ['Freemobile']
 class Freemobile(BaseBrowser):
     DOMAIN = 'mobile.free.fr'
     PROTOCOL = 'https'
-    ENCODING =  None # refer to the HTML encoding
-    PAGES = {'.*moncompte/index.php':   LoginPage,
-             '.*page=home':            HomePage,
-             '.*page=suiviconso':         HistoryPage
+    ENCODING = None  # refer to the HTML encoding
+    PAGES = {'.*moncompte/index.php': LoginPage,
+             '.*page=home':           HomePage,
+             '.*page=suiviconso':     HistoryPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -50,7 +50,7 @@ class Freemobile(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.location('https://mobile.free.fr/moncompte/index.php')
 
-	self.page.login(self.username, self.password)
+        self.page.login(self.username, self.password)
 
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()

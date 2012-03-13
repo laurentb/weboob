@@ -44,4 +44,4 @@ class HomePage(BasePage):
 
         l.append(subscription)
 
-        return l 
+        return l

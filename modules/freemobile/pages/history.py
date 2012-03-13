@@ -23,6 +23,7 @@ from weboob.capabilities.bill import Detail
 
 __all__ = ['HistoryPage']
 
+
 def convert_price(div):
     try:
         price = div.find('div[@class="horsForfait"]/p/span').text
@@ -42,19 +43,18 @@ class HistoryPage(BasePage):
         divs = divnat.xpath('div[@class="detail"]')
         divvoice = divs.pop(0)
 
-        # Two informations in one div... 
+        # Two informations in one div...
         voice = Detail()
         voice.label = divvoice.find('div[@class="titreDetail"]/p').text_content()
         voice.price = convert_price(divvoice)
         voicenat = divvoice.xpath('div[@class="consoDetail"]/p/span')[0].text
         voiceint = divvoice.xpath('div[@class="consoDetail"]/p/span')[1].text
-        voice.infos = "Consommation : " + voicenat + " International : " + voiceint               
+        voice.infos = "Consommation : " + voicenat + " International : " + voiceint
         self.details.append(voice)
 
         self.iter_divs(divs)
         divint = self.document.xpath('//div[@class="international hide"]')[0]
         self.iter_divs(divint.xpath('div[@class="detail"]'), True)
-
 
     def iter_divs(self, divs, inter=False):
         for div in divs:
@@ -67,8 +67,6 @@ class HistoryPage(BasePage):
             detail.price = convert_price(div)
 
             self.details.append(detail)
-
-        
 
     def get_calls(self):
         return self.calls
