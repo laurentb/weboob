@@ -20,8 +20,10 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail
+from datetime import datetime, date, time
 
-__all__ = ['HistoryPage']
+
+__all__ = ['HistoryPage', 'DetailsPage']
 
 
 def convert_price(div):
@@ -33,8 +35,7 @@ def convert_price(div):
         return 0.
 
 
-class HistoryPage(BasePage):
-    calls = []
+class DetailsPage(BasePage):
     details = []
 
     def on_loaded(self):
@@ -68,8 +69,30 @@ class HistoryPage(BasePage):
 
             self.details.append(detail)
 
-    def get_calls(self):
-        return self.calls
-
     def get_details(self):
         return self.details
+
+
+class HistoryPage(BasePage):
+    calls = []
+
+    def on_loaded(self):
+        for tr in self.document.xpath('//tr'):
+            tds = tr.xpath('td')
+            if tds[0].text == None or tds[0].text == "Date":
+                pass
+            else:
+                detail = Detail()
+                mydate = date(*reversed([int(x) for x in tds[0].text.split(' ')[0].split("/")]))
+                mytime = time(*[int(x) for x in tds[0].text.split(' ')[1].split(":")])
+                detail.datetime = datetime.combine(mydate, mytime)
+                detail.label = tds[1].text + " " + tds[2].text + " " + tds[3].text
+                try:
+                    detail.price = float(tds[4].text[0:4].replace(',', '.'))
+                except:
+                    detail.price = 0.
+
+                self.calls.append(detail)
+
+    def get_calls(self):
+        return self.calls

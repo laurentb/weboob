@@ -64,7 +64,9 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             raise SubscriptionNotFound()
 
     def iter_history(self, subscription):
-        raise NotImplementedError()
+        with self.browser:
+            for history in self.browser.get_history():
+                yield history
 
     def get_get_bill(self, subscription, id):
         raise NotImplementedError()

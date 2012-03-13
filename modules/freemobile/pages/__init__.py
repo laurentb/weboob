@@ -19,7 +19,7 @@
 
 
 from .homepage import HomePage
-from .history import HistoryPage
+from .history import HistoryPage, DetailsPage
 from .login import LoginPage
 
-__all__ = ['LoginPage', 'HomePage', 'HistoryPage']
+__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'DetailsPage']

@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import HomePage, LoginPage, HistoryPage
+from .pages import HomePage, LoginPage, HistoryPage, DetailsPage
 
 __all__ = ['Freemobile']
 
@@ -30,7 +30,8 @@ class Freemobile(BaseBrowser):
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*moncompte/index.php': LoginPage,
              '.*page=home':           HomePage,
-             '.*page=suiviconso':     HistoryPage
+             '.*page=suiviconso':     DetailsPage,
+             '.*page=consotel_current_month': HistoryPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -74,14 +75,13 @@ class Freemobile(BaseBrowser):
 
         return None
 
-    # XXX : not implemented
     def get_history(self):
         if not self.is_on_page(HistoryPage):
-            self.location('/moncompte/index.php?page=suiviconso')
+            self.location('/moncompte/ajax.php?page=consotel_current_month', 'login=' + self.username)
         return self.page.get_calls()
 
     def get_details(self):
-        if not self.is_on_page(HistoryPage):
+        if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
         test = self.page.get_details()
         return test
