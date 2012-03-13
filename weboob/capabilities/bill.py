@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from datetime import datetime
 from .base import CapBaseObject
 from .collection import ICapCollection, CollectionNotFound
 
@@ -36,6 +36,7 @@ class Detail(CapBaseObject):
         CapBaseObject.__init__(self, 0)
         self.add_field('label', basestring)
         self.add_field('infos', basestring)
+        self.add_field('datetime', datetime)
         self.add_field('price', float)
 
 class Subscription(CapBaseObject):
