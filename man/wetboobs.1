@@ -1,4 +1,4 @@
-.TH WETBOOBS 1 "05 February 2012" "wetboobs 0\&.a"
+.TH WETBOOBS 1 "14 March 2012" "wetboobs 0\&.b"
 .SH NAME
 wetboobs
 .SH SYNOPSIS
@@ -13,27 +13,35 @@ wetboobs
 
 Console application allowing to display weather and forecasts in your city.
 
-.SS Supported websites:
-* meteofrance (Get forecasts from the MeteoFrance website)
-.br
-* yahoo (Yahoo)
 .SH WETBOOBS COMMANDS
+.TP
+\fBcities\fR \fIPATTERN\fR
+.br
+Search cities.
 .TP
 \fBcurrent\fR \fICITY_ID\fR
 .br
-Get current weather for specified city. Use the 'search' command to find
-.br
-its ID.
+Get current weather for specified city. Use the 'cities' command to find them.
 .TP
 \fBforecasts\fR \fICITY_ID\fR
 .br
-Get forecasts for specified city. Use the 'search' command to find
-.br
-its ID.
+Get forecasts for specified city. Use the 'cities' command to find them.
 .TP
-\fBsearch\fR \fIPATTERN\fR
+\fBgauge\fR \fIGAUGE_ID\fR
 .br
-Search cities.
+Get history of a specific gauge (use 'rivers' to find them).
+.TP
+\fBgauges\fR
+.br
+rivers [PATTERN]
+.br
+
+.br
+List all rivers. If PATTERN is specified, search on a pattern.
+.TP
+\fBlast_gauge_measure\fR \fIGAUGE_ID\fR
+.br
+Get last measure of a gauge (use 'rivers' to find them).
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -64,7 +72,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -215,7 +225,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Wetboobs
+Home page: http://weboob.org/applications/wetboobs

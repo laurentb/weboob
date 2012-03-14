@@ -1,4 +1,4 @@
-.TH TRAVELOOB 1 "05 February 2012" "traveloob 0\&.a"
+.TH TRAVELOOB 1 "14 March 2012" "traveloob 0\&.b"
 .SH NAME
 traveloob
 .SH SYNOPSIS
@@ -16,7 +16,7 @@ Console application allowing to search for train stations and get departure time
 .SS Supported websites:
 * canaltp (French trains)
 .br
-* transilien (Transports in Paris)
+* transilien (Public transportation in the Paris area)
 .SH TRAVELOOB COMMANDS
 .TP
 \fBdepartures\fR \fISTATION\fR [\fIARRIVAL\fR]
@@ -78,7 +78,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -234,7 +236,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Traveloob
+Home page: http://weboob.org/applications/traveloob

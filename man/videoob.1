@@ -1,4 +1,4 @@
-.TH VIDEOOB 1 "05 February 2012" "videoob 0\&.a"
+.TH VIDEOOB 1 "14 March 2012" "videoob 0\&.b"
 .SH NAME
 videoob
 .SH SYNOPSIS
@@ -14,25 +14,27 @@ videoob
 Console application allowing to search for videos on various websites, play and download them and get information.
 
 .SS Supported websites:
-* arte (Arte french TV)
+* arte (Arte French and German TV)
 .br
-* canalplus (Canal plus french TV)
+* canalplus (Canal Plus French TV)
 .br
-* dailymotion (Dailymotion videos website)
+* cappedtv (Capped.tv demoscene website)
 .br
-* francetelevisions (France Televisions video website)
+* dailymotion (Dailymotion video streaming website)
 .br
-* ina (INA french video archives)
+* francetelevisions (France Télévisions video website)
 .br
-* nolifetv (NolifeTV videos website)
+* ina (INA French TV video archives)
 .br
-* radiofrance (The radios of Radio France (Inter, Culture, Le Mouv', etc.))
+* nolifetv (NolifeTV French video streaming website)
 .br
-* youjizz (Youjizz videos website)
+* radiofrance (Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv')
 .br
-* youporn (Youporn videos website)
+* youjizz (YouJizz pornographic video streaming website)
 .br
-* youtube (Youtube videos website)
+* youporn (YouPorn pornographic video streaming website)
+.br
+* youtube (YouTube video streaming website)
 .SH VIDEOOB COMMANDS
 .TP
 \fBdownload\fR \fIID\fR [\fIFILENAME\fR]
@@ -92,7 +94,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -243,7 +247,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Videoob
+Home page: http://weboob.org/applications/videoob

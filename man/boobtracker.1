@@ -1,4 +1,4 @@
-.TH BOOBTRACKER 1 "05 February 2012" "boobtracker 0\&.a"
+.TH BOOBTRACKER 1 "14 March 2012" "boobtracker 0\&.b"
 .SH NAME
 boobtracker
 .SH SYNOPSIS
@@ -120,7 +120,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -285,7 +287,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Boobtracker
+Home page: http://weboob.org/applications/boobtracker

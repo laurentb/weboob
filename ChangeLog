@@ -1,3 +1,128 @@
+Weboob 0.b (2012-03-14)
+	General
+	* New capability: CapBill.
+	* New capability: CapBook.
+	* New capability: CapHousing.
+	* New capability: CapWaterLevel.
+	* New module: CappedTV (CapVideo).
+	* New module: FreeMobile (CapBill).
+	* New module: OpacWebAloes (CapBook).
+	* New module: Pap (CapHousing).
+	* New module: PressEurop (CapMessages).
+	* New module: Sachsen (CapWaterLevel).
+	* New module: SeLoger (CapHousing).
+	* New application: boobill (CapBill).
+	* New application: boobooks (CapBook).
+	* New application: flatoob (CapHousing).
+	* New application: QFlatBoob (CapHousing).
+	* New contrib script: freemobile-munin.
+	* Rename application: havesex -> havedate.
+	* Rename application: QHaveSex -> QHaveDate.
+	* Remove module: MangaToShokan (website is dead).
+
+	Console applications:
+	* Improvements of 'ls' and 'cd' commands.
+	* Fix: crash when trying to add twice a same module.
+
+	Module: Boursorama
+	* Fix: IDs of operations.
+
+	Module: BNPorc
+	* Parse categories.
+	* Parse account types.
+	* Fix: getting history of secondary accounts.
+
+	Module: BP
+	* Store transactions dates as datetime.date objects.
+	* Fix: parsing of accounts in particular cases.
+
+	Module: CanalPlus
+	* Friendlier paths in canalplus.
+
+	Module: CMB
+	* Add type and label support to CMB backend.
+
+	Module: CrAgr
+	* Now handle history-less accounts, at least for Toulouse-like layouts.
+	* Transaction objects are now created using datetime.date (#800).
+	* Fix: balance retrieval for history-less accounts (#788).
+
+	Module: CreditMutuel
+	* Store Transaction.date as a datetime.date object.
+	* Support loan history.
+	* Parse type of transactions.
+	* Fix: lot of bugs.
+
+	Module: DLFP
+	* Parse a comment only if needed (performances enhancement).
+	* Get comments only in case of rss-comments changes.
+
+	Module: Ecrans
+	* Store only last 20 articles.
+
+	Module: HSBC
+	* Display only real accounts.
+
+	Module: ING
+	* The account listing is now more robust.
+	* Parse types of transactions.
+
+	Module: Kickass
+	* Fix: search was broken.
+
+	Module: Mangafox
+	* Fix: crash on Comments page.
+
+	Module: NolifeTV
+	* Support authentication.
+	* Fix: parsing of videos with missing description.
+
+	Module: OuiFM
+	* Fix: error when no artist/title.
+
+	Module: Pastebin
+	* Fix: getting pastebin paste visiblity.
+
+	Module: Piratebay
+	* Support magnets properly.
+
+	Module: RadioFrance
+	* Support replay.
+	* Use a better source for FIP.
+	* Fix: fetching FIP current.
+
+	Module: SocieteGenerale
+	* Check if login is failed.
+
+	Module: Youtube
+	* Fix: crash when there is no author.
+
+	Application: boobank
+	* Display types of transactions.
+	* Add formatter 'transactions'.
+
+	Application: chatoob
+	* Removed because unused.
+
+	Application: videoob-webserver
+	* Moved to contrib/.
+
+	Application: weboob-config
+	* Fix: command 'list' can filter by capability (#786).
+
+	Application: weboorrents
+	* Support magnet URLs.
+
+	Application: wetboobs
+	* Now supports CapWaterLevel in addition to CapWeather.
+
+	Core:
+	* Big refactoring of CapCollection.
+	* Use libyaml for faster loading and saving.
+	* Sign modules.list.
+	* Support gzipped responses in Browser.
+	* Fix: retrieving third icons if module is local.
+
 Weboob 0.a (2012-02-05)
 	General
 	* New backend: Boursorama (CapBank).

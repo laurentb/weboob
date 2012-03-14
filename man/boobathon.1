@@ -1,4 +1,4 @@
-.TH BOOBATHON 1 "05 February 2012" "boobathon 0\&.a"
+.TH BOOBATHON 1 "14 March 2012" "boobathon 0\&.b"
 .SH NAME
 boobathon
 .SH SYNOPSIS
@@ -14,9 +14,9 @@ boobathon
 Console application to participate to a Boobathon.
 
 .SS Supported websites:
-* dlfp (Da Linux French Page)
+* dlfp (Da Linux French Page news website)
 .br
-* mediawiki (Mediawiki wiki software application)
+* mediawiki (Wikis running MediaWiki, like Wikipedia)
 .br
 * redmine (The Redmine project management web application)
 .SH BOOBATHON COMMANDS
@@ -55,7 +55,7 @@ Leave this event.
 .TP
 \fBmembers\fR
 .br
-Display members informations.
+Display members information.
 .TP
 \fBprogress\fR
 .br
@@ -104,7 +104,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -254,7 +256,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Boobathon
+Home page: http://weboob.org/applications/boobathon

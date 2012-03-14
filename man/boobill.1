@@ -1,49 +1,49 @@
-.TH HAVEDATE 1 "14 March 2012" "havedate 0\&.b"
+.TH BOOBILL 1 "14 March 2012" "boobill 0\&.b"
 .SH NAME
-havedate
+boobill
 .SH SYNOPSIS
-.B havedate
+.B boobill
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B havedate
+.B boobill
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to interact with various dating websites and to optimize seduction algorithmically.
+Console application allowing to get and download bills.
 
 .SS Supported websites:
-* aum ("Adopte un Mec" French dating website)
-.SH HAVEDATE COMMANDS
+* freemobile (Free Mobile website)
+.SH BOOBILL COMMANDS
 .TP
-\fBoptim\fR [list | start | edit | stop] \fIBACKEND\fR [\fIOPTIM\fR1 [\fIOPTIM\fR2 ...]]
+\fBbills\fR \fII\fRd
 .br
-All dating backends offer optimization services. This command can be
+Get the list of bills documents for subscription
 .br
-manage them.
-.br
-Use * us BACKEND value to apply command to all backends.
-.br
-
-.br
-Commands:
-.br
-* list       list all available optimizations of a backend
-.br
-* start      start optimization services on a backend
-.br
-* edit       configure an optimization service for a backend
-.br
-* stop       stop optimization services on a backend
+id is the identifier of the backend
 .TP
-\fBprofile\fR \fIID\fR
+\fBdetails\fR \fII\fRd
 .br
-Display a profile
+Get details of a subscription.
 .TP
-\fBquery\fR \fIID\fR
+\fBdownload\fR \fII\fRd [\fIFILENAME\fR]
 .br
-Send a query to someone.
+download the bill
+.br
+id is the identifier of the bill (hint: try bills command)
+.br
+FILENAME is where to write the file. If FILENAME is '\-',
+.br
+the file is written to stdout.
+.TP
+\fBhistory\fR \fII\fRd
+.br
+Get the history of a subscription.
+.TP
+\fBsubscriptions\fR
+.br
+List subscriptions
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -208,8 +208,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, profile, simple, table,
-webkit)
+select output formatter (csv, htmltable, multiline, simple, subscriptions,
+table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -221,7 +221,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2012 Romain Bignon
+Copyright(C) 2012 Florent Fourcot
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -230,4 +230,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/havedate
+Home page: http://weboob.org/applications/boobill

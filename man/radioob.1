@@ -1,4 +1,4 @@
-.TH RADIOOB 1 "05 February 2012" "radioob 0\&.a"
+.TH RADIOOB 1 "14 March 2012" "radioob 0\&.b"
 .SH NAME
 radioob
 .SH SYNOPSIS
@@ -14,11 +14,11 @@ radioob
 Console application allowing to search for web radio stations, listen to them and get information like the current song.
 
 .SS Supported websites:
-* nova (Nova french radio)
+* nova (Nova French radio)
 .br
-* ouifm (The Ouï FM french radio)
+* ouifm (Ouï FM French radio)
 .br
-* radiofrance (The radios of Radio France (Inter, Culture, Le Mouv', etc.))
+* radiofrance (Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv')
 .SH RADIOOB COMMANDS
 .TP
 \fBinfo\fR \fIID\fR
@@ -66,7 +66,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -217,7 +219,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Radioob
+Home page: http://weboob.org/applications/radioob

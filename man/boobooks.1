@@ -1,49 +1,20 @@
-.TH HAVEDATE 1 "14 March 2012" "havedate 0\&.b"
+.TH BOOBOOKS 1 "14 March 2012" "boobooks 0\&.b"
 .SH NAME
-havedate
+boobooks
 .SH SYNOPSIS
-.B havedate
+.B boobooks
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B havedate
+.B boobooks
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to interact with various dating websites and to optimize seduction algorithmically.
+Console application allowing to list your books rented or booked at the library, book and search new ones, get your booking history (if available).
 
 .SS Supported websites:
-* aum ("Adopte un Mec" French dating website)
-.SH HAVEDATE COMMANDS
-.TP
-\fBoptim\fR [list | start | edit | stop] \fIBACKEND\fR [\fIOPTIM\fR1 [\fIOPTIM\fR2 ...]]
-.br
-All dating backends offer optimization services. This command can be
-.br
-manage them.
-.br
-Use * us BACKEND value to apply command to all backends.
-.br
-
-.br
-Commands:
-.br
-* list       list all available optimizations of a backend
-.br
-* start      start optimization services on a backend
-.br
-* edit       configure an optimization service for a backend
-.br
-* stop       stop optimization services on a backend
-.TP
-\fBprofile\fR \fIID\fR
-.br
-Display a profile
-.TP
-\fBquery\fR \fIID\fR
-.br
-Send a query to someone.
+* opacwebaloes (Aloes Library software)
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -208,7 +179,7 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, profile, simple, table,
+select output formatter (csv, htmltable, multiline, rented_list, simple, table,
 webkit)
 .TP
 \fB\-\-no\-header\fR
@@ -221,7 +192,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2012 Romain Bignon
+Copyright(C) 2012 Jeremy Monnet
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -230,4 +201,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/havedate
+Home page: http://weboob.org/applications/boobooks

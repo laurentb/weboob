@@ -1,4 +1,4 @@
-.TH GALLEROOB 1 "05 February 2012" "galleroob 0\&.a"
+.TH GALLEROOB 1 "14 March 2012" "galleroob 0\&.b"
 .SH NAME
 galleroob
 .SH SYNOPSIS
@@ -14,23 +14,21 @@ galleroob
 galleroob browses and downloads web image galleries
 
 .SS Supported websites:
-* batoto (Batoto manga reading site)
+* batoto (Batoto manga reading website)
 .br
-* eatmanga (Eatmanga manga reading site)
+* eatmanga (EatManga manga reading website)
 .br
-* ehentai (E\-hentai galleries)
+* ehentai (E\-Hentai galleries)
 .br
-* izneo (Izneo)
+* izneo (Izneo digital comics)
 .br
-* mangafox (Mangafox manga reading site)
+* mangafox (Manga Fox manga reading website)
 .br
-* mangahere (Mangahere manga reading site)
+* mangahere (Manga Here manga reading website)
 .br
-* mangareader (Mangareader manga reading site)
+* mangareader (MangaReader manga reading website)
 .br
-* mangatoshokan (Mangatoshokan manga reading site)
-.br
-* simplyreadit (Simplyreadit manga reading site)
+* simplyreadit (SimplyReadIt manga reading website)
 .SH GALLEROOB COMMANDS
 .TP
 \fBdownload\fR \fIID\fR [\fIFIRST\fR [\fIFOLDER\fR]]
@@ -82,7 +80,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -233,7 +233,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Galleroob
+Home page: http://weboob.org/applications/galleroob

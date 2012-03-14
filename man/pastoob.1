@@ -1,4 +1,4 @@
-.TH PASTOOB 1 "05 February 2012" "pastoob 0\&.a"
+.TH PASTOOB 1 "14 March 2012" "pastoob 0\&.b"
 .SH NAME
 pastoob
 .SH SYNOPSIS
@@ -14,9 +14,9 @@ pastoob
 Console application allowing to post and get pastes from pastebins.
 
 .SS Supported websites:
-* pastealacon (Paste a la con paste tool)
+* pastealacon (Paste à la con text sharing tool)
 .br
-* pastebin (Pastebin paste tool)
+* pastebin (Pastebin text sharing service)
 .SH PASTOOB COMMANDS
 .TP
 \fBget\fR \fIID\fR
@@ -58,7 +58,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -208,7 +210,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Pastoob
+Home page: http://weboob.org/applications/pastoob

@@ -1,4 +1,4 @@
-.TH GEOLOOC 1 "05 February 2012" "geolooc 0\&.a"
+.TH GEOLOOC 1 "14 March 2012" "geolooc 0\&.b"
 .SH NAME
 geolooc
 .SH SYNOPSIS
@@ -14,9 +14,9 @@ geolooc
 Console application allowing to geolocalize IP addresses.
 
 .SS Supported websites:
-* geolocip (IP Addresses geolocalisation with the site www.geolocip.com)
+* geolocip (GeolocIP IP addresses geolocation service)
 .br
-* ipinfodb (IP Addresses geolocalisation with the site ipinfodb.com)
+* ipinfodb (IPInfoDB IP addresses geolocation service)
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -47,7 +47,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -197,7 +199,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Geolooc
+Home page: http://weboob.org/applications/geolooc

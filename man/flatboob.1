@@ -1,4 +1,4 @@
-.TH FLATBOOB 1 "03 March 2012" "flatboob 0\&.b"
+.TH FLATBOOB 1 "14 March 2012" "flatboob 0\&.b"
 .SH NAME
 flatboob
 .SH SYNOPSIS
@@ -52,7 +52,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -203,7 +205,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
 Home page: http://weboob.org/applications/flatboob

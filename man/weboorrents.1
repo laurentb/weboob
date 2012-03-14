@@ -1,4 +1,4 @@
-.TH WEBOORRENTS 1 "05 February 2012" "weboorrents 0\&.a"
+.TH WEBOORRENTS 1 "14 March 2012" "weboorrents 0\&.b"
 .SH NAME
 weboorrents
 .SH SYNOPSIS
@@ -14,13 +14,13 @@ weboorrents
 Console application allowing to search for torrents on various trackers and download .torrent files.
 
 .SS Supported websites:
-* gazelle (gazelle bittorrent tracker)
+* gazelle (Gazelle\-based BitTorrent trackers)
 .br
-* isohunt (isohunt.com bittorrent tracker)
+* isohunt (isoHunt BitTorrent tracker)
 .br
-* kickass (kickasstorrent.com bittorrent tracker)
+* kickass (Kickass Torrents BitTorrent tracker)
 .br
-* piratebay (the pirate bay bittorrent tracker)
+* piratebay (The Pirate Bay BitTorrent tracker)
 .SH WEBOORRENTS COMMANDS
 .TP
 \fBgetfile\fR \fIID\fR [\fIFILENAME\fR]
@@ -68,7 +68,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -219,7 +221,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Weboorrents
+Home page: http://weboob.org/applications/weboorrents

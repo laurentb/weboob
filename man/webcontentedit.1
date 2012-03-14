@@ -1,4 +1,4 @@
-.TH WEBCONTENTEDIT 1 "05 February 2012" "webcontentedit 0\&.a"
+.TH WEBCONTENTEDIT 1 "14 March 2012" "webcontentedit 0\&.b"
 .SH NAME
 webcontentedit
 .SH SYNOPSIS
@@ -14,9 +14,9 @@ webcontentedit
 Console application allowing to display and edit contents on various websites.
 
 .SS Supported websites:
-* dlfp (Da Linux French Page)
+* dlfp (Da Linux French Page news website)
 .br
-* mediawiki (Mediawiki wiki software application)
+* mediawiki (Wikis running MediaWiki, like Wikipedia)
 .br
 * redmine (The Redmine project management web application)
 .SH WEBCONTENTEDIT COMMANDS
@@ -58,7 +58,9 @@ ACTION is one of the following (default: list):
 .br
 Follow a path.
 .br
-If empty, return home.
+".." is a special case and goes up one directory.
+.br
+"" is a special case and goes home.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
@@ -208,7 +210,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .LP
 .RE
 .SH FILES
-"~/.weboob/backends" 
+"~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/Webcontentedit
+Home page: http://weboob.org/applications/webcontentedit
