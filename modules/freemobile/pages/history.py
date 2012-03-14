@@ -52,7 +52,7 @@ class DetailsPage(BasePage):
         voice.price = convert_price(divvoice)
         voicenat = divvoice.xpath('div[@class="consoDetail"]/p/span')[0].text
         voiceint = divvoice.xpath('div[@class="consoDetail"]/p/span')[1].text
-        voice.infos = "Consommation : " + voicenat + " International : " + voiceint
+        voice.infos = "National : " + voicenat + " | International : " + voiceint
         self.details.append(voice)
 
         self.iter_divs(divs)
