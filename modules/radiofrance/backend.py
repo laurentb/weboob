@@ -161,7 +161,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                     artist = dartist
                 if dtitle:
                     if title:
-                        title = "%s [%s]" % (dtitle, title)
+                        title = u"%s [%s]" % (dtitle, title)
                     else:
                         title = dtitle
             elif radio.id in self._LARGEDIRECTJSON_RADIOS:

@@ -102,6 +102,8 @@ class DataPage(BasePage):
             artist = unicode(artist).strip()
             ftitle = document.findtext('//div[@class="subtitle"]')
             title = unicode(ftitle).strip() if ftitle else title
+        else:
+            artist = None
 
         return (artist, title)
 
