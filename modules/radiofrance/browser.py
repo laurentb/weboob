@@ -159,6 +159,22 @@ class RadioFranceBrowser(BaseBrowser):
         title = unicode(title) if title else None
         return (artist, title)
 
+    def get_current_direct_large(self, _id):
+        json_data = self.openurl('http://%s/sites/default/files/direct-large.json?_=%s' % (self.id2domain(_id), int(time())))
+        data = json.load(json_data)
+
+        document = self.parser.parse(StringIO(data.get('html')))
+        current = document.find('//div[@class="direct-current"]')
+        if current is not None:
+            artist = current.findtext('.//div[@class="artiste"]')
+            title = current.findtext('.//div[@class="titre"]')
+            artist = unicode(artist) if artist else None
+            title = unicode(title) if title else None
+        else:
+            artist = None
+            title = None
+        return (artist, title)
+
     @id2url(RadioFranceVideo.id2url)
     def get_video(self, url):
         radio_domain = replay_id = None

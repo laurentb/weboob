@@ -100,6 +100,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                         )
 
     _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
+    _LARGEDIRECTJSON_RADIOS = ('fip', )
     _RSS_RADIOS = ('francemusique', )
 
     def iter_resources(self, objs, split_path):
@@ -149,8 +150,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            artist = None
-            title = None
+            artist = title = None
             if radio.id in self._PLAYERJS_RADIOS:
                 artist, title = self.browser.get_current_playerjs(radio.id)
                 if title.endswith(u'par %s' % artist):
@@ -164,6 +164,12 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                         title = "%s [%s]" % (dtitle, title)
                     else:
                         title = dtitle
+            elif radio.id in self._LARGEDIRECTJSON_RADIOS:
+                dartist, dtitle = self.browser.get_current_direct_large(radio.id)
+                if dartist:
+                    artist = dartist
+                if dtitle:
+                    title = dtitle
             if radio.id in self._RSS_RADIOS:
                 title = self.browser.get_current_rss(radio.id)
             if title:
