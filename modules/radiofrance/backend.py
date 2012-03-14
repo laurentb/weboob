@@ -153,6 +153,8 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
             title = None
             if radio.id in self._PLAYERJS_RADIOS:
                 artist, title = self.browser.get_current_playerjs(radio.id)
+                if title.endswith(u'par %s' % artist):
+                    artist = None
             if radio.id in self._DIRECTJSON_RADIOS:
                 dartist, dtitle = self.browser.get_current_direct(radio.id)
                 if dartist:
