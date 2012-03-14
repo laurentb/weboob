@@ -169,7 +169,7 @@ class Flatboob(ReplApplication):
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        housing = self.get_object(_id, 'get_housing', [])
+        housing = self.get_object(_id, 'get_housing')
         if not housing:
             print >>sys.stderr, 'Housing not found: %s' %  _id
             return 3
