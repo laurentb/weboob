@@ -21,6 +21,7 @@ cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/"
 
 # path to sources
 WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
+find $WEBOOB_DIR -name "*.pyc" -delete
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
