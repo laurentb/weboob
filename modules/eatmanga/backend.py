@@ -21,6 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['EatmangaBackend']
 
+
 class EatmangaBackend(GenericComicReaderBackend):
     NAME = 'eatmanga'
     DESCRIPTION = 'EatManga manga reading website'
@@ -31,4 +32,4 @@ class EatmangaBackend(GenericComicReaderBackend):
     ID_REGEXP = r'[^/]+/[^/]+'
     URL_REGEXP = r'.+eatmanga.com/(?:index.php/)?Manga-Scan/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.eatmanga.com/index.php/Manga-Scan/%s'
-    PAGES = { URL_REGEXP: DisplayPage }
+    PAGES = {URL_REGEXP: DisplayPage}

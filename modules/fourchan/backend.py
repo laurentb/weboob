@@ -68,7 +68,7 @@ class FourChanBackend(BaseBackend, ICapMessages):
             thread = Thread(id)
         thread.title = _thread.filename
         thread.root = Message(thread=thread,
-                              id=0, # root message
+                              id=0,  # root message
                               title=_thread.filename,
                               sender=_thread.author,
                               receivers=None,

@@ -44,6 +44,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
             return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
+
     def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         if not nsfw:
             return set()

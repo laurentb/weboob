@@ -47,6 +47,7 @@ class LoginPage(BasePage):
         self.browser['Passwd'] = password
         self.browser.submit()
 
+
 class LoginRedirectPage(BasePage):
     pass
 
@@ -64,6 +65,7 @@ class BaseYoutubePage(BasePage):
         else:
             return True
 
+
 class ForbiddenVideoPage(BaseYoutubePage):
     def on_loaded(self):
         element = self.parser.select(self.document.getroot(), '.yt-alert-content', 1)
@@ -78,10 +80,12 @@ class VerifyAgePage(BaseYoutubePage):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'confirm-age-form')
         self.browser.submit()
 
+
 class VerifyControversyPage(BaseYoutubePage):
     def on_loaded(self):
         self.browser.select_form(predicate=lambda form: 'verify_controversy' in form.attrs.get('action', ''))
         self.browser.submit()
+
 
 class VideoPage(BaseYoutubePage):
     AVAILABLE_FORMATS = [38, 37, 45, 22, 43, 35, 34, 18, 6, 5, 17, 13]
@@ -91,7 +95,7 @@ class VideoPage(BaseYoutubePage):
         18: 'mp4',
         22: 'mp4',
         37: 'mp4',
-        38: 'video', # You actually don't know if this will be MOV, AVI or whatever
+        38: 'video',  # You actually don't know if this will be MOV, AVI or whatever
         43: 'webm',
         45: 'webm',
     }

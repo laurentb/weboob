@@ -21,6 +21,7 @@
 from weboob.tools.capabilities.messages.genericArticle import NoAuthorElement, try_remove, NoneMainDiv
 from .simple import SimplePage
 
+
 class ArticlePage(SimplePage):
     "ArticlePage object for minutes20"
     def on_loaded(self):
@@ -37,9 +38,8 @@ class ArticlePage(SimplePage):
         else:
             try_remove(self.parser, element_body, "div.mna-tools")
             try_remove(self.parser, element_body, "div.mna-comment-call")
-            try :
+            try:
                 element_body.remove(self.get_element_author())
             except NoAuthorElement:
                 pass
             return self.parser.tostring(element_body)
-

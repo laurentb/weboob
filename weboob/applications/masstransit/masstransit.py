@@ -124,7 +124,7 @@ class MasstransitHildon():
         self.main_window.connect("destroy", self.on_main_window_destroy)
 
         self.refresh_button.connect("clicked", self.on_refresh_button_clicked)
-        
+
         self.retour_button.set_sensitive(False)
         self.retour_button.connect("clicked", self.on_retour_button_clicked)
 
@@ -165,8 +165,8 @@ class MasstransitHildon():
                 text=4
             ))
 
-        
-        
+
+
         vertical_box = gtk.VBox()
         vertical_box.pack_start(horizontal_box)
         horizontal_box.pack_start(self.retour_button)
@@ -187,7 +187,7 @@ class MasstransitHildon():
 
     def fill_touch_selector_entry(self):
         liste = []
-       
+
         for backend in self.weboob.iter_backends():
             for station in backend.iter_station_search(""):
                 liste.append(station.name.capitalize())
@@ -272,7 +272,7 @@ class MasstransitHildon():
 
         self.refresh_in_progress = False
         banner.set_timeout(1)
-        hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 0) 
+        hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 0)
 
 
 class Masstransit(BaseApplication):

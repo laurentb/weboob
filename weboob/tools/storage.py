@@ -23,7 +23,7 @@ from copy import deepcopy
 from .config.yamlconfig import YamlConfig
 
 
-class IStorage:
+class IStorage(object):
     def load(self, what, name, default={}):
         raise NotImplementedError()
 

@@ -20,11 +20,12 @@
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
 
+
 class FlashActuPage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
-        self.element_title_selector = "h1"
+        self.element_title_selector     = "h1"
         self.element_author_selector    = "div.name>span"
         self.element_body_selector      = "h2"
 
@@ -32,4 +33,3 @@ class FlashActuPage(GenericNewsPage):
         element_body = self.get_element_body()
         element_body.tag = "div"
         return self.parser.tostring(element_body)
-

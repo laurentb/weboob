@@ -22,7 +22,7 @@ class ConfigError(Exception):
     pass
 
 
-class IConfig:
+class IConfig(object):
     def load(self, default={}):
         raise NotImplementedError()
 

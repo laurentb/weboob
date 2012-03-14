@@ -23,8 +23,8 @@ from lxml.etree import Comment
 
 
 def try_remove(parser, base_element, selector):
-    try :
-        base_element.remove(parser.select(base_element, selector, 1 ))
+    try:
+        base_element.remove(parser.select(base_element, selector, 1))
     except (BrokenPageError, ValueError):
         pass
 
@@ -32,6 +32,7 @@ def try_remove(parser, base_element, selector):
 def try_drop_tree(parser, base_element, selector):
     for el in parser.select(base_element, selector):
         el.drop_tree()
+
 
 def remove_from_selector_list(parser, base_element, selector_list):
     for selector in selector_list:
@@ -42,23 +43,27 @@ def try_remove_from_selector_list(parser, base_element, selector_list):
     for selector in selector_list:
         try_remove(parser, base_element, selector)
 
+
 def drop_comments(base_element):
     for comment in base_element.getiterator(Comment):
         comment.drop_tree()
 
 
-
 class NoAuthorElement(BrokenPageError):
     pass
+
 
 class NoBodyElement(BrokenPageError):
     pass
 
+
 class NoTitleException(BrokenPageError):
     pass
 
+
 class NoneMainDiv(AttributeError):
     pass
+
 
 class Article(object):
     author = u''
@@ -71,10 +76,11 @@ class Article(object):
         self.url = u''
         self.date = None
 
+
 class GenericNewsPage(BasePage):
     __element_body = NotImplementedError
     __article = Article
-    element_title_selector  = NotImplementedError
+    element_title_selector = NotImplementedError
     main_div = NotImplementedError
     element_body_selector = NotImplementedError
     element_author_selector = NotImplementedError
@@ -90,7 +96,7 @@ class GenericNewsPage(BasePage):
             return self.__article.author
 
     def get_title(self):
-        try :
+        try:
             return self.parser.select(
                 self.main_div,
                 self.element_title_selector,
@@ -108,7 +114,7 @@ class GenericNewsPage(BasePage):
             return self.get_title()
 
     def get_element_body(self):
-        try :
+        try:
             return self.parser.select(self.main_div, self.element_body_selector, 1)
         except BrokenPageError:
             raise NoBodyElement("no body on %s" % (self.browser))

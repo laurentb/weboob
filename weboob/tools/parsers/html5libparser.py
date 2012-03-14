@@ -38,8 +38,8 @@ class Html5libParser(HTMLParser, IParser):
     """
 
     # Default implementation for each type of API.
-    defaults = {'etree': ElementTree,
-               }
+    defaults = {'etree': ElementTree}
+
     def __init__(self, api='etree'):
         # if no default implementation is defined for this api, set it to None
         # to let getTreeBuilder() using the corresponding implementation.

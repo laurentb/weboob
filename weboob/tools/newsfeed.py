@@ -29,46 +29,46 @@ if feedparser.__version__ >= '5.0':
 __all__ = ['Entry', 'Newsfeed']
 
 
-class Entry:
+class Entry(object):
     def __init__(self, entry, rssid_func=None):
         if hasattr(entry, 'id'):
             self.id = entry.id
         else:
             self.id = None
 
-        if entry.has_key("link"):
+        if "link" in entry:
             self.link = entry["link"]
         else:
             self.link = None
 
-        if entry.has_key("title"):
+        if "title" in entry:
             self.title = entry["title"]
         else:
             self.title = None
 
-        if entry.has_key("author"):
+        if "author" in entry:
             self.author = entry["author"]
         else:
             self.author = None
 
-        if entry.has_key("updated_parsed"):
+        if "updated_parsed" in entry:
             self.datetime = datetime.datetime(*entry['updated_parsed'][:7])
         else:
             self.datetime = None
 
-        if entry.has_key("summary"):
+        if "summary" in entry:
             self.summary = entry["summary"]
         else:
             self.summary = None
 
         self.content = []
-        if entry.has_key("content"):
+        if "content" in entry:
             for i in entry["content"]:
                 self.content.append(i.value)
         elif self.summary:
             self.content.append(self.summary)
 
-        if entry.has_key("wfw_commentrss"):
+        if "wfw_commentrss" in entry:
             self.rsscomment = entry["wfw_commentrss"]
         else:
             self.rsscomment = None
@@ -76,7 +76,8 @@ class Entry:
         if rssid_func:
             self.id = rssid_func(self)
 
-class Newsfeed:
+
+class Newsfeed(object):
     def __init__(self, url, rssid_func=None):
         self.feed = feedparser.parse(url)
         self.rssid_func = rssid_func

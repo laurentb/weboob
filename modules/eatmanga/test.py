@@ -19,8 +19,9 @@
 
 from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderTest
 
+
 class EatmangaTest(GenericComicReaderTest):
     BACKEND = 'eatmanga'
+
     def test_download(self):
         return self._test_download('Glass-Mask/Glass-Mask-Vol-031')
-

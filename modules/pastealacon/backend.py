@@ -43,8 +43,8 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
     BROWSER = PastealaconBrowser
 
     EXPIRATIONS = {
-        24*3600: 'd',
-        24*3600*30: 'm',
+        24 * 3600: 'd',
+        24 * 3600 * 30: 'm',
         False: 'f',
     }
 
@@ -83,7 +83,7 @@ class PastealaconBackend(BaseBackend, BasePasteBackend):
                 self.browser.fill_paste(paste)
         return paste
 
-    def post_paste(self, paste, max_age = None):
+    def post_paste(self, paste, max_age=None):
         if max_age is not None:
             expiration = self.get_closest_expiration(max_age)
         else:

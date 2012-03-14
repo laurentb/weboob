@@ -22,6 +22,7 @@ from weboob.capabilities.content import ICapContent
 
 from .main_window import MainWindow
 
+
 class QWebContentEdit(QtApplication):
     APPNAME = 'qwebcontentedit'
     VERSION = '0.b'
@@ -34,5 +35,3 @@ class QWebContentEdit(QtApplication):
         self.main_window = MainWindow(self.config, self.weboob)
         self.main_window.show()
         return self.weboob.loop()
-
-

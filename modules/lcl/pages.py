@@ -28,17 +28,18 @@ import tempfile
 import math
 import random
 
+
 class LCLVirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'9da2724133f2221482013151735f033c',
-             '1':'873ab0087447610841ae1332221be37b',
-             '2':'93ce6c330393ff5980949d7b6c800f77',
-             '3':'b2d70c69693784e1bf1f0973d81223c0',
-             '4':'498c8f5d885611938f94f1c746c32978',
-             '5':'359bcd60a9b8565917a7bf34522052c3',
-             '6':'aba912172f21f78cd6da437cfc4cdbd0',
-             '7':'f710190d6b947869879ec02d8e851dfa',
-             '8':'b42cc25e1539a15f767aa7a641f3bfec',
-             '9':'cc60e5894a9d8e12ee0c2c104c1d5490'
+    symbols={'0': '9da2724133f2221482013151735f033c',
+             '1': '873ab0087447610841ae1332221be37b',
+             '2': '93ce6c330393ff5980949d7b6c800f77',
+             '3': 'b2d70c69693784e1bf1f0973d81223c0',
+             '4': '498c8f5d885611938f94f1c746c32978',
+             '5': '359bcd60a9b8565917a7bf34522052c3',
+             '6': 'aba912172f21f78cd6da437cfc4cdbd0',
+             '7': 'f710190d6b947869879ec02d8e851dfa',
+             '8': 'b42cc25e1539a15f767aa7a641f3bfec',
+             '9': 'cc60e5894a9d8e12ee0c2c104c1d5490'
             }
 
     url="/outil/UAUT/Clavier/creationClavier?random="
@@ -66,8 +67,10 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
             code+=self.get_symbol_code(self.symbols[c])
         return code
 
+
 class SkipPage(BasePage):
     pass
+
 
 class LoginPage(BasePage):
     def myXOR(self,value,seed):
@@ -120,6 +123,7 @@ class LoginPage(BasePage):
                 return True
         return False
 
+
 class AccountsPage(BasePage):
     def get_list(self):
         l = []
@@ -144,6 +148,7 @@ class AccountsPage(BasePage):
                 account.balance=float(balance)
                 l.append(account)
         return l
+
 
 class AccountHistoryPage(BasePage):
     def get_operations(self,account):
@@ -194,5 +199,3 @@ class AccountHistoryPage(BasePage):
                         operation.amount=amount
             operations.append(operation)
         return operations
-
-

@@ -21,6 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['BatotoBackend']
 
+
 class BatotoBackend(GenericComicReaderBackend):
     NAME = 'batoto'
     DESCRIPTION = 'Batoto manga reading website'
@@ -31,4 +32,4 @@ class BatotoBackend(GenericComicReaderBackend):
     ID_REGEXP = r'[^/]+/[^/]+'
     URL_REGEXP = r'.+batoto.(?:com|net)/read/_/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.batoto.net/read/_/%s'
-    PAGES = { URL_REGEXP: DisplayPage }
+    PAGES = {URL_REGEXP: DisplayPage}

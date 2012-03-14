@@ -67,4 +67,3 @@ class LCLBackend(BaseBackend, ICapBank):
         with self.browser:
             for history in self.browser.get_history(account):
                 yield history
-

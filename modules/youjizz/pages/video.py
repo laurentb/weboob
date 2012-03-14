@@ -63,4 +63,3 @@ class VideoPage(BasePage):
             video.url = video_file_urls[0]
 
         return video
-

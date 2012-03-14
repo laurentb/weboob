@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class EHentaiTest(BackendTest):
     BACKEND = 'ehentai'
 
@@ -35,4 +36,3 @@ class EHentaiTest(BackendTest):
         self.backend.fillobj(img, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for first image in gallery "%s" not found: %s' % (v.id, img.url))
         self.backend.browser.openurl(img.url)
-

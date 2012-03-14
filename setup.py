@@ -38,7 +38,7 @@ def check_executable_win(executable, error):
     path = filter(None, path.split(";"))
 
     if dotfirst:
-        path = ["."]+path
+        path = ["."] + path
 
     pathext = os.environ[pathextsrc]
     pathext = filter(None, pathext.split(";"))
@@ -56,12 +56,13 @@ def check_executable_win(executable, error):
         for e in pathext:
             filePath = os.path.join(d, cmdName + e)
             if os.path.exists(filePath):
-                return filePath.replace( '\\', '/' )
+                return filePath.replace('\\', '/')
 
     print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
     if error:
         print >>sys.stderr, error
     sys.exit(1)
+
 
 def check_executable_unix(executable, error):
     with open('/dev/null', 'w') as devnull:
@@ -80,27 +81,30 @@ if sys.platform == 'win32':
 else:
     check_executable = check_executable_unix
 
+
 def build_qt():
     print 'Building Qt applications'
     pyuic4 = check_executable('pyuic4', 'Install PyQt4-devel or disable Qt applications (with --no-qt).')
 
     if sys.platform == 'win32':
-        env={ 'PYUIC' : pyuic4, 'PATH':os.environ['PATH']}
+        env = {'PYUIC': pyuic4, 'PATH': os.environ['PATH']}
         extraMakeFlag = ['-e']
     else:
         env = None
         extraMakeFlag = []
 
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qboobmsg/ui'], env=env )
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qhavedate/ui'], env=env )
+    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qboobmsg/ui'], env=env)
+    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qhavedate/ui'], env=env)
     if sys.platform != 'win32':
-        subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qvideoob/ui'], env=env )
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qwebcontentedit/ui'], env=env )
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/applications/qflatboob/ui'], env=env )
-    subprocess.check_call(['make']+extraMakeFlag+['-C','weboob/tools/application/qt'], env=env )
+        subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qvideoob/ui'], env=env)
+    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qwebcontentedit/ui'], env=env)
+    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qflatboob/ui'], env=env)
+    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/tools/application/qt'], env=env)
 
-class Options:
+
+class Options(object):
     pass
+
 
 options = Options()
 options.hildon = False
@@ -189,7 +193,7 @@ if options.xdg:
 
 setup(
     name='weboob',
-    version = '0.b',
+    version='0.b',
     description='Weboob, Web Out Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',

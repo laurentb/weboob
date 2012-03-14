@@ -24,7 +24,7 @@ import Image
 
 class CaptchaError(Exception): pass
 
-class Tile:
+class Tile(object):
     hash = {
         'bc8d52d96058478a6def26226145d53b': 'A',
         'c62ecdfddb72b2feaed96cd9fe7c2802': 'A',
@@ -111,7 +111,7 @@ class Tile:
             print 'hash: %s' % checksum
             raise CaptchaError()
 
-class Captcha:
+class Captcha(object):
     def __init__(self, f):
         self.img = Image.open(f)
         self.w, self.h = self.img.size
@@ -152,7 +152,7 @@ class Captcha:
             s += tile.letter
         return s
 
-class Decoder:
+class Decoder(object):
     def __init__(self):
         self.hash = {}
 

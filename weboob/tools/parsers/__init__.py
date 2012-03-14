@@ -24,33 +24,41 @@ import logging
 __all__ = ['get_parser', 'NoParserFound']
 
 
-class NoParserFound(Exception): pass
+class NoParserFound(Exception):
+    pass
+
 
 def load_lxml():
     from .lxmlparser import LxmlHtmlParser
     return LxmlHtmlParser
 
+
 def load_lxmlsoup():
     from .lxmlsoupparser import LxmlSoupParser
     return LxmlSoupParser
+
 
 def load_html5lib():
     from .html5libparser import Html5libParser
     return Html5libParser
 
+
 def load_elementtidy():
     from .elementtidyparser import ElementTidyParser
     return ElementTidyParser
 
+
 def load_builtin():
     from .htmlparser import HTMLParser
     return HTMLParser
+
 
 def load_json():
     # This parser doesn't read HTML, don't include it in the
     # preference_order default value below.
     from .jsonparser import JsonParser
     return JsonParser
+
 
 def get_parser(preference_order=('lxml', 'lxmlsoup')):
     """

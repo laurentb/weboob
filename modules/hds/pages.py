@@ -30,8 +30,10 @@ __all__ = ['ValidationPage', 'HomePage', 'HistoryPage', 'StoryPage']
 class ValidationPage(BasePage):
     pass
 
+
 class HomePage(BasePage):
     pass
+
 
 class Author(object):
     (UNKNOWN,
@@ -45,6 +47,7 @@ class Author(object):
         self.email = None
         self.description = None
 
+
 class Story(object):
     def __init__(self, id):
         self.id = id
@@ -53,6 +56,7 @@ class Story(object):
         self.category = None
         self.author = None
         self.body = None
+
 
 class HistoryPage(BasePage):
     def get_numerous(self):
@@ -88,6 +92,7 @@ class HistoryPage(BasePage):
                                            int(m.group(1)))
                 yield story
                 story = None
+
 
 class StoryPage(BasePage):
     def get_story(self):
@@ -179,4 +184,3 @@ class AuthorPage(BasePage):
         if author.description.startswith(u'0 récit '):
             self.logger.warning('This author does not have published any story.')
         return author
-

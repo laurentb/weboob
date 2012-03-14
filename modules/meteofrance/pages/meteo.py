@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.tools.browser import BasePage
 from weboob.capabilities.weather import Forecast, Current, City
 
@@ -69,10 +68,10 @@ class WeatherPage(BasePage):
         Return the city from the forecastpage.
         """
         for div in self.document.getiterator('div'):
-            if div.attrib.has_key("class") and div.attrib.get("class") == "choix":
+            if div.attrib.get("class", "") == "choix":
                 for strong in div.getiterator("strong"):
-                    city_name=strong.text +" "+ strong.tail.replace("(","").replace(")","")
-                    city_id=self.url.split("/")[-1]
+                    city_name = strong.text + " " + strong.tail.replace("(", "").replace(")", "")
+                    city_id = self.url.split("/")[-1]
                     return City(city_id, city_name)
 
 
@@ -84,5 +83,5 @@ class CityPage(BasePage):
                     city_name = li.text_content()
                     for children in li.getchildren():
                         city_id = children.attrib.get("href").split("/")[-1]
-                    mcity = City( city_id, city_name)
+                    mcity = City(city_id, city_name)
                     yield mcity

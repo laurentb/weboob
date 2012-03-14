@@ -24,6 +24,7 @@ from weboob.tools.browser import BasePage
 
 __all__ = ['ComposePage', 'ConfirmPage']
 
+
 class ConfirmPage(BasePage):
     def on_loaded(self):
         pass
@@ -33,9 +34,9 @@ class ComposePage(BasePage):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def on_loaded(self):
-        #Deal with bad encoding... for ie6 ...
+        # Deal with bad encoding... for ie6...
         response = self.browser.response()
-        response.set_data(response.get_data().decode('utf-8', 'ignore') )
+        response.set_data(response.get_data().decode('utf-8', 'ignore'))
         self.browser.set_response(response)
 
     def get_nb_remaining_free_sms(self):
@@ -46,12 +47,12 @@ class ComposePage(BasePage):
         if self.phone_regex.match(receiver) is None:
             raise CantSendMessage(u'Invalid receiver: %s' % receiver)
 
-        listetel = ",,"+ receiver
+        listetel = ",," + receiver
 
         #Fill the form
         self.browser.select_form(name="formulaire")
-        self.browser.new_control("hidden", "autorize",{'value':''})
-        self.browser.new_control("textarea", "msg", {'value':''})
+        self.browser.new_control("hidden", "autorize", {'value': ''})
+        self.browser.new_control("textarea", "msg", {'value': ''})
 
         self.browser.set_all_readonly(False)
 

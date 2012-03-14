@@ -20,8 +20,11 @@
 
 from __future__ import with_statement
 
-import sys, os, tempfile
-import imp, inspect
+import sys
+import os
+import tempfile
+import imp
+import inspect
 import optparse
 import re
 import time
@@ -31,8 +34,9 @@ from weboob.tools.application.base import BaseApplication
 BASE_PATH = os.path.join(os.path.dirname(__file__), os.pardir)
 DEST_DIR = 'man'
 
+
 class ManpageHelpFormatter(optparse.HelpFormatter):
-    def __init__ (self,
+    def __init__(self,
             app,
             indent_increment=0,
             max_help_position=0,
@@ -94,7 +98,7 @@ class ManpageHelpFormatter(optparse.HelpFormatter):
     def format_option_strings(self, option):
         opts = optparse.HelpFormatter.format_option_strings(self, option).split(", ")
 
-        return ".TP\n"+", ".join("\\fB%s\\fR" % opt for opt in opts)
+        return ".TP\n" + ", ".join("\\fB%s\\fR" % opt for opt in opts)
 
 
 def main():
@@ -129,17 +133,21 @@ def main():
                             analyze_application(klass, fname)
                 finally:
                     # Cleanup compiled files if needed
-                    if (os.path.isfile(tmpfile+"c")):
-                        os.unlink(tmpfile+"c")
+                    if (os.path.isfile(tmpfile + "c")):
+                        os.unlink(tmpfile + "c")
+
 
 def format_title(title):
     return re.sub(r'^(.+):$', r'.SH \1\n.TP', title.group().upper())
+
 
 # XXX useful because the PyQt QApplication destructor crashes sometimes. By
 # keeping every applications until program end, it prevents to stop before
 # every manpages have been generated. If it crashes at exit, it's not a
 # really a problem.
 applications = []
+
+
 def analyze_application(app, script_name):
     application = app()
     applications.append(application)

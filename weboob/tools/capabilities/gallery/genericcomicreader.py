@@ -28,6 +28,7 @@ from weboob.tools.test import BackendTest
 
 __all__ = ['GenericComicReaderBackend']
 
+
 class DisplayPage(BasePage):
     def get_page(self, gallery):
         src = self.document.xpath(self.browser.params['img_src_xpath'])[0]
@@ -102,7 +103,6 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
             else:
                 return None
 
-
         gallery = BaseGallery(_id, url=(self.ID_TO_URL % _id))
         with self.browser:
             return gallery
@@ -116,7 +116,7 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
 
     OBJECTS = {
             BaseGallery: fill_gallery,
-            BaseImage: fill_image }
+            BaseImage: fill_image}
 
 
 class GenericComicReaderTest(BackendTest):
@@ -126,4 +126,3 @@ class GenericComicReaderTest(BackendTest):
         it.next()
         img = it.next()
         self.backend.fillobj(img, ('url', 'data'))
-

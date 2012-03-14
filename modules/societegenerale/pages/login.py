@@ -53,11 +53,11 @@ class LoginPage(BasePage):
         infos_xml = etree.XML(infos_data)
         infos = {}
         for el in ("cryptogramme", "nblignes", "nbcolonnes"):
-          infos[el] = infos_xml.find(el).text
+            infos[el] = infos_xml.find(el).text
 
         infos["grille"] = ""
         for g in infos_xml.findall("grille"):
-          infos["grille"] += g.text + ","
+            infos["grille"] += g.text + ","
         infos["keyCodes"] = infos["grille"].split(",")
 
         url = base_url + '/cvcsgenimage?modeClavier=0&cryptogramme=' + infos["cryptogramme"]
@@ -78,6 +78,7 @@ class LoginPage(BasePage):
         self.browser['codsec'] = img.get_codes(password)
         self.browser['cryptocvcs'] = infos["cryptogramme"]
         self.browser.submit()
+
 
 class BadLoginPage(BasePage):
     pass

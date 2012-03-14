@@ -32,6 +32,7 @@ from weboob.tools.browser import BaseBrowser, BasePage
 
 __all__ = ['IzneoBackend']
 
+
 class ReaderV2(BasePage):
     def get_ean(self):
         return self.document.xpath("//div[@id='viewer']/attribute::rel")[0]
@@ -43,14 +44,15 @@ class ReaderV2(BasePage):
             % ean))
 
         for page in pages:
-            width = 1200 # maximum width
+            width = 1200  # maximum width
             yield BaseImage(page['page'],
                     gallery=gallery,
                     url=("http://www.izneo.com/playerv2/%s/%s/%s/%d/%s" %
                         (page['expires'], page['token'], ean, width, page['page'])))
 
+
 class IzneoBrowser(BaseBrowser):
-    PAGES = { r'http://.+\.izneo.\w+/readv2-.+': ReaderV2 }
+    PAGES = {r'http://.+\.izneo.\w+/readv2-.+': ReaderV2}
 
     def iter_gallery_images(self, gallery):
         self.location(gallery.url)
@@ -88,7 +90,7 @@ class IzneoBackend(BaseBackend, ICapGallery):
             return gallery
 
     def fill_gallery(self, gallery, fields):
-        gallery.title = gallery.id 
+        gallery.title = gallery.id
 
     def fill_image(self, image, fields):
         with self.browser:
@@ -96,4 +98,4 @@ class IzneoBackend(BaseBackend, ICapGallery):
 
     OBJECTS = {
             BaseGallery: fill_gallery,
-            BaseImage: fill_image }
+            BaseImage: fill_image}

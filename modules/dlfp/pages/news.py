@@ -27,7 +27,7 @@ from ..tools import url2id
 from .index import DLFPPage
 
 class RSSComment(DLFPPage):
-    def on_loaded(self): 
+    def on_loaded(self):
         pass
 
 class Content(object):

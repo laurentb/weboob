@@ -20,10 +20,11 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
-import time 
+import time
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.tools.backend import BaseBackend
 from weboob.tools.newsfeed import Newsfeed
+
 
 class GenericNewspaperBackend(BaseBackend, ICapMessages):
     "GenericNewspaperBackend class"
@@ -71,13 +72,13 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
             content=content.body,
             signature='URL: %s' % content.url,
             flags=flags,
-            children= [])
+            children=[])
         return thread
 
     def iter_threads(self):
         for article in Newsfeed(self.RSS_FEED, GenericNewspaperBackend.RSSID).iter_entries():
             thread = Thread(article.id)
-            thread.title =  article.title
+            thread.title = article.title
             thread.date = article.datetime
             yield(thread)
 
@@ -112,7 +113,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
             if time.time() - lastpurge > 7200:
                 self.storage.set('lastpurge', time.time())
                 for id in self.storage.get('seen', default={}):
-                     l.append((int(url2id(id)), id))
+                    l.append((int(url2id(id)), id))
                 l.sort()
                 l.reverse()
                 tosave = [v[1] for v in l[0:self.RSSSIZE + 10]]

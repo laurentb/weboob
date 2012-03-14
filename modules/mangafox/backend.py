@@ -21,6 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['MangafoxBackend']
 
+
 class MangafoxBackend(GenericComicReaderBackend):
     NAME = 'mangafox'
     DESCRIPTION = 'Manga Fox manga reading website'
@@ -31,4 +32,4 @@ class MangafoxBackend(GenericComicReaderBackend):
     ID_REGEXP = r'[^/]+/[^/]+(?:/[^/]+)?'
     URL_REGEXP = r'.+mangafox.com/manga/(%s).*' % ID_REGEXP
     ID_TO_URL = 'http://www.mangafox.com/manga/%s'
-    PAGES = { r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?(.+\.html)?': DisplayPage }
+    PAGES = {r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?(.+\.html)?': DisplayPage}

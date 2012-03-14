@@ -68,6 +68,7 @@ try:
     html2text = h2t.html2text
 except ImportError:
     warning('python-html2text is not present. HTML pages will not be converted into text.')
+
     def html2text(html):
         return html
 
@@ -117,6 +118,7 @@ def utc2local(date):
     date = date.astimezone(tz.tzlocal())
     return date
 
+
 def limit(iterator, lim):
     count = 0
     iterator = iter(iterator)
@@ -124,6 +126,7 @@ def limit(iterator, lim):
         yield iterator.next()
         count += 1
     raise StopIteration()
+
 
 def ratelimit(group, delay):
     """

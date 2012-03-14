@@ -61,7 +61,7 @@ class EHentaiBrowser(BaseBrowser):
         assert self.is_on_page(GalleryPage)
         i = 0
         while True:
-            n = self.page._next_page_link();
+            n = self.page._next_page_link()
 
             for img in self.page.image_pages():
                 yield EHentaiImage(img)
@@ -104,4 +104,3 @@ class EHentaiBrowser(BaseBrowser):
 
         # necessary in order to reach the fjords
         self.home()
-

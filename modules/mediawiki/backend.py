@@ -29,6 +29,7 @@ from .browser import MediawikiBrowser
 
 __all__ = ['MediawikiBackend']
 
+
 class MediawikiBackend(BaseBackend, ICapContent):
     NAME = 'mediawiki'
     MAINTAINER = u'Clément Schreiner'
@@ -42,6 +43,7 @@ class MediawikiBackend(BaseBackend, ICapContent):
                            ValueBackendPassword('password', label='Password', default=''))
 
     BROWSER = MediawikiBrowser
+
     def create_default_browser(self):
         username = self.config['username'].get()
         if len(username) > 0:

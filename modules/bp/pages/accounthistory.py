@@ -54,7 +54,7 @@ class AccountHistory(BasePage):
             for t in tmp:
                 if r.search(t.text):
                     amount = t.text
-            amount =  ''.join( amount.replace('.', '').replace(',', '.').split() )
+            amount = ''.join(amount.replace('.', '').replace(',', '.').split())
             if amount[0] == "-":
                 operation.amount = -float(amount[1:])
             else:

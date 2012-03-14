@@ -32,7 +32,7 @@ __all__ = ['Boursorama']
 class Boursorama(BaseBrowser):
     DOMAIN = 'www.boursorama.com'
     PROTOCOL = 'https'
-    ENCODING = None # refer to the HTML encoding
+    ENCODING = None  # refer to the HTML encoding
     PAGES = {
              '.*connexion.phtml.*':                         LoginPage,
              '.*/comptes/synthese.phtml':                   AccountsList,
@@ -84,11 +84,11 @@ class Boursorama(BaseBrowser):
         self.location(account._link_id)
         operations = self.page.get_operations()
         # load last month as well
-        target = date.today() - relativedelta( months = 1 )
+        target = date.today() - relativedelta(months=1)
         self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
         operations += self.page.get_operations()
         # and the month before, just in case you're greedy
-        target = date.today() - relativedelta( months = 2 )
+        target = date.today() - relativedelta(months=2)
         self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
         operations += self.page.get_operations()
         for index, op in enumerate(operations):

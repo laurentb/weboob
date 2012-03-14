@@ -21,6 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['SimplyreaditBackend']
 
+
 class SimplyreaditBackend(GenericComicReaderBackend):
     NAME = 'simplyreadit'
     DESCRIPTION = 'SimplyReadIt manga reading website'
@@ -30,4 +31,4 @@ class SimplyreaditBackend(GenericComicReaderBackend):
     ID_TO_URL = 'http://www.simplyread.it/reader/read/%s'
     ID_REGEXP = r'[^/]+(?:/[^/]+)*'
     URL_REGEXP = r'.+simplyread.it/reader/read/(%s)/page/.+' % ID_REGEXP
-    PAGES = { r'http://.+\.simplyread.it/reader/read/.+': DisplayPage }
+    PAGES = {r'http://.+\.simplyread.it/reader/read/.+': DisplayPage}

@@ -22,8 +22,8 @@
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 
-class AccountsList(BasePage):
 
+class AccountsList(BasePage):
     def on_loaded(self):
         pass
 
@@ -34,34 +34,34 @@ class AccountsList(BasePage):
                 for tr in div.getiterator('tr'):
                     account = Account()
                     for td in tr.getiterator('td'):
-                       if td.attrib.get('class', '') == 'account-cb':
-                           break
+                        if td.attrib.get('class', '') == 'account-cb':
+                            break
 
-                       elif td.attrib.get('class', '') == 'account-name':
-                           a = td.find('a')
-                           account.label = a.text
-                           account._link_id = a.get('href', '')
+                        elif td.attrib.get('class', '') == 'account-name':
+                            a = td.find('a')
+                            account.label = a.text
+                            account._link_id = a.get('href', '')
 
-                       elif td.attrib.get('class', '') == 'account-number':
-                           id = td.text
-                           id = id.strip(u' \n\t')
-                           account.id = id
+                        elif td.attrib.get('class', '') == 'account-number':
+                            id = td.text
+                            id = id.strip(u' \n\t')
+                            account.id = id
 
-                       elif td.attrib.get('class', '') == 'account-total':
-                           span = td.find('span')
-                           if span == None:
-                               balance = td.text
-                           else:
-                               balance = span.text
-                           balance = balance.strip(u' \n\t€+').replace(',','.').replace(' ','')
-                           if balance != "":
-                               account.balance = float(balance)
-                           else:
-                               account.balance = 0.0
+                        elif td.attrib.get('class', '') == 'account-total':
+                            span = td.find('span')
+                            if span == None:
+                                balance = td.text
+                            else:
+                                balance = span.text
+                            balance = balance.strip(u' \n\t€+').replace(',', '.').replace(' ', '')
+                            if balance != "":
+                                account.balance = float(balance)
+                            else:
+                                account.balance = 0.0
 
                     else:
-                           # because of some weird useless <tr>
-                           if account.id != 0:
-                               l.append(account)
+                        # because of some weird useless <tr>
+                        if account.id != 0:
+                            l.append(account)
 
         return l

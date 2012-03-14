@@ -356,7 +356,7 @@ class Versions(object):
         with open(os.path.join(self.path, self.VERSIONS_LIST), 'wb') as fp:
             config.write(fp)
 
-class IProgress:
+class IProgress(object):
     def progress(self, percent, message):
         print '=== [%3.0f%%] %s' % (percent*100, message)
 

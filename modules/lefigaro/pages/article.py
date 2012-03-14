@@ -20,6 +20,7 @@
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, remove_from_selector_list, drop_comments, try_drop_tree, try_remove_from_selector_list
 
+
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
@@ -50,7 +51,6 @@ class ArticlePage(GenericNewsPage):
                 if a.tag == 'a' and 'BFM' in a.text:
                     a.drop_tree()
                 div.drop_tree()
-
 
         # This part of the article seems manually generated.
         for crappy_title in self.parser.select(element_body, 'p strong'):

@@ -23,7 +23,8 @@ from .account_history import AccountHistory
 from .accounts_list import AccountsList
 from .login import LoginPage
 
-class AccountPrelevement(AccountsList): pass
+class AccountPrelevement(AccountsList):
+    pass
 
 __all__ = ['LoginPage',
            'AccountsList',

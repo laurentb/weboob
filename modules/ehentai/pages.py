@@ -27,6 +27,7 @@ from .gallery import EHentaiGallery
 
 __all__ = ['GalleryPage', 'ImagePage', 'IndexPage', 'HomePage', 'LoginPage']
 
+
 class LoginPage(BasePage):
     def is_logged(self):
         success_p = self.document.xpath(
@@ -38,8 +39,10 @@ class LoginPage(BasePage):
             print 'not logged on'
             return False
 
+
 class HomePage(BasePage):
     pass
+
 
 class IndexPage(BasePage):
     def iter_galleries(self):
@@ -49,6 +52,7 @@ class IndexPage(BasePage):
             url = a.attrib["href"]
             title = a.text.strip()
             yield EHentaiGallery(re.search('(?<=/g/)\d+/[\dabcdef]+', url).group(0), title=title)
+
 
 class GalleryPage(BasePage):
     def image_pages(self):
@@ -102,7 +106,7 @@ class GalleryPage(BasePage):
         except IndexError:
             return None
 
+
 class ImagePage(BasePage):
     def get_url(self):
         return self.document.xpath('//div[@class="sni"]/a/img/attribute::src')[0]
-

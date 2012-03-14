@@ -21,7 +21,6 @@ from urlparse import urlsplit
 import urllib
 import datetime
 
-
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.content import Revision
 
@@ -36,6 +35,7 @@ __all__ = ['MediawikiBrowser']
 
 class APIError(Exception):
     pass
+
 
 # Browser
 class MediawikiBrowser(BaseBrowser):
@@ -63,8 +63,6 @@ class MediawikiBrowser(BaseBrowser):
                 'intoken':          'edit',
                 }
 
-
-
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
         if pageid == "-1":    # Page does not exist
@@ -83,8 +81,7 @@ class MediawikiBrowser(BaseBrowser):
                 }
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
-        return result['query']['pages'][str(pageid)][_type+'token']
-
+        return result['query']['pages'][str(pageid)][_type + 'token']
 
     def set_wiki_source(self, content, message=None, minor=False):
         if len(self.username) > 0 and not self.is_logged():
@@ -138,7 +135,9 @@ class MediawikiBrowser(BaseBrowser):
             self.API_post(data)
 
     def iter_wiki_revisions(self, page, nb_entries):
-        '''Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.'''
+        """
+        Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.
+        """
         if len(self.username) > 0 and not self.is_logged():
             self.login()
         data = {'action':       'query',
@@ -158,14 +157,11 @@ class MediawikiBrowser(BaseBrowser):
                 rev_content.revision = str(rev['revid'])
                 rev_content.author = rev['user']
                 rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
-                if rev.has_key('minor'):
-                    rev_content.minor = True
-                else:
-                    rev_content.minor = False
+                rev_content.minor = 'minor' in rev
                 yield rev_content
 
     def home(self):
-        '''We don't need to change location, we're using the JSON API here.'''
+        # We don't need to change location, we're using the JSON API here.
         pass
 
     def check_result(self, result):
@@ -173,17 +169,20 @@ class MediawikiBrowser(BaseBrowser):
             raise APIError('%s' % result['error']['info'])
 
     def API_get(self, data):
-        '''Submit a GET request to the website
-        The JSON data is parsed and returned as a dictionary'''
+        """
+        Submit a GET request to the website
+        The JSON data is parsed and returned as a dictionary
+        """
         data['format'] = 'json'
         result = simplejson.loads(self.readurl(self.buildurl(self.apiurl, **data)), 'utf-8')
         self.check_result(result)
         return result
 
     def API_post(self, data):
-        '''Submit a POST request to the website
-        The JSON data is parsed and returned as a dictionary'''
-
+        """
+        Submit a POST request to the website
+        The JSON data is parsed and returned as a dictionary
+        """
         data['format'] = 'json'
         result = simplejson.loads(self.readurl(self.apiurl, urllib.urlencode(data)), 'utf-8')
         self.check_result(result)

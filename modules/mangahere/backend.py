@@ -21,6 +21,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['MangahereBackend']
 
+
 class MangahereBackend(GenericComicReaderBackend):
     NAME = 'mangahere'
     DESCRIPTION = 'Manga Here manga reading website'
@@ -31,4 +32,4 @@ class MangahereBackend(GenericComicReaderBackend):
     ID_REGEXP = r'[^/]+/[^/]+/[^/]+'
     URL_REGEXP = r'.+mangahere.com/manga/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.mangahere.com/manga/%s'
-    PAGES = { URL_REGEXP: DisplayPage }
+    PAGES = {URL_REGEXP: DisplayPage}

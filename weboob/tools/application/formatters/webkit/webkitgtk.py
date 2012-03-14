@@ -36,9 +36,9 @@ class WebBrowser(gtk.Window):
         self.connect('destroy', gtk.main_quit)
         self.set_default_size(800, 600)
         self.web_view = webkit.WebView()
-        sw = gtk.ScrolledWindow() 
-        sw.add(self.web_view) 
-        self.add(sw) 
+        sw = gtk.ScrolledWindow()
+        sw.add(self.web_view)
+        self.add(sw)
         self.show_all()
 
 

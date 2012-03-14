@@ -35,10 +35,12 @@ COLORS = {
     'CRITICAL': COLOR_SEQ % ("\033[1;33m\033[1;41m"),
 }
 
+
 def getLogger(name, parent=None):
     if parent:
         name = parent.name + '.' + name
     return _getLogger(name)
+
 
 class ColoredFormatter(Formatter):
     """
@@ -52,9 +54,9 @@ class ColoredFormatter(Formatter):
             msg = COLORS[levelname] % msg
         return msg
 
+
 def createColoredFormatter(stream, format):
     if (sys.platform != 'win32') and stream.isatty():
         return ColoredFormatter(format)
     else:
         return Formatter(format)
-

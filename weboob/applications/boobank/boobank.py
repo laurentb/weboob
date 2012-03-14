@@ -49,6 +49,7 @@ class QifFormatter(IFormatter):
         self.count += 1
         return result
 
+
 class TransactionsFormatter(IFormatter):
     MANDATORY_FIELDS = ('date', 'label', 'amount')
     TYPES = ['', 'Transfer', 'Order', 'Check', 'Deposit', 'Payback', 'Withdrawal', 'Card', 'Loan', 'Bank']
@@ -82,6 +83,7 @@ class TransactionsFormatter(IFormatter):
         result += ' %-10s   %-12s %-50s %10.2f' % (item['date'].strftime('%Y-%m-%d'), _type, label[:50], item['amount'])
         return result
 
+
 class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
 
@@ -95,6 +97,7 @@ class TransferFormatter(IFormatter):
         result += u'Recipient:  %s\n' % item['recipient']
         result += u'Amount:     %.2f\n' % item['amount']
         return result
+
 
 class RecipientListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label')
@@ -115,6 +118,7 @@ class RecipientListFormatter(IFormatter):
 
         return u'%s %-30s  %s %s' % (self.BOLD, id, self.NC, item['label'])
 
+
 class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
 
@@ -122,13 +126,12 @@ class AccountListFormatter(IFormatter):
     tot_balance = 0.0
     tot_coming = 0.0
 
-
     def flush(self):
         if self.count < 1:
             return
 
         result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
-        result +=u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
+        result += u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
                                                                                '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
         self.after_format(result)
         self.tot_balance = 0.0
@@ -155,6 +158,7 @@ class AccountListFormatter(IFormatter):
         if item['coming']:
             self.tot_coming += item['coming']
         return result
+
 
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
@@ -278,7 +282,7 @@ class Boobank(ReplApplication):
 
         try:
             amount = float(amount)
-        except (TypeError,ValueError):
+        except (TypeError, ValueError):
             print >>sys.stderr, 'Error: please give a decimal amount to transfer'
             return 2
 

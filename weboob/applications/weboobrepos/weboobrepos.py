@@ -124,8 +124,8 @@ class WeboobRepos(ReplApplication):
                         '--keyring', os.path.realpath(krname),
                         '--import', os.path.realpath(keypath)])
                 # Does not make much sense in our case
-                if os.path.exists(krname+'~'):
-                    os.remove(krname+'~')
+                if os.path.exists(krname + '~'):
+                    os.remove(krname + '~')
                 if not os.path.exists(krname):
                     raise Exception('No valid key file found.')
                 kr_mtime = mktime(strptime(str(r.key_update), '%Y%m%d%H%M'))
@@ -133,7 +133,6 @@ class WeboobRepos(ReplApplication):
                 os.utime(krname, (kr_mtime, kr_mtime))
             else:
                 print 'Keyring is up to date'
-
 
         for name, module in r.modules.iteritems():
             tarname = os.path.join(repo_path, '%s.tar.gz' % name)
@@ -185,7 +184,7 @@ class WeboobRepos(ReplApplication):
             # Check if all files have an up to date signature
             for filename in sigfiles:
                 filepath = os.path.realpath(os.path.join(repo_path, filename))
-                sigpath = filepath+'.sig'
+                sigpath = filepath + '.sig'
                 file_mtime = int(os.path.getmtime(filepath))
                 if os.path.exists(sigpath):
                     sig_mtime = int(os.path.getmtime(sigpath))
@@ -201,7 +200,6 @@ class WeboobRepos(ReplApplication):
                         '--sign', filepath])
                     os.utime(sigpath, (file_mtime, file_mtime))
             print 'Signatures are up to date'
-
 
     @staticmethod
     def _find_gpg():
@@ -221,4 +219,3 @@ class WeboobRepos(ReplApplication):
         if filename.endswith('.png'):
             return True
         return False
-

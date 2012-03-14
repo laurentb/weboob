@@ -21,18 +21,20 @@
 import hashlib
 import Image
 
+
 class TileError(Exception):
-    def __init__(self, msg, tile = None):
+    def __init__(self, msg, tile=None):
         Exception.__init__(self, msg)
         self.tile = tile
 
-class Captcha:
+
+class Captcha(object):
     def __init__(self, file, infos):
         self.inim = Image.open(file)
         self.infos = infos
         self.nbr = int(infos["nblignes"])
         self.nbc = int(infos["nbcolonnes"])
-        (self.nx,self.ny) = self.inim.size
+        (self.nx, self.ny) = self.inim.size
         self.inmat = self.inim.load()
         self.map = {}
 
@@ -77,7 +79,7 @@ class Captcha:
                     self.map[num] = tile
 
 
-class Tile:
+class Tile(object):
     hash = {'ff1441b2c5f90703ef04e688e399aca5': 1,
             '53d7f3dfd64f54723b231fc398b6be57': 2,
             '5bcba7fa2107ba9a606e8d0131c162eb': 3,
@@ -116,4 +118,3 @@ class Tile:
 
     def display(self):
         print self.checksum()
-

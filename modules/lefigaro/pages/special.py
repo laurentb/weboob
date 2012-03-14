@@ -19,11 +19,12 @@
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, try_remove_from_selector_list
 
+
 class SpecialPage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):
         self.main_div = self.document.getroot()
-        self.element_title_selector = "h2"
+        self.element_title_selector     = "h2"
         self.element_author_selector    = "div.name>span"
         self.element_body_selector      = ".block-text"
 
@@ -32,4 +33,3 @@ class SpecialPage(GenericNewsPage):
         try_remove_from_selector_list(self.parser, element_body, ['div'])
         element_body.tag = "div"
         return self.parser.tostring(element_body)
-

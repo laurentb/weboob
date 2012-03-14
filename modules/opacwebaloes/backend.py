@@ -67,4 +67,3 @@ class AloesBackend(BaseBackend, ICapBook):
 
     def search_books(self, _string):
         raise NotImplementedError()
-

@@ -298,7 +298,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                         yield thread.root
         except BrowserUnavailable, e:
             self.logger.debug('No messages, browser is unavailable: %s' % e)
-            pass # don't care about waiting
+            pass  # don't care about waiting
 
     def set_message_read(self, message):
         if message.id == self.MAGIC_ID_BASKET:

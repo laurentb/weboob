@@ -24,6 +24,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 __all__ = ['ICapContact', 'Contact']
 
+
 class ProfileNode(object):
     HEAD =    0x01
     SECTION = 0x02
@@ -37,6 +38,7 @@ class ProfileNode(object):
 
     def __getitem__(self, key):
         return self.value[key]
+
 
 class ContactPhoto(CapBaseObject):
     def __init__(self, name):
@@ -58,6 +60,7 @@ class ContactPhoto(CapBaseObject):
         return u'<ContactPhoto "%s" data=%do tndata=%do>' % (self.id,
                                                              len(self.data) if self.data else 0,
                                                              len(self.thumbnail_data) if self.thumbnail_data else 0)
+
 
 class Contact(CapBaseObject):
     STATUS_ONLINE =  0x001
@@ -83,13 +86,16 @@ class Contact(CapBaseObject):
         for key, value in kwargs.iteritems():
             setattr(photo, key, value)
 
+
 class QueryError(Exception):
     pass
+
 
 class Query(CapBaseObject):
     def __init__(self, id, message):
         CapBaseObject.__init__(self, id)
         self.add_field('message', basestring, message)
+
 
 class ICapContact(IBaseCap):
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
@@ -129,20 +135,20 @@ class ICapContact(IBaseCap):
         @except QueryError
         """
         raise NotImplementedError()
-      
+
     def get_notes(self, id):
         """
         Get personal notes about a contact
-      
+
         @param id the ID of the contact
         @return a unicode object
         """
         raise NotImplementedError
-        
+
     def save_notes(self, id, notes):
         """
         Set personal notes about a contact
-        
+
         @param id the ID of the contact
         @param notes the unicode object to save as notes
         """

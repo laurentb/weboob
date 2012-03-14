@@ -28,8 +28,10 @@ from logging import warning
 
 __all__ = ['BackendsConfig', 'BackendAlreadyExists']
 
+
 class BackendAlreadyExists(Exception):
     pass
+
 
 class BackendsConfig(object):
     class WrongPermissions(Exception):
@@ -41,13 +43,13 @@ class BackendsConfig(object):
             mode = os.stat(confpath).st_mode
         except OSError:
             if sys.platform == 'win32':
-                fptr = open(confpath,'w')
+                fptr = open(confpath, 'w')
                 fptr.close()
             else:
                 try:
                     os.mknod(confpath, 0600)
                 except OSError:
-                    fptr = open(confpath,'w')
+                    fptr = open(confpath, 'w')
                     fptr.close()
                     os.chmod(confpath, 0600)
         else:
@@ -129,5 +131,3 @@ class BackendsConfig(object):
         with open(self.confpath, 'w') as f:
             config.write(f)
         return True
-
-

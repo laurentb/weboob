@@ -124,9 +124,9 @@ class PriorityConnection(Optimization):
                 browser = AuMBrowser('%s@%s' % (name, self.config['domain']), proxy=self.browser.proxy)
                 try:
                     browser.register(password=   password,
-                                     sex=        1, #slut
-                                     birthday_d= random.randint(1,28),
-                                     birthday_m= random.randint(1,12),
+                                     sex=        1,  # slut
+                                     birthday_d= random.randint(1, 28),
+                                     birthday_m= random.randint(1, 12),
                                      birthday_y= random.randint(1975, 1990),
                                      zipcode=    75001,
                                      country=    'fr',

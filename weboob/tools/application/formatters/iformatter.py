@@ -92,7 +92,7 @@ class IFormatter(object):
             if sys.platform == 'win32':
                 self.termrows = WConio.gettextinfo()[8]
             else:
-                self.termrows = int( subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
+                self.termrows = int(subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
 
     def after_format(self, formatted):
         if self.outfile != sys.stdout:

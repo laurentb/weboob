@@ -20,10 +20,11 @@
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
 
+
 class SimplePage(GenericNewsPage):
     "ArticlePage object for minutes20"
+
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_author_selector = "div.mna-signature"
         self.element_body_selector = "#article"
-

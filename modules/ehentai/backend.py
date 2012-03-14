@@ -96,4 +96,4 @@ class EHentaiBackend(BaseBackend, ICapGallery):
 
     OBJECTS = {
             EHentaiGallery: fill_gallery,
-            EHentaiImage: fill_image }
+            EHentaiImage: fill_image}

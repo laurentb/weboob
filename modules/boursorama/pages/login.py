@@ -26,7 +26,7 @@ __all__ = ['LoginPage']
 
 class LoginPage(BasePage):
     def on_loaded(self):
-         pass
+        pass
 #        for td in self.document.getroot().cssselect('td.LibelleErreur'):
 #            if td.text is None:
 #                continue

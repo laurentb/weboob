@@ -24,6 +24,7 @@ from weboob.capabilities.bank import Account
 from .base import CragrBasePage
 from weboob.capabilities.bank import Transaction
 
+
 def clean_amount(amount):
     """
         Removes weird characters and converts to a float
@@ -33,6 +34,7 @@ def clean_amount(amount):
     data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
     matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
     return float(matches[0]) if (matches) else 0.0
+
 
 class AccountsList(CragrBasePage):
 
@@ -109,7 +111,7 @@ class AccountsList(CragrBasePage):
             select_name is the name of the select field to analyze
         """
         if not self.is_transfer_page():
-          return False
+            return False
         source_accounts = {}
         source_account_options = self.document.xpath('/html/body//form//select[@name="%s"]/option' % select_name)
         for option in source_account_options:
@@ -212,7 +214,7 @@ class AccountsList(CragrBasePage):
             year = today.year
         return date(year, month, day)
 
-    def get_history(self, start_index = 0, start_offset = 0):
+    def get_history(self, start_index=0, start_offset=0):
         """
             Returns the history of a specific account. Note that this function
             expects the current page to be the one dedicated to this history.

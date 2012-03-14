@@ -64,6 +64,7 @@ class NotLoaded(object):
 class IBaseCap(object):
     pass
 
+
 class CapBaseObject(object):
     FIELDS = None
     _attribs = None
@@ -128,7 +129,7 @@ class CapBaseObject(object):
         if self.FIELDS is None:
             yield 'id', self.id
             for key, value in iter_fields(self):
-                if key not in ('id', 'backend','FIELDS'):
+                if key not in ('id', 'backend', 'FIELDS'):
                     yield key, value
         else:
             yield 'id', self.id

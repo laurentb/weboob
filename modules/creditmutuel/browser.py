@@ -26,6 +26,7 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, Opera
 
 __all__ = ['CreditMutuelBrowser']
 
+
 # Browser
 class CreditMutuelBrowser(BaseBrowser):
     PROTOCOL = 'https'
@@ -36,11 +37,11 @@ class CreditMutuelBrowser(BaseBrowser):
              'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
          'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
-         'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*' : OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*' : OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*' : OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*' : InfoPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*' : TransfertPage
+         'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage
             }
 
     def __init__(self, *args, **kwargs):
@@ -61,17 +62,17 @@ class CreditMutuelBrowser(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.location('https://www.creditmutuel.fr/', no_login=True)
 
-        self.page.login( self.username, self.password)
+        self.page.login(self.username, self.password)
 
         if not self.is_logged() or self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
-        self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
+        self.SUB_BANKS = ['cmdv', 'cmcee', 'cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
         self.getCurrentSubBank()
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi'%self.currentSubBank)
+            self.location('https://www.creditmutuel.fr/%s/fr/banque/situation_financiere.cgi' % self.currentSubBank)
         return self.page.get_list()
 
     def get_account(self, id):
@@ -121,13 +122,13 @@ class CreditMutuelBrowser(BaseBrowser):
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page
         transfert_url = 'WI_VPLV_VirUniSaiCpt.asp?RAZ=ALL&Cat=6&PERM=N&CHX=A'
-        self.location('https://%s/%s/fr/banque/%s'%(self.DOMAIN, self.currentSubBank, transfert_url))
+        self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, transfert_url))
 
         # fill the form
         self.select_form(name='FormVirUniSaiCpt')
-        self['IDB']     = [account[-1]]
+        self['IDB'] = [account[-1]]
         self['ICR'] = [to[-1]]
-        self['MTTVIR']  = '%s'   % str(amount).replace('.',',')
+        self['MTTVIR'] = '%s' % str(amount).replace('.', ',')
         if reason != None:
             self['LIBDBT'] = reason
             self['LIBCRT'] = reason

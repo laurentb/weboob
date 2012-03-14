@@ -26,7 +26,8 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import Contact as _Contact, ProfileNode
 from weboob.tools.misc import html2text
 
-class FieldBase:
+
+class FieldBase(object):
     def __init__(self, key, key2=None):
         self.key = key
         self.key2 = key2
@@ -34,17 +35,21 @@ class FieldBase:
     def get_value(self, value, consts):
         raise NotImplementedError()
 
+
 class FieldStr(FieldBase):
     def get_value(self, profile, consts):
         return html2text(unicode(profile[self.key])).strip()
+
 
 class FieldBool(FieldBase):
     def get_value(self, profile, consts):
         return bool(int(profile[self.key]))
 
+
 class FieldDist(FieldBase):
     def get_value(self, profile, consts):
         return '%.2f km' % float(profile[self.key])
+
 
 class FieldIP(FieldBase):
     def get_hostname(self, s):
@@ -59,6 +64,7 @@ class FieldIP(FieldBase):
             s += ' (first %s)' % self.get_hostname(profile[self.key2])
         return s
 
+
 class FieldProfileURL(FieldBase):
     def get_value(self, profile, consts):
         id = int(profile[self.key])
@@ -67,9 +73,11 @@ class FieldProfileURL(FieldBase):
         else:
             return ''
 
+
 class FieldPopu(FieldBase):
     def get_value(self, profile, consts):
         return unicode(profile['popu'][self.key])
+
 
 class FieldPopuRatio(FieldBase):
     def get_value(self, profile, consts):
@@ -80,14 +88,17 @@ class FieldPopuRatio(FieldBase):
         else:
             return '%.2f' % (v1 / v2)
 
+
 class FieldOld(FieldBase):
     def get_value(self, profile, consts):
         birthday = parse_dt(profile[self.key])
         return int((datetime.now() - birthday).days / 365.25)
 
+
 class FieldSplit(FieldBase):
     def get_value(self, profile, consts):
         return [html2text(s).strip() for s in profile[self.key].split(self.key2) if len(s.strip()) > 0]
+
 
 class FieldBMI(FieldBase):
     def __init__(self, key, key2, fat=False):
@@ -100,7 +111,7 @@ class FieldBMI(FieldBase):
         if height == 0 or weight == 0:
             return ''
 
-        bmi = (weight/float(pow(height/100.0, 2)))
+        bmi = (weight / float(pow(height / 100.0, 2)))
         if not self.fat:
             return bmi
         elif bmi < 15.5:
@@ -114,6 +125,7 @@ class FieldBMI(FieldBase):
         else:
             return 'obese'
 
+
 class FieldFlags(FieldBase):
     def get_value(self, profile, consts):
         i = int(profile[self.key])
@@ -123,6 +135,7 @@ class FieldFlags(FieldBase):
                 labels.append(html2text(d['label']).strip())
         return labels
 
+
 class FieldList(FieldBase):
     def get_value(self, profile, consts):
         i = int(profile[self.key])
@@ -130,6 +143,7 @@ class FieldList(FieldBase):
             if i == int(d['value']):
                 return html2text(d['label']).strip()
         return ''
+
 
 class Contact(_Contact):
     TABLE = OrderedDict((
@@ -247,9 +261,9 @@ class Contact(_Contact):
             if node.flags & node.SECTION:
                 result += u'\t' * level + node.label + '\n'
                 for sub in node.value.itervalues():
-                    result += print_node(sub, level+1)
+                    result += print_node(sub, level + 1)
             else:
-                if isinstance(node.value, (tuple,list)):
+                if isinstance(node.value, (tuple, list)):
                     value = ', '.join(unicode(v) for v in node.value)
                 elif isinstance(node.value, float):
                     value = '%.2f' % node.value

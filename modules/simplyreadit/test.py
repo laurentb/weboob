@@ -19,8 +19,9 @@
 
 from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderTest
 
+
 class SimplyreaditTest(GenericComicReaderTest):
     BACKEND = 'simplyreadit'
+
     def test_download(self):
         return self._test_download('bonnouji/en/1/3')
-

@@ -62,6 +62,7 @@ class BackendStorage(object):
         if self.storage:
             return self.storage.save('backends', self.name)
 
+
 class BackendConfig(ValuesDict):
     modname = None
     instname = None
@@ -118,6 +119,7 @@ class BackendConfig(ValuesDict):
 
         self.weboob.backends_config.add_backend(self.instname, self.modname, dump, edit)
 
+
 class BaseBackend(object):
     # Backend name.
     NAME = None
@@ -149,7 +151,8 @@ class BaseBackend(object):
     # NOT yet filled.
     OBJECTS = {}
 
-    class ConfigError(Exception): pass
+    class ConfigError(Exception):
+        pass
 
     def __enter__(self):
         self.lock.acquire()
@@ -184,6 +187,7 @@ class BaseBackend(object):
     class classprop(object):
         def __init__(self, fget):
             self.fget = fget
+
         def __get__(self, inst, objtype=None):
             if inst:
                 return self.fget(inst)

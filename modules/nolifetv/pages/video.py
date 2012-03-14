@@ -35,8 +35,8 @@ __all__ = ['VideoPage']
 class ForbiddenVideo(Exception):
     pass
 
-class VideoPage(BasePage):
 
+class VideoPage(BasePage):
     def get_video(self, video=None):
         _id = to_unicode(self.group_dict['id'])
         if video is None:
@@ -84,4 +84,3 @@ class VideoPage(BasePage):
             video.url = values['url']
 
         return video
-

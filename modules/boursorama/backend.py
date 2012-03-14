@@ -70,4 +70,3 @@ class BoursoramaBackend(BaseBackend, ICapBank):
         with self.browser:
             for coming in self.browser.get_coming_operations(account):
                 yield coming
-

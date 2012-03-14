@@ -23,6 +23,7 @@ from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBa
 from .browser import Newspaper20minutesBrowser
 from .tools import rssid
 
+
 class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
@@ -34,4 +35,3 @@ class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     BROWSER = Newspaper20minutesBrowser
     RSS_FEED = 'http://www.20minutes.fr/rss/20minutes.xml'
     RSSID = rssid
-

@@ -30,7 +30,6 @@ except ImportError:
             ## {{{ http://code.activestate.com/recipes/576693/ (r6)
             from UserDict import DictMixin
 
-
             class OrderedDict(dict, DictMixin):
 
                 def __init__(self, *args, **kwds):

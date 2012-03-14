@@ -19,8 +19,9 @@
 
 from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderTest
 
+
 class MangahereTest(GenericComicReaderTest):
     BACKEND = 'mangahere'
+
     def test_download(self):
         return self._test_download('glass_no_kamen/v02/c000')
-

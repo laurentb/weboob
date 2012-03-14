@@ -33,7 +33,9 @@ from lxml import etree
 from datetime import date
 from StringIO import StringIO
 
+
 __all__ = ['CmbBackend']
+
 
 class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
@@ -82,7 +84,6 @@ class CmbBackend(BaseBackend, ICapBank):
                 '%(text)s'
             )
             ]
-
 
     cookie = None
     headers = {
@@ -167,13 +168,13 @@ class CmbBackend(BaseBackend, ICapBank):
 
 
                 balance = td[1].text
-                balance = balance.replace(',','.').replace(u"\xa0",'')
+                balance = balance.replace(',', '.').replace(u"\xa0", '')
                 account.balance = float(balance)
 
                 span = td[3].xpath('a/span')
                 if len(span):
-                    coming = span[0].text.replace(' ','').replace(',','.')
-                    coming = coming.replace(u"\xa0",'')
+                    coming = span[0].text.replace(' ', '').replace(',', '.')
+                    coming = coming.replace(u"\xa0", '')
                     account.coming = float(coming)
                 else:
                     account.coming = NotAvailable
@@ -248,7 +249,7 @@ class CmbBackend(BaseBackend, ICapBank):
                     operation.date = date(*reversed([int(x) for x in d]))
 
                     div = td[2].xpath('div')
-                    label = div[0].xpath('a')[0].text.replace('\n','')
+                    label = div[0].xpath('a')[0].text.replace('\n', '')
                     operation.raw = unicode(' '.join(label.split()))
                     for pattern, _type, _label in self.LABEL_PATTERNS:
                         mm = pattern.match(operation.raw)
@@ -260,12 +261,11 @@ class CmbBackend(BaseBackend, ICapBank):
                     amount = td[3].text
                     if amount.count(',') != 1:
                         amount = td[4].text
-                        amount = amount.replace(',','.').replace(u'\xa0','')
+                        amount = amount.replace(',', '.').replace(u'\xa0', '')
                         operation.amount = float(amount)
                     else:
-                        amount = amount.replace(',','.').replace(u'\xa0','')
+                        amount = amount.replace(',', '.').replace(u'\xa0', '')
                         operation.amount = - float(amount)
 
                     i += 1
                     yield operation
-
