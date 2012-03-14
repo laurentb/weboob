@@ -42,22 +42,14 @@ class DetailsPage(BasePage):
         self.datebills = []
         num = self.document.xpath('//div[@class="infosLigneDetail"]')[0].text
         num = num.split("-")[2].strip()
+
+        # National parsing
         divnat = self.document.xpath('//div[@class="national"]')[0]
-        divs = divnat.xpath('div[@class="detail"]')
-        divvoice = divs.pop(0)
+        self.parse_div(divnat, "National : %s | International : %s", False)
 
-        # Two informations in one div...
-        voice = Detail()
-        voice.label = divvoice.find('div[@class="titreDetail"]/p').text_content()
-        voice.price = convert_price(divvoice)
-        voicenat = divvoice.xpath('div[@class="consoDetail"]/p/span')[0].text
-        voiceint = divvoice.xpath('div[@class="consoDetail"]/p/span')[1].text
-        voice.infos = "National : " + voicenat + " | International : " + voiceint
-        self.details.append(voice)
-
-        self.iter_divs(divs)
+        # International parsing
         divint = self.document.xpath('//div[@class="international hide"]')[0]
-        self.iter_divs(divint.xpath('div[@class="detail"]'), True)
+        self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", True)
 
         for trbill in self.document.xpath('//tr[@class="derniereFacture"]'):
             mydate = trbill.find('td/input').attrib['onclick'].split("'")[1]
@@ -67,6 +59,14 @@ class DetailsPage(BasePage):
             bill.date = date(int(mydate[0:4]), int(mydate[4:6]), int(mydate[6:8]))
             bill.format = 'html'
             self.datebills.append(bill)
+
+    def parse_div(self, divglobal, string, inter=False):
+        divs = divglobal.xpath('div[@class="detail"]')
+        # Two informations in one div...
+        div = divs.pop(0)
+        voice = self.parse_voice(div, string, inter)
+        self.details.append(voice)
+        self.iter_divs(divs, inter)
 
     def iter_divs(self, divs, inter=False):
         for div in divs:
@@ -79,6 +79,18 @@ class DetailsPage(BasePage):
             detail.price = convert_price(div)
 
             self.details.append(detail)
+
+    def parse_voice(self, div, string, inter=False):
+        voice = Detail()
+        voice.label = div.find('div[@class="titreDetail"]/p').text_content()
+        if inter:
+            voice.label = voice.label + " (international)"
+        voice.price = convert_price(div)
+        voice1 = div.xpath('div[@class="consoDetail"]/p/span')[0].text
+        voice2 = div.xpath('div[@class="consoDetail"]/p/span')[1].text
+        voice.infos = string % (voice1, voice2)
+
+        return voice
 
     def get_details(self):
         return self.details
