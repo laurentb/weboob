@@ -31,7 +31,7 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
     NAME = 'isohunt'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.b'
+    VERSION = '0.c'
     DESCRIPTION = 'isoHunt BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = IsohuntBrowser

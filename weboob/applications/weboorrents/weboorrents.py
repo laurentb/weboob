@@ -84,7 +84,7 @@ class TorrentListFormatter(IFormatter):
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
-    VERSION = '0.b'
+    VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
                   'and download .torrent files.'

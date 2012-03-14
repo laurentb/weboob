@@ -85,7 +85,7 @@ class HousingListFormatter(IFormatter):
 
 class Flatboob(ReplApplication):
     APPNAME = 'flatboob'
-    VERSION = '0.b'
+    VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = 'Console application to search a house.'
     CAPS = ICapHousing

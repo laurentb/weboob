@@ -69,7 +69,7 @@ class IzneoBackend(BaseBackend, ICapGallery):
     NAME = 'izneo'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.b'
+    VERSION = '0.c'
     DESCRIPTION = 'Izneo digital comics'
     LICENSE = 'AGPLv3+'
     BROWSER = IzneoBrowser

@@ -34,7 +34,7 @@ class PluzzBackend(BaseBackend, ICapVideo):
     NAME = 'francetelevisions'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.b'
+    VERSION = '0.c'
     DESCRIPTION = u'France Télévisions video website'
     LICENSE = 'AGPLv3+'
     BROWSER = PluzzBrowser

@@ -76,7 +76,7 @@ class CitiesFormatter(IFormatter):
 
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
-    VERSION = '0.b'
+    VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to display weather and forecasts in your city.'
     CAPS = (ICapWeather, ICapWaterLevel)

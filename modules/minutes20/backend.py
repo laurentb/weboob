@@ -27,7 +27,7 @@ from .tools import rssid
 class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.b'
+    VERSION = '0.c'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'minutes20'

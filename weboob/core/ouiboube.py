@@ -36,7 +36,7 @@ __all__ = ['Weboob']
 
 
 class Weboob(object):
-    VERSION = '0.b'
+    VERSION = '0.c'
     BACKENDS_FILENAME = 'backends'
 
     def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):

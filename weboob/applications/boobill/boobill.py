@@ -49,7 +49,7 @@ class SubscriptionsFormatter(IFormatter):
 
 class Boobill(ReplApplication):
     APPNAME = 'boobill'
-    VERSION = '0.b'
+    VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2012 Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get and download bills.'
     CAPS = ICapBill

@@ -79,7 +79,7 @@ class IssuesListFormatter(IFormatter):
 
 class BoobTracker(ReplApplication):
     APPNAME = 'boobtracker'
-    VERSION = '0.b'
+    VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
