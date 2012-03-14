@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QFlatBoob
+Comment=Search housings
+Exec=qflatboob
+Icon=qflatboob
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;
