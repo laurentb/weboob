@@ -81,7 +81,7 @@ class DetailsPage(BasePage):
 
             self.details.append(detail)
 
-    def get_details(self, parentid):
+    def get_details(self):
         return self.details
 
     def date_bills(self):
