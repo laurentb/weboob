@@ -31,6 +31,7 @@ from threading import RLock
 import time
 import urllib
 import urllib2
+from urlparse import urlsplit
 import mimetypes
 from contextlib import closing
 from gzip import GzipFile
@@ -181,8 +182,10 @@ class StandardBrowser(mechanize.Browser):
         self.proxy = proxy
         if proxy:
             proto = 'http'
-            if proxy.find('://') >= 0:
-                proto, domain = proxy.split('://', 1)
+            if '://' in proxy:
+                v = urlsplit(proxy)
+                proto = v.scheme
+                domain = v.netloc
             else:
                 domain = proxy
             self.set_proxies({proto: domain})
