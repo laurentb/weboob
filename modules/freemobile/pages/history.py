@@ -36,11 +36,10 @@ def convert_price(div):
 
 
 class DetailsPage(BasePage):
-    details = []
-    datebills = []
 
     def on_loaded(self):
-
+        self.details = []
+        self.datebills = []
         num = self.document.xpath('//div[@class="infosLigneDetail"]')[0].text
         num = num.split("-")[2].strip()
         divnat = self.document.xpath('//div[@class="national"]')[0]
@@ -93,9 +92,9 @@ def _get_date(detail):
 
 
 class HistoryPage(BasePage):
-    calls = []
 
     def on_loaded(self):
+        self.calls = []
         for tr in self.document.xpath('//tr'):
             tds = tr.xpath('td')
             if tds[0].text == None or tds[0].text == "Date":
