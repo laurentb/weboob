@@ -50,3 +50,14 @@ class RadioFranceTest(BackendTest):
         assert vid.id
         self.backend.fillobj(vid, ['url'])
         assert vid.url.lower().endswith('.mp3')
+
+        # fip (no expiration known)
+        # getting the proper ID is hard, hence the tests with many urls for the same content
+        urls = ('http://www.fipradio.fr/diffusion-club-jazzafip-du-13-mars',
+                'http://www.fipradio.fr/player/reecouter?play=20686',
+            'fip-20686')
+        for url in urls:
+            vid = self.backend.get_video(url)
+            assert vid.id == urls[-1]
+        self.backend.fillobj(vid, ['url'])
+        assert vid.url.lower().endswith('.mp3')

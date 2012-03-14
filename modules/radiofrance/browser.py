@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser, BasePage, BrokenPageError
+from weboob.tools.browser import BaseBrowser, BasePage
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.browser.decorators import id2url
 
@@ -40,7 +40,7 @@ __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
 
 
 class RadioFranceVideo(BaseVideo):
-    RADIOS = ('franceinter', 'franceculture')
+    RADIO_DOMAINS = ('franceinter', 'franceculture', 'fipradio', )
 
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
@@ -49,41 +49,61 @@ class RadioFranceVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
         radio_id, replay_id = _id.split('-', 2)
+        radio_domain = 'fipradio' if radio_id == 'fip' else radio_id
         return 'http://www.%s.fr/player/reecouter?play=%s' % \
-            (radio_id, replay_id)
+            (radio_domain, replay_id)
 
 
 class PlayerPage(BasePage):
-    URL = r'^http://www\.(?P<radio_id>%s)\.fr/player/reecouter\?play=(?P<replay_id>\d+)$' \
-        % '|'.join(RadioFranceVideo.RADIOS)
+    URL = r'^http://www\.(?P<rdomain>%s)\.fr/player/reecouter\?play=(?P<replay_id>\d+)$' \
+        % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
     MP3_REGEXP = re.compile(r'sites%2Fdefault.+.(?:MP3|mp3)')
 
     def get_url(self):
-        radio_id = self.groups[0]
+        radio_domain = self.groups[0]
         player = self.parser.select(self.document.getroot(), '#rfPlayer embed', 1)
         urlparams = parse_qs(player.attrib['src'])
-        return 'http://www.%s.fr/%s' % (radio_id, urlparams['urlAOD'][0])
+        return 'http://www.%s.fr/%s' % (radio_domain, urlparams['urlAOD'][0])
 
 
 class ReplayPage(BasePage):
-    URL = r'^http://www\.(?P<radio_id>%s)\.fr/emission-.+$' \
-            % '|'.join(RadioFranceVideo.RADIOS)
+    URL = r'^http://www\.(?P<rdomain>%s)\.fr/(?:emission|diffusion)-.+$' \
+            % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
 
     def get_id(self):
-        radio_id = self.groups[0]
+        radio_domain = self.groups[0]
         for node in self.parser.select(self.document.getroot(), 'div.node-rf_diffusion'):
             match = re.match(r'^node-(\d+)$', node.attrib.get('id', ''))
             if match:
                 player_id = match.groups()[0]
-        return (radio_id, player_id)
+                return (radio_domain, player_id)
+        # if we failed, try another way (used in FIP)
+        # but it might not be as accurate for others
+        # (some pages have more than one of these)
+        # so it's only used as a fallback
+        for node in self.parser.select(self.document.getroot(), 'a.rf-player-open'):
+            match = re.match(r'^/player/reecouter\?play=(\d+)$', node.attrib.get('href', ''))
+            if match:
+                player_id = match.groups()[0]
+                return (radio_domain, player_id)
 
 
 class DataPage(BasePage):
-    def get_title(self):
-        for metas in self.parser.select(self.document.getroot(), 'div.metas'):
-            title = unicode(metas.text_content()).strip()
-            if len(title):
-                return title
+    def get_current(self):
+        document = self.document
+        title = None
+        for metas in self.parser.select(document.getroot(), 'div.metas'):
+            ftitle = unicode(metas.text_content()).strip()
+            if ftitle:
+                title = ftitle
+        # Another format (used by FIP)
+        artist = document.findtext('//div[@class="metas"]//span[@class="author"]')
+        if artist:
+            artist = unicode(artist).strip()
+            ftitle = document.findtext('//div[@class="subtitle"]')
+            title = unicode(ftitle).strip() if ftitle else title
+
+        return (artist, title)
 
 
 class RssPage(BasePage):
@@ -99,35 +119,28 @@ class RssPage(BasePage):
             return ' '.join(titles)
 
 
-class RssAntennaPage(BasePage):
-    ENCODING = 'ISO-8859-1'
-
-    def get_track(self):
-        # This information is not always available
-        try:
-            marquee = self.parser.select(self.document.getroot(), 'marquee', 1)
-            track = self.parser.select(marquee, 'font b', 2)
-            artist = unicode(track[0].text).strip() or None
-            title = unicode(track[1].text).strip() or None
-            return (artist, title)
-        except BrokenPageError:
-            return (None, None)
-
-
 class RadioFranceBrowser(BaseBrowser):
     DOMAIN = None
     ENCODING = 'UTF-8'
     PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
         r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
-        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS_a_lantenne.html': RssAntennaPage,
         PlayerPage.URL: PlayerPage,
         ReplayPage.URL: ReplayPage}
 
+    def id2domain(self, _id):
+        """
+        Get the main website domain for a Radio ID.
+        """
+        # FIP is the only one to use "fip" but "fipradio" for the domain.
+        if _id == 'fip':
+            _id = 'fipradio'
+        return 'www.%s.fr' % _id
+
     def get_current_playerjs(self, _id):
-        self.location('http://www.%s.fr/playerjs/direct/donneesassociees/html?guid=' % _id)
+        self.location('http://%s/playerjs/direct/donneesassociees/html?guid=' % self.id2domain(_id))
         assert self.is_on_page(DataPage)
 
-        return self.page.get_title()
+        return self.page.get_current()
 
     def get_current_rss(self, _id):
         self.location('http://players.tv-radio.com/radiofrance/metadatas/%sRSS.html' % _id)
@@ -136,7 +149,7 @@ class RadioFranceBrowser(BaseBrowser):
         return self.page.get_title()
 
     def get_current_direct(self, _id):
-        json_data = self.openurl('http://www.%s.fr/sites/default/files/direct.json?_=%s' % (_id, int(time())))
+        json_data = self.openurl('http://%s/sites/default/files/direct.json?_=%s' % (self.id2domain(_id), int(time())))
         data = json.load(json_data)
 
         document = self.parser.parse(StringIO(data.get('html')))
@@ -146,25 +159,18 @@ class RadioFranceBrowser(BaseBrowser):
         title = unicode(title) if title else None
         return (artist, title)
 
-    def get_current_antenna(self, _id):
-        self.ENCODING = RssAntennaPage.ENCODING
-        self.location('http://players.tv-radio.com/radiofrance/metadatas/%sRSS_a_lantenne.html' % _id)
-        assert self.is_on_page(RssAntennaPage)
-        result = self.page.get_track()
-        self.ENCODING = RadioFranceBrowser.ENCODING
-        return result
-
     @id2url(RadioFranceVideo.id2url)
     def get_video(self, url):
-        radio_id = replay_id = None
+        radio_domain = replay_id = None
         match = re.match(PlayerPage.URL, url)
         if match:
-            radio_id, replay_id = match.groups()
+            radio_domain, replay_id = match.groups()
         elif re.match(ReplayPage.URL, url):
             self.location(url)
             assert self.is_on_page(ReplayPage)
-            radio_id, replay_id = self.page.get_id()
-        if radio_id and replay_id:
+            radio_domain, replay_id = self.page.get_id()
+        if radio_domain and replay_id:
+            radio_id = 'fip' if radio_domain == 'fipradio' else radio_domain
             _id = '%s-%s' % (radio_id, replay_id)
             return RadioFranceVideo(_id)
 

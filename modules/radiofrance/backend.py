@@ -96,11 +96,11 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                         'franceculture',
                         'franceinfo',
                         'lemouv',
+                        'fip',
                         )
 
     _DIRECTJSON_RADIOS = ('lemouv', 'franceinter', )
     _RSS_RADIOS = ('francemusique', )
-    _ANTENNA_RADIOS = ('fip', )
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
@@ -152,9 +152,11 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
             artist = None
             title = None
             if radio.id in self._PLAYERJS_RADIOS:
-                title = self.browser.get_current_playerjs(radio.id)
+                artist, title = self.browser.get_current_playerjs(radio.id)
             if radio.id in self._DIRECTJSON_RADIOS:
-                artist, dtitle = self.browser.get_current_direct(radio.id)
+                dartist, dtitle = self.browser.get_current_direct(radio.id)
+                if dartist:
+                    artist = dartist
                 if dtitle:
                     if title:
                         title = "%s [%s]" % (dtitle, title)
@@ -162,8 +164,6 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                         title = dtitle
             if radio.id in self._RSS_RADIOS:
                 title = self.browser.get_current_rss(radio.id)
-            if radio.id in self._ANTENNA_RADIOS:
-                artist, title = self.browser.get_current_antenna(radio.id)
             if title:
                 if not radio.current or radio.current is NotLoaded:
                     radio.current = Emission(0)
