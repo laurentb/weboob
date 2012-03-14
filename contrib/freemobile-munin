@@ -69,7 +69,7 @@ my %linenum = (
         );
 
 my %regexp = (
-        'voice' => 'Consommation : (\d+)h(\d+)min(\d+)s',
+        'voice' => 'National : (\d+)h(\d+)min(\d+)s',
         'voicetoint' => 'International : (\d+)h(\d+)min(\d+)s',
         'specialvoice' => '\| (\d+)h(\d+) min (\d+)s',
         'sms' => 'Conso SMS                  \| (\d+) \/ (.*)',
