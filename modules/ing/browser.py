@@ -84,14 +84,11 @@ class Ing(BaseBrowser):
         account = self.get_account(id)
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
-            self.location('https://secure.ingdirect.fr/\
-                          protected/pages/cc/accountDetail.jsf')
+            self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
         elif account.label[0:2] == "LA":
             # we want "displayTRHistoriqueLA" but this fucking page
             # is not directly available...
-            self.location('https://secure.ingdirect.fr/\
-                           general?command=goToAccount&account=%d&zone=COMPTE'\
-                            % int(id))
+            self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
         else:
             raise NotImplementedError()
         return self.page.get_transactions()
