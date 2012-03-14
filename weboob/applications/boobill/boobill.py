@@ -163,7 +163,8 @@ class Boobill(ReplApplication):
         names = (backend_name,) if backend_name is not None else None
 
         if dest is None:
-            dest = id
+            for backend, bill in self.do('get_bill', id, backends=names):
+                dest = id + "." + bill.format
 
         for backend, buf in self.do('download_bill', id, backends=names):
             if buf:
