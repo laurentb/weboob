@@ -31,7 +31,7 @@ __all__ = ['ArteBrowser']
 class ArteBrowser(BaseBrowser):
     DOMAIN = u'videos.arte.tv'
     ENCODING = None
-    PAGES = {r'http://videos.arte.tv/\w+/videos/arte7.*': IndexPage,
+    PAGES = {r'http://videos.arte.tv/\w+/videos/toutesLesVideos.*': IndexPage,
              r'http://videos.arte.tv/\w+/do_search/videos/.*': IndexPage,
              r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage
             }
@@ -49,7 +49,7 @@ class ArteBrowser(BaseBrowser):
         return self.page.get_video(video, self.lang, self.quality)
 
     def home(self):
-        self.location('http://videos.arte.tv/fr/videos/arte7')
+        self.location('http://videos.arte.tv/fr/videos/toutesLesVideos')
 
     def search_videos(self, pattern):
         if not pattern:
