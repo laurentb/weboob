@@ -52,6 +52,9 @@ class ICapBook(ICapCollection):
     def get_booked(self, _id):
         raise NotImplementedError()
 
+    def renew_book(self, _id):
+        raise NotImplementedError()
+
     def get_rented(self, _id):
         raise NotImplementedError()
 

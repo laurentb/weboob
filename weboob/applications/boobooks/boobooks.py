@@ -64,3 +64,18 @@ class Boobooks(ReplApplication):
                           }
 
     COLLECTION_OBJECTS = (Book, )
+
+    def do_renew(self, id):
+        """
+        renew ID
+
+        Renew a book
+        """
+
+        id, backend_name = self.parse_id(id)
+        if not id:
+            print >>sys.stderr, 'Error: please give a book ID (hint: use ls command)'
+            return 2
+        names = (backend_name,) if backend_name is not None else None
+
+        self.do('renew_book', id, backends=names)
