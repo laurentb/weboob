@@ -41,8 +41,13 @@ class ChampslibresBackend(BaseBackend, ICapBook):
     BROWSER = ChampslibresBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
+        browser = self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
+        # we have to force the login before to lauch any actions
+        browser.login()
+        return browser
+
+        
 
     def get_rented(self):
         for book in self.browser.get_rented_books_list():

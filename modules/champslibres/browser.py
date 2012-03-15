@@ -36,9 +36,7 @@ class ChampslibresBrowser(BaseBrowser):
         'http://.*/index.aspx\?IdPage=429': HistoryPage,
         '.*patroninfo.*': RentedPage,
         }
-
-    def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
+    iduser = None
 
     def is_logged(self):
 
@@ -51,16 +49,16 @@ class ChampslibresBrowser(BaseBrowser):
         if not self.is_on_page(HomePage):
             self.location('https://sbib.si.leschampslibres.fr/iii/cas/login?null', no_login=True)
         self.page.login(self.username, self.password)
+        # Get home and get ID
+        self.location('http://opac.si.leschampslibres.fr/iii/encore/home?lang=frf', no_login=True)
+        self.iduser = self.page.get_id()
+        self.logger.debug('Get ID ' + self.iduser)
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-        # Get home and get ID
-        self.location('http://opac.si.leschampslibres.fr/iii/encore/home?lang=frf')
-        self.id = self.page.get_id()
-        self.logger.debug('Get ID ' + self.id)
 
     def get_rented_books_list(self):
         if not self.is_on_page(RentedPage):
-            self.location('https://sbib.si.leschampslibres.fr/patroninfo~S1*frf/1123477/items')
+            self.location('https://sbib.si.leschampslibres.fr/patroninfo~S1*frf/%s/items' % self.iduser)
         return self.page.get_list()
 
     # TODO
