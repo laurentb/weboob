@@ -67,7 +67,11 @@ class IndexPage(BasePage):
                 else:
                     raise BrokenPageError('Unable to parse duration %r' % self.parser.select(div, 'div.duration', 1).text)
                 video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
-            url = self.parser.select(div, 'img.dmco_image', 1).attrib['src']
+            url = self.parser.select(div, 'img.dmco_image', 1).attrib['data-src']
+            # remove the useless anti-caching
+            url = re.sub('\?\d+', '', url)
+            # use the bigger thumbnail
+            url = url.replace('jpeg_preview_medium.jpg', 'jpeg_preview_large.jpg')
             video.thumbnail = Thumbnail(url)
 
             rating_div = self.parser.select(div, 'div.small_stars', 1)
