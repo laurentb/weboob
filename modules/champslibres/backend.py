@@ -56,6 +56,10 @@ class ChampslibresBackend(BaseBackend, ICapBook):
     def get_booked(self):
         raise NotImplementedError()
 
+    def renew_book(self, id):
+        self.browser.renew(id)
+
+
     def iter_books(self):
         #for book in self.get_booked():
         #    yield book

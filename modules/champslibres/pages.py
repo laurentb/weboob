@@ -20,6 +20,7 @@
 from datetime import date
 from weboob.capabilities.library import Book
 from weboob.tools.browser import BasePage
+from weboob.tools.mech import ClientForm
 
 
 class SkipPage(BasePage):
@@ -52,6 +53,19 @@ class RentedPage(BasePage):
             book.date = txt2date(date.replace('RETOUR', ''))
             yield book
 
+    def renew(self, id):
+        # find the good box
+        input = self.document.find('//input[@value="%s"]' % id)
+        self.browser.select_form("checkout_form")
+        self.browser.form.set_all_readonly(False)
+        self.browser.controls.append(ClientForm.TextControl('text', input.attrib['name'], {'value': id}))
+        self.browser.controls.append(ClientForm.TextControl('text', 'requestRenewSome', {'value': 'requestRenewSome'}))
+        self.browser.submit()
+
+    def confirm_renew(self): 
+        self.browser.select_form("checkout_form")
+        self.browser.form.set_all_readonly(False)
+        self.browser.submit(name='renewsome')
 
 class HistoryPage(BasePage):
     pass

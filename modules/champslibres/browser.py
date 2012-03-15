@@ -61,6 +61,12 @@ class ChampslibresBrowser(BaseBrowser):
             self.location('https://sbib.si.leschampslibres.fr/patroninfo~S1*frf/%s/items' % self.iduser)
         return self.page.get_list()
 
+    def renew(self, id):
+        if not self.is_on_page(RentedPage):
+            self.location('https://sbib.si.leschampslibres.fr/patroninfo~S1*frf/%s/items' % self.iduser)
+        self.page.renew(id)
+        self.page.confirm_renew()
+
     # TODO
     def get_booked_books_list(self):
         return []
