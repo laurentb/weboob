@@ -32,7 +32,8 @@ __all__ = ['DailymotionBrowser']
 class DailymotionBrowser(BaseBrowser):
     DOMAIN = 'dailymotion.com'
     ENCODING = None
-    PAGES = {r'http://[w\.]*dailymotion\.com/?': IndexPage,
+    PAGES = {r'http://[w\.]*dailymotion\.com/1': IndexPage,
+             r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1': IndexPage,
              r'http://[w\.]*dailymotion\.com/(\w+/)?search/.*': IndexPage,
              r'http://[w\.]*dailymotion\.com/video/(?P<id>.+)': VideoPage,
             }
@@ -41,6 +42,9 @@ class DailymotionBrowser(BaseBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         return self.page.get_video(video)
+
+    def home(self):
+        self.location('/1')
 
     def search_videos(self, pattern, sortby):
         if not pattern:
