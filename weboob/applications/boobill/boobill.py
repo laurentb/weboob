@@ -86,7 +86,7 @@ class Boobill(ReplApplication):
 
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            print >>sys.stderr, 'Error: please give a subscription ID (hint: use subscriptions command)'
             return 2
         names = (backend_name,) if backend_name is not None else None
 
@@ -114,7 +114,7 @@ class Boobill(ReplApplication):
 
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            print >>sys.stderr, 'Error: please give a subscription ID (hint: use subscriptions command)'
             return 2
         names = (backend_name,) if backend_name is not None else None
 
@@ -135,7 +135,7 @@ class Boobill(ReplApplication):
 
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            print >>sys.stderr, 'Error: please give a subscription ID (hint: use subscriptions command)'
             return 2
         names = (backend_name,) if backend_name is not None else None
 
@@ -158,7 +158,7 @@ class Boobill(ReplApplication):
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
         if not id:
-            print >>sys.stderr, 'Error: please give an subscription ID (hint: use subscriptions command)'
+            print >>sys.stderr, 'Error: please give a bill ID (hint: use bills command)'
             return 2
         names = (backend_name,) if backend_name is not None else None
 
