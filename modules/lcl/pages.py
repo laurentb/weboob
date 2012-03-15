@@ -142,7 +142,9 @@ class AccountsPage(BasePage):
                     elif name=="compte":
                         account.id+=value
                     elif name=="nature":
-                        account.type=value
+                        # TODO parse this string to get the right Account.TYPE_* to
+                        # store in account.type.
+                        account._type=value
                 account.label=a.getparent().getprevious().text.strip()
                 balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
                 account.balance=float(balance)
