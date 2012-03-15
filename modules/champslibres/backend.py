@@ -35,7 +35,7 @@ class ChampslibresBackend(BaseBackend, ICapBook):
     VERSION = '0.c'
     DESCRIPTION = 'Champs Libres (Rennes) Library'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,15}|$'),
+    CONFIG = BackendConfig(Value('login', label='Account ID', regexp='^\d{1,15}|$'),
                            ValueBackendPassword('password', label='Password of account'),
                            )
     BROWSER = ChampslibresBrowser
@@ -47,8 +47,6 @@ class ChampslibresBackend(BaseBackend, ICapBook):
         browser.login()
         return browser
 
-        
-
     def get_rented(self):
         for book in self.browser.get_rented_books_list():
             yield book
@@ -57,8 +55,7 @@ class ChampslibresBackend(BaseBackend, ICapBook):
         raise NotImplementedError()
 
     def renew_book(self, id):
-        self.browser.renew(id)
-
+        return self.browser.renew(id)
 
     def iter_books(self):
         #for book in self.get_booked():

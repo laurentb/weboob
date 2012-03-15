@@ -35,6 +35,10 @@ class Book(CapBaseObject):
         self.add_field('date', (datetime, date)) # which may be the due date
         self.add_field('late', bool)
 
+class Renew(CapBaseObject):
+    def __init__(self, id):
+        CapBaseObject.__init__(self, id)
+        self.add_field('message', basestring)
 
 class ICapBook(ICapCollection):
     def iter_resources(self, objs, split_path):

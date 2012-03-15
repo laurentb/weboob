@@ -20,7 +20,7 @@
 from weboob.capabilities.library import ICapBook, Book
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
-
+import sys
 
 __all__ = ['Boobooks']
 
@@ -78,4 +78,6 @@ class Boobooks(ReplApplication):
             return 2
         names = (backend_name,) if backend_name is not None else None
 
-        self.do('renew_book', id, backends=names)
+        for backend, renew in self.do('renew_book', id, backends=names):
+            self.format(renew)
+        self.flush()

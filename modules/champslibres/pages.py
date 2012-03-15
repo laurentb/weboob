@@ -18,9 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from weboob.capabilities.library import Book
+from weboob.capabilities.library import Book, Renew
 from weboob.tools.browser import BasePage
 from weboob.tools.mech import ClientForm
+from weboob.tools.misc import html2text
 
 
 class SkipPage(BasePage):
@@ -62,10 +63,19 @@ class RentedPage(BasePage):
         self.browser.controls.append(ClientForm.TextControl('text', 'requestRenewSome', {'value': 'requestRenewSome'}))
         self.browser.submit()
 
-    def confirm_renew(self): 
+    def confirm_renew(self):
         self.browser.select_form("checkout_form")
         self.browser.form.set_all_readonly(False)
         self.browser.submit(name='renewsome')
+
+    def read_renew(self, id):
+        for tr in self.document.getroot().xpath('//tr[@class="patFuncEntry"]'):
+            if len(tr.xpath('td/input[@value="%s"]' % id)) > 0:
+                message = self.browser.parser.tostring(tr.xpath('td[@class="patFuncStatus"]')[0])
+                renew = Renew(id)
+                renew.message = html2text(message).replace('\n', '')
+                return renew
+
 
 class HistoryPage(BasePage):
     pass

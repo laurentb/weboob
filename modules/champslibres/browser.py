@@ -29,7 +29,7 @@ __all__ = ['ChampslibresBrowser']
 # Browser
 class ChampslibresBrowser(BaseBrowser):
     PROTOCOL = 'http'
-    ENCODING = None
+    ENCODING = 'utf-8'
     PAGES = {
         '.*login.*': LoginPage,
         '.*home\?lang=frf.*': HomePage,
@@ -66,6 +66,7 @@ class ChampslibresBrowser(BaseBrowser):
             self.location('https://sbib.si.leschampslibres.fr/patroninfo~S1*frf/%s/items' % self.iduser)
         self.page.renew(id)
         self.page.confirm_renew()
+        return self.page.read_renew(id)
 
     # TODO
     def get_booked_books_list(self):
