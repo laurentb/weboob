@@ -34,7 +34,7 @@ __all__ = ['PluzzBrowser']
 class PluzzBrowser(BaseBrowser):
     DOMAIN = 'pluzz.fr'
     ENCODING = 'ISO-8859-1'
-    PAGES = {r'http://[w\.]*pluzz.fr/?': IndexPage,
+    PAGES = {r'http://[w\.]*pluzz.fr/replay/1': IndexPage,
              r'http://[w\.]*pluzz.fr/recherche.html.*': IndexPage,
              r'http://[w\.]*pluzz.fr/[-\w]+/.*': IndexPage,
              r'http://[w\.]*pluzz.fr/((?!recherche).+)\.html': VideoPage,
@@ -54,6 +54,9 @@ class PluzzBrowser(BaseBrowser):
             self.parse_info(self.openurl(infourl).read(), video)
 
         return video
+
+    def home(self):
+        self.location('/replay/1')
 
     def search_videos(self, pattern):
         if not pattern:
