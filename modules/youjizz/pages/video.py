@@ -54,7 +54,7 @@ class VideoPage(BasePage):
         else:
             raise BrokenPageError('Unable to retrieve video duration')
 
-        video_file_urls = re.findall(r'"(http://[^",]+\.youjizz\.com[^",]+\.flv)[\?"]', data)
+        video_file_urls = re.findall(r'"(http://[^",]+\.youjizz\.com[^",]+\.flv(?:\?[^"]*)?)"', data)
         if len(video_file_urls) == 0:
             raise BrokenPageError('Video URL not found')
         elif len(video_file_urls) > 1:
