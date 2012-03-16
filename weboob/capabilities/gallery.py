@@ -39,8 +39,8 @@ class BaseGallery(CapBaseObject):
         self.add_field('description', basestring)
         self.add_field('cardinality', int)
         self.add_field('date', datetime, date)
-        self.add_field('rating', (int,long,float), rating)
-        self.add_field('rating_max', (int,long,float), rating_max)
+        self.add_field('rating', (int, long, float), rating)
+        self.add_field('rating_max', (int, long, float), rating_max)
         self.add_field('thumbnail', Thumbnail, thumbnail)
 
     @classmethod
@@ -55,13 +55,14 @@ class BaseGallery(CapBaseObject):
     def iter_image(self):
         raise NotImplementedError()
 
+
 class BaseImage(CapBaseObject):
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('index', int, index) # usually page number
+        self.add_field('index', int, index)  # usually page number
         self.add_field('thumbnail', Thumbnail, thumbnail)
         self.add_field('url', basestring, url)
         self.add_field('ext', basestring, ext)
@@ -77,6 +78,7 @@ class BaseImage(CapBaseObject):
     def __iscomplete__(self):
         return self.data is not NotLoaded
 
+
 class ICapGallery(IBaseCap):
     """
     This capability represents the ability for a website backend to provide videos.
@@ -86,10 +88,9 @@ class ICapGallery(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def search_gallery(self, pattern=None, sortby=SEARCH_RELEVANCE, max_results=None):
+    def search_gallery(self, pattern, sortby=SEARCH_RELEVANCE, max_results=None):
         """
-        Iter results of a search on a pattern. Note that if pattern is None,
-        it get the latest videos.
+        Iter results of a search on a pattern.
 
         @param pattern  [str] pattern to search on
         @param sortby  [enum] sort by...

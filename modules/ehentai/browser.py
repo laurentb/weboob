@@ -56,6 +56,11 @@ class EHentaiBrowser(BaseBrowser):
         assert self.is_on_page(IndexPage)
         return self.page.iter_galleries()
 
+    def latest_gallery(self):
+        self.location('/')
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_galleries()
+
     def iter_gallery_images(self, gallery):
         self.location(gallery.url)
         assert self.is_on_page(GalleryPage)

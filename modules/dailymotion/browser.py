@@ -47,15 +47,18 @@ class DailymotionBrowser(BaseBrowser):
         self.location('/1')
 
     def search_videos(self, pattern, sortby):
-        if not pattern:
-            self.home()
+        pattern = pattern.replace('/', '').encode('utf-8')
+        if sortby is None:
+            url = '/search/%s/1' % quote_plus(pattern)
         else:
-            pattern = pattern.replace('/', '').encode('utf-8')
-            if sortby is None:
-                url = '/search/%s/1' % quote_plus(pattern)
-            else:
-                url = '/%s/search/%s/1' % (sortby, quote_plus(pattern))
-            self.location(url)
+            url = '/%s/search/%s/1' % (sortby, quote_plus(pattern))
+        self.location(url)
+
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        self.home()
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

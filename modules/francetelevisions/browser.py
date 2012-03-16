@@ -59,10 +59,13 @@ class PluzzBrowser(BaseBrowser):
         self.location('/replay/1')
 
     def search_videos(self, pattern):
-        if not pattern:
-            self.home()
-        else:
-            self.location(self.buildurl('/recherche.html', q=pattern.encode('utf-8')))
+        self.location(self.buildurl('/recherche.html', q=pattern.encode('utf-8')))
+
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        self.home()
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
@@ -79,11 +82,11 @@ class PluzzBrowser(BaseBrowser):
 
         for vid in root.find('videos'):
             if vid.findtext('statut') == 'ONLINE' and vid.findtext('format') == 'wmv':
-                video.url =  vid.findtext('url')
+                video.url = vid.findtext('url')
 
         date = root.findtext('diffusions/diffusion')
         if date:
-            video.date =  datetime.datetime.strptime(date, '%d/%m/%Y %H:%M')
+            video.date = datetime.datetime.strptime(date, '%d/%m/%Y %H:%M')
 
         video.description = root.findtext('synopsis')
 

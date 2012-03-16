@@ -26,7 +26,8 @@ import re
 import urllib
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
@@ -39,7 +40,7 @@ from .video import YoutubeVideo
 __all__ = ['YoutubeBackend']
 
 
-class YoutubeBackend(BaseBackend, ICapVideo):
+class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'youtube'
     MAINTAINER = 'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
@@ -110,7 +111,7 @@ class YoutubeBackend(BaseBackend, ICapVideo):
         video.set_empty_fields(NotAvailable)
         return video
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()
@@ -144,11 +145,31 @@ class YoutubeBackend(BaseBackend, ICapVideo):
                 if nb_yielded == max_results:
                     return
 
+    def latest_videos(self):
+        return self.search_videos(None, ICapVideo.SEARCH_DATE)
+
     def fill_video(self, video, fields):
         if 'thumbnail' in fields:
             video.thumbnail.data = urllib.urlopen(video.thumbnail.url).read()
         if 'url' in fields:
             self._set_video_url(video)
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest'])
+            if collection.split_path == [u'latest']:
+                for video in self.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest']:
+            collection.title = u'Latest YouTube videos'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {YoutubeVideo: fill_video}

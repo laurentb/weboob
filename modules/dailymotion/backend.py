@@ -20,7 +20,8 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import DailymotionBrowser
@@ -30,7 +31,7 @@ from .video import DailymotionVideo
 __all__ = ['DailymotionBackend']
 
 
-class DailymotionBackend(BaseBackend, ICapVideo):
+class DailymotionBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'dailymotion'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -44,7 +45,7 @@ class DailymotionBackend(BaseBackend, ICapVideo):
             return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rated', 'visited', None]
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
@@ -58,5 +59,22 @@ class DailymotionBackend(BaseBackend, ICapVideo):
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest'])
+            if collection.split_path == [u'latest']:
+                for video in self.browser.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest']:
+            collection.title = u'Latest Dailymotion videos'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {DailymotionVideo: fill_video}

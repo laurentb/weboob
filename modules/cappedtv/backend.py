@@ -10,7 +10,8 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 from .browser import CappedBrowser, CappedVideo
 
@@ -18,7 +19,7 @@ from .browser import CappedBrowser, CappedVideo
 __all__ = ['CappedBackend']
 
 
-class CappedBackend(BaseBackend, ICapVideo):
+class CappedBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'cappedtv'
     MAINTAINER = 'Lord'
     EMAIL = 'lord@lordtoniok.com'
@@ -31,7 +32,7 @@ class CappedBackend(BaseBackend, ICapVideo):
         with self.browser:
             return self.browser.get_video(_id)
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=None, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=None, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 
@@ -44,5 +45,22 @@ class CappedBackend(BaseBackend, ICapVideo):
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest'])
+            if collection.split_path == [u'latest']:
+                for video in self.browser.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest']:
+            collection.title = u'Latest CappedTV videos'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {CappedVideo: fill_video}

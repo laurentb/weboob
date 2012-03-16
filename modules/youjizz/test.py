@@ -19,17 +19,25 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
 
 
 class YoujizzTest(BackendTest):
     BACKEND = 'youjizz'
 
-    def test_youjizz(self):
+    def test_search(self):
         self.assertTrue(len(self.backend.search_videos('anus', nsfw=False)) == 0)
 
-        l = list(self.backend.search_videos('sex', nsfw=True))
+        l = list(self.backend.search_videos('anus', nsfw=True))
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
         self.backend.browser.openurl(v.url)
+
+    def test_latest(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'latest_nsfw']))
+        self.assertTrue(len(l) > 0)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))

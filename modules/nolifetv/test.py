@@ -19,14 +19,29 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
+
 from .pages.video import ForbiddenVideo
+
 
 class NolifeTVTest(BackendTest):
     BACKEND = 'nolifetv'
 
-    def test_nolife(self):
+    def test_search(self):
         l = list(self.backend.search_videos('nolife'))
         self.assertTrue(len(l) > 0)
+        for v in l:
+            try:
+                self.backend.fillobj(v, ('url',))
+            except ForbiddenVideo:
+                continue
+            else:
+                self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+                break
+
+    def test_latest(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        assert len(l) > 0
         for v in l:
             try:
                 self.backend.fillobj(v, ('url',))

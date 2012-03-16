@@ -19,12 +19,13 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.gallery import BaseGallery
 
 
 class EHentaiTest(BackendTest):
     BACKEND = 'ehentai'
 
-    def test_ehentai(self):
+    def test_search(self):
         l = list(self.backend.search_gallery('lol'))
         self.assertTrue(len(l) > 0)
         v = l[0]
@@ -36,3 +37,7 @@ class EHentaiTest(BackendTest):
         self.backend.fillobj(img, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for first image in gallery "%s" not found: %s' % (v.id, img.url))
         self.backend.browser.openurl(img.url)
+
+    def test_latest(self):
+        l = list(self.backend.iter_resources([BaseGallery], [u'latest_nsfw']))
+        assert len(l) > 0

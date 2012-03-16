@@ -42,7 +42,7 @@ class InaBackend(BaseBackend, ICapVideo):
     def get_video(self, _id):
         return self.browser.get_video(_id)
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 

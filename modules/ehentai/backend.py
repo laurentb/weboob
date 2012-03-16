@@ -20,7 +20,8 @@
 from __future__ import with_statement
 
 import re
-from weboob.capabilities.gallery import ICapGallery
+from weboob.capabilities.gallery import ICapGallery, BaseGallery
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import ratelimit
 from weboob.tools.value import Value, ValueBackendPassword
@@ -32,7 +33,7 @@ from .gallery import EHentaiGallery, EHentaiImage
 __all__ = ['EHentaiBackend']
 
 
-class EHentaiBackend(BaseBackend, ICapGallery):
+class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
     NAME = 'ehentai'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -53,7 +54,7 @@ class EHentaiBackend(BaseBackend, ICapGallery):
             password = None
         return self.create_browser(self.config['domain'].get(), username, password)
 
-    def search_gallery(self, pattern=None, sortby=None, max_results=None):
+    def search_gallery(self, pattern, sortby=None, max_results=None):
         with self.browser:
             return self.browser.search_gallery(pattern)
 
@@ -93,6 +94,23 @@ class EHentaiBackend(BaseBackend, ICapGallery):
             if 'data' in fields:
                 ratelimit("ehentai_get", 2)
                 image.data = self.browser.readurl(image.url)
+
+    def iter_resources(self, objs, split_path):
+        if BaseGallery in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest_nsfw'])
+            if collection.split_path == [u'latest_nsfw']:
+                for gallery in self.browser.latest_gallery():
+                    yield gallery
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseGallery in objs and collection.split_path == [u'latest_nsfw']:
+            collection.title = u'Latest E-Hentai galleries (NSFW)'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {
             EHentaiGallery: fill_gallery,

@@ -94,7 +94,7 @@ class Videoob(ReplApplication):
         _id, dest = self.parse_command_args(line, 2, 1)
         video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print >>sys.stderr, 'Video not found: %s' %  _id
+            print >>sys.stderr, 'Video not found: %s' % _id
             return 3
 
         if not video.url:
@@ -108,7 +108,6 @@ class Videoob(ReplApplication):
                     print >>sys.stderr, 'Please install "%s"' % executable
                     return False
             return True
-
 
         if dest is None:
             ext = video.ext
@@ -148,7 +147,7 @@ class Videoob(ReplApplication):
 
         video = self.get_object(_id, 'get_video', ['url'])
         if not video:
-            print >>sys.stderr, 'Video not found: %s' %  _id
+            print >>sys.stderr, 'Video not found: %s' % _id
             return 3
         if not video.url:
             print >>sys.stderr, 'Error: the direct URL is not available.'
@@ -179,7 +178,7 @@ class Videoob(ReplApplication):
 
         video = self.get_object(_id, 'get_video')
         if not video:
-            print >>sys.stderr, 'Video not found: %s' %  _id
+            print >>sys.stderr, 'Video not found: %s' % _id
             return 3
         self.format(video)
         self.flush()
@@ -207,22 +206,17 @@ class Videoob(ReplApplication):
         else:
             print "on" if self.nsfw else "off"
 
-    def do_search(self, pattern=None):
+    def do_search(self, pattern):
         """
-        search [PATTERN]
+        search PATTERN
 
         Search for videos matching a PATTERN.
-
-        If PATTERN is not given, this command will search for the latest videos.
         """
-        if len(self.enabled_backends) == 0:
-            if self.interactive:
-                print >>sys.stderr, 'No backend loaded. Please use the "backends" command.'
-            else:
-                print >>sys.stderr, 'No backend loaded.'
-            return 1
+        if not pattern:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
+            return 2
 
-        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest videos')
+        self.set_formatter_header(u'Search pattern: %s' % pattern)
         self.change_path([u'search'])
         for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):

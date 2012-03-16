@@ -48,7 +48,7 @@ class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(quality=self.config['quality'].get())
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 

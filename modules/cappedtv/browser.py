@@ -67,7 +67,7 @@ class IndexPage(BasePage):
                 seconds = parts[0]
             elif len(parts) == 2:
                 hours = 0
-                minutes , seconds = parts
+                minutes, seconds = parts
             elif len(parts) == 3:
                 hours, minutes, seconds = parts
             else:
@@ -76,7 +76,6 @@ class IndexPage(BasePage):
             video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
 
             yield video
-
 
 
 # parser for the video page
@@ -118,10 +117,12 @@ class CappedBrowser(BaseBrowser):
         assert self.is_on_page(VideoPage), 'Should be on video page.'
         return self.page.get_video(video)
 
-    def search_videos(self,pattern):
-        if not pattern:
-            self.home()
-        else:
-            self.location('/search?s=%s' % (urllib.quote_plus(pattern.encode('utf-8'))))
+    def search_videos(self, pattern):
+        self.location('/search?s=%s' % (urllib.quote_plus(pattern.encode('utf-8'))))
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        self.home()
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

@@ -47,9 +47,11 @@ class YoujizzBrowser(BaseBrowser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
-        if not pattern:
-            self.home()
-        else:
-            self.location('/search/%s-1.html' % (urllib.quote_plus(pattern.encode('utf-8'))))
+        self.location('/search/%s-1.html' % (urllib.quote_plus(pattern.encode('utf-8'))))
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        self.home()
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

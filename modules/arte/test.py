@@ -19,13 +19,22 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
+
 
 class ArteTest(BackendTest):
     BACKEND = 'arte'
 
-    def test_arte(self):
+    def test_search(self):
         l = list(self.backend.search_videos('arte'))
         if len(l) > 0:
             v = l[0]
             self.backend.fillobj(v, ('url',))
             self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+
+    def test_latest(self):
+        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        assert len(l)
+        v = l[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))

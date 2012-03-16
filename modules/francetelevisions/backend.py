@@ -20,7 +20,8 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend
 
 from .browser import PluzzBrowser
@@ -30,7 +31,7 @@ from .video import PluzzVideo
 __all__ = ['PluzzBackend']
 
 
-class PluzzBackend(BaseBackend, ICapVideo):
+class PluzzBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'francetelevisions'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -43,7 +44,7 @@ class PluzzBackend(BaseBackend, ICapVideo):
         with self.browser:
             return self.browser.get_video(_id)
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 
@@ -57,5 +58,22 @@ class PluzzBackend(BaseBackend, ICapVideo):
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest'])
+            if collection.split_path == [u'latest']:
+                for video in self.browser.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest']:
+            collection.title = u'Latest France Télévisions videos'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {PluzzVideo: fill_video}

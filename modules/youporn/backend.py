@@ -20,8 +20,9 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.video import ICapVideo
+from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.tools.backend import BaseBackend
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 
 from .browser import YoupornBrowser
 from .video import YoupornVideo
@@ -30,7 +31,7 @@ from .video import YoupornVideo
 __all__ = ['YoupornBackend']
 
 
-class YoupornBackend(BaseBackend, ICapVideo):
+class YoupornBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'youporn'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -45,7 +46,7 @@ class YoupornBackend(BaseBackend, ICapVideo):
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         if not nsfw:
             return set()
         with self.browser:
@@ -61,5 +62,22 @@ class YoupornBackend(BaseBackend, ICapVideo):
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
         return video
+
+    def iter_resources(self, objs, split_path):
+        if BaseVideo in objs:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                yield self.get_collection(objs, [u'latest_nsfw'])
+            if collection.split_path == [u'latest_nsfw']:
+                for video in self.browser.latest_videos():
+                    yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        if BaseVideo in objs and collection.split_path == [u'latest_nsfw']:
+            collection.title = u'Latest YouPorn videos (NSFW)'
+            return
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {YoupornVideo: fill_video}

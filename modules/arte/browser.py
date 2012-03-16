@@ -36,7 +36,7 @@ class ArteBrowser(BaseBrowser):
              r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage
             }
 
-    SEARCH_LANG = {'fr': 'recherche', 'de':'suche', 'en': 'search'}
+    SEARCH_LANG = {'fr': 'recherche', 'de': 'suche', 'en': 'search'}
 
     def __init__(self, lang, quality, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -52,9 +52,11 @@ class ArteBrowser(BaseBrowser):
         self.location('http://videos.arte.tv/fr/videos/toutesLesVideos')
 
     def search_videos(self, pattern):
-        if not pattern:
-            self.home()
-        else:
-            self.location(self.buildurl('/%s/do_search/videos/%s' % (self.lang, self.SEARCH_LANG[self.lang]), q=pattern.encode('utf-8')))
+        self.location(self.buildurl('/%s/do_search/videos/%s' % (self.lang, self.SEARCH_LANG[self.lang]), q=pattern.encode('utf-8')))
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        self.home()
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()

@@ -25,7 +25,7 @@ from re import search, sub
 
 from weboob.tools.application.repl import ReplApplication
 from weboob.capabilities.base import NotLoaded
-from weboob.capabilities.gallery import ICapGallery
+from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
 from weboob.tools.application.formatters.iformatter import IFormatter
 
 
@@ -60,22 +60,23 @@ class Galleroob(ReplApplication):
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     CAPS = ICapGallery
     EXTRA_FORMATTERS = {'gallery_list': GalleryListFormatter}
-    COMMANDS_FORMATTERS = {'search': 'gallery_list'}
+    COMMANDS_FORMATTERS = {'search': 'gallery_list', 'ls': 'gallery_list'}
+    COLLECTION_OBJECTS = (BaseGallery, BaseImage, )
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
 
-    def do_search(self, pattern=None):
+    def do_search(self, pattern):
         """
         search PATTERN
 
         List galleries matching a PATTERN.
-
-        If PATTERN is not given, the command will list all the galleries
         """
+        if not pattern:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
+            return 2
 
-        self.set_formatter_header(u'Search pattern: %s' %
-            pattern if pattern else u'Latest galleries')
+        self.set_formatter_header(u'Search pattern: %s' % pattern)
         for backend, gallery in self.do('search_gallery',
                 pattern=pattern, max_results=self.options.count):
             self.add_object(gallery)
