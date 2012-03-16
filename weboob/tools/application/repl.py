@@ -854,7 +854,13 @@ class ReplApplication(Cmd, ConsoleApplication):
         ls
 
         List objects in current path.
+        If an argument is given, list the specified path.
         """
+
+        # We have an argument, let's ch to the directory before the ls
+        if len(line.strip()):
+            self.working_path.cd1(line)
+
         self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for obj in self.objects:
@@ -871,6 +877,10 @@ class ReplApplication(Cmd, ConsoleApplication):
                 else:
                     print u'%s~ (%s) (%s)%s' % \
                     (self.BOLD, collection.basename, collection.backend, self.NC)
+
+        # Let's go back to the parent directory
+        if len(line.strip()):
+            self.working_path.home()
 
     def do_cd(self, line):
         """
