@@ -23,6 +23,7 @@ import sys
 from weboob.core import CallErrors
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.capabilities.account import ICapAccount
+from weboob.capabilities.contact import Contact
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
@@ -164,6 +165,46 @@ class MessagesListFormatter(IFormatter):
                 result += self.format_message(backend, m, depth)
         return result
 
+class ProfileFormatter(IFormatter):
+    def flush(self):
+        pass
+
+    def print_node(self, node, level=1):
+        result = u''
+        if node.flags & node.SECTION:
+            result += u'\t' * level + node.label + '\n'
+            for sub in node.value.itervalues():
+                result += self.print_node(sub, level+1)
+        else:
+            if isinstance(node.value, (tuple,list)):
+                value = ', '.join(unicode(v) for v in node.value)
+            else:
+                value = node.value
+            result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
+        return result
+
+    def format_dict(self, item):
+        result = u'Nickname: %s\n' % item['name']
+        if item['status'] & Contact.STATUS_ONLINE:
+            s = 'online'
+        elif item['status'] & Contact.STATUS_OFFLINE:
+            s = 'offline'
+        elif item['status'] & Contact.STATUS_AWAY:
+            s = 'away'
+        else:
+            s = 'unknown'
+        result += u'Status: %s (%s)\n' % (s, item['status_msg'])
+        result += u'Photos:\n'
+        for name, photo in item['photos'].iteritems():
+            result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
+        result += u'Profile:\n'
+        for head in item['profile'].itervalues():
+            result += self.print_node(head)
+        result += u'Description:\n'
+        for s in item['summary'].split('\n'):
+            result += u'\t%s\n' % s
+        return result
+
 
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
@@ -175,12 +216,14 @@ class Boobmsg(ReplApplication):
     EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
                         'msg':     MessageFormatter,
                         'xhtml':     XHtmlFormatter,
+                        'profile' : ProfileFormatter,
                        }
     COMMANDS_FORMATTERS = {'list':      'msglist',
                            'show':      'msg',
                            'export_thread': 'msg',
                            'export_all': 'msg',
                            'ls':      'msglist',
+                           'profile':      'profile',
                           }
 
     def add_application_options(self, group):
@@ -365,3 +408,22 @@ class Boobmsg(ReplApplication):
         else:
             print >>sys.stderr,  'Message not found'
             return 3
+
+    def do_profile(self, id):
+        """
+        profile ID
+
+        Display a profile
+        """
+        _id, backend_name = self.parse_id(id, unique_backend=True)
+
+        found = 0
+        for backend, contact in self.do('get_contact', _id, backends=backend_name):
+            if contact:
+                self.format(contact)
+                found = 1
+
+        if not found:
+            self.logger.error(u'Profile not found')
+        else:
+            self.flush()
