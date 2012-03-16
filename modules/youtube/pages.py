@@ -18,14 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 import urllib
 
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
+from weboob.tools.json import json
 
 
 __all__ = ['LoginPage', 'LoginRedirectPage', 'ForbiddenVideo', 'ForbiddenVideoPage', \

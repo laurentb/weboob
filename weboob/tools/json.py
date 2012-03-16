@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Romain Bignon
+# Copyright(C) 2012 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,21 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+# because we don't want to import this file by "import json"
+from __future__ import absolute_import
 
-from weboob.tools.json import json
-from .iparser import IParser
+__all__ = ['json']
 
-
-__all__ = ['JsonParser']
-
-
-class JsonParser(IParser):
-    """
-    Json parser.
-    """
-
-    def parse(self, data, encoding=None):
-        return json.load(data, encoding=encoding)
-
-    def tostring(self, element):
-        return json.dumps(element)
+try:
+    # try simplejson first because it is faster
+    import simplejson as json
+except ImportError:
+    # Python 2.6+ has a module similar to simplejson
+    import json

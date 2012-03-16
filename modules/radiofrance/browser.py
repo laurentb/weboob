@@ -18,17 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BaseBrowser, BasePage
+from weboob.tools.json import json
 from weboob.capabilities.video import BaseVideo
 from weboob.tools.browser.decorators import id2url
 
 from StringIO import StringIO
 from time import time
 import re
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 try:
     from urlparse import parse_qs

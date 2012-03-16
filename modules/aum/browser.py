@@ -24,12 +24,9 @@ import datetime
 import random
 import urllib
 from htmlentitydefs import codepoint2name
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.json import json
 
 from weboob.capabilities.chat import ChatException, ChatMessage
 from weboob.capabilities.messages import CantSendMessage

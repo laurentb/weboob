@@ -19,14 +19,10 @@
 
 from __future__ import with_statement
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import re
 
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
+from weboob.tools.json import json
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
 

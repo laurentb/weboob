@@ -22,13 +22,8 @@ import urllib
 import datetime
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.json import json as simplejson
 from weboob.capabilities.content import Revision
-
-try:
-    import simplejson
-except ImportError:
-    # Python 2.6+ has a module similar to simplejson
-    import json as simplejson
 
 __all__ = ['MediawikiBrowser']
 
