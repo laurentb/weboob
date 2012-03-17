@@ -32,7 +32,7 @@ except ImportError:
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage
+from .pages import LoginPage, ThreadPage, MessagesPage, ProfilePage
 
 __all__ = ['OkCBrowser']
 
@@ -48,6 +48,7 @@ class OkCBrowser(BaseBrowser):
             ('https://%s/login.*' % DOMAIN, LoginPage),
             ('http://%s/messages' % DOMAIN, ThreadPage),
             ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
+            ('http://%s/profile/.*' % DOMAIN, ProfilePage),
     ))
 
 
@@ -71,7 +72,8 @@ class OkCBrowser(BaseBrowser):
             return func(self, *args, **kwargs)
         return inner
 
-    #def get_consts(self):
+    def get_consts(self):
+        return { 'conts' : 'blah' }
     #    if self.consts is not None:
     #        return self.consts
 
@@ -197,39 +199,10 @@ class OkCBrowser(BaseBrowser):
     #    ids = [s['id'] for s in r['result']['search']]
     #    return set(ids)
 
-    #@url2id
-    #def get_profile(self, id, with_pics=True):
-    #    r = self.api_request('member', 'view', data={'id': id})
-    #    if not 'result' in r:
-    #        print r
-    #    profile = r['result']['member']
-
-
-    #    # Calculate distance in km.
-    #    profile['dist'] = 0.0
-    #    if 'lat' in profile and 'lng' in profile:
-    #        coords = (float(profile['lat']), float(profile['lng']))
-
-    #        R = 6371
-    #        lat1 = math.radians(self.my_coords[0])
-    #        lat2 = math.radians(coords[0])
-    #        lon1 = math.radians(self.my_coords[1])
-    #        lon2 = math.radians(coords[1])
-    #        dLat = lat2 - lat1
-    #        dLong = lon2 - lon1
-    #        a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
-    #        c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    #        profile['dist'] = R * c
-
-    #    if with_pics:
-    #        r = self.api_request('member', 'pictures', data={'id': id})
-    #        profile['pictures'] = []
-    #        for pic in r['result']['pictures']:
-    #            d = {'hidden': False}
-    #            d.update(pic)
-    #            profile['pictures'].append(d)
-
-    #    return profile
+    @check_login
+    def get_profile(self, id, with_pics=True):
+        self.location(self.absurl('/profile/%s' % id))
+        return self.page.get_profile()
 
     #def _get_chat_infos(self):
     #    try:

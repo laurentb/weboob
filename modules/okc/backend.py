@@ -30,14 +30,13 @@ from dateutil.parser import parse as _parse_dt
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 #from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
-#from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
+from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
 from weboob.tools.misc import local2utc
 
-#from .contact import Contact
 from .browser import OkCBrowser
 
 
@@ -63,7 +62,7 @@ def parse_dt(s):
         d = _parse_dt(s)
     return local2utc(d)
 
-class OkCBackend(BaseBackend, ICapMessages):
+class OkCBackend(BaseBackend, ICapMessages, ICapContact):
     #, ICapMessagesPost, ICapContact):
     NAME = 'okc'
     MAINTAINER = 'Roger Philibert'
@@ -132,9 +131,6 @@ class OkCBackend(BaseBackend, ICapMessages):
 
         if not thread.title:
             thread.title = u'Discussion with %s' % mails['member']['pseudo']
-
-        #self.storage.set('sluts', thread.id, 'status', mails['status'])
-        #self.storage.save()
 
         for mail in mails['messages']:
             flags = Message.IS_HTML
@@ -233,18 +229,18 @@ class OkCBackend(BaseBackend, ICapMessages):
 
     # ---- ICapContact methods ---------------------
 
-    #def fill_contact(self, contact, fields):
-    #    if 'profile' in fields:
-    #        contact = self.get_contact(contact)
-    #    if contact and 'photos' in fields:
-    #        for name, photo in contact.photos.iteritems():
-    #            with self.browser:
-    #                if photo.url and not photo.data:
-    #                    data = self.browser.openurl(photo.url).read()
-    #                    contact.set_photo(name, data=data)
-    #                if photo.thumbnail_url and not photo.thumbnail_data:
-    #                    data = self.browser.openurl(photo.thumbnail_url).read()
-    #                    contact.set_photo(name, thumbnail_data=data)
+    def fill_contact(self, contact, fields):
+        if 'profile' in fields:
+            contact = self.get_contact(contact)
+        if contact and 'photos' in fields:
+            for name, photo in contact.photos.iteritems():
+                with self.browser:
+                    if photo.url and not photo.data:
+                        data = self.browser.openurl(photo.url).read()
+                        contact.set_photo(name, data=data)
+                    if photo.thumbnail_url and not photo.thumbnail_data:
+                        data = self.browser.openurl(photo.thumbnail_url).read()
+                        contact.set_photo(name, thumbnail_data=data)
 
     #def fill_photo(self, photo, fields):
     #    with self.browser:
@@ -254,29 +250,37 @@ class OkCBackend(BaseBackend, ICapMessages):
     #            photo.thumbnail_data = self.browser.readurl(photo.thumbnail_url)
     #    return photo
 
-    #def get_contact(self, contact):
-    #    with self.browser:
-    #        if isinstance(contact, Contact):
-    #            _id = contact.id
-    #        elif isinstance(contact, (int,long,basestring)):
-    #            _id = contact
-    #        else:
-    #            raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
+    def get_contact(self, contact):
+        with self.browser:
+            if isinstance(contact, Contact):
+                _id = contact.id
+            elif isinstance(contact, (int,long,basestring)):
+                _id = contact
+            else:
+                raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
 
-    #        profile = self.browser.get_profile(_id)
-    #        if not profile:
-    #            return None
+            profile = self.browser.get_profile(_id)
+            if not profile:
+                return None
 
-    #        _id = profile['id']
+            _id = profile['id']
 
-    #        if isinstance(contact, Contact):
-    #            contact.id = _id
-    #            contact.name = profile['pseudo']
-    #        else:
-    #            contact = Contact(_id, profile['pseudo'], Contact.STATUS_ONLINE)
-    #        contact.url = self.browser.id2url(_id)
-    #        contact.parse_profile(profile, self.browser.get_consts())
-    #        return contact
+            if isinstance(contact, Contact):
+                contact.id = _id
+                contact.name = profile['id']
+            else:
+                contact = Contact(_id, profile['id'], Contact.STATUS_OFFLINE)
+            contact.url = 'http://%s/profile/%s' % (self.browser.DOMAIN, _id)
+            contact.profile = profile['data']
+            contact.summary = profile['summary']
+
+            if contact.profile['details']['last_online'].value == 'Online now!':
+                contact.status = Contact.STATUS_ONLINE
+            else:
+                contact.status = Contact.STATUS_OFFLINE
+            contact.status_msg = contact.profile['details']['last_online'].value
+
+            return contact
 
     #def _get_partial_contact(self, contact):
     #    if contact.get('isBan', contact.get('dead', False)):
@@ -290,7 +294,7 @@ class OkCBackend(BaseBackend, ICapMessages):
     #    else:
     #        s = Contact.STATUS_OFFLINE
 
-    #    c = Contact(contact['id'], contact['pseudo'], s)
+    #    c = Contact(contact['id'], contact['id'], s)
     #    c.url = self.browser.id2url(contact['id'])
     #    if 'birthday' in contact:
     #        birthday = _parse_dt(contact['birthday'])
@@ -306,14 +310,14 @@ class OkCBackend(BaseBackend, ICapMessages):
     #                thumbnail_url=url % {'type': 'thumb0_'})
     #    return c
 
-    #def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
-    #    with self.browser:
-    #        threads = self.browser.get_threads_list(count=100)
+    def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
+        with self.browser:
+            threads = self.browser.get_threads_list(count=100)
 
-    #    for thread in threads:
-    #        c = self._get_partial_contact(thread['member'])
-    #        if c and (c.status & status) and (not ids or c.id in ids):
-    #            yield c
+        for thread in threads:
+            c = self._get_partial_contact(thread['member'])
+            if c and (c.status & status) and (not ids or c.id in ids):
+                yield c
 
     #def send_query(self, id):
     #    if isinstance(id, Contact):
@@ -350,6 +354,6 @@ class OkCBackend(BaseBackend, ICapMessages):
     #    self.storage.save()
 
     OBJECTS = {Thread: fill_thread,
-               #Contact: fill_contact,
+               Contact: fill_contact,
                #ContactPhoto: fill_photo
               }

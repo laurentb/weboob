@@ -19,6 +19,9 @@
 
 
 from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.misc import html2text
+from weboob.capabilities.contact import ProfileNode
 
 class LoginPage(BasePage):
     def login(self, username, password):
@@ -64,3 +67,65 @@ class MessagesPage(BasePage):
             })
 
         return mails
+
+class ProfilePage(BasePage):
+    def get_profile(self):
+        title = self.parser.select(self.document.getroot(), 'title', 1)
+        if title.text == 'OkCupid: Account Not Found':
+            return None
+
+        profile = {}
+        profile['id'] = title.text[len('OkCupid: '):]
+        profile['data'] = OrderedDict()
+
+        profile_p = self.parser.select(self.document.getroot(), "//div[@id='page_content']//p", method='xpath')
+
+        profile['data']['infos'] = ProfileNode('infos', 'Informations', OrderedDict(), flags=ProfileNode.SECTION)
+
+        info = {
+                        'age' : profile_p[1].text.split(' / ')[0],
+                        'sex' : profile_p[1].text.split(' / ')[1],
+                        'orientation' : profile_p[1].text.split(' / ')[2],
+                        'relationship' : profile_p[1].text.split(' / ')[3],
+            }
+
+        for key, val in info.iteritems():
+            profile['data']['infos'].value[key] = ProfileNode(key, key.capitalize(), val)
+
+        div_essays = self.parser.select(self.document.getroot(), "//div[@class='essay']", method='xpath')
+        h3_essays = self.parser.select(self.document.getroot(), "//div[@id='page_content']//h3", method='xpath')
+        essays = dict(zip(h3_essays, div_essays))
+
+        profile['summary'] = div_essays[0].text.strip()
+
+        profile['data']['essays'] = ProfileNode('essays', 'Essays', OrderedDict(), flags=ProfileNode.SECTION)
+
+        for label, val in essays.iteritems():
+            label = unicode(label.text).strip()
+            val = unicode(val.text).strip()
+            key = label.replace(' ', '_')
+            profile['data']['essays'].value[key] = ProfileNode(key, label, val)
+        #profile['data']['look_for'].value['orientation'] = ProfileNode('orientation', 'Orientation', div_essays[9].getchildren()[0].getchildren()[0].text.strip())
+        #profile['data']['look_for'].value['location'] = ProfileNode('location', 'Location', div_essays[9].getchildren()[0].getchildren()[2].text.strip())
+        #profile['data']['look_for'].value['relationship'] = ProfileNode('relationship', 'Relationship', div_essays[9].getchildren()[0].getchildren()[3].text.strip())
+        #profile['data']['look_for'].value['what_for'] = ProfileNode('what_for', 'What for', div_essays[9].getchildren()[0].getchildren()[4].text.split('\n')[1].strip().split(', '))
+
+        #age = div_essays[9].getchildren()[0].getchildren()[1].text[5:].strip().split(u'–')
+        #profile['data']['look_for'].value['age_min'] = ProfileNode('age_min', 'Age min', int(age[0]))
+        #profile['data']['look_for'].value['age_max'] = ProfileNode('age_max', 'Age max', int(age[1]))
+
+        #div_essays = div_essays[1:-1]
+        #h3_essays = h3_essays[1:-1]
+
+        #for i, title in enumerate(h3_essays):
+        #    profile['data']['essays'].value['essay_%i' % i] = ProfileNode('essay_%i' % i, title.text, div_essays[i].text.strip())
+
+        details_div = self.parser.select(self.document.getroot(), "//div[@id='details']//li", method='xpath')
+        profile['data']['details'] = ProfileNode('details', 'Details', OrderedDict(), flags=ProfileNode.SECTION)
+        for elem in details_div:
+            label = elem.getchildren()[0].text.strip()
+            key = label.lower().replace(' ', '_')
+            val = elem.getchildren()[1].text.strip()
+            profile['data']['details'].value[key] = ProfileNode(key, label, val)
+
+        return profile
