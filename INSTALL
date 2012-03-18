@@ -12,7 +12,7 @@ The install mode copies files to the Python system-wide packages directory
 (for example /usr/lib/python2.5/site-packages for Python 2.5,
 or /usr/local/lib/python2.6/dist-packages for Python 2.6)
 
-# ./setup.py install
+# python setup.py install
 
 Scripts are copied to /usr/bin.
 
@@ -32,9 +32,16 @@ The development mode doesn't copy files, but creates an egg-link
 in the Python system-wide packages directory which points to the development
 directory. It is useful for development when files often change.
 
-# ./setup.py develop
+# python setup.py develop
 
 Scripts are copied to /usr/bin too.
 
 To uninstall, remove the egg-link from the Python system-wide packages directory
 and remove the weboob_dev line in easy-install.pth.
+
+It is possible to install in a specific directory, and it does not need root privileges. For instance:
+
+$ mkdir ~/mydir
+$ PYTHONPATH=~/mydir python setup.py develop --install-dir ~/mydir
+
+That way, the only altered directory is the one you chose earlier.
