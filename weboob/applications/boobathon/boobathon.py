@@ -462,9 +462,9 @@ class Boobathon(ReplApplication):
 
         for member in self.event.members.itervalues():
             if member.name == name:
-                self.winner = member
+                self.event.winner = member
                 if self.save_event('Close event'):
-                    print 'Event is now closed. Winner is %s!' % self.winner.name
+                    print 'Event is now closed. Winner is %s!' % self.event.winner.name
                 return
 
         print >>sys.stderr, '"%s" not found' % name
