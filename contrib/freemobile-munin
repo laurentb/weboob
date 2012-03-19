@@ -3,7 +3,7 @@
 =head1 NAME
 freemobile - A plugin to monitor a freemobile subscription
 
-=head1 Installation 
+=head1 Installation
 
 Create a link to this script in /etc/munin/plugins/
 
@@ -41,7 +41,8 @@ use encoding 'iso-8859-1';    # Munin doesn't like utf-8 :-(
 use Encode;
 
 my @monitored = split / /, $ENV{'freemonitored'} || 'voice sms';
-my $cachefile = $ENV{'HOME'} . '/.config/weboob/munin/freemobile-munin';
+my $cachedir  = $ENV{'HOME'} . '/.config/weboob/munin/';
+my $cachefile = "$cachedir/freemobile-munin";
 
 my $refreshtime = $ENV{'cache_expire'} || 10_800;
 my $weboob = '/usr/bin/env weboob-cli ICapBill get_details coin -f table';
@@ -171,6 +172,11 @@ sub fetch {
     }
     close $cache_fh or croak "unable to close: $ERRNO";
     return 0;
+}
+
+# Create the munin cache dir if missing
+if ( !-d $cachedir ) {
+    mkdir $cachedir;
 }
 
 if ( $ARGV[0] and $ARGV[0] eq 'config' ) {
