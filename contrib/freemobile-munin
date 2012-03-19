@@ -51,7 +51,7 @@ my $cache_fh;
 my %label = (
     'voice'        => 'Voix en France (min)',
     'voicetoint'   => 'Voix vers l\'international (min)',
-    'specialvoice' => 'Numéro spéciaux (min) ',
+    'specialvoice' => 'Numéros spéciaux (min)',
     'sms'          => 'SMS en France',
     'mms'          => 'MMS en France',
     'data'         => 'Data en France',
