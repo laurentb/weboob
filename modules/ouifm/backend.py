@@ -22,6 +22,7 @@ from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
+from weboob.tools.misc import to_unicode
 
 
 __all__ = ['OuiFMBackend']
@@ -65,12 +66,10 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
             suffix = '_%s' % radio
 
         last = document['last%s' % suffix][0]
-        artist = last['artiste%s' % suffix]
-        title = last['titre%s' % suffix]
-        if artist and title:
-            return last['artiste%s' % suffix].strip(), last['titre%s' % suffix].strip()
-        else:
-            return artist, title
+
+        artist = to_unicode(last.get('artiste%s' % suffix, '').strip())
+        title = to_unicode(last.get('titre%s' % suffix, '').strip())
+        return artist, title
 
     def get_radio(self, radio):
         if not isinstance(radio, Radio):
