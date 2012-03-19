@@ -21,7 +21,10 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
+from datetime import datetime, timedelta
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
+from weboob.capabilities.messages import ICapMessages, Thread
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -31,7 +34,7 @@ from .browser import BNPorc
 __all__ = ['BNPorcBackend']
 
 
-class BNPorcBackend(BaseBackend, ICapBank):
+class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     NAME = 'bnporc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -44,6 +47,15 @@ class BNPorcBackend(BaseBackend, ICapBank):
                                  label='Password to set when the allowed uses are exhausted (6 digits)',
                                  regexp='^(\d{6}|)$'))
     BROWSER = BNPorc
+    STORAGE = {'seen': []}
+
+    # Store the messages *list* for this duration
+    CACHE_THREADS = timedelta(seconds=3 * 60 * 60)
+
+    def __init__(self, *args, **kwargs):
+        BaseBackend.__init__(self, *args, **kwargs)
+        self._threads = None
+        self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
         if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
@@ -102,3 +114,48 @@ class BNPorcBackend(BaseBackend, ICapBank):
 
         with self.browser:
             return self.browser.transfer(account, to, amount, reason)
+
+    def iter_threads(self, cache=False):
+        """
+        If cache is False, always fetch the threads from the website.
+        """
+        old = self._threads_age < datetime.utcnow() - self.CACHE_THREADS
+        threads = self._threads
+        if not cache or threads is None or old:
+            with self.browser:
+                threads = list(self.browser.iter_threads())
+            # the website is stupid and does not have the messages in the proper order
+            threads = sorted(threads, key=lambda t: t.date, reverse=True)
+            self._threads = threads
+        for thread in threads:
+            if thread.id not in self.storage.get('seen', default=[]):
+                thread.root.flags |= thread.root.IS_UNREAD
+            yield thread
+
+    def fill_thread(self, thread, fields=None):
+        if fields is None or 'root' in fields:
+            return self.get_thread(thread)
+
+    def get_thread(self, _id):
+        if isinstance(_id, Thread):
+            thread = _id
+            _id = thread.id
+        else:
+            thread = Thread(_id)
+        with self.browser:
+            thread = self.browser.get_thread(thread)
+        return thread
+
+    def iter_unread_messages(self, thread=None):
+        threads = list(self.iter_threads(cache=True))
+        for thread in threads:
+            thread = self.fillobj(thread) or thread
+            for m in thread.iter_all_messages():
+                if m.flags & m.IS_UNREAD:
+                    yield m
+
+    def set_message_read(self, message):
+        self.storage.get('seen', default=[]).append(message.thread.id)
+        self.storage.save()
+
+    OBJECTS = {Thread: fill_thread}

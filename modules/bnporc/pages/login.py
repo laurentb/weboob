@@ -105,7 +105,7 @@ class ConfirmPage(BasePage):
         if m:
             return m.group(1)
 
-class MessagePage(BasePage):
+class InfoMessagePage(BasePage):
     def on_loaded(self):
         pass
 

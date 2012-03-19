@@ -26,7 +26,8 @@ from weboob.capabilities.bank import TransferError, Transfer
 from .pages import AccountsList, AccountHistory, ChangePasswordPage, \
                    AccountComing, AccountPrelevement, TransferPage, \
                    TransferConfirmPage, TransferCompletePage, \
-                   LoginPage, ConfirmPage, MessagePage
+                   LoginPage, ConfirmPage, InfoMessagePage, \
+                   MessagePage, MessagesPage
 from .errors import PasswordExpired
 
 
@@ -36,7 +37,7 @@ __all__ = ['BNPorc']
 class BNPorc(BaseBrowser):
     DOMAIN = 'www.secure.bnpparibas.net'
     PROTOCOL = 'https'
-    ENCODING = None # refer to the HTML encoding
+    ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*pageId=unedescomptes.*':                    AccountsList,
              '.*pageId=releveoperations.*':                 AccountHistory,
              '.*Action=SAF_CHM.*':                          ChangePasswordPage,
@@ -48,7 +49,9 @@ class BNPorc(BaseBrowser):
              '.*type=homeconnex.*':                         LoginPage,
              '.*layout=HomeConnexion.*':                    ConfirmPage,
              '.*SAF_CHM_VALID.*':                           ConfirmPage,
-             '.*Action=DSP_MSG.*':                          MessagePage,
+             '.*Action=DSP_MSG.*':                          InfoMessagePage,
+             '.*MessagesRecus.*':                           MessagesPage,
+             '.*BmmFicheLireMessage.*':                     MessagePage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -68,7 +71,7 @@ class BNPorc(BaseBrowser):
         assert self.password.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex')
+            self.home()
 
         self.page.login(self.username, self.password)
         self.location('/NSFR?Action=DSP_VGLOBALE', no_login=True)
@@ -93,7 +96,8 @@ class BNPorc(BaseBrowser):
         self.page.change_password(self.password, new_password)
 
         if not self.is_on_page(ConfirmPage) or self.page.get_error() is not None:
-            self.logger.error('Oops, unable to change password (%s)' % (self.page.get_error() if self.is_on_page(ConfirmPage) else 'unknown'))
+            self.logger.error('Oops, unable to change password (%s)'
+                % (self.page.get_error() if self.is_on_page(ConfirmPage) else 'unknown'))
             return
 
         self.password, self.rotating_password = (new_password, self.password)
@@ -158,7 +162,6 @@ class BNPorc(BaseBrowser):
     #    self.location('/banque/portail/particulier/FicheA#pageId=mouvementsavenir', urllib.urlencode(data))
     #    return self.page.get_operations()
 
-
     def iter_history(self, id):
         self.location('/banque/portail/particulier/FicheA?contractId=%d&pageId=releveoperations&_eventId=changeOperationsPerPage&operationsPerPage=200' % int(id))
         return self.page.iter_operations()
@@ -195,3 +198,38 @@ class BNPorc(BaseBrowser):
         transfer.recipient = accounts[to_id].label
         transfer.date = datetime.now()
         return transfer
+
+    def messages_page(self):
+        if not self.is_on_page(MessagesPage):
+            if not self.is_on_page(AccountsList):
+                self.location('/NSFR?Action=DSP_VGLOBALE')
+            self.location(self.page.get_messages_link())
+        assert self.is_on_page(MessagesPage)
+
+    def iter_threads(self):
+        self.messages_page()
+        for thread in self.page.iter_threads():
+            yield thread
+
+    def get_thread(self, thread):
+        self.messages_page()
+        if not hasattr(thread, '_link_id') or not thread._link_id:
+            for t in self.iter_threads():
+                if t.id == thread.id:
+                    thread = t
+                    break
+        # mimic validerFormulaire() javascript
+        # yes, it makes no sense
+        page_id, unread = thread._link_id
+        self.select_form('listerMessages')
+        self.form.set_all_readonly(False)
+        self['identifiant'] = page_id
+        if len(thread.id):
+            self['idMessage'] = thread.id
+        # the JS does this, but it makes us unable to read unread messages
+        #if unread:
+        #    self['newMsg'] = thread.id
+        self.submit()
+        assert self.is_on_page(MessagePage)
+        thread.root.content = self.page.get_content()
+        return thread

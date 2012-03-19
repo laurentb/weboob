@@ -19,13 +19,20 @@
 
 
 from weboob.tools.test import BackendTest
+from random import choice
+
 
 class BNPorcTest(BackendTest):
     BACKEND = 'bnporc'
 
-    def test_bnporc(self):
+    def test_bank(self):
         l = list(self.backend.iter_accounts())
         if len(l) > 0:
             a = l[0]
             list(self.backend.iter_operations(a))
             list(self.backend.iter_history(a))
+
+    def test_msgs(self):
+        threads = list(self.backend.iter_threads())
+        thread = self.backend.fillobj(choice(threads), ['root'])
+        assert len(thread.root.content)

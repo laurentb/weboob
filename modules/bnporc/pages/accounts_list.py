@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 from ..errors import PasswordExpired
 
@@ -86,3 +86,12 @@ class AccountsList(BasePage):
 
     def get_execution_id(self):
         return self.document.xpath('//input[@name="execution"]')[0].attrib['value']
+
+    def get_messages_link(self):
+        """
+        Get the link to the messages page, which seems to have an identifier in it.
+        """
+        for link in self.parser.select(self.document.getroot(), 'div#pantalon div.interieur a'):
+            if 'MessagesRecus' in link.attrib.get('href', ''):
+                return link.attrib['href']
+        raise BrokenPageError('Unable to find the link to the messages page')
