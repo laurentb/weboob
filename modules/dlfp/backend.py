@@ -124,7 +124,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             thread.date = content.date
 
         thread.root = Message(thread=thread,
-                              id=0, # root message
+                              id='0',  # root message
                               title=content.title,
                               sender=content.author or u'',
                               receivers=None,
