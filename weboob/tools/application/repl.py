@@ -949,7 +949,8 @@ class ReplApplication(Cmd, ConsoleApplication):
         obj_collections = [obj for obj in self.objects if isinstance(obj, BaseCollection)]
         return obj_collections + self.collections
 
-    def complete_cd(self, text, line, begidx, endidx):
+    # for cd & ls
+    def complete_path(self, text, line, begidx, endidx):
         directories = set()
         if len(self.working_path.get()):
             directories.add('..')
@@ -972,6 +973,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             directories.add(collection.basename.encode(sys.stdout.encoding or locale.getpreferredencoding()))
 
         return [s[offs:] for s in directories if s.startswith(mline)]
+
+    def complete_ls(self, text, line, begidx, endidx):
+        return self.complete_path(text, line, begidx, endidx)
+
+    def complete_cd(self, text, line, begidx, endidx):
+        return self.complete_path(text, line, begidx, endidx)
 
     # -- formatting related methods -------------
     def set_formatter(self, name):
