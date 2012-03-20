@@ -133,8 +133,10 @@ class DLFP(BaseBrowser):
 
     def get_hash(self, url):
         self.location(url)
-        myhash = hashlib.md5(lxml.etree.tostring(self.page.document)).hexdigest()
-        return myhash
+        if self.page.document.xpath('//entry'):
+            return hashlib.md5(lxml.etree.tostring(self.page.document)).hexdigest()
+        else:
+            return None
 
     def get_content(self, _id):
         url, _id = self.parse_id(_id)
