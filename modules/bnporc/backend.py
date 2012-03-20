@@ -127,9 +127,12 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             # the website is stupid and does not have the messages in the proper order
             threads = sorted(threads, key=lambda t: t.date, reverse=True)
             self._threads = threads
+        seen = self.storage.get('seen', default=[])
         for thread in threads:
-            if thread.id not in self.storage.get('seen', default=[]):
+            if thread.id not in seen:
                 thread.root.flags |= thread.root.IS_UNREAD
+            else:
+                thread.root.flags &= ~thread.root.IS_UNREAD
             yield thread
 
     def fill_thread(self, thread, fields=None):
