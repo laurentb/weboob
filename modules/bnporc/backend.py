@@ -152,10 +152,9 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     def iter_unread_messages(self, thread=None):
         threads = list(self.iter_threads(cache=True))
         for thread in threads:
-            thread = self.fillobj(thread) or thread
-            for m in thread.iter_all_messages():
-                if m.flags & m.IS_UNREAD:
-                    yield m
+            if thread.root.flags & thread.root.IS_UNREAD:
+                thread = self.fillobj(thread) or thread
+                yield thread.root
 
     def set_message_read(self, message):
         self.storage.get('seen', default=[]).append(message.thread.id)
