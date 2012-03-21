@@ -32,7 +32,7 @@ except ImportError:
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage, ProfilePage
+from .pages import LoginPage, ThreadPage, MessagesPage, ProfilePage, PhotosPage
 
 __all__ = ['OkCBrowser']
 
@@ -48,7 +48,8 @@ class OkCBrowser(BaseBrowser):
             ('https://%s/login.*' % DOMAIN, LoginPage),
             ('http://%s/messages' % DOMAIN, ThreadPage),
             ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
-            ('http://%s/profile/.*' % DOMAIN, ProfilePage),
+            ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
+            ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
     ))
 
 
@@ -200,9 +201,15 @@ class OkCBrowser(BaseBrowser):
     #    return set(ids)
 
     @check_login
-    def get_profile(self, id, with_pics=True):
+    def get_profile(self, id):
         self.location(self.absurl('/profile/%s' % id))
-        return self.page.get_profile()
+        profile = self.page.get_profile()
+        return profile
+
+    @check_login
+    def get_photos(self, id):
+        self.location(self.absurl('/profile/%s/photos' % id))
+        return self.page.get_photos()
 
     #def _get_chat_infos(self):
     #    try:

@@ -129,3 +129,8 @@ class ProfilePage(BasePage):
             profile['data']['details'].value[key] = ProfileNode(key, label, val)
 
         return profile
+
+class PhotosPage(BasePage):
+    def get_photos(self):
+        imgs = self.parser.select(self.document.getroot(), "//div[@class='pic clearfix']//img", method='xpath')
+        return [img.get('src') for img in imgs]

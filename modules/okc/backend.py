@@ -242,13 +242,13 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact):
                         data = self.browser.openurl(photo.thumbnail_url).read()
                         contact.set_photo(name, thumbnail_data=data)
 
-    #def fill_photo(self, photo, fields):
-    #    with self.browser:
-    #        if 'data' in fields and photo.url and not photo.data:
-    #            photo.data = self.browser.readurl(photo.url)
-    #        if 'thumbnail_data' in fields and photo.thumbnail_url and not photo.thumbnail_data:
-    #            photo.thumbnail_data = self.browser.readurl(photo.thumbnail_url)
-    #    return photo
+    def fill_photo(self, photo, fields):
+        with self.browser:
+            if 'data' in fields and photo.url and not photo.data:
+                photo.data = self.browser.readurl(photo.url)
+            if 'thumbnail_data' in fields and photo.thumbnail_url and not photo.thumbnail_data:
+                photo.thumbnail_data = self.browser.readurl(photo.thumbnail_url)
+        return photo
 
     def get_contact(self, contact):
         with self.browser:
@@ -280,6 +280,8 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact):
                 contact.status = Contact.STATUS_OFFLINE
             contact.status_msg = contact.profile['details']['last_online'].value
 
+            for no, photo in enumerate(self.browser.get_photos(_id)):
+                contact.set_photo('image_%i' % no, url=photo, thumbnail_url=photo)
             return contact
 
     #def _get_partial_contact(self, contact):
@@ -355,5 +357,5 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact):
 
     OBJECTS = {Thread: fill_thread,
                Contact: fill_contact,
-               #ContactPhoto: fill_photo
+               ContactPhoto: fill_photo
               }
