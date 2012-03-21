@@ -21,6 +21,7 @@
 from weboob.tools.browser import BasePage
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.base import NotLoaded
+from weboob.tools.capabilities.messages.genericArticle import try_drop_tree
 
 import re
 from datetime import datetime
@@ -72,4 +73,5 @@ class MessagePage(BasePage):
         content = self.parser.select(self.document.getroot(),
                 'div.txtMessage div.contenu', 1)
         content = make_links_absolute(content, self.url)
+        try_drop_tree(self.parser, content, 'script')
         return self.parser.tostring(content)
