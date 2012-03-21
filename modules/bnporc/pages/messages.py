@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.base import NotLoaded
 from weboob.tools.capabilities.messages.genericArticle import try_drop_tree
@@ -70,8 +70,13 @@ class MessagePage(BasePage):
         This page has a date, but it is less precise than the main list page,
         so we only use it for the message content.
         """
-        content = self.parser.select(self.document.getroot(),
-                'div.txtMessage div.contenu', 1)
+        try:
+            content = self.parser.select(self.document.getroot(),
+                    'div.txtMessage div.contenu', 1)
+        except BrokenPageError:
+            # This happens with some old messages (2007)
+            content = self.parser.select(self.document.getroot(), 'div.txtMessage', 1)
+
         content = make_links_absolute(content, self.url)
         try_drop_tree(self.parser, content, 'script')
         return self.parser.tostring(content)
