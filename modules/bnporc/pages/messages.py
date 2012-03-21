@@ -25,6 +25,8 @@ from weboob.capabilities.base import NotLoaded
 import re
 from datetime import datetime
 
+from lxml.html import make_links_absolute
+
 __all__ = ['MessagesPage', 'MessagePage']
 
 
@@ -69,4 +71,5 @@ class MessagePage(BasePage):
         """
         content = self.parser.select(self.document.getroot(),
                 'div.txtMessage div.contenu', 1)
+        content = make_links_absolute(content, self.url)
         return self.parser.tostring(content)
