@@ -1,32 +1,39 @@
 #!/usr/bin/env perl
 # -*- perl -*-
 =head1 NAME
+
 freemobile - A plugin to monitor a freemobile subscription
 
-=head1 Installation
+=head1 INSTALLATION
 
-Create a link to this script in /etc/munin/plugins/
+Create a link to this script in /etc/munin/plugins/ :
+$ ln -s /path/to/freemobile-munin /etc/munin/plugins/freemobile
 
-I<You have to manually create the folder:>
- F<$HOME/.config/weboob/munin/>
 
 =head1 CONFIGURATION
 
-You need to configure the user and the home PATH like that:
+You need to configure the plugin like that:
 
     [freemobile]
-    env.HOME /home/florent
     user florent
-    group florent
+    env.HOME /home/florent
+    env.freemonitored voice sms mms data specialvoice
+    env.cache_expire 3600
+    timeout 30
 
-You can configure the list of monitored data with the line:
-C<env.freemonitored voice sms mms data>
+C<user> I<required>: user with freemobile backend configured
 
-Others monitored options: voicetoint voiceint smsint mmsint dataint
-                          specialvoice
+C<env.HOME> I<required>: path to user home
 
-The cache timeout is 3 hours by default. You can change this value
-with C<env.cache_expire 3600> (seconds).
+C<env.freemonitored> (optional): default only 'voice sms'
+The full list of monitored options is : 
+ * voice sms mms data specialvoice voicetoint voiceint smsint mmsint dataint 
+
+C<env.cache_expire 3600> (optional): cache interval in second, or time 
+between two connection to the website. The cache interval is 3 hours by default.
+
+C<timeout 30> (optional): Munin internal option. The plugin can be slow, 
+30s is recommended. 
 
 =head1 LICENSE
 
