@@ -253,6 +253,14 @@ class Monboob(ReplApplication):
         self.weboob.repeat(self.config.get('interval'), self.process)
         self.weboob.loop()
 
+    def do_once(self, line):
+        """
+        once
+
+        Send mails only once, then exit.
+        """
+        return self.process()
+
     def process(self):
         try:
             for backend, message in self.weboob.do('iter_unread_messages'):
