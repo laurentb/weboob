@@ -202,7 +202,7 @@ class AccountsList(CragrBasePage):
         matches = re.search('([012]?[0-9]|3[01])\s*/\s*(0?[1-9]|1[012])', string)
         if matches is None:
             return self.fallback_date()
-        return self.date_from_day_month(int(matches[1]), int(matches[2]))
+        return self.date_from_day_month(int(matches.group(1)), int(matches.group(2)))
 
     def date_from_day_month(self, day, month):
         today = date.today()
