@@ -148,13 +148,15 @@ class Cragr(BaseBrowser):
         # an offset, in order to ignore all already-fetched operations.
         # This especially occurs on CA Centre.
         use_expand_url = bool(self.page.expand_history_page_url())
-        while (history_url):
+        while True:
             # we skip "operations_count" operations on each page if we are in the case described above
             operations_offset = operations_count if use_expand_url else 0
             for page_operation in self.page.get_history(operations_count, operations_offset):
                 operations_count += 1
                 yield page_operation
             history_url = self.page.expand_history_page_url() if use_expand_url else self.page.next_page_url()
+            if not history_url:
+                break
             self.logger.debug('going on: %s' % history_url)
             self.location('https://%s%s' % (self.DOMAIN, history_url))
 
