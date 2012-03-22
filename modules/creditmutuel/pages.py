@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2012 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -19,12 +19,10 @@
 
 
 import re
-from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account
-from weboob.capabilities.bank import Transaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
@@ -53,7 +51,7 @@ class AccountsPage(BasePage):
             first_td = tr.getchildren()[0]
             if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
                 account = Account()
-                account.label = u"%s"%first_td.find('a').text.strip()
+                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789')
                 account._link_id = first_td.find('a').get('href', '')
                 if account._link_id.startswith('POR_SyntheseLst'):
                     continue
@@ -81,19 +79,20 @@ class AccountsPage(BasePage):
         """ TODO pouvoir passer à la page des comptes suivante """
         return 0
 
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
+                                                          FrenchTransaction.TYPE_CARD),
+                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+'),
+                                                          FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
+                (re.compile('^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
+               ]
+
+
 class OperationsPage(BasePage):
-    LABEL_PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), Transaction.TYPE_TRANSFER,   '%(text)s'),
-                      (re.compile('^PRLV (?P<text>.*)'),        Transaction.TYPE_ORDER,      '%(text)s'),
-                      (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB (?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
-                                                                Transaction.TYPE_CARD,       '%(mm)s/%(dd)s: %(text)s'),
-                      (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+'),
-                                                                Transaction.TYPE_WITHDRAWAL, '%(mm)s/%(dd)s: %(text)s'),
-                      (re.compile('^CHEQUE$'),                  Transaction.TYPE_CHECK,      'CHEQUE'),
-                      (re.compile('^COTIS\.? (?P<text>.*)'),    Transaction.TYPE_BANK,       '%(text)s'),
-                      (re.compile('^REMISE (?P<text>.*)'),      Transaction.TYPE_DEPOSIT,    '%(text)s'),
-                     ]
-
-
     def get_history(self):
         index = 0
         for tr in self.document.getiterator('tr'):
@@ -106,9 +105,6 @@ class OperationsPage(BasePage):
                tds[0].attrib.get('class', '').endswith('_c1 c _c1'):
                 operation = Transaction(index)
                 index += 1
-
-                d = tds[0].text.strip().split('/')
-                operation.date = date(*reversed([int(x) for x in d]))
 
                 # Find different parts of label
                 parts = []
@@ -124,15 +120,8 @@ class OperationsPage(BasePage):
                 if parts[0].startswith('PAIEMENT CB'):
                     parts.reverse()
 
-                operation.raw = to_unicode(re.sub(u'[ ]+', u' ', u' '.join(parts).replace(u'\n', u' ')))
-
-                # Categorization
-                for pattern, _type, _label in self.LABEL_PATTERNS:
-                    mm = pattern.match(operation.raw)
-                    if mm:
-                        operation.type = _type
-                        operation.label = to_unicode(_label % mm.groupdict()).strip()
-                        break
+                operation.parse(date=tds[0].text,
+                                raw=u' '.join(parts))
 
                 if tds[-1].text is not None and len(tds[-1].text) > 2:
                     s = tds[-1].text.strip()

@@ -19,54 +19,31 @@
 
 
 import re
-from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['AccountHistory', 'AccountComing']
 
 
-class TransactionsBasePage(BasePage):
-    LABEL_PATTERNS = [(re.compile(u'^CHEQUEN°(?P<no>.*)'),
-                                       Transaction.TYPE_CHECK, u'N°%(no)s'),
-                      (re.compile('^FACTURE CARTE DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
-                                       Transaction.TYPE_CARD, u'20%(yy)s-%(mm)s-%(dd)s: %(text)s'),
-                      (re.compile('^(PRELEVEMENT|TELEREGLEMENT|TIP) (?P<text>.*)'),
-                                       Transaction.TYPE_ORDER, '%(text)s'),
-                      (re.compile('^ECHEANCEPRET(?P<text>.*)'),
-                                       Transaction.TYPE_LOAN_PAYMENT, u'n°%(text)s'),
-                      (re.compile('^RETRAIT DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
-                                       Transaction.TYPE_WITHDRAWAL, u'20%(yy)s-%(mm)s-%(dd)s %(HH)s:%(MM)s: %(text)s'),
-                      (re.compile('^VIR(EMEN)?T (?P<text>.*)'),
-                                       Transaction.TYPE_TRANSFER, u'%(text)s'),
-                      (re.compile('^REMBOURST (?P<text>.*)'),
-                                       Transaction.TYPE_PAYBACK, '%(text)s'),
-                      (re.compile('^COMMISSIONS (?P<text>.*)'),
-                                       Transaction.TYPE_BANK, '%(text)s'),
-                      (re.compile('^(?P<text>REMUNERATION.*)'),
-                                       Transaction.TYPE_BANK, '%(text)s'),
-                      (re.compile('^REMISE CHEQUES(?P<text>.*)'),
-                                       Transaction.TYPE_DEPOSIT, '%(text)s'),
-                     ]
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^CHEQUE(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^FACTURE CARTE DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(PRELEVEMENT|TELEREGLEMENT|TIP) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^ECHEANCEPRET(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^RETRAIT DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^VIR(EMEN)?T? (?P<text>.*)'),  FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^REMBOURST (?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^COMMISSIONS (?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>REMUNERATION.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE CHEQUES(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
-    def parse_text(self, op):
-        op.category = NotAvailable
-        if '  ' in op.raw:
-            op.category, useless, op.label = [part.strip() for part in op.label.partition('  ')]
-        else:
-            op.label = op.raw
-
-        for pattern, _type, _label in self.LABEL_PATTERNS:
-            m = pattern.match(op.raw)
-            if m:
-                op.type = _type
-                op.label = (_label % m.groupdict()).strip()
-                return
-
-class AccountHistory(TransactionsBasePage):
+class AccountHistory(BasePage):
     def iter_operations(self):
         for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):
             if len(tr.xpath('td[@class="debit"]')) == 0:
@@ -74,21 +51,17 @@ class AccountHistory(TransactionsBasePage):
 
             id = tr.find('td').find('input').attrib['value']
             op = Transaction(id)
-            op.raw = tr.findall('td')[2].text.replace(u'\xa0', u'').strip()
-            op.date = date(*reversed([int(x) for x in tr.findall('td')[1].text.split('/')]))
+            op.parse(date=tr.findall('td')[1].text,
+                     raw=tr.findall('td')[2].text.replace(u'\xa0', u''))
 
-            self.parse_text(op)
+            debit = tr.xpath('.//td[@class="debit"]')[0].text
+            credit = tr.xpath('.//td[@class="credit"]')[0].text
 
-            debit = tr.xpath('.//td[@class="debit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
-            credit = tr.xpath('.//td[@class="credit"]')[0].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
-            if len(debit) > 0:
-                op.amount = - float(debit)
-            else:
-                op.amount = float(credit)
+            op.set_amount(credit, debit)
 
             yield op
 
-class AccountComing(TransactionsBasePage):
+class AccountComing(BasePage):
     def iter_operations(self):
         i = 0
         for tr in self.document.xpath('//table[@id="tableauOperations"]//tr'):
@@ -96,20 +69,16 @@ class AccountComing(TransactionsBasePage):
                 tds = tr.findall('td')
                 if len(tds) != 3:
                     continue
-                d = tr.attrib['dateop']
-                d = date(int(d[4:8]), int(d[2:4]), int(d[0:2]))
+
                 text = tds[1].text or u''
                 text = text.replace(u'\xa0', u'')
                 for child in tds[1].getchildren():
                     if child.text: text += child.text
                     if child.tail: text += child.tail
 
-                amount = tds[2].text.replace('.','').replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
-
                 i += 1
                 operation = Transaction(i)
-                operation.date = d
-                operation.raw = text.strip()
-                self.parse_text(operation)
-                operation.amount = float(amount)
+                operation.parse(date=tr.attrib['dateop'],
+                                raw=text)
+                operation.set_amount(tds[2].text)
                 yield operation

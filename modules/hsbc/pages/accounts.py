@@ -19,11 +19,11 @@
 
 
 import re
-from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Account, Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Account
+from weboob.capabilities import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['AccountsListPage']
@@ -54,18 +54,19 @@ class AccountsListPage(BasePage):
 
             yield account
 
-class HistoryPage(BasePage):
-    LABEL_PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), Transaction.TYPE_TRANSFER,   '%(text)s'),
-                      (re.compile('^PRLV (?P<text>.*)'),        Transaction.TYPE_ORDER,      '%(text)s'),
-                      (re.compile('^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
-                                                                Transaction.TYPE_CARD,       '%(mm)s/%(dd)s: %(text)s'),
-                      (re.compile('^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
-                                                                Transaction.TYPE_WITHDRAWAL, '%(mm)s/%(dd)s: %(text)s'),
-                      (re.compile('^CHEQUE$'),                  Transaction.TYPE_CHECK,      'CHEQUE'),
-                      (re.compile('^COTIS\.? (?P<text>.*)'),    Transaction.TYPE_BANK,       '%(text)s'),
-                      (re.compile('^REMISE (?P<text>.*)'),      Transaction.TYPE_DEPOSIT,    '%(text)s'),
-                     ]
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
+                                                          FrenchTransaction.TYPE_CARD),
+                (re.compile('^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                          FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
+                (re.compile('^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
+class HistoryPage(BasePage):
     def get_operations(self):
         for script in self.document.getiterator('script'):
             if script.text is None or script.text.find('\nCL(0') < 0:
@@ -73,15 +74,6 @@ class HistoryPage(BasePage):
 
             for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)','([\d -\.,]+)','\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
                 op = Transaction(m.group(1))
-                op.raw = m.group(4)
-                for pattern, _type, _label in self.LABEL_PATTERNS:
-                    mm = pattern.match(op.raw)
-                    if mm:
-                        op.type = _type
-                        op.label = re.sub('[ ]+', ' ', _label % mm.groupdict()).strip()
-                        break
-
-                op.amount = float(m.group(5).replace('.','').replace(',','.').replace(' ', '').strip(u' \t\u20ac\xa0€\n\r'))
-                op.date = date(*reversed([int(x) for x in m.group(3).split('/')]))
-                op.category = NotAvailable
+                op.parse(date=m.group(3), raw=m.group(4))
+                op.set_amount(m.group(5))
                 yield op
