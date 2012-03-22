@@ -218,7 +218,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                           sender=my_name if int(mail['id_from']) == self.browser.my_id else mails['member']['pseudo'],
                           receivers=[my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo']],
                           date=parse_dt(mail['date']),
-                          content=unescape(mail['message']).strip(),
+                          content=unescape(mail['message'] or '').strip(),
                           signature=signature,
                           children=[],
                           flags=flags)

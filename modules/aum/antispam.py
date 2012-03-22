@@ -128,6 +128,9 @@ class AntiSpam(object):
 
     def check_mail(self, mail):
         # Spambot with a long first-message.
+        if mail['message'] is None:
+            return True
+
         if mail['message'].find('Je veux que vous m\'ayez ecrit directement sur le mon e-mail') >= 0:
             return False
         if mail['message'].find('ilusa12010@live.fr') >= 0:
