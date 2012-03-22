@@ -32,7 +32,7 @@ except ImportError:
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ThreadPage, MessagesPage, ProfilePage, PhotosPage
+from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage
 
 __all__ = ['OkCBrowser']
 
@@ -47,6 +47,7 @@ class OkCBrowser(BaseBrowser):
     PAGES = OrderedDict((
             ('https://%s/login.*' % DOMAIN, LoginPage),
             ('http://%s/messages' % DOMAIN, ThreadPage),
+            ('http://%s/messages\?compose=1' % DOMAIN, PostMessagePage),
             ('http://%s/messages\?.*' % DOMAIN, MessagesPage),
             ('http://%s/profile/.*/photos' % DOMAIN, PhotosPage),
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
@@ -151,22 +152,11 @@ class OkCBrowser(BaseBrowser):
                 break
         return mails
 
-    #@check_login
-    #@url2id
-    #def post_mail(self, id, content):
-    #    new_content = u''
-    #    for c in content:
-    #        try:
-    #            new_content += '&%s;' % codepoint2name[ord(c)]
-    #        except KeyError:
-    #            new_content += c
-
-    #    content = new_content.replace('\n', '\r\n').encode('Windows-1252', 'replace')
-
-    #    try:
-    #        self.api_request('message', 'new', data={'memberId': id, 'message': content})
-    #    except AuMException, e:
-    #        raise CantSendMessage(unicode(e))
+    @check_login
+    def post_mail(self, id, content):
+        self.location(self.absurl('/messages?compose=1'))
+        content = content.replace('\n', '\r\n').encode('Windows-1252', 'replace')
+        self.page.post_mail(id, content)
 
     #@check_login
     #@url2id

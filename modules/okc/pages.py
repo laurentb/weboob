@@ -134,3 +134,10 @@ class PhotosPage(BasePage):
     def get_photos(self):
         imgs = self.parser.select(self.document.getroot(), "//div[@class='pic clearfix']//img", method='xpath')
         return [img.get('src') for img in imgs]
+
+class PostMessagePage(BasePage):
+    def post_mail(self, id, content):
+        self.browser.select_form(name='f2')
+        self.browser['r1'] = id
+        self.browser['body'] = content
+        self.browser.submit()

@@ -42,7 +42,6 @@ from .browser import OkCBrowser
 
 __all__ = ['OkCBackend']
 
-
 def parse_dt(s):
     now = datetime.datetime.now()
     if u'–' in s:
@@ -62,8 +61,7 @@ def parse_dt(s):
         d = _parse_dt(s)
     return local2utc(d)
 
-class OkCBackend(BaseBackend, ICapMessages, ICapContact):
-    #, ICapMessagesPost, ICapContact):
+class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     NAME = 'okc'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
@@ -223,9 +221,9 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact):
 
     # ---- ICapMessagesPost methods ---------------------
 
-    #def post_message(self, message):
-    #    with self.browser:
-    #        self.browser.post_mail(message.thread.id, message.content)
+    def post_message(self, message):
+        with self.browser:
+            self.browser.post_mail(message.thread.id, message.content)
 
     # ---- ICapContact methods ---------------------
 
