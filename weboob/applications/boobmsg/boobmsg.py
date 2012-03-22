@@ -96,19 +96,15 @@ class MessagesListFormatter(IFormatter):
 
     def format_dict_thread(self, item):
         self.count += 1
-        if item['nb_unread'] and item['nb_unread'] > 0:
-            unread = '[N]'
-        else:
-            unread = '   '
         if self.interactive:
             backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s %s (%s)%s' % (self.BOLD,
-                                                 self.count, unread,
+            result = u'%s* (%d) %s (%s)%s' % (self.BOLD,
+                                                 self.count,
                                                  item['title'], backend,
                                                  self.NC)
         else:
-            result = u'%s* (%s) %s %s%s' % (self.BOLD, item['id'],
-                                            unread, item['title'],
+            result = u'%s* (%s) %s%s' % (self.BOLD, item['id'],
+                                            item['title'],
                                             self.NC)
         if item['date']:
             result += u'\n             %s' % item['date']

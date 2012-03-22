@@ -72,7 +72,6 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                 thread = Thread(url2id(link.url))
                 thread.title = ('%s ' % root_link.title if root_link else '') + link.title
                 thread.date = link.date
-                thread.nb_messages = link.nb_messages
                 thread.flags = thread.IS_DISCUSSION
                 yield thread
 

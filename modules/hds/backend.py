@@ -47,7 +47,6 @@ class HDSBackend(BaseBackend, ICapMessages):
                 thread = Thread(story.id)
                 thread.title = story.title
                 thread.date = story.date
-                thread.nb_messages = 1
                 yield thread
 
     GENDERS = ['<unknown>', 'boy', 'girl', 'transexual']

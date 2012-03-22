@@ -39,7 +39,6 @@ class Link(object):
         self.url = url
         self.title = u''
         self.date = None
-        self.nb_messages = 0
 
 class ForumPage(PhpBBPage):
     def iter_links(self):
@@ -63,8 +62,6 @@ class ForumPage(PhpBBPage):
                         continue
                     else:
                         break
-            # it only lists number of answers, so we add 1.
-            link.nb_messages = int(li.cssselect('dd.posts')[0].text.strip()) + 1
             yield link
 
     def iter_all_forums(self):
