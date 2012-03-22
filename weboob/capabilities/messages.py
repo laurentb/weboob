@@ -140,11 +140,10 @@ class ICapMessages(IBaseCap):
         """
         raise NotImplementedError()
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         """
         Iterates on messages which hasn't been marked as read.
 
-        @param thread  thread name (optional)
         @return [iter]  Message objects
         """
         raise NotImplementedError()

@@ -149,7 +149,7 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             thread = self.browser.get_thread(thread)
         return thread
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         threads = list(self.iter_threads(cache=True))
         for thread in threads:
             if thread.root.flags & thread.root.IS_UNREAD:

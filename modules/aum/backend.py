@@ -240,7 +240,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
         return thread
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         try:
             contacts = {}
             with self.browser:

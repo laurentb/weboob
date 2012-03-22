@@ -172,7 +172,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         for sub in com.comments:
             self._insert_comment(sub, message, getseen)
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         for thread in self.iter_threads():
             self.fill_thread(thread, 'root', False)
             for m in thread.iter_all_messages():

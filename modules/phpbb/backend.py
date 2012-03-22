@@ -130,7 +130,7 @@ class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
                        children=[],
                        flags=Message.IS_HTML)
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         with self.browser:
             url = self.browser.get_root_feed_url()
             for article in Newsfeed(url, rssid).iter_entries():

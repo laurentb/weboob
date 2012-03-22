@@ -87,7 +87,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
         t = self.get_thread(thread)
         return t or thread
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         for thread in self.iter_threads():
             if thread.id in self.storage.get('seen', default={}):
                 continue

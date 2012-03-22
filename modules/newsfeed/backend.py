@@ -76,7 +76,7 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
 
 
 
-    def iter_unread_messages(self, thread=None):
+    def iter_unread_messages(self):
         for thread in self.iter_threads():
             for m in thread.iter_all_messages():
                 if m.flags & m.IS_UNREAD:
