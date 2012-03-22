@@ -251,14 +251,15 @@ class AuMBrowser(BaseBrowser):
     @check_login
     @url2id
     def post_mail(self, id, content):
-        new_content = u''
-        for c in content:
-            try:
-                new_content += '&%s;' % codepoint2name[ord(c)]
-            except KeyError:
-                new_content += c
+        # It seems it is not needed anymore.
+        #new_content = u''
+        #for c in content:
+        #    try:
+        #        new_content += '&%s;' % codepoint2name[ord(c)]
+        #    except KeyError:
+        #        new_content += c
 
-        content = new_content.replace('\n', '\r\n').encode('Windows-1252', 'replace')
+        content = content.replace('\n', '\r\n').encode('utf-8', 'replace')
 
         try:
             self.api_request('message', 'new', data={'memberId': id, 'message': content})
