@@ -74,7 +74,8 @@ class Transaction(CapBaseObject):
 
     def __init__(self, id):
         CapBaseObject.__init__(self, id)
-        self.add_field('date', (basestring, datetime, date))
+        self.add_field('date', (basestring, datetime, date)) # debit date
+        self.add_field('rdate', (datetime, date))            # real date, when the payment has been made
         self.add_field('type', int, self.TYPE_UNKNOWN)
         self.add_field('raw', unicode)
         self.add_field('category', unicode)
