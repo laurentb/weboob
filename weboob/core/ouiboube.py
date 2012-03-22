@@ -136,12 +136,7 @@ class Weboob(object):
         if not minfo.is_installed():
             self.repositories.install(minfo)
 
-        module = None
-        try:
-            module = self.modules_loader.get_or_load_module(module_name)
-        except ModuleLoadError, e:
-            self.logger.error(e)
-            return
+        module = self.modules_loader.get_or_load_module(module_name)
 
         backend_instance = module.create_instance(self, module_name, params or {}, storage)
         return backend_instance
