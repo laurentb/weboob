@@ -56,7 +56,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
         else:
             raise AccountNotFound()
 
-    def iter_operations(self, account):
+    def iter_coming(self, account):
         """ TODO Not supported yet """
         return iter([])
 

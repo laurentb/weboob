@@ -238,7 +238,7 @@ class Boobank(ReplApplication):
 
         def do(backend):
             account = backend.get_account(id)
-            return backend.iter_operations(account)
+            return backend.iter_coming(account)
 
         for backend, operation in self.do(do, backends=names):
             self.format(operation)

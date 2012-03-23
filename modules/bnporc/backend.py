@@ -90,7 +90,7 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
         with self.browser:
             return self.browser.iter_history(account._link_id)
 
-    def iter_operations(self, account):
+    def iter_coming(self, account):
         with self.browser:
             return self.browser.iter_coming_operations(account._link_id)
 
