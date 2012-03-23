@@ -72,7 +72,10 @@
       <item>
        <widget class="QLineEdit" name="descriptionEdit">
         <property name="text">
-         <string>Edit description</string>
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>Edit summary</string>
         </property>
        </widget>
       </item>
