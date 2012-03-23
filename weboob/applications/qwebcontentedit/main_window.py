@@ -45,6 +45,7 @@ class MainWindow(QtMainWindow):
                                         self._currentTabChanged)
         self.connect(self.ui.saveButton, SIGNAL("clicked()"), self.savePage)
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.connect(self.ui.contentEdit, SIGNAL("textChanged()"), self._textChanged)
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
@@ -65,6 +66,10 @@ class MainWindow(QtMainWindow):
         if self.ui.tabWidget.currentIndex() == 1:
             if self.backend is not None:
                 self.showPreview()
+
+    def _textChanged(self):
+        self.ui.saveButton.setEnabled(True)
+        self.ui.saveButton.setText('Save')
 
     def loadPage(self):
         _id = unicode(self.ui.idEdit.text())
@@ -109,6 +114,8 @@ class MainWindow(QtMainWindow):
         minor = self.ui.minorBox.isChecked()
         if new_content != self.content.content:
             self.ui.saveButton.setEnabled(False)
+            self.ui.saveButton.setText('Saving...')
+            self.ui.contentEdit.setReadOnly(True)
             self.content.content = new_content
             message = unicode(self.ui.descriptionEdit.text())
             self.process = QtDo(self.weboob, self._savePage_cb, self._savePage_eb)
@@ -117,7 +124,8 @@ class MainWindow(QtMainWindow):
     def _savePage_cb(self, backend, data):
         if not backend:
             self.process = None
-            self.ui.saveButton.setEnabled(True)
+            self.ui.saveButton.setText('Saved')
+            self.ui.contentEdit.setReadOnly(False)
             return
         self.ui.descriptionEdit.clear()
 
