@@ -147,6 +147,8 @@ class AccountsPage(BasePage):
                         account._type=value
                 account.label=a.getparent().getprevious().text.strip()
                 balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
+                if '-' in balance:
+                    balance='-'+balance.strip().replace('-', '')
                 account.balance=float(balance)
                 l.append(account)
         return l
