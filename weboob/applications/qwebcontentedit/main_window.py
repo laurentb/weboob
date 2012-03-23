@@ -68,14 +68,16 @@ class MainWindow(QtMainWindow):
                 self.showPreview()
 
     def _textChanged(self):
-        self.ui.saveButton.setEnabled(True)
-        self.ui.saveButton.setText('Save')
+        if self.backend:
+            self.ui.saveButton.setEnabled(True)
+            self.ui.saveButton.setText('Save')
 
     def loadPage(self):
         _id = unicode(self.ui.idEdit.text())
         if not _id:
             return
-        self.ui.saveButton.setEnabled(False)
+        self.ui.loadButton.setEnabled(False)
+        self.ui.loadButton.setText('Loading...')
         backend = str(self.ui.backendBox.currentText())
         self.process = QtDo(self.weboob, self._loadPage_cb, self._loadPage_eb)
         self.process.do('get_content', _id, backends=(backend,))
@@ -84,7 +86,9 @@ class MainWindow(QtMainWindow):
         if not backend:
             self.process = None
             if self.backend:
-                self.ui.saveButton.setEnabled(True)
+                self.ui.contentEdit.setReadOnly(False)
+                self.ui.loadButton.setEnabled(True)
+                self.ui.loadButton.setText('Load')
             return
         if not data:
             self.content = None
@@ -98,7 +102,7 @@ class MainWindow(QtMainWindow):
         self.content = data
         self.ui.contentEdit.setPlainText(self.content.content)
         self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id, backend.name))
-        self.backend = backend
+        self.backend = backend    
 
     def _loadPage_eb(self, backend, error, backtrace):
         content = unicode(self.tr('Unable to load page:\n%s\n')) % to_unicode(error)

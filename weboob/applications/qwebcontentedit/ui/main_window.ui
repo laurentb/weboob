@@ -47,7 +47,11 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QPlainTextEdit" name="contentEdit"/>
+         <widget class="QPlainTextEdit" name="contentEdit">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -106,7 +110,7 @@
      <x>0</x>
      <y>0</y>
      <width>498</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
