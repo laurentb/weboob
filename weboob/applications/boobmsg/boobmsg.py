@@ -19,6 +19,8 @@
 
 
 import sys
+import os
+from tempfile import NamedTemporaryFile
 
 from weboob.core import CallErrors
 from weboob.capabilities.messages import ICapMessages, Message, Thread
@@ -205,7 +207,6 @@ class ProfileFormatter(IFormatter):
             result += u'\t%s\n' % s
         return result
 
-
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.c'
@@ -235,6 +236,10 @@ class Boobmsg(ReplApplication):
 
     def load_default_backends(self):
         self.load_backends(ICapMessages, storage=self.create_storage())
+
+    def main(self, argv):
+        self.load_config()
+        return ReplApplication.main(self, argv)
 
     def do_status(self, line):
         """
@@ -421,6 +426,37 @@ class Boobmsg(ReplApplication):
         for backend, contact in self.do('get_contact', _id, backends=backend_name):
             if contact:
                 self.format(contact)
+                found = 1
+
+        if not found:
+            self.logger.error(u'Profile not found')
+        else:
+            self.flush()
+
+    def do_photos(self, id):
+        """
+        profile ID
+
+        Display photos of a profile
+        """
+        photo_cmd = self.config.get('photo_viewer')
+        if photo_cmd is None:
+            print >>sys.stderr, "Configuration error: photo_viewer is undefined"
+            return
+
+        _id, backend_name = self.parse_id(id, unique_backend=True)
+
+        found = 0
+        for backend, contact in self.do('get_contact', _id, backends=backend_name):
+            if contact:
+                # Write photo to temporary files
+                tmp_files = []
+                for photo in contact.photos.values():
+                    f = NamedTemporaryFile(suffix='.jpg')
+                    photo = backend.fillobj(photo, 'data')
+                    f.write(photo.data)
+                    tmp_files.append(f)
+                os.system(photo_cmd % ' '.join([file.name for file in tmp_files]))
                 found = 1
 
         if not found:
