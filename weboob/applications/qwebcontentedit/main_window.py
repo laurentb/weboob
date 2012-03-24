@@ -181,7 +181,7 @@ class MainWindow(QtMainWindow):
             return
 
         # we set the flags to Qt.ItemIsEnabled so that the items
-        # are not modifiable
+        # are not modifiable (they are modifiable by default)
         item_revision = QTableWidgetItem(revision.revision)
         item_revision.setFlags(Qt.ItemIsEnabled)
         
@@ -193,10 +193,12 @@ class MainWindow(QtMainWindow):
         
         item_summary = QTableWidgetItem(revision.comment)
         item_summary.setFlags(Qt.ItemIsEnabled)
-        
+
         row = self.ui.historyTable.currentRow() + 1
         self.ui.historyTable.insertRow(row)
         self.ui.historyTable.setItem(row, 0, item_revision)
         self.ui.historyTable.setItem(row, 1, item_time)
         self.ui.historyTable.setItem(row, 2, item_author)
         self.ui.historyTable.setItem(row, 3, item_summary)
+
+        self.ui.historyTable.setCurrentCell(row, 0)
