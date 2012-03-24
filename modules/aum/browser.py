@@ -23,7 +23,6 @@ import re
 import datetime
 import random
 import urllib
-from htmlentitydefs import codepoint2name
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
