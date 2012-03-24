@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlsplit
+from urlparse import urlsplit, urljoin
 import urllib
 import datetime
+import re
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
@@ -47,8 +48,18 @@ class MediawikiBrowser(BaseBrowser):
         self.apiurl = apiurl
         BaseBrowser.__init__(self, *args, **kwargs)
 
+    def url2page(self, page):
+        baseurl = self.PROTOCOL + '://' + self.DOMAIN + self.BASEPATH
+        m = re.match('^' + urljoin(baseurl, 'wiki/(.+)$'), page)
+        if m:
+            return m.group(1)
+        else:
+            return page
+        
     def get_wiki_source(self, page):
         assert isinstance(self.apiurl, basestring)
+
+        page = self.url2page(page)   
 
         data = {'action':           'query',
                 'prop':             'revisions|info',
