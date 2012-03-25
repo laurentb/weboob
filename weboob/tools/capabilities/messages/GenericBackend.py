@@ -27,7 +27,9 @@ from weboob.tools.newsfeed import Newsfeed
 
 
 class GenericNewspaperBackend(BaseBackend, ICapMessages):
-    "GenericNewspaperBackend class"
+    """
+    GenericNewspaperBackend class
+    """
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.c'

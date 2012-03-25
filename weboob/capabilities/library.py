@@ -17,40 +17,59 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, date
-
 from .collection import ICapCollection
-from .base import CapBaseObject
+from .base import CapBaseObject, Field, StringField, DateField
 
 
-__all__ = ['ICapBook', 'Book']
+__all__ = ['Book', 'Renew', 'ICapBook']
 
 
 class Book(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring)
-        self.add_field('author', basestring)
-        self.add_field('location', basestring)
-        self.add_field('date', (datetime, date)) # which may be the due date
-        self.add_field('late', bool)
+    """
+    Describes a book.
+    """
+    name =      StringField('Name of the book')
+    author =    StringField('Author of the book')
+    location =  StringField('Location')
+    date =      DateField('The due date')
+    late =      Field('Are you late?', bool)
 
 class Renew(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('message', basestring)
+    """
+    A renew message.
+    """
+    message = StringField('Message')
 
 class ICapBook(ICapCollection):
+    """
+    Library websites.
+    """
     def iter_resources(self, objs, split_path):
+        """
+        Iter resources. It retuns :func:`iter_books`.
+        """
         if Book in objs:
             self._restrict_level(split_path)
-
             return self.iter_books()
 
     def iter_books(self, pattern):
+        """
+        Iter books from a pattern.
+
+        :param pattern: pattern to search
+        :type pattern: str
+        :rtype: iter[:class:`Book`]
+        """
         raise NotImplementedError()
 
     def get_book(self, _id):
+        """
+        Get a book from an ID.
+
+        :param _id: ID of the book
+        :type _id: str
+        :rtype: :class:`Book`
+        """
         raise NotImplementedError()
 
     def get_booked(self, _id):

@@ -53,7 +53,8 @@ else:
 
 
 __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
-           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BasePage', 'BaseBrowser', 'StandardBrowser']
+           'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
+           'StandardBrowser', 'BaseBrowser']
 
 
 # Exceptions
@@ -135,6 +136,21 @@ def check_location(func):
     return inner
 
 class StandardBrowser(mechanize.Browser):
+    """
+    Standard Browser.
+
+    :param firefox_cookies: path to cookies sqlite file
+    :type firefox_cookies: str
+    :param parser: parser to use on HTML files
+    :type parser: :class:`weboob.tools.parsers.iparser.IParser`
+    :param history: history manager; default value is an object which
+                    does not keep history
+    :type history: object
+    :param proxy: proxy URL to use
+    :type proxy: str
+    :param factory: mechanize factory. None to use Mechanize's default
+    :type factory: object
+    """
 
     # ------ Class attributes --------------------------------------
 
@@ -161,16 +177,6 @@ class StandardBrowser(mechanize.Browser):
     default_features.remove('_refresh')
 
     def __init__(self, firefox_cookies=None, parser=None, history=NoHistory(), proxy=None, logger=None, factory=None, responses_dirname=None):
-        """
-        Constructor of Browser.
-
-        @param filefox_cookies [str] Path to cookies' sqlite file.
-        @param parser [IParser]  parser to use on HTML files.
-        @param history [object]  History manager. Default value is an object
-                                 which does not keep history.
-        @param proxy [str]  proxy URL to use.
-        @param factory [object] Mechanize factory. None to use Mechanize's default.
-        """
         mechanize.Browser.__init__(self, history=history, factory=factory)
         self.logger = getLogger('browser', logger)
 
@@ -309,15 +315,16 @@ class StandardBrowser(mechanize.Browser):
     def buildurl(base, *args, **kwargs):
         """
         Build an URL and escape arguments.
-        You can give a serie of tuples in *args (and the order is keept), or
-        a dict in **kwargs (but the order is lost).
+
+        You can give a serie of tuples in args (and the order is keept), or
+        a dict in kwargs (but the order is lost).
 
         Example:
+
         >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
         '/blah.php?a=%26&b=%3D'
         >>> buildurl('/blah.php', a='&', 'b'='=')
         '/blah.php?b=%3D&a=%26'
-
         """
 
         if not args:
@@ -336,11 +343,16 @@ class StandardBrowser(mechanize.Browser):
         """
         Set a value to a form field.
 
-        @param args [dict]  arguments where to look for value.
-        @param label [str]  label in args.
-        @param field [str]  field name. If None, use label instead.
-        @param value [str]  value to give on field.
-        @param is_list [bool]  the field is a list.
+        :param args: arguments where to look for value
+        :type args: dict
+        :param label: label in args
+        :type label: str
+        :param field: field name. If None, use label instead
+        :type field: str
+        :param value: value to give on field
+        :type value: str
+        :param is_list: the field is a list
+        :type is_list: bool
         """
         try:
             if not field:
@@ -366,6 +378,29 @@ class StandardBrowser(mechanize.Browser):
 class BaseBrowser(StandardBrowser):
     """
     Base browser class to navigate on a website.
+
+    :param username: username on website
+    :type username: str
+    :param password: password on website. If it is None, Browser will
+                     not try to login
+    :type password: str
+    :param firefox_cookies: path to cookies sqlite file
+    :type firefox_cookies: str
+    :param parser: parser to use on HTML files
+    :type parser: :class:`weboob.tools.parsers.iparser.IParser`
+    :param history: history manager; default value is an object which
+                    does not keep history
+    :type history: object
+    :param proxy: proxy URL to use
+    :type proxy: str
+    :param logger: logger to use for logging
+    :type logger: :class:`logging.Logger`
+    :param factory: mechanize factory. None to use Mechanize's default
+    :type factory: object
+    :param get_home: try to get the homepage.
+    :type get_homme: bool
+    :param responses_dirname: directory to store responses
+    :type responses_dirname: str
     """
 
     # ------ Class attributes --------------------------------------
@@ -406,20 +441,6 @@ class BaseBrowser(StandardBrowser):
     def __init__(self, username=None, password=None, firefox_cookies=None,
                  parser=None, history=NoHistory(), proxy=None, logger=None,
                  factory=None, get_home=True, responses_dirname=None):
-        """
-        Constructor of Browser.
-
-        @param username [str] username on website.
-        @param password [str] password on website. If it is None, Browser will
-                              not try to login.
-        @param filefox_cookies [str] Path to cookies' sqlite file.
-        @param parser [IParser]  parser to use on HTML files.
-        @param hisory [object]  History manager. Default value is an object
-                                which does not keep history.
-        @param proxy [str]  proxy URL to use.
-        @param factory [object] Mechanize factory. None to use Mechanize's default.
-        @param get_home [bool] Try to get the homepage.
-        """
         StandardBrowser.__init__(self, firefox_cookies, parser, history, proxy, logger, factory, responses_dirname)
         self.page = None
         self.last_update = 0.0

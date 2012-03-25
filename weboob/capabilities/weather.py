@@ -20,43 +20,89 @@
 
 from datetime import datetime
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, StringField
 
 
-__all__ = ['City', 'CityNotFound', 'Current', 'Forecast', 'ICapWeather']
+__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'ICapWeather']
 
 
 class Forecast(CapBaseObject):
+    """
+    Weather forecast.
+    """
+    date =      Field('Date for the forecast', datetime, basestring)
+    low =       FloatField('Low temperature')
+    high =      FloatField('High temperature')
+    text =      StringField('Comment on forecast')
+    unit =      StringField('Unit used for temperatures')
+
     def __init__(self, date, low, high, text, unit):
-        CapBaseObject.__init__(self, date)
-        self.add_field('date', (basestring,datetime), date)
-        self.add_field('low', (int,float), low)
-        self.add_field('high', (int,float), high)
-        self.add_field('text', basestring, text)
-        self.add_field('unit', basestring, unit)
+        CapBaseObject.__init__(self, unicode(date))
+        self.date = date
+        self.low = low
+        self.high = high
+        self.text = text
+        self.unit = unit
 
 class Current(CapBaseObject):
+    """
+    Current weather.
+    """
+    date =      DateField('Date of measure')
+    text =      StringField('Comment about current weather')
+    temp =      FloatField('Current temperature')
+    unit =      StringField('Unit used for temperature')
+
     def __init__(self, date, temp, text, unit):
-        CapBaseObject.__init__(self, date)
-        self.add_field('date', (basestring,datetime), date)
-        self.add_field('text', basestring, text)
-        self.add_field('temp', (int,float), temp)
-        self.add_field('unit', basestring, unit)
+        CapBaseObject.__init__(self, unicode(date))
+        self.date = date
+        self.text = text
+        self.temp = temp
+        self.unit = unit
 
 class City(CapBaseObject):
+    """
+    City where to find weather.
+    """
+    name =      StringField('Name of city')
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring, name)
+        self.name = name
 
 class CityNotFound(Exception):
-    pass
+    """
+    Raised when a city is not found.
+    """
 
 class ICapWeather(IBaseCap):
+    """
+    Capability for weather websites.
+    """
     def iter_city_search(self, pattern):
+        """
+        Look for a city.
+
+        :param pattern: pattern to search
+        :type pattern: str
+        :rtype: iter[:class:`City`]
+        """
         raise NotImplementedError()
 
     def get_current(self, city_id):
+        """
+        Get current weather.
+
+        :param city_id: ID of the city
+        :rtype: :class:`Current`
+        """
         raise NotImplementedError()
 
     def iter_forecast(self, city_id):
+        """
+        Iter forecasts of a city.
+
+        :param city_id: ID of the city
+        :rtype: iter[:class:`Forecast`]
+        """
         raise NotImplementedError()

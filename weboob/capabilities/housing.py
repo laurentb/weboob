@@ -18,19 +18,23 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
+from .base import IBaseCap, CapBaseObject, Field, IntField, FloatField, \
+                  StringField, BytesField, DateField
 
-from .base import IBaseCap, CapBaseObject
 
-
-__all__ = ['ICapHousing']
+__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'ICapHousing']
 
 
 class HousingPhoto(CapBaseObject):
+    """
+    Photo of a housing.
+    """
+    url =       StringField('Direct URL to photo')
+    data =      BytesField('Data of photo')
+
     def __init__(self, url):
         CapBaseObject.__init__(self, url.split('/')[-1])
-        self.add_field('url', basestring, url)
-        self.add_field('data', str)
+        self.url = url
 
     def __iscomplete__(self):
         return self.data
@@ -42,45 +46,75 @@ class HousingPhoto(CapBaseObject):
         return u'<HousingPhoto "%s" data=%do>' % (self.id, len(self.data) if self.data else 0)
 
 class Housing(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('title', basestring)
-        self.add_field('area', (int,float))
-        self.add_field('cost', (int,float))
-        self.add_field('currency', basestring)
-        self.add_field('date', date)
-        self.add_field('location', basestring)
-        self.add_field('station', basestring)
-        self.add_field('text', basestring)
-        self.add_field('phone', basestring)
-        self.add_field('photos', list)
-        self.add_field('details', dict)
+    """
+    Content of a housing.
+    """
+    title =         StringField('Title of housing')
+    area =          FloatField('Area of housing, in m2')
+    cost =          FloatField('Cost of housing')
+    currency =      StringField('Currency of cost')
+    date =          DateField('Date when the housing has been published')
+    location =      StringField('Location of housing')
+    station =       StringField('What metro/bus station next to housing')
+    text =          StringField('Text of the housing')
+    phone =         StringField('Phone number to contact')
+    photos =        Field('List of photos', list)
+    details =       Field('Key/values of details', dict)
 
 class Query(CapBaseObject):
+    """
+    Query to find housings.
+    """
     TYPE_RENT = 0
     TYPE_SALE = 1
 
+    type =      IntField('Type of housing to find (TYPE_* constants)')
+    cities =    Field('List of cities to search in', list, tuple)
+    area_min =  IntField('Minimal area (in m2)')
+    area_max =  IntField('Maximal area (in m2)')
+    cost_min =  IntField('Minimal cost')
+    cost_max =  IntField('Maximal cost')
+    nb_rooms =  IntField('Number of rooms')
+
     def __init__(self):
         CapBaseObject.__init__(self, '')
-        self.add_field('type', int)
-        self.add_field('cities', (list,tuple))
-        self.add_field('area_min', int)
-        self.add_field('area_max', int)
-        self.add_field('cost_min', int)
-        self.add_field('cost_max', int)
-        self.add_field('nb_rooms', int)
 
 class City(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring)
+    """
+    City.
+    """
+    name =      StringField('Name of city')
 
 class ICapHousing(IBaseCap):
+    """
+    Capability of websites to search housings.
+    """
     def search_housings(self, query):
+        """
+        Search housings.
+
+        :param query: search query
+        :type query: :class:`Query`
+        :rtype: iter[:class:`Housing`]
+        """
         raise NotImplementedError()
 
     def get_housing(self, housing):
+        """
+        Get an housing from an ID.
+
+        :param housing: ID of the housing
+        :type housing: str
+        :rtype: :class:`Housing` or None if not found.
+        """
         raise NotImplementedError()
 
     def search_city(self, pattern):
+        """
+        Search a city from a pattern.
+
+        :param pattern: pattern to search
+        :type pattern: str
+        :rtype: iter[:class:`City`]
+        """
         raise NotImplementedError()

@@ -18,76 +18,98 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import time, datetime, timedelta
+import datetime
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, StringField, TimeField, DeltaField, DateField
 
 
-__all__ = ['Departure', 'ICapTravel', 'Station']
+__all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'ICapTravel']
 
 
 class Station(CapBaseObject):
+    """
+    Describes a station.
+    """
+    name =  StringField('Name of station')
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring, name)
+        self.name = name
 
     def __repr__(self):
         return "<Station id=%r name=%r>" % (self.id, self.name)
 
 class Departure(CapBaseObject):
+    """
+    Describes a departure.
+    """
+    type =              StringField('Type of train')
+    time =              TimeField('When the train will leave')
+    departure_station = StringField('Departure station')
+    arrival_station =   StringField('Destination of the train')
+    late =              TimeField('Optional late', default=datetime.time())
+    information =       StringField('Informations')
+    plateform =         StringField('Where the train will leave')
+
     def __init__(self, id, _type, _time):
         CapBaseObject.__init__(self, id)
 
-        self.add_field('type', basestring, _type)
-        self.add_field('time', datetime, _time)
-        self.add_field('departure_station', basestring)
-        self.add_field('arrival_station', basestring)
-        self.add_field('late', time, time())
-        self.add_field('information', basestring)
-        self.add_field('plateform', basestring)
+        self.type = _type
+        self.time = _time
 
     def __repr__(self):
         return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
 
 class RoadStep(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-
-        self.add_field('line', basestring)
-        self.add_field('start_time', time)
-        self.add_field('end_time', time)
-        self.add_field('departure', unicode)
-        self.add_field('arrival', unicode)
-        self.add_field('duration', timedelta)
+    """
+    A step on a roadmap.
+    """
+    line =          StringField('When line')
+    start_time =    TimeField('Start of step')
+    end_time =      TimeField('End of step')
+    departure =     StringField('Departure station')
+    arrival =       StringField('Arrival station')
+    duration =      DeltaField('Duration of this step')
 
 class RoadmapError(Exception):
-    pass
+    """
+    Raised when the roadmap is unable to be calculated.
+    """
 
 class RoadmapFilters(CapBaseObject):
+    """
+    Filters to get a roadmap.
+    """
+    departure_time =    DateField('Wanted departure time')
+    arrival_time =      DateField('Wanted arrival time')
+
     def __init__(self):
         CapBaseObject.__init__(self, '')
 
-        self.add_field('departure_time', datetime)
-        self.add_field('arrival_time', datetime)
-
 class ICapTravel(IBaseCap):
+    """
+    Travel websites.
+    """
     def iter_station_search(self, pattern):
         """
         Iterates on search results of stations.
 
-        @param pattern [str]  the search pattern
-        @return [iter]  the of Station objects
+        :param pattern: the search pattern
+        :type pattern: str
+        :rtype: iter[:class:`Station`]
         """
         raise NotImplementedError()
 
-    def iter_station_departures(self, station_id, arrival_id):
+    def iter_station_departures(self, station_id, arrival_id=None):
         """
         Iterate on departures.
 
-        @param station_id [id]  the station id
-        @param arrival_id [id]  optionnal arrival station id
-        @return [iter]  result of Departure objects
+        :param station_id: the station ID
+        :type station_id: str
+        :param arrival_id: optionnal arrival station ID
+        :type arrival_id: str
+        :rtype: iter[:class:`Departure`]
         """
         raise NotImplementedError()
 
@@ -95,9 +117,12 @@ class ICapTravel(IBaseCap):
         """
         Get a roadmap.
 
-        @param departure [str]  name of departure station
-        @param arrival [str]  name of arrival station
-        @param filters [RoadmapFilters]  filters on search
-        @return [iter(RoadStep)]  steps of roadmap
+        :param departure: name of departure station
+        :type departure: str
+        :param arrival: name of arrival station
+        :type arrival: str
+        :param filters: filters on search
+        :type filters: :class:`RoadmapFilters`
+        :rtype: iter[:class:`RoadStep`]
         """
         raise NotImplementedError()

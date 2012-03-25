@@ -18,14 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, Field, StringField, BytesField, IntField
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['ICapContact', 'Contact']
+__all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'ICapContact']
 
 
 class ProfileNode(object):
+    """
+    Node of a :class:`Contact` profile.
+    """
     HEAD =    0x01
     SECTION = 0x02
 
@@ -41,14 +44,19 @@ class ProfileNode(object):
 
 
 class ContactPhoto(CapBaseObject):
+    """
+    Photo of a contact.
+    """
+    name =              StringField('Name of the photo')
+    url =               StringField('Direct URL to photo')
+    data =              BytesField('Data of photo')
+    thumbnail_url =     StringField('Direct URL to thumbnail')
+    thumbnail_data =    BytesField('Data of thumbnail')
+    hidden =            Field('True if the photo is hidden on website', bool)
+
     def __init__(self, name):
         CapBaseObject.__init__(self, name)
-        self.add_field('name', basestring, name)
-        self.add_field('url', basestring)
-        self.add_field('data', str)
-        self.add_field('thumbnail_url', basestring)
-        self.add_field('thumbnail_data', basestring)
-        self.add_field('hidden', bool, False)
+        self.name = name
 
     def __iscomplete__(self):
         return (self.data and (not self.thumbnail_url or self.thumbnail_data))
@@ -63,22 +71,35 @@ class ContactPhoto(CapBaseObject):
 
 
 class Contact(CapBaseObject):
+    """
+    A contact.
+    """
     STATUS_ONLINE =  0x001
     STATUS_AWAY =    0x002
     STATUS_OFFLINE = 0x004
     STATUS_ALL =     0xfff
 
+    name =          StringField('Name of contact')
+    status =        IntField('Status of contact (STATUS_* constants)')
+    url =           StringField('URL to the profile of contact')
+    status_msg =    StringField('Message of status')
+    summary =       StringField('Description of contact')
+    photos =        Field('List of photos', dict, default=OrderedDict())
+    profile =       Field('Contact profile', dict)
+
     def __init__(self, id, name, status):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring, name)
-        self.add_field('status', int, status)
-        self.add_field('url', basestring)
-        self.add_field('status_msg', basestring)
-        self.add_field('summary', basestring)
-        self.add_field('photos', dict, OrderedDict())
-        self.add_field('profile', dict)
+        self.name = name
+        self.status = status
 
     def set_photo(self, name, **kwargs):
+        """
+        Set photo of contact.
+
+        :param name: name of photo
+        :type name: str
+        :param kwargs: See :class:`ContactPhoto` to know what other parameters you can use
+        """
         if not name in self.photos:
             self.photos[name] = ContactPhoto(name)
 
@@ -88,13 +109,20 @@ class Contact(CapBaseObject):
 
 
 class QueryError(Exception):
-    pass
+    """
+    Raised when unable to send a query to a contact.
+    """
 
 
 class Query(CapBaseObject):
+    """
+    Query to send to a contact.
+    """
+    message =   StringField('Message received')
+
     def __init__(self, id, message):
         CapBaseObject.__init__(self, id)
-        self.add_field('message', basestring, message)
+        self.message = message
 
 
 class ICapContact(IBaseCap):
@@ -102,9 +130,11 @@ class ICapContact(IBaseCap):
         """
         Iter contacts
 
-        @param status  get only contacts with the specified status
-        @param ids  if set, get the specified contacts
-        @return  iterator over the contacts found
+        :param status: get only contacts with the specified status
+        :type status: Contact.STATUS_*
+        :param ids: if set, get the specified contacts
+        :type ids: list[str]
+        :rtype: iter[:class:`Contact`]
         """
         raise NotImplementedError()
 
@@ -116,8 +146,9 @@ class ICapContact(IBaseCap):
         with the proper values, but it might be overloaded
         by backends.
 
-        @param id  the ID requested
-        @return  the Contact object, or None if not found
+        :param id: the ID requested
+        :type id: str
+        :rtype: :class:`Contact` or None if not found
         """
 
         l = self.iter_contacts(ids=[id])
@@ -130,9 +161,10 @@ class ICapContact(IBaseCap):
         """
         Send a query to a contact
 
-        @param id  the ID of contact
-        @return  a Query object
-        @except QueryError
+        :param id: the ID of contact
+        :type id: str
+        :rtype: :class:`Query`
+        :raises: :class:`QueryError`
         """
         raise NotImplementedError()
 
@@ -140,8 +172,9 @@ class ICapContact(IBaseCap):
         """
         Get personal notes about a contact
 
-        @param id the ID of the contact
-        @return a unicode object
+        :param id: the ID of the contact
+        :type id: str
+        :rtype: unicode
         """
         raise NotImplementedError
 
@@ -149,7 +182,8 @@ class ICapContact(IBaseCap):
         """
         Set personal notes about a contact
 
-        @param id the ID of the contact
-        @param notes the unicode object to save as notes
+        :param id: the ID of the contact
+        :type id: str
+        :returns: the unicode object to save as notes
         """
         raise NotImplementedError

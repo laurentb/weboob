@@ -20,31 +20,60 @@
 
 import datetime
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, StringField, DateField
 
 
-__all__ = ['ChatException', 'ICapChat']
+__all__ = ['ChatException', 'ChatMessage', 'ICapChat']
 
 
 class ChatException(Exception):
-    pass
+    """
+    Exception raised when there is a problem with the chat.
+    """
 
 
 class ChatMessage(CapBaseObject):
+    """
+    Message on the chat.
+    """
+    id_from =       StringField('ID of sender')
+    id_to =         StringField('ID of recipient')
+    message =       StringField('Content of message')
+    date =          DateField('Date when the message has been sent')
+
     def __init__(self, id_from, id_to, message, date=None):
         CapBaseObject.__init__(self, '%s.%s' % (id_from, id_to))
-        self.add_field('id_from', basestring, id_from)
-        self.add_field('id_to', basestring, id_to)
-        self.add_field('message', basestring, message)
-        self.add_field('date', datetime.datetime, date)
+        self.id_from = id_from
+        self.id_to = id_to
+        self.message = message
+        self.date = date
 
         if self.date is None:
             self.date = datetime.datetime.utcnow()
 
-
 class ICapChat(IBaseCap):
+    """
+    Websites with a chat system.
+    """
     def iter_chat_messages(self, _id=None):
+        """
+        Iter messages.
+
+        :param _id: optional parameter to only get messages
+                    from a given contact.
+        :type _id: str
+        :rtype: iter[:class:`ChatMessage`]
+        """
         raise NotImplementedError()
 
     def send_chat_message(self, _id, message):
+        """
+        Send a message to a contact.
+
+        :param _id: ID of recipient
+        :type _id: str
+        :param message: message to send
+        :type message: str
+        :raises: :class:`ChatException`
+        """
         raise NotImplementedError()

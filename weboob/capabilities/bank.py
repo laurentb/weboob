@@ -18,30 +18,45 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime, date
+from datetime import date, datetime
 
-from .base import CapBaseObject
+from .base import CapBaseObject, Field, StringField, DateField, FloatField, IntField
 from .collection import ICapCollection
 
 
-__all__ = ['Account', 'AccountNotFound', 'TransferError', 'ICapBank', 'Transaction']
+__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Transfer', 'ICapBank']
 
 
 class AccountNotFound(Exception):
-    def __init__(self, msg=None):
-        if msg is None:
-            msg = 'Account not found'
+    """
+    Raised when an account is not found.
+    """
+
+    def __init__(self, msg='Account not found'):
         Exception.__init__(self, msg)
 
 class TransferError(Exception):
-    pass
+    """
+    A transfer has failed.
+    """
 
 class Recipient(CapBaseObject):
+    """
+    Recipient of a transfer.
+    """
+
+    label = StringField('Name')
+
     def __init__(self):
         CapBaseObject.__init__(self, 0)
-        self.add_field('label', basestring)
 
 class Account(Recipient):
+    """
+    Bank account.
+
+    It is a child class of :class:`Recipient`, because an account can be
+    a recipient of a transfer.
+    """
     TYPE_UNKNOWN          = 0
     TYPE_CHECKING         = 1  # Transaction, everyday transactions
     TYPE_SAVINGS          = 2  # Savings/Deposit, can be used for everyday banking
@@ -50,17 +65,18 @@ class Account(Recipient):
     TYPE_MARKET           = 5  # Stock market or other variable investments
     TYPE_JOINT            = 6  # Joint account
 
-    def __init__(self):
-        Recipient.__init__(self)
-        self.add_field('type', int, self.TYPE_UNKNOWN)
-        self.add_field('balance', float)
-        self.add_field('coming', float)
+    type =      IntField('Type of account', default=TYPE_UNKNOWN)
+    balance =   FloatField('Balance on this bank account')
+    coming =    FloatField('Coming balance')
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
 
 
 class Transaction(CapBaseObject):
+    """
+    Bank transaction.
+    """
     TYPE_UNKNOWN      = 0
     TYPE_TRANSFER     = 1
     TYPE_ORDER        = 2
@@ -72,47 +88,77 @@ class Transaction(CapBaseObject):
     TYPE_LOAN_PAYMENT = 8
     TYPE_BANK         = 9
 
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('date', (basestring, datetime, date)) # debit date
-        self.add_field('rdate', (datetime, date))            # real date, when the payment has been made
-        self.add_field('type', int, self.TYPE_UNKNOWN)
-        self.add_field('raw', unicode)
-        self.add_field('category', unicode)
-        self.add_field('label', unicode)
-        self.add_field('amount', float)
+    date =      DateField('Debit date')
+    rdate =     DateField('Real date, when the payment has been made')
+    type =      IntField('Type of transaction, use TYPE_* constants', default=TYPE_UNKNOWN)
+    raw =       StringField('Raw label of the transaction')
+    category =  StringField('Category of transaction')
+    label =     StringField('Pretty label')
+    amount =    FloatField('Amount of transaction')
 
     def __repr__(self):
         return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
             self.label, self.amount)
 
 class Transfer(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('amount', float)
-        self.add_field('date', (basestring, datetime, date))
-        self.add_field('origin', (int, long, basestring))
-        self.add_field('recipient', (int, long, basestring))
+    """
+    Transfer from an account to a recipient.
+    """
+
+    amount =    FloatField('Amount to transfer')
+    date =      Field('Date of transfer', basestring, date, datetime)
+    origin =    Field('Origin of transfer', int, long, basestring)
+    recipient = Field('Recipient', int, long, basestring)
 
 class ICapBank(ICapCollection):
+    """
+    Capability of bank websites to see accounts and transactions.
+    """
     def iter_resources(self, objs, split_path):
+        """
+        Iter resources.
+
+        Default implementation of this method is to return on top-level
+        all accounts (by calling :func:`iter_accounts`).
+
+        :param objs: type of objects to get
+        :type objs: tuple[:class:`CapBaseObject`]
+        :param split_path: path to discover
+        :type split_path: :class:`list`
+        :rtype: iter[:class:`BaseCapObject`]
+        """
         if Account in objs:
             self._restrict_level(split_path)
 
             return self.iter_accounts()
 
     def iter_accounts(self):
+        """
+        Iter accounts.
+
+        :rtype: iter[:class:`Account`]
+        """
         raise NotImplementedError()
 
-    def get_account(self, _id):
+    def get_account(self, id):
+        """
+        Get an account from its ID.
+
+        :param id: ID of the account
+        :type id: :class:`str`
+        :rtype: :class:`Account`
+        :raises: :class:`AccountNotFound`
+        """
         raise NotImplementedError()
 
     def iter_history(self, account):
         """
         Iter history of transactions on a specific account.
 
-        @param account [Account]
-        @return [iter(Transaction)]
+        :param account: account to get history
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Transaction`]
+        :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
 
@@ -120,8 +166,10 @@ class ICapBank(ICapCollection):
         """
         Iter coming transactions on a specific account.
 
-        @param account [Account]
-        @return [iter(Transaction)]
+        :param account: account to get coming transactions
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Transaction`]
+        :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
 
@@ -129,8 +177,10 @@ class ICapBank(ICapCollection):
         """
         Iter recipients availables for a transfer from a specific account.
 
-        @param account [Account] account which initiate the transfer
-        @return [iter(Recipient)]
+        :param account: account which initiate the transfer
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Recipient`]
+        :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
 
@@ -138,10 +188,15 @@ class ICapBank(ICapCollection):
         """
         Make a transfer from an account to a recipient.
 
-        @param account [Account]  account to take money
-        @param recipient [Recipient]  account to send money
-        @param amount [float]  amount
-        @param reason [str]  reason of transfer
-        @return [Transfer]  a Transfer object
+        :param account: account to take money
+        :type account: :class:`Account`
+        :param recipient: account to send money
+        :type recipient: :class:`Recipient`
+        :param amount: amount
+        :type amount: :class:`float`
+        :param reason: reason of transfer
+        :type reason: :class:`unicode`
+        :rtype: :class:`Transfer`
+        :raises: :class:`AccountNotFound`, :class:`TransferError`
         """
         raise NotImplementedError()

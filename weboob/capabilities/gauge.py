@@ -16,39 +16,42 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-from datetime import datetime
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, StringField, FloatField, DateField
 
 
-__all__ = ['ICapWaterLevel']
+__all__ = ['Gauge', 'GaugeMeasure', 'ICapWaterLevel']
 
 
 class Gauge(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-
-        self.add_field('name', basestring)
-        self.add_field('river', basestring)
-        self.add_field('level', float)
-        self.add_field('flow', float)
-        self.add_field('lastdate', datetime)
-        self.add_field('forecast', basestring)
+    """
+    Gauge class.
+    """
+    name =      StringField('Name of gauge')
+    river =     StringField('What river')
+    level =     FloatField('Level of gauge')
+    flow =      FloatField('Flow of gauge')
+    lastdate =  DateField('Last measure')
+    forecast =  StringField('Forecast')
 
 class GaugeMeasure(CapBaseObject):
+    """
+    Measure of a gauge.
+    """
+    level =     FloatField('Level of measure')
+    flow =      FloatField('Flow of measure')
+    date =      DateField('Date of measure')
+
     def __init__(self):
         CapBaseObject.__init__(self, None)
-
-        self.add_field('level', float)
-        self.add_field('flow', float)
-        self.add_field('date', datetime)
 
 class ICapWaterLevel(IBaseCap):
     def iter_gauge_history(self, id):
         """
         Get history of a gauge.
 
-        @param id [str]  ID of the river
-        @return [iter(GaugeMeasure)]
+        :param id: ID of the river
+        :type id: str
+        :rtype: iter[:class:`GaugeMeasure`]
         """
         raise NotImplementedError()
 
@@ -56,8 +59,9 @@ class ICapWaterLevel(IBaseCap):
         """
         Get last measure of the gauge.
 
-        @param id [str] ID of the gauge.
-        @return [GaugeMeasure]
+        :param id: ID of the gauge
+        :type id: str
+        :rtype: :class:`GaugeMeasure`
         """
         raise NotImplementedError()
 
@@ -65,7 +69,8 @@ class ICapWaterLevel(IBaseCap):
         """
         Iter gauges.
 
-        @param pattern [str] if specified, used to search gauges
-        @return [iter(Gauge)]
+        :param pattern: if specified, used to search gauges
+        :type pattern: str
+        :rtype: iter[:class:`Gauge`]
         """
         raise NotImplementedError()

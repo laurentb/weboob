@@ -10,8 +10,7 @@ def genapi():
     os.chdir('api')
     for root, dirs, files in os.walk('../../../weboob/'):
         root = root.split('/', 4)[-1]
-        if root.startswith('applications') or \
-           root.startswith('backends'):
+        if root.startswith('applications'):
             continue
 
         if root.strip():
@@ -26,7 +25,7 @@ def genapi():
                 continue
 
             f, ext = f.rsplit('.', 1)
-            if ext == 'pyc' or f == '__init__':
+            if ext != 'py' or f == '__init__':
                 continue
 
             subs.add(f)

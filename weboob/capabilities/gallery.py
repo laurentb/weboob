@@ -17,31 +17,39 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, \
+                  BytesField, IntField, FloatField, DateField
 
-__all__ = ['Thumbnail', 'ICapGallery', 'BaseGallery', 'BaseImage']
+__all__ = ['BaseGallery', 'BaseImage', 'ICapGallery']
 
 
 class BaseGallery(CapBaseObject):
     """
     Represents a gallery.
+
     This object has to be inherited to specify how to calculate the URL of the gallery from its ID.
     """
+    title =         StringField('Title of gallery')
+    url =           StringField('Direct URL to gallery')
+    description =   StringField('Description of gallery')
+    cardinality =   IntField('Cardinality of gallery')
+    date =          DateField('Date of gallery')
+    rating =        FloatField('Rating of this gallery')
+    rating_max =    FloatField('Max rating available')
+    thumbnail =     Field('Thumbnail', Thumbnail)
+
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, cardinality=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('title', basestring, title)
-        self.add_field('url', basestring, url)
-        self.add_field('description', basestring)
-        self.add_field('cardinality', int)
-        self.add_field('date', datetime, date)
-        self.add_field('rating', (int, long, float), rating)
-        self.add_field('rating_max', (int, long, float), rating_max)
-        self.add_field('thumbnail', Thumbnail, thumbnail)
+        self.title = title
+        self.url = url
+        self.date = date
+        self.rating = rating
+        self.rating_max = rating_max
+        self.thumbnail = thumbnail
 
     @classmethod
     def id2url(cls, _id):
@@ -50,24 +58,39 @@ class BaseGallery(CapBaseObject):
 
     @property
     def page_url(self):
+        """
+        Get URL to page of this gallery.
+        """
         return self.id2url(self.id)
 
     def iter_image(self):
+        """
+        Iter images.
+        """
         raise NotImplementedError()
 
 
 class BaseImage(CapBaseObject):
+    """
+    Base class for images.
+    """
+    index =     IntField('Usually page number')
+    thumbnail = Field('Thumbnail of the image', Thumbnail)
+    url =       StringField('Direct URL to image')
+    ext =       StringField('Extension of image')
+    data =      BytesField('Data of image')
+    gallery =   Field('Reference to the Gallery object', BaseGallery)
+
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('index', int, index)  # usually page number
-        self.add_field('thumbnail', Thumbnail, thumbnail)
-        self.add_field('url', basestring, url)
-        self.add_field('ext', basestring, ext)
-        self.add_field('data', str)
-        self.add_field('gallery', BaseGallery, gallery)
+        self.index = index
+        self.thumbnail = thumbnail
+        self.url = url
+        self.ext = ext
+        self.gallery = gallery
 
     def __str__(self):
         return self.url
@@ -92,10 +115,15 @@ class ICapGallery(IBaseCap):
         """
         Iter results of a search on a pattern.
 
-        @param pattern  [str] pattern to search on
-        @param sortby  [enum] sort by...
-        @param nsfw  [bool] include non-suitable for work videos if True
-        @param max_results  [int] maximum number of results to return
+        :param pattern: pattern to search on
+        :type pattern: str
+        :param sortby: sort by...
+        :type sortby: SEARCH_*
+        :param nsfw: include non-suitable for work videos if True
+        :type nsfw: bool
+        :param max_results: maximum number of results to return
+        :type max_results: int
+        :rtype: :class:`BaseGallery`
         """
         raise NotImplementedError()
 
@@ -103,7 +131,8 @@ class ICapGallery(IBaseCap):
         """
         Get gallery from an ID.
 
-        @param _id  the gallery id. It can be a numeric ID, or a page url, or so.
-        @return a Gallery object
+        :param _id: the gallery id. It can be a numeric ID, or a page url, or so.
+        :type _id: str
+        :rtype: :class:`Gallery`
         """
         raise NotImplementedError()

@@ -18,14 +18,28 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.misc import iter_fields
+import datetime
+from dateutil.parser import parse as parse_dt
+from copy import deepcopy
+
+from weboob.tools.misc import to_unicode
+from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['FieldNotFound', 'IBaseCap', 'NotAvailable', 'NotLoaded',
-    'CapBaseObject']
+__all__ = ['FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
+           'Field', 'IntField', 'FloatField', 'StringField', 'BytesField',
+           'DateField', 'DeltaField', 'CapBaseObject']
 
 
 class FieldNotFound(Exception):
+    """
+    A field isn't found.
+
+    :param obj: object
+    :type obj: :class:`CapBaseObject`
+    :param field: field not found
+    :type field: :class:`Field`
+    """
     def __init__(self, obj, field):
         Exception.__init__(self,
             u'Field "%s" not found for object %s' % (field, obj))
@@ -43,6 +57,9 @@ class NotAvailableMeta(type):
 
 
 class NotAvailable(object):
+    """
+    Constant to use on non available fields.
+    """
     __metaclass__ = NotAvailableMeta
 
 
@@ -58,40 +75,185 @@ class NotLoadedMeta(type):
 
 
 class NotLoaded(object):
+    """
+    Constant to use on not loaded fields.
+
+    When you use :func:`weboob.tools.backend.BaseBackend.fillobj` on a object based on :class:`CapBaseObject`,
+    it will request all fields with this value.
+    """
     __metaclass__ = NotLoadedMeta
 
 
 class IBaseCap(object):
-    pass
+    """
+    This is the base class for all capabilities.
 
+    A capability may define abstract methods (which raise :class:`NotImplementedError`)
+    with an explicit docstring to tell backends how to implement them.
+
+    Also, it may define some *objects*, using :class:`CapBaseObject`.
+    """
+
+
+class Field(object):
+    """
+    Field of a :class:`CapBaseObject` class.
+
+    :param doc: docstring of the field
+    :type doc: :class:`str`
+    :param args: list of types accepted
+    :param default: default value of this field. If not specified, :class:`NotLoaded` is used.
+    """
+    _creation_counter = 0
+
+    def __init__(self, doc, *args, **kwargs):
+        self.types = ()
+        self.value = kwargs.get('default', NotLoaded)
+        self.doc = doc
+
+        for arg in args:
+            if isinstance(arg, type):
+                self.types += (arg,)
+            else:
+                raise TypeError('Arguments must be types')
+
+        self._creation_counter = Field._creation_counter
+        Field._creation_counter += 1
+
+    def convert(self, value):
+        """
+        Convert value to the wanted one.
+        """
+        return value
+
+class IntField(Field):
+    """
+    A field which accepts only :class:`int` and :class:`long` types.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, int, long, **kwargs)
+
+    def convert(self, value):
+        return int(value)
+
+class FloatField(Field):
+    """
+    A field which accepts only :class:`float` type.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, float, **kwargs)
+
+    def convert(self, value):
+        return float(value)
+
+class StringField(Field):
+    """
+    A field which accepts only :class:`unicode` strings.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, unicode, **kwargs)
+
+    def convert(self, value):
+        return to_unicode(value)
+
+class BytesField(Field):
+    """
+    A field which accepts only :class:`str` strings.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, str, **kwargs)
+
+    def convert(self, value):
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        return str(value)
+
+class DateField(Field):
+    """
+    A field which accepts only :class:`datetime.date` and :class:`datetime.datetime` types.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
+
+    def convert(self, value):
+        if isinstance(value, basestring):
+            return parse_dt(value)
+        return value
+
+class TimeField(Field):
+    """
+    A field which accepts only :class:`datetime.time` and :class:`datetime.time` types.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, datetime.time, datetime.datetime, **kwargs)
+
+class DeltaField(Field):
+    """
+    A field which accepts only :class:`datetime.timedelta` type.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, datetime.timedelta, **kwargs)
+
+class _CapBaseObjectMeta(type):
+    def __new__(cls, name, bases, attrs):
+        fields = [(field_name, attrs.pop(field_name)) for field_name, obj in attrs.items() if isinstance(obj, Field)]
+        fields.sort(key=lambda x: x[1]._creation_counter)
+
+        new_class = super(_CapBaseObjectMeta, cls).__new__(cls, name, bases, attrs)
+        if new_class._fields is None:
+            new_class._fields = OrderedDict()
+        else:
+            new_class._fields = deepcopy(new_class._fields)
+        new_class._fields.update(fields)
+
+        assert new_class.__doc__ is not None
+        if new_class.__doc__ is None:
+            new_class.__doc__ = ''
+        for name, field in fields:
+            doc = '(%s) %s' % (', '.join([':class:`%s`' % v.__name__ for v in field.types]), field.doc)
+            if field.value is not NotLoaded:
+                doc += ' (default: %s)' % field.value
+            new_class.__doc__ += '\n:var %s: %s' % (name, doc)
+        return new_class
 
 class CapBaseObject(object):
-    FIELDS = None
-    _attribs = None
+    """
+    This is the base class for a capability object.
+
+    A capability interface may specify to return several kind of objects, to formalise
+    retrieved information from websites.
+
+    As python is a flexible language where variables are not typed, we use a system to
+    force backends to set wanted values on all fields. To do that, we use the :class:`Field`
+    class and all derived ones.
+
+    For example::
+
+        class Transfer(CapBaseObject):
+            " Transfer from an account to a recipient.  "
+
+            amount =    FloatField('Amount to transfer')
+            date =      Field('Date of transfer', basestring, date, datetime)
+            origin =    Field('Origin of transfer', int, long, basestring)
+            recipient = Field('Recipient', int, long, basestring)
+
+    The docstring is mandatory.
+    """
+
+    __metaclass__ = _CapBaseObjectMeta
+    _fields = None
 
     def __init__(self, id, backend=None):
-        self.id = id
+        self.id = to_unicode(id)
         self.backend = backend
+        self._fields = deepcopy(self._fields)
 
     @property
     def fullid(self):
+        """
+        Full ID of the object, in form '**ID@backend**'.
+        """
         return '%s@%s' % (self.id, self.backend)
-
-    def add_field(self, name, type, value=NotLoaded):
-        """
-        Add a field in list, which needs to be of type @type.
-
-        @param name [str]  name of field
-        @param type [class]  type accepted (can be a tuple of types)
-        @param value [object]  value set to attribute (default is NotLoaded)
-        """
-        if not isinstance(self.FIELDS, list):
-            self.FIELDS = []
-        self.FIELDS.append(name)
-
-        if self._attribs is None:
-            self._attribs = {}
-        self._attribs[name] = self._AttribValue(type, value)
 
     def __iscomplete__(self):
         """
@@ -111,6 +273,9 @@ class CapBaseObject(object):
     def set_empty_fields(self, value, excepts=()):
         """
         Set the same value on all empty fields.
+
+        :param value: value to set on all empty fields
+        :param excepts: if specified, do not change fields listed
         """
         for key, old_value in self.iter_fields():
             if old_value in (None, NotLoaded, NotAvailable) and \
@@ -119,22 +284,16 @@ class CapBaseObject(object):
 
     def iter_fields(self):
         """
-        Iterate on the FIELDS keys and values.
+        Iterate on the fields keys and values.
 
         Can be overloaded to iterate on other things.
 
-        @return [iter(key,value)]  iterator on key, value
+        :rtype: iter[(key, value)]
         """
 
-        if self.FIELDS is None:
-            yield 'id', self.id
-            for key, value in iter_fields(self):
-                if key not in ('id', 'backend', 'FIELDS'):
-                    yield key, value
-        else:
-            yield 'id', self.id
-            for attrstr in self.FIELDS:
-                yield attrstr, getattr(self, attrstr)
+        yield 'id', self.id
+        for name, field in self._fields.iteritems():
+            yield name, field.value
 
     def __eq__(self, obj):
         if isinstance(obj, CapBaseObject):
@@ -142,29 +301,32 @@ class CapBaseObject(object):
         else:
             return False
 
-    class _AttribValue(object):
-        def __init__(self, type, value):
-            self.type = type
-            self.value = value
-
     def __getattr__(self, name):
-        if self._attribs is not None and name in self._attribs:
-            return self._attribs[name].value
+        if self._fields is not None and name in self._fields:
+            return self._fields[name].value
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (
                 self.__class__.__name__, name)
 
     def __setattr__(self, name, value):
         try:
-            attr = (self._attribs or {})[name]
+            attr = (self._fields or {})[name]
         except KeyError:
             object.__setattr__(self, name, value)
         else:
-            if not isinstance(value, attr.type) and \
+            try:
+                # Try to convert value to the wanted one.
+                value = attr.convert(value)
+            except Exception:
+                # error during conversion, it will probably not
+                # match the wanted following types, so we'll
+                # raise ValueError.
+                pass
+            if not isinstance(value, attr.types) and \
                value is not NotLoaded and \
                value is not NotAvailable and \
                value is not None:
                 raise ValueError(
                     'Value for "%s" needs to be of type %r, not %r' % (
-                        name, attr.type, type(value)))
+                        name, attr.types, type(value)))
             attr.value = value

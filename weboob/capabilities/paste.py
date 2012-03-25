@@ -18,27 +18,34 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField
 
 
 __all__ = ['PasteNotFound', 'BasePaste', 'ICapPaste']
 
 
 class PasteNotFound(Exception):
-    pass
+    """
+    Raised when a paste is not found.
+    """
 
 class BasePaste(CapBaseObject):
     """
     Represents a pasted text.
     """
+    title =         StringField('Title of paste')
+    language =      StringField('Language of the paste')
+    contents =      StringField('Content of the paste')
+    public =        Field('Is this paste public?', bool)
+
     def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
             public=NotLoaded):
         CapBaseObject.__init__(self, unicode(_id))
 
-        self.add_field('title', basestring, title)
-        self.add_field('language', basestring, language)
-        self.add_field('contents', basestring, contents)
-        self.add_field('public', bool, public)
+        self.title = title
+        self.language = language
+        self.contents = contents
+        self.public = public
 
     @classmethod
     def id2url(cls, _id):
@@ -47,6 +54,9 @@ class BasePaste(CapBaseObject):
 
     @property
     def page_url(self):
+        """
+        Get URL to page of this paste.
+        """
         return self.id2url(self.id)
 
 
@@ -60,7 +70,7 @@ class ICapPaste(IBaseCap):
         Get a new paste object for posting it with the backend.
         The parameters should be passed to the object init.
 
-        @return a Paste object
+        :rtype: :class:`BasePaste`
         """
         raise NotImplementedError()
 
@@ -79,7 +89,8 @@ class ICapPaste(IBaseCap):
         A score of 1 means the backend is suitable.
         Higher scores means it is more suitable than others with a lower score.
 
-        @return int Score
+        :rtype: int
+        :returns: score
         """
         raise NotImplementedError()
 
@@ -87,8 +98,10 @@ class ICapPaste(IBaseCap):
         """
         Get a Paste from an ID or URL.
 
-        @param _id the paste id. It can be an ID or a page URL.
-        @return a Paste object
+        :param _id: the paste id. It can be an ID or a page URL.
+        :type _id: str
+        :rtype: :class:`BasePaste`
+        :raises: :class:`PasteNotFound`
         """
         raise NotImplementedError()
 
@@ -96,7 +109,7 @@ class ICapPaste(IBaseCap):
         """
         Post a paste.
 
-        @param paste Paste object
-        @return
+        :param paste: a Paste object
+        :type paste: :class:`BasePaste`
         """
         raise NotImplementedError()

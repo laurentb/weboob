@@ -18,27 +18,40 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, StringField, FloatField
 
 
 __all__ = ['IpLocation', 'ICapGeolocIp']
 
 
 class IpLocation(CapBaseObject):
+    """
+    Represents the location of an IP address.
+    """
+    city =      StringField('City')
+    region =    StringField('Region')
+    zipcode =   StringField('Zip code')
+    country =   StringField('Country')
+    lt =        FloatField('Latitude')
+    lg =        FloatField('Longitude')
+    host =      StringField('Hostname')
+    tld =       StringField('Top Level Domain')
+    isp =       StringField('Internet Service Provider')
+
     def __init__(self, ipaddr):
         CapBaseObject.__init__(self, ipaddr)
-
         self.ipaddr = ipaddr
-        self.add_field('city', basestring)
-        self.add_field('region', basestring)
-        self.add_field('zipcode', basestring)
-        self.add_field('country', basestring)
-        self.add_field('lt', float)
-        self.add_field('lg', float)
-        self.add_field('host', basestring)
-        self.add_field('tld', basestring)
-        self.add_field('isp', basestring)
 
 class ICapGeolocIp(IBaseCap):
+    """
+    Access information about IP addresses database.
+    """
     def get_location(self, ipaddr):
+        """
+        Get location of an IP address.
+
+        :param ipaddr: IP address
+        :type ipaddr: str
+        :rtype: :class:`IpLocation`
+        """
         raise NotImplementedError()

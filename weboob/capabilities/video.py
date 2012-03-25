@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2012 Romain Bignon, Christophe Benz
 #
 # This file is part of weboob.
 #
@@ -18,34 +18,33 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from .base import IBaseCap, CapBaseObject, NotAvailable
+from .base import IBaseCap, CapBaseObject, NotAvailable, StringField, Field, DateField
 from weboob.tools.capabilities.thumbnail import Thumbnail
 
 
 __all__ = ['BaseVideo', 'ICapVideo']
 
+
 class BaseVideo(CapBaseObject):
     """
     Represents a video.
+
     This object has to be inherited to specify how to calculate the URL of the video from its ID.
     """
 
-    def __init__(self, _id):
-        CapBaseObject.__init__(self, unicode(_id))
-
-        self.add_field('title', basestring)
-        self.add_field('url', basestring)
-        self.add_field('ext', basestring)
-        self.add_field('author', basestring)
-        self.add_field('description', basestring)
-        self.add_field('duration', (int,long,timedelta))
-        self.add_field('date', datetime)
-        self.add_field('rating', (int,long,float), NotAvailable)
-        self.add_field('rating_max', (int,long,float), NotAvailable)
-        self.add_field('thumbnail', Thumbnail)
-        self.add_field('nsfw', bool, False)
+    title =         StringField('Title of video')
+    url =           StringField('URL to the video file')
+    ext =           StringField('Extension of video')
+    author =        StringField('Author of video')
+    description =   StringField('Description of video')
+    duration =      Field('Duration of video', int, long, timedelta)
+    date =          DateField('Date when the video has been published')
+    rating =        Field('Rating of video', int, long, float, default=NotAvailable)
+    rating_max =    Field('Max rating', int, long, float, default=NotAvailable)
+    thumbnail =     Field('Thumbnail of video', Thumbnail)
+    nsfw =          Field('Is this video Not Safe For Work', bool, default=False)
 
     @classmethod
     def id2url(cls, _id):
@@ -54,6 +53,9 @@ class BaseVideo(CapBaseObject):
 
     @property
     def page_url(self):
+        """
+        Get page URL of the video.
+        """
         return self.id2url(self.id)
 
 
@@ -70,10 +72,14 @@ class ICapVideo(IBaseCap):
         """
         Iter results of a search on a pattern.
 
-        @param pattern  [str] pattern to search on
-        @param sortby  [enum] sort by...
-        @param nsfw  [bool] include non-suitable for work videos if True
-        @param max_results  [int] maximum number of results to return
+        :param pattern: pattern to search on
+        :type pattern: str
+        :param sortby: sort by... (use SEARCH_* constants)
+        :param nsfw: include non-suitable for work videos if True
+        :type nsfw: bool
+        :param max_results: maximum number of results to return
+        :type max_results: int
+        :rtype: iter[:class:`BaseVideo`]
         """
         raise NotImplementedError()
 
@@ -81,7 +87,8 @@ class ICapVideo(IBaseCap):
         """
         Get a Video from an ID.
 
-        @param _id  the video id. It can be a numeric ID, or a page url, or so.
-        @return a Video object
+        :param _id: the video id. It can be a numeric ID, or a page url
+        :type _id: str
+        :rtype: :class:`BaseVideo` or None is fot found.
         """
         raise NotImplementedError()

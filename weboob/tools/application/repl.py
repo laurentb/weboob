@@ -39,7 +39,7 @@ from .formatters.load import FormattersLoader, FormatterLoadError
 from .results import ResultsCondition, ResultsConditionError
 
 
-__all__ = ['ReplApplication', 'NotEnoughArguments']
+__all__ = ['NotEnoughArguments', 'ReplApplication']
 
 
 class NotEnoughArguments(Exception):
@@ -354,9 +354,10 @@ class ReplApplication(Cmd, ConsoleApplication):
     def complete(self, text, state):
         """
         Override of the Cmd.complete() method to:
-        - add a space at end of proposals
-        - display only proposals for words which match the
-          text already written by user.
+
+          * add a space at end of proposals
+          * display only proposals for words which match the
+            text already written by user.
         """
         super(ReplApplication, self).complete(text, state)
 

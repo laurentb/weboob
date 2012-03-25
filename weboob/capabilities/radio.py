@@ -18,17 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, Field, StringField
 
 
 __all__ = ['Emission', 'Stream', 'Radio', 'ICapRadio']
 
 
 class Emission(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('artist', unicode)
-        self.add_field('title', unicode)
+    """
+    Emission of a radio.
+    """
+    artist =    StringField('Name of artist')
+    title =     StringField('Title of song or emission')
 
     def __iscomplete__(self):
         # This volatile information may be reloaded everytimes.
@@ -41,10 +42,11 @@ class Emission(CapBaseObject):
             return self.title
 
 class Stream(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('title', unicode)
-        self.add_field('url', unicode)
+    """
+    Stream of a radio.
+    """
+    title =     StringField('Title of stream')
+    url =       StringField('Direct URL to the stream')
 
     def __unicode__(self):
         return u'%s (%s)' % (self.title, self.url)
@@ -53,16 +55,34 @@ class Stream(CapBaseObject):
         return self.__unicode__()
 
 class Radio(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('title', unicode)
-        self.add_field('description', unicode)
-        self.add_field('current', Emission)
-        self.add_field('streams', list)
+    """
+    Radio object.
+    """
+    title =         StringField('Title of radio')
+    description =   StringField('Description of radio')
+    current =       Field('Current emission', Emission)
+    streams =       Field('List of streams', list)
 
 class ICapRadio(IBaseCap):
+    """
+    Capability of radio websites.
+    """
     def iter_radios_search(self, pattern):
+        """
+        Search a radio.
+
+        :param pattern: pattern to search
+        :type pattern: str
+        :rtype: iter[:class:`Radio`]
+        """
         raise NotImplementedError()
 
     def get_radio(self, id):
+        """
+        Get a radio from an ID.
+
+        :param id: ID of radio
+        :type id: str
+        :rtype: :class:`Radio`
+        """
         raise NotImplementedError()

@@ -17,30 +17,49 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, timedelta
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, Field, StringField, DateField, \
+                  IntField, DeltaField
 
 
-__all__ = ['ICapBugTracker']
+__all__ = ['IssueError', 'Project', 'User', 'Version', 'Status', 'Attachment',
+           'Change', 'Update', 'Issue', 'Query', 'ICapBugTracker']
 
 
 class IssueError(Exception):
-    pass
+    """
+    Raised when there is an error with an issue.
+    """
 
 class Project(CapBaseObject):
+    """
+    Represents a project.
+    """
+    name =          StringField('Name of the project')
+    members =       Field('Members of projects', list)
+    versions =      Field('List of versions available for this project', list)
+    categories =    Field('All categories', list)
+    statuses =      Field('Available statuses for issues', list)
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', unicode, name)
-        self.add_field('members', list)
-        self.add_field('versions', list)
-        self.add_field('categories', list)
-        self.add_field('statuses', list)
+        self.name = name
 
     def __repr__(self):
         return '<Project %r>' % self.name
 
     def find_user(self, id, name):
+        """
+        Find a user from its ID.
+
+        If not found, create a :class:`User` with the specified name.
+
+        :param id: ID of user
+        :type id: str
+        :param name: Name of user
+        :type name: str
+        :rtype: :class:`User`
+        """
         for user in self.members:
             if user.id == id:
                 return user
@@ -49,6 +68,17 @@ class Project(CapBaseObject):
         return User(id, name)
 
     def find_version(self, id, name):
+        """
+        Find a version from an ID.
+
+        If not found, create a :class:`Version` with the specified name.
+
+        :param id: ID of version
+        :type id: str
+        :param name: Name of version
+        :type name: str
+        :rtype: :class:`Version`
+        """
         for version in self.versions:
             if version.id == id:
                 return version
@@ -57,6 +87,13 @@ class Project(CapBaseObject):
         return Version(id, name)
 
     def find_status(self, name):
+        """
+        Find a status from a name.
+
+        :param name: Name of status
+        :type name: str
+        :rtype: :class:`Status`
+        """
         for status in self.statuses:
             if status.name == name:
                 return status
@@ -65,98 +102,129 @@ class Project(CapBaseObject):
         return None
 
 class User(CapBaseObject):
+    """
+    User.
+    """
+    name =      StringField('Name of user')
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', unicode, name)
+        self.name = name
 
     def __repr__(self):
         return '<User %r>' % self.name
 
 class Version(CapBaseObject):
+    """
+    Version of a project.
+    """
+    name =      StringField('Name of version')
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', unicode, name)
+        self.name = name
 
     def __repr__(self):
         return '<Version %r>' % self.name
 
 class Status(CapBaseObject):
+    """
+    Status of an issue.
+
+    **VALUE_** constants are the primary status
+    types.
+    """
     (VALUE_NEW,
      VALUE_PROGRESS,
      VALUE_RESOLVED,
      VALUE_REJECTED) = range(4)
 
+    name =      StringField('Name of status')
+    value =     IntField('Value of status (constants VALUE_*)')
+
     def __init__(self, id, name, value):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', unicode, name)
-        self.add_field('value', int, value)
+        self.name = name
+        self.value = value
 
     def __repr__(self):
         return '<Status %r>' % self.name
 
 class Attachment(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('filename', basestring)
-        self.add_field('url', basestring)
+    """
+    Attachment of an issue.
+    """
+    filename =      StringField('Filename')
+    url =           StringField('Direct URL to attachment')
 
     def __repr__(self):
         return '<Attachment %r>' % self.filename
 
 class Change(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('field', unicode)
-        self.add_field('last', unicode)
-        self.add_field('new', unicode)
+    """
+    A change of an update.
+    """
+    field =         StringField('What field has been changed')
+    last =          StringField('Last value of field')
+    new =           StringField('New value of field')
 
 class Update(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('author', User)
-        self.add_field('date', datetime)
-        self.add_field('hours', timedelta)
-        self.add_field('message', unicode)
-        self.add_field('attachments', (list,tuple)) # Attachment
-        self.add_field('changes', (list,tuple)) # Change
+    """
+    Represents an update of an issue.
+    """
+    author =        Field('Author of update', User)
+    date =          DateField('Date of update')
+    hours =         DeltaField('Time activity')
+    message =       StringField('Log message')
+    attachments =   Field('Files attached to update', list, tuple)
+    changes =       Field('List of changes', list, tuple)
 
     def __repr__(self):
         return '<Update %r>' % self.id
 
 class Issue(CapBaseObject):
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('project', Project)
-        self.add_field('title', unicode)
-        self.add_field('body', unicode)
-        self.add_field('creation', datetime)
-        self.add_field('updated', datetime)
-        self.add_field('attachments', (list,tuple))
-        self.add_field('history', (list,tuple))
-        self.add_field('author', User)
-        self.add_field('assignee', User)
-        self.add_field('category', unicode)
-        self.add_field('version', Version)
-        self.add_field('status', Status)
+    """
+    Represents an issue.
+    """
+    project =       Field('Project of this issue', Project)
+    title =         StringField('Title of issue')
+    body =          StringField('Text of issue')
+    creation =      DateField('Date when this issue has been created')
+    updated =       DateField('Date when this issue has been updated for the last time')
+    attachments =   Field('List of attached files', list, tuple)
+    history =       Field('History of updates', list, tuple)
+    author =        Field('Author of this issue', User)
+    assignee =      Field('User assigned to this issue', User)
+    category =      StringField('Name of the category')
+    version =       Field('Target version of this issue', Version)
+    status =        Field('Status of this issue', Status)
 
 class Query(CapBaseObject):
+    """
+    Query to find an issue.
+    """
+    project =       StringField('Filter on projects')
+    title =         StringField('Filter on titles')
+    author =        StringField('Filter on authors')
+    assignee =      StringField('Filter on assignees')
+    version =       StringField('Filter on versions')
+    category =      StringField('Filter on categories')
+    status =        StringField('Filter on statuses')
+
     def __init__(self):
         CapBaseObject.__init__(self, '')
-        self.add_field('project', unicode)
-        self.add_field('title', unicode)
-        self.add_field('author', unicode)
-        self.add_field('assignee', unicode)
-        self.add_field('version', unicode)
-        self.add_field('category', unicode)
-        self.add_field('status', unicode)
 
 class ICapBugTracker(IBaseCap):
+    """
+    Bug trackers websites.
+    """
     def iter_issues(self, query):
         """
         Iter issues with optionnal patterns.
 
-        @param  query [Query]
-        @return [iter(Issue)] issues
+        :param query: query
+        :type query: :class:`Query`
+        :rtype: iter[:class:`Issue`]
         """
         raise NotImplementedError()
 
@@ -164,7 +232,8 @@ class ICapBugTracker(IBaseCap):
         """
         Get an issue from its ID.
 
-        @return Issue
+        :param id: ID of issue
+        :rtype: :class:`Issue`
         """
         raise NotImplementedError()
 
@@ -172,13 +241,19 @@ class ICapBugTracker(IBaseCap):
         """
         Create an empty issue on the given project.
 
-        @return [Issue]  the created issue.
+        :param project: project
+        :type project: :class:`Project`
+        :returns: the created issue
+        :rtype: :class:`Issue`
         """
         raise NotImplementedError()
 
     def post_issue(self, issue):
         """
         Post an issue to create or update it.
+
+        :param issue: issue to create or update
+        :type issue: :class:`Issue`
         """
         raise NotImplementedError()
 
@@ -186,14 +261,19 @@ class ICapBugTracker(IBaseCap):
         """
         Add an update to an issue.
 
-        @param issue [id,Issue]  issue or id of issue
-        @param update [Update]  an Update object
+        :param issue: issue or id of issue
+        :type issue: :class:`Issue`
+        :param update: an Update object
+        :type update: :class:`Update`
         """
         raise NotImplementedError()
 
     def remove_issue(self, issue):
         """
         Remove an issue.
+
+        :param issue: issue
+        :type issue: :class:`Issue`
         """
         raise NotImplementedError()
 
@@ -201,7 +281,7 @@ class ICapBugTracker(IBaseCap):
         """
         Iter projects.
 
-        @return [iter(Project)] projects
+        :rtype: iter[:class:`Project`]
         """
         raise NotImplementedError()
 
@@ -209,6 +289,6 @@ class ICapBugTracker(IBaseCap):
         """
         Get a project from its ID.
 
-        @return [Project]
+        :rtype: :class:`Project`
         """
         raise NotImplementedError()

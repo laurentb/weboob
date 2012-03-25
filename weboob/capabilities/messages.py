@@ -21,17 +21,41 @@
 import datetime
 import time
 
-from .base import IBaseCap, CapBaseObject, NotLoaded
+from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, DateField, IntField
 
 
-__all__ = ['ICapMessages', 'ICapMessagesPost', 'Message', 'Thread', 'CantSendMessage']
+__all__ = ['Thread', 'Message', 'ICapMessages', 'CantSendMessage', 'ICapMessagesPost']
 
 
-class Message(CapBaseObject):
+# Message and Thread's attributes refer to themselves, and it isn't possible
+# in python, so these base classes are used instead.
+class _Message(CapBaseObject):
+    """ Base message. """
+    pass
+
+class _Thread(CapBaseObject):
+    """ Base Thread. """
+    pass
+
+class Message(_Message):
+    """
+    Represents a message read or to send.
+    """
     IS_HTML = 0x001          # The content is HTML formatted
     IS_UNREAD = 0x002        # The message is unread
     IS_RECEIVED = 0x004       # The receiver has read this message
     IS_NOT_RECEIVED = 0x008   # The receiver has not read this message
+
+    thread =        Field('Reference to the thread', _Thread)
+    title =         StringField('Title of message')
+    sender =        StringField('Author of this message')
+    receivers =     Field('Receivers of the message', list)
+    date =          DateField('Date when the message has been sent')
+    content =       StringField('Body of message')
+    signature =     StringField('Optional signature')
+    parent =        Field('Parent message', _Message)
+    children =      Field('Children fields', list)
+    flags =         IntField('Flags (IS_* constants)', default=0)
 
     def __init__(self, thread, id,
                        title=NotLoaded,
@@ -45,16 +69,14 @@ class Message(CapBaseObject):
                        flags=0):
         CapBaseObject.__init__(self, id)
         assert thread is not None
-        self.add_field('thread', Thread, thread)
-        self.add_field('title', basestring, title)
-        self.add_field('sender', basestring, sender)
-        self.add_field('receivers', list, receivers)
-        self.add_field('date', (datetime.datetime, datetime.date), date)
-        self.add_field('parent', Message, parent)
-        self.add_field('content', basestring, content)
-        self.add_field('signature', basestring, signature)
-        self.add_field('children', list, children)
-        self.add_field('flags', int, flags)
+        self.thread = thread
+        self.title = title
+        self.sender = sender
+        self.receivers = receivers
+        self.content = content
+        self.signature = signature
+        self.children = children
+        self.flags = flags
 
         if date is None:
             date = datetime.datetime.utcnow()
@@ -68,14 +90,23 @@ class Message(CapBaseObject):
 
     @property
     def date_int(self):
+        """
+        Date of message as an integer.
+        """
         return int(time.strftime('%Y%m%d%H%M%S', self.date.timetuple()))
 
     @property
     def full_id(self):
+        """
+        Full ID of message (in form '**THREAD_ID.MESSAGE_ID**')
+        """
         return '%s.%s' % (self.thread.id, self.id)
 
     @property
     def full_parent_id(self):
+        """
+        Get the full ID of the parent message (in form '**THREAD_ID.MESSAGE_ID**').
+        """
         if self.parent:
             return self.parent.full_id
         elif self._parent_id is None:
@@ -96,18 +127,24 @@ class Message(CapBaseObject):
         return '<Message id=%r title=%r date=%r from=%r>' % (
                    self.full_id, self.title, self.date, self.sender)
 
-class Thread(CapBaseObject):
+class Thread(_Thread):
+    """
+    Thread containing messages.
+    """
     IS_THREADS =    0x001
     IS_DISCUSSION = 0x002
 
-    def __init__(self, id):
-        CapBaseObject.__init__(self, id)
-        self.add_field('root', Message)
-        self.add_field('title', basestring)
-        self.add_field('date', (datetime.datetime, datetime.date))
-        self.add_field('flags', int, self.IS_THREADS)
+    root =      Field('Root message', Message)
+    title =     StringField('Title of thread')
+    date =      DateField('Date of thread')
+    flags =     IntField('Flags (IS_* constants)', default=0)
 
     def iter_all_messages(self):
+        """
+        Iter all messages of the thread.
+
+        :rtype: iter[:class:`Message`]
+        """
         if self.root:
             yield self.root
             for m in self._iter_all_messages(self.root):
@@ -122,11 +159,14 @@ class Thread(CapBaseObject):
 
 
 class ICapMessages(IBaseCap):
+    """
+    Capability to read messages.
+    """
     def iter_threads(self):
         """
         Iterates on threads, from newers to olders.
 
-        @return [iter]  Thread objects
+        :rtype: iter[:class:`Thread`]
         """
         raise NotImplementedError()
 
@@ -134,7 +174,7 @@ class ICapMessages(IBaseCap):
         """
         Get a specific thread.
 
-        @return [Thread]  the Thread object
+        :rtype: :class:`Thread`
         """
         raise NotImplementedError()
 
@@ -142,7 +182,7 @@ class ICapMessages(IBaseCap):
         """
         Iterates on messages which hasn't been marked as read.
 
-        @return [iter]  Message objects
+        :rtype: iter[:class:`Message`]
         """
         raise NotImplementedError()
 
@@ -150,19 +190,26 @@ class ICapMessages(IBaseCap):
         """
         Set a message as read.
 
-        @param [message]  message read (or ID)
+        :param message: message read (or ID)
+        :type message: :class:`Message` or str
         """
         raise NotImplementedError()
 
 class CantSendMessage(Exception):
-    pass
+    """
+    Raised when a message can't be send.
+    """
 
 class ICapMessagesPost(IBaseCap):
+    """
+    This capability allow user to send a message.
+    """
     def post_message(self, message):
         """
         Post a message.
 
-        @param message  Message object
-        @return
+        :param message: message to send
+        :type message: :class:`Message`
+        :raises: :class:`CantSendMessage`
         """
         raise NotImplementedError()

@@ -28,42 +28,103 @@ from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
 
 
-__all__ = ['BaseBackend', 'ObjectNotAvailable']
+__all__ = ['ObjectNotAvailable', 'BackendStorage', 'BackendConfig', 'BaseBackend']
 
 
 class ObjectNotAvailable(Exception):
-    pass
+    """
+    Raised when an object is not available.
+    """
 
 
 class BackendStorage(object):
+    """
+    This is an abstract layer to store data in storages (:mod:`weboob.tools.storage`)
+    easily.
+
+    It is instancied automatically in constructor of :class:`BaseBackend`, in the
+    :attr:`BaseBackend.storage` attribute.
+
+    :param name: name of backend
+    :param storage: storage object
+    :type storage: :class:`weboob.tools.storage.IStorage`
+    """
     def __init__(self, name, storage):
         self.name = name
         self.storage = storage
 
     def set(self, *args):
+        """
+        Set value in the storage.
+
+        Example:
+
+        >>> backend.storage.set('config', 'nb_of_threads', 10)
+        >>>
+
+        :param args: the path where to store value
+        """
         if self.storage:
             return self.storage.set('backends', self.name, *args)
 
     def delete(self, *args):
+        """
+        Delete a value from the storage.
+
+        :param args: path to delete.
+        """
         if self.storage:
             return self.storage.delete('backends', self.name, *args)
 
     def get(self, *args, **kwargs):
+        """
+        Get a value or a dict of values in storage.
+
+        Example:
+
+        >>> backend.storage.get('config', 'nb_of_threads')
+        10
+        >>> backend.storage.get('config', 'unexistant', 'path', default='lol')
+        'lol'
+        >>> backend.storage.get('config')
+        {'nb_of_threads': 10, 'other_things': 'blah'}
+
+        :param args: path to get
+        :param default: if specified, default value when path is not found
+        """
         if self.storage:
             return self.storage.get('backends', self.name, *args, **kwargs)
         else:
             return kwargs.get('default', None)
 
     def load(self, default):
+        """
+        Load storage.
+
+        :param default: this is the default tree if storage is empty
+        :type default: :class:`dict`
+        """
         if self.storage:
             return self.storage.load('backends', self.name, default)
 
     def save(self):
+        """
+        Save storage.
+        """
         if self.storage:
             return self.storage.save('backends', self.name)
 
 
 class BackendConfig(ValuesDict):
+    """
+    Configuration of a backend.
+
+    This class is firstly instanced as a :class:`weboob.tools.value.ValuesDict`,
+    containing some :class:`weboob.tools.value.Value` (and derivated) objects.
+
+    Then, using the :func:`load` method will load configuration from file and
+    create a copy of the :class:`BackendConfig` object with the loaded values.
+    """
     modname = None
     instname = None
     weboob = None
@@ -72,12 +133,17 @@ class BackendConfig(ValuesDict):
         """
         Load configuration from dict to create an instance.
 
-        @param weboob [Weboob]  weboob object
-        @param modname [str]  name of module
-        @param instname [str]  name of instance of this backend
-        @param params [dict]  parameters to load
-        @param nofail [bool]  if true, this call can't fail.
-        @return [BackendConfig]
+        :param weboob: weboob object
+        :type weboob: :class:`weboob.core.ouiboube.Weboob`
+        :param modname: name of the module
+        :type modname: :class:`str`
+        :param instname: name of this backend
+        :type instname: :class:`str`
+        :param params: parameters to load
+        :type params: :class:`dict`
+        :param nofail: if true, this call can't fail
+        :type nofail: :class:`bool`
+        :rtype: :class:`BackendConfig`
         """
         cfg = BackendConfig()
         cfg.modname = modname
@@ -103,12 +169,25 @@ class BackendConfig(ValuesDict):
         return cfg
 
     def dump(self):
+        """
+        Dump config in a dictionary.
+
+        :rtype: :class:`dict`
+        """
         settings = {}
         for name, value in self.iteritems():
             settings[name] = value.dump()
         return settings
 
     def save(self, edit=True, params=None):
+        """
+        Save backend config.
+
+        :param edit: if true, it changes config of an existing backend
+        :type edit: :class:`bool`
+        :param params: if specified, params to merge with the ones of the current object
+        :type params: :class:`dict`
+        """
         assert self.modname is not None
         assert self.instname is not None
         assert self.weboob is not None
@@ -121,6 +200,22 @@ class BackendConfig(ValuesDict):
 
 
 class BaseBackend(object):
+    """
+    Base class for backends.
+
+    You may derivate it, and also all capabilities you want to implement.
+
+    :param weboob: weboob instance
+    :type weboob: :class:`weboob.core.ouiboube.Weboob`
+    :param name: name of backend
+    :type name: :class:`str`
+    :param config: configuration of backend
+    :type config: :class:`dict`
+    :param storage: storage object
+    :type storage: :class:`weboob.tools.storage.IStorage`
+    :param logger: logger
+    :type logger: :class:`logging.Logger`
+    """
     # Backend name.
     NAME = None
     # Name of the maintainer of this backend.
@@ -152,7 +247,9 @@ class BaseBackend(object):
     OBJECTS = {}
 
     class ConfigError(Exception):
-        pass
+        """
+        Raised when the config can't be loaded.
+        """
 
     def __enter__(self):
         self.lock.acquire()
@@ -184,16 +281,6 @@ class BaseBackend(object):
         """
         pass
 
-    class classprop(object):
-        def __init__(self, fget):
-            self.fget = fget
-
-        def __get__(self, inst, objtype=None):
-            if inst:
-                return self.fget(inst)
-            else:
-                return self.fget(objtype)
-
     _browser = None
 
     @property
@@ -202,7 +289,7 @@ class BaseBackend(object):
         Attribute 'browser'. The browser is created at the first call
         of this attribute, to avoid useless pages access.
 
-        Note that the 'create_default_browser' method is called to create it.
+        Note that the :func:`create_default_browser` method is called to create it.
         """
         if self._browser is None:
             self._browser = self.create_default_browser()
@@ -238,6 +325,11 @@ class BaseBackend(object):
 
     @classmethod
     def iter_caps(klass):
+        """
+        Iter capabilities implemented by this backend.
+
+        :rtype: iter[:class:`weboob.capabilities.base.IBaseCap`]
+        """
         def iter_caps(cls):
             for base in cls.__bases__:
                 if issubclass(base, IBaseCap) and base != IBaseCap:
@@ -247,6 +339,9 @@ class BaseBackend(object):
         return iter_caps(klass)
 
     def has_caps(self, *caps):
+        """
+        Check if this backend implements at least one of these capabilities.
+        """
         for c in caps:
             if (isinstance(c, basestring) and c in [cap.__name__ for cap in self.iter_caps()]) or \
                isinstance(self, c):
@@ -255,7 +350,10 @@ class BaseBackend(object):
 
     def fillobj(self, obj, fields=None):
         """
-        @param fields  which fields to fill; if None, all fields are filled (list)
+        Fill an object with the wanted fields.
+
+        :param fields: what fields to fill; if None, all fields are filled
+        :type fields: :class:`list`
         """
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())

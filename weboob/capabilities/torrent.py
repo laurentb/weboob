@@ -17,41 +17,72 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, DateField, IntField
 
 
-__all__ = ['ICapTorrent', 'Torrent']
+__all__ = ['MagnetOnly', 'Torrent', 'ICapTorrent']
 
 
 class MagnetOnly(Exception):
+    """
+    Raised when trying to get URL to torrent but only magnet is available.
+    """
     def __init__(self, magnet):
         self.magnet = magnet
         Exception.__init__(self, 'Only magnet URL is available')
 
 
 class Torrent(CapBaseObject):
+    """
+    Torrent object.
+    """
+    name =      StringField('Name of torrent')
+    size =      FloatField('Size of torrent')
+    date =      DateField('Date when torrent has been published')
+    url =       StringField('Direct url to .torrent file')
+    magnet =    StringField('URI of magnet')
+    seeders =   IntField('Number of seeders')
+    leechers =  IntField('Number of leechers')
+    files =     Field('Files in torrent', list)
+    description =   StringField('Description of torrent')
+    filename =      StringField('Name of .torrent file')
+
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.add_field('name', basestring, name)
-        self.add_field('size', (int, long, float))
-        self.add_field('date', datetime)
-        self.add_field('url', basestring)
-        self.add_field('magnet', basestring)
-        self.add_field('seeders', int)
-        self.add_field('leechers', int)
-        self.add_field('files', list)
-        self.add_field('description', basestring)
-        self.add_field('filename', basestring)  # suggested name of the .torrent file
+        self.name = name
 
 
 class ICapTorrent(IBaseCap):
+    """
+    Torrent trackers.
+    """
     def iter_torrents(self, pattern):
+        """
+        Search torrents and iterate on results.
+
+        :param pattern: pattern to search
+        :type pattern: str
+        :rtype: iter[:class:`Torrent`]
+        """
         raise NotImplementedError()
 
     def get_torrent(self, _id):
+        """
+        Get a torrent object from an ID.
+
+        :param _id: ID of torrent
+        :type _id: str
+        :rtype: :class:`Torrent`
+        """
         raise NotImplementedError()
 
     def get_torrent_file(self, _id):
+        """
+        Get the content of the .torrent file.
+
+        :param _id: ID of torrent
+        :type _id: str
+        :rtype: str
+        """
         raise NotImplementedError()

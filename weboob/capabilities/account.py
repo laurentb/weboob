@@ -18,23 +18,32 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject
+from .base import IBaseCap, CapBaseObject, StringField, Field
 
 
-__all__ = ['ICapAccount']
+__all__ = ['AccountRegisterError', 'Account', 'StatusField', 'ICapAccount']
 
 
 class AccountRegisterError(Exception):
-    pass
+    """
+    Raised when there is an error during registration.
+    """
 
 class Account(CapBaseObject):
+    """
+    Describe an account and its properties.
+    """
+    login =         StringField('Login')
+    password =      StringField('Password')
+    properties =    Field('List of key/value properties', dict)
+
     def __init__(self, id=None):
         CapBaseObject.__init__(self, id)
-        self.add_field('login', basestring)
-        self.add_field('password', basestring)
-        self.add_field('properties', dict)
 
 class StatusField(object):
+    """
+    Field of an account status.
+    """
     FIELD_TEXT    = 0x001     # the value is a long text
     FIELD_HTML    = 0x002     # the value is HTML formated
 
@@ -46,8 +55,14 @@ class StatusField(object):
 
 
 class ICapAccount(IBaseCap):
-    # This class constant may be a list of Value* objects. If the value remains
-    # None, weboob considers that register_account() isn't supported.
+    """
+    Capability for websites when you can create and manage accounts.
+
+    :var ACCOUNT_REGISTER_PROPERTIES: This class constant may be a list of
+                                      :class:`weboob.tools.value.Value` objects.
+                                      If the value remains None, weboob considers
+                                      that :func:`register_account` isn't supported.
+    """
     ACCOUNT_REGISTER_PROPERTIES = None
 
     @staticmethod
@@ -58,7 +73,9 @@ class ICapAccount(IBaseCap):
         This is a static method, it would be called even if the backend is
         instancied.
 
-        @param account  an Account object which describe the account to create
+        :param account: describe the account to create
+        :type account: :class:`Account`
+        :raises: :class:`AccountRegisterError`
         """
         raise NotImplementedError()
 
@@ -84,6 +101,6 @@ class ICapAccount(IBaseCap):
         """
         Get status of the current account.
 
-        @return a list of fields
+        :returns: a list of fields
         """
         raise NotImplementedError()

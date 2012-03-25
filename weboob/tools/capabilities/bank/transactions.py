@@ -30,6 +30,9 @@ __all__ = ['FrenchTransaction']
 
 
 class FrenchTransaction(Transaction):
+    """
+    Transaction with some helpers for french bank websites.
+    """
     PATTERNS = []
 
     def clean_amount(self, text):
@@ -61,7 +64,7 @@ class FrenchTransaction(Transaction):
 
         When calling this method, you should have defined patterns (in the
         PATTERN class attribute) with a list containing tuples of regexp
-        and the associated type, for example:
+        and the associated type, for example::
 
             PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                         (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
@@ -70,8 +73,9 @@ class FrenchTransaction(Transaction):
                        ]
 
         In regexps, you can define this patterns:
-            - text: part of label to store in simplified label
-            - yy, mm, dd, HH, MM: date and time parts
+
+            * text: part of label to store in simplified label
+            * yy, mm, dd, HH, MM: date and time parts
         """
         if not isinstance(date, (datetime.date, datetime.datetime)):
             if date.isdigit() and len(date) == 8:

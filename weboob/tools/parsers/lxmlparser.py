@@ -60,14 +60,18 @@ class LxmlHtmlParser(IParser):
         """
         Select one or many elements from an element, using lxml cssselect by default.
 
-        Raises BrokenPageError if not found.
+        Raises :class:`weboob.tools.browser.browser.BrokenPageError` if not found.
 
-        @param element [obj]  element on which to apply selector
-        @param selector [str]  CSS or XPath expression
-        @param method [str]  (cssselect|xpath)
-        @param nb [int]  number of elements expected to be found.
-                         Use None for undefined number, and 'many' for 1 to infinite.
-        @return  one or many Element
+        :param element: element on which to apply selector
+        :type element: object
+        :param selector: CSS or XPath expression
+        :type selector: str
+        :param method: (cssselect|xpath)
+        :type method: str
+        :param nb: number of elements expected to be found. Use None for
+                   undefined number, and 'many' for 1 to infinite
+        :type nb: :class:`int` or :class:`str`
+        :rtype: Element
         """
         if method == 'cssselect':
             results = element.cssselect(selector)
