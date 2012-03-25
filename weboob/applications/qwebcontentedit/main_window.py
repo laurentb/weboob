@@ -117,6 +117,8 @@ class MainWindow(QtMainWindow):
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading page'),
                              content, QMessageBox.Ok)
+        self.ui.saveButton.setEnabled(True)
+        self.ui.saveButton.setText("Load")
 
     def savePage(self):
         if self.backend is None:
