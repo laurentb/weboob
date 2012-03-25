@@ -40,13 +40,24 @@ class MainWindow(QtMainWindow):
         self.weboob = weboob
         self.backend = None
 
-        self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.loadPage)
-        self.connect(self.ui.loadButton, SIGNAL("clicked()"), self.loadPage)
-        self.connect(self.ui.tabWidget, SIGNAL("currentChanged(int)"),
-                                        self._currentTabChanged)
-        self.connect(self.ui.saveButton, SIGNAL("clicked()"), self.savePage)
-        self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.contentEdit, SIGNAL("textChanged()"), self._textChanged)
+        self.connect(self.ui.idEdit,
+                     SIGNAL("returnPressed()"),
+                     self.loadPage)
+        self.connect(self.ui.loadButton,
+                     SIGNAL("clicked()"),
+                     self.loadPage)
+        self.connect(self.ui.tabWidget,
+                     SIGNAL("currentChanged(int)"),
+                     self._currentTabChanged)
+        self.connect(self.ui.saveButton,
+                     SIGNAL("clicked()"),
+                     self.savePage)
+        self.connect(self.ui.actionBackends,
+                     SIGNAL("triggered()"),
+                     self.backendsConfig)
+        self.connect(self.ui.contentEdit,
+                     SIGNAL("textChanged()"),
+                     self._textChanged)
         self.connect(self.ui.loadHistoryButton,
                      SIGNAL("clicked()"),
                      self.loadHistory)
@@ -57,40 +68,51 @@ class MainWindow(QtMainWindow):
             self.loadBackends()
 
     def backendsConfig(self):
+        """ Opens backends configuration dialog when 'Backends' is clicked """
         bckndcfg = BackendCfg(self.weboob, (ICapContent,), self)
         if bckndcfg.run():
             self.loadBackends()
 
     def loadBackends(self):
+        """ Fills the backends comboBox with available backends """
         self.ui.backendBox.clear()
         for backend in self.weboob.iter_backends():
             self.ui.backendBox.insertItem(0, backend.name)
 
     def _currentTabChanged(self):
+        """ Loads history or preview when the corresponding tabs are shown """
         if self.ui.tabWidget.currentIndex() == 1:
             if self.backend is not None:
-                self.showPreview()
+                self.loadPreview()
         elif self.ui.tabWidget.currentIndex() == 2:
             if self.backend is not None:
                 self.loadHistory()
 
     def _textChanged(self):
+        """ The text in the content QPlainTextEdit has changed """
         if self.backend:
             self.ui.saveButton.setEnabled(True)
             self.ui.saveButton.setText('Save')
 
     def loadPage(self):
+        """ Loads a page's source into the 'content' QPlainTextEdit """
         _id = unicode(self.ui.idEdit.text())
         if not _id:
             return
+        
         self.ui.loadButton.setEnabled(False)
         self.ui.loadButton.setText('Loading...')
+                
         backend = str(self.ui.backendBox.currentText())
-        self.process = QtDo(self.weboob, self._loadPage_cb, self._loadPage_eb)
+        self.process = QtDo(self.weboob,
+                            self._loadedPage,
+                            self._errorLoadPage)
         self.process.do('get_content', _id, backends=(backend,))
 
-    def _loadPage_cb(self, backend, data):
+    def _loadedPage(self, backend, data):
+        """ Callback for loadPage """
         if not backend:
+            # Loading is finished
             self.process = None
             if self.backend:
                 self.ui.contentEdit.setReadOnly(False)
@@ -102,16 +124,19 @@ class MainWindow(QtMainWindow):
             self.backend = None
             QMessageBox.critical(self, self.tr('Unable to open page'),
                                  'Unable to open page "%s" on %s: it does not exist.'
-                                 % (self.ui.idEdit.text(), self.ui.backendBox.currentText()),
+                                 % (self.ui.idEdit.text(),
+                                    self.ui.backendBox.currentText()),
                                  QMessageBox.Ok)
             return
 
         self.content = data
         self.ui.contentEdit.setPlainText(self.content.content)
-        self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id, backend.name))
+        self.setWindowTitle("QWebcontentedit - %s@%s" %(self.content.id,
+                                                        backend.name))
         self.backend = backend    
 
-    def _loadPage_eb(self, backend, error, backtrace):
+    def _errorLoadPage(self, backend, error, backtrace):
+        """ Error callback for loadPage """
         content = unicode(self.tr('Unable to load page:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
@@ -121,6 +146,7 @@ class MainWindow(QtMainWindow):
         self.ui.saveButton.setText("Load")
 
     def savePage(self):
+        """ Saves the current page to the remote site """
         if self.backend is None:
             return
         new_content = unicode(self.ui.contentEdit.toPlainText())
@@ -131,18 +157,27 @@ class MainWindow(QtMainWindow):
             self.ui.contentEdit.setReadOnly(True)
             self.content.content = new_content
             message = unicode(self.ui.descriptionEdit.text())
-            self.process = QtDo(self.weboob, self._savePage_cb, self._savePage_eb)
-            self.process.do('push_content', self.content, message, minor=minor, backends=self.backend)
+            self.process = QtDo(self.weboob,
+                                self._savedPage,
+                                self._errorSavePage)
+            self.process.do('push_content',
+                            self.content,
+                            message,
+                            minor=minor,
+                            backends=self.backend)
 
-    def _savePage_cb(self, backend, data):
+    def _savedPage(self, backend, data):
+        """ Callback for savePage's QtDo """
         if not backend:
+            # saving has finished
             self.process = None
             self.ui.saveButton.setText('Saved')
             self.ui.contentEdit.setReadOnly(False)
             return
         self.ui.descriptionEdit.clear()
 
-    def _savePage_eb(self, backend, error, backtrace):
+    def _errorSavePage(self, backend, error, backtrace):
+        """ """
         content = unicode(self.tr('Unable to save page:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)
@@ -150,7 +185,8 @@ class MainWindow(QtMainWindow):
                              content, QMessageBox.Ok)
         self.ui.saveButton.setEnabled(True)
 
-    def showPreview(self):
+    def loadPreview(self):
+        """ Loads the current page's preview into the preview QTextEdit """
         tmp_content = deepcopy(self.content)
         tmp_content.content = unicode(self.ui.contentEdit.toPlainText())
         self.ui.previewEdit.setHtml(self.backend.get_content_preview(tmp_content))
@@ -162,10 +198,14 @@ class MainWindow(QtMainWindow):
 
         self.ui.loadHistoryButton.setEnabled(False)
         self.ui.loadHistoryButton.setText("Loading...")
+        
         self.ui.historyTable.clear()
         self.ui.historyTable.setRowCount(0)
 
-        self.ui.historyTable.setHorizontalHeaderLabels(["Revision", "Time", "Author", "Summary"])
+        self.ui.historyTable.setHorizontalHeaderLabels(["Revision",
+                                                        "Time",
+                                                        "Author",
+                                                        "Summary"])
         self.ui.historyTable.setColumnWidth(3, 1000)
         
         self.process = QtDo(self.weboob, self._gotRevision)
@@ -177,6 +217,7 @@ class MainWindow(QtMainWindow):
     def _gotRevision(self, backend, revision):
         """ Callback for loadHistory's QtDo """
         if not backend:
+            # The last revision has been processed
             self.process = None
             self.ui.loadHistoryButton.setEnabled(True)
             self.ui.loadHistoryButton.setText("Reload")
