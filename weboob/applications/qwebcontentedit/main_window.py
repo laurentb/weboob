@@ -146,8 +146,8 @@ class MainWindow(QtMainWindow):
             content += '\n%s\n' % to_unicode(backtrace)
         QMessageBox.critical(self, self.tr('Error while loading page'),
                              content, QMessageBox.Ok)
-        self.ui.saveButton.setEnabled(True)
-        self.ui.saveButton.setText("Load")
+        self.ui.loadButton.setEnabled(True)
+        self.ui.loadButton.setText("Load")
 
     def savePage(self):
         """ Saves the current page to the remote site """
