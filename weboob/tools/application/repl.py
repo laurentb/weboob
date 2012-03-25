@@ -851,17 +851,19 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def do_ls(self, line):
         """
-        ls
+        ls [PATH]
 
         List objects in current path.
         If an argument is given, list the specified path.
         """
 
-        # We have an argument, let's ch to the directory before the ls
-        if len(line.strip()):
-            self.working_path.cd1(line)
+        path = line.strip()
 
-        self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+        if path:
+            # We have an argument, let's ch to the directory before the ls
+            self.working_path.cd1(path)
+
+        self.objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         for obj in self.objects:
             if isinstance(obj, CapBaseObject):
@@ -869,18 +871,20 @@ class ReplApplication(Cmd, ConsoleApplication):
             else:
                 print obj
 
-        if self.collections:
-            for collection in self.collections:
-                if collection.basename and collection.title:
-                    print u'%s~ (%s) %s (%s)%s' % \
-                    (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
-                else:
-                    print u'%s~ (%s) (%s)%s' % \
-                    (self.BOLD, collection.basename, collection.backend, self.NC)
+        for collection in collections:
+            if collection.basename and collection.title:
+                print u'%s~ (%s) %s (%s)%s' % \
+                (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
+            else:
+                print u'%s~ (%s) (%s)%s' % \
+                (self.BOLD, collection.basename, collection.backend, self.NC)
 
-        # Let's go back to the parent directory
-        if len(line.strip()):
+        if path:
+            # Let's go back to the parent directory
             self.working_path.home()
+        else:
+            # Save collections only if we listed the current path.
+            self.collections = collections
 
     def do_cd(self, line):
         """
@@ -899,9 +903,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         collections = []
         try:
-            for backend, res in self.do('get_collection',
-                        objs=self.COLLECTION_OBJECTS, split_path=self.working_path.get(),
-                        caps=ICapCollection):
+            for backend, res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
+                                                          split_path=self.working_path.get(),
+                                                          caps=ICapCollection):
                 if res:
                     collections.append(res)
         except CallErrors, errors:
@@ -926,9 +930,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         split_path = self.working_path.get()
 
         try:
-            for backend, res in self.do('iter_resources',
-                    objs=objs, split_path=split_path,
-                    caps=ICapCollection):
+            for backend, res in self.do('iter_resources', objs=objs,
+                                                          split_path=split_path,
+                                                          caps=ICapCollection):
                 if isinstance(res, Collection):
                     collections.append(res)
                 else:
