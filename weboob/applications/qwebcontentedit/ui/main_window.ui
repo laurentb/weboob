@@ -147,9 +147,6 @@
         <property name="text">
          <string/>
         </property>
-        <property name="placeholderText">
-         <string>Edit summary</string>
-        </property>
        </widget>
       </item>
       <item>

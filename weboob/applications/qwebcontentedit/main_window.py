@@ -62,6 +62,9 @@ class MainWindow(QtMainWindow):
                      SIGNAL("clicked()"),
                      self.loadHistory)
 
+        if hasattr(self.ui.descriptionEdit, "setPlaceholderText"):
+            self.ui.descriptionEdit.setPlaceholderText("Edit summary")
+
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
         else:
@@ -102,6 +105,7 @@ class MainWindow(QtMainWindow):
         
         self.ui.loadButton.setEnabled(False)
         self.ui.loadButton.setText('Loading...')
+        self.ui.contentEdit.setReadOnly(True)
                 
         backend = str(self.ui.backendBox.currentText())
         self.process = QtDo(self.weboob,
@@ -184,6 +188,7 @@ class MainWindow(QtMainWindow):
         QMessageBox.critical(self, self.tr('Error while saving page'),
                              content, QMessageBox.Ok)
         self.ui.saveButton.setEnabled(True)
+        self.ui.saveButton.setText("Save")
 
     def loadPreview(self):
         """ Loads the current page's preview into the preview QTextEdit """
@@ -208,7 +213,9 @@ class MainWindow(QtMainWindow):
                                                         "Summary"])
         self.ui.historyTable.setColumnWidth(3, 1000)
         
-        self.process = QtDo(self.weboob, self._gotRevision)
+        self.process = QtDo(self.weboob,
+                            self._gotRevision,
+                            self._errorHistory)
         self.process.do('iter_revisions',
                         self.content.id,
                         max_results=self.ui.nbRevBox.value(),
@@ -245,3 +252,14 @@ class MainWindow(QtMainWindow):
         self.ui.historyTable.setItem(row, 3, item_summary)
 
         self.ui.historyTable.setCurrentCell(row, 0)
+
+    def _errorHistory(self, backend, error, backtrace):
+        """ Loading the history has failed """
+        content = unicode(self.tr('Unable to load history:\n%s\n')) % to_unicode(error)
+        if logging.root.level == logging.DEBUG:
+            content += '\n%s\n' % to_unicode(backtrace)
+        QMessageBox.critical(self, self.tr('Error while loading history'),
+                             content, QMessageBox.Ok)
+        
+        self.ui.loadHistoryButton.setEnabled(True)
+        self.ui.loadHistoryButton.setText("Reload")
