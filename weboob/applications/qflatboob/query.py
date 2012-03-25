@@ -41,6 +41,9 @@ class QueryDialog(QDialog):
         self.connect(self.ui.citiesList, SIGNAL('itemDoubleClicked(QListWidgetItem*)'), self.removeCity)
         self.connect(self.ui.buttonBox, SIGNAL('accepted()'), self.okButton)
 
+        if hasattr(self.ui.cityEdit, "setPlaceholderText"):
+            self.ui.cityEdit.setPlaceholderText("Press enter to search city")
+            
     def keyPressEvent(self, event):
         """
         Disable handler <Enter> and <Escape> to prevent closing the window.

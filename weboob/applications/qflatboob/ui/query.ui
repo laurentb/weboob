@@ -56,11 +56,7 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QLineEdit" name="cityEdit">
-             <property name="placeholderText">
-              <string>Press enter to search city</string>
-             </property>
-            </widget>
+            <widget class="QLineEdit" name="cityEdit"/>
            </item>
            <item>
             <widget class="QListWidget" name="resultsList"/>
