@@ -74,7 +74,11 @@ class ConsoleApplication(BaseApplication):
         self.enabled_backends = set()
 
     def login_cb(self, backend_name, value):
-        return self.ask('[%s] Password' % backend_name, masked=True, default='', regexp=value.regexp)
+        return self.ask('[%s] %s' % (backend_name,
+                        value.label),
+                        masked=True,
+                        default='',
+                        regexp=value.regexp)
 
     def unload_backends(self, *args, **kwargs):
         unloaded = self.weboob.unload_backends(*args, **kwargs)

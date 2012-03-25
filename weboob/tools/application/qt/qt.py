@@ -98,8 +98,9 @@ class QCallbacksManager(QObject):
 
         def __call__(self):
             password, ok = QInputDialog.getText(None,
-                                                'Password request',
-                                                'Please enter password for %s' % self.backend_name,
+                '%s request' % self.value.label,
+                'Please enter %s for %s' % (self.value.label,
+                                            self.backend_name),
                                                 QLineEdit.Password)
             return password
 
