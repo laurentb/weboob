@@ -160,7 +160,6 @@ class MediawikiBrowser(BaseBrowser):
             for rev in result['query']['pages'][pageid]['revisions']:
                 rev_content = Revision(str(rev['revid']))
                 rev_content.comment = rev['comment']
-                rev_content.revision = str(rev['revid'])
                 rev_content.author = rev['user']
                 rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
                 rev_content.minor = 'minor' in rev

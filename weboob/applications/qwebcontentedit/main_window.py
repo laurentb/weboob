@@ -232,7 +232,7 @@ class MainWindow(QtMainWindow):
 
         # we set the flags to Qt.ItemIsEnabled so that the items
         # are not modifiable (they are modifiable by default)
-        item_revision = QTableWidgetItem(revision.revision)
+        item_revision = QTableWidgetItem(revision.id)
         item_revision.setFlags(Qt.ItemIsEnabled)
         
         item_time = QTableWidgetItem(revision.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
