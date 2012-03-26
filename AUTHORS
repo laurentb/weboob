@@ -19,6 +19,11 @@ Noe Rubinstein <noe.rubinstein@gmail.com>
         * Bototo, Eatmanga, MangaFox, MangaHere, MangaReader, Mangatoshokan
           and Simplyreadit backends maintainer.
 
+Florent Fourcot <weboob@flo.fourcot.fr>
+        * Champslibre, Freemobile, ING, Presseurop, Sachsen and Taz backends
+          maintainer;
+        * BNPorc patches.
+
 Julien Veyssier <julien.veyssier@aiur.fr>
         * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
           backends maintainer.
@@ -26,15 +31,11 @@ Julien Veyssier <julien.veyssier@aiur.fr>
 Christophe Benz <christophe.benz@gmail.com>
         * Bouygues, INA, SFR and Youtube backends maintainer.
 
-Florent Fourcot <weboob@flo.fourcot.fr>
-        * Freemobile, ING, Presseurop and Sachsen backends maintainer;
-        * BNPorc patches.
+Roger Philibert <roger.philibert@gmail.com>
+        * Ehentai, Izneo, OKC and Youjizz backends maintainer.
 
 Nicolas Duhamel <nicolas@jombi.fr>
         * BP, CanalPlus and Orange backends maintainer.
-
-Roger Philibert <roger.philibert@gmail.com>
-        * Ehentai, Izneo and Youjizz backends maintainer.
 
 Clément Schreiner <clemux@clemux.info>
         * MediaWiki and Newsfeed backends maintainer.
