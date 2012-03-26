@@ -53,7 +53,7 @@ class BackendTest(TestCase):
             if not len(self.backends):
                 result.startTest(self)
                 result.stopTest(self)
-                raise SkipTest()
+                raise SkipTest('No backends configured for this module.')
             TestCase.run(self, result)
         finally:
             self.weboob.deinit()
