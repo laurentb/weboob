@@ -206,7 +206,6 @@ class _CapBaseObjectMeta(type):
             new_class._fields = deepcopy(new_class._fields)
         new_class._fields.update(fields)
 
-        assert new_class.__doc__ is not None
         if new_class.__doc__ is None:
             new_class.__doc__ = ''
         for name, field in fields:
