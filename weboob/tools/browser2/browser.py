@@ -96,6 +96,7 @@ class Wget(Profile):
 
 class Browser(object):
     PROFILE = Firefox()
+    TIMEOUT = 10.0
 
     def __init__(self):
         profile = self.PROFILE
@@ -200,6 +201,7 @@ class Browser(object):
         data = kwargs.get('data')
         if data is not None and len(data) == 0:
             kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
+        kwargs.setdefault('timeout', self.TIMEOUT)
         return self.session.request(*args, **kwargs)
 
 
