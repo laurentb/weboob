@@ -313,14 +313,16 @@ class CapBaseObject(object):
         except KeyError:
             object.__setattr__(self, name, value)
         else:
-            try:
-                # Try to convert value to the wanted one.
-                value = attr.convert(value)
-            except Exception:
-                # error during conversion, it will probably not
-                # match the wanted following types, so we'll
-                # raise ValueError.
-                pass
+            if value not in (NotLoaded, NotAvailable, None):
+                try:
+                    # Try to convert value to the wanted one.
+                    value = attr.convert(value)
+                except Exception:
+                    # error during conversion, it will probably not
+                    # match the wanted following types, so we'll
+                    # raise ValueError.
+                    pass
+
             if not isinstance(value, attr.types) and \
                value is not NotLoaded and \
                value is not NotAvailable and \
