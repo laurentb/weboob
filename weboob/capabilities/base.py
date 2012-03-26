@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import warnings
 import datetime
 from dateutil.parser import parse as parse_dt
 from copy import deepcopy
@@ -44,6 +45,12 @@ class FieldNotFound(Exception):
         Exception.__init__(self,
             u'Field "%s" not found for object %s' % (field, obj))
 
+class ConversionWarning(UserWarning):
+    """
+    A field's type was changed when setting it.
+    Ideally, the module should use the right type before setting it.
+    """
+    pass
 
 class NotAvailableMeta(type):
     def __str__(self):
@@ -316,7 +323,12 @@ class CapBaseObject(object):
             if value not in (NotLoaded, NotAvailable, None):
                 try:
                     # Try to convert value to the wanted one.
-                    value = attr.convert(value)
+                    nvalue = attr.convert(value)
+                    # If the value was converted
+                    if nvalue is not value:
+                        warnings.warn('Value %s was converted from %s to %s' %
+                            (name, type(value), type(nvalue)), ConversionWarning, stacklevel=2)
+                    value = nvalue
                 except Exception:
                     # error during conversion, it will probably not
                     # match the wanted following types, so we'll
