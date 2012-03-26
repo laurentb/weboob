@@ -18,18 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import math
-import re
-import datetime
-import random
-import urllib
-from htmlentitydefs import codepoint2name
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.ordereddict import OrderedDict
 
 from .pages import LoginPage, ThreadPage, MessagesPage, PostMessagePage, ProfilePage, PhotosPage
@@ -145,7 +134,7 @@ class OkCBrowser(BaseBrowser):
         self.location(self.absurl('/messages?readmsg=true&threadid=%i&folder=1' % id))
 
         # Find the peer username
-        mails = self.page.get_thread_mails(count)       
+        mails = self.page.get_thread_mails(count)
         for mail in mails['messages']:
             if mail['id_from'] != self.get_my_name():
                 mails['member']['pseudo'] = mail['id_from']

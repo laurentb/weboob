@@ -18,9 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
-from weboob.tools.misc import html2text
 from weboob.capabilities.contact import ProfileNode
 
 class LoginPage(BasePage):

@@ -19,9 +19,7 @@
 
 from __future__ import with_statement
 
-import email
 import time
-import re
 import datetime
 from html2text import unescape
 from dateutil import tz
@@ -30,11 +28,9 @@ from dateutil.parser import parse as _parse_dt
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread
 #from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
-from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
+from weboob.capabilities.contact import ICapContact, ContactPhoto, Contact
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.browser import BrowserUnavailable
-from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
-from weboob.tools.log import getLogger
+from weboob.tools.value import Value, ValueBackendPassword
 from weboob.tools.misc import local2utc
 
 from .browser import OkCBrowser
