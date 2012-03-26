@@ -25,10 +25,11 @@ from tempfile import NamedTemporaryFile
 from weboob.core import CallErrors
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.capabilities.account import ICapAccount
-from weboob.capabilities.contact import Contact
+from weboob.capabilities.contact import ICapContact, Contact
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
+
 
 __all__ = ['Boobmsg']
 
@@ -167,6 +168,7 @@ class MessagesListFormatter(IFormatter):
                 result += self.format_message(backend, m, depth)
         return result
 
+
 class ProfileFormatter(IFormatter):
     def flush(self):
         pass
@@ -207,6 +209,7 @@ class ProfileFormatter(IFormatter):
             result += u'\t%s\n' % s
         return result
 
+
 class Boobmsg(ReplApplication):
     APPNAME = 'boobmsg'
     VERSION = '0.c'
@@ -214,17 +217,17 @@ class Boobmsg(ReplApplication):
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
     CAPS = ICapMessages
-    EXTRA_FORMATTERS = {'msglist': MessagesListFormatter,
-                        'msg':     MessageFormatter,
-                        'xhtml':     XHtmlFormatter,
+    EXTRA_FORMATTERS = {'msglist':  MessagesListFormatter,
+                        'msg':      MessageFormatter,
+                        'xhtml':    XHtmlFormatter,
                         'profile' : ProfileFormatter,
                        }
-    COMMANDS_FORMATTERS = {'list':      'msglist',
-                           'show':      'msg',
+    COMMANDS_FORMATTERS = {'list':          'msglist',
+                           'show':          'msg',
                            'export_thread': 'msg',
-                           'export_all': 'msg',
-                           'ls':      'msglist',
-                           'profile':      'profile',
+                           'export_all':    'msg',
+                           'ls':            'msglist',
+                           'profile':       'profile',
                           }
 
     def add_application_options(self, group):
@@ -423,7 +426,7 @@ class Boobmsg(ReplApplication):
         _id, backend_name = self.parse_id(id, unique_backend=True)
 
         found = 0
-        for backend, contact in self.do('get_contact', _id, backends=backend_name):
+        for backend, contact in self.do('get_contact', _id, backends=backend_name, caps=ICapContact):
             if contact:
                 self.format(contact)
                 found = 1

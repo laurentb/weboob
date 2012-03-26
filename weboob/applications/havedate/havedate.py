@@ -19,58 +19,18 @@
 
 
 import sys
+from copy import copy
 
-import weboob
+from weboob.core import CallErrors
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.applications.boobmsg import Boobmsg
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound
-from weboob.capabilities.contact import Contact
 
 
 __all__ = ['HaveDate']
 
 
-class ProfileFormatter(IFormatter):
-    def flush(self):
-        pass
-
-    def print_node(self, node, level=1):
-        result = u''
-        if node.flags & node.SECTION:
-            result += u'\t' * level + node.label + '\n'
-            for sub in node.value.itervalues():
-                result += self.print_node(sub, level+1)
-        else:
-            if isinstance(node.value, (tuple,list)):
-                value = ', '.join(unicode(v) for v in node.value)
-            else:
-                value = node.value
-            result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
-        return result
-
-    def format_dict(self, item):
-        result = u'Nickname: %s\n' % item['name']
-        if item['status'] & Contact.STATUS_ONLINE:
-            s = 'online'
-        elif item['status'] & Contact.STATUS_OFFLINE:
-            s = 'offline'
-        elif item['status'] & Contact.STATUS_AWAY:
-            s = 'away'
-        else:
-            s = 'unknown'
-        result += u'Status: %s (%s)\n' % (s, item['status_msg'])
-        result += u'Photos:\n'
-        for name, photo in item['photos'].iteritems():
-            result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
-        result += u'Profile:\n'
-        for head in item['profile'].itervalues():
-            result += self.print_node(head)
-        result += u'Description:\n'
-        for s in item['summary'].split('\n'):
-            result += u'\t%s\n' % s
-        return result
-
-class HaveDate(ReplApplication):
+class HaveDate(Boobmsg):
     APPNAME = 'havedate'
     VERSION = '0.c'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
@@ -79,9 +39,8 @@ class HaveDate(ReplApplication):
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
     CAPS = ICapDating
-    EXTRA_FORMATTERS = {'profile': ProfileFormatter}
-    COMMANDS_FORMATTERS = {'optim':   'table',
-                           'profile': 'profile'}
+    COMMANDS_FORMATTERS = copy(Boobmsg.COMMANDS_FORMATTERS)
+    COMMANDS_FORMATTERS['optim'] = 'table'
 
     def load_default_backends(self):
         self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
@@ -91,7 +50,7 @@ class HaveDate(ReplApplication):
 
         try:
             self.do('init_optimizations').wait()
-        except weboob.core.CallErrors, e:
+        except CallErrors, e:
             self.bcall_errors_handler(e)
 
         optimizations = self.storage.get('optims')
@@ -99,25 +58,6 @@ class HaveDate(ReplApplication):
             self.optims('start', backends, optim, store=False)
 
         return ReplApplication.main(self, argv)
-
-    def do_profile(self, id):
-        """
-        profile ID
-
-        Display a profile
-        """
-        _id, backend_name = self.parse_id(id, unique_backend=True)
-
-        found = 0
-        for backend, contact in self.do('get_contact', _id, backends=backend_name):
-            if contact:
-                self.format(contact)
-                found = 1
-
-        if not found:
-            self.logger.error(u'Profile not found')
-        else:
-            self.flush()
 
     def do_query(self, id):
         """
@@ -197,7 +137,7 @@ class HaveDate(ReplApplication):
                                 except KeyError:
                                     pass
                 sys.stdout.write('.\n')
-            except weboob.core.CallErrors, errors:
+            except CallErrors, errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
                         self.logger.error(u'Error(%s): Optimization "%s" not found' % (backend.name, optim_name))
