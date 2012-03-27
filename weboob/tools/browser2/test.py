@@ -41,8 +41,14 @@ def test_base():
     assert 'identity' not in r.text
     assert b.url == HTTPBIN + 'headers'
 
+    r = b.location(HTTPBIN + 'gzip')
+    assert 'Firefox' in r.text
+
 
 def test_redirects():
+    """
+    Check redirects are followed
+    """
     b = BaseBrowser()
     b.location(HTTPBIN + 'redirect/1')
     assert b.url == HTTPBIN + 'get'
@@ -84,6 +90,9 @@ def _getrqbin(b):
 
 
 def test_smartpost():
+    """
+    Checks we use POST or GET depending on the parameters
+    """
     b = BaseBrowser()
     n = _getrqbin(b)
 
@@ -101,6 +110,9 @@ def test_smartpost():
 
 
 def test_weboob():
+    """
+    Test the Weboob Profile
+    """
     class BooBrowser(BaseBrowser):
         PROFILE = Weboob('0.0')
 
@@ -111,6 +123,9 @@ def test_weboob():
 
 
 def test_relative():
+    """
+    Check relative URL / domain handling
+    """
     b = DomainBrowser()
     b.location(HTTPBIN)
     b.location('/ip')
@@ -128,3 +143,20 @@ def test_relative():
     assert b.absurl('/bb') == HTTPBIN + 'bb'
     assert b.absurl('') == HTTPBIN + 'aaaaaa/'
     assert b.absurl('bb') == HTTPBIN + 'aaaaaa/bb'
+
+
+def test_changereq():
+    """
+    Test overloading request defaults
+    """
+    b = BaseBrowser()
+    r = b.location(HTTPBIN + 'headers', method='HEAD')
+    assert r.text is None
+
+    r = b.location(HTTPBIN + 'put', method='PUT', data={'hello': 'world'})
+    assert 'hello' in r.text
+    assert 'world' in r.text
+
+    r = b.location(HTTPBIN + 'headers', headers={'User-Agent': 'Web Out of Browsers'})
+    assert 'Web Out of Browsers' in r.text
+    assert 'Firefox' not in r.text
