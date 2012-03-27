@@ -41,7 +41,7 @@ class AccountsList(BasePage):
             account.id = re.search('\d', link.attrib['href']).group(0)
             if not (account.id in ids):
                 ids.append(account.id)
-                account.label = link.text
+                account.label = unicode(link.text)
                 urltofind = './/a[@href="' + link.attrib['href'] + '"]'
                 linkbis = self.document.xpath(urltofind).pop()
                 if linkbis.text == link.text:
