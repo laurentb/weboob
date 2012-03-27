@@ -140,36 +140,41 @@ class BaseBrowser(object):
         """
         TL;DR: Web browsers and web developers suck.
 
-        Most browsers do not follow the RFC for HTTP 301 and 302
+        Most browsers do not follow the RFC for HTTP 302
         but python-requests does.
-        And web developers assume we don't follow it either.
+        And web developers assume we don't follow it either:
         https://en.wikipedia.org/wiki/Post/Redirect/Get
 
         Gets a Response, and returns a new Response.
         Used as a 'response' hook for python-requests.
 
         This is a hack, it would be better as an option in python-requests.
+
+        What we do is run again the response building, but this time with allow_redirects,
+        and with a fake method and data if we have a HTTP 302.
         """
         request = response.request
         # If the request wasn't redirected, and is a redirection,
         # and we allowed it to be fixed,
         # restart the request building, but with a changed action.
         if request.allow_redirects is False \
-        and request.response.status_code in (codes.moved, codes.found) \
+        and request.response.status_code in requests.models.REDIRECT_STATI \
         and request.config.get('fix-redirect'):
-            # force the next request to be GET
-            real_method = request.method
-            request.method = 'GET'
-            real_data = request.data
-            request.data = None
+            if request.response.status_code is codes.found:
+                # force the next request to be GET
+                real_method = request.method
+                request.method = 'GET'
+                real_data = request.data
+                request.data = None
 
             # build the response again
             request.allow_redirects = True
             request._build_response(response.raw)
 
-            # restore info
-            request.method = real_method
-            request.data = real_data
+            if request.response.status_code is codes.found:
+                # restore info
+                request.method = real_method
+                request.data = real_data
 
             return request.response
 
