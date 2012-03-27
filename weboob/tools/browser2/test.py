@@ -19,27 +19,33 @@
 
 from __future__ import absolute_import
 
+import requests
+from nose.plugins.skip import SkipTest
+
 from .browser import BaseBrowser, DomainBrowser, Weboob
 
-import requests
+from weboob.tools.json import json
 
-from nose.plugins.skip import SkipTest
+# Those services can be run locally. More or less.
+HTTPBIN = 'http://httpbin.org/'  # https://github.com/kennethreitz/httpbin
+POSTBIN = 'http://www.postbin.org/'  # https://github.com/progrium/postbin
+REQUESTBIN = 'http://requestb.in/'  # https://github.com/progrium/requestbin
 
 
 def test_base():
     b = BaseBrowser()
-    r = b.location('http://httpbin.org/headers')
+    r = b.location(HTTPBIN + 'headers')
     assert isinstance(r.text, unicode)
     assert 'Firefox' in r.text
     assert 'python' not in r.text
     assert 'identity' not in r.text
-    assert b.url == 'http://httpbin.org/headers'
+    assert b.url == HTTPBIN + 'headers'
 
 
 def test_redirects():
     b = BaseBrowser()
-    b.location('http://httpbin.org/redirect/1')
-    assert b.url == 'http://httpbin.org/get'
+    b.location(HTTPBIN + 'redirect/1')
+    assert b.url == HTTPBIN + 'get'
 
 
 def test_brokenpost():
@@ -49,11 +55,11 @@ def test_brokenpost():
     try:
         b = BaseBrowser()
         # postbin is picky with empty posts. that's good!
-        r = b.location('http://www.postbin.org/', {})
+        r = b.location(POSTBIN, {})
         # ensures empty data (but not None) does a POST
         assert r.request.method == 'POST'
         # ensure we were redirected after submitting a post
-        assert len(r.url) >= len('http://www.postbin.org/')
+        assert len(r.url) >= len(POSTBIN)
         # send a POST with data
         b.location(r.url, {'hello': 'world'})
         r = b.location(r.url + '/feed')
@@ -66,33 +72,61 @@ def test_brokenpost():
             raise
 
 
+def _getrqbin(b):
+    """
+    Get a RequestBin
+    """
+    # empty POST
+    r = b.location(REQUESTBIN + 'api/v1/bins', '')
+    name = json.loads(r.text)['name']
+    assert name
+    return name
+
+
+def test_smartpost():
+    b = BaseBrowser()
+    n = _getrqbin(b)
+
+    r = b.location(REQUESTBIN + n)
+    assert 'ok' in r.text
+    r = b.location(REQUESTBIN + n + '?inspect')
+    assert 'GET /%s' % n in r.text
+
+    r = b.location(REQUESTBIN + n, {'hello': 'world'})
+    assert 'ok' in r.text
+    r = b.location(REQUESTBIN + n + '?inspect')
+    assert 'POST /%s' % n in r.text
+    assert 'hello' in r.text
+    assert 'world' in r.text
+
+
 def test_weboob():
     class BooBrowser(BaseBrowser):
         PROFILE = Weboob('0.0')
 
     b = BooBrowser()
-    r = b.location('http://httpbin.org/headers')
+    r = b.location(HTTPBIN + 'headers')
     assert 'weboob/0.0' in r.text
     assert 'identity' in r.text
 
 
 def test_relative():
     b = DomainBrowser()
-    b.location('http://httpbin.org/')
+    b.location(HTTPBIN)
     b.location('/ip')
-    assert b.url == 'http://httpbin.org/ip'
+    assert b.url == HTTPBIN + 'ip'
 
-    assert b.absurl('/ip') == 'http://httpbin.org/ip'
-    b.location('http://www.postbin.org/')
-    assert b.absurl('/ip') == 'http://www.postbin.org/ip'
-    b.BASEURL = 'http://httpbin.org/aaaaaa'
-    assert b.absurl('/ip') == 'http://httpbin.org/ip'
-    assert b.absurl('ip') == 'http://httpbin.org/ip'
-    assert b.absurl('/ip', False) == 'http://www.postbin.org/ip'
+    assert b.absurl('/ip') == HTTPBIN + 'ip'
+    b.location(REQUESTBIN)
+    assert b.absurl('/ip') == REQUESTBIN + 'ip'
+    b.BASEURL = HTTPBIN + 'aaaaaa'
+    assert b.absurl('/ip') == HTTPBIN + 'ip'
+    assert b.absurl('ip') == HTTPBIN + 'ip'
+    assert b.absurl('/ip', False) == REQUESTBIN + 'ip'
     b.home()
-    assert b.url == 'http://httpbin.org/'
-    b.BASEURL = 'http://httpbin.org/aaaaaa/'
-    assert b.absurl('/') == 'http://httpbin.org/'
-    assert b.absurl('/bb') == 'http://httpbin.org/bb'
-    assert b.absurl('') == 'http://httpbin.org/aaaaaa/'
-    assert b.absurl('bb') == 'http://httpbin.org/aaaaaa/bb'
+    assert b.url == HTTPBIN
+    b.BASEURL = HTTPBIN + 'aaaaaa/'
+    assert b.absurl('/') == HTTPBIN
+    assert b.absurl('/bb') == HTTPBIN + 'bb'
+    assert b.absurl('') == HTTPBIN + 'aaaaaa/'
+    assert b.absurl('bb') == HTTPBIN + 'aaaaaa/bb'
