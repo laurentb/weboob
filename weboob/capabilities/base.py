@@ -28,7 +28,19 @@ from weboob.tools.ordereddict import OrderedDict
 
 __all__ = ['FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
            'Field', 'IntField', 'FloatField', 'StringField', 'BytesField',
-           'DateField', 'DeltaField', 'CapBaseObject']
+           'DateField', 'DeltaField', 'CapBaseObject', 'empty']
+
+
+def empty(value):
+    """
+    Checks if a value is empty (None, NotLoaded or NotAvailable).
+
+    :rtype: :class:`bool`
+    """
+    for cls in (None, NotLoaded, NotAvailable):
+        if value is cls:
+            return True
+    return False
 
 
 class FieldNotFound(Exception):
@@ -278,8 +290,7 @@ class CapBaseObject(object):
         :param excepts: if specified, do not change fields listed
         """
         for key, old_value in self.iter_fields():
-            if old_value in (None, NotLoaded, NotAvailable) and \
-               not key in excepts:
+            if empty(old_value) and key not in excepts:
                 setattr(self, key, value)
 
     def iter_fields(self):
@@ -314,7 +325,7 @@ class CapBaseObject(object):
         except KeyError:
             object.__setattr__(self, name, value)
         else:
-            if value not in (NotLoaded, NotAvailable, None):
+            if not empty(value):
                 try:
                     # Try to convert value to the wanted one.
                     nvalue = attr.convert(value)
@@ -329,10 +340,7 @@ class CapBaseObject(object):
                     # raise ValueError.
                     pass
 
-            if not isinstance(value, attr.types) and \
-               value is not NotLoaded and \
-               value is not NotAvailable and \
-               value is not None:
+            if not isinstance(value, attr.types) and not empty(value):
                 raise ValueError(
                     'Value for "%s" needs to be of type %r, not %r' % (
                         name, attr.types, type(value)))

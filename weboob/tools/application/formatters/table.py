@@ -20,7 +20,7 @@
 
 from prettytable import PrettyTable
 
-from weboob.capabilities.base import NotLoaded, NotAvailable
+from weboob.capabilities.base import empty
 
 from .iformatter import IFormatter
 
@@ -52,7 +52,7 @@ class TableFormatter(IFormatter):
         for i in xrange(len(self.keys)):
             available = False
             for line in self.queue:
-                if line[i] is not NotLoaded and line[i] is not NotAvailable and line[i] is not None:
+                if not empty(line[i]):
                     available = True
                     break
             if available:
@@ -63,7 +63,7 @@ class TableFormatter(IFormatter):
         s = ''
         if self.display_header and self.header:
             if self.HTML:
-                s+= '<p>%s</p>' % self.header
+                s += '<p>%s</p>' % self.header
             else:
                 s += self.header
             s += "\n"
@@ -91,6 +91,7 @@ class TableFormatter(IFormatter):
 
     def set_header(self, string):
         self.header = string
+
 
 class HTMLTableFormatter(TableFormatter):
     HTML = True
