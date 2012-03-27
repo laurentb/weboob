@@ -20,7 +20,6 @@
 
 import warnings
 import datetime
-from dateutil.parser import parse as parse_dt
 from copy import deepcopy
 
 from weboob.tools.misc import to_unicode
@@ -181,11 +180,6 @@ class DateField(Field):
     """
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
-
-    def convert(self, value):
-        if isinstance(value, basestring):
-            return parse_dt(value)
-        return value
 
 class TimeField(Field):
     """
