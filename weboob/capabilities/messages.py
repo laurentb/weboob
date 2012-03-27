@@ -117,6 +117,9 @@ class Message(_Message):
             return '%s.%s' % (self.thread.id, self._parent_id)
 
     def __eq__(self, msg):
+        if not isinstance(msg, Message):
+            return False
+
         if self.thread:
             return unicode(self.thread.id) == unicode(msg.thread.id) and \
                    unicode(self.id) == unicode(msg.id)

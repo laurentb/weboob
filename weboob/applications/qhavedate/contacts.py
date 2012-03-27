@@ -67,6 +67,8 @@ class ThreadMessage(QFrame):
 
 
     def __eq__(self, m):
+        if not isinstance(m, Message):
+            return False
         return self.message == m.message
 
 class ContactThread(QWidget):
