@@ -160,3 +160,18 @@ def test_changereq():
     r = b.location(HTTPBIN + 'headers', headers={'User-Agent': 'Web Out of Browsers'})
     assert 'Web Out of Browsers' in r.text
     assert 'Firefox' not in r.text
+
+
+def test_referrer():
+    """
+    Test automatic referrer setting
+    """
+    b = BaseBrowser()
+    r = b.location(HTTPBIN + 'get')
+    assert 'Referer' not in json.loads(r.text)['headers']
+    r = b.location(HTTPBIN + 'headers')
+    assert json.loads(r.text)['headers'].get('Referer') == HTTPBIN + 'get'
+    r = b.location(HTTPBIN + 'headers')
+    assert 'Referer' not in json.loads(r.text)['headers']
+
+    assert b._get_referrer('https://example.com/', 'http://example.com/') is None
