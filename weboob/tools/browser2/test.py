@@ -123,8 +123,6 @@ def test_relative():
     assert b.absurl('/ip') == HTTPBIN + 'ip'
     assert b.absurl('ip') == HTTPBIN + 'ip'
     assert b.absurl('/ip', False) == REQUESTBIN + 'ip'
-    b.home()
-    assert b.url == HTTPBIN
     b.BASEURL = HTTPBIN + 'aaaaaa/'
     assert b.absurl('/') == HTTPBIN
     assert b.absurl('/bb') == HTTPBIN + 'bb'
