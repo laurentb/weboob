@@ -19,7 +19,7 @@
 
 from __future__ import absolute_import
 
-from .browser import Browser, Weboob
+from .browser import BaseBrowser, DomainBrowser, Weboob
 
 import requests
 
@@ -27,7 +27,7 @@ from nose.plugins.skip import SkipTest
 
 
 def test_base():
-    b = Browser()
+    b = BaseBrowser()
     r = b.location('http://httpbin.org/headers')
     assert isinstance(r.text, unicode)
     assert 'Firefox' in r.text
@@ -37,7 +37,7 @@ def test_base():
 
 
 def test_redirects():
-    b = Browser()
+    b = BaseBrowser()
     b.location('http://httpbin.org/redirect/1')
     assert b.url == 'http://httpbin.org/get'
 
@@ -47,7 +47,7 @@ def test_brokenpost():
     Tests _fix_redirect()
     """
     try:
-        b = Browser()
+        b = BaseBrowser()
         # postbin is picky with empty posts. that's good!
         r = b.location('http://www.postbin.org/', {})
         # ensures empty data (but not None) does a POST
@@ -67,10 +67,32 @@ def test_brokenpost():
 
 
 def test_weboob():
-    class BooBrowser(Browser):
+    class BooBrowser(BaseBrowser):
         PROFILE = Weboob('0.0')
 
     b = BooBrowser()
     r = b.location('http://httpbin.org/headers')
     assert 'weboob/0.0' in r.text
     assert 'identity' in r.text
+
+
+def test_relative():
+    b = DomainBrowser()
+    b.location('http://httpbin.org/')
+    b.location('/ip')
+    assert b.url == 'http://httpbin.org/ip'
+
+    assert b.absurl('/ip') == 'http://httpbin.org/ip'
+    b.location('http://www.postbin.org/')
+    assert b.absurl('/ip') == 'http://www.postbin.org/ip'
+    b.BASEURL = 'http://httpbin.org/aaaaaa'
+    assert b.absurl('/ip') == 'http://httpbin.org/ip'
+    assert b.absurl('ip') == 'http://httpbin.org/ip'
+    assert b.absurl('/ip', False) == 'http://www.postbin.org/ip'
+    b.home()
+    assert b.url == 'http://httpbin.org/'
+    b.BASEURL = 'http://httpbin.org/aaaaaa/'
+    assert b.absurl('/') == 'http://httpbin.org/'
+    assert b.absurl('/bb') == 'http://httpbin.org/bb'
+    assert b.absurl('') == 'http://httpbin.org/aaaaaa/'
+    assert b.absurl('bb') == 'http://httpbin.org/aaaaaa/bb'

@@ -19,8 +19,13 @@
 
 from __future__ import absolute_import
 
+import urlparse
+
 import requests
 from requests.status_codes import codes
+
+
+# TODO define __all__
 
 
 class Profile(object):
@@ -96,7 +101,12 @@ class Wget(Profile):
         session.config['keep_alive'] = True
 
 
-class Browser(object):
+class BaseBrowser(object):
+    """
+    Simple browser class.
+    Act like a browser, and don't try to do too much.
+    """
+
     PROFILE = Firefox()
     TIMEOUT = 10.0
 
@@ -107,6 +117,9 @@ class Browser(object):
         self.response = None
 
     def _setup_session(self, profile):
+        """
+        Set up a python-requests session for our usage.
+        """
         session = requests.Session()
 
         # Raise exceptions on HTTP errors
@@ -173,10 +186,16 @@ class Browser(object):
     def open(self, url, data=None, fix_redirect=True, **kwargs):
         """
         Wrapper around request().
-        Makes a GET request, or a POST if data is provided.
+        Makes a GET request, or a POST if data is not None.
+        An empty data *will* make a post.
 
         Call this if you do not want to "visit" the URL (for instance, you
         are downloading a file).
+
+        :param url: URL
+        :type url: str
+
+        :rtype: :class:`requests.Response`
         """
         method = kwargs.pop('method', None)
         if method is None:
@@ -205,3 +224,44 @@ class Browser(object):
             kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
         kwargs.setdefault('timeout', self.TIMEOUT)
         return self.session.request(*args, **kwargs)
+
+
+class DomainBrowser(BaseBrowser):
+    """
+    A browser that handles relative URLs.
+
+    For instance self.location('/hello') will get http://weboob.org/hello
+    if BASEURL is 'http://weboob.org/'.
+    """
+
+    BASEURL = None
+    """
+    Base URL, e.g. 'http://weboob.org/' or 'https://weboob.org/'
+    See absurl().
+    """
+
+    def absurl(self, uri, base=None):
+        """
+        Get the absolute URL, relative to the base URL.
+        If BASEURL is None, it will try to use the current URL.
+        If base is False, it will always try to use the current URL.
+
+        :param uri: URI to make absolute. It can be already absolute.
+        :type uri: str
+
+        :param base: Base absolute URL.
+        :type base: str or None or False
+
+        :rtype: str
+        """
+        if base is None:
+            base = self.BASEURL
+        if base is None or base is False:
+            base = self.url
+        return urlparse.urljoin(base, uri)
+
+    def open(self, uri, *args, **kwargs):
+        return BaseBrowser.open(self, self.absurl(uri), *args, **kwargs)
+
+    def home(self):
+        return self.location('/')
