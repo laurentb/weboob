@@ -19,7 +19,8 @@
 
 
 import urllib
-import json
+
+from weboob.tools.json import json
 
 from weboob.tools.browser import BaseBrowser
 from weboob.capabilities.housing import Query

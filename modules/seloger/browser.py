@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import json
+from weboob.tools.json import json
 
 from weboob.tools.browser import BaseBrowser
 from weboob.capabilities.housing import Query
