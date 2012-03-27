@@ -187,27 +187,46 @@ class BaseBrowser(object):
 
             return request.response
 
-    def location(self, url, data=None, fix_redirect=True, **kwargs):
+    def location(self, url, data=None,
+            fix_redirect=True, referrer=None,
+            **kwargs):
         """
         Like open() but also changes the current URL and response.
         This is the most common method to request web pages.
+
+        Other than that, has the exact same behavior of open().
         """
         response = self.open(url, data, fix_redirect, **kwargs)
         self.response = response
         self.url = self.response.url
         return response
 
-    def open(self, url, data=None, fix_redirect=True, **kwargs):
+    def open(self, url, data=None,
+            fix_redirect=True, referrer=None,
+            **kwargs):
         """
         Wrapper around request().
-        Makes a GET request, or a POST if data is not None.
-        An empty data *will* make a post.
+        Makes a GET request, or a POST if data is not None, unless a `method`
+        is explicitly provided.
+        An empty `data` (not None) *will* make a post.
+
+        All request() options are available, and it is possible to disable the
+        automatic method, referrer, and redirection fixes.
 
         Call this if you do not want to "visit" the URL (for instance, you
         are downloading a file).
 
         :param url: URL
         :type url: str
+
+        :param data: POST data
+        :type url: str or dict or None
+
+        :param fix_redirect: Fix POST 302 redirects
+        :type fix_redirect: True or False
+
+        :param referrer: Force referrer. False to disable sending it, None for guessing
+        :type referrer: str or False or None
 
         :rtype: :class:`requests.Response`
         """
@@ -220,6 +239,11 @@ class BaseBrowser(object):
         kwargs['data'] = data
         if fix_redirect:
             kwargs.setdefault('config', {}).setdefault('fix-redirect', True)
+        if referrer is None:
+            referrer = self._get_referrer(self.url, url)
+        if referrer:
+            # Yes, it is a misspelling.
+            kwargs.setdefault('headers', {}).setdefault('Referer', referrer)
         response = self.request(method, url, **kwargs)
         return response
 
@@ -229,7 +253,9 @@ class BaseBrowser(object):
         Takes the sames arguments as request.request()
         Returns a Response object.
 
-        Most of the time, you should use location() or open().
+        Most of the time, you should use location() or open(),
+        since it ignores some interesting additions, which are easily
+        individually disabled through the arguments.
         """
         # python-requests or urllib3 does not handle
         # empty POST requests properly, so some websites refuse it.
@@ -238,6 +264,38 @@ class BaseBrowser(object):
             kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
         kwargs.setdefault('timeout', self.TIMEOUT)
         return self.session.request(*args, **kwargs)
+
+    def _get_referrer(self, oldurl, newurl):
+        """
+        Get the referrer to send when doing a request.
+        If we should not send a referrer, it will return None.
+
+        Reference: https://en.wikipedia.org/wiki/HTTP_referer
+
+        :param oldurl: Current absolute URL
+        :type oldurl: str or None
+
+        :param newurl: Target absolute URL
+        :type newurl: str
+
+        :rtype: str or None
+        """
+        if oldurl is None:
+            return None
+        old = urlparse.urlparse(oldurl)
+        new = urlparse.urlparse(newurl)
+        # Do not leak secure URLs to insecure URLs
+        if old.scheme == 'https' and new.scheme != 'https':
+            return None
+        # Reloading the page. Usually no referrer.
+        if oldurl == newurl:
+            return None
+        # TODO maybe implement some *optional* privacy features:
+        # * do not leak referrer to other domains (often breaks websites)
+        # * send a fake referrer (root of the current domain)
+        # * never send the referrer
+        # Inspired by the RefControl Firefox addon.
+        return oldurl
 
 
 class DomainBrowser(BaseBrowser):
