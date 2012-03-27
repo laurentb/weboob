@@ -71,6 +71,8 @@ class Firefox(Profile):
         """
         Set up headers for a standard Firefox request
         (except for DNT which isn't on by default but is a good idea).
+
+        The goal is to be unidentifiable.
         """
         # Replace all base requests headers
         # https://developer.mozilla.org/en/Gecko_user_agent_string_reference
@@ -150,8 +152,15 @@ class BaseBrowser(object):
 
         This is a hack, it would be better as an option in python-requests.
 
-        What we do is run again the response building, but this time with allow_redirects,
-        and with a fake method and data if we have a HTTP 302.
+        What we do is run again the response building,
+        but this time with allow_redirects=True, and if we have a HTTP 302,
+        we set a temporary fake method='GET' and empty data.
+
+        So in order to have proper allow_redirects=True handling of POSTs
+        you have to create a request with allow_redirects=False,
+        and fix-redirect=True in config (which is for the first one the
+        python-requests default for POSTs, and for the second one the
+        BaseBrowser default).
         """
         request = response.request
         # If the request wasn't redirected, and is a redirection,
@@ -233,7 +242,7 @@ class BaseBrowser(object):
 
 class DomainBrowser(BaseBrowser):
     """
-    A browser that handles relative URLs.
+    A browser that handles relative URLs and can have a base URL (usually a domain).
 
     For instance self.location('/hello') will get http://weboob.org/hello
     if BASEURL is 'http://weboob.org/'.
@@ -269,4 +278,7 @@ class DomainBrowser(BaseBrowser):
         return BaseBrowser.open(self, self.absurl(uri), *args, **kwargs)
 
     def home(self):
-        return self.location('/')
+        """
+        Go to the "home" page, usually the BASEURL.
+        """
+        return self.location(self.BASEURL or self.absurl('/'))
