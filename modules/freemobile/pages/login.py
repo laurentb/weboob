@@ -19,7 +19,6 @@
 
 
 import Image
-import time
 
 from weboob.tools.browser import BasePage
 
