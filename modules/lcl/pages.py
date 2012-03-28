@@ -49,7 +49,7 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
     def __init__(self,basepage):
         img=basepage.document.find("//img[@id='idImageClavier']")
         random.seed()
-        self.url+="%li"%math.floor(long(random.random()*1000000000000000000000))
+        self.url+="%s"%str(long(math.floor(long(random.random()*1000000000000000000000))))
         MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),
                                     basepage.document,img,self.color,"id")
         if basepage.browser.responses_dirname is None:
