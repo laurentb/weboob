@@ -116,7 +116,7 @@ class HistoryPage(BasePage):
                 mydate = date(*reversed([int(x) for x in tds[0].text.split(' ')[0].split("/")]))
                 mytime = time(*[int(x) for x in tds[0].text.split(' ')[1].split(":")])
                 detail.datetime = datetime.combine(mydate, mytime)
-                detail.label = tds[1].text + " " + tds[2].text + " " + tds[3].text
+                detail.label = tds[1].text.lstrip().rstrip() + " " + tds[2].text.lstrip().rstrip() + " " + tds[3].text.lstrip().rstrip()
                 try:
                     detail.price = float(tds[4].text[0:4].replace(',', '.'))
                 except:
