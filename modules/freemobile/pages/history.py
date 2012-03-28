@@ -40,7 +40,7 @@ class DetailsPage(BasePage):
     def on_loaded(self):
         self.details = []
         self.datebills = []
-        num = self.document.xpath('//div[@class="infosLigneDetail"]')[0].text
+        num = self.document.xpath('//div[@class="infosLigneDetail pointer"]')[0].text
         num = num.split("-")[2].strip()
 
         # National parsing
