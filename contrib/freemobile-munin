@@ -142,10 +142,10 @@ EOF
 }
 
 sub fetch {
-
+    my @cache_data;
     # Check if cache exist and not older than the refresh threshold.
     if ( open $cache_fh, '<', $cachefile ) {
-        my @cache_data = <$cache_fh>;
+        @cache_data = <$cache_fh>;
         close $cache_fh or croak "unable to close: $ERRNO";
 
         # File not empty?
@@ -158,13 +158,22 @@ sub fetch {
             }
         }
     }
-
-    # Open cache for writing and execute weboob
-    open $cache_fh, '>', $cachefile
-      or croak "Failed to open file $cachefile";
+    # execute weboob
     open my $data, q(-|), $weboob or croak "Couldn't execute program: $ERRNO";
     my @lines = <$data>;
     close $data or carp "unable to close: $ERRNO";
+    # If error output, print the cache (if exist) and exit
+    if ( @cache_data > 0 ) {
+        if ( @cache_data > 0 ) {
+            print join q{}, @cache_data[ 1 .. $#cache_data ];
+            exit 0;
+        }
+        exit 1;
+    }
+
+    # Open cache for writing
+    open $cache_fh, '>', $cachefile
+      or croak "Failed to open file $cachefile";
     print {$cache_fh} time . "\n";
 
     foreach my $monit (@monitored) {
