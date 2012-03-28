@@ -26,14 +26,14 @@ C<user> I<required>: user with freemobile backend configured
 C<env.HOME> I<required>: path to user home
 
 C<env.freemonitored> (optional): default only 'voice sms'
-The full list of monitored options is : 
- * voice sms mms data specialvoice voicetoint voiceint smsint mmsint dataint 
+The full list of monitored options is :
+ * voice sms mms data specialvoice voicetoint voiceint smsint mmsint dataint
 
-C<env.cache_expire 3600> (optional): cache interval in second, or time 
+C<env.cache_expire 3600> (optional): cache interval in second, or time
 between two connection to the website. The cache interval is 3 hours by default.
 
-C<timeout 30> (optional): Munin internal option. The plugin can be slow, 
-30s is recommended. 
+C<timeout 30> (optional): Munin internal option. The plugin can be slow,
+30s is recommended.
 
 =head1 LICENSE
 
@@ -163,7 +163,7 @@ sub fetch {
     my @lines = <$data>;
     close $data or carp "unable to close: $ERRNO";
     # If error output, print the cache (if exist) and exit
-    if ( @cache_data > 0 ) {
+    if ( @lines == 0 ) {
         if ( @cache_data > 0 ) {
             print join q{}, @cache_data[ 1 .. $#cache_data ];
             exit 0;
