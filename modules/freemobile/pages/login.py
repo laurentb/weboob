@@ -102,7 +102,7 @@ class FreeKeyboard(object):
 
     def get_small(self, string):
         for c in string:
-            time.sleep(0.4)
+            #time.sleep(0.4)
             url = 'https://mobile.free.fr/moncompte/chiffre.php?pos=' + c + '&small=1'
             self.basepage.browser.openurl(url)
 
