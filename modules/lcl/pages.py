@@ -190,7 +190,9 @@ class AccountHistoryPage(BasePage):
                 if value is None:
                     value=td.attrib.get('class');
                 if value.startswith("date"):
-                    operation.date=date(*reversed([int(x) for x in td.text.split('/')]))
+                    # some transaction are included in a <strong> tag
+                    value=u''.join([txt.strip() for txt in td.itertext()])
+                    operation.date=date(*reversed([int(x) for x in value.split('/')]))
                 elif value.startswith("lib") or value.startswith("opLib"):
                     # misclosed A tag requires to grab text from td
                     operation.raw=u''.join([txt.strip() for txt in td.itertext()])
