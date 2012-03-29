@@ -455,7 +455,11 @@ class Boobmsg(ReplApplication):
                 # Write photo to temporary files
                 tmp_files = []
                 for photo in contact.photos.values():
-                    f = NamedTemporaryFile(suffix='.jpg')
+                    suffix = '.jpg'
+                    if '.' in photo.url.split('/')[-1]:
+                        suffix = '.%s' % photo.url.split('/')[-1].split('.')[-1]
+                    f = NamedTemporaryFile(suffix=suffix)
+
                     photo = backend.fillobj(photo, 'data')
                     f.write(photo.data)
                     tmp_files.append(f)
