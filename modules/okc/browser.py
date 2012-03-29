@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.ordereddict import OrderedDict
@@ -144,8 +145,24 @@ class OkCBrowser(BaseBrowser):
     @check_login
     def post_mail(self, id, content):
         self.location(self.absurl('/messages?compose=1'))
-        content = content.replace('\n', '\r\n').encode('Windows-1252', 'replace')
         self.page.post_mail(id, content)
+
+    @check_login
+    def post_reply(self, thread_id, content):
+        self.location(self.absurl('/messages?readmsg=true&threadid=%s&folder=1' % thread_id))
+        username, key = self.page.get_post_params()
+        data = urllib.urlencode({
+            'ajax' : 1,
+            'sendmsg' : 1,
+            'r1' : username,
+            'subject' : '',
+            'body' : content,
+            'threadid' : thread_id,
+            'authcode' : key,
+            'reply' : 1,
+            })
+        self.addheaders = [('Referer', self.page.url), ('Content-Type', 'application/x-www-form-urlencoded')]
+        self.open('http://m.okcupid.com/mailbox', data=data)
 
     #@check_login
     #@url2id

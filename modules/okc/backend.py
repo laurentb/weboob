@@ -218,8 +218,16 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     # ---- ICapMessagesPost methods ---------------------
 
     def post_message(self, message):
+        content = message.content.replace('\n', '\r\n').encode('utf-8', 'replace')
         with self.browser:
-            self.browser.post_mail(message.thread.id, message.content)
+            # Check wether we already have a thread with this user
+            threads = self.browser.get_threads_list()
+            for thread in threads:
+                if thread['username'] == message.thread.id:
+                    self.browser.post_reply(thread['id'], content)
+                    break
+            else:
+                self.browser.post_mail(message.thread.id, content)
 
     # ---- ICapContact methods ---------------------
 

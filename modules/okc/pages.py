@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
@@ -66,6 +67,31 @@ class MessagesPage(BasePage):
             })
 
         return mails
+
+    def get_post_params(self):
+        # http://m.okcupid.com/mailbox
+        # Paramètresapplication/x-www-form-urlencoded
+        # ajax    1
+        # authcode    1,0,1332766806,0x154df106d5af5993;51e1fa019f3423831e5b95c9c91346e5138f99cf
+        # body    Ah bah ça y'est, ça marche ?!
+        # r1  jeanneplop
+        # reply   1
+        # sendmsg 1
+        # subject
+        # threadid    154028265985080112
+        # ajax=1&sendmsg=1&r1=jeanneplop&subject=&body=Ah%20bah%20%C3%A7a%20y'est%2C%20%C3%A7a%20marche%20%3F!&threadid=154028265985080112&authcode=1%2C0%2C1332766806%2C0x154df106d5af5993%3B51e1fa019f3423831e5b95c9c91346e5138f99cf&reply=1
+        js = self.parser.select(self.document.getroot(), "//script", method='xpath')
+        for script in js:
+            script = script.text
+
+            if script is None:
+                continue
+            for line in script.splitlines():
+                match = re.match(".*Message\.initialize\([^,]*, '([^']*)', \"\", '([^']*)',.*", line)
+                if match is not None:
+                    return match.groups()
+        raise Exception('Unexpected reply page')
+
 
 class ProfilePage(BasePage):
     def get_profile(self):
