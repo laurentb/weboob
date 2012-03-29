@@ -198,8 +198,9 @@ class AccountHistoryPage(BasePage):
                     operation.raw=u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("solde") or value.startswith("mnt"):
                     mntColumn+=1
-                    if td.text.strip() != "":
-                        amount = float(td.text.strip().replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                    amount=u''.join([txt.strip() for txt in td.itertext()])
+                    if amount != "":
+                        amount = float(amount.replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
                         if value.startswith("soldeDeb") or mntColumn==1:
                             amount=-amount
                         operation.amount=amount
