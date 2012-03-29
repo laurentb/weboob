@@ -39,8 +39,8 @@ class ThreadPage(BasePage):
             _class = elem.get('class', '')
             if 'clearfix' in _class.split():
                 threads.append({
-                        u'username' : elem.getchildren()[0].get('href').split('/')[-1],
-                        u'id' : elem.get('id', '').split('_')[1],
+                        u'username' : unicode(elem.getchildren()[0].get('href').split('/')[-1]),
+                        u'id' : unicode(elem.get('id', '').split('_')[1]),
                 })
 
         return threads
@@ -60,10 +60,13 @@ class MessagesPage(BasePage):
             date = div.getchildren()[2].text
             id_from = li_msg.getchildren()[0].get('href').split('/')[-1]
 
+            if date is not None:
+                date = unicode(date)
+
             mails['messages'].append({
                 'date' : date,
-                'message' : txt,
-                'id_from' : id_from,
+                'message' : unicode(txt),
+                'id_from' : unicode(id_from),
             })
 
         return mails
@@ -100,18 +103,18 @@ class ProfilePage(BasePage):
             return None
 
         profile = {}
-        profile['id'] = title.text[len('OkCupid: '):]
+        profile['id'] = unicode(title.text[len('OkCupid: '):])
         profile['data'] = OrderedDict()
 
         profile_p = self.parser.select(self.document.getroot(), "//div[@id='page_content']//p", method='xpath')
 
-        profile['data']['infos'] = ProfileNode('infos', 'Informations', OrderedDict(), flags=ProfileNode.SECTION)
+        profile['data']['infos'] = ProfileNode('infos', u'Informations', OrderedDict(), flags=ProfileNode.SECTION)
 
         info = {
-                        'age' : profile_p[1].text.split(' / ')[0],
-                        'sex' : profile_p[1].text.split(' / ')[1],
-                        'orientation' : profile_p[1].text.split(' / ')[2],
-                        'relationship' : profile_p[1].text.split(' / ')[3],
+                        'age' : unicode(profile_p[1].text.split(' / ')[0]),
+                        'sex' : unicode(profile_p[1].text.split(' / ')[1]),
+                        'orientation' : unicode(profile_p[1].text.split(' / ')[2]),
+                        'relationship' : unicode(profile_p[1].text.split(' / ')[3]),
             }
 
         for key, val in info.iteritems():
@@ -121,9 +124,9 @@ class ProfilePage(BasePage):
         h3_essays = self.parser.select(self.document.getroot(), "//div[@id='page_content']//h3", method='xpath')
         essays = dict(zip(h3_essays, div_essays))
 
-        profile['summary'] = div_essays[0].text.strip()
+        profile['summary'] = unicode(div_essays[0].text.strip())
 
-        profile['data']['essays'] = ProfileNode('essays', 'Essays', OrderedDict(), flags=ProfileNode.SECTION)
+        profile['data']['essays'] = ProfileNode('essays', u'Essays', OrderedDict(), flags=ProfileNode.SECTION)
 
         for label, val in essays.iteritems():
             label = unicode(label.text).strip()
@@ -146,11 +149,11 @@ class ProfilePage(BasePage):
         #    profile['data']['essays'].value['essay_%i' % i] = ProfileNode('essay_%i' % i, title.text, div_essays[i].text.strip())
 
         details_div = self.parser.select(self.document.getroot(), "//div[@id='details']//li", method='xpath')
-        profile['data']['details'] = ProfileNode('details', 'Details', OrderedDict(), flags=ProfileNode.SECTION)
+        profile['data']['details'] = ProfileNode('details', u'Details', OrderedDict(), flags=ProfileNode.SECTION)
         for elem in details_div:
-            label = elem.getchildren()[0].text.strip()
+            label = unicode(elem.getchildren()[0].text.strip())
+            val = unicode(elem.getchildren()[1].text.strip())
             key = label.lower().replace(' ', '_')
-            val = elem.getchildren()[1].text.strip()
             profile['data']['details'].value[key] = ProfileNode(key, label, val)
 
         return profile
@@ -158,7 +161,7 @@ class ProfilePage(BasePage):
 class PhotosPage(BasePage):
     def get_photos(self):
         imgs = self.parser.select(self.document.getroot(), "//div[@class='pic clearfix']//img", method='xpath')
-        return [img.get('src') for img in imgs]
+        return [unicode(img.get('src')) for img in imgs]
 
 class PostMessagePage(BasePage):
     def post_mail(self, id, content):

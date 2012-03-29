@@ -97,7 +97,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
             #    continue
             t = Thread(int(thread['id']))
             t.flags = Thread.IS_DISCUSSION
-            t.title = 'Discussion with %s' % thread['username']
+            t.title = u'Discussion with %s' % thread['username']
             yield t
 
     def get_thread(self, id, contacts=None, get_profiles=False):
@@ -281,14 +281,14 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
             contact.profile = profile['data']
             contact.summary = profile['summary']
 
-            if contact.profile['details']['last_online'].value == 'Online now!':
+            if contact.profile['details']['last_online'].value == u'Online now!':
                 contact.status = Contact.STATUS_ONLINE
             else:
                 contact.status = Contact.STATUS_OFFLINE
             contact.status_msg = contact.profile['details']['last_online'].value
 
             for no, photo in enumerate(self.browser.get_photos(_id)):
-                contact.set_photo('image_%i' % no, url=photo, thumbnail_url=photo)
+                contact.set_photo(u'image_%i' % no, url=photo, thumbnail_url=photo)
             return contact
 
     #def _get_partial_contact(self, contact):
