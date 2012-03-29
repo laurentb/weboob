@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 from dateutil.parser import parse as parse_date
 
 from weboob.tools.browser import BasePage
@@ -41,9 +42,9 @@ class SearchResultsPage(BasePage):
             housing = Housing(a.find('idannonce').text)
             housing.title = a.find('titre').text
             housing.date = parse_date(a.find('dtfraicheur').text)
-            housing.cost = float(a.find('prix').text)
+            housing.cost = Decimal(a.find('prix').text)
             housing.currency = u'€'
-            housing.area = float(a.find('surface').text)
+            housing.area = Decimal(a.find('surface').text)
             housing.text = a.find('descriptif').text.strip()
             housing.location = a.find('ville').text
             try:
@@ -69,10 +70,10 @@ class HousingPage(BasePage):
 
         housing.title = details.find('titre').text
         housing.text = details.find('descriptif').text.strip()
-        housing.cost = float(details.find('prix').text)
+        housing.cost = Decimal(details.find('prix').text)
         housing.currency = u'€'
         housing.date = parse_date(details.find('dtfraicheur').text)
-        housing.area = float(details.find('surface').text)
+        housing.area = Decimal(details.find('surface').text)
         housing.phone = details.find('contact').find('telephone').text
 
         try:

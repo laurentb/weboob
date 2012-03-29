@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, IntField, FloatField, \
+from .base import IBaseCap, CapBaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, DateField
 
 
@@ -50,8 +50,8 @@ class Housing(CapBaseObject):
     Content of a housing.
     """
     title =         StringField('Title of housing')
-    area =          FloatField('Area of housing, in m2')
-    cost =          FloatField('Cost of housing')
+    area =          DecimalField('Area of housing, in m2')
+    cost =          DecimalField('Cost of housing')
     currency =      StringField('Currency of cost')
     date =          DateField('Date when the housing has been published')
     location =      StringField('Location of housing')

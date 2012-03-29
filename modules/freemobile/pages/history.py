@@ -18,9 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import datetime, date, time
+from decimal import Decimal
+
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
-from datetime import datetime, date, time
 
 
 __all__ = ['HistoryPage', 'DetailsPage']
@@ -30,9 +32,9 @@ def convert_price(div):
     try:
         price = div.find('div[@class="horsForfait"]/p/span').text
         price = price.encode('utf-8', 'replace').replace('€', '').replace(',', '.')
-        return float(price)
+        return Decimal(price)
     except:
-        return 0.
+        return Decimal(0)
 
 
 class DetailsPage(BasePage):
@@ -118,9 +120,9 @@ class HistoryPage(BasePage):
                 detail.datetime = datetime.combine(mydate, mytime)
                 detail.label = tds[1].text.lstrip().rstrip() + " " + tds[2].text.lstrip().rstrip() + " " + tds[3].text.lstrip().rstrip()
                 try:
-                    detail.price = float(tds[4].text[0:4].replace(',', '.'))
+                    detail.price = Decimal(tds[4].text[0:4].replace(',', '.'))
                 except:
-                    detail.price = 0.
+                    detail.price = Decimal(0.0)
 
                 self.calls.append(detail)
 

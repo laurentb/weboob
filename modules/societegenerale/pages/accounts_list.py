@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 
 from weboob.capabilities.bank import Account
@@ -52,9 +53,9 @@ class AccountsList(BasePage):
                         balance = td.find('div').text
                         if balance != None:
                             balance = balance.replace(u'\xa0','').replace(',','.')
-                            account.balance = float(balance)
+                            account.balance = Decimal(balance)
                         else:
-                            account.balance = 0.0
+                            account.balance = Decimal(0.0)
 
                 l.append(account)
 

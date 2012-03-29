@@ -19,6 +19,7 @@
 
 
 import re
+from decimal import Decimal
 from dateutil.parser import parse as parse_date
 
 from weboob.tools.browser import BasePage
@@ -53,9 +54,9 @@ class SearchResultsPage(BasePage):
             housing.title = a.text.strip()
             m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
             if m:
-                housing.area = float(m.group(3))
+                housing.area = Decimal(m.group(3))
 
-            housing.cost = float(div.cssselect('td.prix')[0].text.strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
+            housing.cost = Decimal(div.cssselect('td.prix')[0].text.strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
             housing.currency = u'€'
 
             m = self.DATE_RE.match(div.cssselect('p.date-publication')[0].text.strip())
@@ -90,12 +91,12 @@ class HousingPage(BasePage):
 
         parts = div.find('h1').text.split(' - ')
         housing.title = parts[0].strip()
-        housing.cost = float(parts[1].strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
+        housing.cost = Decimal(parts[1].strip(u' \t\u20ac\xa0€\n\r').replace('.', '').replace(',', '.'))
         housing.currency = u'€'
 
         m = re.match('(\w+) (.+) (\d+)\xa0m\xb2 (.*)', housing.title)
         if m:
-            housing.area = float(m.group(3))
+            housing.area = Decimal(m.group(3))
 
         housing.date = housing.station = housing.location = housing.phone = NotAvailable
 

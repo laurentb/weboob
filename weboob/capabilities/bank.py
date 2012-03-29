@@ -20,7 +20,7 @@
 
 from datetime import date, datetime
 
-from .base import CapBaseObject, Field, StringField, DateField, FloatField, IntField
+from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField
 from .collection import ICapCollection
 
 
@@ -66,8 +66,8 @@ class Account(Recipient):
     TYPE_JOINT            = 6  # Joint account
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
-    balance =   FloatField('Balance on this bank account')
-    coming =    FloatField('Coming balance')
+    balance =   DecimalField('Balance on this bank account')
+    coming =    DecimalField('Coming balance')
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
@@ -94,7 +94,7 @@ class Transaction(CapBaseObject):
     raw =       StringField('Raw label of the transaction')
     category =  StringField('Category of transaction')
     label =     StringField('Pretty label')
-    amount =    FloatField('Amount of transaction')
+    amount =    DecimalField('Amount of transaction')
 
     def __repr__(self):
         return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
@@ -105,7 +105,7 @@ class Transfer(CapBaseObject):
     Transfer from an account to a recipient.
     """
 
-    amount =    FloatField('Amount to transfer')
+    amount =    DecimalField('Amount to transfer')
     date =      Field('Date of transfer', basestring, date, datetime)
     origin =    Field('Origin of transfer', int, long, basestring)
     recipient = Field('Recipient', int, long, basestring)
@@ -193,7 +193,7 @@ class ICapBank(ICapCollection):
         :param recipient: account to send money
         :type recipient: :class:`Recipient`
         :param amount: amount
-        :type amount: :class:`float`
+        :type amount: :class:`decimal.Decimal`
         :param reason: reason of transfer
         :type reason: :class:`unicode`
         :rtype: :class:`Transfer`

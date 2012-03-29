@@ -19,6 +19,8 @@
 
 from __future__ import with_statement
 
+from decimal import Decimal
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Recipient, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -78,7 +80,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
         try:
             assert account.isdigit()
             assert to.isdigit()
-            amount = float(amount)
+            amount = Decimal(amount)
         except (AssertionError, ValueError):
             raise AccountNotFound()
 

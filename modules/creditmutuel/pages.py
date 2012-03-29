@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 
 from weboob.tools.browser import BasePage
@@ -70,7 +71,7 @@ class AccountsPage(BasePage):
                         balance += c
                     if c == ',':
                         balance += '.'
-                account.balance = float(balance)
+                account.balance = Decimal(balance)
                 l.append(account)
             #raise NotImplementedError()
         return l
@@ -135,7 +136,7 @@ class OperationsPage(BasePage):
                         balance += c
                     if c == ',':
                         balance += '.'
-                operation.amount = float(balance)
+                operation.amount = Decimal(balance)
                 yield operation
 
     def next_page_url(self):

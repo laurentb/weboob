@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 import datetime
 
@@ -53,9 +54,9 @@ class FrenchTransaction(Transaction):
         debit = self.clean_amount(debit)
 
         if len(debit) > 0:
-            self.amount = - float(debit)
+            self.amount = - Decimal(debit)
         else:
-            self.amount = float(credit)
+            self.amount = Decimal(credit)
 
     def parse(self, date, raw):
         """

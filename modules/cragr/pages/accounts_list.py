@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 from datetime import date
 from weboob.capabilities.bank import Account
@@ -27,13 +28,13 @@ from weboob.capabilities.bank import Transaction
 
 def clean_amount(amount):
     """
-        Removes weird characters and converts to a float
+        Removes weird characters and converts to a Decimal
         >>> clean_amount(u'1 000,00 $')
         1000.0
     """
     data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
     matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-    return float(matches[0]) if (matches) else 0.0
+    return Decimal(matches[0]) if (matches) else Decimal(0.0)
 
 
 class AccountsList(CragrBasePage):

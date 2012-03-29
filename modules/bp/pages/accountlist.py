@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import Account, AccountNotFound
+from decimal import Decimal
 
+from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.browser import BasePage
 
 
@@ -59,7 +60,7 @@ class AccountList(BasePage):
                 tmp_balance = tmp[0].text
 
             account.id = tmp_id
-            account.balance = float(''.join(tmp_balance.replace('.','').replace(',','.').split()))
+            account.balance = Decimal(''.join(tmp_balance.replace('.','').replace(',','.').split()))
             self.account_list.append(account)
 
     def get_account(self, id):

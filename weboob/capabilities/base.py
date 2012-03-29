@@ -20,6 +20,7 @@
 
 import warnings
 import datetime
+from decimal import Decimal
 from copy import deepcopy
 
 from weboob.tools.misc import to_unicode
@@ -27,8 +28,8 @@ from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
-           'Field', 'IntField', 'FloatField', 'StringField', 'BytesField',
-           'DateField', 'DeltaField', 'CapBaseObject', 'empty']
+           'Field', 'IntField', 'DecimalField', 'FloatField', 'StringField',
+           'BytesField', 'DateField', 'DeltaField', 'CapBaseObject', 'empty']
 
 
 def empty(value):
@@ -154,6 +155,18 @@ class IntField(Field):
     def convert(self, value):
         return int(value)
 
+class DecimalField(Field):
+    """
+    A field which accepts only :class:`decimal` type.
+    """
+    def __init__(self, doc, **kwargs):
+        Field.__init__(self, doc, Decimal, **kwargs)
+
+    def convert(self, value):
+        if isinstance(value, Decimal):
+            return value
+        return Decimal(value)
+
 class FloatField(Field):
     """
     A field which accepts only :class:`float` type.
@@ -244,7 +257,7 @@ class CapBaseObject(object):
         class Transfer(CapBaseObject):
             " Transfer from an account to a recipient.  "
 
-            amount =    FloatField('Amount to transfer')
+            amount =    DecimalField('Amount to transfer')
             date =      Field('Date of transfer', basestring, date, datetime)
             origin =    Field('Origin of transfer', int, long, basestring)
             recipient = Field('Recipient', int, long, basestring)

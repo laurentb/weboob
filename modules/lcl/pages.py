@@ -19,6 +19,8 @@
 
 import base64
 from datetime import date
+from decimal import Decimal
+
 from weboob.capabilities.bank import Transaction
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserUnavailable
@@ -149,7 +151,7 @@ class AccountsPage(BasePage):
                 balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
                 if '-' in balance:
                     balance='-'+balance.strip().replace('-', '')
-                account.balance=float(balance)
+                account.balance=Decimal(balance)
                 l.append(account)
         return l
 
@@ -200,7 +202,7 @@ class AccountHistoryPage(BasePage):
                     mntColumn+=1
                     amount=u''.join([txt.strip() for txt in td.itertext()])
                     if amount != "":
-                        amount = float(amount.replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
+                        amount = Decimal(amount.replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
                         if value.startswith("soldeDeb") or mntColumn==1:
                             amount=-amount
                         operation.amount=amount

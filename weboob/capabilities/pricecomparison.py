@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, FloatField, \
+from .base import IBaseCap, CapBaseObject, Field, DecimalField, \
                   StringField, DateField
 
 
@@ -44,7 +44,7 @@ class Price(CapBaseObject):
     Price.
     """
     date =      DateField('Date when this price has been published')
-    cost =      FloatField('Cost of the product in this shop')
+    cost =      DecimalField('Cost of the product in this shop')
     currency =  StringField('Currency of the price')
     message =   StringField('Message related to this price')
     shop =      Field('Shop information', Shop)

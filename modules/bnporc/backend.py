@@ -21,6 +21,7 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
+from decimal import Decimal
 from datetime import datetime, timedelta
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
@@ -108,7 +109,7 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
         try:
             assert account.isdigit()
             assert to.isdigit()
-            amount = float(amount)
+            amount = Decimal(amount)
         except (AssertionError, ValueError):
             raise AccountNotFound()
 

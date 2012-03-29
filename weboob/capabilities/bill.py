@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, StringField, DateField, FloatField
+from .base import CapBaseObject, StringField, DateField, DecimalField
 from .collection import ICapCollection
 
 
@@ -47,7 +47,7 @@ class Detail(CapBaseObject):
     label =     StringField('label of the detail line')
     infos =     StringField('information')
     datetime =  DateField('date information')
-    price =     FloatField('price')
+    price =     DecimalField('price')
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)

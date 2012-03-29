@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 from datetime import date
 
 from weboob.tools.browser import BasePage
@@ -55,9 +56,9 @@ class AccountHistory(BasePage):
                         amount = tds[4].text
                     amount = amount.strip(u' \n\t\x80').replace(' ', '').replace(',', '.')
 
-                    # if we don't have exactly one '.', this is not a floatm try the next
+                    # if we don't have exactly one '.', this is not a Decimal try the next
                     operation = Transaction(len(self.operations))
-                    operation.amount = float(amount)
+                    operation.amount = Decimal(amount)
 
                     operation.date = d
                     operation.label = label

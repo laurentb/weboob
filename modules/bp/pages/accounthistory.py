@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 from datetime import date
 import re
 
@@ -56,9 +57,9 @@ class AccountHistory(BasePage):
                     amount = t.text
             amount = ''.join(amount.replace('.', '').replace(',', '.').split())
             if amount[0] == "-":
-                operation.amount = -float(amount[1:])
+                operation.amount = - Decimal(amount[1:])
             else:
-                operation.amount = float(amount)
+                operation.amount = Decimal(amount)
 
             operations.append(operation)
         return operations

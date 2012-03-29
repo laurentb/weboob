@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
+
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError
@@ -68,7 +70,7 @@ class AccountsList(BasePage):
         return account
 
     def _parse_amount(self, elem):
-        return float(elem.text.replace('.', '').replace(',', '.').strip(u' \t\u20ac\xa0€\n\r'))
+        return Decimal(elem.text.replace('.', '').replace(',', '.').strip(u' \t\u20ac\xa0€\n\r'))
 
     def get_list(self):
         l = []

@@ -20,6 +20,8 @@
 from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon, QBrush, QColor
 from PyQt4.QtCore import SIGNAL, Qt
 
+from decimal import Decimal
+
 from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.housing import ICapHousing, Query, City
@@ -35,8 +37,8 @@ class HousingListWidgetItem(QListWidgetItem):
         self.read = True
 
     def __lt__(self, other):
-        return '%s%s' % (self.read, float(self.housing.cost or 0) / float(self.housing.area or 1)) < \
-               '%s%s' % (other.read, float(other.housing.cost or 0) / float(other.housing.area or 1))
+        return '%s%s' % (self.read, Decimal(self.housing.cost or 0) / Decimal(self.housing.area or 1)) < \
+               '%s%s' % (other.read, Decimal(other.housing.cost or 0) / Decimal(other.housing.area or 1))
 
     def setAttrs(self, storage):
         text =  u'<h2>%s</h2>' % self.housing.title

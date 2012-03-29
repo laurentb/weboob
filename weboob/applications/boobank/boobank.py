@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import sys
 
 from weboob.capabilities.bank import ICapBank, Account, Transaction
@@ -123,8 +124,8 @@ class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
 
     count = 0
-    tot_balance = 0.0
-    tot_coming = 0.0
+    tot_balance = Decimal(0)
+    tot_coming = Decimal(0)
 
     def flush(self):
         if self.count < 1:
@@ -134,8 +135,8 @@ class AccountListFormatter(IFormatter):
         result += u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
                                                                                '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
         self.after_format(result)
-        self.tot_balance = 0.0
-        self.tot_coming = 0.0
+        self.tot_balance = Decimal(0)
+        self.tot_coming = Decimal(0)
         self.count = 0
 
     def format_dict(self, item):
@@ -152,7 +153,7 @@ class AccountListFormatter(IFormatter):
             result += '------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
         result += (u' %s%-' + (u'15' if self.interactive else '30') + u's%s %-25s  %8s   %8s') % \
                              (self.BOLD, id, self.NC,
-                              item['label'], '%.2f' % item['balance'], '%.2f' % (item['coming'] or 0.0))
+                              item['label'], '%.2f' % item['balance'], '%.2f' % (item['coming'] or Decimal(0.0)))
 
         self.tot_balance += item['balance']
         if item['coming']:
@@ -281,7 +282,7 @@ class Boobank(ReplApplication):
         id_to, backend_name_to = self.parse_id(id_to)
 
         try:
-            amount = float(amount)
+            amount = Decimal(amount)
         except (TypeError, ValueError):
             print >>sys.stderr, 'Error: please give a decimal amount to transfer'
             return 2

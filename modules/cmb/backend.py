@@ -28,6 +28,7 @@ from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 from re import match, compile, sub
 from httplib import HTTPSConnection
 from urllib import urlencode
+from decimal import Decimal
 
 from lxml import etree
 from datetime import date
@@ -169,13 +170,13 @@ class CmbBackend(BaseBackend, ICapBank):
 
                 balance = td[1].text
                 balance = balance.replace(',', '.').replace(u"\xa0", '')
-                account.balance = float(balance)
+                account.balance = Decimal(balance)
 
                 span = td[3].xpath('a/span')
                 if len(span):
                     coming = span[0].text.replace(' ', '').replace(',', '.')
                     coming = coming.replace(u"\xa0", '')
-                    account.coming = float(coming)
+                    account.coming = Decimal(coming)
                 else:
                     account.coming = NotAvailable
 
@@ -262,10 +263,10 @@ class CmbBackend(BaseBackend, ICapBank):
                     if amount.count(',') != 1:
                         amount = td[4].text
                         amount = amount.replace(',', '.').replace(u'\xa0', '')
-                        operation.amount = float(amount)
+                        operation.amount = Decimal(amount)
                     else:
                         amount = amount.replace(',', '.').replace(u'\xa0', '')
-                        operation.amount = - float(amount)
+                        operation.amount = - Decimal(amount)
 
                     i += 1
                     yield operation

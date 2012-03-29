@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 
 from weboob.tools.browser import BasePage
@@ -49,7 +50,7 @@ class AccountsListPage(BasePage):
             tag = tds[2].find('font')
             if tag is None:
                 tag = tds[2]
-            account.balance = float(tag.text.replace('.','').replace(',','.').replace(' ', '').strip(u' \t\u20ac\xa0€\n\r'))
+            account.balance = Decimal(tag.text.replace('.','').replace(',','.').replace(' ', '').strip(u' \t\u20ac\xa0€\n\r'))
             account.coming = NotAvailable
 
             yield account

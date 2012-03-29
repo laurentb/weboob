@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 
 from weboob.capabilities.bank import Account
@@ -46,8 +47,8 @@ class AccountsList(BasePage):
                 linkbis = self.document.xpath(urltofind).pop()
                 if linkbis.text == link.text:
                     linkbis = self.document.xpath(urltofind)[1]
-                account.balance = float(linkbis.text.replace('.', '').\
-                                        replace(' ', '').replace(',', '.'))
+                account.balance = Decimal(linkbis.text.replace('.', '').\
+                                          replace(' ', '').replace(',', '.'))
                 account.coming = NotAvailable
                 l.append(account)
 

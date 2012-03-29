@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 import re
 
 from weboob.tools.browser import BasePage
@@ -59,7 +60,7 @@ class ComparisonResultsPage(BasePage):
                 price.product = product
 
                 tds = tr.findall('td')
-                price.cost = float(tds[4].text.replace(',', '.'))
+                price.cost = Decimal(tds[4].text.replace(',', '.'))
                 price.currency = u'€'
 
                 shop = Shop(price.id)

@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
 from datetime import date
 
 from weboob.tools.browser import BasePage
@@ -52,7 +53,7 @@ class AccountHistoryCC(BasePage):
 
             amount = texte[5].replace('\t', '').strip().replace(u'€', '').\
                               replace(',', '.').replace(u'\xa0', u'')
-            op.amount = float(amount)
+            op.amount = Decimal(amount)
 
             self.transactions.append(op)
             i += 1
@@ -81,7 +82,7 @@ class AccountHistoryLA(BasePage):
             amount = texte[length - 1].replace('\t', '').strip().\
                                        replace('.', '').replace(u'€', '').\
                                        replace(',', '.').replace(u'\xa0', u'')
-            op.amount = float(amount)
+            op.amount = Decimal(amount)
 
             self.transactions.append(op)
             i += 1

@@ -19,6 +19,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
+
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 
@@ -55,9 +57,9 @@ class AccountsList(BasePage):
                                 balance = span.text
                             balance = balance.strip(u' \n\t€+').replace(',', '.').replace(' ', '')
                             if balance != "":
-                                account.balance = float(balance)
+                                account.balance = Decimal(balance)
                             else:
-                                account.balance = 0.0
+                                account.balance = Decimal(0.0)
 
                     else:
                         # because of some weird useless <tr>
