@@ -178,7 +178,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         if not thread.title:
             thread.title = u'Discussion with %s' % mails['member']['pseudo']
 
-        self.storage.set('sluts', thread.id, 'status', mails['status'])
+        self.storage.set('sluts', int(thread.id), 'status', mails['status'])
         self.storage.save()
 
         for mail in mails['messages']:
@@ -313,7 +313,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         slut = self._get_slut(message.thread.id)
         if slut['lastmsg'] < message.date:
             slut['lastmsg'] = message.date
-            self.storage.set('sluts', message.thread.id, slut)
+            self.storage.set('sluts', int(message.thread.id), slut)
             self.storage.save()
 
     def _get_slut(self, id):
