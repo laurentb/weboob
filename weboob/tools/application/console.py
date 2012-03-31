@@ -24,6 +24,7 @@ import logging
 import sys
 import os
 import locale
+from tempfile import NamedTemporaryFile
 
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
@@ -433,11 +434,24 @@ class ConsoleApplication(BaseApplication):
 
         return v.get()
 
-    def acquire_input(self):
-        if sys.stdin.isatty():
-            print 'Reading content from stdin... Type ctrl-D ' \
-                  'from an empty line to stop.'
-        text = sys.stdin.read()
+    def acquire_input(self, content=None):
+        editor = os.environ.get('EDITOR')
+        if sys.stdin.isatty() and editor:
+            f = NamedTemporaryFile(delete=False)
+            filename = f.name
+            if content is not None:
+                f.write(content)
+            f.close()
+            os.system("%s %s" % (editor, filename))
+            f = open(filename, 'r')
+            text = f.read()
+            f.close()
+            os.unlink(filename)
+        else:
+            if sys.stdin.isatty():
+                print 'Reading content from stdin... Type ctrl-D ' \
+                          'from an empty line to stop.'
+            text = sys.stdin.read()
         return text.decode(sys.stdin.encoding or locale.getpreferredencoding())
 
     def bcall_error_handler(self, backend, error, backtrace):
