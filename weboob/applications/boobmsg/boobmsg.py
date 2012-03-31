@@ -231,8 +231,8 @@ class Boobmsg(ReplApplication):
                           }
 
     def add_application_options(self, group):
-        group.add_option('-e', '--skip-empty',  action='store_true',
-                         help='Don\'t send messages with an empty body.')
+        group.add_option('-E', '--accept-empty',  action='store_true',
+                         help='Send messages with an empty body.')
         group.add_option('-t', '--title', action='store',
                          help='For the "post" command, set a title to message',
                          type='string', dest='title')
@@ -287,7 +287,8 @@ class Boobmsg(ReplApplication):
         if text is None:
             text = self.acquire_input()
 
-        if self.options.skip_empty and not text.strip():
+        if not self.options.accept_empty and not text.strip():
+            self.logger.warning(u'The message body is empty, use option --accept_empty to send empty messages')
             return
 
         for receiver in receivers.strip().split(','):
