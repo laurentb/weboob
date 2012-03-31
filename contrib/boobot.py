@@ -19,9 +19,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
 import re
 import sys
-from threading import Thread
+from threading import Thread, Event
 from ircbot import SingleServerIRCBot
 from time import sleep
 
@@ -42,24 +43,38 @@ class MyThread(Thread):
         self.bot.weboob = self.weboob
 
     def run(self):
-        while not self.bot.joined:
-            sleep(1)
+        self.bot.joined.wait()
 
-        sleep(1)
+        self.weboob.repeat(300, self.check_board)
         self.weboob.repeat(600, self.check_dlfp)
 
         self.weboob.loop()
 
+    def find_keywords(self, text):
+        for word in ['weboob', 'videoob', 'havesex', 'havedate', u'sàt', u'salut à toi']:
+            if word in text.lower():
+                return word
+        return None
+
     def check_dlfp(self):
-        print 'Checking DLFP...'
         for backend, msg in self.weboob.do('iter_unread_messages', backends=['dlfp']):
-            for word in ['weboob', 'videoob', 'havesex', 'havedate', u'sàt', u'salut à toi']:
-                if word in msg.content.lower():
-                    url = msg.signature[msg.signature.find('https://linuxfr'):]
-                    self.bot.send_message('[DLFP] %s talks about %s: %s' % (msg.sender, word, url))
-                    break
+            word = self.find_keywords(msg.content)
+            if word is not None:
+                url = msg.signature[msg.signature.find('https://linuxfr'):]
+                self.bot.send_message('[DLFP] %s talks about %s: %s' % (msg.sender, word, url))
             backend.set_message_read(msg)
-        print 'Checked.'
+
+    def check_board(self):
+        try:
+            backend = self.weboob.backend_instances['dlfp']
+        except KeyError:
+            return
+
+        with backend.browser:
+            for msg in backend.browser.iter_new_board_messages():
+                word = self.find_keywords(msg.message)
+                if word is not None:
+                    self.bot.send_message('[DLFP] %s talks about %s on the board' % (msg.login, word))
 
     def stop(self):
         self.weboob.want_stop()
@@ -68,12 +83,14 @@ class TestBot(SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname + "`")
         self.channel = channel
-        self.joined = False
+        self.joined = Event()
         self.weboob = None
 
     def on_welcome(self, c, e):
         c.join(self.channel)
-        self.joined = True
+
+    def on_join(self, c, e):
+        self.joined.set()
 
     def send_message(self, msg):
         self.connection.privmsg(self.channel, msg.encode("UTF-8"))
@@ -104,6 +121,7 @@ class TestBot(SingleServerIRCBot):
             self.send_message(u'Housing: %s (%sm² / %s%s)' % (h.title, h.area, h.cost, h.currency))
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     bot = TestBot(IRC_CHANNEL, IRC_NICKNAME, IRC_SERVER)
 
     thread = MyThread(bot)
