@@ -28,19 +28,20 @@ __all__ = ['AccountHistory', 'AccountComing']
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^CHEQUE(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
-                (re.compile('^FACTURE CARTE DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<category>FACTURE CARTE) DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('^(PRELEVEMENT|TELEREGLEMENT|TIP) (?P<text>.*)'),
+                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
-                (re.compile('^ECHEANCEPRET(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile('^RETRAIT DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMEN)?T? ((RECU|FAVEUR) TIERS |SEPA RECU /FRM )?(?P<text>.*)'),  FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^REMBOURST (?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
-                (re.compile('^COMMISSIONS (?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^(?P<text>REMUNERATION.*)'),   FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE CHEQUES(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<category>VIR(EMEN)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
 class AccountHistory(BasePage):
