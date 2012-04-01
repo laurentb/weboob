@@ -24,7 +24,6 @@ import re
 import sys
 from threading import Thread, Event
 from ircbot import SingleServerIRCBot
-from time import sleep
 
 from weboob.core import Weboob
 from weboob.tools.storage import StandardStorage
