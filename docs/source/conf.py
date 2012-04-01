@@ -40,7 +40,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Weboob'
-copyright = u'2010-2011, Romain Bignon, Christophe Benz'
+copyright = u'2010-2012, Weboob Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -175,7 +175,7 @@ htmlhelp_basename = 'Weboobdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Weboob.tex', u'Weboob Documentation',
-   u'Romain Bignon, Christophe Benz', 'manual'),
+   u'Weboob Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
