@@ -22,6 +22,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import to_unicode
 
 
 __all__ = ['AccountList']
@@ -48,7 +49,7 @@ class AccountList(BasePage):
         for line  in lines:
             account = Account()
             tmp = line.xpath("./td//a")[0]
-            account.label = tmp.text
+            account.label = to_unicode(tmp.text)
             account._link_id = tmp.get("href")
 
             tmp = line.xpath("./td/span/strong")

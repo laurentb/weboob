@@ -23,6 +23,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import to_unicode
 
 
 class AccountsList(BasePage):
@@ -42,7 +43,7 @@ class AccountsList(BasePage):
 
                         elif td.attrib.get('class', '') == 'account-name':
                             a = td.find('a')
-                            account.label = a.text
+                            account.label = to_unicode(a.text)
                             account._link_id = a.get('href', '')
 
                         elif td.attrib.get('class', '') == 'account-number':
