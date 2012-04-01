@@ -75,12 +75,12 @@ class VideoPage(BasePage):
             if len(video.title) > 0:
                 video.title += u' — '
             video.title += part.text.strip()
-        video.description = infos.find('DESCRIPTION').text
+        video.description = unicode(infos.find('DESCRIPTION').text)
 
         media = el.find('MEDIA')
         url = media.find('IMAGES').find('PETIT').text
         if url:
-            video.thumbnail = Thumbnail(url)
+            video.thumbnail = Thumbnail(unicode(url))
         else:
             video.thumbnail = NotAvailable
         lastest_format = None
@@ -88,7 +88,7 @@ class VideoPage(BasePage):
             if format.text is None:
                 continue
             if format.tag == quality:
-                video.url = format.text
+                video.url = unicode(format.text)
                 break
             lastest_format = format
         if not video.url and lastest_format is not None:
