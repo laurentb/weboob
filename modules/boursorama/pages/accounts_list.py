@@ -35,6 +35,7 @@ class AccountsList(BasePage):
             if div.attrib.get('id', '') == 'synthese-list':
                 for tr in div.getiterator('tr'):
                     account = Account()
+                    account.id = None
                     for td in tr.getiterator('td'):
                         if td.attrib.get('class', '') == 'account-cb':
                             break
@@ -63,7 +64,7 @@ class AccountsList(BasePage):
 
                     else:
                         # because of some weird useless <tr>
-                        if account.id != 0:
+                        if account.id is not None:
                             l.append(account)
 
         return l
