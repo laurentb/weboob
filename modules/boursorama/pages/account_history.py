@@ -21,13 +21,28 @@
 
 from decimal import Decimal
 from datetime import date
+import re
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Transaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
 
 
 __all__ = ['AccountHistory']
 
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^CHQ\. (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(PRLV|TIP) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^VIR( SEPA)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),   FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 class AccountHistory(BasePage):
 
@@ -51,18 +66,14 @@ class AccountHistory(BasePage):
                     category = labeldiv.attrib.get('title', '')
                     useless, sep, category = [part.strip() for part in category.partition(':')]
 
-                    amount = tds[3].text
-                    if amount == None:
-                        amount = tds[4].text
-                    amount = amount.strip(u' \n\t\x80').replace(' ', '').replace(',', '.')
+                    credit = tds[3].text or ""
+                    debit = tds[4].text or ""
 
-                    # if we don't have exactly one '.', this is not a Decimal try the next
                     operation = Transaction(len(self.operations))
-                    operation.amount = Decimal(amount)
-
-                    operation.date = d
-                    operation.label = label
+                    operation.parse(date=d, raw=label)
+                    operation.set_amount(credit, debit)
                     operation.category = category
+
                     self.operations.append(operation)
 
     def get_operations(self):

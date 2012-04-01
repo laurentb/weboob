@@ -40,7 +40,7 @@ class FrenchTransaction(Transaction):
         Clean a string containing an amount.
         """
         return text.replace(' ', '').replace('.','') \
-                   .replace(',','.').strip(u' \t\u20ac\xa0€\n\r')
+                   .replace(',','.').strip(u' \t\u20ac\xa0\x80€\n\r')
 
     def set_amount(self, credit='', debit=''):
         """
