@@ -18,17 +18,34 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
-
-import os
-import sys
-import codecs
-import locale
-
 from weboob.capabilities.translate import ICapTranslate
 from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.formatters.iformatter import IFormatter
+
 
 __all__ = ['Translaboob']
+
+
+class TranslationFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'text')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        backend = item['id'].split('@', 1)[1]
+        result = u'%s* %s%s\n\t%s' % (self.BOLD, backend, self.NC, item['text'].replace('\n', '\n\t'))
+        return result
+
+class XmlTranslationFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'lang_src', 'lang_dst', 'text')
+
+    def flush(self):
+        pass
+
+    def format_dict(self, item):
+        backend = item['id'].split('@', 1)[1]
+        return u'<translation %s>\n%s\n</translation>' % (backend, item['text'])
 
 class Translaboob(ReplApplication):
     APPNAME = 'translaboob'
@@ -36,36 +53,26 @@ class Translaboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2012 Lucien Loiseau'
     DESCRIPTION = 'Console application to translate text from one language to another'
     CAPS = ICapTranslate
-    
-    def main(self, argv):
-        return ReplApplication.main(self, argv)
+    EXTRA_FORMATTERS = {'translation': TranslationFormatter,
+                        'xmltrans':    XmlTranslationFormatter,
+                       }
+    COMMANDS_FORMATTERS = {'translate': 'translation',
+                          }
 
     def do_translate(self, line):
-        lan_from, lan_to, text = self.parse_command_args(line, 3, 1)
         """
-        translate <FROM> <TO> <TEXT>
-        translate from one language to another, 
-        <FROM> : source language
-        <TO>   : destination language
-        <TEXT> : language to translate, standart input if - is given
+        translate FROM TO [TEXT]
+
+        Translate from one language to another.
+        * FROM : source language
+        * TO   : destination language
+        * TEXT : language to translate, standart input if - is given
         """
+
+        lan_from, lan_to, text = self.parse_command_args(line, 3, 2)
+
         if not text or text == '-':
             text = self.acquire_input()
 
-        print "from : "+lan_from+" to : "+lan_to 
-        print "<source>"
-        print text
-        print "</source>"
-
         for backend, translation  in self.do('translate', lan_from, lan_to, text):
-          print "<translation "+backend.name+">"
-          print translation
-          print "</translation>"
-          
-
-
-
-
-
-
-
+            self.format(translation)

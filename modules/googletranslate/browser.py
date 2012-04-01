@@ -18,15 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound, BrowserIncorrectPassword
-from weboob.tools.browser.decorators import id2url, check_url
-from weboob.capabilities.translate import TranslationFail
+import urllib
+
+from weboob.tools.browser import BaseBrowser
 
 from .pages import TranslatePage
 
-import urllib
 
 __all__ = ['GoogleTranslateBrowser']
+
 
 class GoogleTranslateBrowser(BaseBrowser):
     DOMAIN = 'translate.google.com'
@@ -43,22 +43,17 @@ class GoogleTranslateBrowser(BaseBrowser):
         """
         translate 'text' from 'source' language to 'to' language
         """
-        try:
-          d = {
-              'sl': source, 
-              'tl': to,
-              'js': 'n',
-              'prev': '_t',
-              'hl': 'en',
-              'ie': 'UTF-8',
-              'layout': '2',
-              'eotf': '1',
-              'text': text,
-              }
-          self.location('http://'+self.DOMAIN, urllib.urlencode(d))
-          translation = self.page.get_translation()
-          return translation
-
-        except TranslationFail:
-            return "no translation available"
-
+        d = {
+            'sl': source.encode('utf-8'),
+            'tl': to.encode('utf-8'),
+            'js': 'n',
+            'prev': '_t',
+            'hl': 'en',
+            'ie': 'UTF-8',
+            'layout': '2',
+            'eotf': '1',
+            'text': text.encode('utf-8'),
+            }
+        self.location('http://'+self.DOMAIN, urllib.urlencode(d))
+        translation = self.page.get_translation()
+        return translation

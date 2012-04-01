@@ -17,15 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date
+
 from weboob.tools.browser import BasePage
+
+
+__all__ = ['TranslatePage']
 
 
 class TranslatePage(BasePage):
     def get_translation(self):
-      for span in self.document.getiterator('span'):
-        if (span.attrib.get('id', '') == 'result_box'):
-          for children in span.getchildren():
-            return children.text
+        boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')
+        if len(boxes) == 0:
+            return None
 
-
+        return u'\n'.join([unicode(box.text) for box in boxes])

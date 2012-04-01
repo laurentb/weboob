@@ -18,21 +18,32 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://translate.google.com"
 
-from weboob.capabilities.translate import ICapTranslate
-from weboob.tools.backend import BaseBackend, BackendConfig
+
+from weboob.capabilities.translate import ICapTranslate, Translation, TranslationFail
+from weboob.tools.backend import BaseBackend
+
 from .browser import GoogleTranslateBrowser
 
+
 __all__ = ['GoogleTranslateBackend']
+
 
 class GoogleTranslateBackend(BaseBackend, ICapTranslate):
     MAINTAINER = 'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
     VERSION = '0.c'
     LICENSE = 'AGPLv3+'
-    STORAGE = {'seen': {}}
     NAME = 'googletranslate'
     DESCRIPTION = u'Google translation web service'
     BROWSER = GoogleTranslateBrowser
 
     def translate(self, lan_from, lan_to, text):
-      return self.browser.translate(lan_from, lan_to, text)
+        translation = Translation(0)
+        translation.lang_src = lan_from
+        translation.lang_dst = lan_to
+        translation.text = self.browser.translate(lan_from, lan_to, text)
+
+        if translation.text is None:
+            raise TranslationFail()
+
+        return translation

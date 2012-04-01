@@ -18,10 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date, datetime
-
-from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField
-from .collection import ICapCollection
+from .base import IBaseCap, CapBaseObject, StringField
 
 
 __all__ = ['TranslationFail', 'ICapTranslate']
@@ -36,21 +33,27 @@ class TranslationFail(Exception):
         Exception.__init__(self, msg)
 
 
-class ICapTranslate(ICapCollection):
+class Translation(CapBaseObject):
+    """
+    Translation.
+    """
+    lang_src =      StringField('Source language')
+    lang_dst =      StringField('Destination language')
+    text =          StringField('Translation')
+
+
+class ICapTranslate(IBaseCap):
     """
     Capability of online translation website to translate word or sentence
     """
+
     def translate(self, source_language, destination_language, request):
         """
-        perfom a translation 
-        
+        Perfom a translation.
+
         :param source_language: language in which the request is written
         :param destination_language: language to translate the request into
         :param request: the sentence to be translated
+        :rtype: Translation
         """
-        raise TranslationFail()
-
-
-
-
-
+        raise NotImplementedError()
