@@ -19,7 +19,6 @@
 
 
 from decimal import Decimal
-import re
 import datetime
 
 from weboob.capabilities.bank import Transaction
@@ -76,6 +75,7 @@ class FrenchTransaction(Transaction):
         In regexps, you can define this patterns:
 
             * text: part of label to store in simplified label
+            * category: part of label representing the category 
             * yy, mm, dd, HH, MM: date and time parts
         """
         if not isinstance(date, (datetime.date, datetime.datetime)):
@@ -86,7 +86,7 @@ class FrenchTransaction(Transaction):
 
         self.date = date
         self.rdate = date
-        self.raw = to_unicode(re.sub(u'[ ]+', u' ', raw.replace(u'\n', u' ')).strip())
+        self.raw = to_unicode(raw.replace(u'\n', u' ').strip())
         self.category = NotAvailable
 
         if '  ' in self.raw:
@@ -101,6 +101,8 @@ class FrenchTransaction(Transaction):
                 self.type = _type
                 if 'text' in args:
                     self.label = args['text'].strip()
+                if 'category' in args:
+                    self.category = args['category'].strip()
 
                 # Set date from information in raw label.
                 if 'dd' and 'mm' in args:
