@@ -36,7 +36,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^ECHEANCEPRET(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
                 (re.compile('^RETRAIT DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMEN)?T? (?P<text>.*)'),  FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^VIR(EMEN)?T? ((RECU|FAVEUR) TIERS |SEPA RECU /FRM )?(?P<text>.*)'),  FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^REMBOURST (?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^COMMISSIONS (?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
                 (re.compile('^(?P<text>REMUNERATION.*)'),   FrenchTransaction.TYPE_BANK),
