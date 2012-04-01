@@ -39,8 +39,8 @@ class GoogleTranslateBackend(BaseBackend, ICapTranslate):
 
     def translate(self, lan_from, lan_to, text):
         translation = Translation(0)
-        translation.lang_src = lan_from
-        translation.lang_dst = lan_to
+        translation.lang_src = unicode(lan_from)
+        translation.lang_dst = unicode(lan_to)
         translation.text = self.browser.translate(lan_from, lan_to, text)
 
         if translation.text is None:
