@@ -75,6 +75,6 @@ class HistoryPage(BasePage):
 
             for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)','([\d -\.,]+)','\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
                 op = Transaction(m.group(1))
-                op.parse(date=m.group(3), raw=m.group(4))
+                op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
                 yield op
