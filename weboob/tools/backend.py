@@ -101,6 +101,9 @@ class BackendStorage(object):
         """
         Load storage.
 
+        It is made automatically when your backend is created, and use the
+        ``STORAGE`` class attribute as default.
+
         :param default: this is the default tree if storage is empty
         :type default: :class:`dict`
         """

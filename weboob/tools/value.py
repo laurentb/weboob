@@ -22,16 +22,39 @@ import re
 from .ordereddict import OrderedDict
 
 
-__all__ = ['ValuesDict', 'Value', 'ValueInt', 'ValueBool', 'ValueFloat']
+__all__ = ['ValuesDict', 'Value', 'ValueBackendPassword', 'ValueInt', 'ValueFloat', 'ValueBool']
 
 
 class ValuesDict(OrderedDict):
+    """
+    Ordered dictionarry which can take values in constructor.
+
+    >>> ValuesDict(Value('a', label='Test'),
+                   ValueInt('b', label='Test2'))
+    """
     def __init__(self, *values):
         OrderedDict.__init__(self)
         for v in values:
             self[v.id] = v
 
 class Value(object):
+    """
+    Value.
+
+    :param label: human readable description of a value
+    :type label: str
+    :param required: if ``True``, the backend can't loaded if the key isn't found in its configuration
+    :type required: bool
+    :param default: an optional default value, used when the key is not in config. If there is no default value and the key
+                    is not found in configuration, the **required** parameter is implicitly set
+    :param masked: if ``True``, the value is masked. It is useful for applications to know if this key is a password
+    :type masked: bool
+    :param regexp: if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
+    :type regexp: str
+    :param choices: if this parameter is set, the value must be in the list
+    :type choices: (list,dict)
+    """
+
     def __init__(self, *args, **kwargs):
         if len(args) > 0:
             self.id = args[0]
@@ -49,6 +72,11 @@ class Value(object):
         self._value = kwargs.get('value', None)
 
     def check_valid(self, v):
+        """
+        Check if the given value is valid.
+
+        :raises: ValueError
+        """
         if v == '' and self.default != '':
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
@@ -58,16 +86,34 @@ class Value(object):
                 v, ', '.join(unicode(s) for s in self.choices.iterkeys())))
 
     def load(self, domain, v, callbacks):
+        """
+        Load value.
+
+        :param domain: what is the domain of this value
+        :type domain: str
+        :param v: value to load
+        :param callbacks: list of weboob callbacks
+        :type callbacks: dict
+        """
         return self.set(v)
 
     def set(self, v):
+        """
+        Set a value.
+        """
         self.check_valid(v)
         self._value = v
 
     def dump(self):
+        """
+        Dump value to be stored.
+        """
         return self.get()
 
     def get(self):
+        """
+        Get the value.
+        """
         return self._value
 
 class ValueBackendPassword(Value):

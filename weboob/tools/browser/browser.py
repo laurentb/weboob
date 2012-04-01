@@ -306,9 +306,18 @@ class StandardBrowser(mechanize.Browser):
             self.logger.info(msg)
 
     def get_document(self, result):
+        """
+        Get a parsed document from a stream.
+
+        :param result: HTML page stream
+        :type result: stream
+        """
         return self.parser.parse(result, self.ENCODING)
 
     def location(self, *args, **kwargs):
+        """
+        Go on an URL and get the related document.
+        """
         return self.get_document(self.openurl(*args, **kwargs))
 
     @staticmethod
@@ -454,21 +463,6 @@ class BaseBrowser(StandardBrowser):
             except BrowserUnavailable:
                 pass
 
-    def pageaccess(func):
-        """
-        Decorator to use around a method which access to a page.
-        """
-        def inner(self, *args, **kwargs):
-            if not self.page or self.password and not self.page.is_logged():
-                self.home()
-
-            return func(self, *args, **kwargs)
-        return inner
-
-    @pageaccess
-    def keepalive(self):
-        self.home()
-
     def submit(self, *args, **kwargs):
         """
         Submit the selected form.
@@ -483,9 +477,19 @@ class BaseBrowser(StandardBrowser):
             raise BrowserUnavailable(e)
 
     def is_on_page(self, pageCls):
+        """
+        Check the current page.
+
+        :param pageCls: class of the page to check
+        :type pageCls: :class:`BasePage`
+        :rtype: bool
+        """
         return isinstance(self.page, pageCls)
 
     def absurl(self, rel):
+        """
+        Get an absolute URL from a relative one.
+        """
         if rel is None:
             return None
         if not rel.startswith('/'):
@@ -493,6 +497,9 @@ class BaseBrowser(StandardBrowser):
         return '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, rel)
 
     def follow_link(self, *args, **kwargs):
+        """
+        Follow a link on the page.
+        """
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
         except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:

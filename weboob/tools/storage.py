@@ -25,18 +25,33 @@ from .config.yamlconfig import YamlConfig
 
 class IStorage(object):
     def load(self, what, name, default={}):
+        """
+        Load data from storage.
+        """
         raise NotImplementedError()
 
     def save(self, what, name):
+        """
+        Write changes in storage on the disk.
+        """
         raise NotImplementedError()
 
     def set(self, what, name, *args):
+        """
+        Set data in a path.
+        """
         raise NotImplementedError()
 
     def delete(self, what, name, *args):
+        """
+        Delete a value or a path.
+        """
         raise NotImplementedError()
 
     def get(self, what, name, *args, **kwargs):
+        """
+        Get a value or a path.
+        """
         raise NotImplementedError()
 
 
