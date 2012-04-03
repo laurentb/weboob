@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon
+# Copyright(C) 2010-2012  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
 
 
@@ -40,52 +40,39 @@ def sizeof_fmt(num):
 class TorrentInfoFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers', 'url', 'files', 'description')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        result = u'%s%s%s\n' % (self.BOLD, item['name'], self.NC)
-        result += 'ID: %s\n' % item['id']
-        result += 'Size: %s\n' % sizeof_fmt(item['size'])
-        result += 'Seeders: %s\n' % item['seeders']
-        result += 'Leechers: %s\n' % item['leechers']
-        result += 'URL: %s\n' % item['url']
-        if item['magnet']:
-            result += 'Magnet URL: %s\n' % item['magnet']
-        if item['files']:
+    def format_obj(self, obj, alias):
+        result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
+        result += 'ID: %s\n' % obj.fullid
+        result += 'Size: %s\n' % sizeof_fmt(obj.size)
+        result += 'Seeders: %s\n' % obj.seeders
+        result += 'Leechers: %s\n' % obj.leechers
+        result += 'URL: %s\n' % obj.url
+        if hasattr(obj, 'magnet') and obj.magnet:
+            result += 'Magnet URL: %s\n' % obj.magnet
+        if obj.files:
             result += '\n%sFiles%s\n' % (self.BOLD, self.NC)
-            for f in item['files']:
+            for f in obj.files:
                 result += ' * %s\n' % f
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += item['description']
+        result += obj.description
         return result
 
 
-class TorrentListFormatter(IFormatter):
+class TorrentListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'name', 'size', 'seeders', 'leechers')
 
-    count = 0
+    def get_title(self, obj):
+        return obj.name
 
-    def flush(self):
-        self.count = 0
-        pass
-
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (self.BOLD, self.count, item['name'], backend, self.NC)
-        else:
-            result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['name'], self.NC)
-        size = sizeof_fmt(item['size'])
-        result += '  %10s   (Seed: %2d / Leech: %2d)' % (size, item['seeders'], item['leechers'])
-        return result
+    def get_description(self, obj):
+        size = sizeof_fmt(obj.size)
+        return '%10s   (Seed: %2d / Leech: %2d)' % (size, obj.seeders, obj.leechers)
 
 
 class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.c'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
                   'and download .torrent files.'
     CAPS = ICapTorrent
@@ -107,19 +94,15 @@ class Weboorrents(ReplApplication):
 
         Get information about a torrent.
         """
-        _id, backend_name = self.parse_id(id)
 
-        found = 0
-        for backend, torrent in self.do('get_torrent', _id, backends=backend_name):
-            if torrent:
-                self.format(torrent)
-                found = 1
-
-        if not found:
-            print >>sys.stderr, 'Torrent "%s" not found' % id
+        torrent = self.get_object(id, 'get_torrent')
+        if not torrent:
+            print >>sys.stderr, 'Torrent not found: %s' %  id
             return 3
-        else:
-            self.flush()
+
+        self.start_format()
+        self.format(torrent)
+        self.flush()
 
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -178,8 +161,8 @@ class Weboorrents(ReplApplication):
         self.change_path([u'search'])
         if not pattern:
             pattern = None
-        self.set_formatter_header(u'Search pattern: %s' % pattern if pattern else u'Latest torrents')
+
+        self.start_format(pattern=pattern)
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
-            self.add_object(torrent)
-            self.format(torrent)
+            self.cached_format(torrent)
         self.flush()

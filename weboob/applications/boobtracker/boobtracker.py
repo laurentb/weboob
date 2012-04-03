@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.misc import html2text
 
 
@@ -33,28 +33,25 @@ __all__ = ['BoobTracker']
 class IssueFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'project', 'title', 'body', 'author')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        result = u'%s%s - #%s - %s%s\n' % (self.BOLD, item['project'].name, item['id'], item['title'], self.NC)
-        result += '\n%s\n\n' % item['body']
-        result += 'Author: %s (%s)\n' % (item['author'].name, item['creation'])
-        if item['status']:
-            result += 'Status: %s\n' % item['status'].name
-        if item['version']:
-            result += 'Version: %s\n' % item['version'].name
-        if item['category']:
-            result += 'Category: %s\n' % item['category']
-        if item['assignee']:
-            result += 'Assignee: %s\n' % (item['assignee'].name)
-        if item['attachments']:
+    def format_obj(self, obj, alias):
+        result = u'%s%s - #%s - %s%s\n' % (self.BOLD, obj.project.name, obj.fullid, obj.title, self.NC)
+        result += '\n%s\n\n' % obj.body
+        result += 'Author: %s (%s)\n' % (obj.author.name, obj.creation)
+        if hasattr(obj, 'status') and obj.status:
+            result += 'Status: %s\n' % obj.status.name
+        if hasattr(obj, 'version') and obj.version:
+            result += 'Version: %s\n' % obj.version.name
+        if hasattr(obj, 'category') and obj.category:
+            result += 'Category: %s\n' % obj.category
+        if hasattr(obj, 'assignee') and obj.assignee:
+            result += 'Assignee: %s\n' % (obj.assignee.name)
+        if hasattr(obj, 'attachments') and obj.attachments:
             result += '\nAttachments:\n'
-            for a in item['attachments']:
+            for a in obj.attachments:
                 result += '* %s%s%s <%s>\n' % (self.BOLD, a.filename, self.NC, a.url)
-        if item['history']:
+        if hasattr(obj, 'history') and obj.history:
             result += '\nHistory:\n'
-            for u in item['history']:
+            for u in obj.history:
                 result += '* %s%s - %s%s\n' % (self.BOLD, u.date, u.author.name, self.NC)
                 for change in u.changes:
                     result += '  - %s%s%s: %s -> %s\n' % (self.BOLD, change.field, self.NC, change.last, change.new)
@@ -62,20 +59,15 @@ class IssueFormatter(IFormatter):
                     result += html2text(u.message)
         return result
 
-class IssuesListFormatter(IFormatter):
+class IssuesListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'project', 'status', 'title', 'category')
 
-    count = 0
+    def get_title(self, obj):
+        return '%s - [%s] %s' % (obj.project.name, obj.status.name, obj.title)
 
-    def flush(self):
-        self.count = 0
-        pass
+    def get_description(self, obj):
+        return obj.category
 
-    def format_dict(self, item):
-        self.count += 1
-        result = u'%s* (%s) %s - [%s] %s%s\n' % (self.BOLD, item['id'], item['project'].name, item['status'].name, item['title'], self.NC)
-        result += '  %s' % (item['category'])
-        return result
 
 class BoobTracker(ReplApplication):
     APPNAME = 'boobtracker'

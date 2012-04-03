@@ -230,7 +230,7 @@ class BaseApplication(object):
         return version
 
     def _do_complete_obj(self, backend, fields, obj):
-        if fields:
+        if fields is None or len(fields) > 0:
             try:
                 backend.fillobj(obj, fields)
             except ObjectNotAvailable, e:

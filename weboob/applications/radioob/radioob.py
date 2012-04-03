@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2012 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -21,44 +21,36 @@
 import sys
 
 from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
 __all__ = ['Radioob']
 
 
-class RadioListFormatter(IFormatter):
+class RadioListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'description')
 
-    count = 0
 
-    def flush(self):
-        self.count = 0
-        pass
+    def get_title(self, obj):
+        return obj.title
 
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (ReplApplication.BOLD, self.count, item['title'], backend, ReplApplication.NC)
-        else:
-            result = u'%s* (%s) %s%s\n' % (ReplApplication.BOLD, item['id'], item['title'], ReplApplication.NC)
-        result += '   %-30s' % item['description']
-        if item['current'] is not NotLoaded:
-            if item['current'].artist:
-                result += ' (Current: %s - %s)' % (item['current'].artist, item['current'].title)
+    def get_description(self, obj):
+        result = '%-30s' % obj.description
+        if hasattr(obj, 'current') and not empty(obj.current):
+            if obj.current.artist:
+                result += ' (Current: %s - %s)' % (obj.current.artist, obj.current.title)
             else:
-                result += ' (Current: %s)' % item['current'].title
+                result += ' (Current: %s)' % obj.current.title
         return result
 
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '0.c'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = 'Console application allowing to search for web radio stations, listen to them and get information ' \
                   'like the current song.'
     CAPS = ICapRadio

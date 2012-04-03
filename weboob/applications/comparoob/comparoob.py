@@ -25,7 +25,7 @@ import sys
 from weboob.capabilities.pricecomparison import ICapPriceComparison
 from weboob.tools.misc import html2text
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
 __all__ = ['Comparoob']
@@ -34,55 +34,46 @@ __all__ = ['Comparoob']
 class PriceFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'cost', 'currency', 'shop', 'product')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        if item['message']:
-            message = item['message']
+    def format_obj(self, obj, alias):
+        if hasattr(obj, 'message') and obj.message:
+            message = obj.message
         else:
-            message = '%s (%s)' % (item['shop'].name, item['shop'].location)
+            message = u'%s (%s)' % (obj.shop.name, obj.shop.location)
 
         result = u'%s%s%s\n' % (self.BOLD, message, self.NC)
-        result += 'ID: %s\n' % item['id']
-        result += 'Product: %s\n' % item['product'].name
-        result += 'Cost: %s%s\n' % (item['cost'], item['currency'])
-        if item['date']:
-            result += 'Date: %s\n' % item['date'].strftime('%Y-%m-%d')
+        result += u'ID: %s\n' % obj.fullid
+        result += u'Product: %s\n' % obj.product.name
+        result += u'Cost: %s%s\n' % (obj.cost, obj.currency)
+        if hasattr(obj, 'date') and obj.date:
+            result += u'Date: %s\n' % obj.date.strftime('%Y-%m-%d')
 
-        result += '\n%sShop:%s\n' % (self.BOLD, self.NC)
-        result += '\tName: %s\n' % item['shop'].name
-        if item['shop'].location:
-            result += '\tLocation: %s\n' % item['shop'].location
-        if item['shop'].info:
-            result += '\n\t' + html2text(item['shop'].info).replace('\n', '\n\t').strip()
+        result += u'\n%sShop:%s\n' % (self.BOLD, self.NC)
+        result += u'\tName: %s\n' % obj.shop.name
+        if obj.shop.location:
+            result += u'\tLocation: %s\n' % obj.shop.location
+        if obj.shop.info:
+            result += u'\n\t' + html2text(obj.shop.info).replace('\n', '\n\t').strip()
 
         return result
 
 
-class PricesFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'cost', 'currency', 'shop')
+class PricesFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'cost', 'currency')
 
-    count = 0
-
-    def flush(self):
-        self.count = 0
-
-    def format_dict(self, item):
-        self.count += 1
-        if item['message']:
-            message = item['message']
+    def get_title(self, obj):
+        if hasattr(obj, 'message') and obj.message:
+            message = obj.message
+        elif hasattr(obj, 'shop') and obj.shop:
+            message = '%s (%s)' % (obj.shop.name, obj.shop.location)
         else:
-            message = '%s (%s)' % (item['shop'].name, item['shop'].location)
+            return u'%s%s' % (obj.cost, obj.currency)
 
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s%s - %s (%s)%s' % (self.BOLD, self.count, item['cost'], item['currency'], message, backend, self.NC)
-        else:
-            result = u'%s* (%s) %s%s - %s%s' % (self.BOLD, item['id'], item['cost'], item['currency'], message, self.NC)
-        if item['date']:
-            result += ' %s' % item['date'].strftime('%Y-%m-%d')
-        return result
+        return u'%s%s - %s' % (obj.cost, obj.currency, message)
+
+    def get_description(self, obj):
+        if obj.date:
+            return obj.date.strftime('%Y-%m-%d')
+
 
 class Comparoob(ReplApplication):
     APPNAME = 'comparoob'
@@ -113,9 +104,10 @@ class Comparoob(ReplApplication):
             return 1
 
         self.change_path([u'prices'])
+        self.start_format()
         for backend, price in self.do('iter_prices', product):
-            self.add_object(price)
-            self.format(price)
+            self.cached_format(price)
+        self.flush()
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -131,5 +123,7 @@ class Comparoob(ReplApplication):
         if not price:
             print >>sys.stderr, 'Price not found: %s' %  _id
             return 3
+
+        self.start_format()
         self.format(price)
         self.flush()

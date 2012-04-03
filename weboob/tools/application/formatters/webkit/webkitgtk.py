@@ -43,11 +43,8 @@ class WebBrowser(gtk.Window):
 
 
 class WebkitGtkFormatter(HTMLTableFormatter):
-    def __init__(self):
-        HTMLTableFormatter.__init__(self, return_only=True)
-
     def flush(self):
-        table_string = HTMLTableFormatter.flush(self)
+        table_string = self.get_formatted_table()
         js_filepaths = []
         js_filepaths.append(get_javascript('jquery'))
         js_filepaths.append(get_javascript('tablesorter'))

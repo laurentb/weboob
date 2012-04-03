@@ -31,18 +31,18 @@ __all__ = ['TableFormatter', 'HTMLTableFormatter']
 class TableFormatter(IFormatter):
     HTML = False
 
-    def __init__(self, display_keys=True, return_only=False):
-        IFormatter.__init__(self, display_keys=display_keys, return_only=return_only)
+    def __init__(self):
+        IFormatter.__init__(self)
         self.queue = []
         self.keys = None
         self.header = None
 
-    def after_format(self, formatted):
-        if self.keys is None:
-            self.keys = formatted.keys()
-        self.queue.append(formatted.values())
-
     def flush(self):
+        s = self.get_formatted_table()
+        if s is not None:
+            print s.encode('utf-8')
+
+    def get_formatted_table(self):
         if len(self.queue) == 0:
             return
 
@@ -80,14 +80,14 @@ class TableFormatter(IFormatter):
 
         self.queue = []
 
-        if self.return_only:
-            return s
-        else:
-            print s.encode('utf-8')
+        return s
 
-    def format_dict(self, item):
-        # format is done in self.flush() by prettytable
-        return item
+    def format_obj(self, obj, alias):
+        item = self.to_dict(obj)
+
+        if self.keys is None:
+            self.keys = item.keys()
+        self.queue.append(item.values())
 
     def set_header(self, string):
         self.header = string

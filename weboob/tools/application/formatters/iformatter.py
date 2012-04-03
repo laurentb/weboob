@@ -47,7 +47,7 @@ else:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-from weboob.capabilities.base import CapBaseObject, FieldNotFound
+from weboob.capabilities.base import CapBaseObject
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.application.console import ConsoleApplication
 
@@ -78,10 +78,9 @@ class IFormatter(object):
     BOLD = property(get_bold)
     NC = property(get_nc)
 
-    def __init__(self, display_keys=True, display_header=True, return_only=False, outfile=sys.stdout):
+    def __init__(self, display_keys=True, display_header=True, outfile=sys.stdout):
         self.display_keys = display_keys
         self.display_header = display_header
-        self.return_only = return_only
         self.interactive = False
         self.print_lines = 0
         self.termrows = 0
@@ -94,7 +93,7 @@ class IFormatter(object):
             else:
                 self.termrows = int(subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
 
-    def after_format(self, formatted):
+    def output(self, formatted):
         if self.outfile != sys.stdout:
             with open(self.outfile, "a+") as outfile:
                 outfile.write(formatted.encode('utf-8'))
@@ -113,47 +112,45 @@ class IFormatter(object):
                 print line
                 self.print_lines += 1
 
-    def build_id(self, v, backend_name):
-        return u'%s@%s' % (unicode(v), backend_name)
+    def start_format(self, **kwargs):
+        pass
 
     def flush(self):
-        raise NotImplementedError()
+        pass
 
-    def format(self, obj, selected_fields=None):
+    def format(self, obj, selected_fields=None, alias=None):
         """
         Format an object to be human-readable.
         An object has fields which can be selected.
-        If the object provides an iter_fields() method, the formatter will
-        call it. It can be used to specify the fields order.
 
-        @param obj  [object] object to format
-        @param selected_fields  [tuple] fields to display. If None, all fields are selected
-        @return  a string of the formatted object
+        :param obj: object to format
+        :type obj: CapBaseObject
+        :param selected_fields: fields to display. If None, all fields are selected
+        :type selected_fields: tuple
+        :param alias: an alias to use instead of the object's ID
+        :type alias: unicode
         """
-        assert isinstance(obj, (dict, CapBaseObject, tuple)), 'Object is unexpected type "%r"' % obj
+        assert isinstance(obj, CapBaseObject), 'Object is unexpected type "%r"' % obj
 
-        if isinstance(obj, dict):
-            item = obj
-        elif isinstance(obj, tuple):
-            item = OrderedDict([(k, v) for k, v in obj])
-        else:
-            item = self.to_dict(obj, selected_fields)
-
-        if item is None:
-            return None
+        if selected_fields is not None and not '*' in selected_fields:
+            obj = obj.copy()
+            for name, value in obj.iter_fields():
+                if not name in selected_fields:
+                    delattr(obj, name)
 
         if self.MANDATORY_FIELDS:
-            missing_fields = set(self.MANDATORY_FIELDS) - set(item.keys())
+            missing_fields = set(self.MANDATORY_FIELDS) - set([name for name, value in obj.iter_fields()])
             if missing_fields:
                 raise MandatoryFieldsNotFound(missing_fields)
 
-        formatted = self.format_dict(item=item)
+        formatted = self.format_obj(obj, alias)
         if formatted:
-            self.after_format(formatted)
+            self.output(formatted)
         return formatted
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias=None):
         """
+        Format an object to be human-readable.
         Format a dict to be human-readable. The dict is already simplified
         if user provides selected fields.
         Called by format().
@@ -164,31 +161,37 @@ class IFormatter(object):
         """
         raise NotImplementedError()
 
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')
-
-    def to_dict(self, obj, selected_fields=None):
-        def iter_select(d):
-            if selected_fields is None or '*' in selected_fields:
-                fields = d.iterkeys()
-            else:
-                fields = selected_fields
-
-            for key in fields:
-                try:
-                    value = d[key]
-                except KeyError:
-                    raise FieldNotFound(obj, key)
-
-                yield key, value
-
+    def to_dict(self, obj):
         def iter_decorate(d):
             for key, value in d:
                 if key == 'id' and obj.backend is not None:
-                    value = self.build_id(value, obj.backend)
+                    value = obj.fullid
                 yield key, value
 
         fields_iterator = obj.iter_fields()
-        d = OrderedDict(iter_decorate(fields_iterator))
-        return OrderedDict((k, v) for k, v in iter_select(d))
+        return OrderedDict(iter_decorate(fields_iterator))
+
+
+class PrettyFormatter(IFormatter):
+    def format_obj(self, obj, alias):
+        title = self.get_title(obj)
+        desc = self.get_description(obj)
+
+        if desc is None:
+            title = '%s%s%s' % (self.NC, title, self.BOLD)
+
+        if alias is not None:
+            result = u'%s* (%s) %s (%s)%s' % (self.BOLD, alias, title, obj.backend, self.NC)
+        else:
+            result = u'%s* (%s) %s%s' % (self.BOLD, obj.fullid, title, self.NC)
+
+        if desc is not None:
+            result += u'\n\t%s' % desc
+
+        return result
+
+    def get_title(self, obj):
+        raise NotImplementedError()
+
+    def get_description(self, obj):
+        return None

@@ -29,23 +29,18 @@ __all__ = ['Translaboob']
 class TranslationFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'text')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        backend = item['id'].split('@', 1)[1]
-        result = u'%s* %s%s\n\t%s' % (self.BOLD, backend, self.NC, item['text'].replace('\n', '\n\t'))
-        return result
+    def format_obj(self, obj, alias):
+        return u'%s* %s%s\n\t%s' % (self.BOLD, obj.backend, self.NC, obj.text.replace('\n', '\n\t'))
 
 class XmlTranslationFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'lang_src', 'lang_dst', 'text')
+    MANDATORY_FIELDS = ('id', 'text')
 
-    def flush(self):
-        pass
+    def start_format(self, **kwargs):
+        if 'source' in kwargs:
+            self.output('<source>\n%s\n</source>' % kwargs['source'])
 
-    def format_dict(self, item):
-        backend = item['id'].split('@', 1)[1]
-        return u'<translation %s>\n%s\n</translation>' % (backend, item['text'])
+    def format_obj(self, obj, alias):
+        return u'<translation %s>\n%s\n</translation>' % (obj.backend, obj.text)
 
 class Translaboob(ReplApplication):
     APPNAME = 'translaboob'
@@ -74,5 +69,7 @@ class Translaboob(ReplApplication):
         if not text or text == '-':
             text = self.acquire_input()
 
+        self.start_format(source=text)
         for backend, translation  in self.do('translate', lan_from, lan_to, text):
             self.format(translation)
+        self.flush()

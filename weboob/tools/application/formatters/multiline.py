@@ -34,14 +34,12 @@ class MultilineFormatter(IFormatter):
     def flush(self):
         pass
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias):
+        item = self.to_dict(obj)
+
         result = u'\n'.join(u'%s%s' % (
             (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
             for k, v in item.iteritems() if (v is not NotLoaded and v is not NotAvailable))
         if len(item) > 1:
             result += self.after_item
         return result
-
-    def set_header(self, string):
-        if self.display_header:
-            print string.encode('utf-8')

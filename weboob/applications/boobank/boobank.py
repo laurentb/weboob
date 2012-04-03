@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.bank import ICapBank, Account, Transaction
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
 __all__ = ['Boobank']
@@ -32,22 +32,16 @@ __all__ = ['Boobank']
 class QifFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
 
-    count = 0
+    def start_format(self, **kwargs):
+        self.output(u'!type:Bank')
 
-    def flush(self):
-        self.count = 0
-
-    def format_dict(self, item):
-        result = u''
-        if self.count == 0:
-            result += u'!type:Bank\n'
-        result += u'D%s\n' % item['date'].strftime('%d/%m/%y')
-        result += u'T%s\n' % item['amount']
-        if item['category']:
-            result += u'N%s\n' % item['category']
-        result += u'M%s\n' % item['raw']
+    def format_obj(self, obj, alias):
+        result = u'D%s\n' % obj.date.strftime('%d/%m/%y')
+        result += u'T%s\n' % obj.amount
+        if obj.category:
+            result += u'N%s\n' % obj.category
+        result += u'M%s\n' % obj.raw
         result += u'^\n'
-        self.count += 1
         return result
 
 
@@ -55,110 +49,78 @@ class TransactionsFormatter(IFormatter):
     MANDATORY_FIELDS = ('date', 'label', 'amount')
     TYPES = ['', 'Transfer', 'Order', 'Check', 'Deposit', 'Payback', 'Withdrawal', 'Card', 'Loan', 'Bank']
 
-    count = 0
+    def start_format(self, **kwargs):
+        self.output(' Date         Category     Label                                                  Amount ')
+        self.output('------------+------------+---------------------------------------------------+-----------')
 
-    def flush(self):
-        if self.count < 1:
-            return
-        self.count = 0
-
-    def format_dict(self, item):
-        self.count += 1
-
-        result = u''
-        if self.count == 1:
-            result += ' Date         Category     Label                                                  Amount \n'
-            result += '------------+------------+---------------------------------------------------+-----------\n'
-
-        if item['category']:
-            _type = item['category']
+    def format_obj(self, obj, alias):
+        if hasattr(obj, 'category') and obj.category:
+            _type = obj.category
         else:
             try:
-                _type = self.TYPES[item['type']]
-            except IndexError:
+                _type = self.TYPES[obj.type]
+            except (IndexError,AttributeError):
                 _type = ''
 
-        label = item['label']
-        if not label:
-            label = item['raw']
-        result += ' %-10s   %-12s %-50s %10.2f' % (item['date'].strftime('%Y-%m-%d'), _type, label[:50], item['amount'])
-        return result
+        label = obj.label
+        if not label and hasattr(obj, 'raw'):
+            label = obj.raw
+        return ' %-10s   %-12s %-50s %10.2f' % (obj.date.strftime('%Y-%m-%d'), _type[:12], label[:50], obj.amount)
 
 
 class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        result = u'------- Transfer %s -------\n' % item['id']
-        result += u'Date:       %s\n' % item['date']
-        result += u'Origin:     %s\n' % item['origin']
-        result += u'Recipient:  %s\n' % item['recipient']
-        result += u'Amount:     %.2f\n' % item['amount']
+    def format_obj(self, obj, alias):
+        result = u'------- Transfer %s -------\n' % obj.fillud
+        result += u'Date:       %s\n' % obj.date
+        result += u'Origin:     %s\n' % obj.origin
+        result += u'Recipient:  %s\n' % obj.recipient
+        result += u'Amount:     %.2f\n' % obj.amount
         return result
 
 
-class RecipientListFormatter(IFormatter):
+class RecipientListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'label')
 
-    count = 0
+    def start_format(self, **kwargs):
+        self.output('Available recipients:')
 
-    def flush(self):
-        self.count = 0
-
-    def format_dict(self, item):
-        self.count += 1
-
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            id = '#%d (%s)' % (self.count, backend)
-        else:
-            id = item['id']
-
-        return u'%s %-30s  %s %s' % (self.BOLD, id, self.NC, item['label'])
+    def get_title(self, obj):
+        return obj.label
 
 
 class AccountListFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'label', 'balance', 'coming')
 
-    count = 0
     tot_balance = Decimal(0)
     tot_coming = Decimal(0)
 
-    def flush(self):
-        if self.count < 1:
-            return
+    def start_format(self, **kwargs):
+        self.output('               %s  Account                     Balance    Coming ' % ((' ' * 15) if not self.interactive else ''))
+        self.output('------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
 
-        result = u'------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
-        result += u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
-                                                                               '%.2f' % self.tot_balance, '%.2f' % self.tot_coming)
-        self.after_format(result)
+    def format_obj(self, obj, alias):
+        if alias is not None:
+            id = '#%s (%s)' % (alias, obj.backend)
+        else:
+            id = obj.fullid
+
+        result = (u' %s%-' + (u'15' if alias is not None else '30') + u's%s %-25s  %8s   %8s') % \
+                             (self.BOLD, id, self.NC,
+                              obj.label, '%.2f' % obj.balance, '%.2f' % (obj.coming or Decimal(0.0)))
+
+        self.tot_balance += obj.balance
+        if obj.coming:
+            self.tot_coming += obj.coming
+        return result
+
+    def flush(self):
+        self.output(u'------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
+        self.output(u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
+                                                                               '%.2f' % self.tot_balance, '%.2f' % self.tot_coming))
         self.tot_balance = Decimal(0)
         self.tot_coming = Decimal(0)
-        self.count = 0
-
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            id = '#%d (%s)' % (self.count, backend)
-        else:
-            id = item['id']
-
-        result = u''
-        if self.count == 1:
-            result += '               %s  Account                     Balance    Coming \n' % ((' ' * 15) if not self.interactive else '')
-            result += '------------------------------------------%s+----------+----------\n' % (('-' * 15) if not self.interactive else '')
-        result += (u' %s%-' + (u'15' if self.interactive else '30') + u's%s %-25s  %8s   %8s') % \
-                             (self.BOLD, id, self.NC,
-                              item['label'], '%.2f' % item['balance'], '%.2f' % (item['coming'] or Decimal(0.0)))
-
-        self.tot_balance += item['balance']
-        if item['coming']:
-            self.tot_coming += item['coming']
-        return result
 
 
 class Boobank(ReplApplication):
@@ -219,6 +181,7 @@ class Boobank(ReplApplication):
             account = backend.get_account(id)
             return backend.iter_history(account)
 
+        self.start_format()
         for backend, operation in self.do(do, backends=names):
             self.format(operation)
         self.flush()
@@ -241,6 +204,7 @@ class Boobank(ReplApplication):
             account = backend.get_account(id)
             return backend.iter_coming(account)
 
+        self.start_format(id=id)
         for backend, operation in self.do(do, backends=names):
             self.format(operation)
         self.flush()
@@ -273,9 +237,10 @@ class Boobank(ReplApplication):
             self.set_formatter('recipient_list')
             self.set_formatter_header(u'Available recipients')
             names = (backend_name_from,) if backend_name_from is not None else None
+
+            self.start_format()
             for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=names):
-                self.format(recipient)
-                self.add_object(recipient)
+                self.cached_format(recipient)
             self.flush()
             return 0
 
@@ -295,6 +260,7 @@ class Boobank(ReplApplication):
 
         names = (backend_name,) if backend_name is not None else None
 
+        self.start_format()
         for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
             self.format(transfer)
         self.flush()

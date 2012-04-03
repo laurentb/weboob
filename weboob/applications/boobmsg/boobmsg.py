@@ -35,50 +35,48 @@ __all__ = ['Boobmsg']
 
 
 class XHtmlFormatter(IFormatter):
-    def flush(self):
-        pass
+    MANDATORY_FIELDS = ('title', 'date', 'sender', 'signature', 'content')
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias):
         result  = "<div>\n"
-        result += "<h1>%s</h1>" % (item['title'])
+        result += "<h1>%s</h1>" % (obj.title)
         result += "<dl>"
-        result += "<dt>Date</dt><dd>%s</dd>" % (item['date'])
-        result += "<dt>Sender</dt><dd>%s</dd>" % (item['sender'])
-        result += "<dt>Signature</dt><dd>%s</dd>" % (item['signature'])
+        result += "<dt>Date</dt><dd>%s</dd>" % (obj.date)
+        result += "<dt>Sender</dt><dd>%s</dd>" % (obj.sender)
+        result += "<dt>Signature</dt><dd>%s</dd>" % (obj.signature)
         result += "</dl>"
-        result += "<div>%s</div>" % (item['content'])
+        result += "<div>%s</div>" % (obj.content)
         result += "</div>\n"
         return result
 
 
 class MessageFormatter(IFormatter):
-    def flush(self):
-        pass
+    MANDATORY_FIELDS = ('title', 'date', 'sender', 'signature', 'content')
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias):
         result = u'%sTitle:%s %s\n' % (self.BOLD,
-                                       self.NC, item['title'])
+                                       self.NC, obj.title)
         result += u'%sDate:%s %s\n' % (self.BOLD,
-                                       self.NC, item['date'])
+                                       self.NC, obj.date)
         result += u'%sFrom:%s %s\n' % (self.BOLD,
-                                       self.NC, item['sender'])
-        if item['receivers']:
+                                       self.NC, obj.sender)
+        if hasattr(obj, 'receivers') and obj.receivers:
             result += u'%sTo:%s %s\n' % (self.BOLD,
                                          self.NC,
-                                         ', '.join(item['receivers']))
+                                         ', '.join(obj.receivers))
 
-        if item['flags'] & Message.IS_HTML:
-            content = html2text(item['content'])
+        if obj.flags & Message.IS_HTML:
+            content = html2text(obj.content)
         else:
-            content = item['content']
+            content = obj.content
 
         result += '\n%s' % content
 
-        if item['signature']:
-            if item['flags'] & Message.IS_HTML:
-                signature = html2text(item['signature'])
+        if obj.signature:
+            if obj.flags & Message.IS_HTML:
+                signature = html2text(obj.signature)
             else:
-                signature = item['signature']
+                signature = obj.signature
 
             result += '\n-- \n%s' % signature
         return result
@@ -92,36 +90,34 @@ class MessagesListFormatter(IFormatter):
     def flush(self):
         self.count = 0
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias):
         if not self._list_messages:
-            return self.format_dict_thread(item)
+            return self.format_dict_thread(obj, alias)
         else:
-            return self.format_dict_messages(item)
+            return self.format_dict_messages(obj, alias)
 
-    def format_dict_thread(self, item):
+    def format_dict_thread(self, obj, alias):
         self.count += 1
         if self.interactive:
-            backend = item['id'].split('@', 1)[1]
             result = u'%s* (%d) %s (%s)%s' % (self.BOLD,
-                                                 self.count,
-                                                 item['title'], backend,
-                                                 self.NC)
+                                              self.count,
+                                              obj.title, obj.backend,
+                                              self.NC)
         else:
-            result = u'%s* (%s) %s%s' % (self.BOLD, item['id'],
-                                            item['title'],
-                                            self.NC)
-        if item['date']:
-            result += u'\n             %s' % item['date']
+            result = u'%s* (%s) %s%s' % (self.BOLD, obj.id,
+                                         obj.title,
+                                         self.NC)
+        if obj.date:
+            result += u'\n             %s' % obj.date
         return result
 
-    def format_dict_messages(self, item):
-        backend = item['id'].split('@', 1)[1]
-        if item['flags'] == Thread.IS_THREADS:
+    def format_dict_messages(self, obj, alias):
+        if obj.flags == Thread.IS_THREADS:
             depth = 0
         else:
             depth = -1
 
-        result = self.format_message(backend, item['root'], depth)
+        result = self.format_message(obj.backend, obj.root, depth)
         return result
 
     def format_message(self, backend, message, depth=0):
@@ -187,25 +183,25 @@ class ProfileFormatter(IFormatter):
             result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
         return result
 
-    def format_dict(self, item):
-        result = u'Nickname: %s\n' % item['name']
-        if item['status'] & Contact.STATUS_ONLINE:
+    def format_obj(self, obj):
+        result = u'Nickname: %s\n' % obj.name
+        if obj.status & Contact.STATUS_ONLINE:
             s = 'online'
-        elif item['status'] & Contact.STATUS_OFFLINE:
+        elif obj.status & Contact.STATUS_OFFLINE:
             s = 'offline'
-        elif item['status'] & Contact.STATUS_AWAY:
+        elif obj.status & Contact.STATUS_AWAY:
             s = 'away'
         else:
             s = 'unknown'
-        result += u'Status: %s (%s)\n' % (s, item['status_msg'])
+        result += u'Status: %s (%s)\n' % (s, obj.status_msg)
         result += u'Photos:\n'
-        for name, photo in item['photos'].iteritems():
+        for name, photo in obj.photos.iteritems():
             result += u'\t%s%s\n' % (photo, ' (hidden)' if photo.hidden else '')
         result += u'Profile:\n'
-        for head in item['profile'].itervalues():
+        for head in obj.profile.itervalues():
             result += self.print_node(head)
         result += u'Description:\n'
-        for s in item['summary'].split('\n'):
+        for s in obj.summary.split('\n'):
             result += u'\t%s\n' % s
         return result
 
@@ -439,7 +435,7 @@ class Boobmsg(ReplApplication):
 
     def do_photos(self, id):
         """
-        profile ID
+        photos ID
 
         Display photos of a profile
         """

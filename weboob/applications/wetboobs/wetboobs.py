@@ -17,62 +17,43 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
 
 from weboob.capabilities.weather import ICapWeather
 from weboob.capabilities.gauge import ICapWaterLevel
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
 __all__ = ['WetBoobs']
 
+
 class ForecastsFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'low', 'high', 'unit')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (self.BOLD, '%s:' % item['date'], self.NC, item['low'], item['unit'], item['high'], item['unit'])
-        if 'text' in item and item['text']:
-            result += ' %s' % item['text']
+    def format_obj(self, obj, alias):
+        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (self.BOLD, '%s:' % obj.date, self.NC, obj.low, obj.unit, obj.high, obj.unit)
+        if hasattr(obj, 'text') and obj.text:
+            result += ' %s' % obj.text
         return result
+
 
 class CurrentFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'temp')
 
-    def flush(self):
-        pass
-
-    def format_dict(self, item):
-        if isinstance(item['date'], datetime):
-            date = item['date'].strftime('%y-%m-%d %H:%M:%S')
-        else:
-            date = item['date']
-
-        result = u'%s%s%s: %s' % (self.BOLD, date, self.NC, item['temp'])
-        if 'unit' in item and item['unit']:
-            result += u'°%s' % item['unit']
-        if 'text' in item and item['text']:
-            result += u' - %s' % item['text']
+    def format_obj(self, obj, alias):
+        result = u'%s%s%s: %s' % (self.BOLD, obj.date, self.NC, obj.temp)
+        if hasattr(obj, 'unit') and obj.unit:
+            result += u'°%s' % obj.unit
+        if hasattr(obj, 'text') and obj.text:
+            result += u' - %s' % obj.text
         return result
 
-class CitiesFormatter(IFormatter):
+class CitiesFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'name')
-    count = 0
 
-    def flush(self):
-        self.count = 0
+    def get_title(self, obj):
+        return obj.name
 
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s' % (self.BOLD, self.count, item['name'], backend, self.NC)
-        else:
-            result = u'%s* (%s) %s%s' % (self.BOLD, item['id'], item['name'], self.NC)
-        return result
 
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
@@ -97,9 +78,9 @@ class WetBoobs(ReplApplication):
         Search cities.
         """
         self.change_path(['cities'])
+        self.start_format()
         for backend, city in self.do('iter_city_search', pattern, caps=ICapWeather):
-            self.add_object(city)
-            self.format(city)
+            self.cached_format(city)
         self.flush()
 
     def complete_current(self, text, line, *ignored):
@@ -115,6 +96,8 @@ class WetBoobs(ReplApplication):
         """
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
+
+        self.start_format()
         for backend, current in self.do('get_current', _id, backends=backend_name, caps=ICapWeather):
             if current:
                 self.format(current)
@@ -133,6 +116,8 @@ class WetBoobs(ReplApplication):
         """
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
+
+        self.start_format()
         for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
             self.format(forecast)
         self.flush()
@@ -144,9 +129,9 @@ class WetBoobs(ReplApplication):
         List all rivers. If PATTERN is specified, search on a pattern.
         """
         self.change_path([u'gauges'])
+        self.start_format()
         for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapWaterLevel):
-            self.add_object(gauge)
-            self.format(gauge)
+            self.cached_format(gauge)
         self.flush()
 
     def complete_gauge(self, text, line, *ignored):
@@ -162,6 +147,8 @@ class WetBoobs(ReplApplication):
         """
         gauge, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(gauge)
+
+        self.start_format()
         for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapWaterLevel):
             self.format(measure)
         self.flush()
@@ -179,6 +166,8 @@ class WetBoobs(ReplApplication):
         """
         gauge, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(gauge)
+
+        self.start_format()
         for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapWaterLevel):
             self.format(measure)
         self.flush()

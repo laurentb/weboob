@@ -264,9 +264,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         kwargs['backends'] = self.enabled_backends if backends is None else backends
         kwargs['condition'] = self.condition
         fields = self.selected_fields
-        if fields == '$direct':
+        if '$direct' in fields:
             fields = []
-        elif fields == '$full':
+        elif '$full' in fields:
             fields = None
         return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
@@ -405,7 +405,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if self.options.select:
             self.selected_fields = self.options.select.split(',')
         else:
-            self.selected_fields = '$direct'
+            self.selected_fields = ['$direct']
 
         if self.options.condition:
             self.condition = ResultsCondition(self.options.condition)
@@ -800,15 +800,9 @@ class ReplApplication(Cmd, ConsoleApplication):
         line = line.strip()
         if line:
             split = line.split()
-            if len(split) == 1 and split[0] in ('$direct', '$full'):
-                self.selected_fields = split[0]
-            else:
-                self.selected_fields = split
+            self.selected_fields = split
         else:
-            if isinstance(self.selected_fields, basestring):
-                print self.selected_fields
-            else:
-                print ' '.join(self.selected_fields)
+            print ' '.join(self.selected_fields)
 
     def complete_inspect(self, text, line, begidx, endidx):
         return sorted(set(backend.name for backend in self.enabled_backends))
@@ -864,11 +858,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             # We have an argument, let's ch to the directory before the ls
             self.working_path.cd1(path)
 
-        self.objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
+        objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
-        for obj in self.objects:
+        self.start_format()
+        for obj in objects:
             if isinstance(obj, CapBaseObject):
-                self.format(obj)
+                self.cached_format(obj)
             else:
                 print obj
 
@@ -1012,14 +1007,24 @@ class ReplApplication(Cmd, ConsoleApplication):
         return name
 
     def set_formatter_header(self, string):
-        self.formatter.set_header(string)
+        pass
 
-    def format(self, result):
+    def start_format(self, **kwargs):
+        self.formatter.start_format(**kwargs)
+
+    def cached_format(self, obj):
+        self.add_object(obj)
+        alias = None
+        if self.interactive:
+            alias = '%s' % len(self.objects)
+        self.format(obj, alias=alias)
+
+    def format(self, result, alias=None):
         fields = self.selected_fields
-        if fields in ('$direct', '$full'):
+        if '$direct' in fields or '$full' in fields:
             fields = None
         try:
-            self.formatter.format(obj=result, selected_fields=fields)
+            self.formatter.format(obj=result, selected_fields=fields, alias=alias)
         except FieldNotFound, e:
             print >>sys.stderr, e
         except MandatoryFieldsNotFound, e:

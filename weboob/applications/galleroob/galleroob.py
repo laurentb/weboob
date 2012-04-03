@@ -24,33 +24,26 @@ import os
 from re import search, sub
 
 from weboob.tools.application.repl import ReplApplication
-from weboob.capabilities.base import NotLoaded
+from weboob.capabilities.base import empty
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
 __all__ = ['Galleroob']
 
 
-class GalleryListFormatter(IFormatter):
+class GalleryListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title')
 
-    count = 0
+    def get_title(self, obj):
+        s = obj.title
+        if hasattr(obj, 'cardinality') and not empty(obj.cardinality):
+            s += u' (%d pages)' % obj.cardinality
+        return s
 
-    def flush(self):
-        self.count = 0
-
-    def format_dict(self, item):
-        result = u'%s* (%s) %s%s' % (
-                ReplApplication.BOLD,
-                item['id'],
-                item['title'],
-                ReplApplication.NC)
-        if item['cardinality'] is not NotLoaded:
-            result += u' (%d pages)' % item['cardinality']
-        if item['description'] is not NotLoaded:
-            result += u'\n    %-70s' % item['description']
-        return result
+    def get_description(self, obj):
+        if hasattr(obj, 'description') and obj.description:
+            return obj.description
 
 
 class Galleroob(ReplApplication):
@@ -76,11 +69,11 @@ class Galleroob(ReplApplication):
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
             return 2
 
-        self.set_formatter_header(u'Search pattern: %s' % pattern)
-        for backend, gallery in self.do('search_gallery',
-                pattern=pattern, max_results=self.options.count):
-            self.add_object(gallery)
-            self.format(gallery)
+        self.start_format(pattern=pattern)
+        for backend, gallery in self.do('search_gallery', pattern=pattern,
+                                        max_results=self.options.count):
+            self.cached_format(gallery)
+        self.flush()
 
     def do_download(self, line):
         """
@@ -159,5 +152,7 @@ class Galleroob(ReplApplication):
         if not gallery:
             print >>sys.stderr, 'Gallery not found: %s' % _id
             return 3
+
+        self.start_format()
         self.format(gallery)
         self.flush()

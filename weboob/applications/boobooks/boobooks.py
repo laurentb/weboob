@@ -19,33 +19,20 @@
 
 from weboob.capabilities.library import ICapBook, Book
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 import sys
 
 __all__ = ['Boobooks']
 
 
-class RentedListFormatter(IFormatter):
+class RentedListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'author', 'name', 'late')
 
     RED   = '[1;31m'
 
-    count = 0
-
-    def flush(self):
-        self.count = 0
-
-    def format_dict(self, item):
-        self.count += 1
-
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            id = '#%d (%s)' % (self.count, backend)
-        else:
-            id = item['id']
-
-        s = u'%s%s%s %s — %s (%s)' % (self.BOLD, id, self.NC, item['author'], item['name'], item['date'])
-        if item['late']:
+    def get_title(self, obj):
+        s = u'%s — %s (%s)' % (obj.author, obj.name, obj.date)
+        if obj.late:
             s += u' %sLATE!%s' % (self.RED, self.NC)
         return s
 

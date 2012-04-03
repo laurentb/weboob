@@ -28,15 +28,18 @@ class CSVFormatter(IFormatter):
     def __init__(self, field_separator=u';'):
         IFormatter.__init__(self)
         self.field_separator = field_separator
-        self.count = 0
+        self.started = False
 
     def flush(self):
-        pass
+        self.started = False
 
-    def format_dict(self, item):
+    def format_obj(self, obj, alias):
+        item = self.to_dict(obj)
+
         result = u''
-        if self.count == 0:
+        if not self.started:
             result += self.field_separator.join(item.iterkeys()) + '\n'
-        self.count += 1
+            self.started = True
+
         result += self.field_separator.join(unicode(v) for v in item.itervalues())
         return result

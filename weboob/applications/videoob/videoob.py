@@ -27,34 +27,24 @@ from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 __all__ = ['Videoob']
 
 
-class VideoListFormatter(IFormatter):
+class VideoListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'duration', 'date')
 
-    count = 0
+    def get_title(self, obj):
+        return obj.title
 
-    def flush(self):
-        self.count = 0
-        pass
-
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s (%s)%s\n' % (self.BOLD, self.count, item['title'], backend, self.NC)
-        else:
-            result = u'%s* (%s) %s%s\n' % (self.BOLD, item['id'], item['title'], self.NC)
-        result += '            %s' % (item['duration'] if item['duration'] else item['date'])
-        if not empty(item['author']):
-            result += ' - %s' % item['author']
-        if not empty(item['rating']):
-            result += u' (%s/%s)' % (item['rating'], item['rating_max'])
+    def get_description(self, obj):
+        result = '%s' % (obj.duration or obj.date)
+        if hasattr(obj, 'author') and not empty(obj.author):
+            result += u' - %s' % obj.author
+        if hasattr(obj, 'rating') and not empty(obj.rating):
+            result += u' (%s/%s)' % (obj.rating, obj.rating_max)
         return result
-
 
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
@@ -180,6 +170,8 @@ class Videoob(ReplApplication):
         if not video:
             print >>sys.stderr, 'Video not found: %s' % _id
             return 3
+
+        self.start_format()
         self.format(video)
         self.flush()
 
@@ -216,10 +208,9 @@ class Videoob(ReplApplication):
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('search', short=True)
             return 2
 
-        self.set_formatter_header(u'Search pattern: %s' % pattern)
         self.change_path([u'search'])
+        self.start_format(pattern=pattern)
         for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
-            self.add_object(video)
-            self.format(video)
+            self.cached_format(video)
         self.flush()

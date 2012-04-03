@@ -22,7 +22,7 @@ import sys
 
 from weboob.capabilities.housing import ICapHousing, Query
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
 __all__ = ['Flatboob']
@@ -31,57 +31,46 @@ __all__ = ['Flatboob']
 class HousingFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'cost', 'currency', 'area', 'date', 'text')
 
-    def flush(self):
-        pass
+    def format_obj(self, obj, alias):
+        result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
+        result += 'ID: %s\n' % obj.fullid
+        result += 'Cost: %s%s\n' % (obj.cost, obj.currency)
+        result += u'Area: %sm²\n' % (obj.area)
+        if obj.date:
+            result += 'Date: %s\n' % obj.date.strftime('%Y-%m-%d')
+        result += 'Phone: %s\n' % obj.phone
+        if hasattr(obj, 'location') and obj.location:
+            result += 'Location: %s\n' % obj.location
+        if hasattr(obj, 'station') and obj.station:
+            result += 'Station: %s\n' % obj.station
 
-    def format_dict(self, item):
-        result = u'%s%s%s\n' % (self.BOLD, item['title'], self.NC)
-        result += 'ID: %s\n' % item['id']
-        result += 'Cost: %s%s\n' % (item['cost'], item['currency'])
-        result += u'Area: %sm²\n' % (item['area'])
-        if item['date']:
-            result += 'Date: %s\n' % item['date'].strftime('%Y-%m-%d')
-        result += 'Phone: %s\n' % item['phone']
-        if item['location']:
-            result += 'Location: %s\n' % item['location']
-        if item['station']:
-            result += 'Station: %s\n' % item['station']
-
-        if item['photos']:
+        if hasattr(obj, 'photos') and obj.photos:
             result += '\n%sPhotos%s\n' % (self.BOLD, self.NC)
-            for photo in item['photos']:
+            for photo in obj.photos:
                 result += ' * %s\n' % photo.url
 
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += item['text']
+        result += obj.text
 
-        if item['details']:
+        if hasattr(obj, 'details') and obj.details:
             result += '\n\n%sDetails%s\n' % (self.BOLD, self.NC)
-            for key, value in item['details'].iteritems():
+            for key, value in obj.details.iteritems():
                 result += ' %s: %s\n' % (key, value)
         return result
 
-class HousingListFormatter(IFormatter):
+class HousingListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'cost', 'text')
 
-    count = 0
+    def get_title(self, obj):
+        return '%s%s - %s' % (obj.cost, obj.currency, obj.title)
 
-    def flush(self):
-        self.count = 0
-        pass
-
-    def format_dict(self, item):
-        self.count += 1
-        if self.interactive:
-            backend = item['id'].split('@', 1)[1]
-            result = u'%s* (%d) %s%s - %s (%s)%s\n' % (self.BOLD, self.count, item['cost'], item['currency'], item['title'], backend, self.NC)
-        else:
-            result = u'%s* (%s) %s%s - %s%s\n' % (self.BOLD, item['id'], item['cost'], item['currency'], item['title'], self.NC)
-        result += '            '
-        if item['date']:
-            result += '%s - ' % item['date'].strftime('%Y-%m-%d')
-        result += item['text']
+    def get_description(self, obj):
+        result = u''
+        if hasattr(obj, 'date') and obj.date:
+            result += '%s - ' % obj.date.strftime('%Y-%m-%d')
+        result += obj.text
         return result
+
 
 class Flatboob(ReplApplication):
     APPNAME = 'flatboob'
@@ -148,9 +137,9 @@ class Flatboob(ReplApplication):
         query.nb_rooms = self.ask_int('Enter number of rooms')
 
         self.change_path([u'housings'])
+        self.start_format()
         for backend, housing in self.do('search_housings', query):
-            self.add_object(housing)
-            self.format(housing)
+            self.cached_format(housing)
         self.flush()
 
     def ask_int(self, txt):
@@ -173,5 +162,7 @@ class Flatboob(ReplApplication):
         if not housing:
             print >>sys.stderr, 'Housing not found: %s' %  _id
             return 3
+
+        self.start_format()
         self.format(housing)
         self.flush()
