@@ -70,7 +70,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         video.thumbnail = Thumbnail(to_unicode(entry.media.thumbnail[0].url.strip()))
 
         if entry.author[0].name.text:
-            video.author = entry.author[0].name.text.strip()
+            video.author = to_unicode(entry.author[0].name.text.strip())
         if entry.media.name:
             video.author = to_unicode(entry.media.name.text.strip())
         return video

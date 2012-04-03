@@ -21,7 +21,7 @@
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.pricecomparison import Product, Shop, Price
 
@@ -36,7 +36,7 @@ class IndexPage(BasePage):
             label = li.find('label')
 
             product = Product(input.attrib['value'])
-            product.name = label.text.strip()
+            product.name = unicode(label.text.strip())
 
             if '&' in product.name:
                 # "E10 & SP95" produces a non-supported table.
@@ -46,9 +46,13 @@ class IndexPage(BasePage):
 
 class ComparisonResultsPage(BasePage):
     def get_product_name(self):
-        div = self.parser.select(self.document.getroot(), 'div#moins_plus_ariane', 1)
-        m = re.match('Carburant : (\w+) | .*', div.text)
-        return m.group(1)
+        try:
+            div = self.parser.select(self.document.getroot(), 'div#moins_plus_ariane', 1)
+        except BrokenPageError:
+            return NotAvailable
+        else:
+            m = re.match('Carburant : (\w+) | .*', div.text)
+            return m.group(1)
 
     def iter_results(self, product=None):
         price = None
@@ -64,8 +68,8 @@ class ComparisonResultsPage(BasePage):
                 price.currency = u'€'
 
                 shop = Shop(price.id)
-                shop.name = tds[2].text.strip()
-                shop.location = tds[0].text.strip()
+                shop.name = unicode(tds[2].text.strip())
+                shop.location = unicode(tds[0].text.strip())
 
                 price.shop = shop
                 price.set_empty_fields(NotAvailable)

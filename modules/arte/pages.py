@@ -50,12 +50,12 @@ class IndexPage(BasePage):
                 rating_max += 1
 
             video = ArteVideo(_id)
-            video.title = title
+            video.title = unicode(title)
             video.rating = rating
             video.rating_max = rating_max
 
             thumb = self.parser.select(div, 'img[class=thumbnail]', 1)
-            video.thumbnail = Thumbnail('http://videos.arte.tv' + thumb.attrib['src'])
+            video.thumbnail = Thumbnail(u'http://videos.arte.tv' + thumb.attrib['src'])
 
             try:
                 parts = self.parser.select(div, 'div.duration_thumbnail', 1).text.split(':')
@@ -79,8 +79,8 @@ class VideoPage(BasePage):
     def get_video(self, video=None, lang='fr', quality='hd'):
         if not video:
             video = ArteVideo(self.group_dict['id'])
-        video.title = self.get_title()
-        video.url = self.get_url(lang, quality)
+        video.title = unicode(self.get_title())
+        video.url = unicode(self.get_url(lang, quality))
         video.set_empty_fields(NotAvailable)
         return video
 

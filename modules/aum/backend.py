@@ -37,7 +37,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
-from weboob.tools.misc import local2utc
+from weboob.tools.misc import local2utc, to_unicode
 
 from .contact import Contact
 from .captcha import CaptchaError
@@ -144,7 +144,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 continue
             t = Thread(int(thread['member']['id']))
             t.flags = Thread.IS_DISCUSSION
-            t.title = 'Discussion with %s' % thread['member']['pseudo']
+            t.title = u'Discussion with %s' % to_unicode(thread['member']['pseudo'])
             yield t
 
     def get_thread(self, id, contacts=None, get_profiles=False):
@@ -215,10 +215,10 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             msg = Message(thread=thread,
                           id=int(time.strftime('%Y%m%d%H%M%S', parse_dt(mail['date']).timetuple())),
                           title=thread.title,
-                          sender=my_name if int(mail['id_from']) == self.browser.my_id else mails['member']['pseudo'],
-                          receivers=[my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo']],
+                          sender=to_unicode(my_name if int(mail['id_from']) == self.browser.my_id else mails['member']['pseudo']),
+                          receivers=[to_unicode(my_name if int(mail['id_from']) != self.browser.my_id else mails['member']['pseudo'])],
                           date=parse_dt(mail['date']),
-                          content=unescape(mail['message'] or '').strip(),
+                          content=to_unicode(unescape(mail['message'] or '').strip()),
                           signature=signature,
                           children=[],
                           flags=flags)

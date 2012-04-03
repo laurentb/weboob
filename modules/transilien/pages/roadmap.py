@@ -93,7 +93,7 @@ class RoadmapPage(BasePage):
                 current_step['id'] = i
                 i += 1
                 current_step['start_time'] = self.parse_time(self.parser.select(tr, 'td.formattedHeureDepart p', 1).text.strip())
-                current_step['line'] = self.parser.select(tr, 'td.rechercheResultatColumnMode img')[-1].attrib['alt']
+                current_step['line'] = to_unicode(self.parser.select(tr, 'td.rechercheResultatColumnMode img')[-1].attrib['alt'])
                 current_step['departure'] = to_unicode(self.parser.select(tr, 'td.descDepart p strong', 1).text.strip())
                 current_step['duration'] = self.parse_duration(self.parser.select(tr, 'td.rechercheResultatVertAlign', 1).text.strip())
             elif tr.attrib['class'] == 'trBasTroncon':

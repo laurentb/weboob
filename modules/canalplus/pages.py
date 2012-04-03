@@ -92,7 +92,7 @@ class VideoPage(BasePage):
                 break
             lastest_format = format
         if not video.url and lastest_format is not None:
-            video.url = lastest_format.text
+            video.url = unicode(lastest_format.text)
 
         day, month, year = map(int, infos.find('PUBLICATION').find('DATE').text.split('/'))
         hour, minute, second = map(int, infos.find('PUBLICATION').find('HEURE').text.split(':'))
