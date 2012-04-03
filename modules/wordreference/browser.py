@@ -25,15 +25,15 @@ from weboob.tools.browser import BaseBrowser
 from .pages import TranslatePage
 
 
-__all__ = ['GoogleTranslateBrowser']
+__all__ = ['WordReferenceBrowser']
 
 
-class GoogleTranslateBrowser(BaseBrowser):
-    DOMAIN = 'translate.google.com'
+class WordReferenceBrowser(BaseBrowser):
+    DOMAIN = 'www.wordreference.com'
     ENCODING = 'UTF-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
     PAGES = {
-        'https?://translate\.google\.com': TranslatePage
+        'https?://www\.wordreference\.com/.*/.*': TranslatePage
         }
     
     def __init__(self, *args, **kwargs):
@@ -43,17 +43,9 @@ class GoogleTranslateBrowser(BaseBrowser):
         """
         translate 'text' from 'source' language to 'to' language
         """
-        d = {
-            'sl': source.encode('utf-8'),
-            'tl': to.encode('utf-8'),
-            'js': 'n',
-            'prev': '_t',
-            'hl': 'en',
-            'ie': 'UTF-8',
-            'layout': '2',
-            'eotf': '1',
-            'text': text.encode('utf-8'),
-            }
-        self.location('http://'+self.DOMAIN, urllib.urlencode(d))
+        sl   = source.encode('utf-8')
+        tl   = to.encode('utf-8')
+        text = text.encode('utf-8')
+        self.location('http://'+self.DOMAIN+'/'+sl+tl+'/'+urllib.quote(text))
         translation = self.page.get_translation()
         return translation

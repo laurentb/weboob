@@ -21,7 +21,16 @@
 from .base import IBaseCap, CapBaseObject, StringField
 
 
-__all__ = ['TranslationFail', 'ICapTranslate']
+__all__ = ['TranslationFail', 'LanguageNotSupported', 'ICapTranslate']
+
+
+class LanguageNotSupported(Exception):
+    """
+    Raised when the language is not supported
+    """
+
+    def __init__(self, msg='language is not supported'):
+      Exception.__init__(self,msg)
 
 
 class TranslationFail(Exception):

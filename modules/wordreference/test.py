@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- CODing: utf-8 -*-
 
 # Copyright(C) 2012 Lucien Loiseau
 #
@@ -18,16 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.test import BackendTest
 
 
-__all__ = ['TranslatePage']
+__all__ = ['WordReferenceTest']
 
 
-class TranslatePage(BasePage):
-    def get_translation(self):
-        boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')
-        if len(boxes) == 0:
-            return None
+class WordReferenceTest(BackendTest):
+    BACKEND = 'wordreference'
 
-        return u''.join([unicode(box.text) for box in boxes])
+    def test_translate(self):
+        tr = self.backend.translate('French', 'English', 'chat')
+        self.assertTrue(tr.text == u'cat')

@@ -26,8 +26,7 @@ __all__ = ['TranslatePage']
 
 class TranslatePage(BasePage):
     def get_translation(self):
-        boxes = self.parser.select(self.document.getroot(), 'span#result_box', 1).findall('span')
-        if len(boxes) == 0:
-            return None
+      for tr in self.document.getiterator('tr'):
+        if tr.attrib.get('class','') == 'odd' or tr.attrib.get('class','') == 'even':
+          return u''+tr.getchildren()[0].getchildren()[0].text
 
-        return u''.join([unicode(box.text) for box in boxes])

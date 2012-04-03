@@ -28,5 +28,5 @@ class GoogleTranslateTest(BackendTest):
     BACKEND = 'googletranslate'
 
     def test_translate(self):
-        tr = self.backend.translate('fr', 'en', 'je mange du chocolat')
+        tr = self.backend.translate('French', 'English', 'je mange du chocolat')
         self.assertTrue(tr.text == u'I eat chocolate')

@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.translate import ICapTranslate
+import sys
+from weboob.capabilities.translate import ICapTranslate, TranslationFail, LanguageNotSupported
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
 
@@ -49,10 +50,22 @@ class Translaboob(ReplApplication):
     DESCRIPTION = 'Console application to translate text from one language to another'
     CAPS = ICapTranslate
     EXTRA_FORMATTERS = {'translation': TranslationFormatter,
-                        'xmltrans':    XmlTranslationFormatter,
-                       }
+        'xmltrans':    XmlTranslationFormatter,
+        }
     COMMANDS_FORMATTERS = {'translate': 'translation',
-                          }
+        }
+    LANGUAGE = {
+        'ar':'Arabic', 'af':'Afrikaans', 'sq':'Albanian', 'hy':'Armenian', 'az':'Azerbaijani', 'eu':'Basque', 'be':'Belarusian',
+        'bn':'Bengali', 'bg':'Bulgarian', 'ca':'Catalan', 'zh':'Chinese', 'hr':'Croatian', 'cz':'Czech', 'da':'Danish',
+        'nl':'Dutch', 'en':'English', 'eo':'Esperanto', 'et':'Estonian', 'tl':'Filipino', 'fi':'Finnish', 'fr':'French',
+        'gl':'Galician', 'ka':'Georgian', 'de':'German', 'gr':'Greek', 'gu':'Gujarati', 'ht':'Haitian', 'iw':'Hebrew',
+        'hi':'Hindi', 'hu':'Hungaric', 'is':'Icelandic', 'id':'Indonesian', 'ga':'Irish', 'it':'Italian', 'ja':'Japanese',
+        'kn':'Kannada', 'ko':'Korean', 'la':'Latin', 'lv':'Latvian', 'lt':'Lithuanian', 'mk':'Macedonian', 'ms':'Malay',
+        'mt':'Maltese', 'no':'Norwegian', 'fa':'Persian', 'pl':'Polish', 'pt':'Portuguese', 'ro':'Romanian', 'ru':'Russian',
+        'sr':'Serbian', 'sk':'Slovak', 'sl':'Slovenian', 'es':'Spanish', 'sw':'Swahili', 'sv':'Swedish', 'ta':'Tamil',
+        'te':'Telugu', 'th':'Thai', 'tr':'Turkish', 'uk':'Ukrainian', 'ur':'Urdu', 'vi':'Vietnamese', 'cy':'Welsh', 'yi':'Yiddish',
+        }
+
 
     def do_translate(self, line):
         """
@@ -62,14 +75,43 @@ class Translaboob(ReplApplication):
         * FROM : source language
         * TO   : destination language
         * TEXT : language to translate, standart input if - is given
+
+        Language  Abbreviation
+        ----------------------
+        Arabic      ar          Esperanto   eo          Irish       ga          Russian     ru
+        Afrikaans   af          Estonian    et          Italian     it          Serbian     sr
+        Albanian    sq          Filipino    tl          Japanese    ja          Slovak      sk
+        Armenian    hy          Finnish     fi          Kannada     kn          Slovenian   sl
+        Azerbaijani az          French      fr          Korean      ko          Spanish     es
+        Basque      eu          Galician    gl          Latin       la          Swahili     sw
+        Belarusian  be          Georgian    ka          Latvian     lv          Swedish     sv
+        Bengali     bn          German      de          Lithuanian  lt          Tamil       ta
+        Bulgarian   bg          Greek       gr          Macedonian  mk          Telugu      te
+        Catalan     ca          Gujarati    gu          Malay       ms          Thai        th
+        Chinese     zh          Haitian     ht          Maltese     mt          Turkish     tr
+        Croatian    hr          Hebrew      iw          Norwegian   no          Ukrainian   uk
+        Czech       cz          Hindi       hi          Persian     fa          Urdu        ur
+        Danish      da          Hungaric    hu          Polish      pl          Vietnamese  vi
+        Dutch       nl          Icelandic   is          Portuguese  pt          Welsh       cy
+        English     en          Indonesian  id          Romanian    ro          Yiddish     yi
+        ----------------------
         """
 
         lan_from, lan_to, text = self.parse_command_args(line, 3, 2)
 
-        if not text or text == '-':
-            text = self.acquire_input()
+        try:
+            if not lan_from in self.LANGUAGE.keys():
+                raise LanguageNotSupported()
+            if not lan_to in self.LANGUAGE.keys():
+                raise LanguageNotSupported()
 
-        self.start_format(source=text)
-        for backend, translation  in self.do('translate', lan_from, lan_to, text):
-            self.format(translation)
-        self.flush()
+            if not text or text == '-':
+                text = self.acquire_input()
+
+            self.start_format(source=text)
+            for backend, translation  in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
+                self.format(translation)
+            self.flush()
+        except (TranslationFail, LanguageNotSupported) as error:
+            print >>sys.stderr, error
+            pass
