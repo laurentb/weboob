@@ -21,7 +21,7 @@
 import warnings
 import datetime
 from decimal import Decimal
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
@@ -295,6 +295,11 @@ class CapBaseObject(object):
                 return False
         return True
 
+    def copy(self):
+        obj = copy(self)
+        obj._fields = copy(self._fields)
+        return obj
+
     def set_empty_fields(self, value, excepts=()):
         """
         Set the same value on all empty fields.
@@ -315,7 +320,8 @@ class CapBaseObject(object):
         :rtype: iter[(key, value)]
         """
 
-        yield 'id', self.id
+        if hasattr(self, 'id'):
+            yield 'id', self.id
         for name, field in self._fields.iteritems():
             yield name, field.value
 
@@ -358,3 +364,9 @@ class CapBaseObject(object):
                     'Value for "%s" needs to be of type %r, not %r' % (
                         name, attr.types, type(value)))
             attr.value = value
+
+    def __delattr__(self, name):
+        try:
+            self._fields.pop(name)
+        except KeyError:
+            object.__delattr__(self, name)
