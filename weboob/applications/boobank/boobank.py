@@ -45,6 +45,23 @@ class QifFormatter(IFormatter):
         return result
 
 
+class PrettyQifFormatter(QifFormatter):
+    def format_obj(self, obj, alias):
+        if obj.rdate:
+            result = u'D%s\n' % obj.rdate.strftime('%d/%m/%y')
+        else:
+            result = u'D%s\n' % obj.date.strftime('%d/%m/%y')
+        result += u'T%s\n' % obj.amount
+        if obj.category:
+            result += u'N%s\n' % obj.category
+        if obj.label:
+            result += u'M%s\n' % obj.label
+        else:
+            result += u'M%s\n' % obj.raw
+        result += u'^\n'
+        return result
+
+
 class TransactionsFormatter(IFormatter):
     MANDATORY_FIELDS = ('date', 'label', 'amount')
     TYPES = ['', 'Transfer', 'Order', 'Check', 'Deposit', 'Payback', 'Withdrawal', 'Card', 'Loan', 'Bank']
@@ -135,6 +152,7 @@ class Boobank(ReplApplication):
                         'recipient_list': RecipientListFormatter,
                         'transfer':       TransferFormatter,
                         'qif':            QifFormatter,
+                        'pretty_qif':     PrettyQifFormatter,
                         'ops_list':       TransactionsFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
