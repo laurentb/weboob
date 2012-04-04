@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from decimal import Decimal
 from datetime import date
@@ -24,19 +25,21 @@ from datetime import date
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
 
 __all__ = ['AccountHistoryCC', 'AccountHistoryLA']
 
 
-class AccountHistoryCC(BasePage):
-    types = {
-        'Carte achat': Transaction.TYPE_CARD,
-        'Virement': Transaction.TYPE_TRANSFER,
-        'Carte retrait': Transaction.TYPE_WITHDRAWAL,
-        u'Prélèvement': Transaction.TYPE_ORDER,
-        'Autre': Transaction.TYPE_UNKNOWN,
-         }
+class TransactionCC(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^retrait dab (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^carte (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), Transaction.TYPE_CARD),
+                (re.compile(u'^virement ((sepa emis vers|recu)?) (?P<text>.*)'), Transaction.TYPE_TRANSFER),
+                (re.compile(u'^prelevement (?P<text>.*)'), Transaction.TYPE_ORDER),
+                ]
 
+
+class AccountHistoryCC(BasePage):
     def on_loaded(self):
         self.transactions = []
         table = self.document.findall('//tbody')[0]
@@ -44,16 +47,13 @@ class AccountHistoryCC(BasePage):
         for tr in table.xpath('tr'):
             id = i
             texte = tr.text_content().split('\n')
-            op = Transaction(id)
-            op.label = texte[2]
-            op.raw = texte[2]  # nothing to parse
-            op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
+            op = TransactionCC(id)
+            op.parse(date = date(*reversed([int(x) for x in texte[0].split('/')])),
+                     raw = texte[2])
+            # force the use of website category
             op.category = texte[4]
-            op.type = self.types.get(texte[4], Transaction.TYPE_UNKNOWN)
 
-            amount = texte[5].replace('\t', '').strip().replace(u'€', '').\
-                              replace(',', '.').replace(u'\xa0', u'')
-            op.amount = Decimal(amount)
+            op.amount = Decimal(op.clean_amount(texte[5]))
 
             self.transactions.append(op)
             i += 1
