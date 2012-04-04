@@ -39,6 +39,11 @@ class TransactionCC(FrenchTransaction):
                 ]
 
 
+class TransactionAA(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<category>VIREMENT (RECU|EMIS VERS)?) (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+               ]
+
+
 class AccountHistoryCC(BasePage):
     def on_loaded(self):
         self.transactions = []
@@ -72,17 +77,13 @@ class AccountHistoryLA(BasePage):
         for tr in history:
             id = i
             texte = tr.text_content().strip().split('\n')
-            op = Transaction(id)
+            op = TransactionAA(id)
             # The size is not the same if there are two dates or only one
             length = len(texte)
-            op.raw = unicode(texte[length - 2].strip())
-            op.date = date(*reversed([int(x) for x in texte[0].split('/')]))
-            op.category = NotAvailable
+            op.parse(date = date(*reversed([int(x) for x in texte[0].split('/')])),
+                     raw = unicode(texte[length - 2].strip()))
 
-            amount = texte[length - 1].replace('\t', '').strip().\
-                                       replace('.', '').replace(u'€', '').\
-                                       replace(',', '.').replace(u'\xa0', u'')
-            op.amount = Decimal(amount)
+            op.amount = Decimal(op.clean_amount(texte[length - 1]))
 
             self.transactions.append(op)
             i += 1
