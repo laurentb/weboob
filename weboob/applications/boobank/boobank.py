@@ -72,7 +72,7 @@ class TransferFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
 
     def format_obj(self, obj, alias):
-        result = u'------- Transfer %s -------\n' % obj.fillud
+        result = u'------- Transfer %s -------\n' % obj.fullid
         result += u'Date:       %s\n' % obj.date
         result += u'Origin:     %s\n' % obj.origin
         result += u'Recipient:  %s\n' % obj.recipient
