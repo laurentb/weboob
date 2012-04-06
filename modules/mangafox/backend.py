@@ -30,6 +30,6 @@ class MangafoxBackend(GenericComicReaderBackend):
         page_list_xpath="(//select[@onchange='change_page(this)'])[1]/option[text()!='Comments']/@value",
         page_to_location="%s.html")
     ID_REGEXP = r'[^/]+/[^/]+(?:/[^/]+)?'
-    URL_REGEXP = r'.+mangafox.com/manga/(%s).*' % ID_REGEXP
-    ID_TO_URL = 'http://www.mangafox.com/manga/%s'
-    PAGES = {r'http://.+\.mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?(.+\.html)?': DisplayPage}
+    URL_REGEXP = r'.+mangafox.(?:com|me)/manga/(%s).*' % ID_REGEXP
+    ID_TO_URL = 'http://www.mangafox.me/manga/%s'
+    PAGES = {r'http://(?:.+\.)?mangafox.\w+/manga/[^/]+/[^/]+/([^/]+/)?(.+\.html)?': DisplayPage}
