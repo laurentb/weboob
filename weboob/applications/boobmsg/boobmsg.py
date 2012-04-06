@@ -183,7 +183,7 @@ class ProfileFormatter(IFormatter):
             result += u'\t' * level + u'%-20s %s\n' % (node.label + ':', value)
         return result
 
-    def format_obj(self, obj):
+    def format_obj(self, obj, alias):
         result = u'Nickname: %s\n' % obj.name
         if obj.status & Contact.STATUS_ONLINE:
             s = 'online'
