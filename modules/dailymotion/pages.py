@@ -36,19 +36,15 @@ __all__ = ['IndexPage', 'VideoPage']
 class IndexPage(BasePage):
     def iter_videos(self):
         for div in self.parser.select(self.document.getroot(), 'div.dmpi_video_item'):
-            _id = 0
-            for cls in div.attrib['class'].split():
-                if cls.startswith('id_'):
-                    _id = int(cls[3:])
-                    break
+            _id = div.attrib.get('data-id', None)
 
-            if _id == 0:
+            if _id is None:
                 self.browser.logger.warning('Unable to find the ID of a video')
                 continue
 
-            video = DailymotionVideo(int(_id))
+            video = DailymotionVideo(_id)
             video.title = self.parser.select(div, 'h3 a', 1).text
-            video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').text
+            video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').find('span').text.strip()
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
             try:
                 parts = self.parser.select(div, 'div.duration', 1).text.split(':')
