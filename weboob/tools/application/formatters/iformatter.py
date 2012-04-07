@@ -130,7 +130,7 @@ class IFormatter(object):
         :param alias: an alias to use instead of the object's ID
         :type alias: unicode
         """
-        assert isinstance(obj, CapBaseObject), 'Object is unexpected type "%r"' % obj
+        assert isinstance(obj, (dict,CapBaseObject)), 'Object is unexpected type "%r"' % obj
 
         if selected_fields is not None and not '*' in selected_fields:
             obj = obj.copy()
@@ -162,6 +162,9 @@ class IFormatter(object):
         raise NotImplementedError()
 
     def to_dict(self, obj):
+        if isinstance(obj, dict):
+            return obj
+
         def iter_decorate(d):
             for key, value in d:
                 if key == 'id' and obj.backend is not None:
