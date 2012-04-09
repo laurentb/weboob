@@ -33,7 +33,7 @@ logging.basicConfig(stream=sys.stdout, level=level)
 def main(filename):
     weboob = Weboob()
     try:
-        hds = weboob.modules_loader.load_module('hds')
+        hds = weboob.build_backend('hds')
     except ModuleLoadError, e:
         print >>sys.stderr, 'Unable to load "hds" module: %s' % e
         return 1
@@ -60,7 +60,7 @@ def main(filename):
     stored_authors = set([s[0] for s in db.execute('SELECT name FROM authors')])
     sys.stdout.write('ok\n')
 
-    br = hds.browser.HDSBrowser()
+    br = hds.browser
     to_fetch = set()
     sys.stdout.write('Getting stories list from website... ')
     sys.stdout.flush()
