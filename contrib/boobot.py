@@ -50,7 +50,10 @@ class MyThread(Thread):
         self.weboob.loop()
 
     def find_keywords(self, text):
-        for word in ['weboob', 'videoob', 'havesex', 'havedate', u'sàt', u'salut à toi']:
+        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg', \
+                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', \
+                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs', \
+                     'webcontentedit', 'weboorrents', 'capabilit', u'sàt', u'salut à toi']:
             if word in text.lower():
                 return word
         return None
@@ -64,16 +67,15 @@ class MyThread(Thread):
             backend.set_message_read(msg)
 
     def check_board(self):
-        try:
-            backend = self.weboob.backend_instances['dlfp']
-        except KeyError:
-            return
+        def iter_messages(backend):
+            with backend.browser:
+                return backend.browser.iter_new_board_messages()
 
-        with backend.browser:
-            for msg in backend.browser.iter_new_board_messages():
-                word = self.find_keywords(msg.message)
-                if word is not None:
-                    self.bot.send_message('[DLFP] %s talks about %s on the board' % (msg.login, word))
+        for backend, msg in self.weboob.do(iter_messages, backends=['dlfp']):
+            word = self.find_keywords(msg.message)
+            if word is not None:
+                message = msg.message.replace(word, '\002%s\002' % word)
+                self.bot.send_message('[DLFP] <%s> %s' % (msg.login, message))
 
     def stop(self):
         self.weboob.want_stop()
