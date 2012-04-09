@@ -39,7 +39,7 @@ class FrenchTransaction(Transaction):
         """
         Clean a string containing an amount.
         """
-        return text.replace(' ', '').replace('.','') \
+        return text.replace(' ', '').replace('.','').replace(u'\xa0', '') \
                    .replace(',','.').strip(u' \t\u20ac\xa0\x80€\n\r')
 
     def set_amount(self, credit='', debit=''):
@@ -53,9 +53,9 @@ class FrenchTransaction(Transaction):
         debit = self.clean_amount(debit)
 
         if len(debit) > 0:
-            self.amount = - Decimal(debit)
+            self.amount = - abs(Decimal(debit))
         else:
-            self.amount = Decimal(credit)
+            self.amount = abs(Decimal(credit))
 
     def parse(self, date, raw):
         """
@@ -75,7 +75,7 @@ class FrenchTransaction(Transaction):
         In regexps, you can define this patterns:
 
             * text: part of label to store in simplified label
-            * category: part of label representing the category 
+            * category: part of label representing the category
             * yy, mm, dd, HH, MM: date and time parts
         """
         if not isinstance(date, (datetime.date, datetime.datetime)):
