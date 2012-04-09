@@ -19,7 +19,9 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountsList, BadLoginPage
+
+from .pages.accounts_list import AccountsList, AccountHistory
+from .pages.login import LoginPage, BadLoginPage
 
 
 __all__ = ['SocieteGenerale']
@@ -34,7 +36,7 @@ class SocieteGenerale(BaseBrowser):
              'https://particuliers.societegenerale.fr/.*':  LoginPage,
              'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
-#             '.*restitution/cns_detailCav.html.*':          AccountHistory,
+             '.*restitution/cns_detailCav.html.*':          AccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
@@ -79,12 +81,11 @@ class SocieteGenerale(BaseBrowser):
 
         return None
 
-    def get_history(self, account):
-        raise NotImplementedError()
+    def iter_history(self, url):
+        self.location(url)
 
-        #if not self.is_on_page(AccountHistory) or self.page.account.id != account.id:
-        #    self.location(account._link_id)
-        #return self.page.get_operations()
+        assert self.is_on_page(AccountHistory)
+        #self.location(self.page.get_part_url())
 
-    def transfer(self, from_id, to_id, amount, reason=None):
-        raise NotImplementedError()
+        #assert self.is_on_page(AccountHistoryPart)
+        return self.page.iter_transactions()

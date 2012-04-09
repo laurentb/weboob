@@ -18,14 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .accounts_list import AccountsList
+from .accounts_list import AccountsList, AccountHistory
 from .login import LoginPage, BadLoginPage
 
-
-class AccountPrelevement(AccountsList):
-    pass
 
 __all__ = ['LoginPage',
            'BadLoginPage',
            'AccountsList',
+           'AccountHistory',
           ]

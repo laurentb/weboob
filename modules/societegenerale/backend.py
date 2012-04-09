@@ -51,7 +51,6 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        print _id
         if not _id.isdigit():
             raise AccountNotFound()
         with self.browser:
@@ -60,3 +59,15 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
             return account
         else:
             raise AccountNotFound()
+
+    def iter_history(self, account):
+        with self.browser:
+            for tr in self.browser.iter_history(account._link_id):
+                if not tr._coming:
+                    yield tr
+
+    def iter_coming(self, account):
+        with self.browser:
+            for tr in self.browser.iter_history(account._link_id):
+                if tr._coming:
+                    yield tr
