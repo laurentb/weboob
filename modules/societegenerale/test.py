@@ -26,7 +26,6 @@ class SocieteGeneraleTest(BackendTest):
     def test_societegenerale(self):
         l = list(self.backend.iter_accounts())
         self.assertTrue(len(l) > 0)
-        #if len(l) > 0:
-        #    a = l[0]
-        #    list(self.backend.iter_coming(a))
-        #    list(self.backend.iter_history(a))
+        a = l[0]
+        list(self.backend.iter_coming(a))
+        list(self.backend.iter_history(a))
