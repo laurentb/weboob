@@ -131,22 +131,3 @@ class AccountHistory(BasePage):
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
             t._coming = tr.xpath('./td[@headers="AVenir"]')[0].text
             yield t
-
-
-class _AccountHistory(BasePage):
-    def iter_operations(self):
-        for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):
-            if len(tr.xpath('td[@class="debit"]')) == 0:
-                continue
-
-            id = tr.find('td').find('input').attrib['value']
-            op = Transaction(id)
-            op.parse(date=tr.findall('td')[1].text,
-                     raw=tr.findall('td')[2].text.replace(u'\xa0', u''))
-
-            debit = tr.xpath('.//td[@class="debit"]')[0].text
-            credit = tr.xpath('.//td[@class="credit"]')[0].text
-
-            op.set_amount(credit, debit)
-
-            yield op
