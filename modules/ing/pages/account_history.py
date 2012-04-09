@@ -24,7 +24,6 @@ from datetime import date
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Transaction
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

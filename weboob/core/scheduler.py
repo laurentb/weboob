@@ -49,7 +49,7 @@ class RepeatedTimer(_Timer):
         while not self.finished.isSet():
             try:
                 self.function(*self.args, **self.kwargs)
-            except Exception, e:
+            except Exception:
                 # do not stop timer because of an exception
                 print get_backtrace()
             self.finished.wait(self.interval)
