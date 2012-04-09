@@ -136,7 +136,7 @@ class ModulesLoader(object):
             try:
                 module = Module(__import__(module_name, fromlist=[str(module_name)]))
             except Exception, e:
-                if self.logger.level == logging.DEBUG:
+                if logging.root.level == logging.DEBUG:
                     self.logger.exception(e)
                 raise ModuleLoadError(module_name, e)
         finally:
