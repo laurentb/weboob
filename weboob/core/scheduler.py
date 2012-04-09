@@ -22,6 +22,7 @@ from __future__ import with_statement
 
 from threading import Timer, Event, RLock, _Timer
 from weboob.tools.log import getLogger
+from weboob.tools.misc import get_backtrace
 
 
 __all__ = ['Scheduler']
@@ -46,7 +47,11 @@ class IScheduler(object):
 class RepeatedTimer(_Timer):
     def run(self):
         while not self.finished.isSet():
-            self.function(*self.args, **self.kwargs)
+            try:
+                self.function(*self.args, **self.kwargs)
+            except Exception, e:
+                # do not stop timer because of an exception
+                print get_backtrace()
             self.finished.wait(self.interval)
         self.finished.set()
 
