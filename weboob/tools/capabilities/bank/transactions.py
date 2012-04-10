@@ -55,7 +55,7 @@ class FrenchTransaction(Transaction):
         if len(debit) > 0:
             self.amount = - abs(Decimal(debit))
         else:
-            self.amount = abs(Decimal(credit))
+            self.amount = Decimal(credit)
 
     def parse(self, date, raw):
         """
