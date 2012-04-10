@@ -861,6 +861,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         self.start_format()
+        self.objects = []
         for obj in objects:
             if isinstance(obj, CapBaseObject):
                 self.cached_format(obj)
