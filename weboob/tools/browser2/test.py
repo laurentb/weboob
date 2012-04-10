@@ -60,6 +60,7 @@ def test_brokenpost():
     """
     Tests _fix_redirect()
     """
+    raise SkipTest('PostBin is disabled')
     try:
         b = BaseBrowser()
         # postbin is picky with empty posts. that's good!
