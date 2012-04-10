@@ -14,6 +14,27 @@ fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
 [ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
 
+# find executables
+if [ -z "${PYTHON}" ]; then
+    which python >/dev/null 2>&1 && PYTHON=$(which python)
+    which python2 >/dev/null 2>&1 && PYTHON=$(which python2)
+fi
+
+if [ -z "${NOSE}" ]; then
+    which nosetests >/dev/null 2>&1 && NOSE=$(which nosetests)
+    which nosetests2 >/dev/null 2>&1 && NOSE=$(which nosetests2)
+fi
+
+if [ -z "${PYTHON}" ]; then
+    echo "Python required"
+    exit 1
+fi
+
+if [ -z "${NOSE}" ]; then
+    echo "python-nose required"
+    exit 1
+fi
+
 # do not allow undefined variables anymore
 set -u
 WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
@@ -26,14 +47,14 @@ echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}"
-"${WEBOOB_DIR}/scripts/weboob-config" update
+${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 
 # allow failing commands past this point
 set +e
 if [ -n "${BACKEND}" ]; then
-    nosetests -sv "${WEBOOB_DIR}/modules/${BACKEND}"
+    ${PYTHON} ${NOSE} -sv "${WEBOOB_DIR}/modules/${BACKEND}"
 else
-    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs nosetests -sv
+    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs ${PYTHON} ${NOSE} -sv
 fi
 STATUS=$?
 
