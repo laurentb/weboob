@@ -65,8 +65,8 @@ class AccountHistory(BasePage):
                     category = labeldiv.attrib.get('title', '')
                     useless, sep, category = [part.strip() for part in category.partition(':')]
 
-                    credit = tds[3].text or ""
-                    debit = tds[4].text or ""
+                    debit = tds[3].text or ""
+                    credit = tds[4].text or ""
 
                     operation = Transaction(len(self.operations))
                     operation.parse(date=d, raw=label)
