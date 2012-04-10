@@ -673,9 +673,10 @@ class Keyring(object):
             return os.getenv('GPGV_EXECUTABLE')
         paths = os.getenv('PATH', os.defpath).split(os.pathsep)
         for path in paths:
-            fpath = os.path.join(path, 'gpgv')
-            if os.path.exists(fpath) and os.access(fpath, os.X_OK):
-                return fpath
+            for ex in ('gpgv2', 'gpgv'):
+                fpath = os.path.join(path, ex)
+                if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                    return fpath
 
     def is_valid(self, data, sigdata):
         """
