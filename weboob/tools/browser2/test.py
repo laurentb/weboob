@@ -23,6 +23,8 @@ import requests
 from nose.plugins.skip import SkipTest
 
 from .browser import BaseBrowser, DomainBrowser, Weboob
+from . import cookiejar
+from .cookies import Cookies
 
 from weboob.tools.json import json
 
@@ -175,3 +177,121 @@ def test_referrer():
     assert 'Referer' not in json.loads(r.text)['headers']
 
     assert b._get_referrer('https://example.com/', 'http://example.com/') is None
+
+
+def test_cookieparse():
+    cj = cookiejar.CookieJar()
+
+    def bc(data):
+        """
+        build one cookie, and normalize it
+        """
+        cs = Cookies()
+        cs.parse_response(data)
+        for c in cs.itervalues():
+            cj._normalize_cookie(c, 'http://example.com/')
+            return c
+
+    # parse max-age
+    assert bc('__bwid=58244366; max-age=42; path=/').expires
+
+    # security for received cookies
+    assert cj._can_set(bc('k=v; domain=www.example.com'),
+            'http://www.example.com/')
+    assert cj._can_set(bc('k=v; domain=sub.example.com'),
+            'http://www.example.com/')
+    assert cj._can_set(bc('k=v; domain=sub.example.com'),
+            'http://example.com/')
+    assert cj._can_set(bc('k=v; domain=.example.com'),
+            'http://example.com/')
+    assert cj._can_set(bc('k=v; domain=www.example.com'),
+            'http://example.com/')
+    assert not cj._can_set(bc('k=v; domain=example.com'),
+            'http://example.net/')
+    assert not cj._can_set(bc('k=v; domain=.net'),
+            'http://example.net/')
+    assert not cj._can_set(bc('k=v; domain=www.example.net'),
+            'http://www.example.com/')
+    assert not cj._can_set(bc('k=v; domain=wwwexample.com'),
+            'http://example.com/')
+    assert not cj._can_set(bc('k=v; domain=.example.com'),
+            'http://wwwexample.com/')
+
+    # pattern matching domains
+    assert not cj._domain_match('example.com', 's.example.com')
+    assert cj._domain_match('.example.com', 's.example.com')
+    assert not cj._domain_match('.example.com', 'example.com')  # yep.
+    assert cj._domain_match('s.example.com', 's.example.com')
+    assert not cj._domain_match('s.example.com', 's2.example.com')
+    assert cj._domain_match_list(True, 'example.com')
+    assert not cj._domain_match_list([], 'example.com')
+    assert cj._domain_match_list(['example.net', 'example.com'], 'example.com')
+    assert not cj._domain_match_list(['example.net', 'example.org'], 'example.com')
+
+
+def test_cookiejar():
+    def bc(data):
+        """
+        build one cookie
+        """
+        cs = Cookies()
+        cs.parse_response(data)
+        for c in cs.itervalues():
+            return c
+
+    # filtering cookies
+    cookie0 = bc('j=v; domain=www.example.com; path=/')
+    cookie1 = bc('k=v1; domain=www.example.com; path=/; secure')
+    cookie2 = bc('k=v2; domain=.example.com; path=/')
+    cookie3 = bc('k=v3; domain=www.example.com; path=/lol/cat/')
+    cookie4 = bc('k=v4; domain=www.example.com; path=/lol/')
+
+    cj = cookiejar.CookieJar()
+    cj.set(cookie0)
+    cj.set(cookie1)
+    cj.set(cookie2)
+    cj.set(cookie3)
+    cj.set(cookie4)
+
+    assert len(cj.all()) == 5  # all cookies
+    assert len(cj.all(path='/')) == 3  # all cookies except the ones with deep paths
+    assert len(cj.all(name='k')) == 4  # this excludes cookie0
+    assert len(cj.all(domain='example.com')) == 0  # yep
+    assert len(cj.all(domain='s.example.com')) == 1  # cookie2
+    assert len(cj.all(domain='.example.com')) == 1  # cookie2 (exact match)
+    assert len(cj.all(domain='www.example.com')) == 5  # all cookies
+    assert len(cj.all(domain='www.example.com', path="/lol/")) == 4  # all + cookie4
+    assert len(cj.all(domain='www.example.com', path="/lol/cat")) == 4  # all + cookie4
+    assert len(cj.all(domain='www.example.com', path="/lol/cat/")) == 5  # all + cookie4 + cookie3
+    assert len(cj.all(secure=True)) == 1  # cookie1
+    assert len(cj.all(secure=False)) == 4  # all except cookie1
+
+    assert cj.get(domain='www.example.com', path="/lol/") is cookie4
+    assert cj.get(domain='www.example.com', path="/lol/cat/") is cookie3
+    assert cj.get(domain='www.example.com', path="/") is cookie1
+    assert cj.get(name='j', domain='www.example.com', path="/") is cookie0
+    assert cj.get(name='k', domain='www.example.com', path="/") is cookie1
+    assert cj.get(name='k', domain='s.example.com', path="/") is cookie2
+    assert cj.get(name='k', domain='www.example.com', path="/aaa") is cookie1
+    assert cj.get(domain='www.example.com', path='/') is cookie1
+    assert cj.get(domain='www.example.com', path='/', secure=False) is cookie0
+    assert cj.get(domain='www.example.com', path='/', secure=True) is cookie1
+
+    # this is just not API choice, but how browsers act
+    assert cj.for_request('http://www.example.com/') == {'k': 'v2', 'j': 'v'}
+    assert cj.for_request('https://www.example.com/') == {'k': 'v1', 'j': 'v'}
+    assert cj.for_request('http://www.example.com/lol/') == {'k': 'v4', 'j': 'v'}
+    assert cj.for_request('http://s.example.com/lol/') == {'k': 'v2'}
+    assert cj.for_request('http://example.com/lol/') == {}
+
+    # remove/add/replace
+    assert cj.remove(cookie1) is True
+    assert cj.get(secure=True) is None
+    cj.set(cookie1)
+    assert cj.get(secure=True) is cookie1
+    cookie5 = bc('k=w; domain=www.example.com; path=/; secure')
+    cj.set(cookie5)
+    assert cj.get(secure=True) is cookie5
+    assert len(cj.all(secure=True)) == 1
+    # not the same cookie, but the same identifiers
+    assert cj.remove(cookie1) is True
