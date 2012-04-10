@@ -24,8 +24,9 @@ from optparse import OptionGroup, OptionParser
 import os
 import sys
 import tempfile
+import warnings
 
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable, NotLoaded, ConversionWarning
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
@@ -303,6 +304,10 @@ class BaseApplication(object):
             level = logging.ERROR
         else:
             level = logging.WARNING
+
+        # this only matters to developers
+        if not self.options.debug and not self.options.save_responses:
+            warnings.simplefilter('ignore', category=ConversionWarning)
 
         handlers = []
 
