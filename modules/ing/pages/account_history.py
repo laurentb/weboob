@@ -27,23 +27,18 @@ from weboob.capabilities.bank import Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['AccountHistoryCC', 'AccountHistoryLA']
+__all__ = ['AccountHistory']
 
 
-class TransactionCC(FrenchTransaction):
+class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^retrait dab (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^carte (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), Transaction.TYPE_CARD),
-                (re.compile(u'^virement ((sepa emis vers|recu)?) (?P<text>.*)'), Transaction.TYPE_TRANSFER),
+                (re.compile(u'^virement ((sepa emis vers|recu|emis)?) (?P<text>.*)'), Transaction.TYPE_TRANSFER),
                 (re.compile(u'^prelevement (?P<text>.*)'), Transaction.TYPE_ORDER),
                 ]
 
 
-class TransactionAA(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<category>VIREMENT (RECU|EMIS VERS)?) (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-               ]
-
-
-class AccountHistoryCC(BasePage):
+class AccountHistory(BasePage):
     def on_loaded(self):
         self.transactions = []
         table = self.document.findall('//tbody')[0]
@@ -51,38 +46,13 @@ class AccountHistoryCC(BasePage):
         for tr in table.xpath('tr'):
             id = i
             texte = tr.text_content().split('\n')
-            op = TransactionCC(id)
+            op = Transaction(id)
             op.parse(date = date(*reversed([int(x) for x in texte[0].split('/')])),
                      raw = texte[2])
             # force the use of website category
             op.category = texte[4]
 
             op.amount = Decimal(op.clean_amount(texte[5]))
-
-            self.transactions.append(op)
-            i += 1
-
-    def get_transactions(self):
-        return self.transactions
-
-
-class AccountHistoryLA(BasePage):
-
-    def on_loaded(self):
-        self.transactions = []
-        i = 1
-        history = self.document.xpath('//tr[@align="center"]')
-        history.pop(0)
-        for tr in history:
-            id = i
-            texte = tr.text_content().strip().split('\n')
-            op = TransactionAA(id)
-            # The size is not the same if there are two dates or only one
-            length = len(texte)
-            op.parse(date = date(*reversed([int(x) for x in texte[0].split('/')])),
-                     raw = unicode(texte[length - 2].strip()))
-
-            op.amount = Decimal(op.clean_amount(texte[length - 1]))
 
             self.transactions.append(op)
             i += 1

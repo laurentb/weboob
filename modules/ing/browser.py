@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 from .pages import AccountsList, LoginPage, LoginPage2, \
-                   AccountHistoryCC, AccountHistoryLA
+                   AccountHistory
 
 
 __all__ = ['Ing']
@@ -33,8 +33,8 @@ class Ing(BaseBrowser):
     PAGES = {'.*displayTRAccountSummary.*':   AccountsList,
              '.*displayLogin.jsf':            LoginPage,
              '.*displayLogin.jsf.*':          LoginPage2,
-             '.*accountDetail.jsf.*':         AccountHistoryCC,
-             '.*displayTRHistoriqueLA.*':     AccountHistoryLA
+             '.*accountDetail.jsf.*':         AccountHistory,
+             '.*displayTRHistoriqueLA.*':     AccountHistory
             }
 
     def __init__(self, *args, **kwargs):
