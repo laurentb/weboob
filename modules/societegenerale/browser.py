@@ -84,8 +84,8 @@ class SocieteGenerale(BaseBrowser):
     def iter_history(self, url):
         self.location(url)
 
-        assert self.is_on_page(AccountHistory)
-        #self.location(self.page.get_part_url())
+        if not self.is_on_page(AccountHistory):
+            # TODO: support other kind of accounts
+            return iter([])
 
-        #assert self.is_on_page(AccountHistoryPart)
         return self.page.iter_transactions()
