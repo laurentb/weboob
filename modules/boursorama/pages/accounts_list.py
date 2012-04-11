@@ -61,7 +61,7 @@ class AccountsList(BasePage):
                             if balance != "":
                                 account.balance = Decimal(balance)
                             else:
-                                account.balance = Decimal(0.0)
+                                account.balance = Decimal(0)
 
                     else:
                         # because of some weird useless <tr>

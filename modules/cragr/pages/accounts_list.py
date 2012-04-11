@@ -34,7 +34,7 @@ def clean_amount(amount):
     """
     data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
     matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-    return Decimal(matches[0]) if (matches) else Decimal(0.0)
+    return Decimal(matches[0]) if (matches) else Decimal(0)
 
 
 class AccountsList(CragrBasePage):

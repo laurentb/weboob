@@ -122,7 +122,7 @@ class HistoryPage(BasePage):
                 try:
                     detail.price = Decimal(tds[4].text[0:4].replace(',', '.'))
                 except:
-                    detail.price = Decimal(0.0)
+                    detail.price = Decimal(0)
 
                 self.calls.append(detail)
 
