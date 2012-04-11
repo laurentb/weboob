@@ -19,7 +19,9 @@
 
 from __future__ import absolute_import
 
-import requests
+from datetime import datetime
+
+from requests import HTTPError
 from nose.plugins.skip import SkipTest
 
 from .browser import BaseBrowser, DomainBrowser, Weboob
@@ -74,7 +76,7 @@ def test_brokenpost():
         r = b.location(r.url + '/feed')
         assert 'hello' in r.text
         assert 'world' in r.text
-    except requests.HTTPError, e:
+    except HTTPError, e:
         if str(e).startswith('503 '):
             raise SkipTest('Quota exceeded')
         else:
@@ -296,3 +298,21 @@ def test_cookiejar():
     assert len(cj.all(secure=True)) == 1
     # not the same cookie, but the same identifiers
     assert cj.remove(cookie1) is True
+
+    cj.clear()
+    cookie6 = bc('e1=1; domain=www.example.com; path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;')
+    cookie7 = bc('e2=1; domain=www.example.com; path=/; Expires=Thu, 01 Jan 2010 00:00:01 GMT;')
+    now = datetime(2000, 01, 01)
+    cj.set(cookie0)
+    cj.set(cookie6)
+    cj.set(cookie7)
+
+    assert cj.for_request('http://www.example.com/', now) == {'e2': '1', 'j': 'v'}
+    assert cj.for_request('http://www.example.com/', datetime(2020, 01, 01)) == {'j': 'v'}
+
+    assert len(cj.all()) == 3
+    cj.flush(now)
+    assert len(cj.all()) == 2
+    assert cj.remove(cookie6) is False  # already removed
+    cj.flush(now, session=True)
+    assert len(cj.all()) == 1
