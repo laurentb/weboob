@@ -169,7 +169,9 @@ class BaseBrowser(object):
         if request.allow_redirects is False \
         and request.response.status_code in requests.models.REDIRECT_STATI \
         and request.config.get('fix-redirect'):
-            if request.response.status_code is codes.found:
+            if (request.response.status_code in (codes.moved, codes.found) \
+                and request.method == 'POST') \
+            or (request.response.status_code == 303 and request.method != 'HEAD'):
                 # force the next request to be GET
                 real_method = request.method
                 request.method = 'GET'
@@ -239,6 +241,7 @@ class BaseBrowser(object):
         kwargs['data'] = data
         if fix_redirect:
             kwargs.setdefault('config', {}).setdefault('fix-redirect', True)
+            kwargs.setdefault('allow_redirects', False)
         if referrer is None:
             referrer = self._get_referrer(self.url, url)
         if referrer:
