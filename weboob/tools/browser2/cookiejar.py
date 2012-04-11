@@ -161,7 +161,7 @@ class CookieJar(object):
 
         return False
 
-    def _normalize_cookie(self, cookie, url):
+    def _normalize_cookie(self, cookie, url, now=None):
         """
         Update a cookie we got from the response.
         The goal is to have data relevant for use in future requests.
@@ -169,6 +169,10 @@ class CookieJar(object):
         * Sets path if there is not one.
         * Set Expires from Max-Age. We need the expires to have an absolute expiration date.
         * Force the Secure flag if required. (see SECURE_DOMAINS)
+
+        :type cookie: :class:`cookies.Cookie`
+        :type url: str
+        :type now: datetime
         """
         url = urlparse.urlparse(url)
         if cookie.domain is None:
@@ -176,7 +180,9 @@ class CookieJar(object):
         if cookie.path is None:
             cookie.path = '/'
         if cookie.max_age is not None:
-            cookie.expires = datetime.now() + timedelta(seconds=cookie.max_age)
+            if now is None:
+                now = datetime.now()
+            cookie.expires = now + timedelta(seconds=cookie.max_age)
         if url.scheme == 'https' \
         and self._match_domain_list(self.SECURE_DOMAINS, cookie.domain):
             cookie.secure = True
@@ -194,23 +200,45 @@ class CookieJar(object):
                 if self._can_set(c, response.url):
                     self.set(c)
 
-    def for_request(self, url):
+    def for_request(self, url, now=None):
         """
         Get a key/value dictionnary of cookies for a given request URL.
 
         :type url: str
+        :type now: datetime
         :rtype: dict
         """
         url = urlparse.urlparse(url)
+        if now is None:
+            now = datetime.now()
         # we want insecure cookies in https too!
         secure = None if url.scheme == 'https' else False
+
         cdict = dict()
         # get sorted cookies
         cookies = self.all(domain=url.hostname, path=url.path, secure=secure)
         for cookie in cookies:
+            # only use session cookies and cookies with future expirations
+            if cookie.expires is None or cookie.expires > now:
             # update only if not set, since first cookies are "better"
-            cdict.setdefault(cookie.name, cookie.value)
+                cdict.setdefault(cookie.name, cookie.value)
         return cdict
+
+    def flush(self, now=None, session=False):
+        """
+        Remove expired cookies. If session is True, also remove all session cookies.
+
+        :type now: datetime
+        :type session: bool
+        """
+        # we need a list copy since we remove from the iterable
+        for cookie in list(self.iter()):
+            # remove session cookies if requested
+            if cookie.expires is None and session:
+                self.remove(cookie)
+            # remove non-session cookies if expired before now
+            if cookie.expires is not None and cookie.expires < now:
+                self.remove(cookie)
 
     def set(self, cookie):
         """
