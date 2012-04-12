@@ -165,6 +165,7 @@ class StandardBrowser(mechanize.Browser):
     SAVE_RESPONSES = False
     DEBUG_HTTP = False
     DEBUG_MECHANIZE = False
+    DEFAULT_TIMEOUT = 10
 
     responses_dirname = None
     responses_count = 0
@@ -236,19 +237,21 @@ class StandardBrowser(mechanize.Browser):
         if_fail = kwargs.pop('if_fail', 'raise')
         self.logger.debug('Opening URL "%s", %s' % (args, kwargs))
 
+        kwargs['timeout'] = kwargs.get('timeout', self.DEFAULT_TIMEOUT)
+
         try:
             return mechanize.Browser.open_novisit(self, *args, **kwargs)
         except (mechanize.BrowserStateError, mechanize.response_seek_wrapper,
                 urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             if isinstance(e, mechanize.BrowserStateError) and hasattr(self, 'home'):
                 self.home()
-                return mechanize.Browser.open(self, *args, **kwargs)
+                return mechanize.Browser.open_novisit(self, *args, **kwargs)
             elif if_fail == 'raise':
                 raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
                 return None
         except BrowserRetry, e:
-            return mechanize.Browser.open(self, *args, **kwargs)
+            return mechanize.Browser.open_novisit(self, *args, **kwargs)
 
     def get_exception(self, e):
         if (isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() in (404, 403)) or \
@@ -526,6 +529,7 @@ class BaseBrowser(StandardBrowser):
         keep_kwargs = kwargs.copy()
 
         no_login = kwargs.pop('no_login', False)
+        kwargs['timeout'] = kwargs.get('timeout', self.DEFAULT_TIMEOUT)
 
         try:
             self._change_location(mechanize.Browser.open(self, *args, **kwargs), no_login=no_login)
