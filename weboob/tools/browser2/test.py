@@ -57,6 +57,47 @@ def test_redirects():
     b.location(HTTPBIN + 'redirect/1')
     assert b.url == HTTPBIN + 'get'
 
+    r = b.location(HTTPBIN + 'redirect/1')
+    assert json.loads(r.text)['headers'].get('Referer') == HTTPBIN + 'redirect/1'
+    assert r.url == HTTPBIN + 'get'
+
+    # Normal redirect chain
+    b.url = None
+    r = b.location(HTTPBIN + 'redirect/4')
+    assert json.loads(r.text)['headers'].get('Referer') == HTTPBIN + 'redirect/1'
+    assert len(r.history) == 4
+    assert r.history[3].request.url == HTTPBIN + 'redirect/1'
+    assert r.history[3].request.headers.get('Referer') == HTTPBIN + 'redirect/2'
+    assert r.history[2].request.url == HTTPBIN + 'redirect/2'
+    assert r.history[2].request.headers.get('Referer') == HTTPBIN + 'redirect/3'
+    assert r.history[1].request.url == HTTPBIN + 'redirect/3'
+    assert r.history[1].request.headers.get('Referer') == HTTPBIN + 'redirect/4'
+    assert r.history[0].request.url == HTTPBIN + 'redirect/4'
+    assert r.history[0].request.headers.get('Referer') == None
+    assert r.url == HTTPBIN + 'get'
+
+    # Disable all referers
+    r = b.location(HTTPBIN + 'redirect/2', referrer=False)
+    assert json.loads(r.text)['headers'].get('Referer') == None
+    assert len(r.history) == 2
+    assert r.history[1].request.headers.get('Referer') == None
+    assert r.history[0].request.headers.get('Referer') == None
+    assert r.url == HTTPBIN + 'get'
+
+    # Only overrides first referer
+    r = b.location(HTTPBIN + 'redirect/2', referrer='http://example.com/')
+    assert json.loads(r.text)['headers'].get('Referer') == HTTPBIN + 'redirect/1'
+    assert len(r.history) == 2
+    assert r.history[1].request.headers.get('Referer') == HTTPBIN + 'redirect/2'
+    assert r.history[0].request.headers.get('Referer') == 'http://example.com/'
+    assert r.url == HTTPBIN + 'get'
+
+    # Don't follow
+    r = b.location(HTTPBIN + 'redirect/2', allow_redirects=False)
+    assert len(r.history) == 0
+    assert r.url == HTTPBIN + 'redirect/2'
+    assert r.status_code == 302
+
 
 def test_brokenpost():
     """
@@ -177,6 +218,16 @@ def test_referrer():
     r = b.location(HTTPBIN + 'headers')
     assert json.loads(r.text)['headers'].get('Referer') == HTTPBIN + 'get'
     r = b.location(HTTPBIN + 'headers')
+    assert 'Referer' not in json.loads(r.text)['headers']
+
+    # Force another referrer
+    r = b.location(HTTPBIN + 'get')
+    r = b.location(HTTPBIN + 'headers', referrer='http://example.com/')
+    assert json.loads(r.text)['headers'].get('Referer') == 'http://example.com/'
+
+    # Force no referrer
+    r = b.location(HTTPBIN + 'get')
+    r = b.location(HTTPBIN + 'headers', referrer=False)
     assert 'Referer' not in json.loads(r.text)['headers']
 
     assert b._get_referrer('https://example.com/', 'http://example.com/') is None
