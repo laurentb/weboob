@@ -125,7 +125,7 @@ def check_location(func):
     def inner(self, *args, **kwargs):
         if args and isinstance(args[0], basestring):
             url = args[0]
-            if url.startswith('/') and (not self.request or self.request.host != self.DOMAIN):
+            if url.startswith('/') and hasattr(self, 'DOMAIN') and (not self.request or self.request.host != self.DOMAIN):
                 url = '%s://%s%s' % (self.PROTOCOL, self.DOMAIN, url)
             url = re.sub('(.*)#.*', r'\1', url)
 
@@ -228,6 +228,9 @@ class StandardBrowser(mechanize.Browser):
     def __exit__(self, t, v, tb):
         self.lock.release()
 
+    def _openurl(self, *args, **kwargs):
+        return mechanize.Browser.open(self, *args, **kwargs)
+
     @check_location
     @retry(BrowserHTTPError, tries=3)
     def openurl(self, *args, **kwargs):
@@ -240,18 +243,18 @@ class StandardBrowser(mechanize.Browser):
         kwargs['timeout'] = kwargs.get('timeout', self.DEFAULT_TIMEOUT)
 
         try:
-            return mechanize.Browser.open_novisit(self, *args, **kwargs)
+            return self._openurl(*args, **kwargs)
         except (mechanize.BrowserStateError, mechanize.response_seek_wrapper,
                 urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
             if isinstance(e, mechanize.BrowserStateError) and hasattr(self, 'home'):
                 self.home()
-                return mechanize.Browser.open_novisit(self, *args, **kwargs)
+                return self._openurl(*args, **kwargs)
             elif if_fail == 'raise':
                 raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
                 return None
         except BrowserRetry, e:
-            return mechanize.Browser.open_novisit(self, *args, **kwargs)
+            return self._openurl(*args, **kwargs)
 
     def get_exception(self, e):
         if (isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() in (404, 403)) or \
@@ -511,6 +514,9 @@ class BaseBrowser(StandardBrowser):
         except (mechanize.BrowserStateError, BrowserRetry), e:
             self.home()
             raise BrowserUnavailable(e)
+
+    def _openurl(self, *args, **kwargs):
+        return mechanize.Browser.open_novisit(self, *args, **kwargs)
 
     @check_location
     @retry(BrowserHTTPError, tries=3)
