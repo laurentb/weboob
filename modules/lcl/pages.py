@@ -147,7 +147,10 @@ class AccountsPage(BasePage):
                         # TODO parse this string to get the right Account.TYPE_* to
                         # store in account.type.
                         account._type=value
-                account.label=u''+a.getparent().getprevious().text.strip()
+                div = a.getparent().getprevious()
+                if not div.text.strip():
+                    div = div.find('div')
+                account.label=u''+div.text.strip()
                 balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
                 if '-' in balance:
                     balance='-'+balance.strip().replace('-', '')
