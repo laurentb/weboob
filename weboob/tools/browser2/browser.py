@@ -19,10 +19,11 @@
 
 from __future__ import absolute_import
 
-import urlparse
+from urlparse import urlparse, urljoin
 
 import requests
 from requests.status_codes import codes
+from copy import deepcopy
 
 
 # TODO define __all__
@@ -130,67 +131,111 @@ class BaseBrowser(object):
         # TODO max_retries?
         # TODO connect config['verbose'] to our logger
 
-        # TODO find a way to have multiple session hooks
-        # lists don't work in this context
-        session.hooks['response'] = self._fix_redirect
-
         profile.setup_session(session)
 
         self.session = session
 
-    def _fix_redirect(self, response):
+    def follow_redirects(self, response, orig_args=None):
         """
-        TL;DR: Web browsers and web developers suck.
+        Follow redirects *properly*.
+        * Mimic what browsers do on 302
+        * TODO Handle cookies securely
 
-        Most browsers do not follow the RFC for HTTP 302
-        but python-requests does.
-        And web developers assume we don't follow it either:
-        https://en.wikipedia.org/wiki/Post/Redirect/Get
-
-        Gets a Response, and returns a new Response.
-        Used as a 'response' hook for python-requests.
-
-        This is a hack, it would be better as an option in python-requests.
-
-        What we do is run again the response building,
-        but this time with allow_redirects=True, and if we have a HTTP 302,
-        we set a temporary fake method='GET' and empty data.
-
-        So in order to have proper allow_redirects=True handling of POSTs
-        you have to create a request with allow_redirects=False,
-        and fix-redirect=True in config (which is for the first one the
-        python-requests default for POSTs, and for the second one the
-        BaseBrowser default).
+        :type response: :class:`requests.Response`
+        :type orig_args: dict
+        :rtype: :class:`requests.Response`
         """
+        # The response chain. We start with the one we got.
+        responses = [response]
         request = response.request
-        # If the request wasn't redirected, and is a redirection,
-        # and we allowed it to be fixed,
-        # restart the request building, but with a changed action.
-        if request.allow_redirects is False \
-        and request.response.status_code in requests.models.REDIRECT_STATI \
-        and request.config.get('fix-redirect'):
-            if (request.response.status_code in (codes.moved, codes.found) \
-                and request.method == 'POST') \
-            or (request.response.status_code == 303 and request.method != 'HEAD'):
-                # force the next request to be GET
-                real_method = request.method
-                request.method = 'GET'
-                real_data = request.data
-                request.data = None
 
-            # build the response again
-            request.allow_redirects = True
-            request._build_response(response.raw)
+        # Default method for redirects
+        orig_args = orig_args or {}
+        orig_args.setdefault('method', request.method)
+        orig_args.setdefault('data', request.data)
+        # If we have the original arguments, take them, and fix them
+        orig_args.pop('url', None)
+        orig_referrer = orig_args.pop('referrer', None)
+        # Avoid infinite loops
+        orig_args['allow_redirects'] = False
 
-            if request.response.status_code is codes.found:
-                # restore info
-                request.method = real_method
-                request.data = real_data
+        # TL;DR: Web browsers and web developers suck.
+        #
+        # Most browsers do not follow the RFC for HTTP 302
+        # but python-requests does.
+        # And web developers assume we don't follow it either:
+        # https://en.wikipedia.org/wiki/Post/Redirect/Get
+        #
+        # Later python-request versions do it that way, but to stay
+        # compatible with older versions, we use this.
+        while request.allow_redirects is False \
+        and response.status_code in requests.models.REDIRECT_STATI \
+        and 'location' in response.headers:
+            ## This is from requests.models._build_response
+            response.content  # Consume socket so it can be released
 
-            return request.response
+            if len(responses) > response.config.get('max_redirects'):
+                raise requests.exceptions.TooManyRedirects()
+
+            # Release the connection back into the pool.
+            response.raw.release_conn()
+            ## End of code from requests.models._build_response
+
+            # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.4
+            if response.status_code == codes.see_other:
+                orig_args['method'] = 'GET'
+                orig_args['data'] = None
+                orig_args['files'] = None
+
+            if not request.config.get('strict_mode'):
+                # Do the same as Google Chrome.
+                # http://git.chromium.org/gitweb/?p=chromium/src/net.git;a=blob;f=url_request/url_request.cc;h=8597917f0cbf49c84b3bdae3a7bebacbc264f1e0;hb=HEAD#l673
+                if (response.status_code == 303 and request.method != 'HEAD') \
+                or (response.status_code in (codes.moved, codes.found) and request.method == 'POST'):
+                    # Once we use GET, all next requests will use GET.
+                    orig_args['method'] = 'GET'
+                    orig_args['data'] = None
+                    orig_args['files'] = None
+
+            ## This is from requests.models._build_response
+            url = response.headers['location']
+
+            # Handle redirection without scheme (see: RFC 1808 Section 4)
+            if url.startswith('//'):
+                parsed_rurl = urlparse(response.url)
+                url = '%s:%s' % (parsed_rurl.scheme, url)
+
+            # Facilitate non-RFC2616-compliant 'location' headers
+            # (e.g. '/path/to/resource' instead of 'http://domain.tld/path/to/resource')
+            if not urlparse(url).netloc:
+                url = urljoin(response.url,
+                                # Compliant with RFC3986, we percent
+                                # encode the url.
+                                requests.utils.requote_uri(url))
+
+            ## End of code from requests.models._build_response
+
+            if orig_referrer is False:
+                # Referer disabled in original request, disable in next
+                referrer = orig_referrer
+            else:
+                # Guess from last response
+                referrer = self._get_referrer(response.url, url)
+
+            call_args = deepcopy(orig_args)
+            response = self.open(url, referrer=referrer, **call_args)
+            responses.append(response)
+
+        # get the final response
+        response = responses.pop()
+        # _build_response does this
+        response.history = responses
+        request.response = response
+
+        return response
 
     def location(self, url, data=None,
-            fix_redirect=True, referrer=None,
+            allow_redirects=True, referrer=None,
             **kwargs):
         """
         Like open() but also changes the current URL and response.
@@ -198,25 +243,27 @@ class BaseBrowser(object):
 
         Other than that, has the exact same behavior of open().
         """
-        response = self.open(url, data, fix_redirect, **kwargs)
+        response = self.open(url, data, allow_redirects, referrer, **kwargs)
         self.response = response
         self.url = self.response.url
         return response
 
     def open(self, url, data=None,
-            fix_redirect=True, referrer=None,
+            allow_redirects=True, referrer=None,
             **kwargs):
         """
-        Wrapper around request().
         Makes a GET request, or a POST if data is not None, unless a `method`
         is explicitly provided.
         An empty `data` (not None) *will* make a post.
 
-        All request() options are available, and it is possible to disable the
-        automatic method, referrer, and redirection fixes.
+        It is a wrapper around session.request().
+        All session.request() options are available.
+        You should use location() or open() and not session.request(),
+        since it has some interesting additions, which are easily
+        individually disabled through the arguments.
 
-        Call this if you do not want to "visit" the URL (for instance, you
-        are downloading a file).
+        Call this instead of location() if you do not want to "visit" the URL
+        (for instance, you are downloading a file).
 
         :param url: URL
         :type url: str
@@ -224,14 +271,16 @@ class BaseBrowser(object):
         :param data: POST data
         :type url: str or dict or None
 
-        :param fix_redirect: Fix POST 302 redirects
-        :type fix_redirect: True or False
-
         :param referrer: Force referrer. False to disable sending it, None for guessing
         :type referrer: str or False or None
 
         :rtype: :class:`requests.Response`
         """
+        kwargs = deepcopy(kwargs)
+        orig_args = deepcopy(kwargs)
+        orig_args['referrer'] = referrer
+
+        # guess method
         method = kwargs.pop('method', None)
         if method is None:
             if data is None:
@@ -239,34 +288,35 @@ class BaseBrowser(object):
             else:
                 method = 'POST'
         kwargs['data'] = data
-        if fix_redirect:
-            kwargs.setdefault('config', {}).setdefault('fix-redirect', True)
-            kwargs.setdefault('allow_redirects', False)
+
+        # python-requests or urllib3 does not handle
+        # empty POST requests properly, so some websites refuse it.
+        if data is not None and len(data) == 0:
+            kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
+
+        # Use our own redirection handling
+        # python-requests's sucks to much to be allowed.
+        kwargs.setdefault('config', {}).setdefault('strict_mode', False)
+        kwargs['allow_redirects'] = False
+
         if referrer is None:
             referrer = self._get_referrer(self.url, url)
         if referrer:
             # Yes, it is a misspelling.
             kwargs.setdefault('headers', {}).setdefault('Referer', referrer)
-        response = self.request(method, url, **kwargs)
+
+        if self.TIMEOUT:
+            kwargs.setdefault('timeout', self.TIMEOUT)
+
+        # call python-requests
+        response = self.session.request(method, url, **kwargs)
+        if allow_redirects:
+            response = self.follow_redirects(response, orig_args)
+
+        # erase all cookies, python-requests does not handle them securely
+        self.session.cookies = {}
+
         return response
-
-    def request(self, *args, **kwargs):
-        """
-        Creates a Request object and calls it.
-        Takes the sames arguments as request.request()
-        Returns a Response object.
-
-        Most of the time, you should use location() or open(),
-        since it ignores some interesting additions, which are easily
-        individually disabled through the arguments.
-        """
-        # python-requests or urllib3 does not handle
-        # empty POST requests properly, so some websites refuse it.
-        data = kwargs.get('data')
-        if data is not None and len(data) == 0:
-            kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
-        kwargs.setdefault('timeout', self.TIMEOUT)
-        return self.session.request(*args, **kwargs)
 
     def _get_referrer(self, oldurl, newurl):
         """
@@ -285,8 +335,8 @@ class BaseBrowser(object):
         """
         if oldurl is None:
             return None
-        old = urlparse.urlparse(oldurl)
-        new = urlparse.urlparse(newurl)
+        old = urlparse(oldurl)
+        new = urlparse(newurl)
         # Do not leak secure URLs to insecure URLs
         if old.scheme == 'https' and new.scheme != 'https':
             return None
@@ -333,7 +383,7 @@ class DomainBrowser(BaseBrowser):
             base = self.BASEURL
         if base is None or base is False:
             base = self.url
-        return urlparse.urljoin(base, uri)
+        return urljoin(base, uri)
 
     def open(self, uri, *args, **kwargs):
         return BaseBrowser.open(self, self.absurl(uri), *args, **kwargs)
