@@ -188,12 +188,10 @@ class Repository(object):
             # This is a remote repository, download file
             browser = WeboobBrowser()
             try:
-                fpkr = browser.openurl(posixpath.join(self.url, self.KEYRING))
-                fpkrsig = browser.openurl(posixpath.join(self.url, self.KEYRING + '.sig'))
+                keyring_data = browser.readurl(posixpath.join(self.url, self.KEYRING))
+                sig_data = browser.readurl(posixpath.join(self.url, self.KEYRING + '.sig'))
             except BrowserUnavailable, e:
                 raise RepositoryUnavailable(unicode(e))
-            keyring_data = fpkr.read()
-            sig_data = fpkrsig.read()
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
                     raise InvalidSignature('the keyring itself')
@@ -589,21 +587,20 @@ class Repositories(object):
         browser = WeboobBrowser()
         progress.progress(0.2, 'Downloading module...')
         try:
-            fp = browser.openurl(module.url)
+            tardata = browser.readurl(module.url)
         except BrowserUnavailable, e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
-        tardata = fp.read()
 
 
         # Check signature
         if module.signed and Keyring.find_gpgv():
             progress.progress(0.5, 'Checking module authenticity...')
-            fpsig = browser.openurl(posixpath.join(module.url + '.sig'))
+            sig_data = browser.readurl(posixpath.join(module.url + '.sig'))
             keyring_path = os.path.join(self.keyrings_dir, self.url2filename(module.repo_url))
             keyring = Keyring(keyring_path)
             if not keyring.exists():
                 raise ModuleInstallError('No keyring found, please update repos.')
-            if not keyring.is_valid(tardata, fpsig.read()):
+            if not keyring.is_valid(tardata, sig_data):
                 raise ModuleInstallError('Invalid signature for %s.' % module.name)
 
 
@@ -647,18 +644,26 @@ class Keyring(object):
         self.path = path + self.EXTENSION
         self.vpath = path + '.version'
         self.version = 0
-        # We must have both files, else it is invalid
-        if not os.path.exists(self.vpath) and os.path.exists(self.path):
-            os.remove(self.path)
-        if os.path.exists(self.vpath) and not os.path.exists(self.path):
-            os.remove(self.vpath)
 
         if self.exists():
             with open(self.vpath, 'r') as f:
                 self.version = int(f.read().strip())
+        else:
+            if os.path.exists(self.path):
+                os.remove(self.path)
+            if os.path.exists(self.vpath):
+                os.remove(self.vpath)
 
     def exists(self):
-        return os.path.exists(self.path)
+        if not os.path.exists(self.vpath):
+           return False
+        if os.path.exists(self.path):
+            # Check the file is not empty.
+            # This is because there was a bug creating empty keyring files.
+            with open(self.path, 'r') as fp:
+                if len(fp.read().strip()):
+                    return True
+        return False
 
     def save(self, keyring_data, version):
         with open(self.path, 'wb') as fp:
