@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
 from datetime import datetime
 from logging import warning
 
@@ -40,6 +41,7 @@ class BNPorc(BaseBrowser):
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*pageId=unedescomptes.*':                    AccountsList,
              '.*pageId=releveoperations.*':                 AccountHistory,
+             '.*FicheA':                                    AccountHistory,
              '.*Action=SAF_CHM.*':                          ChangePasswordPage,
              '.*pageId=mouvementsavenir.*':                 AccountComing,
              '.*NS_AVEDP.*':                                AccountPrelevement,
@@ -138,32 +140,42 @@ class BNPorc(BaseBrowser):
 
         return None
 
-    #def get_history(self, id):
-    #    data = {'contactId':         int(id),
-    #            'pageId':            'releveoperations',
-    #            '_eventId':          'pastOperations',
-    #            'operationsPerPage': 200,
-    #            'groupId':           -2
-    #           }
-    #    self.location('/banque/portail/particulier/FicheA#pageId=releveoperations', urllib.urlencode(data))
-    #    return self.page.get_operations()
-
-    #def get_coming_operations(self, id):
-    #    if not self.is_on_page(AccountsList):
-    #        self.location('/NSFR?Action=DSP_VGLOBALE')
-    #    execution = self.page.get_execution_id()
-
-    #    data = {'externalIAId':            'IAStatements',
-    #            'contactId':               int(id),
-    #            'pastOrPendingOperations': 2,
-    #            'pageId':                  'mouvementsavenir',
-    #            'execution':               execution,
-    #           }
-    #    self.location('/banque/portail/particulier/FicheA#pageId=mouvementsavenir', urllib.urlencode(data))
-    #    return self.page.get_operations()
-
     def iter_history(self, id):
-        self.location('/banque/portail/particulier/FicheA?contractId=%d&pageId=releveoperations&_eventId=changeOperationsPerPage&operationsPerPage=200' % int(id))
+        if not self.is_on_page(AccountsList):
+            self.location('/NSFR?Action=DSP_VGLOBALE')
+
+        execution = self.page.document.xpath('//form[@name="goToApplication"]/input[@name="execution"]')[0].attrib['value']
+        data = {'gt':           'homepage:basic-theme',
+                'externalIAId': 'IAStatements',
+                'cboFlowName':  'flow/iastatement',
+                'contractId':   id,
+                'groupId':      '-2',
+                'pastOrPendingOperations': 1,
+                'groupSelected':'-2',
+                'step':         'STAMENTS',
+                'pageId':       'releveoperations',
+                'operationsPerPage': 100,
+                '_eventId':     'changeOperationsPerPage',
+                'sendEUD':      'true',
+                'execution':    execution,
+               }
+
+        self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
+
+        execution = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="execution"]')[0].attrib['value']
+        data = {'_eventId':             'changeOperationsPerPage',
+                'categoryId':           '',
+                'contractId':           '',
+                'execution':            execution,
+                'groupId':              '',
+                'listCheckedOp':        '',
+                'myPage':               1,
+                'operationId':          '',
+                'operationsPerPage':    100,
+                'pageId':               'releveoperations',
+               }
+        self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
+
         return self.page.iter_operations()
 
     def iter_coming_operations(self, id):
