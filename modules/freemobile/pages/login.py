@@ -38,10 +38,10 @@ class FreeKeyboard(object):
                '8': '001110001111110011111111111111111111111111111110000110000011110000110000011111111111111111011111111111111001111001111110',
                '9': '001111111000110011111111100111111111111100111110000001100011110000001100011111111111111111011111111111111001111111111110'
               }
-    fingerprints = []
-    basepage = None
 
     def __init__(self, basepage):
+        self.basepage = None
+        self.fingerprints = []
         for htmlimg in basepage.document.xpath('//img[@class="ident_chiffre_img pointer"]'):
             url = htmlimg.attrib.get("src")
             fichier = basepage.browser.openurl(url)
