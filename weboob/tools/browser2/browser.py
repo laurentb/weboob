@@ -25,6 +25,8 @@ import requests
 from requests.status_codes import codes
 from copy import deepcopy
 
+from .cookiejar import CookieJar
+
 
 # TODO define __all__
 
@@ -116,8 +118,12 @@ class BaseBrowser(object):
     def __init__(self):
         profile = self.PROFILE
         self._setup_session(profile)
+        self._setup_cookies()
         self.url = None
         self.response = None
+
+    def _setup_cookies(self):
+        self.cookies = CookieJar()
 
     def _setup_session(self, profile):
         """
@@ -139,7 +145,10 @@ class BaseBrowser(object):
         """
         Follow redirects *properly*.
         * Mimic what browsers do on 302
-        * TODO Handle cookies securely
+        * Handle cookies securely
+
+        Returns a new Response object with the history of previous
+        responses in it.
 
         :type response: :class:`requests.Response`
         :type orig_args: dict
@@ -252,9 +261,14 @@ class BaseBrowser(object):
             allow_redirects=True, referrer=None,
             **kwargs):
         """
-        Makes a GET request, or a POST if data is not None, unless a `method`
-        is explicitly provided.
-        An empty `data` (not None) *will* make a post.
+        Make an HTTP request like a browser does:
+         * follow redirects (unless disabled)
+         * handle cookies
+         * provide referrers (unless disabled)
+
+        Unless a `method` is explicitly provided, it makes a GET request,
+        or a POST if data is not None,
+        An empty `data` (not None, like '' or {}) *will* make a POST.
 
         It is a wrapper around session.request().
         All session.request() options are available.
@@ -295,7 +309,7 @@ class BaseBrowser(object):
             kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
 
         # Use our own redirection handling
-        # python-requests's sucks to much to be allowed.
+        # python-requests's one sucks too much to be allowed.
         kwargs.setdefault('config', {}).setdefault('strict_mode', False)
         kwargs['allow_redirects'] = False
 
@@ -308,13 +322,24 @@ class BaseBrowser(object):
         if self.TIMEOUT:
             kwargs.setdefault('timeout', self.TIMEOUT)
 
+        cookies = kwargs.pop('cookies', None)
+        # get the relevant cookies for the URL
+        # from the jar (unless they are overriden)
+        if cookies is None:
+            cookies = self.cookies.for_request(url)
+        kwargs['cookies'] = cookies
+
         # call python-requests
         response = self.session.request(method, url, **kwargs)
+
+        # read cookies
+        self.cookies.from_response(response)
+
         if allow_redirects:
             response = self.follow_redirects(response, orig_args)
 
         # erase all cookies, python-requests does not handle them securely
-        self.session.cookies = {}
+        self.session.cookies.clear()
 
         return response
 
