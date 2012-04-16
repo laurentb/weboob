@@ -390,3 +390,12 @@ def test_cookienav():
     # return to httpbin, check we didn't give the wrong cookie
     r = b.location(HTTPBIN + 'cookies')
     assert 'session' not in json.loads(r.text)['cookies']
+
+    # override cookies temporarily
+    r = b.location(HTTPBIN + 'cookies', cookies={'bla': 'bli'})
+    assert len(json.loads(r.text)['cookies']) == 1
+    assert json.loads(r.text)['cookies']['bla'] == 'bli'
+    # reload, the "fake" cookie should not be there
+    r = b.location(HTTPBIN + 'cookies')
+    assert len(json.loads(r.text)['cookies']) == 2
+    assert 'bla' not in json.loads(r.text)['cookies']
