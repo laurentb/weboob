@@ -367,3 +367,26 @@ def test_cookiejar():
     assert cj.remove(cookie6) is False  # already removed
     cj.flush(now, session=True)
     assert len(cj.all()) == 1
+
+
+def test_cookienav():
+    """
+    Test browsing while getting new cookies
+    """
+    b = BaseBrowser()
+    r = b.location(HTTPBIN + 'cookies')
+    assert len(json.loads(r.text)['cookies']) == 0
+
+    r = b.location(HTTPBIN + 'cookies/set/hello/world')
+    assert len(json.loads(r.text)['cookies']) == 1
+    assert json.loads(r.text)['cookies']['hello'] == 'world'
+    r = b.location(HTTPBIN + 'cookies/set/hello2/world2')
+    assert len(json.loads(r.text)['cookies']) == 2
+    assert json.loads(r.text)['cookies']['hello2'] == 'world2'
+
+    r = b.location(REQUESTBIN)
+    assert 'session' in r.cookies  # requestbin should give this by default
+    assert 'hello' not in r.cookies  # we didn't send the wrong cookie
+    # return to httpbin, check we didn't give the wrong cookie
+    r = b.location(HTTPBIN + 'cookies')
+    assert 'session' not in json.loads(r.text)['cookies']
