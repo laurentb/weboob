@@ -333,6 +333,9 @@ class BaseBrowser(object):
         if cookies is None:
             cookies = self.cookies.for_request(url)
         kwargs['cookies'] = cookies
+        # erase all cookies, python-requests does not handle them securely
+        # and tries to merge them with provided cookies!
+        self.session.cookies.clear()
 
         # call python-requests
         response = self.session.request(method, url, **kwargs)
@@ -343,7 +346,8 @@ class BaseBrowser(object):
         if allow_redirects:
             response = self.follow_redirects(response, orig_args)
 
-        # erase all cookies, python-requests does not handle them securely
+        # erase all cookies again
+        # to prevent leakage when using session.request() directly
         self.session.cookies.clear()
 
         return response
