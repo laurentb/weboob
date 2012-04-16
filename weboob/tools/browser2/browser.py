@@ -116,13 +116,17 @@ class BaseBrowser(object):
     TIMEOUT = 10.0
 
     def __init__(self):
-        profile = self.PROFILE
-        self._setup_session(profile)
+        self._setup_session(self.PROFILE)
         self._setup_cookies()
         self.url = None
         self.response = None
 
     def _setup_cookies(self):
+        """
+        Create and configure a cookie jar.
+
+        Overload this method to set custom options, or even change the class.
+        """
         self.cookies = CookieJar()
 
     def _setup_session(self, profile):
@@ -131,6 +135,8 @@ class BaseBrowser(object):
         """
         session = requests.Session()
 
+        if self.TIMEOUT:
+            session.timeout = self.TIMEOUT
         # Raise exceptions on HTTP errors
         session.config['safe_mode'] = False
         session.config['danger_mode'] = True
@@ -146,6 +152,8 @@ class BaseBrowser(object):
         Follow redirects *properly*.
         * Mimic what browsers do on 302
         * Handle cookies securely
+
+        This method is called by open() or location() unless allow_redirects is False.
 
         Returns a new Response object with the history of previous
         responses in it.
@@ -318,9 +326,6 @@ class BaseBrowser(object):
         if referrer:
             # Yes, it is a misspelling.
             kwargs.setdefault('headers', {}).setdefault('Referer', referrer)
-
-        if self.TIMEOUT:
-            kwargs.setdefault('timeout', self.TIMEOUT)
 
         cookies = kwargs.pop('cookies', None)
         # get the relevant cookies for the URL
