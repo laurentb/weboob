@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 
 from datetime import datetime
+from random import choice
 
 from requests import HTTPError
 from nose.plugins.skip import SkipTest
@@ -34,6 +35,12 @@ from weboob.tools.json import json
 HTTPBIN = 'http://httpbin.org/'  # https://github.com/kennethreitz/httpbin
 POSTBIN = 'http://www.postbin.org/'  # https://github.com/progrium/postbin
 REQUESTBIN = 'http://requestb.in/'  # https://github.com/progrium/requestbin
+
+# if you change HTTPBIN, you should also change these URLs for some tests:
+# redirect to http://httpbin.org/get
+REDIRECTS1 = ('http://tinyurl.com/ouiboube-b2', 'http://bit.ly/st4Hcv')
+# redirect to http://httpbin.org/cookies
+REDIRECTS2 = ('http://tinyurl.com/7zp3jnr', 'http://bit.ly/HZCCX7')
 
 
 def test_base():
@@ -99,9 +106,21 @@ def test_redirects():
     assert r.status_code == 302
 
 
+def test_redirect2():
+    """
+    More redirect tests
+    """
+    rurl = choice(REDIRECTS1)
+    b = BaseBrowser()
+    r = b.location(rurl)
+    assert r.url == HTTPBIN + 'get'
+    assert json.loads(r.text)['headers'].get('Referer') == rurl
+    # TODO referrer privacy settings
+
+
 def test_brokenpost():
     """
-    Tests _fix_redirect()
+    Test empty POST and redirect after POST
     """
     raise SkipTest('PostBin is disabled')
     try:
@@ -234,6 +253,9 @@ def test_referrer():
 
 
 def test_cookieparse():
+    """
+    Test cookie parsing and processing
+    """
     cj = CookieJar()
 
     def bc(data):
@@ -284,6 +306,9 @@ def test_cookieparse():
 
 
 def test_cookiejar():
+    """
+    Test adding, removing, finding cookies to and from the jar
+    """
     def bc(data):
         """
         build one cookie
@@ -370,10 +395,10 @@ def test_cookiejar():
 
 
 def test_buildcookie():
+    """
+    Test easy cookie building
+    """
     cj = CookieJar()
-    """
-    Test cookie building
-    """
     c = cj.build('kk', 'vv', 'http://example.com/')
     assert c.domain == 'example.com'
     assert not c.secure
@@ -435,3 +460,37 @@ def test_cookienav():
     r = b.location(HTTPBIN + 'cookies')
     assert len(json.loads(r.text)['cookies']) == 2
     assert 'bla' not in json.loads(r.text)['cookies']
+
+
+def test_cookieredirect():
+    """
+    Test cookie redirection security
+    """
+    rurl = choice(REDIRECTS2)
+
+    b = BaseBrowser()
+    r = b.location(HTTPBIN + 'cookies')
+    assert len(json.loads(r.text)['cookies']) == 0
+
+    # add a cookie to the redirection service domain (not the target!)
+    cookie = b.cookies.build('k', 'v1', rurl)
+    b.cookies.set(cookie)
+    r = b.location(rurl)
+    assert r.url == HTTPBIN + 'cookies'
+    # the cookie was not forwarded; it's for another domain
+    # this is important for security reasons,
+    # and because python-requests tries to do it by default!
+    print json.loads(r.text)['cookies']
+    assert len(json.loads(r.text)['cookies']) == 0
+
+    # add a cookie for the target
+    cookie = b.cookies.build('k', 'v2', HTTPBIN)
+    b.cookies.set(cookie)
+    r = b.location(rurl)
+    assert r.url == HTTPBIN + 'cookies'
+    assert len(json.loads(r.text)['cookies']) == 1
+    assert json.loads(r.text)['cookies']['k'] == 'v2'
+
+    # check all cookies sent in the request chain
+    assert r.cookies == {'k': 'v2'}
+    assert r.history[0].cookies['k'] == 'v1'  # some services add other cookies
