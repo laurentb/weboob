@@ -20,4 +20,4 @@
 
 from .backend import FortuneoBackend
 
-__all__ = ['SocieteGeneraleBackend']
+__all__ = ['FortuneoBackend']

@@ -38,8 +38,8 @@ class FortuneoBackend(BaseBackend, ICapBank):
     VERSION = '0.c'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False, required=True),
+                           ValueBackendPassword('password',   label='Password', required=True))
     BROWSER = Fortuneo
 
     def create_default_browser(self):
@@ -51,15 +51,17 @@ class FortuneoBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        #pass
-        #if not _id.isdigit():
-        #    raise AccountNotFound()
+	# _id = "fortuneo"
+	#print "DEBUG\n\n\n", _id, "DEBUG\n\n\n"
+        if not _id.isdigit():
+            raise AccountNotFound()
         with self.browser:
             account = self.browser.get_account(_id)
+	    print "DEBUG 2\n\n\n", account, "\n\n\nEND DEBUG 2"
         if account:
             return account
         else:
-            raise AccountNotFound()
+	    raise AccountNotFound()
 
     def iter_history(self, account):
         pass

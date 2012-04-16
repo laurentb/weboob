@@ -95,5 +95,8 @@ class LoginPage(BasePage):
 #        self.browser.submit()
 
 
-class BadLoginPage(BasePage):
-    pass
+#class BadLoginPage(BasePage):
+	
+    #print "DEBUG BasePage"
+#    import sys
+    #sys.exit(1)
