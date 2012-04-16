@@ -42,6 +42,14 @@ Cookie.attribute_validators['domain'] = valid_domain
 class CookieJar(object):
     """
     Manage Cookies like a real browser, with security and privacy in mind.
+
+    python-requests accepts cookies blindly,
+    Expirations are not taken into account,
+    it can't handle the server asking to delete a cookie,
+    and sends cookies even when changing domains!
+    Of course, secure (SSL only) cookies aren't handled either.
+
+    This class fixes all that.
     """
 
     ACCEPT_DOMAINS = []
@@ -82,6 +90,9 @@ class CookieJar(object):
     """
 
     def __init__(self):
+        """
+        Cookies are delicious delicacies.
+        """
         self.cookies = dict()
 
     def _domain_match(self, pattern, domain):
