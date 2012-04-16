@@ -1,8 +1,9 @@
 # TODO declare __all__
 # TODO support logging
 
-import urlparse
+from urlparse import urlparse
 from datetime import datetime, timedelta
+import posixpath
 
 from .cookies import Cookie, Cookies, strip_spaces_and_quotes, Definitions
 
@@ -130,7 +131,7 @@ class CookieJar(object):
 
         :rtype: bool
         """
-        url = urlparse.urlparse(url)
+        url = urlparse(url)
         domain = url.hostname
 
         # Accept/reject overrides
@@ -174,7 +175,7 @@ class CookieJar(object):
         :type url: str
         :type now: datetime
         """
-        url = urlparse.urlparse(url)
+        url = urlparse(url)
         if cookie.domain is None:
             cookie.domain = url.hostname
         if cookie.path is None:
@@ -208,7 +209,7 @@ class CookieJar(object):
         :type now: datetime
         :rtype: dict
         """
-        url = urlparse.urlparse(url)
+        url = urlparse(url)
         if now is None:
             now = datetime.now()
         # we want insecure cookies in https too!
@@ -359,3 +360,50 @@ class CookieJar(object):
         Remove all cookies.
         """
         self.cookies.clear()
+
+    def build(self, name, value, url, path=None, wildcard=False):
+        """
+        Build a Cookie object for the current URL.
+
+        The domain and path are guessed. If you want to set for the whole domain,
+        take care of what you put in URL!
+        for_url('http://example.com/hello/world') will only set cookie for the
+        /hello/ path.
+
+        `name` and `value` are required parameters of Cookie.__init__()
+
+        You can force the `path` if you want.
+
+        The `wildcard` parameter will add a period before the domain.
+
+        Typical usage would be, inside a DomainBrowser:
+            cookie = self.cookies.for_url(k, v, self.url)
+            cookie = self.cookies.for_url(k, v, self.absurl('/'))
+            cookie = self.cookies.for_url(k, v, self.BASEURL)
+
+        And then:
+            self.cookies.set(cookie)
+
+        For more advanced usage, create a Cookie object manually, or
+        alter the returned Cookie object before set().
+
+        :type name: basestring
+        :type value: basestring
+        :type url: str
+        :type path: str
+        :type wildcard: bool
+        :rtype cookie: :class:`cookies.Cookie`
+        """
+        cookie = Cookie(name, value)
+        url = urlparse(url)
+        if wildcard:
+            cookie.domain = '.' + url.hostname
+        else:
+            cookie.domain = url.hostname
+        if path is None:
+            cookie.path = posixpath.join(posixpath.dirname(url.path), '')
+        else:
+            cookie.path = path
+        if url.scheme == 'https':
+            cookie.secure = True
+        return cookie
