@@ -36,7 +36,7 @@ class SocieteGenerale(BaseBrowser):
              'https://particuliers.societegenerale.fr/.*':  LoginPage,
              'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
-             '.*restitution/cns_detailCav.html.*':          AccountHistory,
+             '.*restitution/cns_detail.*\.html.*':          AccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
@@ -74,8 +74,7 @@ class SocieteGenerale(BaseBrowser):
         if not self.is_on_page(AccountsList):
             self.location('/restitution/cns_listeprestation.html')
 
-        l = self.page.get_list()
-        for a in l:
+        for a in self.page.get_list():
             if a.id == id:
                 return a
 
@@ -86,6 +85,7 @@ class SocieteGenerale(BaseBrowser):
 
         if not self.is_on_page(AccountHistory):
             # TODO: support other kind of accounts
+            self.logger.warning('This account is not supported')
             return iter([])
 
         return self.page.iter_transactions()

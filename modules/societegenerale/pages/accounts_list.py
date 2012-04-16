@@ -26,7 +26,7 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 
 
 __all__ = ['AccountsList', 'AccountHistory']
@@ -39,7 +39,6 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
-        l = []
         for tr in self.document.getiterator('tr'):
             if 'LGNTableRow' in tr.attrib.get('class', '').split():
                 account = Account()
@@ -65,9 +64,10 @@ class AccountsList(BasePage):
                         else:
                             account.balance = Decimal(0)
 
-                l.append(account)
+                if 'CARTE_CB' in account._link_id:
+                    continue
 
-        return l
+                yield account
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
@@ -96,10 +96,14 @@ class AccountHistory(BasePage):
             if m:
                 return m.group(1)
 
-        raise BrokenPageError('Unable to find link to history part')
+        return None
 
     def iter_transactions(self):
         url = self.get_part_url()
+        if url is None:
+            # There are no transactions in this kind of account
+            return iter([])
+
         while 1:
             d = XML(self.browser.readurl(url))
             el = d.xpath('//dataBody')[0]

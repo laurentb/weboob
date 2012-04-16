@@ -51,8 +51,6 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
             yield account
 
     def get_account(self, _id):
-        if not _id.isdigit():
-            raise AccountNotFound()
         with self.browser:
             account = self.browser.get_account(_id)
         if account:
