@@ -25,7 +25,7 @@ from requests import HTTPError
 from nose.plugins.skip import SkipTest
 
 from .browser import BaseBrowser, DomainBrowser, Weboob
-from . import cookiejar
+from .cookiejar import CookieJar
 from .cookies import Cookies
 
 from weboob.tools.json import json
@@ -234,7 +234,7 @@ def test_referrer():
 
 
 def test_cookieparse():
-    cj = cookiejar.CookieJar()
+    cj = CookieJar()
 
     def bc(data):
         """
@@ -300,7 +300,7 @@ def test_cookiejar():
     cookie3 = bc('k=v3; domain=www.example.com; path=/lol/cat/')
     cookie4 = bc('k=v4; domain=www.example.com; path=/lol/')
 
-    cj = cookiejar.CookieJar()
+    cj = CookieJar()
     cj.set(cookie0)
     cj.set(cookie1)
     cj.set(cookie2)
@@ -367,6 +367,42 @@ def test_cookiejar():
     assert cj.remove(cookie6) is False  # already removed
     cj.flush(now, session=True)
     assert len(cj.all()) == 1
+
+
+def test_buildcookie():
+    cj = CookieJar()
+    """
+    Test cookie building
+    """
+    c = cj.build('kk', 'vv', 'http://example.com/')
+    assert c.domain == 'example.com'
+    assert not c.secure
+    assert c.path == '/'
+
+    c = cj.build('kk', 'vv', 'http://example.com/', path='/plop/', wildcard=True)
+    assert c.domain == '.example.com'
+
+    assert c.path == '/plop/'
+    c = cj.build('kk', 'vv', 'http://example.com/plop/')
+    assert c.path == '/plop/'
+    c = cj.build('kk', 'vv', 'http://example.com/plop/plap')
+    assert c.path == '/plop/'
+    c = cj.build('kk', 'vv', 'http://example.com/plop/?http://example.net/plip/')
+    assert c.path == '/plop/'
+    assert c.domain == 'example.com'
+    c = cj.build('kk', 'vv', 'http://example.com/plop/plap', path='/')
+    assert c.path == '/'
+
+    c = cj.build('kk', 'vv', 'https://example.com/')
+    assert c.domain == 'example.com'
+    assert c.secure
+
+    # check the cookie works
+    c.name = 'k'
+    c.value = 'v'
+    cj.set(c)
+    assert cj.for_request('https://example.com/') == {'k': 'v'}
+    assert cj.for_request('http://example.com/') == {}
 
 
 def test_cookienav():
