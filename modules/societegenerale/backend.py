@@ -67,7 +67,10 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
                     yield tr
 
     def iter_coming(self, account):
-        with self.browser:
-            for tr in self.browser.iter_history(account._link_id):
-                if tr._coming:
-                    yield tr
+        return iter([])
+
+        # XXX do not print coming operations, as their labels are really useless.
+        #with self.browser:
+        #    for tr in self.browser.iter_history(account._link_id):
+        #        if tr._coming:
+        #            yield tr
