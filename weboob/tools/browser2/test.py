@@ -21,6 +21,8 @@ from __future__ import absolute_import
 
 from datetime import datetime
 from random import choice
+import re
+import string
 
 from requests import HTTPError
 from nose.plugins.skip import SkipTest
@@ -480,7 +482,6 @@ def test_cookieredirect():
     # the cookie was not forwarded; it's for another domain
     # this is important for security reasons,
     # and because python-requests tries to do it by default!
-    print json.loads(r.text)['cookies']
     assert len(json.loads(r.text)['cookies']) == 0
 
     # add a cookie for the target
@@ -494,3 +495,63 @@ def test_cookieredirect():
     # check all cookies sent in the request chain
     assert r.cookies == {'k': 'v2'}
     assert r.history[0].cookies['k'] == 'v1'  # some services add other cookies
+
+
+def test_cookie_srv1():
+    """
+    Test cookie in real conditions (service 1)
+    """
+    class TestBrowser(DomainBrowser):
+        BASEURL = 'http://www.mria-arim.ca/'
+
+    b = TestBrowser()
+    b.location('testCookies.asp')
+    # TODO this is also a good place to test form parsing/submission
+    b.location('testCookies.asp', {'makeMe': 'Create Cookie'})
+    r = b.location('testCookies.asp', {'testMe': 'Test Browser'})
+    assert 'Your Browser accepts cookies' in r.text
+
+
+def test_cookie_srv2():
+    """
+    Test cookie in real conditions (service 2)
+    """
+    def randtext():
+        return ''.join(choice(string.digits + string.letters) for _ in xrange(32))
+
+    class TestBrowser(DomainBrowser):
+        BASEURL = 'http://www.html-kit.com/tools/cookietester/'
+
+        def cookienum(self):
+            return int(re.search('Number of cookies received: (\d+)',
+                    self.response.text).groups()[0])
+
+        def mypost(self, **data):
+            return self.location('', data)
+
+    b = TestBrowser()
+    b.home()
+    assert b.cookienum() == 0
+
+    r1 = randtext()
+    r1v = randtext()
+
+    # TODO this is also a good place to test form parsing/submission
+    # get a new cookie
+    r = b.mypost(cn=r1, cv=r1v)
+    assert b.cookienum() == 1
+    assert r1 in r.text
+    assert r1v in r.text
+
+    # cookie deletion
+    r = b.mypost(cr=r1)
+    assert b.cookienum() == 0
+    assert r1 not in r.text
+    assert r1v not in r.text
+
+    # om nom nom
+    b.mypost(cn=randtext(), cv=randtext())
+    b.mypost(cn=randtext(), cv=randtext())
+    b.mypost(cn=randtext(), cv=randtext())
+    b.mypost(cn=randtext(), cv=randtext())
+    assert b.cookienum() == 4
