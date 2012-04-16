@@ -102,7 +102,7 @@ class AccountHistory(BasePage):
         url = self.get_part_url()
         if url is None:
             # There are no transactions in this kind of account
-            return iter([])
+            return
 
         while 1:
             d = XML(self.browser.readurl(url))
