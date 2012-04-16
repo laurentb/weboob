@@ -129,5 +129,5 @@ class AccountHistory(BasePage):
             t.parse(date=tr.xpath('./td[@headers="Date"]')[0].text,
                     raw=tr.attrib['title'].strip())
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
-            t._coming = tr.xpath('./td[@headers="AVenir"]')[0].text
+            t._coming = tr.xpath('./td[@headers="AVenir"]')[0].find('img') is not None
             yield t
