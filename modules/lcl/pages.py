@@ -151,9 +151,9 @@ class AccountsPage(BasePage):
                 if not div.text.strip():
                     div = div.find('div')
                 account.label=u''+div.text.strip()
-                balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.')
+                balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.').strip()
                 if '-' in balance:
-                    balance='-'+balance.strip().replace('-', '')
+                    balance='-'+balance.replace('-', '')
                 account.balance=Decimal(balance)
                 l.append(account)
         return l
