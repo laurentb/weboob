@@ -41,7 +41,7 @@ class CreditMutuelBrowser(BaseBrowser):
          'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/arrivees\.asp.*': NoOperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
          'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage
             }

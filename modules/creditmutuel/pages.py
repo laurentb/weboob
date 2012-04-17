@@ -60,7 +60,7 @@ class AccountsPage(BasePage):
                     continue
 
                 url = urlparse(account._link_id)
-                p = parse_qs(account._link_id)
+                p = parse_qs(url.query)
                 if not 'rib' in p:
                     continue
 
