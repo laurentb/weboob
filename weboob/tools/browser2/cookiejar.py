@@ -196,7 +196,7 @@ class CookieJar(object):
                 now = datetime.now()
             cookie.expires = now + timedelta(seconds=cookie.max_age)
         if url.scheme == 'https' \
-        and self._match_domain_list(self.SECURE_DOMAINS, cookie.domain):
+        and self._domain_match_list(self.SECURE_DOMAINS, cookie.domain):
             cookie.secure = True
 
     def from_response(self, response):
