@@ -108,7 +108,7 @@ class AccountListFormatter(IFormatter):
 
         result = (u' %s%-' + (u'15' if alias is not None else '30') + u's%s %-25s  %8s   %8s') % \
                              (self.BOLD, id, self.NC,
-                              obj.label, '%.2f' % obj.balance, '%.2f' % (obj.coming or Decimal(0.0)))
+                              obj.label, '%.2f' % obj.balance, '%.2f' % (obj.coming or Decimal(0)))
 
         self.tot_balance += obj.balance
         if obj.coming:
