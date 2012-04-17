@@ -98,7 +98,13 @@ class OperationsPage(BasePage):
     def get_history(self):
         index = 0
         for tr in self.document.getiterator('tr'):
-            tds = tr.getchildren()
+            # columns can be:
+            # - date | value | operation | debit | credit | contre-valeur
+            # - date | value | operation | debit | credit
+            # - date | operation | debit | credit
+            # That's why we skip any extra columns, and take operation, debit
+            # and credit from last instead of first indexes.
+            tds = tr.getchildren()[:5]
             if len(tds) < 4:
                 continue
 
