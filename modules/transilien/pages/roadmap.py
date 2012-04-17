@@ -54,25 +54,6 @@ class RoadmapSearchPage(BasePage):
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
 
-class RoadmapConfirmPage(BasePage):
-    def select(self, name, num):
-        try:
-            self.browser[name] = str(num)
-        except TypeError:
-            self.browser[name] = [str(num)]
-
-    def confirm(self):
-        self.browser.select_form('form1')
-        self.browser.set_all_readonly(False)
-        self.select('idDepart', 1)
-        self.select('idArrivee', 1)
-        self.browser['modeTransport'] = ['0']
-        self.browser['trainRer'] = 'true'
-        self.browser['bus'] = 'false'
-        self.browser['tramway'] = 'true'
-        self.browser['bateau'] = 'false'
-        self.browser.submit()
-
 class RoadmapPage(BasePage):
     def get_steps(self):
         errors = []
@@ -113,3 +94,27 @@ class RoadmapPage(BasePage):
         if m:
             return datetime.timedelta(hours=int(m.group(1)),
                                       minutes=int(m.group(2)))
+
+class RoadmapConfirmPage(RoadmapPage):
+    def select(self, name, num):
+        try:
+            self.browser[name] = str(num)
+        except TypeError:
+            self.browser[name] = [str(num)]
+
+    def confirm(self):
+        self.browser.select_form('form1')
+        self.browser.set_all_readonly(False)
+        try:
+            self.select('idDepart', 1)
+            self.select('idArrivee', 1)
+            self.browser['modeTransport'] = ['0']
+            self.browser['trainRer'] = 'true'
+            self.browser['bus'] = 'false'
+            self.browser['tramway'] = 'true'
+            self.browser['bateau'] = 'false'
+        except ClientForm.ControlNotFoundError:
+            # We are already on the result page
+            return
+        else:
+            self.browser.submit()
