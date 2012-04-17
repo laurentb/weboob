@@ -28,7 +28,7 @@ from requests import HTTPError
 from nose.plugins.skip import SkipTest
 
 from .browser import BaseBrowser, DomainBrowser, Weboob
-from .cookiejar import CookieJar
+from .cookiejar import CookieJar, CookiePolicy
 from .cookies import Cookies
 
 from weboob.tools.json import json
@@ -251,14 +251,14 @@ def test_referrer():
     r = b.location(HTTPBIN + 'headers', referrer=False)
     assert 'Referer' not in json.loads(r.text)['headers']
 
-    assert b._get_referrer('https://example.com/', 'http://example.com/') is None
+    assert b.get_referrer('https://example.com/', 'http://example.com/') is None
 
 
-def test_cookieparse():
+def test_cookiepolicy():
     """
     Test cookie parsing and processing
     """
-    cj = CookieJar()
+    policy = CookiePolicy()
 
     def bc(data):
         """
@@ -267,44 +267,44 @@ def test_cookieparse():
         cs = Cookies()
         cs.parse_response(data)
         for c in cs.itervalues():
-            cj._normalize_cookie(c, 'http://example.com/')
+            policy.normalize_cookie(c, 'http://example.com/')
             return c
 
     # parse max-age
     assert bc('__bwid=58244366; max-age=42; path=/').expires
 
     # security for received cookies
-    assert cj._can_set(bc('k=v; domain=www.example.com'),
+    assert policy.can_set(bc('k=v; domain=www.example.com'),
             'http://www.example.com/')
-    assert cj._can_set(bc('k=v; domain=sub.example.com'),
+    assert policy.can_set(bc('k=v; domain=sub.example.com'),
             'http://www.example.com/')
-    assert cj._can_set(bc('k=v; domain=sub.example.com'),
+    assert policy.can_set(bc('k=v; domain=sub.example.com'),
             'http://example.com/')
-    assert cj._can_set(bc('k=v; domain=.example.com'),
+    assert policy.can_set(bc('k=v; domain=.example.com'),
             'http://example.com/')
-    assert cj._can_set(bc('k=v; domain=www.example.com'),
+    assert policy.can_set(bc('k=v; domain=www.example.com'),
             'http://example.com/')
-    assert not cj._can_set(bc('k=v; domain=example.com'),
+    assert not policy.can_set(bc('k=v; domain=example.com'),
             'http://example.net/')
-    assert not cj._can_set(bc('k=v; domain=.net'),
+    assert not policy.can_set(bc('k=v; domain=.net'),
             'http://example.net/')
-    assert not cj._can_set(bc('k=v; domain=www.example.net'),
+    assert not policy.can_set(bc('k=v; domain=www.example.net'),
             'http://www.example.com/')
-    assert not cj._can_set(bc('k=v; domain=wwwexample.com'),
+    assert not policy.can_set(bc('k=v; domain=wwwexample.com'),
             'http://example.com/')
-    assert not cj._can_set(bc('k=v; domain=.example.com'),
+    assert not policy.can_set(bc('k=v; domain=.example.com'),
             'http://wwwexample.com/')
 
     # pattern matching domains
-    assert not cj._domain_match('example.com', 's.example.com')
-    assert cj._domain_match('.example.com', 's.example.com')
-    assert not cj._domain_match('.example.com', 'example.com')  # yep.
-    assert cj._domain_match('s.example.com', 's.example.com')
-    assert not cj._domain_match('s.example.com', 's2.example.com')
-    assert cj._domain_match_list(True, 'example.com')
-    assert not cj._domain_match_list([], 'example.com')
-    assert cj._domain_match_list(['example.net', 'example.com'], 'example.com')
-    assert not cj._domain_match_list(['example.net', 'example.org'], 'example.com')
+    assert not policy.domain_match('example.com', 's.example.com')
+    assert policy.domain_match('.example.com', 's.example.com')
+    assert not policy.domain_match('.example.com', 'example.com')  # yep.
+    assert policy.domain_match('s.example.com', 's.example.com')
+    assert not policy.domain_match('s.example.com', 's2.example.com')
+    assert policy.domain_match_list(True, 'example.com')
+    assert not policy.domain_match_list([], 'example.com')
+    assert policy.domain_match_list(['example.net', 'example.com'], 'example.com')
+    assert not policy.domain_match_list(['example.net', 'example.org'], 'example.com')
 
 
 def test_cookiejar():
@@ -327,7 +327,7 @@ def test_cookiejar():
     cookie3 = bc('k=v3; domain=www.example.com; path=/lol/cat/')
     cookie4 = bc('k=v4; domain=www.example.com; path=/lol/')
 
-    cj = CookieJar()
+    cj = CookieJar(CookiePolicy())
     cj.set(cookie0)
     cj.set(cookie1)
     cj.set(cookie2)
@@ -400,7 +400,7 @@ def test_buildcookie():
     """
     Test easy cookie building
     """
-    cj = CookieJar()
+    cj = CookieJar(CookiePolicy())
     c = cj.build('kk', 'vv', 'http://example.com/')
     assert c.domain == 'example.com'
     assert not c.secure

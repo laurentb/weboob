@@ -39,17 +39,9 @@ Cookie.attribute_parsers['domain'] = parse_domain
 Cookie.attribute_validators['domain'] = valid_domain
 
 
-class CookieJar(object):
+class CookiePolicy(object):
     """
-    Manage Cookies like a real browser, with security and privacy in mind.
-
-    python-requests accepts cookies blindly,
-    Expirations are not taken into account,
-    it can't handle the server asking to delete a cookie,
-    and sends cookies even when changing domains!
-    Of course, secure (SSL only) cookies aren't handled either.
-
-    This class fixes all that.
+    Defines how cookies are accepted, and what to do with them.
     """
 
     ACCEPT_DOMAINS = []
@@ -89,13 +81,7 @@ class CookieJar(object):
     This is only for setting cookies; it should be relatively safe in Weboob.
     """
 
-    def __init__(self):
-        """
-        Cookies are delicious delicacies.
-        """
-        self.cookies = dict()
-
-    def _domain_match(self, pattern, domain):
+    def domain_match(self, pattern, domain):
         """
         Checks a domain matches a domain pattern.
         Patterns can be either the exact domain, or a wildcard (starting with a dot).
@@ -111,7 +97,7 @@ class CookieJar(object):
             return domain.endswith(pattern)
         return domain == pattern
 
-    def _domain_match_list(self, patterns, domain):
+    def domain_match_list(self, patterns, domain):
         """
         Checks domains match, from a list of patters.
         If the list of patterns is True, it always matches.
@@ -123,17 +109,17 @@ class CookieJar(object):
         if patterns is True:
             return True
         for pattern in patterns:
-            if self._domain_match(pattern, domain):
+            if self.domain_match(pattern, domain):
                 return True
         return False
 
-    def _can_set(self, cookie, url):
+    def can_set(self, cookie, url):
         """
         Checks an URL can set a particular cookie.
         See ACCEPT_DOMAINS, REJECT_DOMAINS to set exceptions.
 
         The cookie must have a domain already set, you can
-        use _normalize_cookie() for that.
+        use normalize_cookie() for that.
 
         :param cookie: The cookie the server set
         :type cookie: Cookie
@@ -146,9 +132,9 @@ class CookieJar(object):
         domain = url.hostname
 
         # Accept/reject overrides
-        if self._domain_match_list(self.ACCEPT_DOMAINS, domain):
+        if self.domain_match_list(self.ACCEPT_DOMAINS, domain):
             return True
-        if self._domain_match_list(self.REJECT_DOMAINS, domain):
+        if self.domain_match_list(self.REJECT_DOMAINS, domain):
             return False
 
         # check path
@@ -173,7 +159,7 @@ class CookieJar(object):
 
         return False
 
-    def _normalize_cookie(self, cookie, url, now=None):
+    def normalize_cookie(self, cookie, url, now=None):
         """
         Update a cookie we got from the response.
         The goal is to have data relevant for use in future requests.
@@ -196,8 +182,33 @@ class CookieJar(object):
                 now = datetime.now()
             cookie.expires = now + timedelta(seconds=cookie.max_age)
         if url.scheme == 'https' \
-        and self._domain_match_list(self.SECURE_DOMAINS, cookie.domain):
+        and self.domain_match_list(self.SECURE_DOMAINS, cookie.domain):
             cookie.secure = True
+
+
+class CookieJar(object):
+    """
+    Manage Cookies like a real browser, with security and privacy in mind.
+
+    python-requests accepts cookies blindly,
+    Expirations are not taken into account,
+    it can't handle the server asking to delete a cookie,
+    and sends cookies even when changing domains!
+    Of course, secure (SSL only) cookies aren't handled either.
+
+    This behavior depends on a `policy` class.
+
+    This class fixes all that.
+    """
+
+    def __init__(self, policy):
+        """
+        Cookies are delicious delicacies.
+
+        :type: :class:`CookiePolicy`
+        """
+        self.cookies = dict()
+        self.policy = policy
 
     def from_response(self, response):
         """
@@ -208,8 +219,8 @@ class CookieJar(object):
         if 'Set-Cookie' in response.headers:
             cs = Cookies.from_response(response.headers['Set-Cookie'], True)
             for c in cs.itervalues():
-                self._normalize_cookie(c, response.url)
-                if self._can_set(c, response.url):
+                self.policy.normalize_cookie(c, response.url)
+                if self.policy.can_set(c, response.url):
                     self.set(c)
 
     def for_request(self, url, now=None):
@@ -281,7 +292,7 @@ class CookieJar(object):
         """
         for cdomain, cpaths in self.cookies.iteritems():
             # domain matches (all domains if None)
-            if domain is None or self._domain_match(cdomain, domain):
+            if domain is None or self.policy.domain_match(cdomain, domain):
                 for cpath, cnames in cpaths.iteritems():
                     # path matches (all if None)
                     if path is None or path.startswith(cpath):

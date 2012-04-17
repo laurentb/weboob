@@ -25,7 +25,7 @@ import requests
 from requests.status_codes import codes
 from copy import deepcopy
 
-from .cookiejar import CookieJar
+from .cookiejar import CookieJar, CookiePolicy
 
 
 # TODO define __all__
@@ -114,20 +114,21 @@ class BaseBrowser(object):
 
     PROFILE = Firefox()
     TIMEOUT = 10.0
+    COOKIE_POLICY = CookiePolicy()
 
     def __init__(self):
         self._setup_session(self.PROFILE)
-        self._setup_cookies()
+        self._setup_cookies(self.COOKIE_POLICY)
         self.url = None
         self.response = None
 
-    def _setup_cookies(self):
+    def _setup_cookies(self, policy):
         """
         Create and configure a cookie jar.
 
         Overload this method to set custom options, or even change the class.
         """
-        self.cookies = CookieJar()
+        self.cookies = CookieJar(policy)
 
     def _setup_session(self, profile):
         """
@@ -237,7 +238,7 @@ class BaseBrowser(object):
                 referrer = orig_referrer
             else:
                 # Guess from last response
-                referrer = self._get_referrer(response.url, url)
+                referrer = self.get_referrer(response.url, url)
 
             call_args = deepcopy(orig_args)
             response = self.open(url, referrer=referrer, **call_args)
@@ -322,7 +323,7 @@ class BaseBrowser(object):
         kwargs['allow_redirects'] = False
 
         if referrer is None:
-            referrer = self._get_referrer(self.url, url)
+            referrer = self.get_referrer(self.url, url)
         if referrer:
             # Yes, it is a misspelling.
             kwargs.setdefault('headers', {}).setdefault('Referer', referrer)
@@ -352,7 +353,7 @@ class BaseBrowser(object):
 
         return response
 
-    def _get_referrer(self, oldurl, newurl):
+    def get_referrer(self, oldurl, newurl):
         """
         Get the referrer to send when doing a request.
         If we should not send a referrer, it will return None.
