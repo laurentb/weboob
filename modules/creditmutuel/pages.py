@@ -50,7 +50,8 @@ class AccountsPage(BasePage):
 
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
-            if first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g':
+            if (first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g') \
+               and first_td.find('a') is not None:
                 account = Account()
                 account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789')
                 account._link_id = first_td.find('a').get('href', '')
