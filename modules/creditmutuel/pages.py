@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlparse, parse_qs
 from decimal import Decimal
 import re
 
@@ -30,7 +31,7 @@ class LoginPage(BasePage):
         self.browser.select_form(nr=0)
         self.browser['_cm_user'] = login
         self.browser['_cm_pwd'] = passwd
-        self.browser.submit()
+        self.browser.submit(nologin=True)
 
 class LoginErrorPage(BasePage):
     pass
@@ -46,22 +47,29 @@ class UserSpacePage(BasePage):
 
 class AccountsPage(BasePage):
     def get_list(self):
-        l = []
+        ids = set()
 
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
             if (first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g') \
                and first_td.find('a') is not None:
                 account = Account()
-                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789')
+                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789').capitalize()
                 account._link_id = first_td.find('a').get('href', '')
                 if account._link_id.startswith('POR_SyntheseLst'):
                     continue
 
-                account.id = first_td.find('a').text.split(' ')[0]+first_td.find('a').text.split(' ')[1]
-
-                if not account.id.isdigit():
+                url = urlparse(account._link_id)
+                p = parse_qs(account._link_id)
+                if not 'rib' in p:
                     continue
+
+                account.id = p['rib'][0]
+
+                if account.id in ids:
+                    continue
+
+                ids.add(account.id)
 
                 s = tr.getchildren()[2].text
                 if s.strip() == "":
@@ -73,9 +81,7 @@ class AccountsPage(BasePage):
                     if c == ',':
                         balance += '.'
                 account.balance = Decimal(balance)
-                l.append(account)
-            #raise NotImplementedError()
-        return l
+                yield account
 
     def next_page_url(self):
         """ TODO pouvoir passer à la page des comptes suivante """
@@ -149,3 +155,7 @@ class OperationsPage(BasePage):
     def next_page_url(self):
         """ TODO pouvoir passer à la page des opérations suivantes """
         return 0
+
+class NoOperationsPage(OperationsPage):
+    def get_history(self):
+        return iter([])

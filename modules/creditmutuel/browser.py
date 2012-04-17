@@ -22,7 +22,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 from datetime import datetime
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, OperationsPage, InfoPage, TransfertPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
+                   OperationsPage, NoOperationsPage, InfoPage, TransfertPage
 
 __all__ = ['CreditMutuelBrowser']
 
@@ -34,12 +35,13 @@ class CreditMutuelBrowser(BaseBrowser):
     ENCODING = 'iso-8859-1'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
-             'https://www.creditmutuel.fr/groupe/fr/identification/default.cgi': LoginErrorPage,
+             'https://www.creditmutuel.fr/.*/fr/identification/default.cgi': LoginErrorPage,
          'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
          'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
+         'https://www.creditmutuel.fr/.*/fr/banque/arrivees\.asp.*': NoOperationsPage,
          'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
          'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage
             }
@@ -50,7 +52,7 @@ class CreditMutuelBrowser(BaseBrowser):
         #self.currentSubBank = None
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage)
+        return self.page and not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
 
     def home(self):
         return self.location('https://www.creditmutuel.fr/groupe/fr/index.html')
@@ -102,16 +104,9 @@ class CreditMutuelBrowser(BaseBrowser):
                 self.location(page_url)
             else:
                 self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
-            #for page_operation in self.page.get_history(operations_count):
-            #    operations_count += 1
-            #    yield page_operation
 
-            ## FONCTIONNE
-            #for op in self.page.get_history():
-            #    yield op
-
-            ## FONTIONNE
-            #return self.page.get_history()
+            if not self.is_on_page(OperationsPage):
+                break
 
             for op in self.page.get_history():
                 l_ret.append(op)
