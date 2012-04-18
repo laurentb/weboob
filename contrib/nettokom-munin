@@ -1,0 +1,180 @@
+#!/usr/bin/env perl
+# -*- perl -*-
+=head1 NAME
+
+nettokom - A plugin to monitor a nettokom subscription
+
+=head1 INSTALLATION
+
+Create a link to this script in /etc/munin/plugins/ :
+$ ln -s /path/to/nettokom-munin /etc/munin/plugins/nettokom
+
+
+=head1 CONFIGURATION
+
+You need to configure the plugin like that:
+
+    [nettokom]
+    user florent
+    env.HOME /home/florent
+    env.monitored 0177-XXXXXXXX
+    env.exclude 02
+    env.cache_expire 10800
+    timeout 30
+
+C<user> I<required>: user with nettokom backend configured
+
+C<env.HOME> I<required>: path to user home
+
+C<env.monitored> I<required>: phone number to generated the weboob ID
+
+C<env.exclude> (optional): default nothing
+We can exclude some boobill output. The filter is on the label.
+Some examples:
+ * festnetz community sms smsinsausland O2
+
+C<env.cache_expire 10800> (optional): cache interval in second, or time
+between two connection to the website. The cache interval is 3 hours by default.
+Be aware that the website is only daily updated
+
+C<timeout 30> (optional): Munin internal option. The plugin can be slow,
+30s is recommended.
+
+=head1 LICENSE
+
+AGPLv3
+
+=cut
+use strict;
+use warnings;
+use Carp;
+use English qw(-no_match_vars);
+use encoding 'iso-8859-1';    # Munin doesn't like utf-8 :-(
+use Encode;
+
+my $id = $ENV{'monitored'} || '';
+if ($id eq '') {
+     print STDERR "Error: env.monitored not exist \n";
+     exit 2;
+}
+$id = $id . '@nettokom';
+
+my @exclude = split / /, $ENV{'exclude'} || '';
+my $cachedir  = $ENV{'HOME'} . '/.config/weboob/munin/';
+my $cachefile = "$cachedir/nettokom-munin";
+my $cacheconfigfile = "$cachedir/nettokom-munin-config";
+
+my $refreshtime = $ENV{'cache_expire'} || 10800;
+my $weboob = "/usr/bin/env boobill details $id -f table";
+my $cache_fh;
+
+sub config {
+    execute($cacheconfigfile, 1);
+}
+
+sub fetch {
+    execute($cachefile);
+}
+
+sub doubleprint {
+    my $var = shift;
+    print {$cache_fh} $var;
+    print $var;
+    return 0;
+}
+
+sub printconfig {
+    my @lines = @_;
+
+    doubleprint <<'EOF';
+graph_title Conso Nettokom
+graph_vlabel Nettokom Verbindungs
+graph_category weboob
+graph_args -l 0
+EOF
+
+    for my $line (@lines) {
+        if ($line =~ /nettokom \| (.*) \| (\d)(.*) \| (\d).(\d)/) {
+            my $label = $1;
+            my $shortlabel = $label;
+            $shortlabel =~ s/\s+//g;
+            if (!(grep {$_ == $shortlabel} @exclude)) {
+                doubleprint "$shortlabel.label $label\n";
+            }
+        }
+    }
+}
+
+sub printvalue {
+    my @lines = @_;
+    for my $line (@lines) {
+        if ($line =~ /nettokom \| (.*) \| (\d)(.*) \| (\d).(\d)/) {
+            my $label = $1;
+            my $value = $2;
+            my $shortlabel = $label;
+            $shortlabel =~ s/\s+//g;
+            if (!(grep {$_ == $shortlabel} @exclude)) {
+                doubleprint "$shortlabel.value $value\n";
+            }
+        }
+    }
+}
+
+sub execute {
+    my @cache_data;
+    my $cachefile = $_[0];
+    my $doconfig = $_[1];
+    # Check if cache exist and not older than the refresh threshold.
+    if ( open $cache_fh, '<', $cachefile ) {
+        @cache_data = <$cache_fh>;
+        close $cache_fh or croak "unable to close: $ERRNO";
+
+        # File not empty?
+        if ( @cache_data > 0 ) {
+
+            # Data is still fresh. Display cached values and exit.
+            if ( time - $cache_data[0] < $refreshtime ) {
+                print join q{}, @cache_data[ 1 .. $#cache_data ];
+                exit 0;
+            }
+        }
+    }
+    # execute weboob
+    open my $data, q(-|), $weboob or croak "Couldn't execute program: $ERRNO";
+    my @lines = <$data>;
+    close $data or carp "unable to close: $ERRNO";
+    # If error output, print the cache (if exist) and exit
+    if ( @lines == 0 ) {
+        if ( @cache_data > 0 ) {
+            print join q{}, @cache_data[ 1 .. $#cache_data ];
+            exit 0;
+        }
+        exit 1;
+    }
+
+    # Open cache for writing
+    open $cache_fh, '>', $cachefile
+      or croak "Failed to open file $cachefile";
+    print {$cache_fh} time . "\n";
+
+    if ($doconfig) {
+        printconfig(@lines);
+    }
+    else {
+        printvalue(@lines);
+    }
+}
+
+# Create the munin cache dir if missing
+if ( !-d $cachedir ) {
+    mkdir $cachedir;
+}
+
+if ( $ARGV[0] and $ARGV[0] eq 'config' ) {
+    config;
+}
+else {
+    fetch;
+}
+
+__END__
