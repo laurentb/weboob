@@ -23,6 +23,7 @@ from decimal import Decimal
 from datetime import date
 
 from weboob.tools.browser import BasePage
+from weboob.tools.mech import ClientForm
 from weboob.capabilities.bank import Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -47,15 +48,33 @@ class AccountHistory(BasePage):
         i = 1
         for tr in table.xpath('tr'):
             id = i
-            texte = tr.text_content().split('\n')
             op = Transaction(id)
-            op.parse(date = date(*reversed([int(x) for x in texte[0].split('/')])),
-                     raw = texte[2])
+            textdate = tr.find('td[@class="op_date"]').text_content()
+            textraw = tr.find('td[@class="op_label"]').text_content()
+            op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
+                     raw = textraw)
             # force the use of website category
-            op.category = texte[4]
+            op.category = unicode(tr.find('td[@class="op_type"]').text)
 
-            op.amount = Decimal(op.clean_amount(texte[5]))
-            print "coin"
+            op.amount = Decimal(op.clean_amount(tr.find('td[@class="op_amount"]').text_content()))
             i += 1
+
             yield op
 
+    def islast(self):
+        form = self.document.find('//form[@id="navigation_form"]')
+        alinks = form.xpath('div/a')
+        for a in alinks:
+            if u'Page Suivante' in a.text:
+                self.next = a.attrib['id']
+                return False
+        return True
+
+    def next_page(self):
+        self.browser.select_form('navigation_form')
+        self.browser.set_all_readonly(False)
+        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': ''}))
+        self.browser['AJAXREQUEST'] = '_viewRoot'
+        self.browser.controls.append(ClientForm.TextControl('text', self.next, {'value': ''}))
+        self.browser[self.next] = self.next
+        self.browser.submit()
