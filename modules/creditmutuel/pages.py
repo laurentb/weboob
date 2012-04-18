@@ -54,7 +54,7 @@ class AccountsPage(BasePage):
             if (first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g') \
                and first_td.find('a') is not None:
                 account = Account()
-                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789').capitalize()
+                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789').title()
                 account._link_id = first_td.find('a').get('href', '')
                 if account._link_id.startswith('POR_SyntheseLst'):
                     continue
