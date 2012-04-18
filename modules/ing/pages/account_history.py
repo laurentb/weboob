@@ -40,7 +40,9 @@ class Transaction(FrenchTransaction):
 
 class AccountHistory(BasePage):
     def on_loaded(self):
-        self.transactions = []
+        pass
+
+    def get_transactions(self):
         table = self.document.findall('//tbody')[0]
         i = 1
         for tr in table.xpath('tr'):
@@ -53,9 +55,7 @@ class AccountHistory(BasePage):
             op.category = texte[4]
 
             op.amount = Decimal(op.clean_amount(texte[5]))
-
-            self.transactions.append(op)
+            print "coin"
             i += 1
+            yield op
 
-    def get_transactions(self):
-        return self.transactions
