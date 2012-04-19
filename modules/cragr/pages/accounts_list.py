@@ -46,12 +46,15 @@ class AccountsList(CragrBasePage):
         l = []
 
         for div in self.document.getiterator('div'):
-            if div.attrib.get('class', '') == 'dv' and div.getchildren()[0].tag in ('a', 'br'):
+            if div.attrib.get('class', '') in ('dv', 'headline') and div.getchildren()[0].tag in ('a', 'br'):
                 account = Account()
                 account._link_id = None
                 if div.getchildren()[0].tag == 'a':
                     # This is at least present on CA Nord-Est
                     # Note: we do not know yet how history-less accounts are displayed by this layout
+                    if len(div.getchildren()[0].get('href')) < 2 :
+                        # CA centre has a href="/" link, not interesting there
+                        continue
                     account.label = ' '.join(div.find('a').text.split()[:-1])
                     account._link_id = div.find('a').get('href', '')
                     account.id = div.find('a').text.split()[-1]
@@ -59,16 +62,21 @@ class AccountsList(CragrBasePage):
                 else:
                     # This is at least present on CA Toulouse
                     first_link = div.find('a')
+                    account.id = div.findall('br')[1].tail.strip()
                     if first_link is not None:
                         account.label   = first_link.text.strip()
                         account._link_id = first_link.get('href', '')
-                        s = div.find('div').find('b').text
+                        s_node = div.find('div').find('b')
+                        if s_node is None:
+                            # This is present on CA Centre
+                            s_node = div.findall('b')[0].find('big')
+                            account.id = div.find('span').text.strip()
+                        s = s_node.text
                     else:
                         # there is no link to any history page for accounts like "PEA" or "TITRES"
                         account.label   = div.findall('br')[0].tail.strip()
                         account._link_id = None
                         s = div.xpath('following-sibling::div//b')[0].text
-                    account.id = div.findall('br')[1].tail.strip()
                 account.balance = clean_amount(s)
                 if account.label:
                     l.append(account)
@@ -92,7 +100,7 @@ class AccountsList(CragrBasePage):
         title_spans = self.document.xpath('/html/body//div[@class="dv"]/span')
         for title_span in title_spans:
             title_text = title_span.text_content().strip().replace("\n", '')
-            if (re.match('.*Compte.*n.*[0-9]+.*au.*', title_text)):
+            if (re.match('.*Compte.*n.*[0-9]+', title_text, flags=re.IGNORECASE)):
                 return True
         return False
 
@@ -136,7 +144,7 @@ class AccountsList(CragrBasePage):
             or False if the link is not present.
         """
         # tested on CA centre france
-        a = self.document.xpath('/html/body//div[@class="navlink"]//a[contains(text(), "Voir les 25 suivants")]')
+        a = self.document.xpath('/html/body//div[@class="headline"]//a[contains(text(), "Voir les 25 suivants")]')
         if not a:
             return False
         else:
