@@ -21,3 +21,5 @@
 from .backend import FortuneoBackend
 
 __all__ = ['FortuneoBackend']
+
+# vim:ts=4:sw=4

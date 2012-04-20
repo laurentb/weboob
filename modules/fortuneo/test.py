@@ -29,3 +29,6 @@ class FortuneoTest(BackendTest):
         a = l[0]
         list(self.backend.iter_coming(a))
         list(self.backend.iter_history(a))
+
+# vim:ts=4:sw=4
+

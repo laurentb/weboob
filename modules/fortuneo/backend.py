@@ -20,7 +20,6 @@
 
 # python2.5 compatibility
 from __future__ import with_statement
-
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -38,40 +37,51 @@ class FortuneoBackend(BaseBackend, ICapBank):
     VERSION = '0.c'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False, required=True),
-                           ValueBackendPassword('password',   label='Password', required=True))
+    CONFIG = BackendConfig(
+                ValueBackendPassword(
+                        'login',
+                        label='Account ID',
+                        masked=False,
+                        required=True
+                ),
+                ValueBackendPassword(
+                        'password',
+                        label='Password',
+                        required=True
+                )
+    )
     BROWSER = Fortuneo
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(
+                self.config['login'].get(),
+                self.config['password'].get()
+        )
 
     def iter_accounts(self):
+        """Iter accounts"""
+
         for account in self.browser.get_accounts_list():
             yield account
 
     def get_account(self, _id):
-	# _id = "fortuneo"
-	#print "DEBUG\n\n\n", _id, "DEBUG\n\n\n"
-        if not _id.isdigit():
-            raise AccountNotFound()
         with self.browser:
             account = self.browser.get_account(_id)
-	    print "DEBUG 2\n\n\n", account, "\n\n\nEND DEBUG 2"
         if account:
             return account
         else:
-	    raise AccountNotFound()
-
-    def iter_history(self, account):
-        pass
-        #with self.browser:
-        #    for tr in self.browser.iter_history(account._link_id):
-        #        if not tr._coming:
-        #            yield tr
+            raise AccountNotFound()
 
     def iter_coming(self, account):
+        """Iter coming transactions on a specific account Not supported yet"""
+
+        return iter([])
+
+    def iter_history(self, account):
+        """Iter history of transactions on a specific account"""
+
         with self.browser:
-            for tr in self.browser.iter_history(account._link_id):
-                if tr._coming:
-                    yield tr
+            for history in self.browser.get_history(account):
+                yield history
+
+# vim:ts=4:sw=4

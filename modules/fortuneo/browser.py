@@ -19,81 +19,79 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser #, BrowserIncorrectPassword
 
-from .pages.accounts_list import AccountHistory #AccountsList, IndexPage
-from .pages.login import LoginPage #, BadLoginPage
-
+from .pages.login import LoginPage
+from .pages.accounts_list import AccountsList, AccountHistoryPage
 
 __all__ = ['Fortuneo']
 
-# https://www.fortuneo.fr/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?COMPTE_ACTIF=FT00991337
 class Fortuneo(BaseBrowser):
     DOMAIN_LOGIN = 'www.fortuneo.fr'
     DOMAIN = 'www.fortuneo.fr'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-            '.*identification.jsp.*':                                                 LoginPage,
-            #'.*/prive/default.jsp.*':                                         IndexPage,
-            #'.*/prive/default.jsp.*':                                         AccountsList,
-            '.*/prive/default.jsp.*':                                         AccountHistory,
-            #'https://www.fortuneo.fr/fr/identification.jsp':                         BadLoginPage,
-            #'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*': AccountsList,
-            #'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*': AccountHistory,
+            '.*identification.jsp.*':
+                    LoginPage,
+            '.*/prive/mes-comptes/synthese-tous-comptes\.jsp.*':
+                    AccountsList,
+            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
+                    AccountHistoryPage
             }
 
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('/fr/prive/identification.jsp')
-        #self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp')
-        #self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
+        """main page (login)"""
+        if not self.is_on_page(AccountHistoryPage):
+            self.location('/fr/prive/identification.jsp')
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        """Return True if we are logged on website"""
+
+        if self.is_on_page(AccountHistoryPage) or self.is_on_page(AccountsList):
+            return True
+        else:
+            return False
 
     def login(self):
+        """Login to the website.
+        This function is called when is_logged() returns False and the
+        password attribute is not None."""
+
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        #assert self.password.isdigit()
 
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp')
 
         self.page.login(self.username, self.password)
+        self.location('/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
 
-        #if self.is_on_page(LoginPage) or \
-        #   self.is_on_page(BadLoginPage):
-        #    raise BrowserIncorrectPassword()
+    def get_history(self, account):
+        if not self.is_on_page(AccountHistoryPage):
+            self.location(account._link_id)
+        return self.page.get_operations(account)
 
     def get_accounts_list(self):
+        """accounts list"""
+
         if not self.is_on_page(AccountsList):
-            self.location('/fr/prive/default.jsp?ANav=1')
-            #self.location('')
+            self.location('/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
 
         return self.page.get_list()
 
     def get_account(self, id):
+        """Get an account from its ID"""
         assert isinstance(id, basestring)
+        l = self.get_accounts_list()
 
-        if not self.is_on_page(AccountsList):
-            self.location('/fr/prive/default.jsp?ANav=1')
-
-	print "\n\n\n", self.page, "\n\n\n"
-        #l = self.page.get_list()
-        #for a in l:
-        #    if a.id == id:
-        #        return a
+        for a in l:
+            if a.id == id:
+                return a
 
         return None
 
-    def iter_history(self, url):
-        self.location(url)
-
-        if not self.is_on_page(AccountHistory):
-            # TODO: support other kind of accounts
-            return iter([])
-
-        return self.page.iter_transactions()
+# vim:ts=4:sw=4
