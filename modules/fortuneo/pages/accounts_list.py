@@ -25,6 +25,8 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import Transaction
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities import NotAvailable
+
+
 __all__ = ['AccountsList', 'AccountHistoryPage']
 
 
@@ -45,7 +47,7 @@ class AccountHistoryPage(BasePage):
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
-            operation.label = label.strip()
+            operation.label = operation.raw = label.strip()
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
             operation.date  = datetime.datetime.strptime(date_val, "%d/%m/%Y")
             operation.rdate = datetime.datetime.strptime(date_oper,"%d/%m/%Y")
@@ -80,9 +82,9 @@ class AccountsList(BasePage):
             mycomingval = cpt.xpath("./td[4]/text()")[0].replace("EUR", "").replace("\n", "").replace("\t", "")
 
             if mycomingval == '-':
-                account.coming = float(0)
+                account.coming = Decimal(0)
             else:
-                account.coming = float(mycomingval)
+                account.coming = Decimal(mycomingval)
 
             # account._link_id
             url_to_parse = cpt.xpath('./td[1]/a/@href')[0]  # link

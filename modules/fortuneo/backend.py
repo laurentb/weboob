@@ -20,6 +20,7 @@
 
 # python2.5 compatibility
 from __future__ import with_statement
+
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -74,8 +75,7 @@ class FortuneoBackend(BaseBackend, ICapBank):
 
     def iter_coming(self, account):
         """Iter coming transactions on a specific account Not supported yet"""
-
-        return iter([])
+        raise NotImplementedError()
 
     def iter_history(self, account):
         """Iter history of transactions on a specific account"""
