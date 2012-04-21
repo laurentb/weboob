@@ -4,69 +4,72 @@ Romain Bignon <romain@weboob.org>
         * Manager;
         * Core team;
         * Qt Applications;
-        * Maintainer of too many backends.
+        * Maintainer of too many modules.
 
 Laurent Bachelier <laurent@bachelier.name>
         * Core team;
-        * Pastealacon, PasteBin and RadioFrance backends maintainer.
+        * Pastealacon, PasteBin and RadioFrance modules maintainer.
 
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
-        * Ecrans, Inrocks, LeFigaro, Minutes20 and Transilien backends
+        * Ecrans, Inrocks, LeFigaro, Minutes20 and Transilien modules
           maintainer.
 
 Noe Rubinstein <noe.rubinstein@gmail.com>
         * Bototo, Eatmanga, MangaFox, MangaHere, MangaReader, Mangatoshokan
-          and Simplyreadit backends maintainer.
+          and Simplyreadit modules maintainer.
 
 Florent Fourcot <weboob@flo.fourcot.fr>
-        * Champslibre, Freemobile, ING, Presseurop, Sachsen and Taz backends
+        * Champslibre, Freemobile, ING, Presseurop, Sachsen and Taz modules
           maintainer;
         * BNPorc patches.
 
 Julien Veyssier <julien.veyssier@aiur.fr>
         * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
-          backends maintainer.
+          modules maintainer.
 
 Christophe Benz <christophe.benz@gmail.com>
-        * Bouygues, INA, SFR and Youtube backends maintainer.
+        * Bouygues, INA, SFR and Youtube modules maintainer.
 
 Roger Philibert <roger.philibert@gmail.com>
-        * Ehentai, Izneo, OKC and Youjizz backends maintainer.
+        * Ehentai, Izneo, OKC and Youjizz modules maintainer.
 
 Nicolas Duhamel <nicolas@jombi.fr>
-        * BP, CanalPlus and Orange backends maintainer.
+        * BP, CanalPlus and Orange modules maintainer.
 
 Clément Schreiner <clemux@clemux.info>
-        * MediaWiki and Newsfeed backends maintainer.
+        * MediaWiki and Newsfeed modules maintainer.
 
 Pierre Mazière <pierre.maziere@gmail.com>
-        * LCL backend maintainer;
+        * LCL module maintainer;
         * BNPorc fixes.
 
 Xavier Guerrin <xavier@tuxfamily.org>
-        * CrAgr backend maintainer.
+        * CrAgr module maintainer.
 
 Gabriel Kerneis <kerneis@pps.jussieu.fr>
-        * Boursorama backend maintainer.
+        * Boursorama module maintainer.
+
+Gilles Quenot <gilles.quenot@gmail.com>
+        * Fortuneo module maintainer.
 
 Jeremy Monnet <jmonnet@gmail.com>
-        * Opacwebaloes backend maintainer.
+        * Opacwebaloes module maintainer.
 
 Lord <lord@lordtoniok.com>
-        * CappedTV backend maintainer.
+        * CappedTV module maintainer.
 
 Lucien Loiseau <loiseau.lucien@gmail.com>
-        * GoogleTranslate backend maintainer.
+        * GoogleTranslate module maintainer.
 
 Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
-        * SocieteGenerale backend maintainer.
+        * SocieteGenerale module maintainer.
 
 Johann Broudin <johann.broudin@6-8.fr>
-        * CMB backend maintainer.
+        * CMB module maintainer.
 
 Cedric Defortis <cedric@aiur.fr>
-        * MeteoFrance backend maintainer.
+        * MeteoFrance module maintainer.
 
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
@@ -79,6 +82,9 @@ Laurent Dufréchou <laurent.dufrechou@gmail.com>
 
 leto <leto@weboob.org>
         * AuM anti-spam updates.
+
+Richard Genoud <richard.genoud@gmail.com>
+        * Fixes on CrArg.
 
 Camille Baldock <camille.baldock@student.ecp.fr>
         * Fixes on BP.
