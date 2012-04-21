@@ -211,6 +211,16 @@ def test_relative():
     assert b.absurl('') == HTTPBIN + 'aaaaaa/'
     assert b.absurl('bb') == HTTPBIN + 'aaaaaa/bb'
 
+    # Give an absolute URL, should get it unaltered
+    b.BASEURL = 'http://example.net/'
+    assert b.absurl('http://example.com/aaa/bbb') == 'http://example.com/aaa/bbb'
+    assert b.absurl('https://example.com/aaa/bbb') == 'https://example.com/aaa/bbb'
+
+    # Schemeless absolute URL
+    assert b.absurl('//example.com/aaa/bbb') == 'http://example.com/aaa/bbb'
+    b.BASEURL = 'https://example.net/'
+    assert b.absurl('//example.com/aaa/bbb') == 'https://example.com/aaa/bbb'
+
 
 def test_changereq():
     """
