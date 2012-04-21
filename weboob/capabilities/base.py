@@ -29,7 +29,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 __all__ = ['FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
            'Field', 'IntField', 'DecimalField', 'FloatField', 'StringField',
-           'BytesField', 'DateField', 'DeltaField', 'CapBaseObject', 'empty']
+           'BytesField', 'DateField', 'DeltaField', 'empty', 'CapBaseObject']
 
 
 def empty(value):
@@ -63,6 +63,12 @@ class ConversionWarning(UserWarning):
     Ideally, the module should use the right type before setting it.
     """
     pass
+
+class AttributeCreationWarning(UserWarning):
+    """
+    A non-field attribute has been created with a name not
+    prefixed with a _.
+    """
 
 class NotAvailableMeta(type):
     def __str__(self):
@@ -266,6 +272,9 @@ class CapBaseObject(object):
     """
 
     __metaclass__ = _CapBaseObjectMeta
+
+    id = None
+    backend = None
     _fields = None
 
     def __init__(self, id, backend=None):
@@ -342,6 +351,9 @@ class CapBaseObject(object):
         try:
             attr = (self._fields or {})[name]
         except KeyError:
+            if not name in dir(self) and not name.startswith('_'):
+                warnings.warn('Creating a non-field attribute %s. Please prefix it with _' % name,
+                              AttributeCreationWarning, stacklevel=2)
             object.__setattr__(self, name, value)
         else:
             if not empty(value):
