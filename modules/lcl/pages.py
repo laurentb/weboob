@@ -186,7 +186,7 @@ class AccountHistoryPage(BasePage):
         for tr in table.iter('tr'):
             # skip headers and empty rows
             if len(tr.findall("th"))!=0 or\
-               len(tr.findall("td"))==0:
+               len(tr.findall("td"))<=1:
                 continue
             operation=Transaction(len(operations))
             mntColumn=0
