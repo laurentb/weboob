@@ -22,14 +22,13 @@ import urllib
 from datetime import datetime
 from logging import warning
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.capabilities.bank import TransferError, Transfer
 from .pages import AccountsList, AccountHistory, ChangePasswordPage, \
                    AccountComing, AccountPrelevement, TransferPage, \
                    TransferConfirmPage, TransferCompletePage, \
                    LoginPage, ConfirmPage, InfoMessagePage, \
                    MessagePage, MessagesPage
-from .errors import PasswordExpired
 
 
 __all__ = ['BNPorc']
@@ -111,7 +110,7 @@ class BNPorc(BaseBrowser):
         def inner(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except PasswordExpired:
+            except BrowserPasswordExpired:
                 if self.rotating_password is not None:
                     warning('[%s] Your password has expired. Switching...' % self.username)
                     self.change_password(self.rotating_password)

@@ -22,10 +22,7 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage, BrokenPageError
-
-from ..errors import PasswordExpired
-
+from weboob.tools.browser import BasePage, BrokenPageError, BrowserPasswordExpired
 
 __all__ = ['AccountsList']
 
@@ -83,7 +80,7 @@ class AccountsList(BasePage):
             # of this password
             for img in self.document.getroot().cssselect('img[align="middle"]'):
                 if img.attrib.get('alt', '') == 'Changez votre code secret':
-                    raise PasswordExpired('Your password has expired')
+                    raise BrowserPasswordExpired('Your password has expired')
         return l
 
     def get_execution_id(self):

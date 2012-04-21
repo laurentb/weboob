@@ -20,10 +20,9 @@
 
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserPasswordExpired
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import TransferError
-from ..errors import PasswordExpired
 
 
 __all__ = ['TransferPage', 'TransferConfirmPage', 'TransferCompletePage']
@@ -40,7 +39,7 @@ class TransferPage(BasePage):
     def on_loaded(self):
         for td in self.document.xpath('//td[@class="hdvon1"]'):
             if td.text and 'Vous avez atteint le seuil de' in td.text:
-                raise PasswordExpired(td.text.strip())
+                raise BrowserPasswordExpired(td.text.strip())
 
     def get_accounts(self):
         accounts = OrderedDict()

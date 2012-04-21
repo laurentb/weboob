@@ -65,6 +65,9 @@ class BrowserIncorrectPassword(Exception):
 class BrowserBanned(BrowserIncorrectPassword):
     pass
 
+class BrowserPasswordExpired(BrowserIncorrectPassword):
+    pass
+
 
 class BrowserUnavailable(Exception):
     pass
