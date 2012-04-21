@@ -107,7 +107,7 @@ class AccountHistory(BasePage):
         while 1:
             d = XML(self.browser.readurl(url))
             el = d.xpath('//dataBody')[0]
-            s = StringIO(el.text)
+            s = StringIO(unicode(el.text).encode('iso-8859-1'))
             doc = self.browser.get_document(s)
 
             for tr in self._iter_transactions(doc):
