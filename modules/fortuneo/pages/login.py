@@ -20,16 +20,25 @@
 
 #from logging import error
 
-from weboob.tools.browser import BasePage #, BrowserUnavailable
+from weboob.tools.browser import BasePage, BrowserUnavailable
 
 
 __all__ = ['LoginPage']
 
 class LoginPage(BasePage):
-   def login(self, login, passwd):
+    def login(self, login, passwd):
+       msgb = self.document.xpath(".//*[@id='message_client']/text()")
+       msga = ''.join(msgb)
+       msg = msga.strip("\n")
+
+       if "maintenance" in msg: 
+           print "Fortuneo: "+msg
+           raise BrowserUnavailable(msg)
+
        self.browser.select_form(nr=3)
        self.browser['login'] = login
        self.browser['passwd'] = passwd
        self.browser.submit()
+
 
 # vim:ts=4:sw=4

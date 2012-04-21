@@ -45,8 +45,7 @@ class Fortuneo(BaseBrowser):
 
     def home(self):
         """main page (login)"""
-        if not self.is_on_page(AccountHistoryPage):
-            self.location('/fr/prive/identification.jsp')
+        self.location('/fr/prive/identification.jsp')
 
     def is_logged(self):
         """Return True if we are logged on website"""
