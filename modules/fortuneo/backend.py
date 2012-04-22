@@ -73,10 +73,6 @@ class FortuneoBackend(BaseBackend, ICapBank):
         else:
             raise AccountNotFound()
 
-    def iter_coming(self, account):
-        """Iter coming transactions on a specific account Not supported yet"""
-        raise NotImplementedError()
-
     def iter_history(self, account):
         """Iter history of transactions on a specific account"""
 

@@ -29,7 +29,6 @@ from weboob.capabilities import NotAvailable
 
 __all__ = ['AccountsList', 'AccountHistoryPage']
 
-
 class AccountHistoryPage(BasePage):
     def get_operations(self, _id):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
@@ -47,7 +46,7 @@ class AccountHistoryPage(BasePage):
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
-            operation.label = operation.raw = label.strip()
+            operation.label = unicode(label.strip())
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
             operation.date  = datetime.datetime.strptime(date_val, "%d/%m/%Y")
             operation.rdate = datetime.datetime.strptime(date_oper,"%d/%m/%Y")
@@ -95,7 +94,7 @@ class AccountsList(BasePage):
 
             # account.label
             tpl = cpt.xpath("./td[2]/a/text()")[0].split(' ')
-            account.label = ' '.join(tpl[:2])
+            account.label = unicode(' '.join(tpl[:2]))
 
             l.append(account)
 

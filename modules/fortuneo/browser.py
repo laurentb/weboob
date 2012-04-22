@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser #, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser
 
 from .pages.login import LoginPage
 from .pages.accounts_list import AccountsList, AccountHistoryPage
@@ -37,7 +37,9 @@ class Fortuneo(BaseBrowser):
             '.*/prive/mes-comptes/synthese-tous-comptes\.jsp.*':
                     AccountsList,
             '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
-                    AccountHistoryPage
+                    AccountHistoryPage,
+            '.*/prive/default\.jsp.*':
+                    AccountsList
             }
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +47,8 @@ class Fortuneo(BaseBrowser):
 
     def home(self):
         """main page (login)"""
-        self.location('/fr/prive/identification.jsp')
+
+        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/identification.jsp')
 
     def is_logged(self):
         """Return True if we are logged on website"""
@@ -67,7 +70,7 @@ class Fortuneo(BaseBrowser):
             self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp')
 
         self.page.login(self.username, self.password)
-        self.location('/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
+        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
 
     def get_history(self, account):
         if not self.is_on_page(AccountHistoryPage):
@@ -78,12 +81,13 @@ class Fortuneo(BaseBrowser):
         """accounts list"""
 
         if not self.is_on_page(AccountsList):
-            self.location('/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
+            self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
 
         return self.page.get_list()
 
     def get_account(self, id):
         """Get an account from its ID"""
+
         assert isinstance(id, basestring)
         l = self.get_accounts_list()
 
