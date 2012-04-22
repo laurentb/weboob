@@ -46,7 +46,7 @@ class AccountHistoryPage(BasePage):
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
-            operation.label = unicode(label.strip())
+            operation.label = operation.raw = unicode(label.strip())
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
             operation.date  = datetime.datetime.strptime(date_val, "%d/%m/%Y")
             operation.rdate = datetime.datetime.strptime(date_oper,"%d/%m/%Y")
