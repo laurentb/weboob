@@ -91,6 +91,8 @@ class BPBrowser(BaseBrowser):
 
     def get_history(self, Account):
         self.location(Account._link_id)
+        if not self.is_on_page(AccountHistory):
+            return iter([])
         return self.page.get_history()
 
     def make_transfer(self, from_account, to_account, amount):

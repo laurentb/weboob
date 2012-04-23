@@ -51,6 +51,8 @@ class AccountList(BasePage):
             tmp = line.xpath("./td//a")[0]
             account.label = to_unicode(tmp.text)
             account._link_id = tmp.get("href")
+            if 'BourseEnLigne' in account._link_id:
+                continue
 
             tmp = line.xpath("./td/span/strong")
             if len(tmp) >= 2:
