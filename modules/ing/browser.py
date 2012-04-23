@@ -80,6 +80,11 @@ class Ing(BaseBrowser):
 
         return None
 
+    def viewing_html(self):
+        # To prevent unknown mimetypes sent by server, we assume we
+        # are always on a HTML document.
+        return True
+
     def get_history(self, id):
         account = self.get_account(id)
         # The first and the second letter of the label are the account type
@@ -96,6 +101,7 @@ class Ing(BaseBrowser):
                 yield transaction
             if self.page.islast():
                 return
+
+            # XXX server sends an unknown mimetype, we overload viewing_html() above to
+            # prevent this issue.
             self.page.next_page()
-            # The answer is not a valide html page for mechanize, we have to be tolerant
-            self._factory.is_html = True
