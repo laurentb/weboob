@@ -54,12 +54,14 @@ class DetailsPage(BasePage):
         self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", True)
 
         for trbill in self.document.xpath('//tr[@class="derniereFacture"]'):
-            mydate = trbill.find('td/input').attrib['onclick'].split("'")[1]
+            mydate = unicode(trbill.find('td').text.split(":")[1].strip())
             bill = Bill()
-            bill.label = mydate
-            bill.id = num + "." + mydate
-            bill.date = date(int(mydate[0:4]), int(mydate[4:6]), int(mydate[6:8]))
-            bill.format = 'html'
+            bill.label = unicode(mydate)
+            billid = mydate.replace('-', '')
+            billid = billid[4:8] + billid[2:4] + billid[0:2]
+            bill.id = num + "." + billid
+            bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
+            bill.format = u'html'
             self.datebills.append(bill)
 
     def parse_div(self, divglobal, string, inter=False):
