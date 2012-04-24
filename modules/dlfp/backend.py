@@ -21,6 +21,7 @@
 from __future__ import with_statement
 
 from datetime import datetime, timedelta
+import time
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.newsfeed import Newsfeed
@@ -104,6 +105,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             if not getseen and oldhash == newhash:
                 return None
             self.storage.set('hash', id, newhash)
+            if thread.date:
+                self.storage.set('date', id, thread.date)
             self.storage.save()
 
         with self.browser:
@@ -183,6 +186,29 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         self.storage.set('seen', message.thread.id, 'comments',
             self.storage.get('seen', message.thread.id, 'comments', default=[]) + [message.id])
         self.storage.save()
+
+        lastpurge = self.storage.get('lastpurge', default=0)
+        # 86400 = one day
+        if time.time() - lastpurge > 86400:
+            self.storage.set('lastpurge', time.time())
+            self.storage.save()
+
+            # we can't directly delete without a "RuntimeError: dictionary changed size during iteration"
+            todelete = []
+
+            for id in self.storage.get('seen', default={}):
+                date = self.storage.get('date', id, default=0)
+                # if no date available, create a new one (compatibility with "old" storage)
+                if date == 0:
+                    self.storage.set('date', id, datetime.now())
+                elif datetime.now() - date > timedelta(days=60):
+                    todelete.append(id)
+
+            for id in todelete:
+                self.storage.delete('hash', id)
+                self.storage.delete('date', id)
+                self.storage.delete('seen', id)
+            self.storage.save()
 
     def fill_thread(self, thread, fields, getseen=True):
         return self.get_thread(thread, getseen)
