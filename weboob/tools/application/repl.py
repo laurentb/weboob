@@ -45,6 +45,7 @@ __all__ = ['NotEnoughArguments', 'ReplApplication']
 class NotEnoughArguments(Exception):
     pass
 
+
 class ReplOptionParser(OptionParser):
     def format_option_help(self, formatter=None):
         if not formatter:
@@ -52,6 +53,7 @@ class ReplOptionParser(OptionParser):
 
         return '%s\n%s' % (formatter.format_commands(self.commands),
                            OptionParser.format_option_help(self, formatter))
+
 
 class ReplOptionFormatter(IndentedHelpFormatter):
     def format_commands(self, commands):
@@ -66,6 +68,7 @@ class ReplOptionFormatter(IndentedHelpFormatter):
                 c = c.split('\n')[0]
                 s += '    %s\n' % c
         return s
+
 
 class ReplApplication(Cmd, ConsoleApplication):
     """
@@ -210,6 +213,18 @@ class ReplApplication(Cmd, ConsoleApplication):
             if obj:
                 backend.fillobj(obj, fields)
                 return obj
+
+    def get_object_list(self, method=None):
+        # return cache if not empty
+        if len(self.objects) > 0:
+            return self.objects
+        elif method is not None:
+            for backend, object in self.do(method):
+                self.add_object(object)
+            return self.objects
+        # XXX: what can we do without method?
+        else:
+            return tuple()
 
     def unload_backends(self, *args, **kwargs):
         self.objects = []
