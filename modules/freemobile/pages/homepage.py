@@ -40,7 +40,7 @@ class HomePage(BasePage):
 
         subscription = Subscription(phone)
         subscription.label = phone + ' - ' + phoneplan
-        subscription.owner = owner
+        subscription.subscriber = owner
 
         l.append(subscription)
 
