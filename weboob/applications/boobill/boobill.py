@@ -54,6 +54,24 @@ class Boobill(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
+    def exec_method(self, id, method):
+        l = []
+        id, backend_name = self.parse_id(id)
+
+        if not id:
+            for subscrib in self.get_object_list('iter_subscription'):
+                l.append((subscrib.id, subscrib.backend))
+        else:
+            l.append((id, backend_name))
+
+        for id, backend in l:
+            names = (backend,) if backend is not None else None
+
+            self.start_format()
+            for backend, result in self.do(method, id, backends=names):
+                self.format(result)
+            self.flush()
+
     def do_subscriptions(self, line):
         """
         subscriptions
@@ -100,40 +118,21 @@ class Boobill(ReplApplication):
 
     def do_history(self, id):
         """
-        history Id
+        history [Id]
 
-        Get the history of a subscription.
+        Get the history of subscriptions.
+        If no ID given, display histories of all backends
         """
-
-        id, backend_name = self.parse_id(id)
-        if not id:
-            print >>sys.stderr, 'Error: please give a subscription ID (hint: use subscriptions command)'
-            return 2
-        names = (backend_name,) if backend_name is not None else None
-
-        self.start_format()
-        for backend, history in self.do('iter_history', id, backends=names):
-            self.format(history)
-        self.flush()
+        self.exec_method(id, 'iter_history')
 
     def do_bills(self, id):
         """
-        bills Id
+        bills [Id]
 
-        Get the list of bills documents for subscription
-        id is the identifier of the backend
+        Get the list of bills documents for subscriptions.
+        If no ID given, display bills of all backends
         """
-
-        id, backend_name = self.parse_id(id)
-        if not id:
-            print >>sys.stderr, 'Error: please give a subscription ID (hint: use subscriptions command)'
-            return 2
-        names = (backend_name,) if backend_name is not None else None
-
-        self.start_format()
-        for backend, date in self.do('iter_bills', id, backends=names):
-            self.format(date)
-        self.flush()
+        self.exec_method(id, 'iter_bills') 
 
     def do_download(self, line):
         """
