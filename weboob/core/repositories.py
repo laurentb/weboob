@@ -39,12 +39,23 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from ConfigParser import RawConfigParser, DEFAULTSECT
 
+
+__all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable', \
+           'Repository', 'Versions', 'Repositories', 'InvalidSignature', 'Keyring']
+
 class WeboobBrowser(StandardBrowser):
+    """
+    Browser with a specific useragent.
+    """
+
     @classmethod
     def set_version(klass, version):
         klass.USER_AGENT = 'weboob/%s' % version
 
 class ModuleInfo(object):
+    """
+    Information about a module available on a repository.
+    """
     def __init__(self, name):
         self.name = name
 
@@ -97,9 +108,14 @@ class ModuleInfo(object):
                )
 
 class RepositoryUnavailable(Exception):
-    pass
+    """
+    Repository in not available.
+    """
 
 class Repository(object):
+    """
+    Represents a repository.
+    """
     INDEX = 'modules.list'
     KEYDIR = '.keys'
     KEYRING = 'trusted.gpg'
@@ -143,7 +159,8 @@ class Repository(object):
         Retrieve the index file of this repository. It can use network
         if this is a remote repository.
 
-        @param repo_path [str]  path to save the downloaded index file.
+        :param repo_path: path to save the downloaded index file.
+        :type repo_path: str
         """
         if self.local:
             # Repository is local, open the file.
@@ -205,7 +222,8 @@ class Repository(object):
         """
         Parse index of a repository
 
-        @param fp [buffer]  file descriptor to read
+        :param fp: file descriptor to read
+        :type fp: buffer
         """
         config = RawConfigParser()
         config.readfp(fp)
@@ -247,8 +265,10 @@ class Repository(object):
         """
         Rebuild index of modules of repository.
 
-        @param path [str]  path of the repository
-        @param filename [str]  file to save index
+        :param path: path of the repository
+        :type path: str
+        :param filename: file to save index
+        :type filename: str
         """
         print 'Rebuild index'
         self.modules.clear()
@@ -302,8 +322,10 @@ class Repository(object):
         """
         Save repository into a file (modules.list for example).
 
-        @param filename [str]  path to file to save repository.
-        @param private [bool]  if enabled, save URL of repository.
+        :param filename: path to file to save repository.
+        :type filename: str
+        :param private: if enabled, save URL of repository.
+        :type private: bool
         """
         config = RawConfigParser()
         config.set(DEFAULTSECT, 'name', self.name)
@@ -435,8 +457,9 @@ class Repositories(object):
         """
         Get all ModuleInfo instances available.
 
-        @param caps [list(str)]  Filter on capabilities.
-        @return [dict(ModuleInfo)]
+        :param caps: filter on capabilities:
+        :type caps: list[str]
+        :rtype: dict[:class:`ModuleInfo`]
         """
         modules = {}
         for repos in reversed(self.repositories):
@@ -499,12 +522,13 @@ class Repositories(object):
             with open(dest_path, 'wb') as fp:
                 fp.write(icon.read())
 
-    def update(self, progress=IProgress()):
+    def update_repositories(self, progress=IProgress()):
         """
         Update list of repositories by downloading them
         and put them in ~/.weboob/repositories/.
 
-        @param progress [IProgress]  observer object.
+        :param progress: observer object.
+        :type progress: :class:`IProgress`
         """
         self.repositories = []
         for name in os.listdir(self.repos_dir):
@@ -534,6 +558,15 @@ class Repositories(object):
                     else:
                         self.repositories.append(repository)
 
+    def update(self, progress=IProgress()):
+        """
+        Update repositories and install new packages versions.
+
+        :param progress: observer object.
+        :type progress: :class:`IProgress`
+        """
+        self.update_repositories()
+
         to_update = []
         for name, info in self.get_all_modules_info().iteritems():
             if not info.is_local() and info.is_installed():
@@ -557,8 +590,10 @@ class Repositories(object):
         """
         Install a module.
 
-        @paran module [str,ModuleInfo] module to install.
-        @param progress [IProgress]  observer object.
+        :param module: module to install
+        :type module: :class:`str` or :class:`ModuleInfo`
+        :param progress: observer object
+        :type progress: :class:`IProgress`
         """
         if isinstance(module, ModuleInfo):
             info = module
@@ -625,7 +660,8 @@ class Repositories(object):
     @staticmethod
     def url2filename(url):
         """
-        Get a safe file name for an URL
+        Get a safe file name for an URL.
+
         All non-alphanumeric characters are replaced by _.
         """
         return ''.join([l if l.isalnum() else '_' for l in url])
