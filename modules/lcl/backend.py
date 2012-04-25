@@ -38,7 +38,7 @@ class LCLBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'Le Crédit Lyonnais French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,6}\w$', masked=False),
-                           ValueBackendPassword('password', label='Password of account'),
+                           ValueBackendPassword('password', label='Password of account', regexp='^\d{6}$'),
                            Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
     BROWSER = LCLBrowser
 
