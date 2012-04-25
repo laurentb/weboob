@@ -39,3 +39,22 @@ class ArticlePage(GenericNewsPage):
         title = GenericNewsPage.get_title(self)
         title = title.split('|')[0]
         return title
+
+
+class CartoonPage(GenericNewsPage):
+    "CartoonPage object for presseurop"
+
+    def on_loaded(self):
+        self.main_div = self.document.getroot()
+        self.element_title_selector = "title"
+        self.element_author_selector = "div.profilecartoontext>p>a"
+        self.element_body_selector = "div.panel"
+
+    def get_body(self):
+        element_body = self.get_element_body()
+        return self.parser.tostring(element_body)
+
+    def get_title(self):
+        title = GenericNewsPage.get_title(self)
+        title = title.split('|')[0]
+        return title
