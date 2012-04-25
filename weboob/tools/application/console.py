@@ -26,6 +26,7 @@ import os
 import locale
 from tempfile import NamedTemporaryFile
 
+from weboob.capabilities import UserError
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
 from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
@@ -272,9 +273,10 @@ class ConsoleApplication(BaseApplication):
             self.weboob.repositories.install(name)
         except ModuleInstallError, e:
             print >>sys.stderr, 'Unable to install module "%s": %s' % (name, e)
-            return 1
+            return False
 
         print ''
+        return True
 
     def edit_backend(self, name, params=None):
         return self.add_backend(name, params, True)
@@ -479,8 +481,20 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, u'Error(%s): this feature is not supported yet by this backend.' % backend.name
             print >>sys.stderr, u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name))
             print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
-        else:
+        elif isinstance(error, UserError):
             print >>sys.stderr, u'Error(%s): %s' % (backend.name, to_unicode(error))
+        else:
+            print >>sys.stderr, u'Bug(%s): %s' % (backend.name, to_unicode(error))
+
+            self.weboob.repositories.update_repositories()
+            minfo = self.weboob.repositories.get_module_info(backend.NAME)
+            if minfo and not minfo.is_local() and \
+               minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
+               self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
+               self.install_module(minfo):
+                print 'New version of module %s has been installed. Retry to call the command.' % minfo.name
+                return
+
             if logging.root.level == logging.DEBUG:
                 print >>sys.stderr, backtrace
             else:
