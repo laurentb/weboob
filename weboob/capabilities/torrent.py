@@ -18,19 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, DateField, IntField
+from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, \
+                  DateField, IntField, UserError
 
 
 __all__ = ['MagnetOnly', 'Torrent', 'ICapTorrent']
 
 
-class MagnetOnly(Exception):
+class MagnetOnly(UserError):
     """
     Raised when trying to get URL to torrent but only magnet is available.
     """
     def __init__(self, magnet):
         self.magnet = magnet
-        Exception.__init__(self, 'Only magnet URL is available')
+        UserError.__init__(self, 'Only magnet URL is available')
 
 
 class Torrent(CapBaseObject):

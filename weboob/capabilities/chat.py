@@ -20,13 +20,13 @@
 
 import datetime
 
-from .base import IBaseCap, CapBaseObject, StringField, DateField
+from .base import IBaseCap, CapBaseObject, StringField, DateField, UserError
 
 
 __all__ = ['ChatException', 'ChatMessage', 'ICapChat']
 
 
-class ChatException(Exception):
+class ChatException(UserError):
     """
     Exception raised when there is a problem with the chat.
     """

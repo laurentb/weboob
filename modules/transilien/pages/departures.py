@@ -19,6 +19,7 @@
 
 import datetime
 
+from weboob.capabilities import UserError
 from weboob.tools.misc import to_unicode
 from weboob.tools.browser import BasePage, BrokenPageError
 
@@ -26,7 +27,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 __all__ = ['StationNotFound', 'DeparturesPage']
 
 
-class StationNotFound(Exception):
+class StationNotFound(UserError):
     pass
 
 class DeparturesPage(BasePage):

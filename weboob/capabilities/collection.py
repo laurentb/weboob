@@ -17,18 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import IBaseCap, CapBaseObject
+
+from .base import IBaseCap, CapBaseObject, UserError
+
 
 __all__ = ['ICapCollection', 'BaseCollection', 'Collection', 'CollectionNotFound']
 
 
-class CollectionNotFound(Exception):
+class CollectionNotFound(UserError):
     def __init__(self, split_path=None):
         if split_path is not None:
             msg = 'Collection not found: %s' % '/'.join(split_path)
         else:
             msg = 'Collection not found'
-        Exception.__init__(self, msg)
+        UserError.__init__(self, msg)
 
 
 class BaseCollection(CapBaseObject):

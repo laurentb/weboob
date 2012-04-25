@@ -20,22 +20,22 @@
 
 from datetime import date, datetime
 
-from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField
+from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError
 from .collection import ICapCollection
 
 
 __all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Transfer', 'ICapBank']
 
 
-class AccountNotFound(Exception):
+class AccountNotFound(UserError):
     """
     Raised when an account is not found.
     """
 
     def __init__(self, msg='Account not found'):
-        Exception.__init__(self, msg)
+        UserError.__init__(self, msg)
 
-class TransferError(Exception):
+class TransferError(UserError):
     """
     A transfer has failed.
     """

@@ -18,14 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, DateField
+from .base import IBaseCap, CapBaseObject, Field, StringField, DateField, UserError
 from .contact import Contact
 
 
 __all__ = ['OptimizationNotFound', 'Optimization', 'Event', 'ICapDating']
 
 
-class OptimizationNotFound(Exception):
+class OptimizationNotFound(UserError):
     """
     Raised when an optimization is not found.
     """

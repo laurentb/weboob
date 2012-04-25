@@ -20,6 +20,7 @@
 import datetime
 import re
 
+from weboob.capabilities import UserError
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage, BrokenPageError
 
@@ -69,7 +70,7 @@ class VideoPage(BasePage):
     def on_loaded(self):
         p = self.parser.select(self.document.getroot(), 'p.alert')
         if len(p) > 0:
-            raise Exception(p[0].text)
+            raise UserError(p[0].text)
 
     def get_info_url(self):
         try:

@@ -20,7 +20,8 @@
 
 from datetime import datetime
 
-from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, StringField
+from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, \
+                  StringField, UserError
 
 
 __all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'ICapWeather']
@@ -70,7 +71,7 @@ class City(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.name = name
 
-class CityNotFound(Exception):
+class CityNotFound(UserError):
     """
     Raised when a city is not found.
     """

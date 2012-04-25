@@ -21,7 +21,8 @@
 import datetime
 import time
 
-from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, DateField, IntField
+from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, \
+                  DateField, IntField, UserError
 
 
 __all__ = ['Thread', 'Message', 'ICapMessages', 'CantSendMessage', 'ICapMessagesPost']
@@ -198,7 +199,7 @@ class ICapMessages(IBaseCap):
         """
         raise NotImplementedError()
 
-class CantSendMessage(Exception):
+class CantSendMessage(UserError):
     """
     Raised when a message can't be send.
     """

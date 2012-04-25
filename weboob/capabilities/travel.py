@@ -20,7 +20,8 @@
 
 import datetime
 
-from .base import IBaseCap, CapBaseObject, StringField, TimeField, DeltaField, DateField
+from .base import IBaseCap, CapBaseObject, StringField, TimeField, DeltaField, \
+                  DateField, UserError
 
 
 __all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'ICapTravel']
@@ -72,7 +73,7 @@ class RoadStep(CapBaseObject):
     arrival =       StringField('Arrival station')
     duration =      DeltaField('Duration of this step')
 
-class RoadmapError(Exception):
+class RoadmapError(UserError):
     """
     Raised when the roadmap is unable to be calculated.
     """

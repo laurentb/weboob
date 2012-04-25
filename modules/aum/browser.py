@@ -27,6 +27,7 @@ import urllib
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 
+from weboob.capabilities.base import UserError
 from weboob.capabilities.chat import ChatException, ChatMessage
 from weboob.capabilities.messages import CantSendMessage
 
@@ -34,7 +35,7 @@ from weboob.capabilities.messages import CantSendMessage
 __all__ = ['AuMBrowser']
 
 
-class AuMException(Exception):
+class AuMException(UserError):
     ERRORS = {"0.0.0":  "Bad signature",
               "0.0.1":  "Malformed request",
               "0.0.2":  "Not logged",

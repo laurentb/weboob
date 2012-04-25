@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, BytesField, IntField
+from .base import IBaseCap, CapBaseObject, Field, StringField, BytesField, IntField, \
+                  UserError
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -108,7 +109,7 @@ class Contact(CapBaseObject):
             setattr(photo, key, value)
 
 
-class QueryError(Exception):
+class QueryError(UserError):
     """
     Raised when unable to send a query to a contact.
     """

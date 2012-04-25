@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField
+from .base import IBaseCap, CapBaseObject, NotLoaded, Field, StringField, UserError
 
 
 __all__ = ['PasteNotFound', 'BasePaste', 'ICapPaste']
 
 
-class PasteNotFound(Exception):
+class PasteNotFound(UserError):
     """
     Raised when a paste is not found.
     """

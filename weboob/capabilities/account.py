@@ -18,13 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, Field
+from .base import IBaseCap, CapBaseObject, StringField, Field, UserError
 
 
 __all__ = ['AccountRegisterError', 'Account', 'StatusField', 'ICapAccount']
 
 
-class AccountRegisterError(Exception):
+class AccountRegisterError(UserError):
     """
     Raised when there is an error during registration.
     """

@@ -21,7 +21,7 @@
 from dateutil.parser import parse as parse_dt
 import urllib
 
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, UserError
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.misc import to_unicode
@@ -32,7 +32,7 @@ from ..video import NolifeTVVideo
 __all__ = ['VideoPage']
 
 
-class ForbiddenVideo(Exception):
+class ForbiddenVideo(UserError):
     pass
 
 

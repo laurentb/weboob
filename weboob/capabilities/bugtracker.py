@@ -19,14 +19,14 @@
 
 
 from .base import IBaseCap, CapBaseObject, Field, StringField, DateField, \
-                  IntField, DeltaField
+                  IntField, DeltaField, UserError
 
 
 __all__ = ['IssueError', 'Project', 'User', 'Version', 'Status', 'Attachment',
            'Change', 'Update', 'Issue', 'Query', 'ICapBugTracker']
 
 
-class IssueError(Exception):
+class IssueError(UserError):
     """
     Raised when there is an error with an issue.
     """

@@ -18,28 +18,28 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField
+from .base import IBaseCap, CapBaseObject, StringField, UserError
 
 
 __all__ = ['TranslationFail', 'LanguageNotSupported', 'ICapTranslate']
 
 
-class LanguageNotSupported(Exception):
+class LanguageNotSupported(UserError):
     """
     Raised when the language is not supported
     """
 
     def __init__(self, msg='language is not supported'):
-      Exception.__init__(self,msg)
+      UserError.__init__(self,msg)
 
 
-class TranslationFail(Exception):
+class TranslationFail(UserError):
     """
     Raised when no translation matches the given request
     """
 
     def __init__(self, msg='No Translation Available'):
-        Exception.__init__(self, msg)
+        UserError.__init__(self, msg)
 
 
 class Translation(CapBaseObject):

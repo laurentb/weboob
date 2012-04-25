@@ -17,27 +17,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, StringField, DateField, DecimalField
+
+from .base import CapBaseObject, StringField, DateField, DecimalField, UserError
 from .collection import ICapCollection
 
 
 __all__ = ['SubscriptionNotFound', 'BillNotFound', 'Detail', 'Bill', 'Subscription', 'ICapBill']
 
 
-class SubscriptionNotFound(Exception):
+class SubscriptionNotFound(UserError):
     """
     Raised when a subscription is not found.
     """
     def __init__(self, msg='Subscription not found'):
-        Exception.__init__(self, msg)
+        UserError.__init__(self, msg)
 
 
-class BillNotFound(Exception):
+class BillNotFound(UserError):
     """
     Raised when a bill is not found.
     """
     def __init__(self, msg='Bill not found'):
-        Exception.__init__(self, msg)
+        UserError.__init__(self, msg)
 
 
 class Detail(CapBaseObject):

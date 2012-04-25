@@ -27,7 +27,7 @@ from weboob.tools.misc import to_unicode
 from weboob.tools.ordereddict import OrderedDict
 
 
-__all__ = ['FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
+__all__ = ['UserError', 'FieldNotFound', 'NotAvailable', 'NotLoaded', 'IBaseCap',
            'Field', 'IntField', 'DecimalField', 'FloatField', 'StringField',
            'BytesField', 'DateField', 'DeltaField', 'empty', 'CapBaseObject']
 
@@ -42,6 +42,12 @@ def empty(value):
         if value is cls:
             return True
     return False
+
+
+class UserError(Exception):
+    """
+    Exception containing an error message for user.
+    """
 
 
 class FieldNotFound(Exception):
