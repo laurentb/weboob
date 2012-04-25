@@ -27,7 +27,7 @@ class ArticlePage(GenericNewsPage):
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
-        self.element_author_selector = "div.content-author>a"
+        self.element_author_selector = "div[id=content-author]>a"
         self.element_body_selector = "div.block"
 
     def get_body(self):
