@@ -26,7 +26,7 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 
 
 __all__ = ['AccountsList', 'AccountHistory']
@@ -106,7 +106,12 @@ class AccountHistory(BasePage):
 
         while 1:
             d = XML(self.browser.readurl(url))
-            el = d.xpath('//dataBody')[0]
+            try:
+                el = self.parser.select(d, '//dataBody', 1, 'xpath')
+            except BrokenPageError:
+                # No transactions.
+                return
+
             s = StringIO(unicode(el.text).encode('iso-8859-1'))
             doc = self.browser.get_document(s)
 
