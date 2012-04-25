@@ -506,7 +506,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def complete_backends(self, text, line, begidx, endidx):
         choices = []
-        commands = ['enable', 'disable', 'only', 'list', 'add', 'register', 'edit', 'remove']
+        commands = ['enable', 'disable', 'only', 'list', 'add', 'register', 'edit', 'remove', 'list-modules']
         available_backends_names = set(backend.name for backend in self.weboob.iter_backends())
         enabled_backends_names = set(backend.name for backend in self.enabled_backends)
 
@@ -537,14 +537,15 @@ class ReplApplication(Cmd, ConsoleApplication):
         Select used backends.
 
         ACTION is one of the following (default: list):
-            * enable    enable given backends
-            * disable   disable given backends
-            * only      enable given backends and disable the others
-            * list      display enabled and available backends
-            * add       add a backend
-            * register  register a new account on a website
-            * edit      edit a backend
-            * remove    remove a backend
+            * enable         enable given backends
+            * disable        disable given backends
+            * only           enable given backends and disable the others
+            * list           list backends
+            * add            add a backend
+            * register       register a new account on a website
+            * edit           edit a backend
+            * remove         remove a backend
+            * list-modules   list modules
         """
         line = line.strip()
         if line:
@@ -618,6 +619,24 @@ class ReplApplication(Cmd, ConsoleApplication):
             for backend in given_backends:
                 self.weboob.backends_config.remove_backend(backend.name)
                 self.unload_backends(backend.name)
+        elif action == 'list-modules':
+            modules = []
+            print 'Modules list:'
+            for name, info in sorted(self.weboob.repositories.get_all_modules_info().iteritems()):
+                if not self.is_module_loadable(info):
+                    continue
+                modules.append(name)
+                loaded = ' '
+                for bi in self.weboob.iter_backends():
+                    if bi.NAME == name:
+                        if loaded == ' ':
+                            loaded = 'X'
+                        elif loaded == 'X':
+                            loaded = 2
+                        else:
+                            loaded += 1
+                print '[%s] %s%-15s%s   %s' % (loaded, self.BOLD, name, self.NC, info.description)
+
         else:
             print >>sys.stderr, 'Unknown action: "%s"' % action
             return 1
