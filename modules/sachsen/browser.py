@@ -34,8 +34,6 @@ class SachsenBrowser(BaseBrowser):
              '.*hwz/MP/.*': HistoryPage
             }
 
-    cache_list = None
-
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 
@@ -43,11 +41,9 @@ class SachsenBrowser(BaseBrowser):
         self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
 
     def get_rivers_list(self):
-        if self.cache_list is None:
-            if not self.is_on_page(ListPage):
-                self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
-                self.cache_list = self.page.get_rivers_list()
-        return self.cache_list
+        if not self.is_on_page(ListPage):
+            self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
+        return self.page.get_rivers_list()
 
     def iter_history(self, id):
         self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(id))
@@ -58,9 +54,6 @@ class SachsenBrowser(BaseBrowser):
         return self.page.last_seen()
 
     def search(self, pattern):
-        if self.cache_list is None:
-            self.get_rivers_list()
-
-        for gauge in self.cache_list:
-            if gauge.name.__contains__(pattern) or gauge.river.__contains__(pattern):
+        for gauge in self.get_rivers_list():
+            if pattern in gauge.name or pattern in gauge.river:
                 yield gauge

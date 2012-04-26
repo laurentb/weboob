@@ -31,8 +31,8 @@ class ListPage(BasePage):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
             data = pegel.attrib['onmouseover'].strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
-            gauge.name = data[0].strip("'")
-            gauge.river = data[1]
+            gauge.name = unicode(data[0].strip("'"))
+            gauge.river = unicode(data[1])
             try:
                 lastdate = date(*reversed([int(x) for x in data[2].split(' ')[0].split(".")]))
                 lasttime = time(*[int(x) for x in data[2].split(' ')[1].split(":")])
@@ -49,11 +49,11 @@ class ListPage(BasePage):
                 gauge.flow = NotAvailable
             bildforecast = data[5]
             if bildforecast == "pf_gerade.png":
-                gauge.forecast = "stable"
+                gauge.forecast = u"stable"
             elif bildforecast == "pf_unten.png":
-                gauge.forecast = "Go down"
+                gauge.forecast = u"Go down"
             elif bildforecast == "pf_oben.png":
-                gauge.forecast = "Go up"
+                gauge.forecast = u"Go up"
             else:
                 gauge.forecast = NotAvailable
 
