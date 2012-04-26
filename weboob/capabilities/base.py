@@ -335,7 +335,7 @@ class CapBaseObject(object):
         :rtype: iter[(key, value)]
         """
 
-        if hasattr(self, 'id'):
+        if hasattr(self, 'id') and self.id is not None:
             yield 'id', self.id
         for name, field in self._fields.iteritems():
             yield name, field.value
