@@ -486,14 +486,14 @@ class ConsoleApplication(BaseApplication):
         else:
             print >>sys.stderr, u'Bug(%s): %s' % (backend.name, to_unicode(error))
 
-            self.weboob.repositories.update_repositories()
             minfo = self.weboob.repositories.get_module_info(backend.NAME)
-            if minfo and not minfo.is_local() and \
-               minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
-               self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
-               self.install_module(minfo):
-                print 'New version of module %s has been installed. Retry to call the command.' % minfo.name
-                return
+            if minfo and not minfo.is_local():
+                self.weboob.repositories.update_repositories()
+                if minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
+                   self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
+                   self.install_module(minfo):
+                    print 'New version of module %s has been installed. Retry to call the command.' % minfo.name
+                    return
 
             if logging.root.level == logging.DEBUG:
                 print >>sys.stderr, backtrace
