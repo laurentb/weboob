@@ -34,7 +34,6 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
-        l = []
         ids = []
         for td in self.document.xpath('.//td[@nowrap="nowrap"]'):
             account = Account()
@@ -50,6 +49,4 @@ class AccountsList(BasePage):
                 account.balance = Decimal(linkbis.text.replace('.', '').\
                                           replace(' ', '').replace(',', '.'))
                 account.coming = NotAvailable
-                l.append(account)
-
-        return l
+                yield account

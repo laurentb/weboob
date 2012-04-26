@@ -74,9 +74,3 @@ class INGBackend(BaseBackend, ICapBank):
         with self.browser:
             for history in self.browser.get_history(account.id):
                 yield history
-
-    # TODO
-    #def iter_coming(self, account):
-    #    with self.browser:
-    #        for coming in self.browser.get_coming_operations(account.id):
-    #            yield coming
