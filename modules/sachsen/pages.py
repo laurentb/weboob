@@ -48,10 +48,12 @@ class ListPage(BasePage):
             except:
                 gauge.flow = NotAvailable
             bildforecast = data[5]
-            if bildforecast.__eq__("pf_gerade.png"):
+            if bildforecast == "pf_gerade.png":
                 gauge.forecast = "stable"
-            elif bildforecast.__eq__("pf_unten.png"):
+            elif bildforecast == "pf_unten.png":
                 gauge.forecast = "Go down"
+            elif bildforecast == "pf_oben.png":
+                gauge.forecast = "Go up"
             else:
                 gauge.forecast = NotAvailable
 
