@@ -28,7 +28,6 @@ __all__ = ['ListPage', 'HistoryPage']
 
 class ListPage(BasePage):
     def get_rivers_list(self):
-        l = []
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
             data = pegel.attrib['onmouseover'].strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
@@ -56,8 +55,7 @@ class ListPage(BasePage):
             else:
                 gauge.forecast = NotAvailable
 
-            l.append(gauge)
-        return l
+            yield gauge
 
 
 class HistoryPage(BasePage):
