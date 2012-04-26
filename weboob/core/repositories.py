@@ -692,7 +692,7 @@ class Keyring(object):
 
     def exists(self):
         if not os.path.exists(self.vpath):
-           return False
+            return False
         if os.path.exists(self.path):
             # Check the file is not empty.
             # This is because there was a bug creating empty keyring files.

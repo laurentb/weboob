@@ -30,7 +30,7 @@ class LanguageNotSupported(UserError):
     """
 
     def __init__(self, msg='language is not supported'):
-      UserError.__init__(self,msg)
+        UserError.__init__(self, msg)
 
 
 class TranslationFail(UserError):
