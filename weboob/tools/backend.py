@@ -322,7 +322,8 @@ class BaseBackend(object):
         kwargs['logger'] = self.logger
 
         if self.BROWSER.SAVE_RESPONSES and self.BROWSER.responses_dirname:
-            kwargs.setdefault('responses_dirname', os.path.join(self.BROWSER.responses_dirname, self.name))
+            kwargs.setdefault('responses_dirname', os.path.join(self.BROWSER.responses_dirname,
+                                                                self._private_config.get('_debug_dir', self.name)))
 
         return self.BROWSER(*args, **kwargs)
 
