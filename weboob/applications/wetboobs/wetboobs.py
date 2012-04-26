@@ -124,7 +124,7 @@ class WetBoobs(ReplApplication):
 
     def do_gauges(self, pattern):
         """
-        rivers [PATTERN]
+        gauges [PATTERN]
 
         List all rivers. If PATTERN is specified, search on a pattern.
         """
