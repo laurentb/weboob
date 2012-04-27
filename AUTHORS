@@ -77,11 +77,17 @@ Erwan Jahier <Erwan.Jahier@imag.fr>
 theo <theocrite@theocrite.org>
         * Ergonomics enhancements.
 
+BohwaZ <bohwaz@bohwaz.net>
+        * Script contrib/report_accounts.sh
+
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
 
 leto <leto@weboob.org>
         * AuM anti-spam updates.
+
+Vincent Paredes <vincentparedes@gmail.com>
+        * Changes in Repl.
 
 Richard Genoud <richard.genoud@gmail.com>
         * Fixes on CrArg.
