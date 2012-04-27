@@ -20,7 +20,9 @@
 
 import sys
 import os
+import datetime
 from tempfile import NamedTemporaryFile
+from lxml import etree
 
 from weboob.core import CallErrors
 from weboob.capabilities.messages import ICapMessages, Message, Thread
@@ -32,6 +34,54 @@ from weboob.tools.misc import html2text
 
 
 __all__ = ['Boobmsg']
+
+
+class AtomFormatter(IFormatter):
+    MANDATORY_FIELDS = ('title', 'date', 'sender', 'content')
+
+    def start_format(self, **kwargs):
+        self.output(u'<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"')
+        self.output(u'xmlns:dc="http://purl.org/dc/elements/1.1/">\n')
+        self.output(u'<updated>%s</updated>\n' % datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        self.output(u'<title type="text">Atom feed by Weboob</title>')  # TODO : get backend name
+
+    def format_obj(self, obj, alias):
+        elem = etree.Element('entry')
+
+        title = etree.Element('title')
+        title.text = obj.title
+        elem.append(title)
+
+        id = etree.Element('id')
+        id.text = obj.full_id
+        elem.append(id)
+
+        link = etree.Element('link')
+        link.attrib["href"] = obj.thread.id
+        link.attrib["title"] = obj.title
+        link.attrib["type"] = "text/html"
+        elem.append(link)
+
+        if obj.sender:
+            author = etree.Element('author')
+            name = etree.Element('name')
+            name.text = obj.sender
+            author.append(name)
+            elem.append(author)
+
+        date = etree.Element('updated')
+        date.text = obj.date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        elem.append(date)
+
+        content = etree.Element('content')
+        content.text = html2text(obj.content)
+        content.attrib["type"] = "text"
+        elem.append(content)
+
+        return etree.tostring(elem, pretty_print=True)
+
+    def flush(self):
+        self.output(u'</feed>')
 
 
 class XHtmlFormatter(IFormatter):
@@ -216,6 +266,7 @@ class Boobmsg(ReplApplication):
     EXTRA_FORMATTERS = {'msglist':  MessagesListFormatter,
                         'msg':      MessageFormatter,
                         'xhtml':    XHtmlFormatter,
+                        'atom':     AtomFormatter,
                         'profile' : ProfileFormatter,
                        }
     COMMANDS_FORMATTERS = {'list':          'msglist',
@@ -344,6 +395,7 @@ class Boobmsg(ReplApplication):
             cmd = self.do('iter_threads')
             self.formatter._list_messages = False
 
+        self.start_format()
         for backend, thread in cmd:
             if not thread:
                 continue
@@ -372,8 +424,10 @@ class Boobmsg(ReplApplication):
                 for msg in t.iter_all_messages():
                     yield msg
 
+        self.start_format()
         for backend, msg in self.do(func):
             self.format(msg)
+        self.flush()
 
     def do_export_thread(self, arg):
         """
@@ -383,10 +437,12 @@ class Boobmsg(ReplApplication):
         """
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
+        self.start_format()
         for backend, thread in cmd:
             if thread is not None :
                 for msg in thread.iter_all_messages():
                     self.format(msg)
+        self.flush()
 
     def do_show(self, arg):
         """
