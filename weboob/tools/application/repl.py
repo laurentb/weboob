@@ -257,6 +257,9 @@ class ReplApplication(Cmd, ConsoleApplication):
             except ImportError:
                 pass
             else:
+                # Remove '-' from delims
+                readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
+
                 history_filepath = os.path.join(self.weboob.workdir, '%s_history' % self.APPNAME)
                 try:
                     readline.read_history_file(history_filepath)
@@ -377,7 +380,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         super(ReplApplication, self).complete(text, state)
 
         # When state = 0, Cmd.complete() set the 'completion_matches' attribute by
-        # calling the completion function. Then, for other states, it only try to
+        # calling the completion function. Then, for other states, it only tries to
         # get the right item in list.
         # So that's the good place to rework the choices.
         if state == 0:
