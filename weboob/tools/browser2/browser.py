@@ -20,10 +20,9 @@
 from __future__ import absolute_import
 
 from urlparse import urlparse, urljoin
+from copy import deepcopy
 
 import requests
-from requests.status_codes import codes
-from copy import deepcopy
 
 from .cookiejar import CookieJar, CookiePolicy
 
@@ -200,7 +199,7 @@ class BaseBrowser(object):
             ## End of code from requests.models._build_response
 
             # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.4
-            if response.status_code == codes.see_other:
+            if response.status_code == requests.codes.see_other:
                 orig_args['method'] = 'GET'
                 orig_args['data'] = None
                 orig_args['files'] = None
@@ -209,7 +208,7 @@ class BaseBrowser(object):
                 # Do the same as Google Chrome.
                 # http://git.chromium.org/gitweb/?p=chromium/src/net.git;a=blob;f=url_request/url_request.cc;h=8597917f0cbf49c84b3bdae3a7bebacbc264f1e0;hb=HEAD#l673
                 if (response.status_code == 303 and request.method != 'HEAD') \
-                or (response.status_code in (codes.moved, codes.found) and request.method == 'POST'):
+                or (response.status_code in (requests.codes.moved, requests.codes.found) and request.method == 'POST'):
                     # Once we use GET, all next requests will use GET.
                     orig_args['method'] = 'GET'
                     orig_args['data'] = None
@@ -421,7 +420,7 @@ class DomainBrowser(BaseBrowser):
         return urljoin(base, uri)
 
     def open(self, uri, *args, **kwargs):
-        return BaseBrowser.open(self, self.absurl(uri), *args, **kwargs)
+        return super(DomainBrowser, self).open(self.absurl(uri), *args, **kwargs)
 
     def home(self):
         """
