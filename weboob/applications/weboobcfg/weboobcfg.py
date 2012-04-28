@@ -263,11 +263,3 @@ class WeboobCfg(ReplApplication):
         Update weboob.
         """
         self.weboob.update()
-
-    def do_install(self, line):
-        """
-        install MODULE
-
-        Install a module.
-        """
-        self.install_module(line)
