@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import Account
@@ -50,12 +51,22 @@ class AccountsList(BasePage):
 
     def _parse_account(self, tr):
         account = Account()
+
         account.id = tr.xpath('.//td[@class="libelleCompte"]/input')[0].attrib['id'][len('libelleCompte'):]
-        account._link_id = account.id
         if len(str(account.id)) == 23:
             account.id = str(account.id)[5:21]
 
-        account.label = u''+tr.xpath('.//td[@class="libelleCompte"]/a')[0].text.strip()
+        a = tr.xpath('.//td[@class="libelleCompte"]/a')[0]
+        m = re.match(r'javascript:goToStatements\(\'(\d+)\'', a.get('onclick', ''))
+        if m:
+            account._link_id = m.group(1)
+        else:
+            # Can't get history for this account.
+            account._link_id = None
+            # To prevent multiple-IDs for CIF (for example), add an arbitrary char in ID.
+            account.id += 'C'
+
+        account.label = u''+a.text.strip()
 
         tds = tr.findall('td')
         account.balance = self._parse_amount(tds[3].find('a'))

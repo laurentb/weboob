@@ -140,6 +140,9 @@ class BNPorc(BaseBrowser):
         return None
 
     def iter_history(self, id):
+        if id is None:
+            return iter([])
+
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
 
@@ -178,6 +181,9 @@ class BNPorc(BaseBrowser):
         return self.page.iter_operations()
 
     def iter_coming_operations(self, id):
+        if id is None:
+            return iter([])
+
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
         execution = self.page.get_execution_id()
