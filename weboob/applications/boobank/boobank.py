@@ -21,6 +21,7 @@
 from decimal import Decimal
 import sys
 
+from weboob.capabilities.base import empty
 from weboob.capabilities.bank import ICapBank, Account, Transaction
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -30,7 +31,7 @@ __all__ = ['Boobank']
 
 
 class QifFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
+    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount')
 
     def start_format(self, **kwargs):
         self.output(u'!type:Bank')
@@ -38,7 +39,7 @@ class QifFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'D%s\n' % obj.date.strftime('%d/%m/%y')
         result += u'T%s\n' % obj.amount
-        if obj.category:
+        if hasattr(obj, 'category') and not empty(obj.category):
             result += u'N%s\n' % obj.category
         result += u'M%s\n' % obj.raw
         result += u'^\n'
@@ -46,18 +47,26 @@ class QifFormatter(IFormatter):
 
 
 class PrettyQifFormatter(QifFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
+
+    def start_format(self, **kwargs):
+        self.output(u'!type:Bank')
+
     def format_obj(self, obj, alias):
-        if obj.rdate:
+        if hasattr(obj, 'rdate') and not empty(obj.rdate):
             result = u'D%s\n' % obj.rdate.strftime('%d/%m/%y')
         else:
             result = u'D%s\n' % obj.date.strftime('%d/%m/%y')
         result += u'T%s\n' % obj.amount
-        if obj.category:
+
+        if hasattr(obj, 'category') and not empty(obj.category):
             result += u'N%s\n' % obj.category
-        if obj.label:
+
+        if hasattr(obj, 'label') and not empty(obj.label):
             result += u'M%s\n' % obj.label
         else:
             result += u'M%s\n' % obj.raw
+
         result += u'^\n'
         return result
 
@@ -187,21 +196,16 @@ class Boobank(ReplApplication):
         """
         history ID
 
-        Display old operations.
+        Display history of transactions.
         """
-        id, backend_name = self.parse_id(id)
-        if not id:
+        account = self.get_object(id, 'get_account', [])
+        if not account:
             print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
             return 2
-        names = (backend_name,) if backend_name is not None else None
-
-        def do(backend):
-            account = backend.get_account(id)
-            return backend.iter_history(account)
 
         self.start_format()
-        for backend, operation in self.do(do, backends=names):
-            self.format(operation)
+        for backend, transaction in self.do('iter_history', account, backends=account.backend):
+            self.format(transaction)
         self.flush()
 
     def complete_coming(self, text, line, *ignored):
@@ -213,18 +217,16 @@ class Boobank(ReplApplication):
         """
         coming ID
 
-        Display all future operations.
+        Display future transactions.
         """
-        id, backend_name = self.parse_id(id)
-        names = (backend_name,) if backend_name is not None else None
-
-        def do(backend):
-            account = backend.get_account(id)
-            return backend.iter_coming(account)
+        account = self.get_object(id, 'get_account', [])
+        if not account:
+            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            return 2
 
         self.start_format(id=id)
-        for backend, operation in self.do(do, backends=names):
-            self.format(operation)
+        for backend, transaction in self.do('iter_coming', account, backends=account.backend):
+            self.format(transaction)
         self.flush()
 
     def complete_transfer(self, text, line, *ignored):
