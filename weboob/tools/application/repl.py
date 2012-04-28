@@ -26,7 +26,7 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 
-from weboob.capabilities.base import FieldNotFound, CapBaseObject
+from weboob.capabilities.base import FieldNotFound, CapBaseObject, ObjectNotSupported
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
@@ -203,15 +203,21 @@ class ReplApplication(Cmd, ConsoleApplication):
             except (IndexError, ValueError):
                 pass
             else:
-                if isinstance(obj, CapBaseObject):
-                    for backend, obj in self.do('fillobj', obj, fields, backends=[obj.backend]):
-                        if obj:
-                            return obj
+                try:
+                    backend = self.weboob.get_backend(obj.backend)
+                    return backend.fillobj(obj, fields)
+                except ObjectNotSupported:
+                    pass
+
         _id, backend_name = self.parse_id(_id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
         for backend, obj in self.do(method, _id, backends=backend_names):
             if obj:
-                backend.fillobj(obj, fields)
+                try:
+                    backend.fillobj(obj, fields)
+                except ObjectNotSupported:
+                    pass
+
                 return obj
 
     def get_object_list(self, method=None):

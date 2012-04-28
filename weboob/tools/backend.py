@@ -22,7 +22,8 @@ import os
 from threading import RLock
 from copy import copy
 
-from weboob.capabilities.base import CapBaseObject, FieldNotFound, IBaseCap, NotLoaded
+from weboob.capabilities.base import CapBaseObject, FieldNotFound, ObjectNotSupported, \
+                                     IBaseCap, NotLoaded
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
@@ -359,6 +360,10 @@ class BaseBackend(object):
         :param fields: what fields to fill; if None, all fields are filled
         :type fields: :class:`list`
         """
+
+        if type(obj) not in self.OBJECTS:
+            raise ObjectNotSupported('The object of type %s is not supported by the backend %s' % (type(obj).__name__, self))
+
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
 
@@ -392,8 +397,6 @@ class BaseBackend(object):
 
         if not missing_fields:
             return obj
-
-        assert type(obj) in self.OBJECTS, 'The object of type %s is not supported by the backend %s' % (type(obj), self)
 
         for key, value in self.OBJECTS.iteritems():
             if isinstance(obj, key):
