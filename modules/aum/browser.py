@@ -318,7 +318,7 @@ class AuMBrowser(BaseBrowser):
                     params['%s%s' % (key, k.capitalize())] = v
             else:
                 params[key] = value or ''
-        r = self.api_request('searchs', 'advanced', '30,0', params)
+        r = self.api_request('searchs', 'advanced', '60,0', params)
         ids = [s['id'] for s in r['result']['search']]
         return set(ids)
 

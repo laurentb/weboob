@@ -49,7 +49,7 @@ class ProfilesWalker(Optimization):
 
     def start(self):
         self.walk_cron = self.sched.repeat(60, self.enqueue_profiles)
-        self.view_cron = self.sched.schedule(randint(10, 40), self.view_profile)
+        self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)
         return True
 
     def stop(self):
@@ -101,4 +101,4 @@ class ProfilesWalker(Optimization):
                 print e
         finally:
             if self.view_cron is not None:
-                self.view_cron = self.sched.schedule(randint(10, 40), self.view_profile)
+                self.view_cron = self.sched.schedule(randint(5, 10), self.view_profile)
