@@ -45,7 +45,7 @@ class AccountsListPage(BasePage):
             account._link_id = a.attrib['href']
 
             if not 'CPT_IdPrestation' in account._link_id:
-                continue
+                account._link_id = None
 
             tag = tds[2].find('font')
             if tag is None:

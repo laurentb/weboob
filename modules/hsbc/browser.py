@@ -91,5 +91,8 @@ class HSBC(BaseBrowser):
         return None
 
     def get_history(self, link):
+        if link is None:
+            return iter([])
+
         self.location(link)
         return self.page.get_operations()
