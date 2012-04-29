@@ -253,7 +253,7 @@ class Contact(_Contact):
 
                 self.profile[section] = s
 
-        self.aum_profile = profile
+        self._aum_profile = profile
 
     def get_text(self):
         def print_node(node, level=1):
