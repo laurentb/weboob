@@ -30,14 +30,18 @@ class ArticlePage(GenericNewsPage):
         self.element_author_selector = ".content-author>a"
 
     def get_body(self):
-        part = self.document.getroot().xpath('//p[@class="article"]')
-        total = ""
-        for p in part:
-            if p.text:
-                total += "<p>"
-                total += self.browser.parser.tostring(p)
-                total += "</p>"
-        return total
+        div = self.document.getroot().find('.//div[@class="sectbody"]')
+        for a in div.findall('.//a'):
+            try:
+                if a.attrib["href"][0:7] != "http://":
+                    a.attrib["href"] = "http://taz.de/" + a.attrib["href"]
+            except:
+                continue
+        for img in div.findall('.//img'):
+            if img.attrib["src"][0:7] != "http://":
+                img.attrib["src"] = "http://taz.de/" + img.attrib["src"]
+
+        return self.parser.tostring(div)
 
     def get_title(self):
         title = GenericNewsPage.get_title(self)
@@ -47,5 +51,3 @@ class ArticlePage(GenericNewsPage):
         author = self.document.getroot().xpath('//span[@class="author"]')
         if author:
             return author[0].text.replace('von ', '')
-        else:
-            return ""
