@@ -80,7 +80,7 @@ class Boobill(ReplApplication):
         """
         self.start_format()
         for subscription in self.get_object_list('iter_subscription'):
-            self.cached_format(subscription)
+            self.format(subscription)
         self.flush()
 
     def do_details(self, id):
