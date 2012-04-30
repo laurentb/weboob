@@ -165,6 +165,7 @@ class Contact(_Contact):
                                     ('bonus',               FieldPopu('bonus')),
                                     ('score',               FieldPopu('popu')),
                                     ('ratio',               FieldPopuRatio('mails', 'flashs')),
+                                    ('mailable',            FieldBool('mailable')),
                                   ))),
                  ('details',      OrderedDict((
                                     ('old',                 FieldOld('birthday')),
