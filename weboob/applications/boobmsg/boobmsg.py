@@ -21,6 +21,8 @@
 import sys
 import os
 import datetime
+import md5
+
 from tempfile import NamedTemporaryFile
 from lxml import etree
 
@@ -42,8 +44,11 @@ class AtomFormatter(IFormatter):
     def start_format(self, **kwargs):
         self.output(u'<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"')
         self.output(u'xmlns:dc="http://purl.org/dc/elements/1.1/">\n')
-        self.output(u'<updated>%s</updated>\n' % datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         self.output(u'<title type="text">Atom feed by Weboob</title>')  # TODO : get backend name
+        self.output(u'<updated>%s</updated>' % datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        m = md5.new()
+        m.update(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        self.output(u'<id>urn:md5:%s</id>' % m.hexdigest())
 
     def format_obj(self, obj, alias):
         elem = etree.Element('entry')
@@ -53,7 +58,9 @@ class AtomFormatter(IFormatter):
         elem.append(title)
 
         id = etree.Element('id')
-        id.text = obj.full_id
+        m = md5.new()
+        m.update(obj.content.encode('utf8', 'ascii'))
+        id.text = "urn:md5:%s" % m.hexdigest()
         elem.append(id)
 
         link = etree.Element('link')
@@ -62,20 +69,22 @@ class AtomFormatter(IFormatter):
         link.attrib["type"] = "text/html"
         elem.append(link)
 
+        author = etree.Element('author')
+        name = etree.Element('name')
         if obj.sender:
-            author = etree.Element('author')
-            name = etree.Element('name')
             name.text = obj.sender
-            author.append(name)
-            elem.append(author)
+        else:
+            name.text = obj.backend
+        author.append(name)
+        elem.append(author)
 
         date = etree.Element('updated')
         date.text = obj.date.strftime("%Y-%m-%dT%H:%M:%SZ")
         elem.append(date)
 
         content = etree.Element('content')
-        content.text = html2text(obj.content)
-        content.attrib["type"] = "text"
+        content.text = obj.content
+        content.attrib["type"] = "html"
         elem.append(content)
 
         return etree.tostring(elem, pretty_print=True)
