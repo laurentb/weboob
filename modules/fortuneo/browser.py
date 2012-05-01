@@ -38,6 +38,8 @@ class Fortuneo(BaseBrowser):
                     AccountsList,
             '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
                     AccountHistoryPage,
+            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
+                    AccountHistoryPage,
             '.*/prive/default\.jsp.*':
                     AccountsList
             }

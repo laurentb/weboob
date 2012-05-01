@@ -23,7 +23,7 @@ import datetime
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import Transaction
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage#, BrokenPageError
 from weboob.capabilities import NotAvailable
 
 
@@ -38,7 +38,7 @@ class AccountHistoryPage(BasePage):
         tables = self.document.findall(".//*[@id='tabHistoriqueOperations']/tbody/tr")
 
         if len(tables) == 0:
-            raise BrokenPageError
+            return []
 
         for i in range(len(tables)):
             operation = Transaction(len(operations))
@@ -87,10 +87,9 @@ class AccountsList(BasePage):
 
             # account._link_id
             url_to_parse = cpt.xpath('./td[1]/a/@href')[0]  # link
-            compte_id_re = re.compile(r'.*COMPTE_ACTIF=([^\&]+)\&.*')
-            account._link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?COMPTE_ACTIF='+ \
-                    compte_id_re.search(url_to_parse).groups()[0]
-            account._link_id = account._link_id
+            compte_id_re = re.compile(r'/prive/mes-comptes/([^/]+/).*COMPTE_ACTIF=([^\&]+)\&?')
+            account._link_id = '/fr/prive/mes-comptes/%sconsulter-situation/consulter-solde.jsp?COMPTE_ACTIF=%s' % \
+                    (compte_id_re.search(url_to_parse).groups()[0], compte_id_re.search(url_to_parse).groups()[1])
 
             # account.label
             tpl = cpt.xpath("./td[2]/a/text()")[0].split(' ')
