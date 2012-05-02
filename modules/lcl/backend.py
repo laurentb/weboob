@@ -33,7 +33,7 @@ __all__ = ['LCLBackend']
 class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = u'Pierre Mazière'
-    EMAIL = 'pierre.maziere@gmail.com'
+    EMAIL = 'pierre.maziere@gmx.com'
     VERSION = '0.c'
     DESCRIPTION = u'Le Crédit Lyonnais French bank website'
     LICENSE = 'AGPLv3+'
