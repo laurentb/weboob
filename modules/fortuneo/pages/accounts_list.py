@@ -75,10 +75,10 @@ class AccountsList(BasePage):
             account.id = cpt.xpath("./td[1]/a/text()")[0]
 
             # account balance
-            account.balance = Decimal(cpt.xpath("./td[3]/text()")[0].replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", ""))
+            account.balance = Decimal(cpt.xpath("./td[3]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", ""))
 
             # account coming
-            mycomingval = cpt.xpath("./td[4]/text()")[0].replace("EUR", "").replace("\n", "").replace("\t", "")
+            mycomingval = cpt.xpath("./td[4]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "")
 
             if mycomingval == '-':
                 account.coming = Decimal(0)
