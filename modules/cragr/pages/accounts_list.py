@@ -74,9 +74,14 @@ class AccountsList(CragrBasePage):
                         s = s_node.text
                     else:
                         # there is no link to any history page for accounts like "PEA" or "TITRES"
-                        account.label   = div.findall('br')[0].tail.strip()
                         account._link_id = None
-                        s = div.xpath('following-sibling::div//b')[0].text
+                        if isinstance(div.findall('br')[0].tail, str):
+                            account.label = div.findall('br')[0].tail.strip()
+                            s = div.xpath('following-sibling::div//b')[0].text
+                        else:
+                            account.label = div.findall('br')[1].tail.strip()
+                            account.id = div.find('span').text.strip()
+                            s = div.xpath('.//big')[0].text
                 account.balance = clean_amount(s)
                 if account.label:
                     l.append(account)
