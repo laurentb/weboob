@@ -1,0 +1,124 @@
+# -*- coding: utf-8 -*-
+
+# Copyright(C) 2011-2012  Romain Bignon, Laurent Bachelier
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+import datetime
+import re
+
+from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.tools.browser import BasePage, BrokenPageError
+
+
+from .video import TricTracTVVideo
+
+
+__all__ = ['IndexPage', 'VideoPage']
+
+
+class IndexPage(BasePage):
+    def iter_videos(self):
+        for div in self.parser.select(self.document.getroot(), 'li#contentsearch'):
+            title = self.parser.select(div, '#titlesearch span', 1)
+
+            a = self.parser.select(div, 'a', 1)
+            url = a.attrib['href']
+            m = re.match('/video-(.*)', url)
+            if not m:
+                print ':( %s' % url
+                continue
+            _id = m.group(1)
+            video = TricTracTVVideo(_id)
+            video.title = unicode(title.text)
+
+            url = self.parser.select(div, 'img', 1).attrib['src']
+            stars = self.parser.select(div, '.etoile_on')
+            video.rating = len(stars)
+            video.rating_max = 5
+
+            video.thumbnail = Thumbnail ( unicode ( 'http://www.trictrac.tv/%s' % url ) )
+            
+            yield video
+
+
+class VideoPage(BasePage):
+    def on_loaded(self):
+        p = self.parser.select(self.document.getroot(), 'p.alert')
+        if len(p) > 0:
+            raise Exception(p[0].text)
+
+    def get_info_url(self):
+        try:
+            div = self.parser.select(self.document.getroot(), '#Content_Video object', 1)
+        except BrokenPageError:
+            return None
+        else:
+            for param in self.parser.select(div, 'param', None):
+                if param.get('name') == 'flashvars':
+                    m = re.match('varplaymedia=([0-9]*)', param.attrib['value'])
+                    if m:
+                        return r'http://www.trictrac.tv/swf/listelement.php?idfile=%s' % m.group(1)
+
+    def get_title(self):
+        try:
+            title = self.parser.select(self.document.getroot(), 'title', 1)
+        except BrokenPageError:
+            return None
+        else:
+            return title.text
+
+    def get_descriptif(self):
+        try:
+            descriptif = self.parser.select(self.document.getroot(), '.video_descriptif p', 1)
+        except BrokenPageError:
+            return None
+        else:
+            return descriptif.text
+
+    def get_duration(self):
+        try:
+            details = self.parser.select(self.document.getroot(), 'div#video_detail div')
+        except BrokenPageError:
+            return None
+        else:
+            duration = details[2]
+            hours, minutes, seconds = duration.text [ duration.text.find(':') : ] . split(':')
+            if len(hours) > 0:
+                return datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+            else:
+                return datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
+
+    def get_date(self):
+        try:
+            date = self.parser.select(self.document.getroot(), 'div#video_detail div.date', 1)
+        except BrokenPageError:
+            return None
+        else:
+            string = date.text
+            string = string [ string.rfind('le ') : ]
+            return datetime.datetime.strptime(string, 'le %d %b %Y, %H:%M:%S')
+
+    def get_rating(self):
+        try:
+            stars = self.parser.select(self.document.getroot(), '#video_info .etoile_on')
+        except BrokenPageError:
+            return None
+        else:
+            return len(stars)
+
+    def get_id(self):
+        return self.groups[0]
