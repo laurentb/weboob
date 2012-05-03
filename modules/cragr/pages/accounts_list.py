@@ -79,7 +79,11 @@ class AccountsList(CragrBasePage):
                             account.label = div.findall('br')[0].tail.strip()
                             s = div.xpath('following-sibling::div//b')[0].text
                         else:
-                            account.label = div.findall('br')[1].tail.strip()
+                            label_container = div.xpath('./b/span')
+                            if label_container and label_container[0].text is not None:
+                                account.label = label_container[0].text.strip()
+                            else:
+                                account.label = div.findall('br')[1].tail.strip()
                             account.id = div.find('span').text.strip()
                             s = div.xpath('.//big')[0].text
                 account.balance = clean_amount(s)
