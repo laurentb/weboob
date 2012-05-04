@@ -29,7 +29,7 @@ class CanalPlusTest(BackendTest):
         self.assertTrue(len(l) > 0)
         v = l[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url and (v.url.startswith('rtmp://') or v.url.startswith('http://')), 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_ls(self):
         l = list(self.backend.iter_resources((BaseVideo, ), []))
