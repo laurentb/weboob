@@ -43,7 +43,7 @@ class VideoPage(PornPage):
         return video
 
     def get_url(self):
-        download_div = self.parser.select(self.document.getroot(), 'div#tab-general-download ul li')
+        download_div = self.parser.select(self.document.getroot(), 'ul.downloadList li')
         if len(download_div) < 1:
             raise BrokenPageError('Unable to find file URL')
 
@@ -53,25 +53,25 @@ class VideoPage(PornPage):
             ext = m.group(1).lower()
         else:
             ext = 'flv'
-        return a.attrib['href'], ext
+        return unicode(a.attrib['href']), unicode(ext)
 
     def get_title(self):
         element = self.parser.select(self.document.getroot(), '#videoCanvas h1', 1)
         return element.text.strip().decode('utf-8')
 
     def set_details(self, v):
-        for li in self.parser.select(self.document.getroot(), 'div#tab-general-details ul li'):
+        for li in self.parser.select(self.document.getroot(), 'ul.spaced li'):
             span = li.find('b')
             name = span.text.strip()
             value = span.tail.strip()
 
             if name == 'Duration:':
-                m = re.match('((\d+)hrs)?((\d+)min)?(\d+)?', value)
+                m = re.match('((\d+)hrs)?\s*((\d+)min)?\s*((\d+)sec)?', value)
                 if not m:
                     raise BrokenPageError('Unable to parse datetime: %r' % value)
                 hours = m.group(2) or 0
                 minutes = m.group(4) or 0
-                seconds = m.group(5) or 0
+                seconds = m.group(6) or 0
                 v.duration = datetime.timedelta(hours=int(hours),
                                                 minutes=int(minutes),
                                                 seconds=int(seconds))
@@ -80,12 +80,12 @@ class VideoPage(PornPage):
                 if author is None:
                     author = li.find('a')
                 if author is None:
-                    v.author = value
+                    v.author = unicode(value)
                 else:
-                    v.author = author.text
+                    v.author = unicode(author.text)
             elif name == 'Rating:':
                 r = value.split()
-                v.rating = float(r[0])
-                v.rating_max = float(r[2])
+                v.rating = int(r[0].rstrip('%'))
+                v.rating_max = 100
             elif name == 'Date:':
                 v.date = parse_dt(value)

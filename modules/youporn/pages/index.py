@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 import datetime
 
 from weboob.capabilities.base import NotAvailable
@@ -40,21 +39,18 @@ class IndexPage(PornPage):
 
             thumbnail_url = a.find('img').attrib['src']
 
-            h1 = li.find('h1')
-            a = h1.find('a')
-            if a is None:
-                continue
+            a = self.parser.select(li, './/a[@class="videoTitle"]', 1, 'xpath')
 
             url = a.attrib['href']
             _id = url[len('/watch/'):]
             _id = _id[:_id.find('/')]
 
             video = YoupornVideo(int(_id))
-            video.title = a.text.strip()
-            video.thumbnail = Thumbnail(thumbnail_url)
+            video.title = unicode(a.text.strip())
+            video.thumbnail = Thumbnail(unicode(thumbnail_url))
 
             hours = minutes = seconds = 0
-            div = li.cssselect('h2[class=duration]')
+            div = li.cssselect('h2.duration')
             if len(div) > 0:
                 pack = [int(s) for s in div[0].text.strip().split(':')]
                 if len(pack) == 3:
@@ -64,12 +60,10 @@ class IndexPage(PornPage):
 
             video.duration = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
-            div = li.cssselect('div.stars')
+            div = li.cssselect('div.rating h2')
             if div:
-                m = re.match('.*star-(\d).*', div[0].attrib.get('class', ''))
-                if m:
-                    video.rating = int(m.group(1))
-                    video.rating_max = 5
+                video.rating = int(div[0].text.strip('%'))
+                video.rating_max = 100
 
             video.set_empty_fields(NotAvailable, ('url', 'author'))
 
