@@ -96,11 +96,12 @@ class VideoPage(BasePage):
             return None
         else:
             duration = details[2]
-            hours, minutes, seconds = duration.text [ duration.text.find(':') : ] . split(':')
-            if len(hours) > 0:
-                return datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+            duration_string = duration.text [ duration.text.rfind ( ' ' ) + 1 : ]
+            tokens = duration_string.split(':')
+            if len(tokens) > 2:
+                return datetime.timedelta(hours=int(tokens[0]), minutes=int(tokens[1]), seconds=int(tokens[2]))
             else:
-                return datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
+                return datetime.timedelta(minutes=int(tokens[0]), seconds=int(tokens[1]))
 
     def get_date(self):
         try:
@@ -109,8 +110,13 @@ class VideoPage(BasePage):
             return None
         else:
             string = date.text
-            string = string [ string.rfind('le ') : ]
-            return datetime.datetime.strptime(string, 'le %d %b %Y, %H:%M:%S')
+            string = string [ string.rfind('le ') + 3 : ]
+            months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+            words = string.split ( ' ' )
+            month_no = months.index ( words [ 1 ] ) + 1
+            return datetime.datetime.strptime ( ( '%s %s %s %s' % 
+                                                  ( words [ 0 ], month_no, words [ 2 ], words [ 3 ] ) ),
+                                                '%d %m %Y, %H:%M:%S')
 
     def get_rating(self):
         try:
