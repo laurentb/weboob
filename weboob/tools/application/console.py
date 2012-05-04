@@ -430,7 +430,7 @@ class ConsoleApplication(BaseApplication):
             try:
                 v.set(line)
             except ValueError, e:
-                print >>sys.stderr, 'Error: %s' % e
+                print >>sys.stderr, u'Error: %s' % e
             else:
                 break
 
