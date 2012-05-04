@@ -82,9 +82,7 @@ class TableFormatter(IFormatter):
 
         return s
 
-    def format_obj(self, obj, alias):
-        item = self.to_dict(obj)
-
+    def format_dict(self, item):
         if self.keys is None:
             self.keys = item.keys()
         self.queue.append(item.values())

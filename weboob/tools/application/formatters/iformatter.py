@@ -124,46 +124,74 @@ class IFormatter(object):
         An object has fields which can be selected.
 
         :param obj: object to format
-        :type obj: CapBaseObject
+        :type obj: CapBaseObject or dict
         :param selected_fields: fields to display. If None, all fields are selected
         :type selected_fields: tuple
         :param alias: an alias to use instead of the object's ID
         :type alias: unicode
         """
-        assert isinstance(obj, (dict,CapBaseObject)), 'Object is unexpected type "%r"' % obj
+        if isinstance(obj, CapBaseObject):
+            if selected_fields is not None and not '*' in selected_fields:
+                obj = obj.copy()
+                for name, value in obj.iter_fields():
+                    if not name in selected_fields:
+                        delattr(obj, name)
 
-        if selected_fields is not None and not '*' in selected_fields:
-            obj = obj.copy()
-            for name, value in obj.iter_fields():
-                if not name in selected_fields:
-                    delattr(obj, name)
+            if self.MANDATORY_FIELDS:
+                missing_fields = set(self.MANDATORY_FIELDS) - set([name for name, value in obj.iter_fields()])
+                if missing_fields:
+                    raise MandatoryFieldsNotFound(missing_fields)
 
-        if self.MANDATORY_FIELDS:
-            missing_fields = set(self.MANDATORY_FIELDS) - set([name for name, value in obj.iter_fields()])
-            if missing_fields:
-                raise MandatoryFieldsNotFound(missing_fields)
+            formatted = self.format_obj(obj, alias)
+        else:
+            obj = self.to_dict(obj)
 
-        formatted = self.format_obj(obj, alias)
+            if selected_fields is not None and not '*' in selected_fields:
+                obj = obj.copy()
+                for name, value in obj.iteritems():
+                    if not name in selected_fields:
+                        obj.pop(name)
+
+            if self.MANDATORY_FIELDS:
+                missing_fields = set(self.MANDATORY_FIELDS) - set(obj.iterkeys())
+                if missing_fields:
+                    raise MandatoryFieldsNotFound(missing_fields)
+
+            formatted = self.format_dict(obj)
+
         if formatted:
             self.output(formatted)
         return formatted
 
+
     def format_obj(self, obj, alias=None):
         """
         Format an object to be human-readable.
-        Format a dict to be human-readable. The dict is already simplified
-        if user provides selected fields.
         Called by format().
         This method has to be overridden in child classes.
 
-        @param item  [dict] item to format
-        @return  a string of the formatted dict
+        :param obj: object to format
+        :type obj: CapBaseObject
+        :rtype: str
         """
-        raise NotImplementedError()
+        return self.format_dict(self.to_dict(obj))
+
+    def format_dict(self, obj):
+        """
+        Format a dict to be human-readable.
+
+        :param obj: dict to format
+        :type obj: dict
+        :rtype: str
+        """
+        return NotImplementedError()
 
     def to_dict(self, obj):
-        if isinstance(obj, dict):
-            return obj
+        if not isinstance(obj, CapBaseObject):
+            try:
+                return OrderedDict(obj)
+            except ValueError:
+                raise TypeError('Please give a CapBaseObject or a dict')
 
         def iter_decorate(d):
             for key, value in d:

@@ -34,9 +34,7 @@ class MultilineFormatter(IFormatter):
     def flush(self):
         pass
 
-    def format_obj(self, obj, alias):
-        item = self.to_dict(obj)
-
+    def format_dict(self, item):
         result = u'\n'.join(u'%s%s' % (
             (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
             for k, v in item.iteritems() if (v is not NotLoaded and v is not NotAvailable))

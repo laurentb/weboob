@@ -33,9 +33,7 @@ class CSVFormatter(IFormatter):
     def flush(self):
         self.started = False
 
-    def format_obj(self, obj, alias):
-        item = self.to_dict(obj)
-
+    def format_dict(self, item):
         result = u''
         if not self.started:
             result += self.field_separator.join(item.iterkeys()) + '\n'

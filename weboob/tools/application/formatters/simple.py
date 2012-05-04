@@ -30,8 +30,7 @@ class SimpleFormatter(IFormatter):
         self.field_separator = field_separator
         self.key_value_separator = key_value_separator
 
-    def format_obj(self, obj, alias):
-        item = self.to_dict(obj)
+    def format_dict(self, item):
         return self.field_separator.join(u'%s%s' % (
             (u'%s%s' % (k, self.key_value_separator) if self.display_keys else ''), v)
             for k, v in item.iteritems())
