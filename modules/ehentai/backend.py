@@ -37,7 +37,7 @@ class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
     NAME = 'ehentai'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.c'
+    VERSION = '0.d'
     DESCRIPTION = 'E-Hentai galleries'
     LICENSE = 'AGPLv3+'
     BROWSER = EHentaiBrowser

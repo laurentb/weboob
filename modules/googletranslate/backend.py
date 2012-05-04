@@ -31,7 +31,7 @@ __all__ = ['GoogleTranslateBackend']
 class GoogleTranslateBackend(BaseBackend, ICapTranslate):
     MAINTAINER = 'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
-    VERSION = '0.c'
+    VERSION = '0.d'
     LICENSE = 'AGPLv3+'
     NAME = 'googletranslate'
     DESCRIPTION = u'Google translation web service'

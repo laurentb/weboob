@@ -27,7 +27,7 @@ from .tools import rssid, url2id
 class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.c'
+    VERSION = '0.d'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'ecrans'

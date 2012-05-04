@@ -31,7 +31,7 @@ class KickassBackend(BaseBackend, ICapTorrent):
     NAME = 'kickass'
     MAINTAINER = 'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.c'
+    VERSION = '0.d'
     DESCRIPTION = 'Kickass Torrents BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = KickassBrowser

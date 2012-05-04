@@ -30,7 +30,7 @@ from weboob.tools.newsfeed import Newsfeed
 class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = 'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.c'
+    VERSION = '0.d'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'presseurop'

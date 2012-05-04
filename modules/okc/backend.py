@@ -66,7 +66,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     NAME = 'okc'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.c'
+    VERSION = '0.d'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'OkCupid dating website'
     CONFIG = BackendConfig(Value('username',                label='Username'),

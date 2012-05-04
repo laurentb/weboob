@@ -42,7 +42,7 @@ class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
     MAINTAINER = 'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
-    VERSION = '0.c'
+    VERSION = '0.d'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Crédit Mutuel de Bretagne French bank website'
     CONFIG = BackendConfig(

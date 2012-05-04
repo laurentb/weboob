@@ -31,7 +31,7 @@ class MeteofranceBackend(BaseBackend, ICapWeather):
     NAME = 'meteofrance'
     MAINTAINER = 'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'
-    VERSION = '0.c'
+    VERSION = '0.d'
     DESCRIPTION = 'Get forecasts from the MeteoFrance website'
     LICENSE = 'AGPLv3+'
     BROWSER = MeteofranceBrowser

@@ -32,7 +32,7 @@ class PapBackend(BaseBackend, ICapHousing):
     NAME = 'pap'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.c'
+    VERSION = '0.d'
     DESCRIPTION = 'French housing website'
     LICENSE = 'AGPLv3+'
     BROWSER = PapBrowser
