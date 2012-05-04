@@ -110,7 +110,7 @@ class LoginPage(BasePage):
         self.browser['compteId'] = login
         self.browser['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
         try:
-            self.browser.submit()
+            self.browser.submit(nologin=True)
         except BrowserUnavailable:
             # Login is not valid
             return False
