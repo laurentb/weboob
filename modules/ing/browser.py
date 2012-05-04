@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import AccountsList, LoginPage, LoginPage2, \
                    AccountHistory
 
@@ -60,6 +60,8 @@ class Ing(BaseBrowser):
 
         self.page.prelogin(self.username, self.birthday)
         self.page.login(self.password)
+        if self.page.error():
+             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):

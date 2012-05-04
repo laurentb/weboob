@@ -22,7 +22,7 @@ import re
 from weboob.tools.mech import ClientForm
 from logging import error
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 import tempfile
 
@@ -46,9 +46,10 @@ class INGVirtKeyboard(VirtKeyboard):
 
     def __init__(self, basepage):
         divkeyboard = basepage.document.find("//div[@id='clavierdisplayLogin']")
-        img = divkeyboard.xpath("img")[1]
-        if img is None:
-            return False
+        try:
+            img = divkeyboard.xpath("img")[1]
+        except:
+            raise BrowserIncorrectPassword()
         url = img.attrib.get("src")
         coords = {}
         coords["11"] = (5, 5, 33, 33)
@@ -101,6 +102,10 @@ class LoginPage(BasePage):
         self.browser['zone1Form:radioSaveClientNumber'] = False
         self.browser.submit(nologin=True)
 
+    def error(self):
+        error = self.document.find('//span[@class="error"]')
+        return error is not None
+        
 
 class LoginPage2(BasePage):
     def on_loaded(self):
