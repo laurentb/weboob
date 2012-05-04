@@ -1,4 +1,4 @@
-.TH BOOBMSG 1 "14 March 2012" "boobmsg 0\&.b"
+.TH BOOBMSG 1 "04 May 2012" "boobmsg 0\&.c"
 .SH NAME
 boobmsg
 .SH SYNOPSIS
@@ -15,6 +15,8 @@ Console application allowing to send messages on various websites and to display
 
 .SS Supported websites:
 * aum ("Adopte un Mec" French dating website)
+.br
+* bnporc (BNP Paribas French bank website)
 .br
 * bouygues (Bouygues Télécom French mobile phone provider)
 .br
@@ -34,6 +36,8 @@ Console application allowing to send messages on various websites and to display
 .br
 * newsfeed (Loads RSS and Atom feeds from any website)
 .br
+* okc (OkCupid dating website)
+.br
 * orange (Orange French mobile phone provider)
 .br
 * phpbb (phpBB forum)
@@ -41,6 +45,8 @@ Console application allowing to send messages on various websites and to display
 * presseurop (Presseurop website)
 .br
 * sfr (SFR French mobile phone provider)
+.br
+* taz (Taz newspaper website)
 .SH BOOBMSG COMMANDS
 .TP
 \fBexport_all\fR
@@ -55,6 +61,10 @@ Export a thread
 .br
 Display all threads.
 .TP
+\fBphotos\fR \fIID\fR
+.br
+Display photos of a profile
+.TP
 \fBpost\fR \fIRECEIVER\fR@\fIBACKEND\fR[,\fIRECEIVER\fR@\fIBACKEND\fR[...]] [\fITEXT\fR]
 .br
 Post a message to the specified receivers.
@@ -64,6 +74,10 @@ Multiple receivers are separated by a comma.
 
 .br
 If no text is supplied on command line, the content of message is read on stdin.
+.TP
+\fBprofile\fR \fIID\fR
+.br
+Display a profile
 .TP
 \fBshow\fR \fIMESSAGE\fR
 .br
@@ -82,21 +96,23 @@ Select used backends.
 .br
 ACTION is one of the following (default: list):
 .br
-* enable    enable given backends
+* enable         enable given backends
 .br
-* disable   disable given backends
+* disable        disable given backends
 .br
-* only      enable given backends and disable the others
+* only           enable given backends and disable the others
 .br
-* list      display enabled and available backends
+* list           list backends
 .br
-* add       add a backend
+* add            add a backend
 .br
-* register  register a new account on a website
+* register       register a new account on a website
 .br
-* edit      edit a backend
+* edit           edit a backend
 .br
-* remove    remove a backend
+* remove         remove a backend
+.br
+* list\-modules   list modules
 .TP
 \fBcd\fR [\fIPATH\fR]
 .br
@@ -174,9 +190,11 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR
+\fBls\fR [\fIPATH\fR]
 .br
 List objects in current path.
+.br
+If an argument is given, list the specified path.
 .TP
 \fBquit\fR
 .br
@@ -207,8 +225,8 @@ what backend(s) to enable (comma separated)
 
 .SH BOOBMSG OPTIONS
 .TP
-\fB\-e\fR, \fB\-\-skip\-empty\fR
-Don't send messages with an empty body.
+\fB\-E\fR, \fB\-\-accept\-empty\fR
+Send messages with an empty body.
 .TP
 \fB\-t TITLE\fR, \fB\-\-title=TITLE\fR
 For the "post" command, set a title to message
@@ -244,8 +262,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, msg, msglist, multiline, simple, table,
-webkit, xhtml)
+select output formatter (atom, csv, htmltable, msg, msglist, multiline, profile,
+simple, table, webkit, xhtml)
 .TP
 \fB\-\-no\-header\fR
 do not display header

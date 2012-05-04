@@ -1,4 +1,4 @@
-.TH BOOBILL 1 "14 March 2012" "boobill 0\&.b"
+.TH BOOBILL 1 "04 May 2012" "boobill 0\&.c"
 .SH NAME
 boobill
 .SH SYNOPSIS
@@ -15,17 +15,21 @@ Console application allowing to get and download bills.
 
 .SS Supported websites:
 * freemobile (Free Mobile website)
+.br
+* nettokom (Nettokom website)
 .SH BOOBILL COMMANDS
 .TP
-\fBbills\fR \fII\fRd
+\fBbills\fR [\fII\fRd]
 .br
-Get the list of bills documents for subscription
+Get the list of bills documents for subscriptions.
 .br
-id is the identifier of the backend
+If no ID given, display bills of all backends
 .TP
-\fBdetails\fR \fII\fRd
+\fBdetails\fR [\fIID\fR]
 .br
-Get details of a subscription.
+Get details of subscriptions.
+.br
+If no ID given, display all details of all backends
 .TP
 \fBdownload\fR \fII\fRd [\fIFILENAME\fR]
 .br
@@ -37,9 +41,11 @@ FILENAME is where to write the file. If FILENAME is '\-',
 .br
 the file is written to stdout.
 .TP
-\fBhistory\fR \fII\fRd
+\fBhistory\fR [\fII\fRd]
 .br
-Get the history of a subscription.
+Get the history of subscriptions.
+.br
+If no ID given, display histories of all backends
 .TP
 \fBsubscriptions\fR
 .br
@@ -54,21 +60,23 @@ Select used backends.
 .br
 ACTION is one of the following (default: list):
 .br
-* enable    enable given backends
+* enable         enable given backends
 .br
-* disable   disable given backends
+* disable        disable given backends
 .br
-* only      enable given backends and disable the others
+* only           enable given backends and disable the others
 .br
-* list      display enabled and available backends
+* list           list backends
 .br
-* add       add a backend
+* add            add a backend
 .br
-* register  register a new account on a website
+* register       register a new account on a website
 .br
-* edit      edit a backend
+* edit           edit a backend
 .br
-* remove    remove a backend
+* remove         remove a backend
+.br
+* list\-modules   list modules
 .TP
 \fBcd\fR [\fIPATH\fR]
 .br
@@ -146,9 +154,11 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR
+\fBls\fR [\fIPATH\fR]
 .br
 List objects in current path.
+.br
+If an argument is given, list the specified path.
 .TP
 \fBquit\fR
 .br

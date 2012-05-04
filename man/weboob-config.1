@@ -1,4 +1,4 @@
-.TH WEBOOB-CONFIG 1 "14 March 2012" "weboob-config 0\&.b"
+.TH WEBOOB-CONFIG 1 "04 May 2012" "weboob-config 0\&.c"
 .SH NAME
 weboob-config
 .SH SYNOPSIS
@@ -31,21 +31,23 @@ Select used backends.
 .br
 ACTION is one of the following (default: list):
 .br
-* enable    enable given backends
+* enable         enable given backends
 .br
-* disable   disable given backends
+* disable        disable given backends
 .br
-* only      enable given backends and disable the others
+* only           enable given backends and disable the others
 .br
-* list      display enabled and available backends
+* list           list backends
 .br
-* add       add a backend
+* add            add a backend
 .br
-* register  register a new account on a website
+* register       register a new account on a website
 .br
-* edit      edit a backend
+* edit           edit a backend
 .br
-* remove    remove a backend
+* remove         remove a backend
+.br
+* list\-modules   list modules
 .TP
 \fBconfirm\fR \fIBACKEND\fR
 .br
@@ -74,10 +76,6 @@ Enable a disabled backend
 \fBinfo\fR \fINAME\fR
 .br
 Display information about a module.
-.TP
-\fBinstall\fR \fIMODULE\fR
-.br
-Install a module.
 .TP
 \fBlist\fR [\fICAPS\fR ..]
 .br

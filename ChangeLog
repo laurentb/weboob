@@ -1,3 +1,169 @@
+Weboob 0.c (2012-05-04)
+	General
+	* New capability: CapPriceComparison.
+	* New capability: CapTranslate.
+	* New module: ChampsLibres (CapBook).
+	* New module: Fortuneo (CapBank).
+	* New module: GoogleTranslate (CapTranslate).
+	* New module: NettoKom (CapBill).
+	* New module: Okc (CapDating).
+	* New module: PrixCarburants (CapPriceComparison).
+	* New module: Taz (CapMessages).
+	* New module: WordReference (CapTranslate).
+	* New application: comparoob (CapPriceComparison).
+	* New application: translaboob (CapTranslate).
+	* New script: boobot.
+	* New script: nettokom-munin (Nettokom).
+	* New script: report_accounts.sh (CapBank).
+	* Application havedate now inherits commands of boobmsg.
+	* Fix: use the right default value for XDG_DATA_DIRS.
+
+	Console Applications:
+	* Add completion on 'ls' and 'cd' commands.
+	* When a module requests to application a password (for example if it
+	  is not stored in the backend config), display a real question, not
+	  only 'Password:'.
+	* Use $EDITOR env variable to edit input.
+	* Rewrite of the formatters system.
+	* When a bug occurs in a module, suggest user to update it.
+
+	Capability: CapBank
+	* Rename Operation object to Transaction.
+	* Rename iter_operations() to iter_coming().
+	* Add a field Transaction.rdate to store date of payment.
+	* Add field Transaction.type (enum).
+	* Add field Account.type (enum).
+	* Create a class FrenchTransaction in weboob.tools.capabilities.bank
+	  to help parsing transactions of french banks.
+	* Use decimal.Decimal instead of float to store amounts of money.
+
+	Module: AuM
+	* Fix: website has changed its charset.
+	* Fix: don't crash when a message content is empty.
+	* Fix: save IDs as integers in storage.
+
+	Module: Arte
+	* Fix: getting latest videos.
+
+	Module: BNPorc
+	* Support private messages (CapMessages).
+	* Fetch the last 100 transactions (instead of 30).
+	* Support CIF accounts.
+
+	Module: Boursorama
+	* Parse categories and dates.
+	* Ignore spurious accounts.
+	* Fix: credit and debit where inversed.
+
+	Module: BP
+	* Don't list spurious accounts.
+
+	Module: CrAgr
+	* Fix: parsing dates.
+	* Fix: CA Centre website has changed (#850).
+
+	Module: CreditMutuel
+	* Capitalize each words in account labels.
+	* Fix: parsing accounts list whene there is no history associated.
+	* Fix: parsing history when there are extra columns.
+	* Fix: use unique IDs for accounts.
+
+	Module: Dailymotion
+	* Fix: getting latest videos.
+	* Fix: getting thumbnails.
+	* Fix: parsing video IDs.
+
+	Module: DLFP
+	* Do not get pages with 0 comment.
+	* Add a cleanup function to dlfp backend.
+
+	Module: FranceTelevisions
+	* Fix: getting latest videos.
+
+	Module: FreeMobile
+	* Fix: remove timer (not more used by website).
+	* Fix: website has changed.
+	* Fix: multiple accounts login.
+
+	Module: ING
+	* Use FrenchTransaction for parsing transactions.
+	* Get more historical transactions.
+	* Catch error on password/birthday/login.
+	* Fix: website changes on livret A history.
+
+	Module: LCL
+	* Add a regexp on password field.
+	* Fix: getting accounts.
+	* Fix: crash when the balance is negative.
+	* Fix: site specific fix.
+	* Fix: parsing account labels.
+	* Fix: always go on the history page.
+	* Fix: when history is empty.
+	* Fix: prevent infinite loop when password is wrong.
+
+	Module: MangaFox
+	* Fix: domain name change.
+
+	Module: PressEurop
+	* Fix: parsing of cartoon pages.
+	* Fix: real author catching on article pages.
+
+	Module: RadioFrance
+	* Fix: crash when there is no author.
+
+	Module: Sachsen
+	* Catch “Go Up” value.
+
+	Module: SocieteGenerale
+	* Support display of history and coming transactions.
+	* Fix: when there is no transaction for the account.
+
+	Module: Transilien
+	* Fix: roadmap when there is no confirm page.
+
+	Module: YouJizz
+	* Fix: getting video URLs.
+
+	Module: YouPorn
+	* Fix: changes on website.
+
+	Application: boobank
+	* Add a new pretty_qif formatter (use label and rdate if exist).
+
+	Application: boobathon
+	* Fix: close command.
+
+	Application: boobill
+	* Get all available subscriptions for 'details' command (#846).
+
+	Application: boobmsg
+	* New command 'photos' to display photos of a contact with cacaview.
+	* Add an 'atom' formatter.
+
+	Application: bonboob
+	* Add a command 'once' to process retrieving of messages once.
+
+	Application: QWebContentEdit
+	* Possibility to edit an url (#619).
+	* Add a 'History' tab.
+
+	Application: weboob-config
+	* Remove 'install' command.
+
+	Script: freemobile-munin
+	* Fix: condition to detect empty output.
+
+	Script: hds/export.py
+	* Fix: loading HDS module.
+
+	Core:
+	* Change way to describe fields of CapBaseObjects.
+	* Add a lot of code documentation.
+	* Warn when implicit conversions happen on CapBaseObjects.
+	* Create UserError exception for errors raised by modules.
+	* Scheduler: do not stop timer because of an exception.
+	* Repositories: support gpgv2 (#837).
+
 Weboob 0.b (2012-03-14)
 	General
 	* New capability: CapBill.
@@ -852,7 +1018,6 @@ Weboob 0.2 (2010-10-01)
 	* Core: new pargument --save-responses to debug HTML pages (#274).
 	* Core fix: handle read URL data failure.
 	* Core fix: Client is merged into mechanize >= 0.2 (#362).
-
 
 Weboob 0.1 (2010-08-03)
 	* First public release.
