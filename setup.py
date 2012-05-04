@@ -193,7 +193,7 @@ if options.xdg:
 
 setup(
     name='weboob',
-    version = '0.c',
+    version = '0.d',
     description='Weboob, Web Out Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',
