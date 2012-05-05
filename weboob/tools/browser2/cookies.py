@@ -64,9 +64,10 @@ def _report_unknown_attribute(name):
     logging.error("unknown Cookie attribute: %s", repr(name))
 
 
-def _report_invalid_attribute(name, value):
+def _report_invalid_attribute(name, value, reason):
     "How this module logs a bad attribute when exception suppressed"
-    logging.error("invalid Cookie attribute: %s=%s", repr(name), repr(value))
+    logging.error("invalid Cookie attribute (%s): %s=%s", reason, repr(name),
+            repr(value))
 
 
 class CookieError(Exception):
@@ -333,7 +334,7 @@ def parse_string(data, unquote=default_unquote):
     if data is None:
         return None
 
-    # We'll need to unquote to recover our UTF-8 data.
+    # We'll soon need to unquote to recover our UTF-8 data.
     # In Python 2, unquote crashes on chars beyond ASCII. So encode functions
     # had better not include anything beyond ASCII in data.
     # In Python 3, unquote crashes on bytes objects, requiring conversion to
@@ -345,9 +346,10 @@ def parse_string(data, unquote=default_unquote):
             data = data.decode('ascii')
     # Recover URL encoded data
     unquoted = unquote(data)
-    # Without this step, Python 2 will have good URL decoded *bytes*, which
-    # will therefore not normalize as unicode and not compare to the original.
-    if sys.version_info < (3, 0, 0):  # pragma: no cover
+    # Without this step, Python 2 may have good URL decoded *bytes*,
+    # which will therefore not normalize as unicode and not compare to
+    # the original.
+    if isinstance(unquoted, bytes):
         unquoted = unquoted.decode('utf-8')
     return unquoted
 
@@ -476,8 +478,10 @@ def valid_value(value, quote=default_cookie_quote, unquote=default_unquote):
 
 def valid_date(date):
     "Validate an expires datetime object"
-    # Integer dates are not standard and not really interpretable here.
-    if isinstance(date, int):
+    # We want something that acts like a datetime. In particular,
+    # strings indicate a failure to parse down to an object and ints are
+    # nonstandard and ambiguous at best.
+    if not hasattr(date, 'tzinfo'):
         return False
     # Relevant RFCs define UTC as 'close enough' to GMT, and the maximum
     # difference between UTC and GMT is often stated to be less than a second.
@@ -578,7 +582,7 @@ def render_date(date):
 
 def _parse_request(header_data, ignore_bad_cookies=False):
     """Turn one or more lines of 'Cookie:' header data into a dict mapping
-    cookie names to cookie values.
+    cookie names to cookie values (raw strings).
     """
     cookies_dict = {}
     for line in Definitions.EOL.split(header_data.strip()):
@@ -606,7 +610,7 @@ def parse_one_response(line,
         ignore_bad_cookies=False,
         ignore_bad_attributes=True):
     """Turn one 'Set-Cookie:' line into a dict mapping attribute names to
-    attribute values (as plain strings).
+    attribute values (raw strings).
     """
     cookie_dict = {}
     # Basic validation, extract name/value/attrs-chunk
@@ -705,10 +709,10 @@ class Cookie(object):
 
             try:
                 setattr(self, attr_name, attr_value)
-            except InvalidCookieAttributeError:
+            except InvalidCookieAttributeError as error:
                 if not ignore_bad_attributes:
                     raise
-                _report_invalid_attribute(attr_name, attr_value)
+                _report_invalid_attribute(attr_name, attr_value, error.reason)
                 continue
 
     @classmethod
@@ -717,38 +721,44 @@ class Cookie(object):
 
         The main difference between this and Cookie(name, value, **kwargs) is
         that the values in the argument to this method are parsed.
-        """
-        def parse(key):
-            value = cookie_dict.get(key)
-            parser = cls.attribute_parsers.get(key)
-            if parser:
-                try:
-                    value = parser(value)
-                except Exception as e:
-                    if not ignore_bad_attributes:
-                        raise InvalidCookieAttributeError(
-                            key, value,
-                            "did not parse with %s: %s"
-                            % (repr(parser), repr(e)))
-                    _report_invalid_attribute(key, value)
-            return value
 
-        name, value = parse('name'), parse('value')
+        If ignore_bad_attributes=True (default), values which did not parse
+        are set to '' in order to avoid passing bad data.
+        """
+        name = cookie_dict.get('name', None)
+        if not name:
+            raise InvalidCookieError("Cookie must have name")
+        raw_value = cookie_dict.get('value', '')
+        # Absence or failure of parser here is fatal; errors in present name
+        # and value should be found by Cookie.__init__.
+        value = cls.attribute_parsers['value'](raw_value)
         cookie = Cookie(name, value)
 
-        # Remove these so we can pass the whole dict to _set_attributes
-        del cookie_dict['name']
-        if 'value' in cookie_dict:
-            del cookie_dict['value']
-
         # Parse values from serialized formats into objects
-        parsed = cookie_dict.copy()
-        for key, value in parsed.items():
+        parsed = {}
+        for key, value in cookie_dict.items():
+            # Don't want to pass name/value to _set_attributes
+            if key in ('name', 'value'): continue
             parser = cls.attribute_parsers.get(key)
             if not parser:
+                # Don't let totally unknown attributes pass silently
+                if not ignore_bad_attributes:
+                    raise InvalidCookieAttributeError(key, value,
+                        "unknown cookie attribute '%s'" % key)
+                _report_unknown_attribute(key)
                 continue
-            parsed[key] = parse(key)
+            try:
+                parsed_value = parser(value)
+            except Exception as e:
+                reason = "did not parse with %s: %s" % (repr(parser), repr(e))
+                if not ignore_bad_attributes:
+                    raise InvalidCookieAttributeError(
+                        key, value, reason)
+                _report_invalid_attribute(key, value, reason)
+                parsed_value = ''
+            parsed[key] = parsed_value
 
+        # Set the parsed objects (does object validation automatically)
         cookie._set_attributes(parsed, ignore_bad_attributes)
         return cookie
 
@@ -772,7 +782,9 @@ class Cookie(object):
     def validate(self, name, value):
         """Validate a cookie attribute with an appropriate validator.
 
-        Called automatically when an attribute value is set.
+        The value comes in already parsed (for example, an expires value
+        should be a datetime). Called automatically when an attribute
+        value is set.
         """
         validator = self.attribute_validators.get(name, None)
         if validator:
@@ -960,15 +972,17 @@ class Cookies(dict):
         """Add Cookie objects by their names, or create new ones under
         specified names.
 
-        Any unnamed arguments are interpreted as existing cookies, and are
-        added under the value in their .name attribute. With keyword arguments,
-        the key is interpreted as the cookie name and the value as the value
-        stored in the cookie.
+        Any unnamed arguments are interpreted as existing cookies, and
+        are added under the value in their .name attribute. With keyword
+        arguments, the key is interpreted as the cookie name and the
+        value as the UNENCODED value stored in the cookie.
         """
+        # Only take the first one, don't create new ones if unnecessary
         for cookie in args:
+            if cookie.name in self:
+                continue
             self[cookie.name] = cookie
         for key, value in kwargs.items():
-            # Only take the first one, don't create new ones if unnecessary
             if key in self:
                 continue
             cookie = Cookie(key, value)
@@ -996,8 +1010,19 @@ class Cookies(dict):
         """
         cookies_dict = _parse_request(header_data,
                 ignore_bad_cookies=ignore_bad_cookies)
+        cookie_objects = []
+        for name, value in cookies_dict.items():
+            # Use from_dict to check name and parse value
+            cookie_dict = {'name': name, 'value': value}
+            try:
+                cookie = Cookie.from_dict(cookie_dict)
+            except InvalidCookieError:
+                if not ignore_bad_cookies:
+                    raise
+            else:
+                cookie_objects.append(cookie)
         try:
-            self.add(**cookies_dict)
+            self.add(*cookie_objects)
         except (InvalidCookieError):
             if not ignore_bad_cookies:
                 raise
