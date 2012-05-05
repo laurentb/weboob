@@ -102,8 +102,8 @@ class Comparoob(ReplApplication):
             product = products[0]
         else:
             print 'What product do you want to compare?'
-            for i, product in enumerate(products):
-                print '  %s%2d)%s %s' % (self.BOLD, i+1, self.NC, product.name)
+            for i, p in enumerate(products):
+                print '  %s%2d)%s %s' % (self.BOLD, i+1, self.NC, p.name)
             r = int(self.ask('  Select a product', regexp='\d+'))
             while product is None:
                 if r <= 0 or r > len(products):
