@@ -21,7 +21,7 @@
 import sys
 import os
 import datetime
-import md5
+import hashlib
 
 from tempfile import NamedTemporaryFile
 from lxml import etree
@@ -46,7 +46,7 @@ class AtomFormatter(IFormatter):
         self.output(u'xmlns:dc="http://purl.org/dc/elements/1.1/">\n')
         self.output(u'<title type="text">Atom feed by Weboob</title>')  # TODO : get backend name
         self.output(u'<updated>%s</updated>' % datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
-        m = md5.new()
+        m = hashlib.md5()
         m.update(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
         self.output(u'<id>urn:md5:%s</id>' % m.hexdigest())
 
@@ -58,7 +58,7 @@ class AtomFormatter(IFormatter):
         elem.append(title)
 
         id = etree.Element('id')
-        m = md5.new()
+        m = hashlib.md5()
         m.update(obj.content.encode('utf8', 'ascii'))
         id.text = "urn:md5:%s" % m.hexdigest()
         elem.append(id)
