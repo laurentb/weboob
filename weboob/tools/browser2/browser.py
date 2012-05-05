@@ -140,6 +140,8 @@ class BaseBrowser(object):
         # Raise exceptions on HTTP errors
         session.config['safe_mode'] = False
         session.config['danger_mode'] = True
+        # weboob only can provide proxy and auth options
+        session.config['trust_env'] = False
         # TODO max_retries?
         # TODO connect config['verbose'] to our logger
 
@@ -311,8 +313,10 @@ class BaseBrowser(object):
                 method = 'POST'
         kwargs['data'] = data
 
-        # python-requests or urllib3 does not handle
+        # Python httplib does not handle
         # empty POST requests properly, so some websites refuse it.
+        # https://github.com/kennethreitz/requests/issues/223
+        # http://bugs.python.org/issue14721
         if data is not None and len(data) == 0:
             kwargs.setdefault('headers', {}).setdefault('Content-Length', '0')
 
