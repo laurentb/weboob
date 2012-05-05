@@ -489,7 +489,10 @@ class ConsoleApplication(BaseApplication):
             minfo = self.weboob.repositories.get_module_info(backend.NAME)
             if minfo and not minfo.is_local():
                 self.weboob.repositories.update_repositories()
-                if minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
+
+                # minfo of the new available module
+                minfo = self.weboob.repositories.get_module_info(backend.NAME)
+                if minfo and minfo.version > self.weboob.repositories.versions.get(minfo.name) and \
                    self.ask('A new version of %s is available. Do you want to install it?' % minfo.name, default=True) and \
                    self.install_module(minfo):
                     print 'New version of module %s has been installed. Retry to call the command.' % minfo.name
