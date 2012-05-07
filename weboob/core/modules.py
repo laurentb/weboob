@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import imp
-import sys
 import logging
 
 from weboob.tools.backend import BaseBackend

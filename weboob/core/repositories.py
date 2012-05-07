@@ -19,6 +19,7 @@
 
 from __future__ import with_statement
 
+import imp
 import tarfile
 import posixpath
 import shutil
@@ -280,16 +281,20 @@ class Repository(object):
             self.signed = False
             self.key_update = 0
 
-        sys.path.append(path)
         for name in sorted(os.listdir(path)):
             module_path = os.path.join(path, name)
             if not os.path.isdir(module_path) or '.' in name or name == self.KEYDIR:
                 continue
 
             try:
-                module = Module(__import__(name, fromlist=[str(name)]))
+                fp, pathname, description = imp.find_module(name, [path])
+                try:
+                    module = Module(imp.load_module(name, fp, pathname, description))
+                finally:
+                    if fp:
+                        fp.close()
             except Exception, e:
-                print >>sys.stderr, 'Unable to build module %s: [%s] %s' % (name, type(e), e)
+                print >>sys.stderr, 'Unable to build module %s: [%s] %s' % (name, type(e).__name__, e)
             else:
                 m = ModuleInfo(module.name)
                 m.version = self.get_tree_mtime(module_path)
@@ -299,7 +304,6 @@ class Repository(object):
                 m.license = module.license
                 m.icon = module.icon or ''
                 self.modules[module.name] = m
-        sys.path.remove(path)
 
         self.update = int(datetime.now().strftime('%Y%m%d%H%M'))
         self.save(filename)
