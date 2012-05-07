@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import imp
 import sys
 import logging
 
@@ -132,18 +133,20 @@ class ModulesLoader(object):
             raise ModuleLoadError(module_name, 'Module is not installed')
 
         try:
-            sys.path.append(minfo.path)
+            fp, pathname, description = imp.find_module(module_name, [minfo.path])
             try:
-                module = Module(__import__(module_name, fromlist=[str(module_name)]))
-            except Exception, e:
-                if logging.root.level == logging.DEBUG:
-                    self.logger.exception(e)
-                raise ModuleLoadError(module_name, e)
-        finally:
-            sys.path.remove(minfo.path)
+                module = Module(imp.load_module(module_name, fp, pathname, description))
+            finally:
+                if fp:
+                    fp.close()
+        except Exception, e:
+            if logging.root.level == logging.DEBUG:
+                self.logger.exception(e)
+            raise ModuleLoadError(module_name, e)
 
         if module.version != self.repositories.version:
-            raise ModuleLoadError(module_name, "Module requires Weboob %s, but you use Weboob %s" % (module.version, self.repositories.version))
+            raise ModuleLoadError(module_name, "Module requires Weboob %s, but you use Weboob %s. Hint: use 'weboob-config update'"
+                                               % (module.version, self.repositories.version))
 
         self.loaded[module_name] = module
         self.logger.debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))
