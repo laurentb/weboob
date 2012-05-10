@@ -49,20 +49,21 @@ class WeatherPage(BasePage):
 
 class ForecastPage(BasePage):
     def iter_forecast(self):
-        trs = self.document.findall('//table[@class="twc-forecast-table twc-second"]//tr')
+        divs = self.document.findall('//div[@class="wx-daypart"]')
 
         for day in range (0, 10):
-            text = unicode(trs[1].findall('td')[day].text_content().strip())
+            div = divs[day].find('div[@class="wx-conditions"]')
+            text = unicode(div.find('p[@class="wx-phrase"]').text_content().strip())
             try:
-                tlow = float(trs[2].findall('td')[day].text_content().strip().split(u'°')[0])
-            except:
-                tlow = None
-            try:
-                thigh = float(trs[3].findall('td')[day].text_content().strip().split(u'°')[0])
+                thigh = float(div.find('p[@class="wx-temp"]').text_content().strip().split(u'°')[0])
             except:
                 thigh = None
-
-            date = self.document.findall('//table[@class="twc-forecast-table twc-first"]//th')[day].text
-            if len (date.split(' ')) > 3:
-                date = " ".join(date.split(' ', 3)[:3])
+            try:
+                tlow = float(div.find('p[@class="wx-temp-alt"]').text_content().strip().split(u'°')[0])
+            except:
+                tlow = None
+            date = divs[day].find('h3/span').text_content().strip()
+            #date = self.document.findall('//table[@class="twc-forecast-table twc-first"]//th')[day].text
+            #if len (date.split(' ')) > 3:
+            #    date = " ".join(date.split(' ', 3)[:3])
             yield Forecast(date, tlow, thigh, text, u'F')
