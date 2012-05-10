@@ -29,7 +29,7 @@ class YahooTest(BackendTest):
 
         city = l[0]
         current = self.backend.get_current(city.id)
-        self.assertTrue(current.temp > -20 and current.temp < 50)
+        self.assertTrue(current.temp.value > -20 and current.temp.value < 50)
 
         forecasts = list(self.backend.iter_forecast(city.id))
         self.assertTrue(len(forecasts) > 0)

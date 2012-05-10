@@ -35,7 +35,7 @@ class WeatherTest(BackendTest):
         self.assertTrue(len(list(paris)) == 1)
 
         current = self.backend.get_current(paris[0].id)
-        self.assertTrue(current.temp is float(current.temp))
+        self.assertTrue(current.temp.value is float(current.temp.value))
 
         forecasts = list(self.backend.iter_forecast(paris[0].id))
         self.assertTrue(len(forecasts) == 10)

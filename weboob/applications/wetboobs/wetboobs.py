@@ -26,24 +26,24 @@ from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFor
 
 __all__ = ['WetBoobs']
 
-
 class ForecastsFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'date', 'low', 'high', 'unit')
+    MANDATORY_FIELDS = ('id', 'date', 'low', 'high')
+
+    temperature_display = staticmethod(lambda t: u'%s' % t.value)
 
     def format_obj(self, obj, alias):
-        result = u'%s* %-15s%s (%s°%s - %s°%s)' % (self.BOLD, '%s:' % obj.date, self.NC, obj.low, obj.unit, obj.high, obj.unit)
+        result = u'%s* %-15s%s (%s - %s)' % (self.BOLD, '%s:' % obj.date, self.NC, self.temperature_display(obj.low), self.temperature_display(obj.high))
         if hasattr(obj, 'text') and obj.text:
             result += ' %s' % obj.text
         return result
 
-
 class CurrentFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'temp')
 
+    temperature_display = staticmethod(lambda t: u'%s' % t.value)
+
     def format_obj(self, obj, alias):
-        result = u'%s%s%s: %s' % (self.BOLD, obj.date, self.NC, obj.temp)
-        if hasattr(obj, 'unit') and obj.unit:
-            result += u'°%s' % obj.unit
+        result = u'%s%s%s: %s' % (self.BOLD, obj.date, self.NC, self.temperature_display(obj.temp))
         if hasattr(obj, 'text') and obj.text:
             result += u' - %s' % obj.text
         return result
@@ -71,6 +71,10 @@ class WetBoobs(ReplApplication):
                            'forecasts': 'forecasts',
                           }
 
+    def main(self, argv):
+        self.load_config()
+        return ReplApplication.main(self, argv)
+
     def do_cities(self, pattern):
         """
         cities PATTERN
@@ -97,6 +101,12 @@ class WetBoobs(ReplApplication):
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
 
+        tr = self.config.get('settings', 'temperature_display', default='C')
+        if tr == 'C':
+            self.formatter.temperature_display = lambda t: t.ascelsius()
+        elif tr == 'F':
+            self.formatter.temperature_display = lambda t: t.asfahrenheit()
+
         self.start_format()
         for backend, current in self.do('get_current', _id, backends=backend_name, caps=ICapWeather):
             if current:
@@ -117,7 +127,13 @@ class WetBoobs(ReplApplication):
         city, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(city)
 
+        tr = self.config.get('settings', 'temperature_display', default='C')
+        if tr == 'C':
+            self.formatter.temperature_display = lambda t: t.ascelsius()
+        elif tr == 'F':
+            self.formatter.temperature_display = lambda t: t.asfahrenheit()
         self.start_format()
+
         for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
             self.format(forecast)
         self.flush()

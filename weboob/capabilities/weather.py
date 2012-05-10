@@ -24,7 +24,35 @@ from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, \
                   StringField, UserError
 
 
-__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'ICapWeather']
+__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'ICapWeather']
+
+
+class Temperature(CapBaseObject):
+
+    value =      FloatField('Temperature value')
+    unit =       StringField('Input unit')
+
+    def __init__(self, value, unit = u''):
+        self.value = value
+        if unit not in [u'C', u'F']:
+            unit = u''
+        self.unit = unit
+
+    def asfahrenheit(self):
+        if not self.unit:
+            return u'%s' % int(round(self.value))
+        elif self.unit == 'F':
+            return u'%sF' % int(round(self.value))
+        else:
+            return u'%s°F' % int(round((self.value * 9.0 / 5.0) + 32))
+
+    def ascelsius(self):
+        if not self.unit:
+            return u'%s' % int(round(self.value))
+        elif self.unit == 'C':
+            return u'%sC' % int(round(self.value))
+        else:
+            return u'%s°C' % int(round((self.value - 32.0) * 5.0 / 9.0))
 
 
 class Forecast(CapBaseObject):
@@ -32,18 +60,16 @@ class Forecast(CapBaseObject):
     Weather forecast.
     """
     date =      Field('Date for the forecast', datetime, basestring)
-    low =       FloatField('Low temperature')
-    high =      FloatField('High temperature')
+    low =       Field('Low temperature', Temperature)
+    high =      Field('High temperature', Temperature)
     text =      StringField('Comment on forecast')
-    unit =      StringField('Unit used for temperatures')
 
     def __init__(self, date, low, high, text, unit):
         CapBaseObject.__init__(self, unicode(date))
         self.date = date
-        self.low = low
-        self.high = high
+        self.low = Temperature(low, unit)
+        self.high = Temperature(high, unit)
         self.text = text
-        self.unit = unit
 
 class Current(CapBaseObject):
     """
@@ -51,15 +77,13 @@ class Current(CapBaseObject):
     """
     date =      DateField('Date of measure')
     text =      StringField('Comment about current weather')
-    temp =      FloatField('Current temperature')
-    unit =      StringField('Unit used for temperature')
+    temp =      Field('Current temperature', Temperature)
 
     def __init__(self, date, temp, text, unit):
         CapBaseObject.__init__(self, unicode(date))
         self.date = date
         self.text = text
-        self.temp = temp
-        self.unit = unit
+        self.temp = Temperature(temp, unit)
 
 class City(CapBaseObject):
     """
