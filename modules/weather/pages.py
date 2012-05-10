@@ -43,8 +43,8 @@ class WeatherPage(BasePage):
 
     def get_current(self):
         date = datetime.datetime.now()
-        text = unicode(self.document.findall('//table[@class="twc-forecast-table twc-second"]//tr')[2].find('td').text_content().strip())
-        temp = float(self.document.find('//*[@class="twc-col-1 twc-forecast-temperature"]').text_content().strip().split(u'°')[0])
+        text = unicode(self.document.findall('//p[@class="wx-narrative"]')[0].text_content().strip())
+        temp = float(self.document.find('//p[@class="wx-temp"]').text_content().strip().split(u'°')[0])
         return Current(date, temp, text, u'F')
 
 class ForecastPage(BasePage):
