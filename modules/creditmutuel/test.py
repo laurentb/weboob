@@ -21,7 +21,12 @@
 from weboob.tools.test import BackendTest
 
 class CreditMutuelTest(BackendTest):
-    BACKEND = 'crmut'
+    BACKEND = 'creditmutuel'
 
     def test_crmut(self):
-        list(self.backend.iter_accounts())
+        l = list(self.backend.iter_accounts())
+        if len(l) > 0:
+            a = l[0]
+            list(self.backend.iter_history(a))
+
+
