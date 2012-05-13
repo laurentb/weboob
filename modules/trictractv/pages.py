@@ -39,7 +39,7 @@ class IndexPage(BasePage):
             url = a.attrib['href']
             m = re.match('/video-(.*)', url)
             if not m:
-                print ':( %s' % url
+                self.logger.debug('url %s does not match' % url)
                 continue
             _id = m.group(1)
             video = TricTracTVVideo(_id)
@@ -51,7 +51,7 @@ class IndexPage(BasePage):
             video.rating_max = 5
 
             video.thumbnail = Thumbnail ( unicode ( 'http://www.trictrac.tv/%s' % url ) )
-            
+
             yield video
 
 
@@ -114,7 +114,7 @@ class VideoPage(BasePage):
             months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
             words = string.split ( ' ' )
             month_no = months.index ( words [ 1 ] ) + 1
-            return datetime.datetime.strptime ( ( '%s %s %s %s' % 
+            return datetime.datetime.strptime ( ( '%s %s %s %s' %
                                                   ( words [ 0 ], month_no, words [ 2 ], words [ 3 ] ) ),
                                                 '%d %m %Y, %H:%M:%S')
 

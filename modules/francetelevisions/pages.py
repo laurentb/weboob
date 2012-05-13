@@ -38,7 +38,7 @@ class IndexPage(BasePage):
             url = title.attrib['href']
             m = re.match('^http://www.pluzz.fr/([^/]+)\.html$', url)
             if not m:
-                print ':( %s' % url
+                self.logger.debug('url %s does not match' % url)
                 continue
             _id = m.group(1)
             video = PluzzVideo(_id)

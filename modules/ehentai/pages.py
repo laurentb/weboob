@@ -33,10 +33,8 @@ class LoginPage(BasePage):
         success_p = self.document.xpath(
                 '//p[text() = "Login Successful. You will be returned momentarily."]')
         if len(success_p):
-            print 'logged on'
             return True
         else:
-            print 'not logged on'
             return False
 
 

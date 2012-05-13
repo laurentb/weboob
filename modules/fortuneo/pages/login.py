@@ -31,8 +31,7 @@ class LoginPage(BasePage):
        msga = ''.join(msgb)
        msg = msga.strip("\n")
 
-       if "maintenance" in msg: 
-           print "Fortuneo: "+msg
+       if "maintenance" in msg:
            raise BrowserUnavailable(msg)
 
        self.browser.select_form(nr=3)
