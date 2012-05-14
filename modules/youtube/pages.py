@@ -20,6 +20,7 @@
 
 import urllib
 
+from weboob.capabilities.base import UserError
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
 from weboob.tools.json import json
 
@@ -48,7 +49,7 @@ class LoginRedirectPage(BasePage):
     pass
 
 
-class ForbiddenVideo(Exception):
+class ForbiddenVideo(UserError):
     pass
 
 
