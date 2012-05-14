@@ -128,6 +128,7 @@ class AccountHistory(BasePage):
                                                   operationNumberPG=el.find('operationNumber').text,
                                                   operationTypePG=el.find('operationType').text,
                                                   pageNumberPG=el.find('pageNumber').text,
+                                                  idecrit=el.find('idecrit').text,
                                                   sign=p['sign'][0],
                                                   src=p['src'][0])
 
