@@ -18,19 +18,35 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
-from datetime import date
 import re
 
-from weboob.capabilities.bank import Transaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.browser import BasePage
 
 
 __all__ = ['AccountHistory']
 
 
-class AccountHistory(BasePage):
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE) (?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2})'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>(PRELEVEMENT DE|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+   (re.compile('^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A (?P<HH>\d+)H(?P<MM>\d+) (?P<category>RETRAIT DAB) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<HH>\d+)H(?P<MM>\d+) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>VIR(EMEN)?T?) (DE |POUR )?(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REMISE DE CHEQUE) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
+class AccountHistory(BasePage):
     def get_history(self):
         mvt_table = self.document.xpath("//table[@id='mouvements']", smart_strings=False)[0]
         mvt_ligne = mvt_table.xpath("./tbody/tr")
@@ -38,13 +54,9 @@ class AccountHistory(BasePage):
         operations = []
 
         for mvt in mvt_ligne:
-            operation = Transaction(len(operations))
-
-            d = mvt.xpath("./td/span")[0].text.strip().split('/')
-            operation.date = date(*reversed([int(x) for x in d]))
-
-            tmp = mvt.xpath("./td/span")[1]
-            operation.raw = unicode(self.parser.tocleanstring(tmp).strip())
+            op = Transaction(len(operations))
+            op.parse(date=mvt.xpath("./td/span")[0].text.strip(),
+                     raw=unicode(self.parser.tocleanstring(mvt.xpath('./td/span')[1]).strip()))
 
             r = re.compile(r'\d+')
 
@@ -55,11 +67,8 @@ class AccountHistory(BasePage):
             for t in tmp:
                 if r.search(t.text):
                     amount = t.text
-            amount = ''.join(amount.replace('.', '').replace(',', '.').split())
-            if amount[0] == "-":
-                operation.amount = - Decimal(amount[1:])
-            else:
-                operation.amount = Decimal(amount)
 
-            operations.append(operation)
+            op.set_amount(amount)
+
+            operations.append(op)
         return operations
