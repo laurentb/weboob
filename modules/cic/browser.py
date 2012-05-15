@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlparse
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 from datetime import datetime
@@ -36,20 +38,17 @@ class CICBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.cic.fr/.*/fr/banques/particuliers/index.html':   LoginPage,
              'https://www.cic.fr/.*/fr/identification/default.cgi': LoginErrorPage,
-         'https://www.cic.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
-         'https://www.cic.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
-         'https://www.cic.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
-         'https://www.cic.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
-         'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
-         'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
-         'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
-         'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage
+             'https://www.cic.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
+             'https://www.cic.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
+             'https://www.cic.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
+             'https://www.cic.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
+             'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
+             'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
+             'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
+             'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage
             }
 
-    def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
-        #self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
-        #self.currentSubBank = None
+    currentSubBank = None
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
@@ -69,7 +68,6 @@ class CICBrowser(BaseBrowser):
         if not self.is_logged() or self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
-        self.SUB_BANKS = ['cmdv', 'cmcee', 'cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm', 'sb']
         self.getCurrentSubBank()
 
     def get_accounts_list(self):
@@ -89,11 +87,8 @@ class CICBrowser(BaseBrowser):
 
     def getCurrentSubBank(self):
         # the account list and history urls depend on the sub bank of the user
-        current_url = self.geturl()
-        current_url_parts = current_url.split('/')
-        for subbank in self.SUB_BANKS:
-            if subbank in current_url_parts:
-                self.currentSubBank = subbank
+        url = urlparse(self.geturl())
+        self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def get_history(self, account):
         page_url = account._link_id
