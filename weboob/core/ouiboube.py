@@ -161,7 +161,7 @@ class Weboob(object):
         """
         minfo = self.repositories.get_module_info(module_name)
         if minfo is None:
-            raise ModuleLoadError('Module "%s" does not exist.' % module_name)
+            raise ModuleLoadError(module_name, 'Module does not exist.')
 
         if not minfo.is_installed():
             self.repositories.install(minfo)
