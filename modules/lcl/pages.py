@@ -17,18 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import base64
-from datetime import date
 from decimal import Decimal
-
-from weboob.capabilities.bank import Transaction
-from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from logging import error
 import tempfile
 import math
 import random
+
+
+from weboob.capabilities.bank import Account
+from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+__all__ = ['SkipPage', 'LoginPage', 'AccountsPage', 'AccountHistoryPage']
 
 
 class LCLVirtKeyboard(MappedVirtKeyboard):
@@ -155,9 +159,30 @@ class AccountsPage(BasePage):
                 if '-' in balance:
                     balance='-'+balance.replace('-', '')
                 account.balance=Decimal(balance)
+                self.logger.debug('%s Type: %s' % (account.label, account._type))
                 l.append(account)
         return l
 
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^(?P<category>CB)  (?P<text>RETRAIT) DU  (?P<dd>\d+)/(?P<mm>\d+)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>PRLV) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<category>RELEVE CB) AU (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^(?P<category>VIR(EMEN)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 class AccountHistoryPage(BasePage):
     def get_operations(self,account):
@@ -188,26 +213,33 @@ class AccountHistoryPage(BasePage):
             if len(tr.findall("th"))!=0 or\
                len(tr.findall("td"))<=1:
                 continue
-            operation=Transaction(len(operations))
             mntColumn=0
+
+            date = None
+            raw = None
+            credit = ''
+            debit = ''
             for td in tr.iter('td'):
                 value=td.attrib.get('id')
                 if value is None:
                     value=td.attrib.get('class');
                 if value.startswith("date"):
                     # some transaction are included in a <strong> tag
-                    value=u''.join([txt.strip() for txt in td.itertext()])
-                    operation.date=date(*reversed([int(x) for x in value.split('/')]))
+                    date=u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("lib") or value.startswith("opLib"):
                     # misclosed A tag requires to grab text from td
-                    operation.raw=u''.join([txt.strip() for txt in td.itertext()])
+                    raw=u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("solde") or value.startswith("mnt"):
                     mntColumn+=1
                     amount=u''.join([txt.strip() for txt in td.itertext()])
                     if amount != "":
-                        amount = Decimal(amount.replace('.','').replace(',','.').replace(u"\u00A0",'').replace(' ',''))
                         if value.startswith("soldeDeb") or mntColumn==1:
-                            amount=-amount
-                        operation.amount=amount
+                            debit = amount
+                        else:
+                            credit = amount
+
+            operation=Transaction(len(operations))
+            operation.parse(date, raw)
+            operation.set_amount(credit, debit)
             operations.append(operation)
         return operations
