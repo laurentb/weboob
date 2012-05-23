@@ -164,11 +164,11 @@ class BNPorc(BaseBrowser):
 
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
 
-        execution = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="execution"]')[0].attrib['value']
+        execution = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="_flowExecutionKey"]')[0].attrib['value']
         data = {'_eventId':             'changeOperationsPerPage',
                 'categoryId':           '',
                 'contractId':           '',
-                'execution':            execution,
+                '_flowExecutionKey':    execution,
                 'groupId':              '',
                 'listCheckedOp':        '',
                 'myPage':               1,
@@ -187,7 +187,7 @@ class BNPorc(BaseBrowser):
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
         execution = self.page.get_execution_id()
-        self.location('/banque/portail/particulier/FicheA?externalIAId=IAStatements&contractId=%d&pastOrPendingOperations=2&pageId=mouvementsavenir&execution=%s' % (int(id), execution))
+        self.location('/banque/portail/particulier/FicheA?externalIAId=IAStatements&contractId=%d&pastOrPendingOperations=2&pageId=mouvementsavenir&_flowExecutionKey=%s' % (int(id), execution))
         return self.page.iter_operations()
 
     @check_expired_password

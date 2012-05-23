@@ -95,7 +95,7 @@ class AccountsList(BasePage):
         return l
 
     def get_execution_id(self):
-        return self.document.xpath('//input[@name="execution"]')[0].attrib['value']
+        return self.document.xpath('//input[@name="_flowExecutionKey"]')[0].attrib['value']
 
     def get_messages_link(self):
         """
