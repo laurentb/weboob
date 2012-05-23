@@ -62,7 +62,7 @@ class LCLBrowser(BaseBrowser):
         if not self.page.login(self.agency, self.username, self.password) or \
            not self.is_logged() or \
            (self.is_on_page(LoginPage) and self.page.is_error()) :
-            raise BrowserIncorrectPassword()
+            raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
         self.location('%s://%s/outil/UWSP/Synthese' \
                       % (self.PROTOCOL, self.DOMAIN),
                       no_login=True)
