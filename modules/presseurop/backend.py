@@ -38,7 +38,7 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     BROWSER = NewspaperPresseuropBrowser
     RSSID = staticmethod(rssid)
     URL2ID = staticmethod(url2id)
-    RSSSIZE = 50
+    RSSSIZE = 140
     CONFIG = BackendConfig(Value('lang', label='Lang of articles',
                            choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl', 'pl': 'pl', 'pt': 'pt', 'ro': 'ro'}, default='fr'))
 
