@@ -68,7 +68,7 @@ class SearchResultsPage(BasePage):
 
             metro = div.cssselect('p.metro')
             if len(metro) > 0:
-                housing.station = metro[0].text.strip()
+                housing.station = unicode(metro[0].text.strip())
             else:
                 housing.station = NotAvailable
 
@@ -76,7 +76,7 @@ class SearchResultsPage(BasePage):
             b = p.findall('b')
             if len(b) > 0:
                 housing.text = b[0].tail.strip()
-                housing.location = b[0].text
+                housing.location = unicode(b[0].text)
             else:
                 housing.text = p.text.strip()
 
@@ -108,7 +108,7 @@ class HousingPage(BasePage):
         b = p.findall('b')
         if len(b) > 0:
             housing.text = b[0].tail.strip()
-            housing.location = b[0].text
+            housing.location = unicode(b[0].text)
             if len(b) > 1:
                 housing.phone = b[1].text
         else:

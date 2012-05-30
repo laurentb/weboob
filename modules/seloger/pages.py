@@ -40,21 +40,21 @@ class SearchResultsPage(BasePage):
     def iter_housings(self):
         for a in self.document.getroot().xpath('//annonce'):
             housing = Housing(a.find('idannonce').text)
-            housing.title = a.find('titre').text
+            housing.title = unicode(a.find('titre').text)
             housing.date = parse_date(a.find('dtfraicheur').text)
             housing.cost = Decimal(a.find('prix').text)
             housing.currency = u'€'
             housing.area = Decimal(a.find('surface').text)
-            housing.text = a.find('descriptif').text.strip()
-            housing.location = a.find('ville').text
+            housing.text = unicode(a.find('descriptif').text.strip())
+            housing.location = unicode(a.find('ville').text)
             try:
-                housing.station = a.find('proximite').text
+                housing.station = unicode(a.find('proximite').text)
             except AttributeError:
                 housing.station = NotAvailable
 
             housing.photos = []
             for photo in a.xpath('./photos/photo'):
-                url = photo.find('stdurl').text
+                url = unicode(photo.find('stdurl').text)
                 housing.photos.append(HousingPhoto(url))
 
             yield housing
@@ -68,22 +68,22 @@ class HousingPage(BasePage):
         if details.find('titre') is None:
             return None
 
-        housing.title = details.find('titre').text
+        housing.title = unicode(details.find('titre').text)
         housing.text = details.find('descriptif').text.strip()
         housing.cost = Decimal(details.find('prix').text)
         housing.currency = u'€'
         housing.date = parse_date(details.find('dtfraicheur').text)
         housing.area = Decimal(details.find('surface').text)
-        housing.phone = details.find('contact').find('telephone').text
+        housing.phone = unicode(details.find('contact').find('telephone').text)
 
         try:
-            housing.station = details.find('proximite').text
+            housing.station = unicode(details.find('proximite').text)
         except AttributeError:
             housing.station = NotAvailable
 
         housing.location = details.find('adresse').text
         if not housing.location and details.find('quartier') is not None:
-            housing.location = details.find('quartier').text
+            housing.location = unicode(details.find('quartier').text)
         if not housing.location:
             housing.location = NotAvailable
 
@@ -93,7 +93,7 @@ class HousingPage(BasePage):
                 url = photo.find('bigurl').text
             else:
                 url = photo.find('stdurl').text
-            housing.photos.append(HousingPhoto(url))
+            housing.photos.append(HousingPhoto(unicode(url)))
 
         housing.details = {}
         for detail in details.xpath('./details/detail'):

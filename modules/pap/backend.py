@@ -60,7 +60,7 @@ class PapBackend(BaseBackend, ICapHousing):
         with self.browser:
             for city in self.browser.search_geo(pattern):
                 c = City(city['id'])
-                c.name = city['name']
+                c.name = unicode(city['name'])
                 yield c
 
     def fill_housing(self, housing, fields):

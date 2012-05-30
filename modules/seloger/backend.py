@@ -67,7 +67,7 @@ class SeLogerBackend(BaseBackend, ICapHousing):
                     if not 'value' in city:
                         continue
                     c = City(city['value'])
-                    c.name = city['label']
+                    c.name = unicode(city['label'])
                     yield c
 
     def fill_housing(self, housing, fields):
