@@ -78,7 +78,7 @@ class AccountsList(BasePage):
             account.balance = Decimal(cpt.xpath("./td[3]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", ""))
 
             # account coming
-            mycomingval = cpt.xpath("./td[4]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "")
+            mycomingval = cpt.xpath("./td[4]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
 
             if mycomingval == '-':
                 account.coming = Decimal(0)
