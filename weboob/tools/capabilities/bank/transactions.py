@@ -98,18 +98,26 @@ class FrenchTransaction(Transaction):
             m = pattern.match(self.raw)
             if m:
                 args = m.groupdict()
+
+                def inargs(key):
+                    """
+                    inner function to check if a key is in args,
+                    and is not None.
+                    """
+                    return args.get(key, None) is not None
+
                 self.type = _type
-                if 'text' in args:
+                if inargs('text'):
                     self.label = args['text'].strip()
-                if 'category' in args:
+                if inargs('category'):
                     self.category = args['category'].strip()
 
                 # Set date from information in raw label.
-                if 'dd' and 'mm' in args:
+                if inargs('dd') and inargs('mm'):
                     dd = int(args['dd'])
                     mm = int(args['mm'])
 
-                    if 'yy' in args:
+                    if inargs('yy'):
                         yy = int(args['yy'])
                     else:
                         d = datetime.date.today()
@@ -125,7 +133,7 @@ class FrenchTransaction(Transaction):
                     if yy < 100:
                         yy += 2000
 
-                    if 'HH' in args and 'MM' in args:
+                    if inargs('HH') and inargs('MM'):
                         self.rdate = datetime.datetime(yy, mm, dd, int(args['HH']), int(args['MM']))
                     else:
                         self.rdate = datetime.date(yy, mm, dd)
