@@ -156,8 +156,8 @@ class BNPorc(BaseBrowser):
                 'groupSelected':'-2',
                 'step':         'STAMENTS',
                 'pageId':       'releveoperations',
-                'operationsPerPage': 100,
-                '_eventId':     'changeOperationsPerPage',
+                #'operationsPerPage': 100,
+                #'_eventId':     'changeOperationsPerPage',
                 'sendEUD':      'true',
                 'execution':    execution,
                }
@@ -165,17 +165,21 @@ class BNPorc(BaseBrowser):
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
 
         execution = self.page.document.xpath('//form[@name="displayStatementForm"]/input[@name="_flowExecutionKey"]')[0].attrib['value']
-        data = {'_eventId':             'changeOperationsPerPage',
-                'categoryId':           '',
-                'contractId':           '',
-                '_flowExecutionKey':    execution,
-                'groupId':              '',
-                'listCheckedOp':        '',
-                'myPage':               1,
-                'operationId':          '',
-                'operationsPerPage':    100,
-                'pageId':               'releveoperations',
+        data = {'_eventId':                  'changeOperationsPerPage',
+                'newCategoryId':             '',
+                'categorisationInProgress':  '',
+                'contractId':                id,
+                '_flowExecutionKey':         execution,
+                'groupId':                   '-2',
+                'operations.objectsPerPage': 100,
+                'operations.pageNumber':     1,
+                'pageId':                    'releveoperations',
                }
+
+        # it's not a joke, BNP guys are really crappy.
+        for i in xrange(30):
+            data['_operations.list[%d].checkedOff' % i] = 'on'
+            data['_operations.list[%d].selectedForCategorization' % i] = 'on'
         self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
 
         return self.page.iter_operations()
