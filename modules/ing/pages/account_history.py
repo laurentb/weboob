@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import hashlib
 
 from decimal import Decimal
 from datetime import date
@@ -45,19 +46,20 @@ class AccountHistory(BasePage):
 
     def get_transactions(self):
         table = self.document.findall('//tbody')[0]
-        i = 1
         for tr in table.xpath('tr'):
-            id = i
-            op = Transaction(id)
             textdate = tr.find('td[@class="op_date"]').text_content()
             textraw = tr.find('td[@class="op_label"]').text_content()
+            # The id will be rewrite
+            op = Transaction(1)
+            amount = op.clean_amount(tr.find('td[@class="op_amount"]').text_content())
+            id = hashlib.md5(textdate + textraw.encode('utf-8') + amount.encode('utf-8')).hexdigest()
+            op.id = id
             op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
                      raw = textraw)
             # force the use of website category
             op.category = unicode(tr.find('td[@class="op_type"]').text)
 
-            op.amount = Decimal(op.clean_amount(tr.find('td[@class="op_amount"]').text_content()))
-            i += 1
+            op.amount = Decimal(amount)
 
             yield op
 

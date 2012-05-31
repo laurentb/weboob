@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import AccountsList, LoginPage, LoginPage2, \
@@ -99,7 +99,11 @@ class Ing(BaseBrowser):
         else:
             raise NotImplementedError()
         while 1:
+            hashlist = []
             for transaction in self.page.get_transactions():
+                while transaction.id in hashlist:
+                    transaction.id = hashlib.md5(transaction.id + "1")
+                hashlist.append(transaction.id)
                 yield transaction
             if self.page.islast():
                 return
