@@ -50,7 +50,7 @@ class AccountHistory(BasePage):
             if len(tr.xpath('td[@class="debit"]')) == 0:
                 continue
 
-            id = tr.find('td').find('input').attrib['value']
+            id = tr.find('td').find('input').attrib['id'].lstrip('_')
             op = Transaction(id)
             op.parse(date=tr.findall('td')[1].text,
                      raw=tr.findall('td')[2].text.replace(u'\xa0', u''))
