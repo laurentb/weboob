@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlsplit, parse_qsl
 from datetime import datetime
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
@@ -89,8 +90,12 @@ class BPBrowser(BaseBrowser):
             self.location("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_assurancesEtComptes/rechercheContratAssurance-synthese.ea")
         return self.page.get_account(id)
 
-    def get_history(self, Account):
-        self.location(Account._link_id)
+    def get_history(self, account):
+        v = urlsplit(account._link_id)
+        args = dict(parse_qsl(v.query))
+        args['typeRecherche'] = 10
+
+        self.location(self.buildurl(v.path, **args))
         if not self.is_on_page(AccountHistory):
             return iter([])
         return self.page.get_history()
