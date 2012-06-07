@@ -36,7 +36,7 @@ class BPBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La Banque Postale French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password'))
+                           ValueBackendPassword('password', label='Password', regexp='^(\d+|)$'))
     BROWSER = BPBrowser
 
     def create_default_browser(self):
