@@ -92,14 +92,16 @@ class VideoPage(BasePage):
 
         div = self.parser.select(self.document.getroot(), 'div#content', 1)
 
-        video.title = self.parser.select(div, 'span.title', 1).text
-        video.author = self.parser.select(div, 'a.name', 1).text
+        video.title = unicode(self.parser.select(div, 'span.title', 1).text)
+        video.author = unicode(self.parser.select(div, 'a.name, span.name', 1).text)
         try:
-            video.description = self.parser.select(div, 'div#video_description', 1).text
+            video.description = unicode(self.parser.select(div, 'div#video_description', 1).text)
         except BrokenPageError:
             video.description = u''
         for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):
-            if 'id' in script.attrib and script.attrib['id'].startswith('container_player_'):
+            # TODO support videos from anyclip, cf http://www.dailymotion.com/video/xkyjiv for example
+            if 'id' in script.attrib and script.attrib['id'].startswith('container_player_') and \
+               script.find('script') is not None:
                 text = script.find('script').text
                 mobj = re.search(r'(?i)addVariable\(\"video\"\s*,\s*\"([^\"]*)\"\)', text)
                 if mobj is None:

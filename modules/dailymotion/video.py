@@ -27,7 +27,7 @@ __all__ = ['DailymotionVideo']
 class DailymotionVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
-        self.ext = 'flv'
+        self.ext = u'flv'
 
     @classmethod
     def id2url(cls, _id):
