@@ -33,10 +33,11 @@ __all__ = ['NolifeTVBrowser']
 
 class NolifeTVBrowser(BaseBrowser):
     DOMAIN = 'online.nolife-tv.com'
-    ENCODING = None
+    ENCODING = 'utf-8'
     PAGES = {r'http://online.nolife-tv.com/index.php\??': IndexPage,
              r'http://online.nolife-tv.com/': IndexPage,
-             r'http://online.nolife-tv.com/index.php\?id=(?P<id>.+)': VideoPage}
+             r'http://online.nolife-tv.com/do.php': IndexPage,
+             r'http://online.nolife-tv.com/emission-(?P<id>.+)/?.*': VideoPage}
 
     def is_logged(self):
         if self.password is None:
@@ -70,7 +71,13 @@ class NolifeTVBrowser(BaseBrowser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
-        self.location('/index.php?', 'search=%s' % urllib.quote_plus(pattern.encode('utf-8')))
+        data = {'a':        'search',
+                'search':   pattern.encode('utf-8'),
+                'vu':       'all',
+               }
+        self.openurl('/do.php', urllib.urlencode(data))
+        self.location('/do.php', 'a=em')
+
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
 

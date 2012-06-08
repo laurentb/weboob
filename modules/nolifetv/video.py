@@ -27,8 +27,8 @@ __all__ = ['NolifeTVVideo']
 class NolifeTVVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
-        self.ext = 'mp4'
+        self.ext = u'mp4'
 
     @classmethod
     def id2url(cls, _id):
-        return 'http://online.nolife-tv.com/index.php?id=%s' % _id
+        return 'http://online.nolife-tv.com/emission-%s/' % _id

@@ -83,4 +83,6 @@ class VideoPage(BasePage):
                 raise ForbiddenVideo(values.get('message', 'Not available').decode('iso-8859-15'))
             video.url = values['url']
 
+        video.set_empty_fields(NotAvailable)
+
         return video
