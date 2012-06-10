@@ -35,6 +35,37 @@ class AccountsList(CragrBasePage):
         based on its URL.
     """
 
+    def is_accounts_list(self):
+        """
+            Returns True if the current page appears to be the page dedicated to
+            list the accounts.
+        """
+        # we check for the presence of a "mes comptes titres" link_id
+        link = self.document.xpath('/html/body//a[contains(text(), "comptes titres")]')
+        return bool(link)
+
+    def is_account_page(self):
+        """
+            Returns True if the current page appears to be a page dedicated to list
+            the history of a specific account.
+        """
+        # tested on CA Lorraine, Paris, Toulouse
+        title_spans = self.document.xpath('/html/body//div[@class="dv"]/span')
+        for title_span in title_spans:
+            title_text = title_span.text_content().strip().replace("\n", '')
+            if (re.match('.*Compte.*n.*[0-9]+', title_text, flags=re.IGNORECASE)):
+                return True
+        return False
+
+    def is_transfer_page(self):
+        """
+            Returns True if the current page appears to be the page dedicated to
+            order transfers between accounts.
+        """
+        source_account_select_field = self.document.xpath('/html/body//form//select[@name="numCompteEmetteur"]')
+        target_account_select_field  = self.document.xpath('/html/body//form//select[@name="numCompteBeneficiaire"]')
+        return bool(source_account_select_field) and bool(target_account_select_field)
+
     def get_list(self):
         """
             Returns the list of available bank accounts
@@ -81,36 +112,70 @@ class AccountsList(CragrBasePage):
                     l.append(account)
         return l
 
-    def is_accounts_list(self):
+    def get_history(self, start_index=0, start_offset=0):
         """
-            Returns True if the current page appears to be the page dedicated to
-            list the accounts.
-        """
-        # we check for the presence of a "mes comptes titres" link_id
-        link = self.document.xpath('/html/body//a[contains(text(), "comptes titres")]')
-        return bool(link)
-
-    def is_account_page(self):
-        """
-            Returns True if the current page appears to be a page dedicated to list
-            the history of a specific account.
+            Returns the history of a specific account. Note that this function
+            expects the current page to be the one dedicated to this history.
+            start_index is the id used for the first created operation.
+            start_offset allows ignoring the `n' first Transactions on the page.
         """
         # tested on CA Lorraine, Paris, Toulouse
-        title_spans = self.document.xpath('/html/body//div[@class="dv"]/span')
-        for title_span in title_spans:
-            title_text = title_span.text_content().strip().replace("\n", '')
-            if (re.match('.*Compte.*n.*[0-9]+', title_text, flags=re.IGNORECASE)):
-                return True
-        return False
+        # avoir parsing the page as an account-dedicated page if it is not the case
+        if not self.is_account_page():
+            return
 
-    def is_transfer_page(self):
-        """
-            Returns True if the current page appears to be the page dedicated to
-            order transfers between accounts.
-        """
-        source_account_select_field = self.document.xpath('/html/body//form//select[@name="numCompteEmetteur"]')
-        target_account_select_field  = self.document.xpath('/html/body//form//select[@name="numCompteBeneficiaire"]')
-        return bool(source_account_select_field) and bool(target_account_select_field)
+        # Step 1: extract text tokens
+        tokens = []
+        token_extractor = TokenExtractor()
+        for div in self.document.getiterator('div'):
+            if div.attrib.get('class', '') in ('dv'):
+                self.logger.debug("Analyzing div %s" % div)
+                for token in token_extractor.extract_tokens(div):
+                    self.logger.debug('Extracted text token: "%s"' % token)
+                    tokens.append(token)
+
+        # Step 2: convert tokens into operations
+        # Notes:
+        # * the code below expects pieces of information to be in the date-label-amount order;
+        #   could we achieve a heuristic smart enough to guess this order?
+        # * unlike the former code, we parse every operation
+        operations = []
+        current_operation = {}
+        for token in tokens:
+            self.logger.debug('Analyzing token: "%s"' % token)
+            date_analysis = self.look_like_date_only(token)
+            if date_analysis:
+                current_operation = {}
+                current_operation['date'] = date_analysis.groups()[0]
+            else:
+                date_desc_analysis = self.look_like_date_and_description(token)
+                if date_desc_analysis:
+                    current_operation = {}
+                    current_operation['date'] = date_desc_analysis.groups()[0]
+                    current_operation['label'] = date_desc_analysis.groups()[1]
+                elif self.look_like_amount(token):
+                    # we consider the amount is the last information we get for an operation
+                    current_operation['amount'] = self.clean_amount(token)
+                    if current_operation.get('label') is not None and current_operation.get('date') is not None:
+                        self.logger.debug('Parsed operation: %s: %s: %s' % (current_operation['date'], current_operation['label'], current_operation['amount']))
+                        operations.append(current_operation)
+                        current_operation = {}
+                else:
+                    if current_operation.get('label') is not None:
+                        current_operation['label'] = u'%s %s' % (current_operation['label'], token)
+                    else:
+                        current_operation['label'] = token
+
+        # Step 3: yield adequate transactions
+        index = start_index
+        for op in operations[start_offset:]:
+            self.logger.debug('will yield the following transaction with index %d: %s: %s: %s' % (index, op['date'], op['label'], op['amount']))
+            transaction = Transaction(index)
+            index += 1
+            transaction.amount = op['amount']
+            transaction.date = self.date_from_string(op['date'])
+            transaction.raw = op['label']
+            yield transaction
 
     def get_transfer_accounts(self, select_name):
         """
@@ -219,6 +284,16 @@ class AccountsList(CragrBasePage):
             year = today.year
         return date(year, month, day)
 
+    def clean_amount(self, amount):
+        """
+            Removes weird characters and converts to a Decimal
+            >>> clean_amount(u'1 000,00 $')
+            1000.0
+        """
+        data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
+        matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
+        return Decimal(matches[0]) if (matches) else Decimal(0)
+
     def look_like_account_owner(self, string):
         """ Returns a date object built from a given day/month pair. """
         result = re.match('^\s*(M\.|Mr|Mme|Mlle|Monsieur|Madame|Mademoiselle)', string, re.IGNORECASE)
@@ -256,78 +331,3 @@ class AccountsList(CragrBasePage):
         result = re.search('^\s*((?:[012][0-9]|3[01])/(?:0[1-9]|1[012]))\s+(.+)\s*$', string)
         self.logger.debug('Does "%s" look like a date+description pair? %s', string, ('yes' if result else 'no'))
         return result
-
-    def clean_amount(self, amount):
-        """
-            Removes weird characters and converts to a Decimal
-            >>> clean_amount(u'1 000,00 $')
-            1000.0
-        """
-        data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
-        matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-        return Decimal(matches[0]) if (matches) else Decimal(0)
-
-    def get_history(self, start_index=0, start_offset=0):
-        """
-            Returns the history of a specific account. Note that this function
-            expects the current page to be the one dedicated to this history.
-            start_index is the id used for the first created operation.
-            start_offset allows ignoring the `n' first Transactions on the page.
-        """
-        # tested on CA Lorraine, Paris, Toulouse
-        # avoir parsing the page as an account-dedicated page if it is not the case
-        if not self.is_account_page():
-            return
-
-        # Step 1: extract text tokens
-        tokens = []
-        token_extractor = TokenExtractor()
-        for div in self.document.getiterator('div'):
-            if div.attrib.get('class', '') in ('dv'):
-                self.logger.debug("Analyzing div %s" % div)
-                for token in token_extractor.extract_tokens(div):
-                    self.logger.debug('Extracted text token: "%s"' % token)
-                    tokens.append(token)
-
-        # Step 2: convert tokens into operations
-        # Notes:
-        # * the code below expects pieces of information to be in the date-label-amount order;
-        #   could we achieve a heuristic smart enough to guess this order?
-        # * unlike the former code, we parse every operation
-        operations = []
-        current_operation = {}
-        for token in tokens:
-            self.logger.debug('Analyzing token: "%s"' % token)
-            date_analysis = self.look_like_date_only(token)
-            if date_analysis:
-                current_operation = {}
-                current_operation['date'] = date_analysis.groups()[0]
-            else:
-                date_desc_analysis = self.look_like_date_and_description(token)
-                if date_desc_analysis:
-                    current_operation = {}
-                    current_operation['date'] = date_desc_analysis.groups()[0]
-                    current_operation['label'] = date_desc_analysis.groups()[1]
-                elif self.look_like_amount(token):
-                    # we consider the amount is the last information we get for an operation
-                    current_operation['amount'] = self.clean_amount(token)
-                    if current_operation.get('label') is not None and current_operation.get('date') is not None:
-                        self.logger.debug('Parsed operation: %s: %s: %s' % (current_operation['date'], current_operation['label'], current_operation['amount']))
-                        operations.append(current_operation)
-                        current_operation = {}
-                else:
-                    if current_operation.get('label') is not None:
-                        current_operation['label'] = u'%s %s' % (current_operation['label'], token)
-                    else:
-                        current_operation['label'] = token
-
-        # Step 3: yield adequate transactions
-        index = start_index
-        for op in operations[start_offset:]:
-            self.logger.debug('will yield the following transaction with index %d: %s: %s: %s' % (index, op['date'], op['label'], op['amount']))
-            transaction = Transaction(index)
-            index += 1
-            transaction.amount = op['amount']
-            transaction.date = self.date_from_string(op['date'])
-            transaction.raw = op['label']
-            yield transaction
