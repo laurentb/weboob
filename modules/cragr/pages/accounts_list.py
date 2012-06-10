@@ -23,71 +23,61 @@ import re
 from datetime import date
 from weboob.capabilities.bank import Account
 from .base import CragrBasePage
+from .tokenextractor import TokenExtractor
 from weboob.capabilities.bank import Transaction
 
 
-def clean_amount(amount):
-    """
-        Removes weird characters and converts to a Decimal
-        >>> clean_amount(u'1 000,00 $')
-        1000.0
-    """
-    data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
-    matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-    return Decimal(matches[0]) if (matches) else Decimal(0)
-
-
 class AccountsList(CragrBasePage):
+    """
+        Unlike most pages used with the Browser class, this class represents
+        several pages, notably accounts list, history and transfer. This is due
+        to the Credit Agricole not having a clear pattern to identify a page
+        based on its URL.
+    """
 
     def get_list(self):
         """
             Returns the list of available bank accounts
         """
         l = []
-
         for div in self.document.getiterator('div'):
             if div.attrib.get('class', '') in ('dv', 'headline') and div.getchildren()[0].tag in ('a', 'br'):
-                account = Account()
-                account._link_id = None
-                if div.getchildren()[0].tag == 'a':
-                    # This is at least present on CA Nord-Est
-                    # Note: we do not know yet how history-less accounts are displayed by this layout
-                    if len(div.getchildren()[0].get('href')) < 2 :
-                        # CA centre has a href="/" link, not interesting there
-                        continue
-                    account.label = ' '.join(div.find('a').text.split()[:-1])
-                    account._link_id = div.find('a').get('href', '')
-                    account.id = div.find('a').text.split()[-1]
-                    s = div.find('div').find('b').find('span').text
-                else:
-                    # This is at least present on CA Toulouse
+                self.logger.debug("Analyzing div %s" % div)
+                # Step 1: extract text tokens
+                tokens = []
+                required_tokens = {}
+                optional_tokens = {}
+                token_extractor = TokenExtractor()
+                for token in token_extractor.extract_tokens(div):
+                    self.logger.debug('Extracted text token: "%s"' % token)
+                    tokens.append(token)
+                # Step 2: analyse tokens
+                for token in tokens:
+                    if self.look_like_account_number(token):
+                        required_tokens['account_number'] = token
+                    elif self.look_like_amount(token):
+                        required_tokens['account_amount'] = token
+                    elif self.look_like_account_name(token):
+                        required_tokens['account_name'] = token
+                    elif self.look_like_account_owner(token):
+                        optional_tokens['account_owner'] = token
+                # Step 3: create account objects
+                if len(required_tokens) >= 3:
+                    account = Account()
+                    account.label = required_tokens['account_name']
+                    account.id = required_tokens['account_number']
+                    account.balance = self.clean_amount(required_tokens['account_amount'])
+                    # we found almost all required information to create an account object
+                    self.logger.debug('Found account %s with number %s and balance = %.2f' % (account.label, account.id, account.balance))
+                    # we may have found the owner name too
+                    if optional_tokens.get('account_owner') is not None:
+                        # well, we could add it to the label, but is this really required?
+                        self.logger.debug('  the owner appears to be %s' % optional_tokens['account_owner'])
+                    # we simply lack the link to the account history... which remains optional
                     first_link = div.find('a')
-                    account.id = div.findall('br')[1].tail.strip()
                     if first_link is not None:
-                        account.label   = first_link.text.strip()
-                        account._link_id = first_link.get('href', '')
-                        s_node = div.find('div').find('b')
-                        if s_node is None:
-                            # This is present on CA Centre
-                            s_node = div.findall('b')[0].find('big')
-                            account.id = div.find('span').text.strip()
-                        s = s_node.text
-                    else:
-                        # there is no link to any history page for accounts like "PEA" or "TITRES"
-                        account._link_id = None
-                        if isinstance(div.findall('br')[0].tail, str):
-                            account.label = div.findall('br')[0].tail.strip()
-                            s = div.xpath('following-sibling::div//b')[0].text
-                        else:
-                            label_container = div.xpath('./b/span')
-                            if label_container and label_container[0].text is not None:
-                                account.label = label_container[0].text.strip()
-                            else:
-                                account.label = div.findall('br')[1].tail.strip()
-                            account.id = div.find('span').text.strip()
-                            s = div.xpath('.//big')[0].text
-                account.balance = clean_amount(s)
-                if account.label:
+                        account._link_id = first_link.get('href')
+                        self.logger.debug('  the history link appears to be %s' % account._link_id)
                     l.append(account)
         return l
 
@@ -188,12 +178,6 @@ class AccountsList(CragrBasePage):
         link = self.document.xpath('/html/body//a[@accesskey=1]/@href')
         return link[0]
 
-    def is_right_aligned_div(self, div_elmt):
-        """
-            Returns True if the given div element is right-aligned
-        """
-        return(re.match('.*text-align: ?right.*', div_elmt.get('style', '')))
-
     def extract_text(self, xml_elmt):
         """
             Given an XML element, returns its inner text in a reasonably readable way
@@ -209,6 +193,8 @@ class AccountsList(CragrBasePage):
             Returns a fallback, default date.
         """
         default_date_obj = date.today()
+        # FIXME this does not work
+        # AttributeError: attribute 'month' of 'datetime.date' objects is not writable
         default_date_obj.month = 1
         default_date_obj.day = 1
         return default_date_obj
@@ -223,6 +209,7 @@ class AccountsList(CragrBasePage):
         return self.date_from_day_month(int(matches.group(1)), int(matches.group(2)))
 
     def date_from_day_month(self, day, month):
+        """ Returns a date object built from a given day/month pair. """
         today = date.today()
         # This bank provides dates using the 'DD/MM' string, so we have to
         # determine the most possible year by ourselves
@@ -231,6 +218,54 @@ class AccountsList(CragrBasePage):
         else:
             year = today.year
         return date(year, month, day)
+
+    def look_like_account_owner(self, string):
+        """ Returns a date object built from a given day/month pair. """
+        result = re.match('^\s*(M\.|Mr|Mme|Mlle|Monsieur|Madame|Mademoiselle)', string, re.IGNORECASE)
+        self.logger.debug('Does "%s" look like an account owner? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def look_like_account_name(self, string):
+        """ Returns True of False depending whether string looks like an account name. """
+        result = (len(string) >= 3 and not self.look_like_account_owner(string))
+        self.logger.debug('Does "%s" look like an account name? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def look_like_account_number(self, string):
+        """ Returns either False or a SRE_Match object depending whether string looks like an account number. """
+        # An account is a 11 digits number (no more, no less)
+        result = re.match('[^\d]*\d{11}[^\d]*', string)
+        self.logger.debug('Does "%s" look like an account number? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def look_like_amount(self, string):
+        """ Returns either False or a SRE_Match object depending whether string looks like an amount. """
+        # It seems the Credit Agricole always mentions amounts using two decimals
+        result = re.match('-?[\d ]+[\.,]\d{2}', string)
+        self.logger.debug('Does "%s" look like an amount? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def look_like_date_only(self, string):
+        """ Returns either False or a SRE_Match object depending whether string looks like an isolated date. """
+        result = re.search('^\s*((?:[012][0-9]|3[01])/(?:0[1-9]|1[012]))\s*$', string)
+        self.logger.debug('Does "%s" look like a date (and only a date)? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def look_like_date_and_description(self, string):
+        """ Returns either False or a SRE_Match object depending on whether string looks like a date+description pair. """
+        result = re.search('^\s*((?:[012][0-9]|3[01])/(?:0[1-9]|1[012]))\s+(.+)\s*$', string)
+        self.logger.debug('Does "%s" look like a date+description pair? %s', string, ('yes' if result else 'no'))
+        return result
+
+    def clean_amount(self, amount):
+        """
+            Removes weird characters and converts to a Decimal
+            >>> clean_amount(u'1 000,00 $')
+            1000.0
+        """
+        data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
+        matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
+        return Decimal(matches[0]) if (matches) else Decimal(0)
 
     def get_history(self, start_index=0, start_offset=0):
         """
@@ -244,98 +279,55 @@ class AccountsList(CragrBasePage):
         if not self.is_account_page():
             return
 
-        index = start_index
-        operation = False
-        skipped = 0
+        # Step 1: extract text tokens
+        tokens = []
+        token_extractor = TokenExtractor()
+        for div in self.document.getiterator('div'):
+            if div.attrib.get('class', '') in ('dv'):
+                self.logger.debug("Analyzing div %s" % div)
+                for token in token_extractor.extract_tokens(div):
+                    self.logger.debug('Extracted text token: "%s"' % token)
+                    tokens.append(token)
 
-        body_elmt_list = self.document.xpath('/html/body/*')
-
-        # type of separator used in the page
-        separators = 'hr'
-        # How many <hr> elements do we have under the <body>?
-        sep_expected = len(self.document.xpath('/html/body/hr'))
-        if (not sep_expected):
-            # no <hr>? Then how many class-less <div> used as separators instead?
-            sep_expected = len(self.document.xpath('/html/body/div[not(@class) and not(@style)]'))
-            separators = 'div'
-
-        # the interesting divs are after the <hr> elements
-        interesting_divs = []
-        right_div_count = 0
-        left_div_count = 0
-        sep_found = 0
-        for body_elmt in body_elmt_list:
-            if (separators == 'hr' and body_elmt.tag == 'hr'):
-                sep_found += 1
-            elif (separators == 'div' and body_elmt.tag == 'div' and body_elmt.get('class', 'nope') == 'nope'):
-                sep_found += 1
-            elif (sep_found >= sep_expected and body_elmt.tag == 'div'):
-                # we just want <div> with dv class and a style attribute
-                if (body_elmt.get('class', '') != 'dv'):
-                    continue
-                if (body_elmt.get('style', 'nope') == 'nope'):
-                    continue
-                interesting_divs.append(body_elmt)
-                if (self.is_right_aligned_div(body_elmt)):
-                    right_div_count += 1
+        # Step 2: convert tokens into operations
+        # Notes:
+        # * the code below expects pieces of information to be in the date-label-amount order;
+        #   could we achieve a heuristic smart enough to guess this order?
+        # * unlike the former code, we parse every operation
+        operations = []
+        current_operation = {}
+        for token in tokens:
+            self.logger.debug('Analyzing token: "%s"' % token)
+            date_analysis = self.look_like_date_only(token)
+            if date_analysis:
+                current_operation = {}
+                current_operation['date'] = date_analysis.groups()[0]
+            else:
+                date_desc_analysis = self.look_like_date_and_description(token)
+                if date_desc_analysis:
+                    current_operation = {}
+                    current_operation['date'] = date_desc_analysis.groups()[0]
+                    current_operation['label'] = date_desc_analysis.groups()[1]
+                elif self.look_like_amount(token):
+                    # we consider the amount is the last information we get for an operation
+                    current_operation['amount'] = self.clean_amount(token)
+                    if current_operation.get('label') is not None and current_operation.get('date') is not None:
+                        self.logger.debug('Parsed operation: %s: %s: %s' % (current_operation['date'], current_operation['label'], current_operation['amount']))
+                        operations.append(current_operation)
+                        current_operation = {}
                 else:
-                    left_div_count += 1
-
-        # new layout that is somewhat easier to parse (found at Toulouse)
-        table_layout = len(self.document.xpath("id('operationsHeader')")) > 0
-        # So, how are data laid out?
-        alternate_layout = (left_div_count == 2 * right_div_count)
-        # we'll have: one left-aligned div for the date, one right-aligned
-        # div for the amount, and one left-aligned div for the label. Each time.
-
-        if table_layout:
-            lines = self.document.xpath('id("operationsContent")//table[@class="tb"]/tr')
-            for line in lines:
-                if skipped < start_offset:
-                    skipped += 1
-                    continue
-                operation = Transaction(index)
-                index += 1
-                operation.date = self.date_from_string(self.extract_text(line[0]))
-                operation.raw = self.extract_text(line[1])
-                operation.amount = clean_amount(self.extract_text(line[2]))
-                yield operation
-        elif (not alternate_layout):
-            for body_elmt in interesting_divs:
-                if skipped < start_offset:
-                    if self.is_right_aligned_div(body_elmt):
-                        skipped += 1
-                    continue
-                if (self.is_right_aligned_div(body_elmt)):
-                    # this is the second line of an operation entry, displaying the amount
-                    operation.amount = clean_amount(self.extract_text(body_elmt))
-                    yield operation
-                else:
-                    # this is the first line of an operation entry, displaying the date and label
-                    data = self.extract_text(body_elmt)
-                    matches = re.findall('^([012][0-9]|3[01])/(0[1-9]|1[012]).(.+)$', data)
-                    operation = Transaction(index)
-                    index += 1
-                    if (matches):
-                        operation.date  = self.date_from_day_month(int(matches[0][0]), int(matches[0][1]))
-                        operation.raw = u'%s'    % matches[0][2]
+                    if current_operation.get('label') is not None:
+                        current_operation['label'] = u'%s %s' % (current_operation['label'], token)
                     else:
-                        operation.date  = self.default_date()
-                        operation.raw = u'Unknown'
-        else:
-            for i in range(0, len(interesting_divs)/3):
-                if skipped < start_offset:
-                    skipped += 1
-                    continue
-                operation = Transaction(index)
-                index += 1
-                # amount
-                operation.amount = clean_amount(self.extract_text(interesting_divs[(i*3)+1]))
-                # date
-                data = self.extract_text(interesting_divs[i*3])
-                operation.date = self.date_from_string(date)
-                #label
-                data = self.extract_text(interesting_divs[(i*3)+2])
-                data = re.sub(' +', ' ', data)
-                operation.raw = u'%s' % data
-                yield operation
+                        current_operation['label'] = token
+
+        # Step 3: yield adequate transactions
+        index = start_index
+        for op in operations[start_offset:]:
+            self.logger.debug('will yield the following transaction with index %d: %s: %s: %s' % (index, op['date'], op['label'], op['amount']))
+            transaction = Transaction(index)
+            index += 1
+            transaction.amount = op['amount']
+            transaction.date = self.date_from_string(op['date'])
+            transaction.raw = op['label']
+            yield transaction
