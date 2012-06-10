@@ -254,15 +254,8 @@ class AccountsList(CragrBasePage):
         return data
 
     def fallback_date(self):
-        """
-            Returns a fallback, default date.
-        """
-        default_date_obj = date.today()
-        # FIXME this does not work
-        # AttributeError: attribute 'month' of 'datetime.date' objects is not writable
-        default_date_obj.month = 1
-        default_date_obj.day = 1
-        return default_date_obj
+        """ Returns a fallback, default date. """
+        return date(date.today().year, 1, 1)
 
     def date_from_string(self, string):
         """
