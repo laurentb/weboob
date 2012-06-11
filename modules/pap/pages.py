@@ -49,6 +49,10 @@ class SearchResultsPage(BasePage):
     def iter_housings(self):
         for div in self.document.getroot().cssselect('div.annonce-resume'):
             a = div.cssselect('td.lien-annonce')[0].find('a')
+            if a is None:
+                # not a real announce.
+                continue
+
             id = a.attrib['href'].split('-')[-1]
             housing = Housing(id)
             housing.title = a.text.strip()
