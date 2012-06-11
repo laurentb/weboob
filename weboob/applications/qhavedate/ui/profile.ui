@@ -70,6 +70,9 @@
                <property name="text">
                 <string>&lt;h1&gt;Loading...&lt;/h1&gt;</string>
                </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+               </property>
               </widget>
              </item>
              <item>
@@ -88,7 +91,7 @@
                 <bool>true</bool>
                </property>
                <property name="textInteractionFlags">
-                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                </property>
               </widget>
              </item>
