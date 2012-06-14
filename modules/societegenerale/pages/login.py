@@ -21,6 +21,7 @@
 from logging import error
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.mech import ClientForm
 from ..captcha import Captcha, TileError
 from lxml import etree
 
@@ -71,10 +72,13 @@ class LoginPage(BasePage):
                 err.tile.display()
 
         self.browser.openurl(url_login)
-        self.browser.select_form('authentification')
+        self.browser.select_form('n2g_authentification')
+        self.browser.controls.append(ClientForm.TextControl('text', 'codsec', {'value': ''}))
+        self.browser.controls.append(ClientForm.TextControl('text', 'cryptocvcs', {'value': ''}))
         self.browser.set_all_readonly(False)
 
         self.browser['codcli'] = login
+        self.browser['user_id'] = login
         self.browser['codsec'] = img.get_codes(password)
         self.browser['cryptocvcs'] = infos["cryptogramme"]
         self.browser.submit()
