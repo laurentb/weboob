@@ -25,10 +25,25 @@ from weboob.core import CallErrors
 from weboob.tools.application.repl import ReplApplication
 from weboob.applications.boobmsg import Boobmsg
 from weboob.capabilities.dating import ICapDating, OptimizationNotFound
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
 __all__ = ['HaveDate']
 
+
+class EventListFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('date', 'type')
+
+    def get_title(self, event):
+        s = u'(%s) %s' % (event.date, event.type)
+        if hasattr(event, 'contact') and event.contact:
+            s += u' — %s' % (event.contact.name)
+
+        return s
+
+    def get_description(self, event):
+        if hasattr(event, 'message'):
+            return event.message
 
 class HaveDate(Boobmsg):
     APPNAME = 'havedate'
@@ -39,8 +54,11 @@ class HaveDate(Boobmsg):
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
     CAPS = ICapDating
+    EXTRA_FORMATTERS = copy(Boobmsg.EXTRA_FORMATTERS)
+    EXTRA_FORMATTERS['events'] = EventListFormatter
     COMMANDS_FORMATTERS = copy(Boobmsg.COMMANDS_FORMATTERS)
     COMMANDS_FORMATTERS['optim'] = 'table'
+    COMMANDS_FORMATTERS['events'] = 'events'
 
     def load_default_backends(self):
         self.load_backends(ICapDating, storage=self.create_storage(self.STORAGE_FILENAME))
@@ -229,3 +247,15 @@ class HaveDate(Boobmsg):
             return
         print >>sys.stderr, "No such command '%s'" % cmd
         return 1
+
+    def do_events(self, line):
+        """
+        events
+
+        Display dating events.
+        """
+        self.change_path([u'events'])
+        self.start_format()
+        for backend, event in self.do('iter_events'):
+            self.cached_format(event)
+        self.flush()
