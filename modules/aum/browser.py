@@ -234,8 +234,11 @@ class AuMBrowser(BaseBrowser):
 
     @check_login
     def get_visits(self):
-        r = self.api_request('me', 'visits')
-        return r['result']['news'] + r['result']['olds']
+        # display three pages
+        for i in xrange(3):
+            r = self.api_request('me', 'visits', data={'page': i})
+            for p in (r['result']['news'] + r['result']['olds']):
+                yield p
 
     @check_login
     def get_threads_list(self, count=30):
