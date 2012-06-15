@@ -301,7 +301,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             pass  # don't care about waiting
 
     def set_message_read(self, message):
-        if message.id == self.MAGIC_ID_BASKET:
+        if int(message.id) == self.MAGIC_ID_BASKET:
             # Save the last baskets checks.
             slut = self._get_slut(-self.MAGIC_ID_BASKET)
             if slut['lastmsg'] < message.date:
