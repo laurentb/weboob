@@ -101,9 +101,9 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     def iter_events(self):
         all_events = {}
         with self.browser:
-            all_events['baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
-            all_events['flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
-            all_events['visits'] =  (self.browser.get_visits, 'Visited by %s')
+            all_events[u'baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
+            all_events[u'flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
+            all_events[u'visits'] =  (self.browser.get_visits, 'Visited by %s')
         for type, (events, message) in all_events.iteritems():
             for event in events():
                 try:
@@ -394,18 +394,18 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
         else:
             s = Contact.STATUS_OFFLINE
 
-        c = Contact(contact['id'], contact['pseudo'], s)
+        c = Contact(contact['id'], to_unicode(contact['pseudo']), s)
         c.url = self.browser.id2url(contact['id'])
         if 'birthday' in contact:
             birthday = _parse_dt(contact['birthday'])
             age = int((datetime.datetime.now() - birthday).days / 365.25)
             c.status_msg = u'%s old, %s' % (age, contact['city'])
         if contact['cover'].isdigit() and int(contact['cover']) > 0:
-            url = 'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
+            url = u'http://s%s.adopteunmec.com/%s%%(type)s%s.jpg' % (contact['shard'], contact['path'], contact['cover'])
         else:
-            url = 'http://s.adopteunmec.com/www/img/thumb0.gif'
+            url = u'http://s.adopteunmec.com/www/img/thumb0.gif'
 
-        c.set_photo('image%s' % contact['cover'],
+        c.set_photo(u'image%s' % contact['cover'],
                     url=url % {'type': 'image'},
                     thumbnail_url=url % {'type': 'thumb0_'})
         return c
