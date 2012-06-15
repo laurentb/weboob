@@ -123,6 +123,9 @@ class AuMBrowser(BaseBrowser):
                 raise AuMException(code)
         return r
 
+    def logout(self):
+        self._ua_handlers["_cookies"].cookiejar.clear()
+
     def login(self):
         r = self.api_request('me', 'login', data={'login': self.username,
                                                   'pass':  self.password,
@@ -312,10 +315,10 @@ class AuMBrowser(BaseBrowser):
     def search_profiles(self, **kwargs):
         if self.search_query is None:
             r = self.api_request('searchs', '[default]')
-            self.search_query = r['result']['search']['query']
+            self.search_query = r['result']['search']
 
         params = {}
-        for key, value in json.loads(self.search_query).iteritems():
+        for key, value in json.loads(self.search_query['query']).iteritems():
             if isinstance(value, dict):
                 for k, v in value.iteritems():
                     params['%s%s' % (key, k.capitalize())] = v
