@@ -47,9 +47,9 @@ class Visibility(Optimization):
 
     def reconnect(self):
         try:
-            AuMBrowser(self.browser.username,
-                        self.browser.password,
-                        proxy=self.browser.proxy)
+            with self.browser:
+                self.browser.logout()
+                self.browser.login()
         except BrowserUnavailable, e:
             print str(e)
             pass
