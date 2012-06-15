@@ -546,6 +546,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     StatusField('myname', 'My name', self.browser.get_my_name()),
                     StatusField('score', 'Score', self.browser.score()),
                     StatusField('avcharms', 'Available charms', self.browser.nb_available_charms()),
+                    StatusField('newvisits', 'New visits', self.browser.nb_new_visites()),
                     StatusField('godchilds', 'Number of godchilds', self.browser.nb_godchilds()),
                    )
 
