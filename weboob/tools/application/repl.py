@@ -26,7 +26,7 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 
-from weboob.capabilities.base import FieldNotFound, CapBaseObject, ObjectNotSupported
+from weboob.capabilities.base import FieldNotFound, CapBaseObject, ObjectNotSupported, UserError
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
@@ -208,6 +208,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                     return backend.fillobj(obj, fields)
                 except ObjectNotSupported:
                     pass
+                except UserError, e:
+                    self.bcall_error_handler(backend, e, '')
 
         _id, backend_name = self.parse_id(_id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
@@ -217,6 +219,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                     backend.fillobj(obj, fields)
                 except ObjectNotSupported:
                     pass
+                except UserError, e:
+                    self.bcall_error_handler(backend, e, '')
 
                 return obj
 
