@@ -60,10 +60,13 @@ class LCLBackend(BaseBackend, ICapBank):
             raise AccountNotFound()
 
     def iter_coming(self, account):
-        """ TODO Not supported yet """
-        return iter([])
+        with self.browser:
+            transactions = list(self.browser.get_cb_operations(account))
+            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+            return transactions
 
     def iter_history(self, account):
         with self.browser:
-            for history in self.browser.get_history(account):
-                yield history
+            transactions = list(self.browser.get_history(account))
+            transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+            return transactions

@@ -135,9 +135,12 @@ class AccountsPage(BasePage):
         l = []
         for a in self.document.getiterator('a'):
             link=a.attrib.get('href')
-            if link is not None and link.startswith("/outil/UWLM/ListeMouvements"):
+            if link is None:
+                continue
+            if link.startswith("/outil/UWLM/ListeMouvements"):
                 account = Account()
                 account._link_id=link+"&mode=45"
+                account._coming_links = []
                 parameters=link.split("?").pop().split("&")
                 for parameter in parameters:
                     list=parameter.split("=")
@@ -161,6 +164,21 @@ class AccountsPage(BasePage):
                 account.balance=Decimal(balance)
                 self.logger.debug('%s Type: %s' % (account.label, account._type))
                 l.append(account)
+            if link.startswith('/outil/UWCB/UWCBEncours'):
+                if len(l) == 0:
+                    self.logger.warning('There is a card account but not any check account')
+                    continue
+
+                account = l[-1]
+
+                coming = a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.').strip()
+                if '-' in coming:
+                    coming = '-'+coming.replace('-', '')
+                if not account.coming:
+                    account.coming = Decimal('0')
+                account.coming += Decimal(coming)
+                account._coming_links.append(link)
+
         return l
 
 
@@ -185,61 +203,107 @@ class Transaction(FrenchTransaction):
                ]
 
 class AccountHistoryPage(BasePage):
-    def get_operations(self,account):
-        operations = []
+    def get_table(self):
         tables=self.document.findall("//table[@class='tagTab pyjama']")
-        table=None
-        for i in range(len(tables)):
+        for table in tables:
             # Look for the relevant table in the Pro version
-            header=tables[i].getprevious()
+            header=table.getprevious()
             while str(header.tag)=="<built-in function Comment>":
                 header=header.getprevious()
             header=header.find("div")
             if header is not None:
                 header=header.find("span")
+
             if header is not None and \
                header.text.strip().startswith("Opérations effectuées".decode('utf-8')):
-                table=tables[i]
-                break;
+                return table
+
             # Look for the relevant table in the Particulier version
-            header=tables[i].find("thead").find("tr").find("th[@class='titleTab titleTableft']")
+            header=table.find("thead").find("tr").find("th[@class='titleTab titleTableft']")
             if header is not None and\
                header.text.strip().startswith("Solde au"):
-                table=tables[i]
-                break;
+                return table
+
+    def strip_label(self, s):
+        return s
+
+    def get_operations(self):
+        table = self.get_table()
+        operations = []
+
+        if table is None:
+            return operations
 
         for tr in table.iter('tr'):
             # skip headers and empty rows
             if len(tr.findall("th"))!=0 or\
                len(tr.findall("td"))<=1:
                 continue
-            mntColumn=0
+            mntColumn = 0
 
             date = None
             raw = None
             credit = ''
             debit = ''
             for td in tr.iter('td'):
-                value=td.attrib.get('id')
+                value = td.attrib.get('id')
                 if value is None:
-                    value=td.attrib.get('class');
-                if value.startswith("date"):
+                    # if tag has no id nor class, assume it's a label
+                    value = td.attrib.get('class', 'opLib')
+
+                if value.startswith("date") or value.endswith('center'):
                     # some transaction are included in a <strong> tag
-                    date=u''.join([txt.strip() for txt in td.itertext()])
+                    date = u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("lib") or value.startswith("opLib"):
                     # misclosed A tag requires to grab text from td
-                    raw=u''.join([txt.strip() for txt in td.itertext()])
-                elif value.startswith("solde") or value.startswith("mnt"):
-                    mntColumn+=1
-                    amount=u''.join([txt.strip() for txt in td.itertext()])
+                    raw = self.strip_label(u''.join([txt.strip() for txt in td.itertext()]))
+                elif value.startswith("solde") or value.startswith("mnt") or \
+                     value.startswith('debit') or value.startswith('credit'):
+                    mntColumn += 1
+                    amount = u''.join([txt.strip() for txt in td.itertext()])
                     if amount != "":
-                        if value.startswith("soldeDeb") or mntColumn==1:
+                        if value.startswith("soldeDeb") or value.startswith('debit') or mntColumn==1:
                             debit = amount
                         else:
                             credit = amount
 
-            operation=Transaction(len(operations))
+            if date is None:
+                # skip non-transaction
+                continue
+
+            operation = Transaction(len(operations))
             operation.parse(date, raw)
             operation.set_amount(credit, debit)
+
+            if operation.category == 'RELEVE CB':
+                # strip that transaction which is detailled in CBListPage.
+                continue
+
             operations.append(operation)
         return operations
+
+class CBHistoryPage(AccountHistoryPage):
+    def get_table(self):
+        # there is only one table on the page
+        try:
+            return self.document.findall("//table[@class='tagTab pyjama']")[0]
+        except IndexError:
+            return None
+
+    def strip_label(self, label):
+        # prevent to be considered as a category if there are two spaces.
+        return re.sub(r'[ ]+', ' ', label).strip()
+
+    def get_operations(self):
+        for tr in AccountHistoryPage.get_operations(self):
+            tr.type = tr.TYPE_CARD
+            yield tr
+
+class CBListPage(CBHistoryPage):
+    def get_cards(self):
+        cards = []
+        for a in self.document.getiterator('a'):
+            link = a.attrib.get('href', '')
+            if link.startswith('/outil/UWCB/UWCBEncours') and 'listeOperations' in link:
+                cards.append(link)
+        return cards
