@@ -53,7 +53,7 @@ class DeparturesPage(BasePage):
                 time = datetime.datetime.combine(datetime.date.today(), datetime.time(*[int(x) for x in time_s.split(':')]))
             except ValueError:
                 late_reason = time_s
-                self.logger.warning('Unable to parse datetime "%s"' % time)
+                self.logger.warning('Unable to parse datetime "%s"' % time_s)
 
             yield {'type':        to_unicode(code_mission),
                    'time':        time,
