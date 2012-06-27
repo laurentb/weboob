@@ -43,13 +43,16 @@ class DeparturesPage(BasePage):
                 continue
 
             code_mission = self.parser.select(tr, 'td[headers=Code_de_mission] a', 1).text.strip()
-            time = self.parser.select(tr, 'td[headers=Heure_de_passage]', 1).text.strip()
+            time_s = self.parser.select(tr, 'td[headers=Heure_de_passage]', 1).text.strip()
             destination = self.parser.select(tr, 'td[headers=Destination]', 1).text.strip()
             plateform = self.parser.select(tr, 'td[headers=Voie]', 1).text.strip()
 
+            late_reason = None
+            time = None
             try :
-                time = datetime.datetime.combine(datetime.date.today(), datetime.time(*[int(x) for x in time.split(':')]))
+                time = datetime.datetime.combine(datetime.date.today(), datetime.time(*[int(x) for x in time_s.split(':')]))
             except ValueError:
+                late_reason = time_s
                 self.logger.warning('Unable to parse datetime "%s"' % time)
 
             yield {'type':        to_unicode(code_mission),
@@ -57,5 +60,5 @@ class DeparturesPage(BasePage):
                    'departure':   to_unicode(departure),
                    'arrival':     to_unicode(destination),
                    'late':        datetime.time(),
-                   'late_reason': None,
+                   'late_reason': late_reason,
                    'plateform':   to_unicode(plateform)}
