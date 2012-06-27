@@ -83,6 +83,8 @@ class FrenchTransaction(Transaction):
                 date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
             elif '/' in date:
                 date = datetime.date(*reversed([int(x) for x in date.split('/')]))
+            if date.year < 100:
+                date = date.replace(year=2000 + date.year)
 
         self.date = date
         self.rdate = date
