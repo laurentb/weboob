@@ -35,7 +35,8 @@ class FrenchTransaction(Transaction):
     """
     PATTERNS = []
 
-    def clean_amount(self, text):
+    @classmethod
+    def clean_amount(klass, text):
         """
         Clean a string containing an amount.
         """
