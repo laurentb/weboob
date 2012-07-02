@@ -23,6 +23,7 @@ from decimal import Decimal
 import re
 
 from weboob.tools.browser import BasePage
+from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -39,6 +40,9 @@ class LoginErrorPage(BasePage):
 class InfoPage(BasePage):
     pass
 
+class EmptyPage(BasePage):
+    pass
+
 class TransfertPage(BasePage):
     pass
 
@@ -47,45 +51,49 @@ class UserSpacePage(BasePage):
 
 class AccountsPage(BasePage):
     def get_list(self):
-        ids = set()
+        accounts = OrderedDict()
 
         for tr in self.document.getiterator('tr'):
             first_td = tr.getchildren()[0]
             if (first_td.attrib.get('class', '') == 'i g' or first_td.attrib.get('class', '') == 'p g') \
                and first_td.find('a') is not None:
-                account = Account()
-                account.label = u"%s"%first_td.find('a').text.strip().lstrip(' 0123456789').title()
-                account._link_id = first_td.find('a').get('href', '')
-                if account._link_id.startswith('POR_SyntheseLst'):
+
+                a = first_td.find('a')
+                link = a.get('href', '')
+                if link.startswith('POR_SyntheseLst'):
                     continue
 
-                url = urlparse(account._link_id)
+                url = urlparse(link)
                 p = parse_qs(url.query)
                 if not 'rib' in p:
                     continue
 
-                account.id = p['rib'][0]
+                for i in (2,1):
+                    balance = FrenchTransaction.clean_amount(tr.getchildren()[i].text.strip(' EUR'))
+                    if len(balance) > 0:
+                        break
+                balance = Decimal(balance)
 
-                if account.id in ids:
+                id = p['rib'][0]
+                if id in accounts:
+                    account = accounts[id]
+                    if not account.coming:
+                        account.coming = Decimal('0.0')
+                    account.coming += balance
+                    account._card_links.append(link)
                     continue
 
-                ids.add(account.id)
+                account = Account()
+                account.id = id
+                account.label = unicode(a.text).strip().lstrip(' 0123456789').title()
+                account._link_id = link
+                account._card_links = []
 
-                s = tr.getchildren()[2].text
-                if s.strip() == "":
-                    s = tr.getchildren()[1].text
-                balance = u''
-                for c in s:
-                    if c.isdigit() or c == '-':
-                        balance += c
-                    if c == ',':
-                        balance += '.'
-                account.balance = Decimal(balance)
-                yield account
+                account.balance = balance
 
-    def next_page_url(self):
-        """ TODO pouvoir passer à la page des comptes suivante """
-        return 0
+                accounts[account.id] = account
+
+        return accounts.itervalues()
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
@@ -99,6 +107,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+    _is_coming = False
 
 class OperationsPage(BasePage):
     def get_history(self):
@@ -120,14 +129,7 @@ class OperationsPage(BasePage):
                 operation = Transaction(index)
                 index += 1
 
-                # Find different parts of label
-                parts = []
-                if len(tds[-3].findall('a')) > 0:
-                    parts = [a.text.strip() for a in tds[-3].findall('a')]
-                else:
-                    parts.append(tds[-3].text.strip())
-                    if tds[-3].find('br') is not None:
-                        parts.append(tds[-3].find('br').tail.strip())
+                parts = [txt.strip() for txt in tds[-3].itertext() if len(txt.strip()) > 0]
 
                 # To simplify categorization of CB, reverse order of parts to separate
                 # location and institution.
@@ -139,22 +141,35 @@ class OperationsPage(BasePage):
 
                 if tds[-1].text is not None and len(tds[-1].text) > 2:
                     s = tds[-1].text.strip()
-                elif tds[-1].text is not None and len(tds[-2].text) > 2:
+                elif tds[-2].text is not None and len(tds[-2].text) > 2:
                     s = tds[-2].text.strip()
                 else:
                     s = "0"
-                balance = u''
-                for c in s:
-                    if c.isdigit() or c == "-":
-                        balance += c
-                    if c == ',':
-                        balance += '.'
-                operation.amount = Decimal(balance)
+                operation.set_amount(s.rstrip('EUR'))
                 yield operation
 
     def next_page_url(self):
         """ TODO pouvoir passer à la page des opérations suivantes """
         return 0
+
+class CardPage(OperationsPage):
+    def get_history(self):
+        index = 0
+        for tr in self.document.xpath('//table[@class="liste"]/tbody/tr'):
+            tds = tr.findall('td')
+            if len(tds) < 4:
+                continue
+
+            tr = Transaction(index)
+
+            parts = [txt.strip() for txt in list(tds[-3].itertext()) + list(tds[-2].itertext()) if len(txt.strip()) > 0]
+
+            tr.parse(date=tds[0].text.strip(' \xa0'),
+                     raw=u' '.join(parts))
+            tr.type = tr.TYPE_CARD
+
+            tr.set_amount(tds[-1].text.rstrip('EUR'))
+            yield tr
 
 class NoOperationsPage(OperationsPage):
     def get_history(self):

@@ -18,14 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlparse
+from urlparse import urlsplit, parse_qsl, urlparse
+from datetime import datetime, timedelta
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
-from datetime import datetime
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
-                   OperationsPage, NoOperationsPage, InfoPage, TransfertPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
+                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage
+
 
 __all__ = ['CICBrowser']
 
@@ -42,10 +43,11 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
              'https://www.cic.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
              'https://www.cic.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
-             'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
+             'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': CardPage,
              'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
              'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
-             'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage
+             'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
+             'https://www.cic.fr/.*/fr/': EmptyPage,
             }
 
     currentSubBank = None
@@ -90,11 +92,9 @@ class CICBrowser(BaseBrowser):
         url = urlparse(self.geturl())
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
-    def get_history(self, account):
-        page_url = account._link_id
-        #operations_count = 0
+    def list_operations(self, page_url):
         l_ret = []
-        while (page_url):
+        while page_url:
             if page_url.startswith('/'):
                 self.location(page_url)
             else:
@@ -108,6 +108,32 @@ class CICBrowser(BaseBrowser):
             page_url = self.page.next_page_url()
 
         return l_ret
+
+    def get_history(self, account):
+        transactions = []
+        last_debit = None
+        for tr in self.list_operations(account._link_id):
+            if tr.raw == 'RELEVE CARTE' and last_debit is None:
+                last_debit = (tr.date - timedelta(days=10)).month
+            else:
+                transactions.append(tr)
+
+        month = 0
+        for card_link in account._card_links:
+            v = urlsplit(card_link)
+            args = dict(parse_qsl(v.query))
+            # useful with 12 -> 1
+            if int(args['mois']) < month:
+                month = month + 1
+            month = int(args['mois'])
+
+            for tr in self.list_operations(card_link):
+                if month > last_debit:
+                    tr._is_coming = True
+                transactions.append(tr)
+
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page

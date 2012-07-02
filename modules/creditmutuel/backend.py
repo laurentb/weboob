@@ -57,12 +57,16 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
             raise AccountNotFound()
 
     def iter_coming(self, account):
-        """ TODO Not supported yet """
-        return iter([])
+        with self.browser:
+            for tr in self.browser.get_history(account):
+                if tr._is_coming:
+                    yield tr
 
     def iter_history(self, account):
-        for history in self.browser.get_history(account):
-            yield history
+        with self.browser:
+            for tr in self.browser.get_history(account):
+                if not tr._is_coming:
+                    yield tr
 
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_accounts_list().itervalues():

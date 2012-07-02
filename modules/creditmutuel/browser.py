@@ -18,12 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlsplit, parse_qsl, urlparse
+from datetime import datetime, timedelta
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
-from datetime import datetime
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
-                   OperationsPage, NoOperationsPage, InfoPage, TransfertPage
+from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
+                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage
+
 
 __all__ = ['CreditMutuelBrowser']
 
@@ -36,20 +39,18 @@ class CreditMutuelBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,
              'https://www.creditmutuel.fr/.*/fr/identification/default.cgi': LoginErrorPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
-         'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': OperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
-         'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage
+             'https://www.creditmutuel.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
+             'https://www.creditmutuel.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/operations_carte\.cgi.*': CardPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage,
+             'https://www.creditmutuel.fr/.*/fr/': EmptyPage,
             }
 
-    def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
-        #self.SUB_BANKS = ['cmdv','cmcee','cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
-        #self.currentSubBank = None
+    currentSubBank = None
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
@@ -69,7 +70,6 @@ class CreditMutuelBrowser(BaseBrowser):
         if not self.is_logged() or self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
-        self.SUB_BANKS = ['cmdv', 'cmcee', 'cmse', 'cmidf', 'cmsmb', 'cmma', 'cmmabn', 'cmc', 'cmlaco', 'cmnormandie', 'cmm']
         self.getCurrentSubBank()
 
     def get_accounts_list(self):
@@ -89,17 +89,12 @@ class CreditMutuelBrowser(BaseBrowser):
 
     def getCurrentSubBank(self):
         # the account list and history urls depend on the sub bank of the user
-        current_url = self.geturl()
-        current_url_parts = current_url.split('/')
-        for subbank in self.SUB_BANKS:
-            if subbank in current_url_parts:
-                self.currentSubBank = subbank
+        url = urlparse(self.geturl())
+        self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
-    def get_history(self, account):
-        page_url = account._link_id
-        #operations_count = 0
+    def list_operations(self, page_url):
         l_ret = []
-        while (page_url):
+        while page_url:
             if page_url.startswith('/'):
                 self.location(page_url)
             else:
@@ -113,6 +108,32 @@ class CreditMutuelBrowser(BaseBrowser):
             page_url = self.page.next_page_url()
 
         return l_ret
+
+    def get_history(self, account):
+        transactions = []
+        last_debit = None
+        for tr in self.list_operations(account._link_id):
+            if tr.raw == 'RELEVE CARTE' and last_debit is None:
+                last_debit = (tr.date - timedelta(days=10)).month
+            else:
+                transactions.append(tr)
+
+        month = 0
+        for card_link in account._card_links:
+            v = urlsplit(card_link)
+            args = dict(parse_qsl(v.query))
+            # useful with 12 -> 1
+            if int(args['mois']) < month:
+                month = month + 1
+            month = int(args['mois'])
+
+            for tr in self.list_operations(card_link):
+                if month > last_debit:
+                    tr._is_coming = True
+                transactions.append(tr)
+
+        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        return transactions
 
     def transfer(self, account, to, amount, reason=None):
         # access the transfer page
@@ -163,8 +184,3 @@ class CreditMutuelBrowser(BaseBrowser):
         transfer.recipient = to
         transfer.date = submit_date
         return transfer
-
-    #def get_coming_operations(self, account):
-    #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
-    #        self.location('/NS_AVEEC?ch4=%s' % account._link_id)
-    #    return self.page.get_operations()

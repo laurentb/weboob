@@ -56,9 +56,17 @@ class CICBackend(BaseBackend, ICapBank):
         else:
             raise AccountNotFound()
 
+    def iter_coming(self, account):
+        with self.browser:
+            for tr in self.browser.get_history(account):
+                if tr._is_coming:
+                    yield tr
+
     def iter_history(self, account):
-        for history in self.browser.get_history(account):
-            yield history
+        with self.browser:
+            for tr in self.browser.get_history(account):
+                if not tr._is_coming:
+                    yield tr
 
     def iter_transfer_recipients(self, ignored):
         for account in self.browser.get_accounts_list().itervalues():
