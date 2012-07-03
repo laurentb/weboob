@@ -61,7 +61,13 @@ class DetailsPage(BasePage):
             billid = billid[4:8] + billid[2:4] + billid[0:2]
             bill.id = num + "." + billid
             bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
-            bill.format = u'html'
+            alink = trbill.find('td/a')
+            if alink.attrib.get("class") == "linkModal tips":
+                bill.format = u'html'
+                bill._url = alink.attrib.get('data-link')
+            else:
+                bill.format = u"pdf"
+                bill._url = alink.attrib.get('href')
             self.datebills.append(bill)
 
     def parse_div(self, divglobal, string, inter=False):

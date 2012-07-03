@@ -102,6 +102,6 @@ class Freemobile(BaseBrowser):
 
     def download_bill(self, id):
         assert isinstance(id, basestring)
-        date = id.split('.')[1]
+        bill = self.get_bill(id)
 
-        return self.readurl('/moncompte/ajax.php?page=facture&mode=html&date=' + date)
+        return self.readurl(bill._url)
