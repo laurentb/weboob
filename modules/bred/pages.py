@@ -76,7 +76,7 @@ class AccountsPage(BredBasePage):
 
             cols = tr.findall('td')
 
-            amount = Decimal(u''.join([txt.strip() for txt in cols[-1].itertext()]).strip(' EUR').replace(' ', '').replace(',', '.'))
+            amount = sum([Decimal(txt.strip(' EUR').replace(' ', '').replace(',', '.')) for txt in cols[-1].itertext() if len(txt.strip()) > 0])
             a = cols[0].find('a')
             if a is None:
                 # this line is a cards line. attach it on the first account.
