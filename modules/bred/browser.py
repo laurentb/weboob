@@ -31,6 +31,7 @@ __all__ = ['BredBrowser']
 class BredBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.bred.fr'
+    ENCODING = 'iso-8859-15'
     PAGES = {'https://www.bred.fr/':                                    LoginPage,
              'https://www.bred.fr/Andromede/MainAuth.*':                LoginResultPage,
              'https://www.bred.fr/Andromede/Main':                      AccountsPage,
