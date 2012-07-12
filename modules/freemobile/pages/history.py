@@ -24,6 +24,7 @@ from decimal import Decimal
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
 
+import re
 
 __all__ = ['HistoryPage', 'DetailsPage']
 
@@ -117,9 +118,10 @@ class HistoryPage(BasePage):
 
     def on_loaded(self):
         self.calls = []
+        isdate = re.compile('[0-3][0-9]/[0-1][0-9]/2[0-9][0-9][0-9] [0-2][0-9]:[0-6][0-9]:[0-6][0-9]')
         for tr in self.document.xpath('//tr'):
             tds = tr.xpath('td')
-            if tds[0].text == None or tds[0].text == "Date":
+            if tds[0].text == None or tds[0].text == "Date" or not isdate.match(tds[0].text):
                 pass
             else:
                 detail = Detail()
