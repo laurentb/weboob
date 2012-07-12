@@ -82,23 +82,23 @@ class DetailsPage(BasePage):
         for div in divs:
             detail = Detail()
 
-            detail.label = div.find('div[@class="titreDetail"]/p').text_content()
+            detail.label = unicode(div.find('div[@class="titreDetail"]/p').text_content())
             if inter:
-                detail.label = detail.label + " (international)"
-            detail.infos = div.find('div[@class="consoDetail"]/p').text_content().lstrip()
+                detail.label = detail.label + u" (international)"
+            detail.infos = unicode(div.find('div[@class="consoDetail"]/p').text_content().lstrip())
             detail.price = convert_price(div)
 
             self.details.append(detail)
 
     def parse_voice(self, div, string, inter=False):
         voice = Detail()
-        voice.label = div.find('div[@class="titreDetail"]/p').text_content()
+        voice.label = unicode(div.find('div[@class="titreDetail"]/p').text_content())
         if inter:
             voice.label = voice.label + " (international)"
         voice.price = convert_price(div)
         voice1 = div.xpath('div[@class="consoDetail"]/p/span')[0].text
         voice2 = div.xpath('div[@class="consoDetail"]/p/span')[1].text
-        voice.infos = string % (voice1, voice2)
+        voice.infos = unicode(string) % (voice1, voice2)
 
         return voice
 

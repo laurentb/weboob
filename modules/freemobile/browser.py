@@ -99,9 +99,3 @@ class Freemobile(BaseBrowser):
         for a in l:
             if a.id == id:
                 return a
-
-    def download_bill(self, id):
-        assert isinstance(id, basestring)
-        bill = self.get_bill(id)
-
-        return self.readurl(bill._url)

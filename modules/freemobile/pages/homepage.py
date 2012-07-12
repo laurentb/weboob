@@ -31,11 +31,11 @@ class HomePage(BasePage):
     def get_list(self):
         l = []
         divabo = self.document.xpath('//div[@class="idAbonne pointer"]')[0]
-        owner = divabo.xpath('p')[0].text.replace(' - ', '')
-        phone = divabo.xpath('p/span')[0].text
+        owner = unicode(divabo.xpath('p')[0].text.replace(' - ', ''))
+        phone = unicode(divabo.xpath('p/span')[0].text)
         self.browser.logger.debug('Found ' + owner + ' has subscriber')
         self.browser.logger.debug('Found ' + phone + ' has phone number')
-        phoneplan = self.document.xpath('//div[@class="forfaitChoisi"]')[0].text.lstrip().rstrip()
+        phoneplan = unicode(self.document.xpath('//div[@class="forfaitChoisi"]')[0].text.lstrip().rstrip())
         self.browser.logger.debug('Found ' + phoneplan + ' has subscription type')
 
         subscription = Subscription(phone)
