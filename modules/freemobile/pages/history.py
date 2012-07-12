@@ -126,7 +126,7 @@ class HistoryPage(BasePage):
                 mydate = date(*reversed([int(x) for x in tds[0].text.split(' ')[0].split("/")]))
                 mytime = time(*[int(x) for x in tds[0].text.split(' ')[1].split(":")])
                 detail.datetime = datetime.combine(mydate, mytime)
-                detail.label = tds[1].text.lstrip().rstrip() + " " + tds[2].text.lstrip().rstrip() + " " + tds[3].text.lstrip().rstrip()
+                detail.label = u' '.join([unicode(td.text.strip()) for td in tds[1:4] if td.text is not None])
                 try:
                     detail.price = Decimal(tds[4].text[0:4].replace(',', '.'))
                 except:
