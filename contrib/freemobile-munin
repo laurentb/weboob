@@ -87,11 +87,11 @@ my %regexp = (
     'specialvoice' => '\| (\d+)h(\d+) min (\d+)s',
     'sms'          => 'Conso SMS                  \| (\d+) \/ (.*)',
     'mms'          => 'Vous avez consommé (\d+) MMS',
-    'data'         => 'Vous avez consommé ([\d\-\.]+) Mo',
+    'data'         => 'Vous avez consommé ([\d\-\.]+) (Mo|Go)',
     'voiceint'     => 'Appels émis (\d+)h(\d+)min(\d+)s',
     'smsint'       => 'Conso SMS (international)  \| (\d+)',
     'mmsint'       => 'Vous avez consommé (\d+) MMS',
-    'dataint'      => 'Vous avez consommé ([\d\-]+) Mo',
+    'dataint'      => 'Vous avez consommé ([\d\-]+) (Mo|Go)',
 );
 
 my %post = (
@@ -100,11 +100,11 @@ my %post = (
     'specialvoice' => 'postvoice',
     'sms'          => 'simplepost',
     'mms'          => 'simplepost',
-    'data'         => 'simplepost',
+    'data'         => 'datapost',
     'voiceint'     => 'postvoice',
     'smsint'       => 'simplepost',
     'mmsint'       => 'simplepost',
-    'dataint'      => 'simplepost',
+    'dataint'      => 'datapost',
 );
 
 sub doubleprint {
@@ -125,6 +125,16 @@ sub simplepost {
     my @args = @_;
     doubleprint "$args[0] \n";
     return 0;
+}
+
+sub datapost {
+    my @args = @_;
+    my $multi = 1;
+    my $unit = $args[1];
+    if ($unit == "Go") {
+        $multi = 1024;
+    }
+    return $args[0] * $multi;
 }
 
 sub config {
