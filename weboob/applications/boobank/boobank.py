@@ -34,7 +34,7 @@ class QifFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount')
 
     def start_format(self, **kwargs):
-        self.output(u'!type:Bank')
+        self.output(u'!Type:Bank')
 
     def format_obj(self, obj, alias):
         result = u'D%s\n' % obj.date.strftime('%d/%m/%y')
@@ -50,7 +50,7 @@ class PrettyQifFormatter(QifFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
 
     def start_format(self, **kwargs):
-        self.output(u'!type:Bank')
+        self.output(u'!Type:Bank')
 
     def format_obj(self, obj, alias):
         if hasattr(obj, 'rdate') and not empty(obj.rdate):
