@@ -91,7 +91,7 @@ my %regexp = (
     'voiceint'     => 'Appels émis (\d+)h(\d+)min(\d+)s',
     'smsint'       => 'Conso SMS (international)  \| (\d+)',
     'mmsint'       => 'Vous avez consommé (\d+) MMS',
-    'dataint'      => 'Vous avez consommé ([\d\-]+) (Mo|Go)',
+    'dataint'      => 'Vous avez consommé ([\d\-\.]+) (Mo|Go)',
 );
 
 my %post = (
