@@ -21,8 +21,6 @@
 from weboob.tools.browser import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 
-from ..browser import AuMBrowser
-
 
 __all__ = ['Visibility']
 
