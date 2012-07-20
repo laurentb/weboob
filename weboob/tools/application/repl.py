@@ -322,6 +322,23 @@ class ReplApplication(Cmd, ConsoleApplication):
             stop = None
         return stop
 
+    def parseline(self, line):
+        """
+        This REPL method is overrided to search "short" alias of commands
+        """
+        cmd, arg, ignored = Cmd.parseline(self, line)
+
+        names = set(name for name in self.get_names() if name.startswith('do_'))
+
+        if 'do_' + cmd not in names:
+            long = set(name for name in names if name.startswith('do_' + cmd))
+            # if more than one result, ambiguous command, do nothing (error will display suggestions)
+            if len(long) == 1:
+                cmd = long.pop()[3:]
+
+        return cmd, arg, ignored
+
+        
     def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.
