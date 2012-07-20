@@ -134,7 +134,9 @@ sub datapost {
     if ($unit == "Go") {
         $multi = 1024;
     }
-    return $args[0] * $multi;
+    $multi = $args[0] * $multi;
+    doubleprint "$multi \n";
+    return 0;
 }
 
 sub config {
