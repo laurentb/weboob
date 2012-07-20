@@ -377,6 +377,10 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def default(self, line):
         print >>sys.stderr, 'Unknown command: "%s"' % line
+        cmd, arg, ignore = Cmd.parseline(self, line)
+        names = set(name[3:] for name in self.get_names() if name.startswith('do_' + cmd))
+        if len(names) > 0:
+            print >>sys.stderr, 'Do you mean %s?' % ' '.join(names)
         return 2
 
     def completenames(self, text, *ignored):
