@@ -68,7 +68,7 @@ class AccountsPage(BasePage):
                 account.label = u''.join([txt.strip() for txt in tds[2].itertext()])
                 account.type = account_type
                 link = tds[3].find('a')
-                account.balance = Decimal(link.find('span').text.strip().replace(' ', '').replace(',', '.'))
+                account.balance = Decimal(FrenchTransaction.clean_amount(link.find('span').text))
                 account._params = params.copy()
                 account._params['dialogActionPerformed'] = 'SOLDE'
                 account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
