@@ -260,11 +260,15 @@ class StandardBrowser(mechanize.Browser):
             return self._openurl(*args, **kwargs)
 
     def get_exception(self, e):
-        if (isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode') and e.getcode() in (404, 403)) or \
-           isinstance(e, mechanize.BrowserStateError):
+        if isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode'):
+            if e.getcode() in (404, 403):
+                return BrowserHTTPNotFound
+            if e.getcode() == 401:
+                return BrowserIncorrectPassword
+        elif isinstance(e, mechanize.BrowserStateError):
             return BrowserHTTPNotFound
-        else:
-            return BrowserHTTPError
+
+        return BrowserHTTPError
 
     def readurl(self, url, *args, **kwargs):
         """
