@@ -328,17 +328,18 @@ class ReplApplication(Cmd, ConsoleApplication):
         """
         cmd, arg, ignored = Cmd.parseline(self, line)
 
-        names = set(name for name in self.get_names() if name.startswith('do_'))
+        if cmd is not None:
+            names = set(name for name in self.get_names() if name.startswith('do_'))
 
-        if 'do_' + cmd not in names:
-            long = set(name for name in names if name.startswith('do_' + cmd))
-            # if more than one result, ambiguous command, do nothing (error will display suggestions)
-            if len(long) == 1:
-                cmd = long.pop()[3:]
+            if 'do_' + cmd not in names:
+                long = set(name for name in names if name.startswith('do_' + cmd))
+                # if more than one result, ambiguous command, do nothing (error will display suggestions)
+                if len(long) == 1:
+                    cmd = long.pop()[3:]
 
         return cmd, arg, ignored
 
-        
+
     def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.
@@ -378,9 +379,10 @@ class ReplApplication(Cmd, ConsoleApplication):
     def default(self, line):
         print >>sys.stderr, 'Unknown command: "%s"' % line
         cmd, arg, ignore = Cmd.parseline(self, line)
-        names = set(name[3:] for name in self.get_names() if name.startswith('do_' + cmd))
-        if len(names) > 0:
-            print >>sys.stderr, 'Do you mean %s?' % ' '.join(names)
+        if cmd is not None:
+            names = set(name[3:] for name in self.get_names() if name.startswith('do_' + cmd))
+            if len(names) > 0:
+                print >>sys.stderr, 'Do you mean: %s?' % ', '.join(names)
         return 2
 
     def completenames(self, text, *ignored):
