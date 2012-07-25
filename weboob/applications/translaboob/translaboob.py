@@ -64,6 +64,7 @@ class Translaboob(ReplApplication):
         'mt':'Maltese', 'no':'Norwegian', 'fa':'Persian', 'pl':'Polish', 'pt':'Portuguese', 'ro':'Romanian', 'ru':'Russian',
         'sr':'Serbian', 'sk':'Slovak', 'sl':'Slovenian', 'es':'Spanish', 'sw':'Swahili', 'sv':'Swedish', 'ta':'Tamil',
         'te':'Telugu', 'th':'Thai', 'tr':'Turkish', 'uk':'Ukrainian', 'ur':'Urdu', 'vi':'Vietnamese', 'cy':'Welsh', 'yi':'Yiddish',
+        'nigger': 'Nigger!',
         }
 
 
