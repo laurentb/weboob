@@ -51,7 +51,7 @@ class ComparisonResultsPage(BasePage):
         except BrokenPageError:
             return NotAvailable
         else:
-            m = re.match('Carburant : (\w+) | .*', div.text)
+            m = re.match('Carburant : ([\w\-]+) | .*', div.text)
             return m.group(1)
 
     def iter_results(self, product=None):
