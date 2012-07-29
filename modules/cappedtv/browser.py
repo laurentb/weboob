@@ -39,6 +39,11 @@ class CappedVideo(BaseVideo):
 # parser for search pages
 class IndexPage(BasePage):
     def iter_videos(self):
+        # When no results are found, the website returns random results
+        sb = self.parser.select(self.document.getroot(), 'div.search form input.searchbox', 1)
+        if sb.value == 'No Results Found':
+            return
+
         #Extracting meta data from results page
         vidbackdrop_list = self.parser.select(self.document.getroot(), 'div.vidBackdrop    ')
         for vidbackdrop in vidbackdrop_list:

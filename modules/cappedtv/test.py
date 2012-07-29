@@ -24,6 +24,9 @@ class CappedTest(BackendTest):
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
         self.backend.browser.openurl(v.url)
 
+        l = list(self.backend.search_videos('weboob'))
+        self.assertTrue(len(l) == 0)
+
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
         self.assertTrue(len(l) > 0)
