@@ -95,7 +95,7 @@ class Ing(BaseBrowser):
         elif account.label[0:2] == "LA":
             # we want "displayTRHistoriqueLA" but this fucking page
             # is not directly available...
-            self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(id))
+            self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(account._index))
         else:
             raise NotImplementedError()
         while 1:

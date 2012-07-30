@@ -34,14 +34,15 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
-        ids = []
+        ids = set()
         for td in self.document.xpath('.//td[@nowrap="nowrap"]'):
             account = Account()
             link = td.xpath('.//a')[0]
-            account.id = re.search('\d', link.attrib['href']).group(0)
-            if not (account.id in ids):
-                ids.append(account.id)
-                account.label = unicode(link.text)
+            account._index = int(re.search('\d', link.attrib['href']).group(0))
+            if not account._index in ids:
+                ids.add(account._index)
+                account.id = unicode(link.text.strip())
+                account.label = account.id
                 urltofind = './/a[@href="' + link.attrib['href'] + '"]'
                 linkbis = self.document.xpath(urltofind).pop()
                 if linkbis.text == link.text:
