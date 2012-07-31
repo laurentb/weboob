@@ -82,6 +82,9 @@ class Boursorama(BaseBrowser):
 
     def get_history(self, account):
         self.location(account._link_id)
+        if not self.is_on_page(AccountHistory):
+            raise NotImplementedError()
+
         operations = self.page.get_operations()
         # load last month as well
         target = date.today() - relativedelta(months=1)
