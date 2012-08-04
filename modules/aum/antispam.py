@@ -30,7 +30,7 @@ class AntiSpam(object):
         # Check if there is an email address in the offer.
         if re.match('^[\w\d\.\-_]+@[\w\d\.]+ vous offre la pos', resume):
             return False
-        if thread['member']['pseudo'] == 'Ekaterina':
+        if thread['who']['pseudo'] == 'Ekaterina':
             return False
 
         return True
@@ -39,13 +39,13 @@ class AntiSpam(object):
         # The name of profile is in form #123456789
         if profile['pseudo'] == '':
             return False
-        if profile['about1'].startswith('salut! je te donne mon msn'):
+        if profile['announce'].startswith('salut! je te donne mon msn'):
             return False
-        if profile['about2'].startswith('cam to cam'):
+        if profile['shopping_list'].startswith('cam to cam'):
             return False
-        if profile['about2'].startswith('je suis une femme tres tres belle et je recherche un homme qui aime le sexe'):
+        if profile['shopping_list'].startswith('je suis une femme tres tres belle et je recherche un homme qui aime le sexe'):
             return False
-        if profile['about2'].endswith('mmmmmmmmmmmmmmmm'):
+        if profile['shopping_list'].endswith('mmmmmmmmmmmmmmmm'):
             return False
         return True
 

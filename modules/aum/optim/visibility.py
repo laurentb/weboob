@@ -46,7 +46,6 @@ class Visibility(Optimization):
     def reconnect(self):
         try:
             with self.browser:
-                self.browser.logout()
                 self.browser.login()
         except BrowserUnavailable, e:
             print str(e)
