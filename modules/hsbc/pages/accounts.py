@@ -34,7 +34,7 @@ class AccountsListPage(BasePage):
     def get_list(self):
         for tr in self.document.getiterator('tr'):
             tds = tr.findall('td')
-            if len(tds) != 3 or tds[0].attrib.get('class', '') != 'txt' or tds[0].attrib.get('valign', '') == 'center':
+            if len(tds) != 3 or tds[0].find('a') is None or tds[0].find('a').attrib.get('class', '') != 'flecheM':
                 continue
 
             account = Account()
@@ -76,7 +76,7 @@ class HistoryPage(BasePage):
             if script.text is None or script.text.find('\nCL(0') < 0:
                 continue
 
-            for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)','([\d -\.,]+)','\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
+            for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
                 op = Transaction(m.group(1))
                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
