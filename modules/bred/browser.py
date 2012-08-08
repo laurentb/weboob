@@ -32,25 +32,26 @@ class BredBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.bred.fr'
     ENCODING = 'iso-8859-15'
-    PAGES = {'https://www.bred.fr/':                                    LoginPage,
+    PAGES = {'https://www.bred.fr/mylittleform.*':                      LoginPage,
              'https://www.bred.fr/Andromede/MainAuth.*':                LoginResultPage,
              'https://www.bred.fr/Andromede/Main':                      AccountsPage,
              'https://www.bred.fr/Andromede/Ecriture':                  TransactionsPage,
              'https://www.bred.fr/Andromede/applications/index.jsp':    EmptyPage,
+             'https://www.bred.fr/':                                    EmptyPage,
             }
 
     def is_logged(self):
         return self.page and not self.is_on_page(LoginPage)
 
     def home(self):
-        return self.location('https://www.bred.fr/')
+        return self.location('https://www.bred.fr/mylittleform?type=1')
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.location('https://www.bred.fr/', no_login=True)
+            self.location('https://www.bred.fr/mylittleform?type=1', no_login=True)
 
         self.page.login(self.username, self.password)
 
