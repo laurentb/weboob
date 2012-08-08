@@ -48,7 +48,7 @@ class AccountHistory(BasePage):
         table = self.document.findall('//tbody')[0]
         for tr in table.xpath('tr'):
             textdate = tr.find('td[@class="op_date"]').text_content()
-            textraw = tr.find('td[@class="op_label"]').text_content()
+            textraw = tr.find('td[@class="op_label"]').text_content().strip()
             # The id will be rewrite
             op = Transaction(1)
             amount = op.clean_amount(tr.find('td[@class="op_amount"]').text_content())
