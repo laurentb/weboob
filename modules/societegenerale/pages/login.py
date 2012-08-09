@@ -79,7 +79,7 @@ class LoginPage(BasePage):
 
         self.browser['codcli'] = login
         self.browser['user_id'] = login
-        self.browser['codsec'] = img.get_codes(password)
+        self.browser['codsec'] = img.get_codes(password[:6])
         self.browser['cryptocvcs'] = infos["cryptogramme"]
         self.browser.submit()
 
