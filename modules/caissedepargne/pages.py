@@ -59,7 +59,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^RETRAIT DAB (?P<dd>\d+)-(?P<mm>\d+)-.*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)'),
@@ -90,7 +90,8 @@ class IndexPage(BasePage):
                     account.id = m.group(1)
                     account.label = unicode(a.text.strip())
                     account.type = account_type
-                    account.balance = Decimal(FrenchTransaction.clean_amount(tds[-1].find('a').text.rstrip(' EUR')))
+                    amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
+                    account.balance = Decimal(FrenchTransaction.clean_amount(amount.rstrip(' EUR')))
                     yield account
 
     def go_history(self, id):
