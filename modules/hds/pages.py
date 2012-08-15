@@ -82,7 +82,7 @@ class HistoryPage(BasePage):
                     story = None
                     continue
                 date_text = link.tail.strip().split('\n')[-1].strip()
-                m = re.match('(\d+)-(\d+)-(\d+)', date_text)
+                m = re.match('.*, le (\d+)-(\d+)-(\d+)', date_text)
                 if not m:
                     self.logger.warning('Unable to parse datetime "%s"' % date_text)
                     story = None
