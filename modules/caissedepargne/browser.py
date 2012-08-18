@@ -81,8 +81,7 @@ class CaisseEpargne(BaseBrowser):
         return None
 
     def get_history(self, account):
-        if not self.is_on_page(IndexPage):
-            self.location(self.buildurl('/Portail.aspx'))
+        self.location(self.buildurl('/Portail.aspx'))
 
         self.page.go_history(account.id)
 
