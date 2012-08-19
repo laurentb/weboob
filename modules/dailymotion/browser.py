@@ -40,6 +40,8 @@ class DailymotionBrowser(BaseBrowser):
 
     @id2url(DailymotionVideo.id2url)
     def get_video(self, url, video=None):
+        # translate embed URLs
+        url = url.replace('dailymotion.com/swf/', 'dailymotion.com/video/')
         self.location(url)
         return self.page.get_video(video)
 
