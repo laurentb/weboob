@@ -48,6 +48,7 @@ class CreditMutuelBrowser(BaseBrowser):
              'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
              'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage,
              'https://www.creditmutuel.fr/.*/fr/': EmptyPage,
+             'https://www.creditmutuel.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
             }
 
     currentSubBank = None

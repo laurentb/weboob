@@ -48,6 +48,7 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
              'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
              'https://www.cic.fr/.*/fr/': EmptyPage,
+             'https://www.cic.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
             }
 
     currentSubBank = None
