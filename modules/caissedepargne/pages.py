@@ -86,6 +86,10 @@ class IndexPage(BasePage):
                     a = tds[1].find('a')
                     m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_COMPTE&(\d+)'\)", a.attrib['href'])
 
+                    if not m:
+                        self.logger.warning('Unable to parse account %s' % a.text.strip())
+                        continue
+
                     account = Account()
                     account.id = m.group(1)
                     account.label = unicode(a.text.strip())
