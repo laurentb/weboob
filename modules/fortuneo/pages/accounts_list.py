@@ -68,32 +68,37 @@ class AccountsList(BasePage):
     def get_list(self):
         l = []
 
-        for cpt in self.document.xpath(".//*[@id='tableauComptesTitEtCotit']/tbody/tr"):
+        for cpt in self.document.xpath(".//*[@class='synthese_id_compte']"):
             account = Account()
 
             # account.id
-            account.id = cpt.xpath("./td[1]/a/text()")[0]
+            account.id = cpt.xpath("./span/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
+            print "DEBUG account.id=[",str(account.id),"]\n"
 
             # account balance
-            account.balance = Decimal(cpt.xpath("./td[3]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", ""))
+            account.balance = Decimal(cpt.xpath("./span/text()")[1].replace("+", "").replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", ""))
+            print "DEBUG account.balance=["+str(account.balance)+"]\n"
 
-            # account coming
-            mycomingval = cpt.xpath("./td[4]/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
+            # account coming TODO
+            #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
+            #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]")[0]
+            #mycomingval = cpt.xpath("./../../../a[@class='lien_synthese_encours']/span[@class='synthese_encours']/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
+            #print "DEBUG mycomingval=", mycomingval.Getchildren
 
-            if mycomingval == '-':
-                account.coming = Decimal(0)
-            else:
-                account.coming = Decimal(mycomingval)
+            #if mycomingval == '-':
+            #    account.coming = Decimal(0)
+            #else:
+            #    account.coming = Decimal(mycomingval)
 
             # account._link_id
-            url_to_parse = cpt.xpath('./td[1]/a/@href')[0]  # link
+            url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
+            print "DEBUG cpt.xpath=["+str(cpt.xpath)+"]\n"
             compte_id_re = re.compile(r'/prive/mes-comptes/([^/]+/).*COMPTE_ACTIF=([^\&]+)\&?')
             account._link_id = '/fr/prive/mes-comptes/%sconsulter-situation/consulter-solde.jsp?COMPTE_ACTIF=%s' % \
                     (compte_id_re.search(url_to_parse).groups()[0], compte_id_re.search(url_to_parse).groups()[1])
 
             # account.label
-            tpl = cpt.xpath("./td[2]/a/text()")[0].split(' ')
-            account.label = unicode(' '.join(tpl[:2]))
+            account.label =  cpt.xpath("./span/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
 
             l.append(account)
 

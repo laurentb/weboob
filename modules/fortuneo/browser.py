@@ -34,14 +34,17 @@ class Fortuneo(BaseBrowser):
     PAGES = {
             '.*identification.jsp.*':
                     LoginPage,
-            '.*/prive/mes-comptes/synthese-tous-comptes\.jsp.*':
+            '.*/prive/mes-comptes/synthese-tous-comptes.jsp':
+                AccountsList,
+            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp':
+            #'.*/prive/mes-comptes/synthese-tous-comptes\.jsp.*':
                     AccountsList,
             '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
                     AccountHistoryPage,
             '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
                     AccountHistoryPage,
             '.*/prive/default\.jsp.*':
-                    AccountsList
+                   AccountsList
             }
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +75,7 @@ class Fortuneo(BaseBrowser):
             self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp')
 
         self.page.login(self.username, self.password)
-        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
+        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
     def get_history(self, account):
         if not self.is_on_page(AccountHistoryPage):
@@ -83,7 +86,7 @@ class Fortuneo(BaseBrowser):
         """accounts list"""
 
         if not self.is_on_page(AccountsList):
-            self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-tous-comptes.jsp')
+            self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
         return self.page.get_list()
 
