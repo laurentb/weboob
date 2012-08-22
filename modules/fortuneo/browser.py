@@ -37,7 +37,6 @@ class Fortuneo(BaseBrowser):
             '.*/prive/mes-comptes/synthese-tous-comptes.jsp':
                 AccountsList,
             '.*/prive/mes-comptes/synthese-mes-comptes\.jsp':
-            #'.*/prive/mes-comptes/synthese-tous-comptes\.jsp.*':
                     AccountsList,
             '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
                     AccountHistoryPage,

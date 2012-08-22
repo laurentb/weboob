@@ -73,17 +73,14 @@ class AccountsList(BasePage):
 
             # account.id
             account.id = cpt.xpath("./span/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
-            print "DEBUG account.id=[",str(account.id),"]\n"
 
             # account balance
             account.balance = Decimal(cpt.xpath("./span/text()")[1].replace("+", "").replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", ""))
-            print "DEBUG account.balance=["+str(account.balance)+"]\n"
 
             # account coming TODO
             #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
             #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]")[0]
             #mycomingval = cpt.xpath("./../../../a[@class='lien_synthese_encours']/span[@class='synthese_encours']/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
-            #print "DEBUG mycomingval=", mycomingval.Getchildren
 
             #if mycomingval == '-':
             #    account.coming = Decimal(0)
@@ -92,7 +89,6 @@ class AccountsList(BasePage):
 
             # account._link_id
             url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
-            print "DEBUG cpt.xpath=["+str(cpt.xpath)+"]\n"
             compte_id_re = re.compile(r'/prive/mes-comptes/([^/]+/).*COMPTE_ACTIF=([^\&]+)\&?')
             account._link_id = '/fr/prive/mes-comptes/%sconsulter-situation/consulter-solde.jsp?COMPTE_ACTIF=%s' % \
                     (compte_id_re.search(url_to_parse).groups()[0], compte_id_re.search(url_to_parse).groups()[1])
