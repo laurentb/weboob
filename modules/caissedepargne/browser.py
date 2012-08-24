@@ -36,7 +36,7 @@ class CaisseEpargne(BaseBrowser):
             }
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def home(self):
         self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0')

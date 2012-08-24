@@ -49,12 +49,13 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
              'https://www.cic.fr/.*/fr/': EmptyPage,
              'https://www.cic.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
+             'https://www.cic.fr/.*/fr/validation/.*': EmptyPage,
             }
 
     currentSubBank = None
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
+        return not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
 
     def home(self):
         return self.location('https://www.cic.fr/sb/fr/banques/particuliers/index.html')

@@ -51,7 +51,7 @@ class LCLBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         assert isinstance(self.username, basestring)

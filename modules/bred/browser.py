@@ -41,7 +41,7 @@ class BredBrowser(BaseBrowser):
             }
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage)
+        return not self.is_on_page(LoginPage)
 
     def home(self):
         return self.location('https://www.bred.fr/mylittleform?type=1')

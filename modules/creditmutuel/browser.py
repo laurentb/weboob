@@ -49,12 +49,13 @@ class CreditMutuelBrowser(BaseBrowser):
              'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage,
              'https://www.creditmutuel.fr/.*/fr/': EmptyPage,
              'https://www.creditmutuel.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
+             'https://www.creditmutuel.fr/.*/fr/validation/.*': EmptyPage,
             }
 
     currentSubBank = None
 
     def is_logged(self):
-        return self.page and not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
+        return not self.is_on_page(LoginPage) and not self.is_on_page(LoginErrorPage)
 
     def home(self):
         return self.location('https://www.creditmutuel.fr/groupe/fr/index.html')
