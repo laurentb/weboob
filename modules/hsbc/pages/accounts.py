@@ -63,7 +63,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CB (?P<text>.*)\s+(?P<dd>\d+)/(?P<mm>\d+)\s*(?P<loc>.*)'),
                                                           FrenchTransaction.TYPE_CARD),
-                (re.compile('^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                (re.compile('^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'),
                                                           FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
                 (re.compile('^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
