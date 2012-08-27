@@ -68,22 +68,21 @@ class Freemobile(BaseBrowser):
         if not self.is_on_page(HomePage):
             self.location('/moncompte/index.php?page=home')
 
-        l = self.page.get_list()
-        for a in l:
+        for a in self.page.get_list():
             if a.id == id:
                 return a
 
         return None
 
-    def get_history(self):
+    def get_history(self, subscription):
         if not self.is_on_page(HistoryPage):
             self.location('/moncompte/ajax.php?page=consotel_current_month', 'login=' + self.username)
-        return self.page.get_calls()
+        return self.page.get_calls(subscription)
 
-    def get_details(self):
+    def get_details(self, subscription):
         if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
-        return self.page.get_details()
+        return self.page.get_details(subscription)
 
     def iter_bills(self, parentid):
         if not self.is_on_page(DetailsPage):

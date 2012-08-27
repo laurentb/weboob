@@ -22,7 +22,7 @@ from datetime import datetime, date, time
 from decimal import Decimal
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bill import Detail, Bill
+from weboob.capabilities.bill import Detail, Bill, Subscription
 
 import re
 
@@ -41,18 +41,25 @@ def convert_price(div):
 class DetailsPage(BasePage):
 
     def on_loaded(self):
-        self.details = []
+        self.details = {}
         self.datebills = []
-        num = self.document.xpath('//div[@class="infosLigneDetail pointer"]')[0].text
-        num = num.split("-")[2].strip()
+        for div in self.document.xpath('//div[@class="infosLigneDetail pointer"]'):
+            phonenumber = div.text
+            phonenumber = phonenumber.split("-")[2].strip()
+            virtualnumber = div.attrib['onclick'].split('(')[1][1]
+            self.details['num' + str(phonenumber)] = virtualnumber
 
-        # National parsing
-        divnat = self.document.xpath('//div[@class="national"]')[0]
-        self.parse_div(divnat, "National : %s | International : %s", False)
+        for div in self.document.xpath('//div[@class="infosConso"]'):
+            num = div.attrib['id'].split('_')[1][0]
+            self.details[num] = []
 
-        # International parsing
-        divint = self.document.xpath('//div[@class="international hide"]')[0]
-        self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", True)
+            # National parsing
+            divnat = div.xpath('div[@class="national"]')[0]
+            self.parse_div(divnat, "National : %s | International : %s", num, False)
+
+            # International parsing
+            divint = div.xpath('div[@class="international hide"]')[0]
+            self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
         for trbill in self.document.xpath('//tr[@class="derniereFacture"]'):
             mydate = unicode(trbill.find('td').text.split(":")[1].strip())
@@ -60,7 +67,7 @@ class DetailsPage(BasePage):
             bill.label = unicode(mydate)
             billid = mydate.replace('-', '')
             billid = billid[4:8] + billid[2:4] + billid[0:2]
-            bill.id = num + "." + billid
+            bill.id = phonenumber + "." + billid
             bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
             alink = trbill.find('td/a')
             if alink.attrib.get("class") == "linkModal tips":
@@ -71,15 +78,15 @@ class DetailsPage(BasePage):
                 bill._url = alink.attrib.get('href')
             self.datebills.append(bill)
 
-    def parse_div(self, divglobal, string, inter=False):
+    def parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
         # Two informations in one div...
         div = divs.pop(0)
         voice = self.parse_voice(div, string, inter)
-        self.details.append(voice)
-        self.iter_divs(divs, inter)
+        self.details[num].append(voice)
+        self.iter_divs(divs, num, inter)
 
-    def iter_divs(self, divs, inter=False):
+    def iter_divs(self, divs, num, inter=False):
         for div in divs:
             detail = Detail()
 
@@ -89,7 +96,7 @@ class DetailsPage(BasePage):
             detail.infos = unicode(div.find('div[@class="consoDetail"]/p').text_content().lstrip())
             detail.price = convert_price(div)
 
-            self.details.append(detail)
+            self.details[num].append(detail)
 
     def parse_voice(self, div, string, inter=False):
         voice = Detail()
@@ -103,8 +110,10 @@ class DetailsPage(BasePage):
 
         return voice
 
-    def get_details(self):
-        return self.details
+    def get_details(self, subscription):
+        print self.details
+        num = self.details['num' + subscription.id]
+        return self.details[num]
 
     def date_bills(self):
         return self.datebills
@@ -136,5 +145,5 @@ class HistoryPage(BasePage):
 
                 self.calls.append(detail)
 
-    def get_calls(self):
+    def get_calls(self, subscription):
         return sorted(self.calls, key=_get_date, reverse=True)
