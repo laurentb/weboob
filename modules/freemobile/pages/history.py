@@ -111,7 +111,6 @@ class DetailsPage(BasePage):
         return voice
 
     def get_details(self, subscription):
-        print self.details
         num = self.details['num' + subscription.id]
         return self.details[num]
 

@@ -30,9 +30,12 @@ class HomePage(BasePage):
 
     def get_list(self):
         l = []
-        for divabo in self.document.xpath('//div[@class="idAbonne pointer"]'):
+        for divglobal in self.document.xpath('//div[@class="abonne"]'):
+            login = divglobal.xpath('//div[@class="acceuil_btn"]/a')[0].attrib['href'].split('l=')[1]
+            divabo = divglobal.xpath('div[@class="idAbonne pointer"]')[0]
             owner = unicode(divabo.xpath('p')[0].text.replace(' - ', ''))
             phone = unicode(divabo.xpath('p/span')[0].text)
+            self.browser.logger.debug('Found ' + login + ' as subscription identifier')
             self.browser.logger.debug('Found ' + owner + ' as subscriber')
             self.browser.logger.debug('Found ' + phone + ' as phone number')
             phoneplan = unicode(self.document.xpath('//div[@class="forfaitChoisi"]')[0].text.lstrip().rstrip())
@@ -41,5 +44,6 @@ class HomePage(BasePage):
             subscription = Subscription(phone)
             subscription.label = phone + ' - ' + phoneplan
             subscription.subscriber = owner
+            subscription._login = login
 
             yield subscription
