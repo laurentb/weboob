@@ -143,8 +143,18 @@ class ICapBill(ICapCollection):
         """
         Get details of a subscription.
 
-        :param subscription: subscription to get bills
+        :param subscription: subscription to get details
         :type subscription: :class:`Subscription`
         :rtype: iter[:class:`Detail`]
+        """
+        raise NotImplementedError()
+
+    def get_balance(self, subscription):
+        """
+        Get the balance of a subscription.
+
+        :param subscription: subscription to get balance
+        :type subscription: :class:`Subscription`
+        :rtype :class:`Decimal`
         """
         raise NotImplementedError()
