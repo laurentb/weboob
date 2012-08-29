@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import os
 import subprocess
 import tempfile
 import shutil
@@ -40,14 +40,7 @@ class PdfPage():
     def __init__(self, file):
         self.pdf = file
 
-    # Standard pdf text extractor take text line by line
-    # But the position in the file is not always the "real" position to display...
-    # It produce some unsorted and unparsable data
-    # Example of bad software: pdfminer and others python tools
-    # This is why we have to use "ebook-convert" from calibre software,
-    # it is the only one to 'reflow" text and give some relevant results
-    # The bad new is that ebook-convert doesn't support simple use with stdin/stdout
-    def get_calls(self):
+    def _parse_pdf(self):
         pdffile = tempfile.NamedTemporaryFile(bufsize=100000, mode='w', suffix='.pdf')
         temptxt = pdffile.name.replace('.pdf', '.txt')
         cmd = "ebook-convert"
@@ -58,6 +51,44 @@ class PdfPage():
         pdffile.close()
         txtfile = open(temptxt, 'r')
         txt = txtfile.read()
+        txtfile.close()
+        os.remove(temptxt)
+        return txt
+
+
+    def get_details(self):
+        txt = self._parse_pdf()
+        page = txt.split('CONSOMMATION MENSUELLE')[1].split('ACTIVITE DETAILLEE')[0]
+        lines = page.split('\n')
+        lines = [x for x in lines if len(x) > 0]  # Remove empty lines
+        numitems = (len(lines) + 1) / 3  # Each line has three columns
+        lines.insert(len(lines), '')  # Add an empty column for "Prélèvement mensuel
+        lines.pop(0)
+        details = []
+        for i in range(numitems):
+            nature = i * 3
+            conso = nature + 1
+            price = conso + 1
+
+            detail = Detail()
+            detail.label = unicode(lines[nature], encoding='utf-8')
+            detail.infos = unicode(lines[conso], encoding='utf-8')
+            try:
+                detail.price = Decimal(lines[price].replace('€', ''))
+            except:
+                detail.price = Decimal(0)
+            details.append(detail)
+        return details
+
+    # Standard pdf text extractor take text line by line
+    # But the position in the file is not always the "real" position to display...
+    # It produce some unsorted and unparsable data
+    # Example of bad software: pdfminer and others python tools
+    # This is why we have to use "ebook-convert" from calibre software,
+    # it is the only one to 'reflow" text and give some relevant results
+    # The bad new is that ebook-convert doesn't support simple use with stdin/stdout
+    def get_calls(self):
+        txt = self._parse_pdf()
         pages = txt.split("DEBIT (€)")
         pages.pop(0)  # remove headers
         details = []

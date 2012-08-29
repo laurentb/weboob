@@ -112,7 +112,10 @@ class Leclercmobile(BaseBrowser):
     def get_details(self):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
-        return self.page.get_details()
+        response = self.openurl('/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-0')
+        pdf = PdfPage(StringIO.StringIO(response.read()))
+        for detail in pdf.get_details():
+            yield detail
 
     def iter_bills(self, parentid):
         if not self.is_on_page(HistoryPage):
