@@ -96,3 +96,7 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
 
         with self.browser:
             return self.browser.readurl(bill._url)
+
+    def get_balance(self, subscription):
+        with self.browser:
+            return self.browser.get_balance()

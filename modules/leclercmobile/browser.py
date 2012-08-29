@@ -129,3 +129,10 @@ class Leclercmobile(BaseBrowser):
         for a in l:
             if a.id == id:
                 return a
+
+    def get_balance(self):
+        if not self.is_on_page(HistoryPage):
+            self.location(self.conso)
+        response = self.openurl('/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-0')
+        pdf = PdfPage(StringIO.StringIO(response.read()))
+        return pdf.get_balance()

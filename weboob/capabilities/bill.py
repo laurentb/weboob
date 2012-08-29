@@ -155,6 +155,6 @@ class ICapBill(ICapCollection):
 
         :param subscription: subscription to get balance
         :type subscription: :class:`Subscription`
-        :rtype :class:`Decimal`
+        :rtype :class:`Detail`
         """
         raise NotImplementedError()
