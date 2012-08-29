@@ -120,14 +120,12 @@ class Leclercmobile(BaseBrowser):
     def iter_bills(self, parentid):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
-        return self.page.date_bills()
+        return self.page.date_bills(parentid)
 
     def get_bill(self, id):
         assert isinstance(id, basestring)
-
-        if not self.is_on_page(HistoryPage):
-            self.location(self.conso)
-        l = self.page.date_bills()
+        parentid = id[0:10]
+        l = self.page.date_bills(parentid)
         for a in l:
             if a.id == id:
                 return a

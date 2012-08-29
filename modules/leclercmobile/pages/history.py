@@ -26,7 +26,7 @@ from datetime import datetime, date, time
 from decimal import Decimal
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bill import Detail
+from weboob.capabilities.bill import Detail, Bill
 
 
 __all__ = ['HistoryPage', 'PdfPage']
@@ -62,7 +62,7 @@ class PdfPage():
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
         numitems = (len(lines) + 1) / 3  # Each line has three columns
-        lines.insert(len(lines), '')  # Add an empty column for "Prélèvement mensuel
+        lines.insert(len(lines) - 1, '')  # Add an empty column for "Prélèvement mensuel
         lines.pop(0)
         details = []
         for i in range(numitems):
@@ -134,3 +134,16 @@ class HistoryPage(BasePage):
         while len(self.document.xpath('//li[@id="liMois%s"]' % max)) > 0:
             max += 1
         return max - 1
+
+    def date_bills(self, parentid):
+        max = 1
+        while len(self.document.xpath('//li[@id="liMois%s"]' % max)) > 0:
+            li = self.document.xpath('//li[@id="liMois%s"]' % max)[0]
+            max += 1
+            link = li.xpath('a')[0]
+            bill = Bill()
+            bill._url = link.attrib['href']
+            bill.label = link.text
+            bill.format = u"pdf"
+            bill.id = parentid + bill.label.replace(' ', '')
+            yield bill
