@@ -29,7 +29,6 @@ class HomePage(BasePage):
         pass
 
     def get_list(self):
-        l = []
         for divglobal in self.document.xpath('//div[@class="abonne"]'):
             login = divglobal.xpath('//div[@class="acceuil_btn"]/a')[0].attrib['href'].split('l=')[1]
             divabo = divglobal.xpath('div[@class="idAbonne pointer"]')[0]
