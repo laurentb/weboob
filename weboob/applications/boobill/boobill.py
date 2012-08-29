@@ -116,6 +116,16 @@ class Boobill(ReplApplication):
             self.format(mysum)
             self.flush()
 
+    def do_balance(self, id):
+        """
+        balance [Id]
+
+        Get balance of subscriptions.
+        If no ID given, display balance of all backends
+        """
+
+        self.exec_method(id, 'get_balance')
+
     def do_history(self, id):
         """
         history [Id]
