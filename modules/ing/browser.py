@@ -36,10 +36,12 @@ class Ing(BaseBrowser):
              '.*accountDetail.jsf.*':         AccountHistory,
              '.*displayTRHistoriqueLA.*':     AccountHistory
             }
+    HASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday', None)
         BaseBrowser.__init__(self, *args, **kwargs)
+        self.lowsslcheck(self.DOMAIN, self.HASH)
 
     def home(self):
         self.location('https://secure.ingdirect.fr/public/displayLogin.jsf')

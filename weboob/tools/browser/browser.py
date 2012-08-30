@@ -28,6 +28,8 @@ import sys
 import re
 import tempfile
 from threading import RLock
+import ssl
+import hashlib
 import time
 import urllib
 import urllib2
@@ -397,6 +399,14 @@ class StandardBrowser(mechanize.Browser):
         except ControlNotFoundError:
             return
 
+    def lowsslcheck(self, domain, hash):
+        certs = ssl.get_server_certificate((domain,  443))
+        certhash = hashlib.sha256(certs).hexdigest()
+        self.logger.debug('Found %s as certificat hash' % certhash)
+        if certhash != hash:
+            raise ssl.SSLError()
+
+    
 class BaseBrowser(StandardBrowser):
     """
     Base browser class to navigate on a website.
