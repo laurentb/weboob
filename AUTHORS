@@ -10,6 +10,11 @@ Laurent Bachelier <laurent@bachelier.name>
         * Core team;
         * Pastealacon, PasteBin and RadioFrance modules maintainer.
 
+Florent Fourcot <weboob@flo.fourcot.fr>
+        * Champslibres, Freemobile, ING, LeclercMobile, Presseurop, Sachsen
+          and Taz modules maintainer;
+        * BNPorc patches.
+
 Julien Hebert <juke@free.fr>
         * Developer of masstransit;
         * Ecrans, Inrocks, LeFigaro, Minutes20 and Transilien modules
@@ -18,11 +23,6 @@ Julien Hebert <juke@free.fr>
 Noe Rubinstein <noe.rubinstein@gmail.com>
         * Bototo, Eatmanga, MangaFox, MangaHere, MangaReader, Mangatoshokan
           and Simplyreadit modules maintainer.
-
-Florent Fourcot <weboob@flo.fourcot.fr>
-        * Champslibres, Freemobile, ING, Presseurop, Sachsen and Taz modules
-          maintainer;
-        * BNPorc patches.
 
 Julien Veyssier <julien.veyssier@aiur.fr>
         * CreditMutuel, Geolocip, Ipinfodb, IsoHunt, Kickass, and Piratebay
@@ -61,6 +61,9 @@ Jeremy Monnet <jmonnet@gmail.com>
 
 Lord <lord@lordtoniok.com>
         * CappedTV module maintainer.
+
+François Revol <revol@free.fr>
+        * Europarl module maintainer.
 
 Lucien Loiseau <loiseau.lucien@gmail.com>
         * GoogleTranslate module maintainer.
