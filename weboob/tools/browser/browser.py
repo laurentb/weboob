@@ -406,7 +406,7 @@ class StandardBrowser(mechanize.Browser):
         if certhash != hash:
             raise ssl.SSLError()
 
-    
+
 class BaseBrowser(StandardBrowser):
     """
     Base browser class to navigate on a website.
@@ -440,6 +440,10 @@ class BaseBrowser(StandardBrowser):
     DOMAIN = None
     PROTOCOL = 'http'
     PAGES = {}
+
+    # SHA-256 hash of server certificate. If set, it will automatically check it,
+    # and raise a SSLError exception if it doesn't match.
+    CERTHASH = None
 
     # ------ Abstract methods --------------------------------------
 
@@ -478,6 +482,9 @@ class BaseBrowser(StandardBrowser):
         self.last_update = 0.0
         self.username = username
         self.password = password
+
+        if self.CERTHASH is not None and self.DOMAIN is not None:
+            self.lowsslcheck(self.DOMAIN, self.CERTHASH)
 
         if self.password and get_home:
             try:
