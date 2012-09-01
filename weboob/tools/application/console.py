@@ -25,6 +25,7 @@ import sys
 import os
 import locale
 from tempfile import NamedTemporaryFile
+from ssl import SSLError
 
 from weboob.capabilities import UserError
 from weboob.capabilities.account import ICapAccount, Account, AccountRegisterError
@@ -483,6 +484,8 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
         elif isinstance(error, UserError):
             print >>sys.stderr, u'Error(%s): %s' % (backend.name, to_unicode(error))
+        elif isinstance(error, SSLError):
+            print >>sys.stderr, u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC
         else:
             print >>sys.stderr, u'Bug(%s): %s' % (backend.name, to_unicode(error))
 
