@@ -31,6 +31,7 @@ __all__ = ['BredBrowser']
 class BredBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.bred.fr'
+    CERTHASH = '26c5ba775fb3b99f7515a2748c2ae2da12931443afa99471a686ff6138efc5ec'
     ENCODING = 'iso-8859-15'
     PAGES = {'https://www.bred.fr/mylittleform.*':                      LoginPage,
              'https://www.bred.fr/Andromede/MainAuth.*':                LoginResultPage,

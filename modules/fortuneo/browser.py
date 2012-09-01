@@ -30,6 +30,7 @@ class Fortuneo(BaseBrowser):
     DOMAIN_LOGIN = 'www.fortuneo.fr'
     DOMAIN = 'www.fortuneo.fr'
     PROTOCOL = 'https'
+    CERTHASH = 'f71bd27994f395963c4a500d9d330cb50cef37ee5946146f9ca2492c2552b2ba'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
             '.*identification.jsp.*':

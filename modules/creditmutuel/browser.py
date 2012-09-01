@@ -35,6 +35,7 @@ __all__ = ['CreditMutuelBrowser']
 class CreditMutuelBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.creditmutuel.fr'
+    CERTHASH = '57beeba81e7a65d5fe15853219bcfcc2b2da27e0e618a78e6d97a689908ea57b'
     ENCODING = 'iso-8859-1'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {'https://www.creditmutuel.fr/groupe/fr/index.html':   LoginPage,

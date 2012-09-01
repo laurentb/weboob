@@ -29,7 +29,9 @@ __all__ = ['SocieteGenerale']
 
 class SocieteGenerale(BaseBrowser):
     DOMAIN_LOGIN = 'particuliers.societegenerale.fr'
+    CERTHASH_LOGIN = '72b78ce0b8ffc63a6dcbf8fc375a1ab5502d5dfefcac1d00901a73f5a94e9ed5'
     DOMAIN = 'particuliers.secure.societegenerale.fr'
+    CERTHASH = '4499ca391d0d690050d80e625fd0b16e83476fd565d8e43315c7a9c025f02b88'
     PROTOCOL = 'https'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
@@ -40,6 +42,7 @@ class SocieteGenerale(BaseBrowser):
             }
 
     def __init__(self, *args, **kwargs):
+        self.lowsslcheck(self.DOMAIN_LOGIN, self.CERTHASH_LOGIN)
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
