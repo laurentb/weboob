@@ -137,7 +137,7 @@ sub datapost {
     my @args = @_;
     my $multi = 1;
     my $unit = $args[1];
-    if ($unit == "Go") {
+    if ($unit eq "Go") {
         $multi = 1024;
     }
     $multi = $args[0] * $multi;
