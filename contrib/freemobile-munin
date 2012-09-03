@@ -26,6 +26,9 @@ C<user> I<required>: user with freemobile backend configured
 
 C<env.HOME> I<required>: path to user home
 
+C<env.phonenumber> (optional): add your phone number if you have more than one
+subscription for this account.
+
 C<env.freemonitored> (optional): default only 'voice sms'
 The full list of monitored options is :
  * voice sms mms data specialvoice voicetoint voiceint smsint mmsint dataint
