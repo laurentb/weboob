@@ -56,9 +56,15 @@ my $cachedir  = $ENV{'HOME'} . '/.config/weboob/munin/';
 my $cachefile = "$cachedir/freemobile-munin";
 
 my $refreshtime = $ENV{'cache_expire'} || 10_800;
-my $phone = $ENV{'phonenumber'};
 
-my $weboob = '/usr/bin/env weboob-cli -b freemobile ICapBill get_details ' . $phone . '@freemobile -f table';
+my $phone = $ENV{'phonenumber'};
+my $account = '';
+
+if (length($phone) > 0) {
+    $account = $phone . '@freemobile';
+}
+
+my $weboob = 'boobill -f table -b freemobile details ' . $account;
 my $cache_fh;
 
 my %label = (
