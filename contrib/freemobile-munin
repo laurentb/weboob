@@ -17,6 +17,7 @@ You need to configure the plugin like that:
     [freemobile]
     user florent
     env.HOME /home/florent
+    env.phonenumber 06ABCDEFGH
     env.freemonitored voice sms mms data specialvoice
     env.cache_expire 3600
     timeout 30
@@ -52,7 +53,9 @@ my $cachedir  = $ENV{'HOME'} . '/.config/weboob/munin/';
 my $cachefile = "$cachedir/freemobile-munin";
 
 my $refreshtime = $ENV{'cache_expire'} || 10_800;
-my $weboob = '/usr/bin/env weboob-cli -b freemobile ICapBill get_details coin -f table';
+my $phone = $ENV{'phonenumber'};
+
+my $weboob = '/usr/bin/env weboob-cli -b freemobile ICapBill get_details ' . $phone . '@freemobile -f table';
 my $cache_fh;
 
 my %label = (
