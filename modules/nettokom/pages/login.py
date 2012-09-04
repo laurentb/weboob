@@ -30,6 +30,6 @@ class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(nr=0)
         self.browser.set_all_readonly(False)
-        self.browser['quickLoginNumber'] = login
-        self.browser['quickLoginPassword'] = password
+        self.browser['number'] = login
+        self.browser['password'] = password
         self.browser.submit(nologin=True)
