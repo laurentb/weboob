@@ -175,6 +175,8 @@ class StandardBrowser(mechanize.Browser):
     responses_dirname = None
     responses_count = 0
 
+    logger = None
+
     # ------ Browser methods ---------------------------------------
 
     # I'm not a robot, so disable the check of permissions in robots.txt.
@@ -402,7 +404,8 @@ class StandardBrowser(mechanize.Browser):
     def lowsslcheck(self, domain, hash):
         certs = ssl.get_server_certificate((domain,  443))
         certhash = hashlib.sha256(certs).hexdigest()
-        self.logger.debug('Found %s as certificat hash' % certhash)
+        if self.logger:
+            self.logger.debug('Found %s as certificat hash' % certhash)
         if certhash != hash:
             raise ssl.SSLError()
 
