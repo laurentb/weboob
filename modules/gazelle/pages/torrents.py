@@ -119,11 +119,9 @@ class TorrentsPage(BasePage):
     def get_torrent(self, id):
         table = self.browser.parser.select(self.document.getroot(), 'div.thin', 1)
 
-        h2 = table.find('h2')
-        if h2 is not None:
-            title = h2.text or ''
-            if h2.find('a') != None:
-                title += (h2.find('a').text or '') + (h2.find('a').tail or '')
+        h2 = table.xpath('.//h2')
+        if len(h2) > 0:
+            title = u''.join([txt.strip() for txt in h2[0].itertext()])
         else:
             title = self.browser.parser.select(table, 'div.title_text', 1).text
 
