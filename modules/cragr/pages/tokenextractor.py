@@ -22,7 +22,12 @@ from lxml import html
 
 class TokenExtractor:
     """ Extracts texts token from an HTML document """
-    iterated_elements = []
+    def __init__(self):
+        self.iterated_elements = []
+    def clear(self):
+		""" Reset any content stored within a TokenExtractor: object. Useful to
+		start a new parsing without creating a new instance. """
+        self.iterated_elements = []
     def element_iterated_already(self, html_element):
         if html_element in self.iterated_elements:
             return True
