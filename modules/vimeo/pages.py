@@ -81,56 +81,27 @@ class VideoPage(BasePage):
             v.thumbnail = Thumbnail(unicode(data['video']['thumbnail']))
         v.duration = datetime.timedelta(seconds=int(data['video']['duration']))
 
+        # use highest quality
+        quality = 'sd'
+        if 'hd' in data['video']['files']['h264']:
+            quality = 'hd'
+
         # log ourself to the site to validate the signature
         log_data = self.browser.openurl('http://%s/log/client' % ("player.vimeo.com"), 'request_signature=%s&video=true&h264=probably&vp8=probably&vp6=probably&flash=null&touch=false&screen_width=1920&screen_height=1080' % (data['request']['signature']))
         
-        # failed attempts ahead
-
-        # try to get the filename and url from the SMIL descriptor
-        # smil_url = data['video']['smil']['url']
-        # smil_url += "?sig=%s&time=%s" % (data['request']['signature'], data['request']['timestamp'])
-        # smil = self.browser.get_document(self.browser.openurl(smil_url))
-
-        # obj = self.parser.select(smil.getroot(), 'meta[name=httpBase]', 1)
-        # http_base = obj.attrib['content']
-        # print http_base
-        # if http_base is None:
-        #     raise BrokenPageError('Missing tag in smil file')
-
-        # url = None
-        # br = 0
-        # for obj in self.parser.select(smil.getroot(), 'video'):
-        #     print 'BR:' + obj.attrib['system-bitrate'] + ' url: ' + obj.attrib['src']
-
-        #     if int(obj.attrib['system-bitrate']) > br :
-        #         url = obj.attrib['src']
-
-        # rtmp_base = 'rtmp://' + data['request']['cdn_url'] + '/'
-
-        # not working yet...
-
-        #url += "&time=%s&sig=%s" % (data['request']['timestamp'], data['request']['signature'])
-        #url = "%s/%s/%s" %(data['request']['timestamp'], data['request']['signature'], url)
-        #v.url = unicode(http_base + url)
-        #v.url = unicode("http://" + data['request']['cdn_url'] + "/" + url)
-        #v.url = unicode(rtmp_base + url)
-
-        # TODO: determine quality from data[...]['files']['h264']
-        v.url = unicode("http://player.vimeo.com/play_redirect?quality=sd&codecs=h264&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (int(v.id), data['request']['timestamp'] , data['request']['signature']))
+        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=h264&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, int(v.id), data['request']['timestamp'] , data['request']['signature']))
 
         # attempt to determine the redirected URL to pass it instead
         # since the target server doesn't check for User-Agent, unlike
         # for the source one.
         # HACK: we use mechanize directly here for now... FIXME
+        #print "asking for redirect on '%s'" % (v.url)
         self.browser.set_handle_redirect(False)
-        #@retry(BrowserHTTPError, tries=0)
-        #redir = self.browser.openurl(v.url, if_fail = 'raise')
         try:
             redir = self.browser.open_novisit(v.url)
         except HTTPError, e:
             if e.getcode() == 302 and hasattr(e, 'hdrs'):
                 #print e.hdrs['Location']
                 v.url = unicode(e.hdrs['Location'])
-
         self.browser.set_handle_redirect(True)
         

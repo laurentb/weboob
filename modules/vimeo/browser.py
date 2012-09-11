@@ -33,10 +33,6 @@ __all__ = ['VimeoBrowser']
 class VimeoBrowser(BaseBrowser):
     DOMAIN = 'vimeo.com'
     ENCODING = None
-    # USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    # TODO: determine this dynamically, like:
-    # wget -d 127.0.0.1 -O /dev/null 2>&1 | grep '^User-Agent:'
-    #USER_AGENT = 'Wget/1.14 (linux-gnu)'
     PAGES = {r'http://[w\.]*vimeo\.com/(?P<id>\d+).*': VideoPage,
             }
 
