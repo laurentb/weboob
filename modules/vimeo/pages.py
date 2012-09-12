@@ -72,7 +72,7 @@ class VideoPage(BasePage):
         json_data = self.browser.openurl('http://%s/config/%s?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
         data = json.load(json_data)
         if data is None:
-            raise BrokenPageError('Unable to get JSON config for id: %r' % v.id)
+            raise BrokenPageError('Unable to get JSON config for id: %r' % int(v.id))
         #print data
 
         if v.title is None:
@@ -81,12 +81,23 @@ class VideoPage(BasePage):
             v.thumbnail = Thumbnail(unicode(data['video']['thumbnail']))
         v.duration = datetime.timedelta(seconds=int(data['video']['duration']))
 
-        # use highest quality
+        # determine available codec and quality
+        # use highest quality possible
         quality = 'sd'
-        if 'hd' in data['video']['files']['h264']:
+        codec = None
+        if 'vp6' in data['video']['files']:
+            codec = 'vp6'
+        if 'vp8' in data['video']['files']:
+            codec = 'vp8'
+        if 'h264' in data['video']['files']:
+            codec = 'h264'
+        if not codec:
+            raise BrokenPageError('Unable to detect available codec for id: %r' % int(v.id))
+
+        if 'hd' in data['video']['files'][codec]:
             quality = 'hd'
 
-        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=h264&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, int(v.id), data['request']['timestamp'] , data['request']['signature']))
+        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=%s&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, codec, int(v.id), data['request']['timestamp'] , data['request']['signature']))
 
         # attempt to determine the redirected URL to pass it instead
         # since the target server doesn't check for User-Agent, unlike
