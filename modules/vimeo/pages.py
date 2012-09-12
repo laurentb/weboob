@@ -25,11 +25,8 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 from urllib2 import HTTPError
 
 from weboob.tools.browser import BasePage
-from weboob.tools.browser import BrowserRetry
 from weboob.tools.json import json
 
-from StringIO import StringIO
-import re
 import datetime
 from dateutil.parser import parse as parse_dt
 
@@ -106,10 +103,9 @@ class VideoPage(BasePage):
         #print "asking for redirect on '%s'" % (v.url)
         self.browser.set_handle_redirect(False)
         try:
-            redir = self.browser.open_novisit(v.url)
+            self.browser.open_novisit(v.url)
         except HTTPError, e:
             if e.getcode() == 302 and hasattr(e, 'hdrs'):
                 #print e.hdrs['Location']
                 v.url = unicode(e.hdrs['Location'])
         self.browser.set_handle_redirect(True)
-        

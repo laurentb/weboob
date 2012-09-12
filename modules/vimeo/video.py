@@ -20,7 +20,6 @@
 
 from weboob.capabilities.video import BaseVideo
 
-import re
 
 __all__ = ['VimeoVideo']
 
