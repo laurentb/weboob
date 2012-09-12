@@ -86,9 +86,6 @@ class VideoPage(BasePage):
         if 'hd' in data['video']['files']['h264']:
             quality = 'hd'
 
-        # log ourself to the site to validate the signature
-        log_data = self.browser.openurl('http://%s/log/client' % ("player.vimeo.com"), 'request_signature=%s&video=true&h264=probably&vp8=probably&vp6=probably&flash=null&touch=false&screen_width=1920&screen_height=1080' % (data['request']['signature']))
-        
         v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=h264&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, int(v.id), data['request']['timestamp'] , data['request']['signature']))
 
         # attempt to determine the redirected URL to pass it instead
