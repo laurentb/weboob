@@ -43,7 +43,7 @@ class VideoPage(BasePage):
 
         # youjizz HTML is crap, we must parse it with regexps
         data = lxml.html.tostring(self.document.getroot())
-        m = re.search(r'<strong>.*?Runtime.*?</strong> (.+?)<br.*>', data)
+        m = re.search(r'<strong>.*?Runtime.*?</strong> (.+?)</div>', data)
         if m:
             txt = m.group(1).strip()
             if txt == 'Unknown':
