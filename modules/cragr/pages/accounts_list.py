@@ -110,7 +110,7 @@ class AccountsList(CragrBasePage):
                     account = Account()
                     account.label = required_tokens['account_name']
                     account.id = required_tokens['account_number']
-                    account.balance = self.clean_amount(required_tokens['account_amount'])
+                    account.balance = FrenchTransaction.clean_amount(required_tokens['account_amount'])
                     # we found almost all required information to create an account object
                     self.logger.debug('Found account %s with number %s and balance = %.2f' % (account.label, account.id, account.balance))
                     # we may have found the owner name too
@@ -168,7 +168,7 @@ class AccountsList(CragrBasePage):
                     current_operation['label'] = date_desc_analysis.groups()[1]
                 elif self.look_like_amount(token):
                     # we consider the amount is the last information we get for an operation
-                    current_operation['amount'] = self.clean_amount(token)
+                    current_operation['amount'] = FrenchTransaction.clean_amount(token)
                     if current_operation.get('label') is not None and current_operation.get('date') is not None:
                         self.logger.debug('Parsed operation: %s: %s: %s' % (current_operation['date'], current_operation['label'], current_operation['amount']))
                         operations.append(current_operation)
@@ -288,16 +288,6 @@ class AccountsList(CragrBasePage):
         else:
             year = today.year
         return date(year, month, day)
-
-    def clean_amount(self, amount):
-        """
-            Removes weird characters and converts to a Decimal
-            >>> clean_amount(u'1 000,00 $')
-            1000.0
-        """
-        data = amount.replace(',', '.').replace(' ', '').replace(u'\xa0', '')
-        matches = re.findall('^(-?[0-9]+\.[0-9]{2}).*$', data)
-        return Decimal(matches[0]) if (matches) else Decimal(0)
 
     def look_like_account_owner(self, string):
         """ Returns a date object built from a given day/month pair. """
