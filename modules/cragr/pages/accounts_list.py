@@ -34,7 +34,7 @@ class Transaction(FrenchTransaction):
         (re.compile('^(?P<text>Rem\s*Chq\s*.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile('^Ret(rait)?\s*Dab\s*(?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
         (re.compile('^Paiement\s*Carte\s*(?P<text>.*)'), FrenchTransaction.TYPE_CARD),
-        (re.compile('^(?P<text>.*CAPITAL.*ECHEANCE.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>.*CAPITAL.*ECHEANCE.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
         (re.compile('^\*\*(?P<text>(frais|cotis(ation)?)\s*.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile('^(?P<text>Interets\s*.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile('^(?P<text>Prelev\.\s*(C\.r\.d\.s\.|R\.s\.a\.|C\.a\.p\.s\.|C\.s\.g|P\.s\.))'), FrenchTransaction.TYPE_BANK),
