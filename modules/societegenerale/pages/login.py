@@ -85,4 +85,5 @@ class LoginPage(BasePage):
 
 
 class BadLoginPage(BasePage):
-    pass
+    def get_error(self):
+        return self.document.xpath('//span[@class="error_msg"]')[0].text.strip()

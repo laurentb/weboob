@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages.accounts_list import AccountsList, AccountHistory
 from .pages.login import LoginPage, BadLoginPage
@@ -61,9 +61,15 @@ class SocieteGenerale(BaseBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(LoginPage) or \
-           self.is_on_page(BadLoginPage):
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
+
+        if self.is_on_page(BadLoginPage):
+            error = self.page.get_error()
+            if error.startswith('Votre session a'):
+                raise BrowserUnavailable('Session has expired')
+            else:
+                raise BrowserIncorrectPassword(error)
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):
