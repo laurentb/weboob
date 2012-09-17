@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
+from urlparse import parse_qsl
 
 from weboob.capabilities.base import UserError
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
@@ -112,14 +112,9 @@ class VideoPage(BaseYoutubePage):
             sub = text[pos+len(pattern):pos+text[pos:].find('\n')].rstrip(';')
             a = json.loads(sub)
 
-            for part in a['args']['url_encoded_fmt_stream_map'].split('&'):
-                key, value = part.split('=', 1)
-                if key != 'itag' or not 'url' in value:
-                    continue
-
-                value = urllib.unquote(value)
-                fmt, url = value.split(',url=')
-                formats[int(fmt)] = url
+            for part in a['args']['url_encoded_fmt_stream_map'].split(','):
+                args = dict(parse_qsl(part))
+                formats[int(args['itag'])] = args['url'] + '&signature=' + args['sig']
 
             break
 
