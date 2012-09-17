@@ -72,10 +72,10 @@ class AccountsList(BasePage):
             account = Account()
 
             # account.id
-            account.id = cpt.xpath("./span/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
+            account.id = cpt.xpath("./span[1]/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
 
             # account balance
-            account.balance = Decimal(cpt.xpath("./span/text()")[1].replace("+", "").replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", ""))
+            account.balance = Decimal(cpt.xpath("./span[2]/text()")[0].replace("+", "").replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", ""))
 
             # account coming TODO
             #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")
@@ -94,7 +94,8 @@ class AccountsList(BasePage):
                     (compte_id_re.search(url_to_parse).groups()[0], compte_id_re.search(url_to_parse).groups()[1])
 
             # account.label
-            account.label =  cpt.xpath("./span/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
+            temp_label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")
+            account.label = " ".join(temp_label.split(" ")[:2])
 
             l.append(account)
 
