@@ -130,13 +130,14 @@ class AuMBrowser(BaseBrowser):
         return r
 
     def login(self):
-        r = self.api0_request('me', 'login', data={'login': self.username,
-                                                   'pass':  self.password,
-                                                  }, nologin=True)
-        self.my_coords = (float(r['result']['me']['lat']), float(r['result']['me']['lng']))
-        if not self.search_query:
-            self.search_query = 'region=%s' % r['result']['me']['region']
-
+        pass
+        # XXX old API is disabled
+        #r = self.api0_request('me', 'login', data={'login': self.username,
+        #                                           'pass':  self.password,
+        #                                          }, nologin=True)
+        #self.my_coords = (float(r['result']['me']['lat']), float(r['result']['me']['lng']))
+        #if not self.search_query:
+        #    self.search_query = 'region=%s' % r['result']['me']['region']
 
     def api_request(self, command, **kwargs):
         if 'data' in kwargs:
@@ -260,16 +261,19 @@ class AuMBrowser(BaseBrowser):
             # retrieve query
             self.login()
 
-        r = self.api_request('users?count=60&offset=0&%s' % self.search_query)
+        r = self.api_request('users?count=100&offset=0&%s' % self.search_query)
         ids = [s['id'] for s in r['results']]
         return set(ids)
 
     @url2id
     def get_profile(self, id, with_pics=True):
-        r = self.api0_request('member', 'view', data={'id': id})
-        if not 'result' in r:
-            print r
-        profile = r['result']['member']
+        # XXX OLD API IS DISABLED (fucking faggots)
+        #r = self.api0_request('member', 'view', data={'id': id})
+        #if not 'result' in r:
+        #    print r
+        #profile = r['result']['member']
+
+        profile = {}
 
         profile.update(self.api_request('users/%s' % id))
 

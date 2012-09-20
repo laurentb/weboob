@@ -158,11 +158,12 @@ class Contact(_Contact):
                                     ('visites',             FieldPopu('visites')),
                                     ('invits',              FieldPopu('invits')),
                                     ('bonus',               FieldPopu('bonus')),
-                                    ('score',               FieldPopu('popu')),
+                                    ('score',               FieldStr('points')),
                                     ('ratio',               FieldPopuRatio('mails', 'flashs')),
                                     ('mailable',            FieldBool('can_mail')),
                                   ))),
                  ('details',      OrderedDict((
+                                    ('old',                 FieldStr('age')),
                                     ('old',                 FieldOld('birthday')),
                                     ('birthday',            FieldStr('birthday')),
                                     ('zipcode',             FieldStr('zip')),
@@ -244,8 +245,12 @@ class Contact(_Contact):
                 s = ProfileNode(section, section.capitalize(), OrderedDict(), flags=flags)
 
                 for key, builder in d.iteritems():
-                    value = builder.get_value(profile, consts[int(profile['sex'])])
-                    s.value[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
+                    try:
+                        value = builder.get_value(profile, consts[int(profile['sex'])])
+                    except KeyError:
+                        pass
+                    else:
+                        s.value[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
 
                 self.profile[section] = s
 
