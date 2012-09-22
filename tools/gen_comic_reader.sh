@@ -20,7 +20,7 @@ USERNAME="$(git config --get user.name)"
 Backend=$(echo $NAME|(head -c 1|tr a-z A-Z; cat))
 backend=$(echo $NAME|(head -c 1|tr A-Z a-z; cat))
 BACKEND_CLASS=$Backend"Backend"
-BACKEND_DIR=$(dirname $0)/../weboob/backends/$backend
+BACKEND_DIR=$(dirname $0)/../modules/$backend
 
 HEADER="\
 # -*- coding: utf-8 -*-
