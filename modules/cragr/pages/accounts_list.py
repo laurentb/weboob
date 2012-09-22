@@ -27,16 +27,21 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 class Transaction(FrenchTransaction):
     PATTERNS = [
-        (re.compile('^(Vp|Vt|Vrt|Virt|Vir(ement)?)\s*(?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-        (re.compile('^(?P<text>(Tip|Plt|Prlv|Prelevement)\s*.*)'), FrenchTransaction.TYPE_ORDER),
-        (re.compile('^Cheque\s*(?P<text>No.*)'), FrenchTransaction.TYPE_CHECK),
-        (re.compile('^(?P<text>Rem\s*Chq\s*.*)'), FrenchTransaction.TYPE_DEPOSIT),
-        (re.compile('^Ret(rait)?\s*Dab\s*((?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}))?\s*(?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
-        (re.compile('^Paiement\s*Carte\s*(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\s*(?P<text>.*)'), FrenchTransaction.TYPE_CARD),
-        (re.compile('^(?P<text>.*CAPITAL.*ECHEANCE.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
-        (re.compile('^\*\*(?P<text>(frais|cotis(ation)?)\s*.*)'), FrenchTransaction.TYPE_BANK),
-        (re.compile('^(?P<text>Interets\s*.*)'), FrenchTransaction.TYPE_BANK),
-        (re.compile('^(?P<text>Prelev\.\s*(C\.r\.d\.s\.|R\.s\.a\.|C\.a\.p\.s\.|C\.s\.g|P\.s\.))'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(Vp|Vt|Vrt|Virt|Vir(ement)?)\s*(?P<text>.*)', re.IGNORECASE),         FrenchTransaction.TYPE_TRANSFER),
+        (re.compile('^(?P<text>(Tip|Plt|Prlv|PRELEVT|Prelevement)\s*.*)', re.IGNORECASE),   FrenchTransaction.TYPE_ORDER),
+        (re.compile('^Cheque\s*(?P<text>(No)?.*)', re.IGNORECASE),                             FrenchTransaction.TYPE_CHECK),
+        (re.compile('^(?P<text>Rem\s*Chq\s*.*)', re.IGNORECASE),                            FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile('^Ret(rait)?\s*Dab\s*((?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}))?\s*(?P<text>.*)', re.IGNORECASE),
+                                                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('^Paiement\s*Carte\s*(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\s*(?P<text>.*)', re.IGNORECASE),
+                                                                                            FrenchTransaction.TYPE_CARD),
+        (re.compile('^(?P<text>.*CAPITAL.*ECHEANCE.*)', re.IGNORECASE),                     FrenchTransaction.TYPE_LOAN_PAYMENT),
+        (re.compile('^(\*\*)?(?P<text>(frais|cotis(ation)?)\s*.*)', re.IGNORECASE),            FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>Interets\s*.*)', re.IGNORECASE),                             FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>Prelev\.\s*(C\.r\.d\.s\.|R\.s\.a\.|C\.a\.p\.s\.|C\.s\.g|P\.s\.))', re.IGNORECASE),
+                                                                                            FrenchTransaction.TYPE_BANK),
+        (re.compile('^ACH.CARTE (?P<text>.*)', re.IGNORECASE),                              FrenchTransaction.TYPE_CARD),
+        (re.compile('^RET.CARTE (?P<text>.*)', re.IGNORECASE),                              FrenchTransaction.TYPE_WITHDRAWAL),
     ]
 
 class AccountsList(CragrBasePage):
