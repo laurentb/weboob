@@ -49,7 +49,7 @@ class EHentaiBrowser(BaseBrowser):
         return 'http://%s/g/%s/' % (self.DOMAIN, gallery.id)
 
     def _gallery_page(self, gallery, n):
-        return gallery.url + ('?p=%d' % n)
+        return gallery.url + ('?p='+str(n))
 
     def search_gallery(self, pattern):
         self.location(self.buildurl('/', f_search=pattern.encode('utf-8')))
@@ -64,19 +64,12 @@ class EHentaiBrowser(BaseBrowser):
     def iter_gallery_images(self, gallery):
         self.location(gallery.url)
         assert self.is_on_page(GalleryPage)
-        i = 0
-        while True:
-            n = self.page._next_page_link()
+        for n in self.page._page_numbers():
+            self.location(self._gallery_page(gallery, n))
+            assert self.is_on_page(GalleryPage)
 
             for img in self.page.image_pages():
                 yield EHentaiImage(img)
-
-            if n is None:
-                break
-
-            i += 1
-            self.location(self._gallery_page(gallery, i))
-            assert self.is_on_page(GalleryPage)
 
     def get_image_url(self, image):
         self.location(image.id)

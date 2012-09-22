@@ -56,11 +56,8 @@ class GalleryPage(BasePage):
     def image_pages(self):
         return self.document.xpath('//div[@class="gdtm"]//a/attribute::href')
 
-    def _next_page_link(self):
-        try:
-            return self.document.xpath("//table[@class='ptt']//a[text()='>']")[0]
-        except IndexError:
-            return None
+    def _page_numbers(self):
+        return [n for n in self.document.xpath("(//table[@class='ptt'])[1]//td/text()") if re.match(r"\d+", n)]
 
     def gallery_exists(self, gallery):
         if self.document.xpath("//h1"):
@@ -73,8 +70,8 @@ class GalleryPage(BasePage):
         try:
             gallery.original_title = self.document.xpath("//h1[@id='gj']/text()")[0]
         except IndexError:
-            gallery.orginal_title = None
-        description_div = self.document.xpath("//div[@id='gds']/div")[0]
+            gallery.original_title = None
+        description_div = self.document.xpath("//div[@id='gd71']")[0]
         description_html = self.parser.tostring(description_div)
         gallery.description = html2text(description_html)
         cardinality_string = self.document.xpath("//div[@id='gdd']//tr[td[@class='gdt1']/text()='Images:']/td[@class='gdt2']/text()")[0]
@@ -97,12 +94,6 @@ class GalleryPage(BasePage):
             thumbnail_url = re.search(r"background:[^;]+url\((.+?)\)", thumbnail_style).group(1)
 
         gallery.thumbnail = Thumbnail(unicode(thumbnail_url))
-
-    def _prev_page_link(self):
-        try:
-            return self.document.xpath("//table[@class='ptt']//a[text()='<']")[0]
-        except IndexError:
-            return None
 
 
 class ImagePage(BasePage):
