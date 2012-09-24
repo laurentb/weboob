@@ -32,8 +32,8 @@ class Captcha(object):
     def __init__(self, file, infos):
         self.inim = Image.open(file)
         self.infos = infos
-        self.nbr = int(infos["nblignes"])
-        self.nbc = int(infos["nbcolonnes"])
+        self.nbr = int(infos["nbrows"])
+        self.nbc = int(infos["nbcols"])
         (self.nx, self.ny) = self.inim.size
         self.inmat = self.inim.load()
         self.map = {}
@@ -53,7 +53,7 @@ class Captcha(object):
         num = 0
         for c in code:
             index = self.map[int(c)].id
-            keycode = self.infos["keyCodes"][num * self.nbr * self.nbc + index]
+            keycode = str(self.infos["grid"][num * self.nbr * self.nbc + index])
             s += keycode
             if num < 5:
                 s += ','

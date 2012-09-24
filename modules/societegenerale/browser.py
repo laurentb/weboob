@@ -49,7 +49,14 @@ class SocieteGenerale(BaseBrowser):
         self.location('https://' + self.DOMAIN_LOGIN + '/index.html')
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        if not self.page or self.is_on_page(LoginPage):
+            return False
+
+        error = self.page.get_error()
+        if error is None:
+            return True
+
+        return False
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -57,7 +64,7 @@ class SocieteGenerale(BaseBrowser):
         assert self.password.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN_LOGIN + '/index.html')
+            self.location('https://' + self.DOMAIN_LOGIN + '/index.html', no_login=True)
 
         self.page.login(self.username, self.password)
 

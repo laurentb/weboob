@@ -26,7 +26,9 @@ import re
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BrokenPageError
+
+from .base import BasePage
 
 
 __all__ = ['AccountsList', 'AccountHistory']

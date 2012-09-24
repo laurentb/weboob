@@ -19,14 +19,17 @@
 
 
 from logging import error
+import re
+from weboob.tools.json import json
 
-from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.browser import BrowserUnavailable
 from weboob.tools.mech import ClientForm
+
+from .base import BasePage
 from ..captcha import Captcha, TileError
-from lxml import etree
 
 
-__all__ = ['LoginPage']
+__all__ = ['LoginPage', 'BadLoginPage']
 
 
 class LoginPage(BasePage):
@@ -45,23 +48,18 @@ class LoginPage(BasePage):
         url_login = 'https://' + DOMAIN_LOGIN + '/index.html'
 
         base_url = 'https://' + DOMAIN
-        url = base_url + '/cvcsgenclavier?mode=jsom&estSession=0'
+        url = base_url + '//sec/vk/gen_crypto?estSession=0'
         headers = {
                  'Referer': url_login
                   }
         request = self.browser.request_class(url, None, headers)
         infos_data = self.browser.readurl(request)
-        infos_xml = etree.XML(infos_data)
-        infos = {}
-        for el in ("cryptogramme", "nblignes", "nbcolonnes"):
-            infos[el] = infos_xml.find(el).text
 
-        infos["grille"] = ""
-        for g in infos_xml.findall("grille"):
-            infos["grille"] += g.text + ","
-        infos["keyCodes"] = infos["grille"].split(",")
+        infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
 
-        url = base_url + '/cvcsgenimage?modeClavier=0&cryptogramme=' + infos["cryptogramme"]
+        infos = json.loads(infos_data.replace("'", '"'))
+
+        url = base_url + '//sec/vk/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
         img = Captcha(self.browser.openurl(url), infos)
 
         try:
@@ -71,19 +69,18 @@ class LoginPage(BasePage):
             if err.tile:
                 err.tile.display()
 
-        self.browser.openurl(url_login)
         self.browser.select_form('n2g_authentification')
         self.browser.controls.append(ClientForm.TextControl('text', 'codsec', {'value': ''}))
         self.browser.controls.append(ClientForm.TextControl('text', 'cryptocvcs', {'value': ''}))
+        self.browser.controls.append(ClientForm.TextControl('text', 'vk_op', {'value': 'auth'}))
         self.browser.set_all_readonly(False)
 
         self.browser['codcli'] = login
         self.browser['user_id'] = login
         self.browser['codsec'] = img.get_codes(password[:6])
-        self.browser['cryptocvcs'] = infos["cryptogramme"]
-        self.browser.submit()
+        self.browser['cryptocvcs'] = infos["crypto"]
+        self.browser.submit(nologin=True)
 
 
 class BadLoginPage(BasePage):
-    def get_error(self):
-        return self.document.xpath('//span[@class="error_msg"]')[0].text.strip()
+    pass
