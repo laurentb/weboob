@@ -19,6 +19,7 @@
 import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.capabilities.bank import Account
 from .pages import AccountsList, LoginPage, LoginPage2, \
                    AccountHistory, TransferPage
 
@@ -90,8 +91,9 @@ class Ing(BaseBrowser):
         # are always on a HTML document.
         return True
 
-    def get_history(self, id):
-        account = self.get_account(id)
+    def get_history(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
             self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
@@ -118,4 +120,10 @@ class Ing(BaseBrowser):
     def get_recipients(self, account):
         if not self.is_on_page(TransferPage):
             self.location('https://secure.ingdirect.fr/protected/pages/cc/transfer/transferManagement.jsf')
-        return self.page.get_recipients()
+        if self.page.ischecked(account):
+            return self.page.get_recipients()
+        else:
+            # It is hard to check the box and to get the real list. We try an alternative way like normal users
+            self.get_history(account.id).next()
+            self.location('https://secure.ingdirect.fr/general?command=DisplayDoTransferCommand')
+            return self.page.get_recipients()
