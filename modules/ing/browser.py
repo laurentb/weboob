@@ -19,9 +19,9 @@
 import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, TransferError
 from .pages import AccountsList, LoginPage, LoginPage2, \
-                   AccountHistory, TransferPage
+                   AccountHistory, TransferPage, TransferConfirmPage
 
 
 __all__ = ['Ing']
@@ -30,14 +30,16 @@ __all__ = ['Ing']
 class Ing(BaseBrowser):
     DOMAIN = 'secure.ingdirect.fr'
     PROTOCOL = 'https'
+    DEBUG_HTTP = True
     ENCODING = None  # refer to the HTML encoding
-    PAGES = {'.*displayTRAccountSummary.*':   AccountsList,
-             '.*displayLogin.jsf':            LoginPage,
-             '.*displayLogin.jsf.*':          LoginPage2,
-             '.*accountDetail.jsf.*':         AccountHistory,
-             '.*displayTRHistoriqueLA.*':     AccountHistory,
-             '.*transferManagement.jsf':      TransferPage,
-             '.*DisplayDoTransferCommand.*':  TransferPage
+    PAGES = {'.*displayTRAccountSummary.*':    AccountsList,
+             '.*displayLogin.jsf':             LoginPage,
+             '.*displayLogin.jsf.*':           LoginPage2,
+             '.*accountDetail.jsf.*':          AccountHistory,
+             '.*displayTRHistoriqueLA.*':      AccountHistory,
+             '.*transferManagement.jsf':       TransferPage,
+             '.*DisplayDoTransferCommand.*':   TransferPage,
+             '.*transferCreateValidation.jsf': TransferConfirmPage
             }
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
@@ -127,3 +129,21 @@ class Ing(BaseBrowser):
             self.get_history(account.id).next()
             self.location('https://secure.ingdirect.fr/general?command=DisplayDoTransferCommand')
             return self.page.get_recipients()
+
+    def transfer(self, account, recipient, amount, reason):
+        found = False
+        # Automatically get the good transfer page
+        self.logger.debug('Search %s' % recipient)
+        for destination in self.get_recipients(account):
+            self.logger.debug('Found %s ' % destination.id)
+            if destination.id == recipient:
+                found = True
+                break
+        if found:
+            self.page.transfer(recipient, amount, reason)
+            if not self.is_on_page(TransferConfirmPage):
+                raise TransferError("Recipient not found")
+            else:
+                self.page.confirm()
+        else:
+            raise TransferError()

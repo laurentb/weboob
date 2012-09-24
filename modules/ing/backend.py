@@ -79,3 +79,9 @@ class INGBackend(BaseBackend, ICapBank):
                 account = self.get_account(account)
             for recipient in self.browser.get_recipients(account):
                 yield recipient
+
+    def transfer(self, account, recipient, amount, reason):
+        with self.browser:
+            if not isinstance(account, Account):
+                account = self.get_account(account)
+            self.browser.transfer(account, recipient, amount, reason)

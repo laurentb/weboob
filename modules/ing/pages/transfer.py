@@ -20,6 +20,7 @@
 
 from weboob.capabilities.bank import Recipient, AccountNotFound
 from weboob.tools.browser import BasePage
+from weboob.tools.mech import ClientForm
 
 
 __all__ = ['TransferPage']
@@ -69,3 +70,23 @@ class TransferPage(BasePage):
                 return False
         except:
             return False
+
+    def transfer(self, recipient, amount, reason):
+        self.browser.select_form("transfer_form")
+        self.browser.set_all_readonly(False)
+        for a in self.browser.controls[:]:
+            #for label in a.get_labels():
+            if "transfer_form:_link_hidden_" in str(a) or "transfer_form:j_idcl" in str(a):
+                self.browser.controls.remove(a)
+        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': "transfer_form:transfer_region"}))
+        self.browser['transfer_form:transferMotive'] = reason
+        self.browser.controls.append(ClientForm.TextControl('text', 'transfer_form:valide', {'value': "transfer_form:valide"}))
+        self.browser['transfer_form:validateDoTransfer'] = "needed"
+        self.browser['transfer_form:transferAmount'] = str(amount)
+        self.browser['transfer_recipient_radio'] = [recipient]
+        self.browser.submit()
+
+
+class TransferConfirmPage(BasePage):
+    def on_loaded(self):
+        pass
