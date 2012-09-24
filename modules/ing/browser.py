@@ -20,7 +20,7 @@ import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import AccountsList, LoginPage, LoginPage2, \
-                   AccountHistory
+                   AccountHistory, TransferPage
 
 
 __all__ = ['Ing']
@@ -34,7 +34,9 @@ class Ing(BaseBrowser):
              '.*displayLogin.jsf':            LoginPage,
              '.*displayLogin.jsf.*':          LoginPage2,
              '.*accountDetail.jsf.*':         AccountHistory,
-             '.*displayTRHistoriqueLA.*':     AccountHistory
+             '.*displayTRHistoriqueLA.*':     AccountHistory,
+             '.*transferManagement.jsf':      TransferPage,
+             '.*DisplayDoTransferCommand.*':  TransferPage
             }
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
@@ -62,7 +64,7 @@ class Ing(BaseBrowser):
         self.page.prelogin(self.username, self.birthday)
         self.page.login(self.password)
         if self.page.error():
-             raise BrowserIncorrectPassword()
+            raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):
@@ -112,3 +114,8 @@ class Ing(BaseBrowser):
             # XXX server sends an unknown mimetype, we overload viewing_html() above to
             # prevent this issue.
             self.page.next_page()
+
+    def get_recipients(self, account):
+        if not self.is_on_page(TransferPage):
+            self.location('https://secure.ingdirect.fr/protected/pages/cc/transfer/transferManagement.jsf')
+        return self.page.get_recipients()

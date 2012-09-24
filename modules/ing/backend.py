@@ -21,7 +21,7 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import ICapBank, AccountNotFound, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -72,3 +72,10 @@ class INGBackend(BaseBackend, ICapBank):
         with self.browser:
             for history in self.browser.get_history(account.id):
                 yield history
+
+    def iter_transfer_recipients(self, account):
+        with self.browser:
+            if not isinstance(account, Account):
+                account = self.get_account(account)
+            for recipient in self.browser.get_recipients(account):
+                yield recipient
