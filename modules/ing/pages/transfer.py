@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
 from weboob.capabilities.bank import Recipient, AccountNotFound
 from weboob.tools.browser import BasePage
@@ -41,6 +42,7 @@ class TransferPage(BasePage):
             recipient = Recipient()
             recipient.id = id
             recipient.label = name
+            recipient._type = "int"
             yield recipient
 
         # Second, externals recipients
@@ -51,6 +53,7 @@ class TransferPage(BasePage):
             recipient = Recipient()
             recipient.id = option.attrib['value']
             recipient.label = option.text
+            recipient._type = "ext"
             yield recipient
 
     def ischecked(self, account):
@@ -83,8 +86,58 @@ class TransferPage(BasePage):
         self.browser.controls.append(ClientForm.TextControl('text', 'transfer_form:valide', {'value': "transfer_form:valide"}))
         self.browser['transfer_form:validateDoTransfer'] = "needed"
         self.browser['transfer_form:transferAmount'] = str(amount)
-        self.browser['transfer_recipient_radio'] = [recipient]
+        if recipient._type == "int":
+            self.browser['transfer_recipient_radio'] = [recipient.id]
+        else:
+            self.browser['transfer_form:externalAccounts'] = [recipient.id]
         self.browser.submit()
+
+    def buildonclick(self, recipient, account):
+        javax = self.document.xpath('//input[@id="javax.faces.ViewState"]')[0].attrib['value']
+        if recipient._type == "ext":
+            select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
+            onclick = select.attrib['onchange']
+            print onclick
+            params = onclick.split(',')[6].split('{')[1]
+            idparam = params.split("'")[1]
+            param =  params.split("'")[3]
+            request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
+                                            ("transfer_form:generalMessages", ""),
+                                            ("transfer_issuer_radio", account.id[3:]),
+                                            ("transfer_form:externalAccounts", recipient.id),
+                                            ("transfer_date", 0),
+                                            ("transfer_form:transferAmount", ""),
+                                            ("transfer_form:transferMotive", ""),
+                                            ("transfer_form:validateDoTransfer", "needed"),
+                                            ("transfer_form", "transfer_form"),
+                                            ("autoScrol", ""),
+                                            ("javax.faces.ViewState", javax),
+                                            (idparam, param))
+            request = request[1:]  # remove the "?"
+            return request
+        elif recipient._type == "int":
+            for input in self.document.xpath('//input[@value=%s]' % recipient.id):
+                if input.attrib['name'] == "transfer_recipient_radio":
+                    onclick = input.attrib['onclick']
+                    break
+            params = onclick.split(',')[6].split('{')[1]
+            idparam = params.split("'")[1]
+            param =  params.split("'")[3]
+            request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
+                                      ("transfer_form:generalMessages", ""),
+                                      ('transfer_issuer_radio', account.id[3:]),
+                                      ("transfer_recipient_radio", recipient.id),
+                                      ("transfer_form:externalAccounts", "na"),
+                                      ("transfer_date", 0),
+                                      ("transfer_form:transferAmount", ""),
+                                      ("transfer_form:transferMotive", ""),
+                                      ("transfer_form:AvalidateDoTransfer", "needed"),
+                                      ("transfer_form", "transfer_form"),
+                                      ("autoScroll", ""),
+                                      ("javax.faces.ViewState", javax),
+                                      (idparam, param))
+            request = request[1:]
+            return request
 
 
 class TransferConfirmPage(BasePage):

@@ -105,7 +105,6 @@ class LoginPage(BasePage):
     def error(self):
         error = self.document.find('//span[@class="error"]')
         return error is not None
-        
 
 class LoginPage2(BasePage):
     def on_loaded(self):

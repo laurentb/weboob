@@ -30,7 +30,8 @@ __all__ = ['Ing']
 class Ing(BaseBrowser):
     DOMAIN = 'secure.ingdirect.fr'
     PROTOCOL = 'https'
-    DEBUG_HTTP = True
+    DEBUG_HTTP = False
+    #DEBUG_HTTP = True
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*displayTRAccountSummary.*':    AccountsList,
              '.*displayLogin.jsf':             LoginPage,
@@ -138,9 +139,12 @@ class Ing(BaseBrowser):
             self.logger.debug('Found %s ' % destination.id)
             if destination.id == recipient:
                 found = True
+                recipient = destination
                 break
         if found:
+            self.openurl('/protected/pages/cc/transfer/transferManagement.jsf', self.page.buildonclick(recipient, account))
             self.page.transfer(recipient, amount, reason)
+            self.location('/protected/pages/cc/transfer/create/transferCreateValidation.jsf')
             if not self.is_on_page(TransferConfirmPage):
                 raise TransferError("Recipient not found")
             else:
