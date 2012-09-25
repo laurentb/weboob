@@ -103,6 +103,8 @@ class TransferFormatter(IFormatter):
         result += u'Origin:     %s\n' % obj.origin
         result += u'Recipient:  %s\n' % obj.recipient
         result += u'Amount:     %.2f\n' % obj.amount
+        if obj.reason:
+            result += u'Reason:     %s\n' % obj.reason
         return result
 
 
