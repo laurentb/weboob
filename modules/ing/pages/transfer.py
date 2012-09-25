@@ -190,4 +190,5 @@ class TransferConfirmPage(BasePage):
         transfer.amount = Decimal(FrenchTransaction.clean_amount(div.xpath('.//span[@id="confirmtransferAmount"]')[0].text))
         transfer.origin = div.xpath('.//span[@id="confirmfromAccount"]')[0].text
         transfer.recipient = div.xpath('.//span[@id="confirmtoAccount"]')[0].text
+        transfer.reason = div.xpath('.//span[@id="confirmtransferMotive"]')[0].text
         return transfer
