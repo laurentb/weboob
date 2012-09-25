@@ -146,7 +146,7 @@ class Ing(BaseBrowser):
             self.page.transfer(recipient, amount, reason)
             self.location('/protected/pages/cc/transfer/create/transferCreateValidation.jsf')
             if not self.is_on_page(TransferConfirmPage):
-                raise TransferError("Recipient not found")
+                raise TransferError("Invalid transfer (no confirmation page)")
             else:
                 self.page.confirm(self.password)
                 self.location('/protected/pages/cc/transfer/create/transferCreateValidation.jsf')

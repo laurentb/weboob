@@ -160,8 +160,6 @@ class TransferConfirmPage(BasePage):
             if font.attrib.get('class') == "vide":
                 realpasswd += password[i]
             i += 1
-        # TODO: trouver le bon formulaire, y'en a plein la page...
-        # Puis copier le code de login.py
         confirmform = None
         for form in self.document.xpath('//form'):
             try:
