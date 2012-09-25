@@ -109,6 +109,7 @@ class Transfer(CapBaseObject):
     date =      Field('Date of transfer', basestring, date, datetime)
     origin =    Field('Origin of transfer', int, long, basestring)
     recipient = Field('Recipient', int, long, basestring)
+    reason =    StringField('Reason')
 
 class ICapBank(ICapCollection):
     """
