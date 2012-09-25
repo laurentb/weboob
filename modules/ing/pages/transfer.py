@@ -17,12 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+from decimal import Decimal
 
-from weboob.capabilities.bank import Recipient, AccountNotFound
-from weboob.tools.browser import BasePage
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
+from weboob.capabilities.bank import Recipient, AccountNotFound, Transfer
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.mech import ClientForm
-
+from .login import INGVirtKeyboard
+from logging import error
 
 __all__ = ['TransferPage']
 
@@ -60,7 +63,6 @@ class TransferPage(BasePage):
         id = account.id
         # remove prefix (CC-, LA-, ...)
         id = id[3:]
-        search = '//input[@value="%s"]' % id
         option = self.document.xpath('//input[@value="%s"]' % id)
         if len(option) < 0:
             raise AccountNotFound()
@@ -143,3 +145,51 @@ class TransferPage(BasePage):
 class TransferConfirmPage(BasePage):
     def on_loaded(self):
         pass
+
+
+    def confirm(self, password):
+        try:
+            vk = INGVirtKeyboard(self)
+        except VirtKeyboardError, err:
+            error("Error: %s" % err)
+            return 
+        realpasswd = ""
+        span = self.document.find('//span[@id="digitpadtransfer"]')
+        i = 0
+        for font in span.getiterator('font'):
+            if font.attrib.get('class') == "vide":
+                realpasswd += password[i]
+            i += 1
+        # TODO: trouver le bon formulaire, y'en a plein la page...
+        # Puis copier le code de login.py
+        confirmform = None
+        for form in self.document.xpath('//form'):
+            try:
+                if form.attrib['name'][0:4] == "j_id":
+                    confirmform = form
+                    break
+            except:
+                continue
+        if confirmform is None:
+            raise BrokenPageError('Unable to find confirm form')
+        formname = confirmform.attrib['name']
+        self.browser.logger.debug('We are looking for : ' + realpasswd)
+        self.browser.select_form(formname)
+        self.browser.set_all_readonly(False)
+        for a in self.browser.controls[:]:
+            if "transfer_form:_link_hidden_" in str(a) or "transfer_form:j_idcl" in str(a):
+                self.browser.controls.remove(a)
+        coordinates = vk.get_string_code(realpasswd)
+        self.browser.logger.debug("Coordonates: " + coordinates)
+        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': '_viewRoot'}))
+        self.browser.controls.append(ClientForm.TextControl('text', '%s:mrg' % formname, {'value': '%s:mrg' % formname}))
+        self.browser['%s:mrltransfer' % formname] = coordinates
+        self.browser.submit(nologin=True)
+
+    def recap(self):
+        div = self.document.find('//div[@class="content recap"]')
+        transfer = Transfer(0)
+        transfer.amount = Decimal(FrenchTransaction.clean_amount(div.xpath('.//span[@id="confirmtransferAmount"]')[0].text))
+        transfer.origin = div.xpath('.//span[@id="confirmfromAccount"]')[0].text
+        transfer.recipient = div.xpath('.//span[@id="confirmtoAccount"]')[0].text
+        return transfer

@@ -84,4 +84,4 @@ class INGBackend(BaseBackend, ICapBank):
         with self.browser:
             if not isinstance(account, Account):
                 account = self.get_account(account)
-            self.browser.transfer(account, recipient, amount, reason)
+            return self.browser.transfer(account, recipient, amount, reason)

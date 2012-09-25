@@ -45,6 +45,8 @@ class INGVirtKeyboard(VirtKeyboard):
 
     def __init__(self, basepage):
         divkeyboard = basepage.document.find("//div[@id='clavierdisplayLogin']")
+        if divkeyboard is None:
+            divkeyboard = basepage.document.find("//div[@id='claviertransfer']")
         try:
             img = divkeyboard.xpath("img")[1]
         except:
