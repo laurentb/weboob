@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 from weboob.tools.mech import ClientForm
 from logging import error
 
@@ -27,7 +26,7 @@ from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 import tempfile
 
 
-__all__ = ['LoginPage', 'LoginPage2', 'ConfirmPage', 'ChangePasswordPage']
+__all__ = ['LoginPage', 'LoginPage2', 'INGVirtKeyboard']
 
 
 class INGVirtKeyboard(VirtKeyboard):
@@ -134,27 +133,3 @@ class LoginPage2(BasePage):
         self.browser['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
         self.browser['mrc:mrg'] = 'mrc:mrg'
         self.browser.submit(nologin=True)
-
-
-class ConfirmPage(BasePage):
-    def get_error(self):
-        for td in self.document.xpath('//td[@class="hdvon1"]'):
-            if td.text:
-                return td.text.strip()
-        return None
-
-    def get_relocate_url(self):
-        script = self.document.xpath('//script')[0]
-        m = re.match('document.location.replace\("(.*)"\)', script.text[script.text.find('document.location.replace'):])
-        if m:
-            return m.group(1)
-
-
-class MessagePage(BasePage):
-    def on_loaded(self):
-        pass
-
-
-class ChangePasswordPage(BasePage):
-    def on_loaded(self):
-        pass
