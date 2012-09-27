@@ -30,7 +30,10 @@ class HomePage(BasePage):
 
     def get_list(self):
         for divglobal in self.document.xpath('//div[@class="abonne"]'):
-            login = divglobal.xpath('//div[@class="acceuil_btn"]/a')[0].attrib['href'].split('=').pop()
+            for link in divglobal.xpath('//div[@class="acceuil_btn"]/a'):
+                login = link.attrib['href'].split('=').pop()
+                if login.isdigit():
+                    break
             divabo = divglobal.xpath('div[@class="idAbonne pointer"]')[0]
             owner = unicode(divabo.xpath('p')[0].text.replace(' - ', ''))
             phone = unicode(divabo.xpath('p/span')[0].text)
