@@ -34,6 +34,7 @@ class Freemobile(BaseBrowser):
              '.*page=suiviconso':     DetailsPage,
              '.*page=consotel_current_month': HistoryPage
             }
+    #DEBUG_HTTP = True
 
     def home(self):
         self.location('https://mobile.free.fr/moncompte/index.php')

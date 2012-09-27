@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import time
 import Image
 
 from weboob.tools.browser import BasePage
@@ -101,7 +102,7 @@ class FreeKeyboard(object):
 
     def get_small(self, string):
         for c in string:
-            #time.sleep(0.4)
+            time.sleep(0.5)
             url = 'https://mobile.free.fr/moncompte/chiffre.php?pos=' + c + '&small=1'
             self.basepage.browser.openurl(url)
 
