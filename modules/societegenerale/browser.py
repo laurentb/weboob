@@ -102,6 +102,6 @@ class SocieteGenerale(BaseBrowser):
         if not self.is_on_page(AccountHistory):
             # TODO: support other kind of accounts
             self.logger.warning('This account is not supported')
-            return iter([])
+            raise NotImplementedError('This account is not supported')
 
         return self.page.iter_transactions()
