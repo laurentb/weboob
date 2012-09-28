@@ -33,7 +33,6 @@ __all__ = ['VideoPage']
 
 
 class VideoPage(BasePage):
-
     def get_video(self, video=None):
         _id = to_unicode(self.group_dict['id'])
         if video is None:
@@ -53,6 +52,9 @@ class VideoPage(BasePage):
                 video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
         else:
             raise BrokenPageError('Unable to retrieve video duration')
+
+        real_id = int(_id.split('-')[-1])
+        data = self.browser.readurl('http://www.youjizz.com/videos/embed/%s' % real_id)
 
         video_file_urls = re.findall(r'"(http://[^",]+\.youjizz\.com[^",]+\.flv(?:\?[^"]*)?)"', data)
         if len(video_file_urls) == 0:
