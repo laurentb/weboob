@@ -164,7 +164,7 @@ class Contact(_Contact):
                                   ))),
                  ('details',      OrderedDict((
                                     ('old',                 FieldStr('age')),
-                                    ('old',                 FieldOld('birthday')),
+                                    #('old',                 FieldOld('birthday')),
                                     ('birthday',            FieldStr('birthday')),
                                     ('zipcode',             FieldStr('zip')),
                                     ('location',            FieldStr('city')),
