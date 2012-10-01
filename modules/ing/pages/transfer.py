@@ -99,7 +99,6 @@ class TransferPage(BasePage):
         if recipient._type == "ext":
             select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
             onclick = select.attrib['onchange']
-            print onclick
             params = onclick.split(',')[6].split('{')[1]
             idparam = params.split("'")[1]
             param =  params.split("'")[3]
