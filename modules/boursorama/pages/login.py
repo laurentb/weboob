@@ -45,4 +45,4 @@ class LoginPage(BasePage):
 
         self.browser['login'] = login
         self.browser['password'] = password
-        self.browser.submit()
+        self.browser.submit(nologin=True)
