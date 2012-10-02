@@ -37,6 +37,7 @@ class SocieteGenerale(BaseBrowser):
     PAGES = {
              'https://particuliers.societegenerale.fr/.*':  LoginPage,
              'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
+             'https://.*.societegenerale.fr/error403.html': BadLoginPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
              '.*restitution/cns_detail.*\.html.*':          AccountHistory,
             }
@@ -73,7 +74,9 @@ class SocieteGenerale(BaseBrowser):
 
         if self.is_on_page(BadLoginPage):
             error = self.page.get_error()
-            if error.startswith('Votre session a'):
+            if error is None:
+                raise BrowserIncorrectPassword()
+            elif error.startswith('Votre session a'):
                 raise BrowserUnavailable('Session has expired')
             else:
                 raise BrowserIncorrectPassword(error)
