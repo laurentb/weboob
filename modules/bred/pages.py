@@ -42,11 +42,15 @@ class LoginResultPage(BasePage):
         self.browser.location('MainAuth?typeDemande=AC', no_login=True)
 
     def get_error(self):
-        error = self.document.xpath('//td[@class="txt_norm2"]/b')
+        error = self.document.xpath('//td[@class="txt_norm2"]')
         if len(error) == 0:
             return None
 
-        return error[0].text.strip()
+        error = error[0]
+        if error.find('b') is not None:
+            error = error.find('b')
+
+        return error.text.strip()
 
 class EmptyPage(BasePage):
     pass
