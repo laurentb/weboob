@@ -37,7 +37,7 @@ class LoginPage(BasePage):
        self.browser.select_form(nr=3)
        self.browser['login'] = login
        self.browser['passwd'] = passwd
-       self.browser.submit()
+       self.browser.submit(nologin=True)
 
 
 # vim:ts=4:sw=4

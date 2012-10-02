@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
 from .pages.accounts_list import AccountsList, AccountHistoryPage
@@ -72,9 +72,13 @@ class Fortuneo(BaseBrowser):
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp')
+            self.location('https://' + self.DOMAIN_LOGIN + '/fr/identification.jsp', no_login=True)
 
         self.page.login(self.username, self.password)
+
+        if self.is_on_page(LoginPage):
+            raise BrowserIncorrectPassword()
+
         self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
 
     def get_history(self, account):
