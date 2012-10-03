@@ -45,7 +45,7 @@ class DetailsPage(BasePage):
         self.datebills = []
         for div in self.document.xpath('//div[@class="infosLigneDetail pointer"]'):
             phonenumber = div.text
-            phonenumber = phonenumber.split("-")[2].strip()
+            phonenumber = phonenumber.split("-")[-1].strip()
             virtualnumber = div.attrib['onclick'].split('(')[1][1]
             self.details['num' + str(phonenumber)] = virtualnumber
 
