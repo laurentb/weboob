@@ -36,7 +36,7 @@ __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
 
 
 class RadioFranceVideo(BaseVideo):
-    RADIO_DOMAINS = ('franceinter', 'franceculture', 'fipradio', )
+    RADIO_DOMAINS = ('franceinter', 'franceculture', 'fipradio', 'franceinfo')
 
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
@@ -64,7 +64,10 @@ class PlayerPage(BasePage):
 
 class ReplayPage(BasePage):
     URL = r'^http://www\.(?P<rdomain>%s)\.fr/(?:emission|diffusion)-.+$' \
-            % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
+        % '|'.join(RadioFranceVideo.RADIO_DOMAINS)
+    # the url does not always end with id-yyy-mm-dd, sometimes no mm or dd
+    URL2 = r'^http://www\.(?P<rdomain>%s)\.fr/[a-z\-]+/[0-9a-z\-]+/[0-9a-z\-]+-[0-9\-]+' \
+         % 'franceinfo'
 
     def get_id(self):
         radio_domain = self.groups[0]
@@ -82,6 +85,13 @@ class ReplayPage(BasePage):
             if match:
                 player_id = match.groups()[0]
                 return (radio_domain, player_id)
+        # at least for franceinfo
+        for node in self.parser.select(self.document.getroot(), '#article .emission-player a.play'):
+            match = re.match(r'^song-(\d+)$', node.attrib.get('rel', ''))
+            if match:
+                player_id = match.groups()[0]
+                return (radio_domain, player_id)
+
 
 
 class DataPage(BasePage):
@@ -121,9 +131,10 @@ class RadioFranceBrowser(BaseBrowser):
     DOMAIN = None
     ENCODING = 'UTF-8'
     PAGES = {r'/playerjs/direct/donneesassociees/html\?guid=$': DataPage,
-        r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
-        PlayerPage.URL: PlayerPage,
-        ReplayPage.URL: ReplayPage}
+             r'http://players.tv-radio.com/radiofrance/metadatas/([a-z]+)RSS.html': RssPage,
+             PlayerPage.URL: PlayerPage,
+             ReplayPage.URL: ReplayPage,
+             ReplayPage.URL2: ReplayPage}
 
     def id2domain(self, _id):
         """
@@ -179,7 +190,7 @@ class RadioFranceBrowser(BaseBrowser):
         match = re.match(PlayerPage.URL, url)
         if match:
             radio_domain, replay_id = match.groups()
-        elif re.match(ReplayPage.URL, url):
+        elif re.match(ReplayPage.URL, url) or re.match(ReplayPage.URL2, url):
             self.location(url)
             assert self.is_on_page(ReplayPage)
             radio_domain, replay_id = self.page.get_id()
