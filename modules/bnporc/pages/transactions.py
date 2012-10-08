@@ -62,8 +62,7 @@ class AccountHistory(BasePage):
 
             yield op
 
-class AccountComing(BasePage):
-    def iter_operations(self):
+    def iter_coming_operations(self):
         i = 0
         for tr in self.document.xpath('//table[@id="tableauOperations"]//tr'):
             if 'typeop' in tr.attrib:
@@ -83,3 +82,7 @@ class AccountComing(BasePage):
                                 raw=text)
                 operation.set_amount(tds[2].text)
                 yield operation
+
+
+class AccountComing(AccountHistory):
+    pass

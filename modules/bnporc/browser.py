@@ -191,9 +191,26 @@ class BNPorc(BaseBrowser):
 
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
-        execution = self.page.get_execution_id()
-        self.location('/banque/portail/particulier/FicheA?externalIAId=IAStatements&contractId=%d&pastOrPendingOperations=2&pageId=mouvementsavenir&_flowExecutionKey=%s' % (int(id), execution))
-        return self.page.iter_operations()
+
+        execution = self.page.document.xpath('//form[@name="goToApplication"]/input[@name="execution"]')[0].attrib['value']
+        data = {'gt':           'homepage:basic-theme',
+                'externalIAId': 'IAStatements',
+                'cboFlowName':  'flow/iastatement',
+                'contractId':   id,
+                'groupId':      '-2',
+                'pastOrPendingOperations': 2,
+                'groupSelected':'-2',
+                'step':         'STAMENTS',
+                'pageId':       'mouvementsavenir',
+                #'operationsPerPage': 100,
+                #'_eventId':     'changeOperationsPerPage',
+                'sendEUD':      'true',
+                'execution':    execution,
+               }
+
+        self.location('https://www.secure.bnpparibas.net/banque/portail/particulier/FicheA', urllib.urlencode(data))
+
+        return self.page.iter_coming_operations()
 
     @check_expired_password
     def get_transfer_accounts(self):
