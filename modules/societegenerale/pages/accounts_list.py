@@ -41,35 +41,44 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
+        accounts = []
         for tr in self.document.getiterator('tr'):
-            if 'LGNTableRow' in tr.attrib.get('class', '').split():
-                account = Account()
-                for td in tr.getiterator('td'):
-                    if td.attrib.get('headers', '') == 'TypeCompte':
-                        a = td.find('a')
-                        account.label = unicode(a.find("span").text)
-                        account._link_id = a.get('href', '')
+            if not 'LGNTableRow' in tr.attrib.get('class', '').split():
+                continue
 
-                    elif td.attrib.get('headers', '') == 'NumeroCompte':
-                        id = td.text
-                        id = id.replace(u'\xa0','')
-                        account.id = id
+            account = Account()
+            for td in tr.getiterator('td'):
+                if td.attrib.get('headers', '') == 'TypeCompte':
+                    a = td.find('a')
+                    account.label = unicode(a.find("span").text)
+                    account._link_id = a.get('href', '')
 
-                    elif td.attrib.get('headers', '') == 'Libelle':
-                        pass
+                elif td.attrib.get('headers', '') == 'NumeroCompte':
+                    id = td.text
+                    id = id.replace(u'\xa0','')
+                    account.id = id
 
-                    elif td.attrib.get('headers', '') == 'Solde':
-                        balance = td.find('div').text
-                        if balance != None:
-                            balance = balance.replace(u'\xa0','').replace(',','.')
-                            account.balance = Decimal(balance)
-                        else:
-                            account.balance = Decimal(0)
+                elif td.attrib.get('headers', '') == 'Libelle':
+                    pass
 
-                if 'CARTE_CB' in account._link_id:
-                    continue
+                elif td.attrib.get('headers', '') == 'Solde':
+                    balance = td.find('div').text
+                    if balance != None:
+                        balance = balance.replace(u'\xa0','').replace(',','.')
+                        account.balance = Decimal(balance)
+                    else:
+                        account.balance = Decimal(0)
 
-                yield account
+            if 'CARTE_' in account._link_id:
+                ac = accounts[0]
+                ac._card_links.append(account._link_id)
+                if not ac.coming:
+                    ac.coming = Decimal('0.0')
+                ac.coming += account.balance
+            else:
+                account._card_links = []
+                accounts.append(account)
+        return iter(accounts)
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
@@ -79,6 +88,8 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^CARTE \w+ REMBT (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<category>(COTISATION|PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
@@ -104,7 +115,7 @@ class AccountHistory(BasePage):
 
         return None
 
-    def iter_transactions(self):
+    def iter_transactions(self, coming):
         url = self.get_part_url()
         if url is None:
             # There are no transactions in this kind of account
@@ -121,7 +132,9 @@ class AccountHistory(BasePage):
             s = StringIO(unicode(el.text).encode('iso-8859-1'))
             doc = self.browser.get_document(s)
 
-            for tr in self._iter_transactions(doc):
+            for tr in self._iter_transactions(doc, coming):
+                if not tr._coming:
+                    coming = False
                 yield tr
 
             el = d.xpath('//dataHeader')[0]
@@ -134,16 +147,31 @@ class AccountHistory(BasePage):
                                                   operationNumberPG=el.find('operationNumber').text,
                                                   operationTypePG=el.find('operationType').text,
                                                   pageNumberPG=el.find('pageNumber').text,
-                                                  idecrit=el.find('idecrit').text,
+                                                  idecrit=el.find('idecrit').text or '',
                                                   sign=p['sign'][0],
                                                   src=p['src'][0])
 
 
-    def _iter_transactions(self, doc):
+    def _iter_transactions(self, doc, coming):
         for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):
+            date = tr.xpath('./td[@headers="Date"]')[0].text.strip()
+            if date == '':
+                coming = False
+                continue
+
+            try:
+                raw = tr.attrib['title'].strip()
+            except KeyError:
+                raw = tr.xpath('./td[@headers="Libelle"]//text()')[0].strip()
             t = Transaction(i)
-            t.parse(date=tr.xpath('./td[@headers="Date"]')[0].text,
-                    raw=tr.attrib['title'].strip())
+            t.parse(date=date, raw=raw)
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
-            t._coming = tr.xpath('./td[@headers="AVenir"]')[0].find('img') is not None
+            try:
+                t._coming = tr.xpath('./td[@headers="AVenir"]')[0].find('img') is not None
+            except IndexError:
+                t._coming = coming
+
+            if t.label.startswith('DEBIT MENSUEL CARTE'):
+                continue
+
             yield t
