@@ -80,5 +80,8 @@ class HistoryPage(BasePage):
                 op = Transaction(m.group(1))
                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
-                op._coming = (re.match('\d+/\d+/\d+', m.group(2)) is None)
+                # XXX As coming operations are already considered by account balance, never mark
+                # them as coming.
+                #op._coming = (re.match('\d+/\d+/\d+', m.group(2)) is None)
+                op._coming = False
                 yield op
