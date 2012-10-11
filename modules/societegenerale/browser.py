@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
 
-from .pages.accounts_list import AccountsList, AccountHistory
+from .pages.accounts_list import AccountsList, AccountHistory, CardsList
 from .pages.login import LoginPage, BadLoginPage
 
 
@@ -39,6 +39,7 @@ class SocieteGenerale(BaseBrowser):
              'https://.*.societegenerale.fr//acces/authlgn.html': BadLoginPage,
              'https://.*.societegenerale.fr/error403.html': BadLoginPage,
              '.*restitution/cns_listeprestation.html':      AccountsList,
+             '.*restitution/cns_listeCartes.*.html.*':      CardsList,
              '.*restitution/cns_detail.*\.html.*':          AccountHistory,
             }
 
@@ -112,7 +113,14 @@ class SocieteGenerale(BaseBrowser):
         for card_link in account._card_links:
             self.location(card_link)
 
-            transactions += list(self.page.iter_transactions(coming=True))
+            if self.is_on_page(CardsList):
+                for card_link in self.page.iter_cards():
+                    self.location(card_link)
+                    transactions += list(self.page.iter_transactions(coming=True))
+            elif self.is_on_page(AccountHistory):
+                transactions += list(self.page.iter_transactions(coming=True))
+            else:
+                self.logger.warning('This card is not supported')
 
         def key(tr):
             # Can't compare datetime and date, so cast them.

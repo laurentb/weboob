@@ -31,7 +31,7 @@ from weboob.tools.browser import BrokenPageError
 from .base import BasePage
 
 
-__all__ = ['AccountsList', 'AccountHistory']
+__all__ = ['AccountsList', 'CardsList', 'AccountHistory']
 
 
 class AccountsList(BasePage):
@@ -79,6 +79,15 @@ class AccountsList(BasePage):
                 account._card_links = []
                 accounts.append(account)
         return iter(accounts)
+
+class CardsList(BasePage):
+    def iter_cards(self):
+        for tr in self.document.getiterator('tr'):
+            tds = tr.findall('td')
+            if len(tds) < 4 or tds[0].attrib.get('class', '') != 'tableauIFrameEcriture1':
+                continue
+
+            yield tr.xpath('.//a')[0].attrib['href']
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
