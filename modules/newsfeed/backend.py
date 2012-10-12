@@ -57,10 +57,11 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default=[]):
             flags |= Message.IS_UNREAD
-        if len(entry.content):
-            content = entry.content[0]
+        if len(entry.content) > 0:
+            content = u"<p>Link %s</p> %s" % (entry.link, entry.content[0])
         else:
             content = entry.link
+
         thread.title = entry.title
         thread.root = Message(thread=thread,
                               id=0,
