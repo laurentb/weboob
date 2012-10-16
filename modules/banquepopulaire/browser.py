@@ -31,11 +31,12 @@ __all__ = ['BanquePopulaire']
 class BanquePopulaire(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
-    PAGES = {'https://[^/]+/auth/UI/Login.*':            LoginPage,
-             'https://[^/]+/cyber/internet/Login.do':    IndexPage,
-             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':     AccountsPage,
-             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*': TransactionsPage,
-             'https://[^/]+/cyber/internet/Page.do\?.*taskInfoOID=mesComptes.*': TransactionsPage,
+    PAGES = {'https://[^/]+/auth/UI/Login.*':                                                   LoginPage,
+             'https://[^/]+/cyber/internet/Login.do':                                           IndexPage,
+             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':             AccountsPage,
+             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
+             'https://[^/]+/cyber/internet/Page.do\?.*taskInfoOID=mesComptes.*':                TransactionsPage,
             }
 
     def __init__(self, website, *args, **kwargs):
@@ -70,6 +71,9 @@ class BanquePopulaire(BaseBrowser):
 
     def get_accounts_list(self):
         self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptes', token=self.token))
+        if self.page.is_error():
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
+
         return self.page.get_list()
 
     def get_account(self, id):

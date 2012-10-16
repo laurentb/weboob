@@ -49,6 +49,13 @@ class AccountsPage(BasePage):
                      u'Mes comptes':                Account.TYPE_CHECKING,
                     }
 
+    def is_error(self):
+        for script in self.document.xpath('//script'):
+            if script.text is not None and u"Le service est momentanément indisponible" in script.text:
+                return True
+
+        return False
+
     def get_list(self):
         account_type = Account.TYPE_UNKNOWN
 
