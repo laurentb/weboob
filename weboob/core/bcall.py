@@ -34,7 +34,7 @@ __all__ = ['BackendsCall', 'CallErrors', 'IResultsCondition', 'ResultsConditionE
 class CallErrors(Exception):
     def __init__(self, errors):
         msg = 'Errors during backend calls:\n' + \
-                '\n'.join(['Module(%s): %s\n%s\n' % (backend, error, backtrace)
+                '\n'.join(['Module(%r): %r\n%r\n' % (backend, error, backtrace)
                            for backend, error, backtrace in errors])
 
         Exception.__init__(self, msg)
