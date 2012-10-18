@@ -29,97 +29,53 @@ import subprocess
 import sys
 
 
-def check_executable_win(executable, error):
-    pathsrc = "PATH"        # Where to get the path
-    pathextsrc = "PATHEXT"  # Where to get the extension list
-    dotfirst = 1            # Should we look in the current directory also?
-
-    path = os.environ[pathsrc]
-    path = filter(None, path.split(";"))
-
-    if dotfirst:
-        path = ["."] + path
-
-    pathext = os.environ[pathextsrc]
-    pathext = filter(None, pathext.split(";"))
-
-    # The command name we are looking for
-    cmdName = executable
-
-    # Is the command name really a file name?
-    if '.' in cmdName:
-        # Fake it by making pathext a list of one empty string.
-        pathext = ['']
-
-    # Loop over the directories on the path, looking for the file.
-    for d in path:
-        for e in pathext:
-            filePath = os.path.join(d, cmdName + e)
-            if os.path.exists(filePath):
-                return filePath.replace('\\', '/')
-
-    print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
-    if error:
-        print >>sys.stderr, error
-    sys.exit(1)
-
-
-def check_executable_unix(executable, error):
-    with open('/dev/null', 'w') as devnull:
-        process = subprocess.Popen(['which', executable], stdout=devnull)
-        return_code = process.wait()
-    if return_code == 0:
-        return executable
-    else:
-        print >>sys.stderr, 'Error: %s is not installed on your system.' % executable
-        if error:
-            print >>sys.stderr, error
-        sys.exit(1)
-
-if sys.platform == 'win32':
-    check_executable = check_executable_win
-else:
-    check_executable = check_executable_unix
+def find_executable(name, names):
+    envname = '%s_EXECUTABLE' % name.upper()
+    if os.getenv(envname):
+        return os.getenv(envname)
+    paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+    exts = os.getenv('PATHEXT', os.pathsep).split(os.pathsep)
+    for name in names:
+        for path in paths:
+            for ext in exts:
+                fpath = os.path.join(path, name) + ext
+                if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                    return fpath
 
 
 def build_qt():
     print 'Building Qt applications'
-    pyuic4 = check_executable('pyuic4', 'Install PyQt4-devel or disable Qt applications (with --no-qt).')
+    make = find_executable('make', ('gmake', 'make'))
+    pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-2.7', 'pyuic4-2.6', 'pyuic4-2.5', 'pyuic4'))
+    if not pyuic4 or not make:
+        print >>sys.stderr, 'Install PyQt4-devel or disable Qt applications (with --no-qt).'
+        sys.exit(1)
 
-    if sys.platform == 'win32':
-        env = {'PYUIC': pyuic4, 'PATH': os.environ['PATH']}
-        extraMakeFlag = ['-e']
-    else:
-        env = None
-        extraMakeFlag = []
-
-    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qboobmsg/ui'], env=env)
-    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qhavedate/ui'], env=env)
+    subprocess.check_call([make, '-C', 'weboob/applications/qboobmsg/ui', 'PYUIC=%s' % pyuic4])
+    subprocess.check_call([make, '-C', 'weboob/applications/qhavedate/ui', 'PYUIC=%s' % pyuic4])
+    subprocess.check_call([make, '-C', 'weboob/applications/qwebcontentedit/ui', 'PYUIC=%s' % pyuic4])
+    subprocess.check_call([make, '-C', 'weboob/applications/qflatboob/ui', 'PYUIC=%s' % pyuic4])
+    subprocess.check_call([make, '-C', 'weboob/tools/application/qt', 'PYUIC=%s' % pyuic4])
     if sys.platform != 'win32':
-        subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qvideoob/ui'], env=env)
-    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qwebcontentedit/ui'], env=env)
-    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/applications/qflatboob/ui'], env=env)
-    subprocess.check_call(['make']+extraMakeFlag+['-C', 'weboob/tools/application/qt'], env=env)
+        subprocess.check_call([make, '-C', 'weboob/applications/qvideoob/ui', 'PYUIC=%s' % pyuic4])
 
 
 class Options(object):
-    pass
-
+    hildon = False
+    qt = True
+    xdg = True
 
 options = Options()
-options.hildon = False
-options.qt = True
-options.xdg = True
 
 args = list(sys.argv)
 if '--hildon' in args and '--no-hildon' in args:
-    print '--hildon and --no-hildon options are incompatible'
+    print >>sys.stderr, '--hildon and --no-hildon options are incompatible'
     sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
-    print '--qt and --no-qt options are incompatible'
+    print >>sys.stderr, '--qt and --no-qt options are incompatible'
     sys.exit(1)
 if '--xdg' in args and '--no-xdg' in args:
-    print '--xdg and --no-xdg options are incompatible'
+    print >>sys.stderr, '--xdg and --no-xdg options are incompatible'
     sys.exit(1)
 
 if '--hildon' in args or os.environ.get('HILDON') == 'true':
@@ -161,7 +117,7 @@ else:
 
 hildon_packages = set((
     'weboob.applications.masstransit',
-    ),)
+))
 qt_packages = set((
     'weboob.applications.qboobmsg',
     'weboob.applications.qboobmsg.ui',
@@ -175,7 +131,7 @@ qt_packages = set((
     'weboob.applications.qwebcontentedit.ui'
     'weboob.applications.qflatboob',
     'weboob.applications.qflatboob.ui'
-    ))
+))
 
 if not options.hildon:
     packages = packages - hildon_packages
@@ -184,16 +140,16 @@ if not options.qt:
 
 data_files = [
     ('share/man/man1', glob.glob('man/*')),
-    ]
+]
 if options.xdg:
     data_files.extend([
         ('share/applications', glob.glob('desktop/*')),
         ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
-        ])
+    ])
 
 setup(
     name='weboob',
-    version = '0.d',
+    version='0.d',
     description='Weboob, Web Outside Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',
@@ -234,5 +190,5 @@ setup(
         # 'Routes', # python-routes
         # 'simplejson', # python-simplejson
         # 'WebOb', # python-webob
-        ],
+    ],
 )
