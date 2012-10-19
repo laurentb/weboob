@@ -23,7 +23,7 @@ from urlparse import urlsplit, parse_qsl
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages import SkipPage, LoginPage, AccountsPage, AccountHistoryPage, \
-                   CBListPage, CBHistoryPage
+                   CBListPage, CBHistoryPage, ContractsPage
 
 
 __all__ = ['LCLBrowser']
@@ -39,6 +39,7 @@ class LCLBrowser(BaseBrowser):
     PAGES = {
         'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
         'https://particuliers.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeCBCompte.*': CBListPage,
@@ -77,6 +78,7 @@ class LCLBrowser(BaseBrowser):
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
             self.location('https://particuliers.secure.lcl.fr/outil/UWSP/Synthese')
+
         return self.page.get_list()
 
     def get_account(self, id):

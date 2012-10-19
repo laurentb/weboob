@@ -32,7 +32,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['SkipPage', 'LoginPage', 'AccountsPage', 'AccountHistoryPage']
+__all__ = ['SkipPage', 'LoginPage', 'AccountsPage', 'AccountHistoryPage', 'ContractsPage']
 
 
 class LCLVirtKeyboard(MappedVirtKeyboard):
@@ -129,6 +129,16 @@ class LoginPage(BasePage):
                 return True
         return False
 
+
+class ContractsPage(BasePage):
+    def on_loaded(self):
+        self.select_contract()
+
+    def select_contract(self):
+        # XXX We select automatically the default contract in list. We should let user
+        # ask what contract he wants to see, or display accounts for all contracts.
+        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'mainForm')
+        self.browser.submit()
 
 class AccountsPage(BasePage):
     def get_list(self):
