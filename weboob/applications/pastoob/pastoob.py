@@ -78,6 +78,10 @@ class Pastoob(ReplApplication):
         """
         if not filename or filename == '-':
             contents = self.acquire_input()
+            if not len(contents):
+                print >>sys.stderr, 'Empty paste, aborting.'
+                return 1
+
         else:
             try:
                 with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
