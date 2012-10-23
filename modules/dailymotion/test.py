@@ -21,6 +21,8 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
+from random import choice
+
 
 class DailymotionTest(BackendTest):
     BACKEND = 'dailymotion'
@@ -28,7 +30,7 @@ class DailymotionTest(BackendTest):
     def test_search(self):
         l = list(self.backend.search_videos('chirac'))
         self.assertTrue(len(l) > 0)
-        v = l[0]
+        v = choice(l)
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
         self.backend.browser.openurl(v.url)
@@ -36,6 +38,6 @@ class DailymotionTest(BackendTest):
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
         assert len(l)
-        v = l[0]
+        v = choice(l)
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('http://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
