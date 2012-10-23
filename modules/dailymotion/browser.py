@@ -40,6 +40,13 @@ class DailymotionBrowser(BaseBrowser):
 
     @id2url(DailymotionVideo.id2url)
     def get_video(self, url, video=None):
+        # clear cookies.
+        # this is required in some weird cases, namely *interactive* videoob usage
+        # to avoid getting 403 errors when getting the video URL after a search.
+        #
+        # better control of this issue would be nice (especially if we support user login)
+        self._ua_handlers['_cookies'].cookiejar.clear()
+
         # translate embed URLs
         url = url.replace('dailymotion.com/swf/', 'dailymotion.com/video/')
         self.location(url)
