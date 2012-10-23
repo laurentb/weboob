@@ -43,8 +43,8 @@ class IndexPage(BasePage):
                 continue
 
             video = DailymotionVideo(_id)
-            video.title = self.parser.select(div, 'h3 a', 1).text
-            video.author = self.parser.select(div, 'div.dmpi_user_login', 1).find('a').find('span').text.strip()
+            video.title = unicode(self.parser.select(div, 'h3 a', 1).text).strip()
+            video.author = unicode(self.parser.select(div, 'div.dmpi_user_login', 1).find('a').find('span').text).strip()
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
             try:
                 parts = self.parser.select(div, 'div.duration', 1).text.split(':')
@@ -63,7 +63,7 @@ class IndexPage(BasePage):
                 else:
                     raise BrokenPageError('Unable to parse duration %r' % self.parser.select(div, 'div.duration', 1).text)
                 video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
-            url = self.parser.select(div, 'img.dmco_image', 1).attrib['data-src']
+            url = unicode(self.parser.select(div, 'img.dmco_image', 1).attrib['data-src'])
             # remove the useless anti-caching
             url = re.sub('\?\d+', '', url)
             # use the bigger thumbnail
@@ -92,10 +92,10 @@ class VideoPage(BasePage):
 
         div = self.parser.select(self.document.getroot(), 'div#content', 1)
 
-        video.title = unicode(self.parser.select(div, 'span.title', 1).text)
-        video.author = unicode(self.parser.select(div, 'a.name, span.name', 1).text)
+        video.title = unicode(self.parser.select(div, 'span.title', 1).text).strip()
+        video.author = unicode(self.parser.select(div, 'a.name, span.name', 1).text).strip()
         try:
-            video.description = unicode(self.parser.select(div, 'div#video_description', 1).text)
+            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip()
         except BrokenPageError:
             video.description = u''
         for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):
