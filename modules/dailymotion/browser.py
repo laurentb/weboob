@@ -30,7 +30,7 @@ __all__ = ['DailymotionBrowser']
 
 
 class DailymotionBrowser(BaseBrowser):
-    DOMAIN = 'dailymotion.com'
+    DOMAIN = 'www.dailymotion.com'
     ENCODING = None
     PAGES = {r'http://[w\.]*dailymotion\.com/1': IndexPage,
              r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1': IndexPage,
