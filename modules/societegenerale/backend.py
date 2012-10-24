@@ -33,7 +33,7 @@ __all__ = ['SocieteGeneraleBackend']
 
 class SocieteGeneraleBackend(BaseBackend, ICapBank):
     NAME = 'societegenerale'
-    MAINTAINER = 'Jocelyn Jaubert'
+    MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

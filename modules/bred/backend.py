@@ -31,7 +31,7 @@ __all__ = ['BredBackend']
 
 class BredBackend(BaseBackend, ICapBank):
     NAME = 'bred'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'Bred French bank website'

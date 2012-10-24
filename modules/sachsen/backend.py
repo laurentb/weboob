@@ -30,7 +30,7 @@ __all__ = ['SachsenLevelBackend']
 
 class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
     NAME = 'sachsen'
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

@@ -31,7 +31,7 @@ __all__ = ['NettoKomBackend']
 
 class NettoKomBackend(BaseBackend, ICapBill):
     NAME = 'nettokom'
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

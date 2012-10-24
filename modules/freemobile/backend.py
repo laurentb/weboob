@@ -31,7 +31,7 @@ __all__ = ['FreeMobileBackend']
 
 class FreeMobileBackend(BaseBackend, ICapBill):
     NAME = 'freemobile'
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

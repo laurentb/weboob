@@ -37,7 +37,7 @@ __all__ = ['RedmineBackend']
 
 class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     NAME = 'redmine'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = 'The Redmine project management web application'

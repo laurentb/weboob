@@ -24,7 +24,7 @@ from .browser import NewspaperInrocksBrowser
 from .tools import rssid
 
 class NewspaperInrocksBackend(GenericNewspaperBackend, ICapMessages):
-    MAINTAINER = 'Julien Hebert'
+    MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

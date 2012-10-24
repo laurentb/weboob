@@ -38,7 +38,7 @@ __all__ = ['DLFPBackend']
 
 class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     NAME = 'dlfp'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

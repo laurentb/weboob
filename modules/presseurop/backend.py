@@ -28,7 +28,7 @@ from weboob.tools.newsfeed import Newsfeed
 
 
 class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

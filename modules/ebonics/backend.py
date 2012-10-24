@@ -30,7 +30,7 @@ __all__ = ['EbonicsBackend']
 
 class EbonicsBackend(BaseBackend, ICapTranslate):
     NAME = 'ebonics'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

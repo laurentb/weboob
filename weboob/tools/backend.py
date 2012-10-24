@@ -223,7 +223,7 @@ class BaseBackend(object):
     # Backend name.
     NAME = None
     # Name of the maintainer of this backend.
-    MAINTAINER = '<unspecified>'
+    MAINTAINER = u'<unspecified>'
     # Email address of the maintainer.
     EMAIL = '<unspecified>'
     # Version of backend (for information only).

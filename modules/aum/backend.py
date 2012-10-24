@@ -57,7 +57,7 @@ def parse_dt(s):
 
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact, ICapAccount):
     NAME = 'aum'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

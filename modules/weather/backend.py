@@ -27,7 +27,7 @@ __all__ = ['WeatherBackend']
 
 class WeatherBackend(BaseBackend, ICapWeather):
     NAME = 'weather'
-    MAINTAINER = 'Arno Renevier'
+    MAINTAINER = u'Arno Renevier'
     EMAIL = 'arno@renevier.net'
     VERSION = '0.d'
     DESCRIPTION = 'Get forecasts from weather.com'

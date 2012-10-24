@@ -34,7 +34,7 @@ __all__ = ['NolifeTVBackend']
 
 class NolifeTVBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'nolifetv'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = 'NolifeTV French video streaming website'

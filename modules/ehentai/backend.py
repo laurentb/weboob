@@ -35,7 +35,7 @@ __all__ = ['EHentaiBackend']
 
 class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
     NAME = 'ehentai'
-    MAINTAINER = 'Roger Philibert'
+    MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     VERSION = '0.d'
     DESCRIPTION = 'E-Hentai galleries'

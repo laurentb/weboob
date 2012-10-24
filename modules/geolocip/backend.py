@@ -29,7 +29,7 @@ __all__ = ['GeolocIpBackend']
 
 class GeolocIpBackend(BaseBackend, ICapGeolocIp):
     NAME = 'geolocip'
-    MAINTAINER = 'Julien Veyssier'
+    MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

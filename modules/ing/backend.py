@@ -33,7 +33,7 @@ __all__ = ['INGBackend']
 
 class INGBackend(BaseBackend, ICapBank):
     NAME = 'ing'
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

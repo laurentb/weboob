@@ -33,7 +33,7 @@ __all__ = ['OrangeBackend']
 
 class OrangeBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     NAME = 'orange'
-    MAINTAINER = 'Nicolas Duhamel'
+    MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
     VERSION = '0.d'
     DESCRIPTION = 'Orange French mobile phone provider'

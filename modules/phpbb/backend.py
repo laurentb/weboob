@@ -35,7 +35,7 @@ __all__ = ['PhpBBBackend']
 
 class PhpBBBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'phpbb'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

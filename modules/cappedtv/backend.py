@@ -21,7 +21,7 @@ __all__ = ['CappedBackend']
 
 class CappedBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'cappedtv'
-    MAINTAINER = 'Lord'
+    MAINTAINER = u'Lord'
     EMAIL = 'lord@lordtoniok.com'
     VERSION = '0.d'
     DESCRIPTION = 'Capped.tv demoscene website'

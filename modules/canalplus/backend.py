@@ -37,7 +37,7 @@ __all__ = ['CanalplusBackend']
 
 class CanalplusBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'canalplus'
-    MAINTAINER = 'Nicolas Duhamel'
+    MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
     VERSION = '0.d'
     DESCRIPTION = 'Canal Plus French TV'

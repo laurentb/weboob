@@ -33,7 +33,7 @@ __all__ = ['RadioFranceBackend']
 
 class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     NAME = 'radiofrance'
-    MAINTAINER = 'Laurent Bachelier'
+    MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
     VERSION = '0.d'
     DESCRIPTION = u'Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv\''

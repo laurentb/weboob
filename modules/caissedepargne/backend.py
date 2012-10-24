@@ -30,7 +30,7 @@ __all__ = ['CaisseEpargneBackend']
 
 class CaisseEpargneBackend(BaseBackend, ICapBank):
     NAME = 'caissedepargne'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'Caisse d\'Épargne French bank website'

@@ -30,7 +30,7 @@ __all__ = ['OuiFMBackend']
 
 class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'ouifm'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'Ouï FM French radio'

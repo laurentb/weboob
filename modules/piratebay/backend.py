@@ -28,7 +28,7 @@ __all__ = ['PiratebayBackend']
 
 class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
-    MAINTAINER = 'Julien Veyssier'
+    MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.d'
     DESCRIPTION = 'The Pirate Bay BitTorrent tracker'

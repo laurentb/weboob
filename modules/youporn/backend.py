@@ -33,7 +33,7 @@ __all__ = ['YoupornBackend']
 
 class YoupornBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'youporn'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = 'YouPorn pornographic video streaming website'

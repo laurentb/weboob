@@ -30,7 +30,7 @@ __all__ = ['BPBackend']
 
 class BPBackend(BaseBackend, ICapBank):
     NAME = 'bp'
-    MAINTAINER = 'Nicolas Duhamel'
+    MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

@@ -34,7 +34,7 @@ __all__ = ['PastebinBackend']
 
 class PastebinBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastebin'
-    MAINTAINER = 'Laurent Bachelier'
+    MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
     VERSION = '0.d'
     DESCRIPTION = 'Pastebin text sharing service'

@@ -31,7 +31,7 @@ __all__ = ['HDSBackend']
 
 class HDSBackend(BaseBackend, ICapMessages):
     NAME = 'hds'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

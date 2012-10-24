@@ -32,7 +32,7 @@ __all__ = ['InaBackend']
 
 class InaBackend(BaseBackend, ICapVideo):
     NAME = 'ina'
-    MAINTAINER = 'Christophe Benz'
+    MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.d'
     DESCRIPTION = 'INA French TV video archives'

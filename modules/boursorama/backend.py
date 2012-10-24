@@ -34,7 +34,7 @@ __all__ = ['BoursoramaBackend']
 
 class BoursoramaBackend(BaseBackend, ICapBank):
     NAME = 'boursorama'
-    MAINTAINER = 'Gabriel Kerneis'
+    MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

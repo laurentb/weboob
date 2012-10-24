@@ -33,7 +33,7 @@ __all__ = ['CICBackend']
 
 class CICBackend(BaseBackend, ICapBank):
     NAME = 'cic'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'CIC French bank website'

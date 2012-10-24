@@ -29,7 +29,7 @@ __all__ = ['KickassBackend']
 
 class KickassBackend(BaseBackend, ICapTorrent):
     NAME = 'kickass'
-    MAINTAINER = 'Julien Veyssier'
+    MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.d'
     DESCRIPTION = 'Kickass Torrents BitTorrent tracker'

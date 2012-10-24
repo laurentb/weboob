@@ -50,7 +50,7 @@ class Module(object):
 
     @property
     def maintainer(self):
-        return '%s <%s>' % (self.klass.MAINTAINER, self.klass.EMAIL)
+        return u'%s <%s>' % (self.klass.MAINTAINER, self.klass.EMAIL)
 
     @property
     def version(self):

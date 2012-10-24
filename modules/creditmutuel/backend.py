@@ -33,7 +33,7 @@ __all__ = ['CreditMutuelBackend']
 
 class CreditMutuelBackend(BaseBackend, ICapBank):
     NAME = 'creditmutuel'
-    MAINTAINER = 'Julien Veyssier'
+    MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.d'
     DESCRIPTION = u'Crédit Mutuel French bank website'

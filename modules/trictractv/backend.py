@@ -33,7 +33,7 @@ __all__ = ['TricTracTVBackend']
 
 class TricTracTVBackend(BaseBackend, ICapVideo):
     NAME = 'trictractv'
-    MAINTAINER = 'Benjamin Drieu'
+    MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'
     VERSION = '0.d'
     DESCRIPTION = u'TricTrac.tv video website'

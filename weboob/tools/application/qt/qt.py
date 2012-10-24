@@ -176,8 +176,8 @@ class QtDo(QObject):
             if not msg:
                 msg = 'Website is unavailable.'
         elif isinstance(error, NotImplementedError):
-            msg = 'This feature is not supported by this backend.\n\n' \
-                  'To help the maintainer of this backend implement this feature, please contact: %s <%s>' % (backend.MAINTAINER, backend.EMAIL)
+            msg = u'This feature is not supported by this backend.\n\n' \
+                  u'To help the maintainer of this backend implement this feature, please contact: %s <%s>' % (backend.MAINTAINER, backend.EMAIL)
         elif isinstance(error, UserError):
             if not msg:
                 msg = type(error).__name__

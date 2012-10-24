@@ -31,7 +31,7 @@ __all__ = ['HSBCBackend']
 
 class HSBCBackend(BaseBackend, ICapBank):
     NAME = 'hsbc'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

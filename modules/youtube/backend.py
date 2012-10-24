@@ -42,7 +42,7 @@ __all__ = ['YoutubeBackend']
 
 class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'youtube'
-    MAINTAINER = 'Christophe Benz'
+    MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.d'
     DESCRIPTION = 'YouTube video streaming website'

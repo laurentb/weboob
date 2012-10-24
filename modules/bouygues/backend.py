@@ -32,7 +32,7 @@ __all__ = ['BouyguesBackend']
 
 class BouyguesBackend(BaseBackend, ICapMessages, ICapMessagesPost):
     NAME = 'bouygues'
-    MAINTAINER = 'Christophe Benz'
+    MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.d'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'

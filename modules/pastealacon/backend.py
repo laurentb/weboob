@@ -35,7 +35,7 @@ __all__ = ['PastealaconBackend']
 
 class PastealaconBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastealacon'
-    MAINTAINER = 'Laurent Bachelier'
+    MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
     VERSION = '0.d'
     DESCRIPTION = u'Paste à la con text sharing tool'

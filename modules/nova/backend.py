@@ -52,7 +52,7 @@ class NovaBrowser(BaseBrowser):
 
 class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'nova'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'Nova French radio'

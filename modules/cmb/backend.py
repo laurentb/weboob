@@ -40,7 +40,7 @@ __all__ = ['CmbBackend']
 
 class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
-    MAINTAINER = 'Johann Broudin'
+    MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

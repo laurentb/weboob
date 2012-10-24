@@ -31,7 +31,7 @@ __all__ = ['BanquePopulaireBackend']
 
 class BanquePopulaireBackend(BaseBackend, ICapBank):
     NAME = 'banquepopulaire'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = u'Banque Populaire French bank website'

@@ -31,7 +31,7 @@ __all__ = ['CragrBackend']
 
 class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
-    MAINTAINER = 'Xavier Guerrin'
+    MAINTAINER = u'Xavier Guerrin'
     EMAIL = 'xavier@tuxfamily.org'
     VERSION = '0.d'
     DESCRIPTION = u'Crédit Agricole French bank website'

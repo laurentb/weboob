@@ -30,7 +30,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
     """
     GenericNewspaperBackend class
     """
-    MAINTAINER = 'Julien Hebert'
+    MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

@@ -64,7 +64,7 @@ def parse_dt(s):
 
 class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     NAME = 'okc'
-    MAINTAINER = 'Roger Philibert'
+    MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

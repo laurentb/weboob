@@ -33,7 +33,7 @@ __all__ = ['SfrBackend']
 
 class SfrBackend(BaseBackend, ICapAccount, ICapMessages, ICapMessagesPost):
     NAME = 'sfr'
-    MAINTAINER = 'Christophe Benz'
+    MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
     VERSION = '0.d'
     DESCRIPTION = 'SFR French mobile phone provider'

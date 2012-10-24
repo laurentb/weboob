@@ -31,7 +31,7 @@ __all__ = ['LeclercMobileBackend']
 
 class LeclercMobileBackend(BaseBackend, ICapBill):
     NAME = 'leclercmobile'
-    MAINTAINER = 'Florent Fourcot'
+    MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

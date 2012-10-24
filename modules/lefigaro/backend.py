@@ -24,7 +24,7 @@ from .browser import NewspaperFigaroBrowser
 from .tools import rssid
 
 class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
-    MAINTAINER = 'Julien Hebert'
+    MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
     VERSION = '0.d'
     LICENSE = 'AGPLv3+'

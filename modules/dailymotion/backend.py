@@ -33,7 +33,7 @@ __all__ = ['DailymotionBackend']
 
 class DailymotionBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'dailymotion'
-    MAINTAINER = 'Romain Bignon'
+    MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.d'
     DESCRIPTION = 'Dailymotion video streaming website'

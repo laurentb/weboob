@@ -85,7 +85,7 @@ Then, you can edit ``backend.py`` and create your :class:`BaseBackend <weboob.to
         # The name of module
         NAME = 'example'
         # Name of maintainer of this backend
-        MAINTAINER = 'John Smith'
+        MAINTAINER = u'John Smith'
         # Email address of the maintainer
         EMAIL = 'john.smith@example.com'
         # Version of weboob
