@@ -20,10 +20,10 @@
 
 import sys
 
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.console import ConsoleApplication
 
 
-class WeboobDebug(ReplApplication):
+class WeboobDebug(ConsoleApplication):
     APPNAME = 'weboobdebug'
     VERSION = '0.d'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
@@ -32,12 +32,17 @@ class WeboobDebug(ReplApplication):
     def load_default_backends(self):
         pass
 
-    def do_shell(self, backend_name):
+    def main(self, argv):
         """
-        shell BACKEND
+        BACKEND
 
-        Debug a backend.
+        Debug BACKEND.
         """
+        try:
+            backend_name = argv[1]
+        except IndexError:
+            print >>sys.stderr, 'Syntax: %s BACKEND' % argv[0]
+            return 1
         try:
             backend = self.weboob.load_backends(names=[backend_name])[backend_name]
         except KeyError:
