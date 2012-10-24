@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2011 Noé Rubinstein
+# Copyright(C) 2010-2011 Noé Rubinstein
 #
 # This file is part of weboob.
 #
@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComicReaderTest
+from weboob.tools.test import BackendTest
 
 
-class BatotoTest(GenericComicReaderTest):
-    BACKEND = 'batoto'
-
-    def test_download(self):
-        return self._test_download('26287/yurumates_ch4_by_primitive-scans')
+class GenericComicReaderTest(BackendTest):
+    def _test_download(self, _id):
+        g = self.backend.get_gallery(_id)
+        it = self.backend.iter_gallery_images(g)
+        it.next()
+        img = it.next()
+        self.backend.fillobj(img, ('url', 'data'))

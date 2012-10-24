@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderTest
+from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComicReaderTest
 
 
 class MangafoxTest(GenericComicReaderTest):

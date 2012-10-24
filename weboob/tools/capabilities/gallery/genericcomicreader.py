@@ -24,7 +24,6 @@ import re
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import BaseBrowser, BasePage
-from weboob.tools.test import BackendTest
 
 __all__ = ['GenericComicReaderBackend']
 
@@ -117,12 +116,3 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
     OBJECTS = {
             BaseGallery: fill_gallery,
             BaseImage: fill_image}
-
-
-class GenericComicReaderTest(BackendTest):
-    def _test_download(self, _id):
-        g = self.backend.get_gallery(_id)
-        it = self.backend.iter_gallery_images(g)
-        it.next()
-        img = it.next()
-        self.backend.fillobj(img, ('url', 'data'))
