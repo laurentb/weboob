@@ -39,6 +39,7 @@ class Ing(BaseBrowser):
              '.*accountDetail.jsf.*':          AccountHistory,
              '.*displayTRHistoriqueLA.*':      AccountHistory,
              '.*transferManagement.jsf':       TransferPage,
+             '.*onHoldTransferManagement.jsf':  TransferPage,
              '.*DisplayDoTransferCommand.*':   TransferPage,
              '.*transferCreateValidation.jsf': TransferConfirmPage
             }
@@ -110,7 +111,7 @@ class Ing(BaseBrowser):
             hashlist = []
             for transaction in self.page.get_transactions():
                 while transaction.id in hashlist:
-                    transaction.id = hashlib.md5(transaction.id + "1")
+                    transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)
                 yield transaction
             if self.page.islast():
