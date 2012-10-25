@@ -19,15 +19,22 @@
 
 
 import sys
+from optparse import OptionGroup
 
-from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.application.base import BaseApplication
 
 
-class WeboobDebug(ConsoleApplication):
+class WeboobDebug(BaseApplication):
     APPNAME = 'weboobdebug'
     VERSION = '0.d'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Weboob-Debug is a console application to debug backends."
+
+    def __init__(self, option_parser=None):
+        super(WeboobDebug, self).__init__(option_parser)
+        options = OptionGroup(self._parser, 'Weboob-Debug options')
+        options.add_option('-B', '--bpython', action='store_true', help='Prefer bpython over ipython')
+        self._parser.add_option_group(options)
 
     def load_default_backends(self):
         pass
@@ -41,7 +48,7 @@ class WeboobDebug(ConsoleApplication):
         try:
             backend_name = argv[1]
         except IndexError:
-            print >>sys.stderr, 'Syntax: %s BACKEND' % argv[0]
+            print >>sys.stderr, 'Usage: %s BACKEND' % argv[0]
             return 1
         try:
             backend = self.weboob.load_backends(names=[backend_name])[backend_name]
@@ -53,8 +60,7 @@ class WeboobDebug(ConsoleApplication):
         banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables:\n' % backend_name \
                  + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.iteritems()])
 
-        prefer_bpython = False  # TODO user-configurable
-        if prefer_bpython:
+        if self.options.bpython:
             funcs = [self.bpython, self.ipython, self.python]
         else:
             funcs = [self.ipython, self.bpython, self.python]
