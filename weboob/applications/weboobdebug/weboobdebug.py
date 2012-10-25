@@ -48,10 +48,46 @@ class WeboobDebug(ConsoleApplication):
         except KeyError:
             print >>sys.stderr, u'Unable to load backend "%s"' % backend_name
             return 1
-        browser = backend.browser
-        from IPython.Shell import IPShellEmbed
-        shell = IPShellEmbed(argv=[])
-        locs = dict(backend=backend, browser=browser, application=self, weboob=self.weboob)
-        banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables: %s' % (backend_name, locs)
-        shell.set_banner(shell.IP.BANNER + '\n\n' + banner)
-        shell(local_ns=locs, global_ns={})
+
+        locs = dict(backend=backend, browser=backend.browser, application=self, weboob=self.weboob)
+        banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables:\n' % backend_name \
+                 + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.iteritems()])
+
+        prefer_bpython = False  # TODO user-configurable
+        if prefer_bpython:
+            funcs = [self.bpython, self.ipython, self.python]
+        else:
+            funcs = [self.ipython, self.bpython, self.python]
+
+        for func in funcs:
+            try:
+                func(locs, banner)
+            except ImportError:
+                continue
+            else:
+                break
+
+    def ipython(self, locs, banner):
+        try:
+            from IPython import embed
+            embed(user_ns=locs, banner2=banner)
+        except ImportError:
+            from IPython.Shell import IPShellEmbed
+            shell = IPShellEmbed(argv=[])
+            shell.set_banner(shell.IP.BANNER + '\n\n' + banner)
+            shell(local_ns=locs, global_ns={})
+
+    def bpython(self, locs, banner):
+        from bpython import embed
+        embed(locs, banner=banner)
+
+    def python(self, locs, banner):
+        import code
+        try:
+            import readline
+            import rlcompleter
+            readline.set_completer(rlcompleter.Completer(locs).complete)
+            readline.parse_and_bind("tab:complete")
+        except ImportError:
+            pass
+        code.interact(banner=banner, local=locs)
