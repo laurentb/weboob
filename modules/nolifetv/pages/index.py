@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from dateutil.parser import parse as parse_dt
+from datetime import datetime
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities.base import NotAvailable
 
@@ -38,15 +38,22 @@ class IndexPage(BasePage):
             if not m:
                 continue
 
-            img = self.parser.select(div, 'a img', 1)
+            img = self.parser.select(div, 'div.screenshot a img', 1)
 
             video = NolifeTVVideo(m.group(1))
             video.title = unicode(img.attrib['alt'])
-            video.description = unicode(self.parser.select(div, 'div.tooltip div.border-bottom p')[-1].text)
+            try:
+                video.description = unicode(self.parser.select(div, 'div.tooltip div.border-bottom p, div.infos div.border-bottom p')[-1].text)
+            except IndexError:
+                video.description = NotAvailable
+
             video.thumbnail = Thumbnail(unicode(img.attrib['src']))
             try:
-                video.date = parse_dt(self.parser.select(div, 'div.infos_video span.span_title', 1).text.strip())
-            except Exception:
+                dparts = self.parser.select(div, 'span.date_emission', 1).text.strip().split('/')
+                hparts = self.parser.select(div, 'span.hour_emission', 1).text.strip().split('h')
+                video.date = datetime(int(dparts[-1]), int(dparts[-2]), int(dparts[-3]),
+                                      int(hparts[0]), int(hparts[1]))
+            except (BrokenPageError,ValueError):
                 video.date = NotAvailable
 
             video.set_empty_fields(NotAvailable, ('url',))
