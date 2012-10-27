@@ -22,13 +22,14 @@ from __future__ import with_statement
 
 import urllib2
 from xml.dom import minidom
+from dateutil.parser import parse as parse_dt
 
 # TODO store datetime objects instead of strings
 # from datetime import datetime
 
 from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Forecast, City
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import StandardBrowser
 
 
 __all__ = ['YahooBackend']
@@ -41,50 +42,27 @@ class YahooBackend(BaseBackend, ICapWeather):
     VERSION = '0.d'
     DESCRIPTION = 'Yahoo!'
     LICENSE = 'AGPLv3+'
-    BROWSER = BaseBrowser
+    BROWSER = StandardBrowser
     WEATHER_URL = 'http://weather.yahooapis.com/forecastrss?w=%s&u=%s'
-    SEARCH_URL = 'http://fr.meteo.yahoo.com/search/weather?p=%s'
 
     def create_default_browser(self):
-        return self.create_browser()
+        return self.create_browser(parser='json')
 
     def iter_city_search(self, pattern):
-        # minidom doesn't seem to work with that page
+        args = {'q':  'select line1, line2, line3, line4, city, uzip, statecode, countrycode, latitude, longitude, '
+                      'country, woeid, quality, house, street, state from locdrop.placefinder '
+                      'where text="%s" and locale="fr-FR" and gflags="f"' % pattern.encode('utf-8'),
+                'format': 'json',
+               }
+        doc = self.browser.location(self.browser.buildurl('http://locdrop.query.yahoo.com/v1/public/yql', **args))
 
-        #handler = urllib2.urlopen((self.SEARCH_URL % pattern).replace(' ','+'))
-        #dom = minidom.parse(handler)
-        #handler.close()
-        #results = dom.getElementById('search-results')
-        #for no in results.childNodes:
-        #    print no.nodeValue
+        cities = doc['query']['results']['Result']
+        if not isinstance(cities, (tuple,list)):
+            cities = [cities]
 
-        # so i use a basic but efficient parsing
-        with self.browser:
-            content = self.browser.readurl((self.SEARCH_URL % pattern.encode('utf-8')).replace(' ','+'))
-
-        page=''
-        for line in content.split('\n'):
-            if "<title>" in line and "Prévisions et Temps" in line:
-                page="direct"
-            elif "<title>" in line and "Résultats de la recherche" in line:
-                page="resultats"
-
-            if page == "resultats":
-                if '/redirwoei/' in line:
-                    cities = line.split('/redirwoei/')
-                    for c in cities:
-                        if "strong" in c:
-                            cid = c.split("'")[0]
-                            cname = c.split("'")[1].replace("><strong>","").replace("</strong>","").split("</a>")[0]
-                            yield City(cid, cname.decode('utf-8'))
-            elif page == "direct":
-                if 'div id="yw-breadcrumb"' in line:
-                    l = line.split('</a>')
-                    region = l[2].split('>')[-1]
-                    country = l[1].split('>')[-1]
-                    city = l[3].split('</li>')[1].replace('<li>','')
-                    cid = line.split("/?unit")[0].split('-')[-1]
-                    yield City(cid, (city+", "+region+", "+country).decode('utf-8'))
+        for result in cities:
+            c = City(result['woeid'], u'%s, %s, %s' % (result['city'], result['state'], result['country']))
+            yield c
 
     def _get_weather_dom(self, city_id):
         handler = urllib2.urlopen(self.WEATHER_URL % (city_id, 'c'))
@@ -98,14 +76,15 @@ class YahooBackend(BaseBackend, ICapWeather):
     def get_current(self, city_id):
         dom = self._get_weather_dom(city_id)
         current = dom.getElementsByTagName('yweather:condition')[0]
-        return Current(current.getAttribute('date'), int(current.getAttribute('temp')), current.getAttribute('text'), 'C')
+        return Current(parse_dt(current.getAttribute('date')),
+                       float(current.getAttribute('temp')), unicode(current.getAttribute('text')), u'C')
 
     def iter_forecast(self, city_id):
         dom = self._get_weather_dom(city_id)
         for forecast in dom.getElementsByTagName('yweather:forecast'):
-            yield Forecast(forecast.getAttribute('date'),
-                           int(forecast.getAttribute('low')),
-                           int(forecast.getAttribute('high')),
-                           forecast.getAttribute('text'),
-                           'C',
+            yield Forecast(parse_dt(forecast.getAttribute('date')),
+                           float(forecast.getAttribute('low')),
+                           float(forecast.getAttribute('high')),
+                           unicode(forecast.getAttribute('text')),
+                           u'C',
                            )
