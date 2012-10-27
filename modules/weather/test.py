@@ -29,7 +29,7 @@ class WeatherTest(BackendTest):
         self.assertTrue(len(list(paris)) == 0)
 
         paris = self.backend.iter_city_search('paris')
-        self.assertTrue(len(list(paris)) > 1)
+        self.assertTrue(len(list(paris)) >= 1)
 
         paris = self.backend.iter_city_search('paris france')
         self.assertTrue(len(list(paris)) == 1)
