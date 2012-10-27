@@ -33,5 +33,5 @@ class Newspaper20minutesBackend(GenericNewspaperBackend, ICapMessages):
     NAME = 'minutes20'
     DESCRIPTION = u'2 Minutes French newspaper website'
     BROWSER = Newspaper20minutesBrowser
-    RSS_FEED = 'http://www.20minutes.fr/rss/20minutes.xml'
+    RSS_FEED = 'http://www.20minutes.fr/rss/une.xml'
     RSSID = rssid
