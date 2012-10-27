@@ -84,8 +84,8 @@ class VideoPage(PornPage):
                 else:
                     v.author = unicode(author.text)
             elif name == 'Rating:':
-                r = value.split()
-                v.rating = int(r[0].rstrip('%'))
+                value = li.find('span').text
+                v.rating = int(value.rstrip('%'))
                 v.rating_max = 100
             elif name == 'Date:':
                 v.date = parse_dt(value)

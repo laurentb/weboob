@@ -33,7 +33,7 @@ __all__ = ['IndexPage']
 class IndexPage(PornPage):
     def iter_videos(self):
         for li in self.document.getroot().xpath('//ul/li[@class="videoBox"]'):
-            a = li.find('a')
+            a = li.find('div').find('a')
             if a is None or a.find('img') is None:
                 continue
 
@@ -50,7 +50,7 @@ class IndexPage(PornPage):
             video.thumbnail = Thumbnail(unicode(thumbnail_url))
 
             hours = minutes = seconds = 0
-            div = li.cssselect('h2.duration')
+            div = li.cssselect('div.duration')
             if len(div) > 0:
                 pack = [int(s) for s in div[0].text.strip().split(':')]
                 if len(pack) == 3:
@@ -60,9 +60,9 @@ class IndexPage(PornPage):
 
             video.duration = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
-            div = li.cssselect('div.rating h2')
+            div = li.cssselect('div.rating')
             if div:
-                video.rating = int(div[0].text.strip('%'))
+                video.rating = int(div[0].text.strip('% '))
                 video.rating_max = 100
 
             video.set_empty_fields(NotAvailable, ('url', 'author'))
