@@ -87,7 +87,7 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
         doc = parser.parse(StringIO(html))
         artist = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="artist"]')[0].itertext()])
         title = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="title"]')[0].itertext()])
-        return unicode(artist), unicode(title)
+        return unicode(artist).strip(), unicode(title).strip()
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
