@@ -18,9 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import string
 import subprocess
-import sys
 import os
 import re
 
@@ -168,7 +166,7 @@ class Downloadboob:
 
     def do_download(self, video):
         if not video:
-            print >>sys.stderr, 'Video not found: %s' %  _id
+            print >>sys.stderr, 'Video not found: %s' %  video
             return 3
 
         if not video.url:
