@@ -18,37 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from cStringIO import StringIO
+
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
+from weboob.tools.browser import StandardBrowser
+from weboob.tools.parsers import get_parser
 
 
 __all__ = ['NovaBackend']
 
-
-class HistoryPage(BasePage):
-    def on_loaded(self):
-        h2 = self.parser.select(self.document.getroot(), 'h2')
-        if len(h2) > 0 and h2[0].text == 'Site off-line':
-            raise BrowserUnavailable('Website is currently offline')
-
-    def get_current(self):
-        for div in self.parser.select(self.document.getroot(), 'div#rubrique_contenu div.resultat'):
-            artist = self.parser.select(div, 'span#artiste', 1).find('a').text
-            title = self.parser.select(div, 'span#titre', 1).text
-            return unicode(artist).strip(), unicode(title).strip()
-
-class NovaBrowser(BaseBrowser):
-    DOMAIN = u'www.novaplanet.com'
-    PAGES = {r'http://www.novaplanet.com/cetaitquoicetitre/radionova/\d*': HistoryPage,
-            }
-
-    def get_current(self):
-        self.location('/cetaitquoicetitre/radionova/')
-        assert self.is_on_page(HistoryPage)
-
-        return self.page.get_current()
 
 class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'nova'
@@ -57,10 +37,13 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     VERSION = '0.d'
     DESCRIPTION = u'Nova French radio'
     LICENSE = 'AGPLv3+'
-    BROWSER = NovaBrowser
+    BROWSER = StandardBrowser
 
     _RADIOS = {'nova':     (u'Radio Nova',  u'Radio nova',   u'http://broadcast.infomaniak.net:80/radionova-high.mp3'),
               }
+
+    def create_default_browser(self):
+        return self.create_browser(parser='json')
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
@@ -85,7 +68,7 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.title = title
         radio.description = description
 
-        artist, title = self.browser.get_current()
+        artist, title = self.get_current()
         current = Emission(0)
         current.artist = artist
         current.title = title
@@ -97,11 +80,20 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.streams = [stream]
         return radio
 
+    def get_current(self):
+        doc = self.browser.location('http://www.novaplanet.com/radionova/ontheair?origin=/')
+        html = doc['track']['markup']
+        parser = get_parser()()
+        doc = parser.parse(StringIO(html))
+        artist = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="artist"]')[0].itertext()])
+        title = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="title"]')[0].itertext()])
+        return unicode(artist), unicode(title)
+
     def fill_radio(self, radio, fields):
         if 'current' in fields:
             if not radio.current:
                 radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.browser.get_current()
+            radio.current.artist, radio.current.title = self.get_current()
         return radio
 
     OBJECTS = {Radio: fill_radio}
