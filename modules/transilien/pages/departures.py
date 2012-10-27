@@ -43,7 +43,7 @@ class DeparturesPage(BasePage):
                 continue
 
             code_mission = self.parser.select(tr, 'td[headers=Code_de_mission] a', 1).text.strip()
-            time_s = self.parser.select(tr, 'td[headers=Heure_de_passage]', 1).text.strip()
+            time_s = self.parser.select(tr, 'td[headers=Heure_de_passage]', 1).text.strip().rstrip(u'\xa0*')
             destination = self.parser.select(tr, 'td[headers=Destination]', 1).text.strip()
             plateform = self.parser.select(tr, 'td[headers=Voie]', 1).text.strip()
 
