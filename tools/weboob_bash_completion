@@ -22,7 +22,7 @@
 # This script can be distributed under the same license as the
 # weboob or bash packages.
 
-have weboob-config &&
+hash weboob-config 2>/dev/null &&
 _weboob()
 {
     local cur words
