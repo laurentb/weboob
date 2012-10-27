@@ -4,7 +4,6 @@
 # if you want to correctly check all modules.
 
 from weboob.core import Weboob
-import weboob.backends
 import os
 
 weboob = Weboob()
