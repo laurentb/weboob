@@ -26,8 +26,9 @@ from .tools import id2url
 
 class Newspaper20minutesBrowser(BaseBrowser):
     "Newspaper20minutesBrowser class"
+    ENCODING = None
     PAGES = {
-             'http://www.20minutes.fr/article/?.*': ArticlePage,
+             'http://www.20minutes.fr/(?!preums|ledirect).+/?.*': ArticlePage,
              'http://www.20minutes.fr/ledirect/?.*': SimplePage,
              'http://www.20minutes.fr/preums/?.*': SimplePage
             }
