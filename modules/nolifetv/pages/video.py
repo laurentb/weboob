@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from hashlib import md5
+import time
 from dateutil.parser import parse as parse_dt
 import urllib
 
@@ -51,14 +53,24 @@ class VideoPage(BasePage):
             link = div.find('a').attrib['href']
             raise ForbiddenVideo('Video is only available here: %s' % link)
 
-        div = self.parser.select(self.document.getroot(), 'div#informations_video', 1)
-        video.title = self.parser.select(div, 'div#ligne_titre_big', 1).text
+        meta = self.parser.select(self.document.getroot(), 'meta[property="og:title"]', 1)
         try:
-            video.description = self.parser.select(div, 'div#ligne_titre_small', 1).text
+            video.title = unicode(meta.attrib['content'])
+        except BrokenPageError:
+            video.title = NotAvailable
+
+        meta = self.parser.select(self.document.getroot(), 'meta[property="og:description"]', 1)
+        try:
+            video.description = unicode(meta.attrib['content'])
         except BrokenPageError:
             video.description = NotAvailable
 
-        video.thumbnail = Thumbnail(self.parser.select(div, 'div#icone_video img', 1).attrib['src'])
+        meta = self.parser.select(self.document.getroot(), 'meta[property="og:image"]', 1)
+        try:
+            video.thumbnail = Thumbnail(unicode(meta.attrib['content']))
+        except BrokenPageError:
+            video.thumbnail = NotAvailable
+
         try:
             video.date = parse_dt(self.parser.select(div, 'div#infos_complementaires', 1).find('p').text.strip())
         except Exception:
@@ -69,20 +81,31 @@ class VideoPage(BasePage):
         video.rating_max = NotAvailable
 
         if not video.url:
-            r = self.browser.request_class('http://online.nolife-tv.com/_newplayer/api/api_player.php',
-                                   'skey=9fJhXtl%5D%7CFR%3FN%7D%5B%3A%5Fd%22%5F&connect=1&a=US',
-                                   {'Referer': 'http://online.nolife-tv.com/_newplayer/nolifeplayer_flash10.swf?idvideo=%s&autostart=0' % _id})
-            self.browser.openurl(r)
-            r = self.browser.request_class('http://online.nolife-tv.com/_newplayer/api/api_player.php',
-                                   'skey=9fJhXtl%5D%7CFR%3FN%7D%5B%3A%5Fd%22%5F&a=UEM%7CSEM&quality=0&id%5Fnlshow=' + _id,
-                                   {'Referer': 'http://online.nolife-tv.com/_newplayer/nolifeplayer_flash10.swf?idvideo=%s&autostart=0' % _id})
-            data = self.browser.readurl(r)
+            skey, timestamp = self.genkey()
+            self.browser.readurl('http://online.nolife-tv.com/_nlfplayer/api/api_player.php',
+                                 'skey=%s&a=MD5&timestamp=%s' % (skey, timestamp))
+
+            skey, timestamp = self.genkey()
+            self.browser.readurl('http://online.nolife-tv.com/_nlfplayer/api/api_player.php',
+                                 'a=EML&skey=%s&id%%5Fnlshow=%s&timestamp=%s' % (skey, _id, timestamp))
+
+            skey, timestamp = self.genkey()
+            data = self.browser.readurl('http://online.nolife-tv.com/_nlfplayer/api/api_player.php',
+                                         'quality=0&a=UEM%%7CSEM%%7CMEM%%7CCH%%7CSWQ&skey=%s&id%%5Fnlshow=%s&timestamp=%s' % (skey, _id, timestamp))
+
             values = dict([urllib.splitvalue(s) for s in data.split('&')])
 
             if not 'url' in values:
                 raise ForbiddenVideo(values.get('message', 'Not available').decode('iso-8859-15'))
-            video.url = values['url']
+            video.url = unicode(values['url'])
 
         video.set_empty_fields(NotAvailable)
 
         return video
+
+    SALT = 'a53be1853770f0ebe0311d6993c7bcbe'
+    def genkey(self):
+        # This website is really useful to get info: http://www.showmycode.com/
+        timestamp = str(int(time.time()))
+        skey = md5(md5(timestamp).hexdigest() + self.SALT).hexdigest()
+        return skey, timestamp
