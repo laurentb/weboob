@@ -39,6 +39,9 @@ class VideoListFormatter(PrettyFormatter):
         return obj.title
 
     def get_description(self, obj):
+        if empty(obj.duration) and empty(obj.date):
+            return None
+
         result = '%s' % (obj.duration or obj.date)
         if hasattr(obj, 'author') and not empty(obj.author):
             result += u' - %s' % obj.author
