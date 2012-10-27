@@ -27,8 +27,13 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage']
+__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'UnavailablePage']
 
+
+class UnavailablePage(BasePage):
+    def on_loaded(self):
+        a = self.document.xpath('//a[@class="btn"]')[0]
+        self.browser.location(a.attrib['href'])
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
