@@ -27,7 +27,7 @@ class ArticlePage(GenericNewsPage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "h1"
         self.element_author_selector    = "div.name>span"
-        self.element_body_selector      = "#article"
+        self.element_body_selector      = "#article, div.article"
 
     def get_body(self):
         element_body = self.get_element_body()
@@ -63,6 +63,8 @@ class ArticlePage(GenericNewsPage):
                         break
                 crappy_title.drop_tree()
 
-        element_body.find_class("texte")[0].drop_tag()
+        txts = element_body.find_class("texte")
+        if len(txts) > 0:
+            txts[0].drop_tag()
         element_body.tag = "div"
         return self.parser.tostring(element_body)
