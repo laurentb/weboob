@@ -20,7 +20,7 @@
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, ValueBool
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BrowserIncorrectPassword, BrokenPageError
 
@@ -59,7 +59,7 @@ class CmbBackend(BaseBackend, ICapBank):
     CONFIG = BackendConfig(
             ValueBackendPassword('login', label='Account ID', masked=False),
             ValueBackendPassword('password', label='Password', masked=True),
-            ValueBackendPassword('no_check', label='SSL Check ? [y,n]', masked=False))
+            ValueBool('no_check', label='SSL Check ?', default=True))
     LABEL_PATTERNS = [
             (   # card
                 compile('^CARTE (?P<text>.*)'),
