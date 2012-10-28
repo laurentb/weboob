@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import sys
 
 from weboob.capabilities.base import empty
@@ -270,7 +270,7 @@ class Boobank(ReplApplication):
 
         try:
             amount = Decimal(amount)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, InvalidOperation):
             print >>sys.stderr, 'Error: please give a decimal amount to transfer'
             return 2
 
