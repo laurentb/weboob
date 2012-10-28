@@ -1,3 +1,193 @@
+Weboob 0.d (2012-10-28)
+	General
+	* New module: BanquePopulaire (CapBank).
+	* New module: Bred (CapBank).
+	* New module: CaisseDEpargne (CapBank).
+	* New module: CIC (CapBank).
+	* New module: Ebonics (CapTranslate).
+	* New module: EuroParl (CapVideo).
+	* New module: GDCVault (CapVideo).
+	* New module: LeclercMobile (CapBill).
+	* New module: Vimeo (CapVideo).
+	* New module: Weather (CapWeather).
+	* New script: contrib/downloadboob to automatically download vidéos
+	  matching some criteria (#838).
+	* Add a basic system to check SSL certificates.
+
+	Console Applications
+	* Correctly check new version of the module.
+	* Short commands for all applications (and suggestions).
+
+	Module: AuM
+	* Add a status field to display number of new visits.
+	* Support new API (#871,#900,#902).
+
+	Module: BNPorc
+	* Strip trailing 'CARTE XXX' from card transactions labels.
+	* Get last 100 transactions instead of 30.
+	* Fix: website changes.
+
+	Module: Boursorama
+	* Correctly handle case that we don't support the history page of an
+	  account.
+	* Fix: unlimited loop in case of bad credentials.
+
+	Module: BP
+	* Parse labels and detect type of transactions.
+	* Get maximum of transactions in history.
+	* Workaround to libssl 1.0.1c-4 bug in Debian (#863).
+
+	Module: CappedTV
+	* Fix: proper handling of No Results Found.
+
+	Module: CMB
+	* Support proxy.
+	* Check SSL certificate.
+	* Fix: a bug in the accounts listing.
+
+	Module: CrAgr
+	* Reworked the whole parsing for 'list' and 'history' operations.
+	* Parse labels and detect type of transactions.
+
+	Module: CreditMutuel
+	* Support deferred debit.
+	* Never store 'RELEVE CARTE' transactions (redundancy with card
+	  transactions).
+	* Fix: login (skip page which warns about phishing).
+
+	Module: Dailymotion
+	* Add support for embed URLs.
+	* Fix: parsing authors on anyclip videos.
+	* Fix: search-then-play combination (#860).
+
+	Module: Fortuneo
+	* Fix: website changes.
+	* Fix: check on login failure.
+
+	Module: FreeMobile
+	* Catch unit for data.
+	* Support multiple accounts.
+	* Fix: login (website change).
+	* Fix: pdf downloading.
+	* Fix: international calls.
+	* Fix: parsing name with a dash.
+
+	Module: Gazelle
+	* Fix: parsing title on whatcd.
+
+	Module: HDS
+	* Fix: parsing dates.
+
+	Module: HSBC
+	* Support history and coming transactions.
+	* Fix: duplicated IDs of accounts.
+	* Fix: parsing of accounts and history.
+
+	Module: ING
+	* Transaction IDs are generated with a hash function.
+	* Use static IDs of accounts.
+	* Support tranfers.
+
+	Module: LCL
+	* Parse labels and detect type of transactions.
+	* Display password renewal warning.
+	* Support CB operations.
+	* Support several contracts.
+
+	Module: LeFigaro
+	* Fix: parsing of live articles.
+
+	Module: Minutes20
+	* Fix: RSS feed url has changed.
+
+	Module: Nettokom
+	* Fix: website change about authentication.
+
+	Module: Newsfeed
+	* Add a link on top of content.
+
+	Module: NolifeTV
+	* Fix: authentication and retrieve of video url (#880).
+
+	Module: Nova
+	* Fix: retrieving of current song.
+
+	Module: PAP
+	* Fix: parsing housings (#874).
+
+	Module: PressEurop
+	* Fetch last 140 entries instead of 50.
+
+	Module: PrixCarburants
+	* Fix: regexp of product name in page.
+
+	Module: RadioFrance
+	* Support franceinfo archives.
+
+	Module: SocieteGenerale
+	* Truncate password to 6 digits.
+	* Handle error message when unable to login.
+	* Support deferred debit cards.
+	* Fix: follow next pages of history.
+	* Fix: website changes about authentication (#891).
+
+	Module: Transilien
+	* Support when a train is removed (#894).
+	* Fix: parsing time (#866).
+
+	Module: Yahoo
+	* Fix: search of cities (website change).
+
+	Module: Youjizz
+	* Fix: parsing of duration.
+	* Fix: parsing video url.
+
+	Module: Youporn
+	* Fix: website changed.
+
+	Module: Youtube
+	* Add support for youtube-nookie.com.
+	* Fix: login and play of nsfw videos (#918).
+	* Fix: finding video url (website change).
+
+	Application: boobank
+	* Fix: QIF spec requires capitalized 'type' (#898).
+
+	Application: boobill
+	* New command 'balance'.
+
+	Application: comparoob
+	* Fix: selection of product.
+
+	Application: freemobile-munin
+	* Add parameter 'phonenumber'.
+	* Fix: data parsing.
+
+	Application: havedate
+	* Add command 'events'.
+
+	Application: pastoob
+	* Abort if paste is empty.
+
+	Application: QHaveDate
+	* Nicknames are selectable (#869).
+
+	Application: QVideoob
+	* White background is not forced anymore (#823).
+
+	Application: translaboob
+	* Add 'nigger' language.
+
+	Application: weboob-debug
+	* Support more shell libs (ipython, bpython, standard python).
+
+	Appliccation: wetboobs
+	* Ability to display temperatures either on celsius or on fahrenheit.
+
+	Core
+	* Use module 'imp' instead of '__import__'.
+	* Fix table formatter with python-prettytable 0.6.
+
 Weboob 0.c (2012-05-04)
 	General
 	* New capability: CapPriceComparison.

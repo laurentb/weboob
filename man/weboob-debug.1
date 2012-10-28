@@ -1,9 +1,9 @@
-.TH WEBOOB-DEBUG 1 "04 May 2012" "weboob-debug 0\&.c"
+.TH WEBOOB-DEBUG 1 "28 October 2012" "weboob-debug 0\&.d"
 .SH NAME
 weboob-debug
 .SH SYNOPSIS
 .B weboob\-debug
-[\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
+[\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
 .B weboob\-debug
 [\-\-help] [\-\-version]
@@ -12,137 +12,6 @@ weboob-debug
 .LP
 
 Weboob\-Debug is a console application to debug backends.
-
-.SH WEBOOBDEBUG COMMANDS
-.TP
-\fBshell\fR \fIBACKEND\fR
-.br
-Debug a backend.
-.SH WEBOOB COMMANDS
-.TP
-\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
-.br
-Select used backends.
-.br
-
-.br
-ACTION is one of the following (default: list):
-.br
-* enable         enable given backends
-.br
-* disable        disable given backends
-.br
-* only           enable given backends and disable the others
-.br
-* list           list backends
-.br
-* add            add a backend
-.br
-* register       register a new account on a website
-.br
-* edit           edit a backend
-.br
-* remove         remove a backend
-.br
-* list\-modules   list modules
-.TP
-\fBcd\fR [\fIPATH\fR]
-.br
-Follow a path.
-.br
-".." is a special case and goes up one directory.
-.br
-"" is a special case and goes home.
-.TP
-\fBcondition\fR [\fIEXPRESSION\fR | off]
-.br
-If an argument is given, set the condition expression used to filter the results.
-.br
-If the "off" value is given, conditional filtering is disabled.
-.br
-
-.br
-If no argument is given, print the current condition expression.
-.TP
-\fBcount\fR [\fINUMBER\fR | off]
-.br
-If an argument is given, set the maximum number of results fetched.
-.br
-NUMBER must be at least 1.
-.br
-"off" value disables counting, and allows infinite searches.
-.br
-
-.br
-If no argument is given, print the current count value.
-.TP
-\fBformatter\fR [list | \fIFORMATTER\fR [\fICOMMAND\fR] | option \fIOPTION_NAME\fR [on | off]]
-.br
-If a FORMATTER is given, set the formatter to use.
-.br
-You can add a COMMAND to apply the formatter change only to
-.br
-a given command.
-.br
-
-.br
-If the argument is "list", print the available formatters.
-.br
-
-.br
-If the argument is "option", set the formatter options.
-.br
-Valid options are: header, keys.
-.br
-If on/off value is given, set the value of the option.
-.br
-If not, print the current value for the option.
-.br
-
-.br
-If no argument is given, print the current formatter.
-.TP
-\fBinspect\fR \fIBACKEND_NAME\fR
-.br
-Display the HTML string of the current page of the specified backend's browser.
-.br
-
-.br
-If webkit_mechanize_browser Python module is installed, HTML is displayed in a WebKit GUI.
-.TP
-\fBlogging\fR [\fILEVEL\fR]
-.br
-Set logging level.
-.br
-
-.br
-Availables: debug, info, warning, error.
-.br
-* quiet is an alias for error
-.br
-* default is an alias for warning
-.TP
-\fBls\fR [\fIPATH\fR]
-.br
-List objects in current path.
-.br
-If an argument is given, list the specified path.
-.TP
-\fBquit\fR
-.br
-Quit the application.
-.TP
-\fBselect\fR [\fIFIELD_NAME\fR]... | "$direct" | "$full"
-.br
-If an argument is given, set the selected fields.
-.br
-$direct selects all fields loaded in one http request.
-.br
-$full selects all fields using as much http requests as necessary.
-.br
-
-.br
-If no argument is given, print the currently selected fields.
 
 .SH OPTIONS
 .TP
@@ -172,30 +41,10 @@ file to save logs
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
 
-.SH RESULTS OPTIONS
+.SH WEBOOB\-DEBUG OPTIONS
 .TP
-\fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
-filter result items to display given a boolean expression
-.TP
-\fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
-.TP
-\fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
-select result item keys to display (comma separated)
-
-.SH FORMATTING OPTIONS
-.TP
-\fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, webkit)
-.TP
-\fB\-\-no\-header\fR
-do not display header
-.TP
-\fB\-\-no\-keys\fR
-do not display item keys
-.TP
-\fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
-file to export result
+\fB\-B\fR, \fB\-\-bpython\fR
+Prefer bpython over ipython
 
 .SH COPYRIGHT
 Copyright(C) 2010-2011 Christophe Benz

@@ -1,4 +1,4 @@
-.TH HAVEDATE 1 "04 May 2012" "havedate 0\&.c"
+.TH HAVEDATE 1 "28 October 2012" "havedate 0\&.d"
 .SH NAME
 havedate
 .SH SYNOPSIS
@@ -16,6 +16,10 @@ Console application allowing to interact with various dating websites and to opt
 .SS Supported websites:
 * aum ("Adopte un Mec" French dating website)
 .SH HAVEDATE COMMANDS
+.TP
+\fBevents\fR
+.br
+Display dating events.
 .TP
 \fBexport_all\fR
 .br
@@ -254,8 +258,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (atom, csv, htmltable, msg, msglist, multiline, profile,
-simple, table, webkit, xhtml)
+select output formatter (atom, csv, events, htmltable, msg, msglist, multiline,
+profile, simple, table, webkit, xhtml)
 .TP
 \fB\-\-no\-header\fR
 do not display header
