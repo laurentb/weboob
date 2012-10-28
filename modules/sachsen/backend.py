@@ -32,7 +32,7 @@ class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.d'
+    VERSION = '0.e'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Level of Sachsen river"
     BROWSER = SachsenBrowser

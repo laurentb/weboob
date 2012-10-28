@@ -49,7 +49,7 @@ class Weboob(object):
     :param storage: provide a storage where backends can save data
     :type storage: :class:`weboob.tools.storage.IStorage`
     """
-    VERSION = '0.d'
+    VERSION = '0.e'
     BACKENDS_FILENAME = 'backends'
 
     def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):

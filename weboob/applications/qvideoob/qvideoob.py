@@ -25,7 +25,7 @@ from .main_window import MainWindow
 
 class QVideoob(QtApplication):
     APPNAME = 'qvideoob'
-    VERSION = '0.d'
+    VERSION = '0.e'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Qt application allowing to search videos on various websites and play them.'
     CAPS = ICapVideo

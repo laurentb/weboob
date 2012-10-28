@@ -36,7 +36,7 @@ class GDCVaultBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'gdcvault'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '0.d'
+    VERSION = '0.e'
     DESCRIPTION = 'Game Developers Conferences Vault video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = GDCVaultBrowser

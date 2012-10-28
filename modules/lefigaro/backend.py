@@ -26,7 +26,7 @@ from .tools import rssid
 class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '0.d'
+    VERSION = '0.e'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'lefigaro'

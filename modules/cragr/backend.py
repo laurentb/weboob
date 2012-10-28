@@ -33,7 +33,7 @@ class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
     MAINTAINER = u'Xavier Guerrin'
     EMAIL = 'xavier@tuxfamily.org'
-    VERSION = '0.d'
+    VERSION = '0.e'
     DESCRIPTION = u'Crédit Agricole French bank website'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
