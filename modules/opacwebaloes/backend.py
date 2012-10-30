@@ -37,7 +37,7 @@ class AloesBackend(BaseBackend, ICapBook):
     VERSION = '0.e'
     DESCRIPTION = 'Aloes Library software'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,6}\w$'),
+    CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,8}\w$'),
                            ValueBackendPassword('password', label='Password of account'),
                            Value('baseurl',    label='Base URL')
                            )
