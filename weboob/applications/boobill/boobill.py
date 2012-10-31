@@ -133,7 +133,7 @@ class Boobill(ReplApplication):
         Get the history of subscriptions.
         If no ID given, display histories of all backends
         """
-        self.exec_method(id, 'iter_history')
+        self.exec_method(id, 'iter_bills_history')
 
     def do_bills(self, id):
         """

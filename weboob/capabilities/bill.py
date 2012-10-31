@@ -99,7 +99,7 @@ class ICapBill(ICapCollection):
         """
         raise NotImplementedError()
 
-    def iter_history(self, subscription):
+    def iter_bills_history(self, subscription):
         """
         Iter history of a subscription.
 

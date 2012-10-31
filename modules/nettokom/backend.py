@@ -63,7 +63,7 @@ class NettoKomBackend(BaseBackend, ICapBill):
         else:
             raise SubscriptionNotFound()
 
-    def iter_history(self, subscription):
+    def iter_bills_history(self, subscription):
         with self.browser:
             for history in self.browser.get_history():
                 yield history

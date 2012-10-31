@@ -62,7 +62,7 @@ class FreeMobileBackend(BaseBackend, ICapBill):
         else:
             raise SubscriptionNotFound()
 
-    def iter_history(self, subscription):
+    def iter_bills_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
 
