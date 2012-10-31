@@ -56,6 +56,15 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
                                    self.config['password'].get(),
                                    birthday=self.config['birthday'].get())
 
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
+
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
             yield account
