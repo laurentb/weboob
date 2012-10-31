@@ -21,7 +21,8 @@ import hashlib
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
 from .pages import AccountsList, LoginPage, LoginPage2, \
-                   AccountHistory, TransferPage, TransferConfirmPage
+                   AccountHistory, TransferPage, TransferConfirmPage, \
+                   BillsPage
 
 
 __all__ = ['Ing']
@@ -41,7 +42,8 @@ class Ing(BaseBrowser):
              '.*transferManagement.jsf':       TransferPage,
              '.*onHoldTransferManagement.jsf':  TransferPage,
              '.*DisplayDoTransferCommand.*':   TransferPage,
-             '.*transferCreateValidation.jsf': TransferConfirmPage
+             '.*transferCreateValidation.jsf': TransferConfirmPage,
+             '.*eStatement.jsf':               BillsPage
             }
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
@@ -154,3 +156,21 @@ class Ing(BaseBrowser):
                 return self.page.recap()
         else:
             raise TransferError('Recipient not found')
+
+    def get_subscriptions(self):
+        self.location('https://secure.ingdirect.fr/protected/pages/common/estatement/eStatement.jsf')
+        return self.page.iter_account()
+
+    def get_bills(self, subscription):
+        if not self.is_on_page(BillsPage):
+            self.location('https://secure.ingdirect.fr/protected/pages/common/estatement/eStatement.jsf')
+        self.page.selectyear(subscription._localid)
+        while 1:
+            for bill in self.page.iter_bills(subscription.id):
+                yield bill
+            if self.page.islast():
+                return
+            self.page.next_page()
+
+    def predownload(self, bill):
+        self.page.postpredown(bill._localid)

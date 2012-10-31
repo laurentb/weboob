@@ -22,16 +22,16 @@
 from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
+from weboob.capabilities.bill import ICapBill, Bill, Subscription, SubscriptionNotFound, BillNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Ing
 
-
 __all__ = ['INGBackend']
 
 
-class INGBackend(BaseBackend, ICapBank):
+class INGBackend(BaseBackend, ICapBank, ICapBill):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -89,3 +89,32 @@ class INGBackend(BaseBackend, ICapBank):
                 if "-" in recipient:
                     recipient = recipient[3:]
             return self.browser.transfer(account, recipient, amount, reason)
+
+    def iter_subscription(self):
+        for subscription in self.browser.get_subscriptions():
+            yield subscription
+
+    def get_subscription(self, _id):
+        for subscription in self.browser.get_subscriptions():
+            if subscription.id == _id:
+                return subscription
+        raise SubscriptionNotFound()
+
+    def get_bill(self, id):
+        subscription = self.get_subscription(id.split('-')[0])
+        for bill in self.browser.get_bills(subscription):
+            if bill.id == id:
+                return bill
+        raise BillNotFound()
+
+    def iter_bills(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        return self.browser.get_bills(subscription)
+
+    def download_bill(self, bill):
+        if not isinstance(bill, Bill):
+            bill = self.get_bill(bill)
+        self.browser.predownload(bill)
+        with self.browser:
+            return self.browser.readurl("https://secure.ingdirect.fr" + bill._url)
