@@ -152,13 +152,30 @@ class Boobill(ReplApplication):
         id is the identifier of the bill (hint: try bills command)
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
+
+        download all [Id]
+
+        You can use special word "all" and download all bills of
+        subscription identified by Id.
+        If Id not given, download bills of all subscriptions.
         """
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
         if not id:
             print >>sys.stderr, 'Error: please give a bill ID (hint: use bills command)'
             return 2
+
         names = (backend_name,) if backend_name is not None else None
+        # Special keywords, download all bills of all subscriptions
+        if id == "all":
+            if dest is None:
+                for backend, subscription in self.do('iter_subscription', backends=names):
+                    self.download_all(subscription.id, names)
+                return
+            else:
+                self.download_all(dest, names)
+                return
+
 
         if dest is None:
             for backend, bill in self.do('get_bill', id, backends=names):
@@ -176,3 +193,22 @@ class Boobill(ReplApplication):
                         print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                         return 1
                 return
+
+    def download_all(self, id, names):
+        id, backend_name = self.parse_id(id)
+        for backend, bill in self.do('iter_bills', id, backends=names):
+            dest = bill.id + "." + bill.format
+            for backend2, buf in self.do('download_bill', bill.id, backends=names):
+                if buf:
+                    if dest == "-":
+                        print buf
+                    else:
+                        try:
+                            with open(dest, 'w') as f:
+                                f.write(buf)
+                        except IOError, e:
+                            print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
+                            return 1
+
+
+        return
