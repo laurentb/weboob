@@ -127,6 +127,7 @@ class ValueBackendPassword(Value):
         Value.__init__(self, *args, **kwargs)
 
     def load(self, domain, password, callbacks):
+        self.check_valid(password)
         self._domain = domain
         self._value = password
         self._callbacks = callbacks
