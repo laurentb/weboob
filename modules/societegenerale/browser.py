@@ -79,6 +79,8 @@ class SocieteGenerale(BaseBrowser):
                 raise BrowserIncorrectPassword()
             elif error.startswith('Votre session a'):
                 raise BrowserUnavailable('Session has expired')
+            elif error.startswith('Le service est momentan'):
+                raise BrowserUnavailable(error)
             else:
                 raise BrowserIncorrectPassword(error)
 
