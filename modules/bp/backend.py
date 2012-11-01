@@ -36,7 +36,7 @@ class BPBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La Banque Postale French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='^(\d+|)$'))
+                           ValueBackendPassword('password', label='Password', regexp='^(\d{6}|)$'))
     BROWSER = BPBrowser
 
     def create_default_browser(self):
@@ -69,17 +69,8 @@ class BPBackend(BaseBackend, ICapBank):
 # See https://symlink.me/issues/863 and
 # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666051
 import ssl
-def mywrap_socket(sock, keyfile=None, certfile=None,
-                server_side=False, cert_reqs=ssl.CERT_NONE,
-                ssl_version=ssl.PROTOCOL_TLSv1, ca_certs=None,
-                do_handshake_on_connect=True,
-                suppress_ragged_eofs=True, ciphers=None):
-
-    return ssl.wrap_socketold(sock, keyfile=keyfile, certfile=certfile,
-                     server_side=server_side, cert_reqs=cert_reqs,
-                     ssl_version=ssl_version, ca_certs=ca_certs,
-                     do_handshake_on_connect=do_handshake_on_connect,
-                     suppress_ragged_eofs=suppress_ragged_eofs,
-                     ciphers=ciphers)
+def mywrap_socket(sock, *args, **kwargs):
+    kwargs['ssl_version'] = kwargs.get('ssl_version', ssl.PROTOCOL_TLSv1)
+    return ssl.wrap_socketold(sock, *args, **kwargs)
 ssl.wrap_socketold=ssl.wrap_socket
 ssl.wrap_socket=mywrap_socket
