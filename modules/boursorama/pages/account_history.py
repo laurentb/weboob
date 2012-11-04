@@ -60,6 +60,8 @@ class AccountHistory(BasePage):
                     labeldiv = tds[2].find('div')
                     label = u''
                     label += labeldiv.text
+                    if labeldiv.find('a') is not None:
+                        label += labeldiv.find('a').text
                     label = label.strip(u' \n\t')
 
                     category = labeldiv.attrib.get('title', '')
