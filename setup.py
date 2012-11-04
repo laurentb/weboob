@@ -41,6 +41,7 @@ def find_executable(name, names):
                 fpath = os.path.join(path, name) + ext
                 if os.path.exists(fpath) and os.access(fpath, os.X_OK):
                     return fpath
+    print >>sys.stderr, 'Could not find executable: %s' % name
 
 
 def build_qt():
