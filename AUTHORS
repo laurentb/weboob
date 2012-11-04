@@ -119,6 +119,9 @@ Olivier Schwander <olivier.schwander@ens-lyon.org>
 Luc Didry <luc@didry.org>
         * Fixes on LCL.
 
+Adrien Kunysz <adrien@kunysz.be>
+        * Fixes on setup.py.
+
 Michael Scherer <misc@zarb.org>
         * Contribution on weboob-config.
 
