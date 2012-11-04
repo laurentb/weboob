@@ -49,7 +49,7 @@ def build_qt():
     make = find_executable('make', ('gmake', 'make'))
     pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-2.7', 'pyuic4-2.6', 'pyuic4-2.5', 'pyuic4'))
     if not pyuic4 or not make:
-        print >>sys.stderr, 'Install PyQt4-devel or disable Qt applications (with --no-qt).'
+        print >>sys.stderr, 'Install missing component(s) (see above) or disable Qt applications (with --no-qt).'
         sys.exit(1)
 
     subprocess.check_call([make, '-C', 'weboob/applications/qboobmsg/ui', 'PYUIC=%s' % pyuic4])
