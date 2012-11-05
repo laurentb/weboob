@@ -54,6 +54,7 @@ class SachsenBrowser(BaseBrowser):
         return self.page.last_seen()
 
     def search(self, pattern):
+        lowpattern = pattern.lower()
         for gauge in self.get_rivers_list():
-            if pattern in gauge.name or pattern in gauge.river:
+            if lowpattern in gauge.name.lower() or lowpattern in gauge.river.lower():
                 yield gauge
