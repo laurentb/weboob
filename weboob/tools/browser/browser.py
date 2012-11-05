@@ -172,7 +172,7 @@ class StandardBrowser(mechanize.Browser):
     SAVE_RESPONSES = False
     DEBUG_HTTP = False
     DEBUG_MECHANIZE = False
-    DEFAULT_TIMEOUT = 10
+    DEFAULT_TIMEOUT = 15
 
     responses_dirname = None
     responses_count = 0
@@ -254,7 +254,7 @@ class StandardBrowser(mechanize.Browser):
         try:
             return self._openurl(*args, **kwargs)
         except (mechanize.BrowserStateError, mechanize.response_seek_wrapper,
-                urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
+                urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
             if isinstance(e, mechanize.BrowserStateError) and hasattr(self, 'home'):
                 self.home()
                 return self._openurl(*args, **kwargs)
@@ -507,7 +507,7 @@ class BaseBrowser(StandardBrowser):
         nologin = kwargs.pop('nologin', False)
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs), no_login=nologin)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
             self.page = None
             raise self.get_exception(e)(e)
         except (mechanize.BrowserStateError, BrowserRetry), e:
@@ -539,7 +539,7 @@ class BaseBrowser(StandardBrowser):
         """
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
             self.page = None
             raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
         except (mechanize.BrowserStateError, BrowserRetry), e:
@@ -574,7 +574,7 @@ class BaseBrowser(StandardBrowser):
             if not self.page or not args or self.page.url != args[0]:
                 keep_kwargs['no_login'] = True
                 self.location(*keep_args, **keep_kwargs)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
             self.page = None
             raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
@@ -664,3 +664,21 @@ class BaseBrowser(StandardBrowser):
 
         if self._cookie:
             self._cookie.save()
+
+import ssl
+
+def mywrap_socket(sock, *args, **kwargs):
+    kwargs['do_handshake_on_connect']=False
+    kwargs['ssl_version'] = kwargs.get('ssl_version', ssl.PROTOCOL_TLSv1)
+    sock = ssl.wrap_socketold(sock, *args, **kwargs)
+    sock.settimeout(StandardBrowser.DEFAULT_TIMEOUT)
+    try:
+        sock.getpeername()
+    except:
+        sock.do_handshake_on_connect = True
+    else:
+        sock.do_handshake()
+    return sock
+
+ssl.wrap_socketold=ssl.wrap_socket
+ssl.wrap_socket=mywrap_socket

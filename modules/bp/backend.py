@@ -64,13 +64,3 @@ class BPBackend(BaseBackend, ICapBank):
         #TODO: retourner le numero du virement
         #TODO: support the 'reason' parameter
         return self.browser.make_transfer(from_account, to_account, amount)
-
-# XXX This hack is useful to workaround a bug in OpenSSL 1.0.1c-4 in Debian Wheezy.
-# See https://symlink.me/issues/863 and
-# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666051
-import ssl
-def mywrap_socket(sock, *args, **kwargs):
-    kwargs['ssl_version'] = kwargs.get('ssl_version', ssl.PROTOCOL_TLSv1)
-    return ssl.wrap_socketold(sock, *args, **kwargs)
-ssl.wrap_socketold=ssl.wrap_socket
-ssl.wrap_socket=mywrap_socket
