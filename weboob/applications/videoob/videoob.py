@@ -111,7 +111,7 @@ class Videoob(ReplApplication):
         if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
                 return 1
-            args = ('rtmpdump', '-r', video.url, '-o', dest)
+            args = ('rtmpdump', '-e', '-r', video.url, '-o', dest)
         elif video.url.startswith('mms'):
             if not check_exec('mimms'):
                 return 1
