@@ -95,7 +95,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('(\w+) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB:[^ ]+ (?P<text>.*)'),
+                (re.compile('(\w+) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB[:\*][^ ]+ (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),

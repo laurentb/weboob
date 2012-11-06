@@ -40,7 +40,7 @@ class Transaction(FrenchTransaction):
         (re.compile('^(?P<text>Interets\s*.*)', re.IGNORECASE),                             FrenchTransaction.TYPE_BANK),
         (re.compile('^(?P<text>Prelev\.\s*(C\.r\.d\.s\.|R\.s\.a\.|C\.a\.p\.s\.|C\.s\.g|P\.s\.))', re.IGNORECASE),
                                                                                             FrenchTransaction.TYPE_BANK),
-        (re.compile('^ACH.CARTE (?P<text>.*)', re.IGNORECASE),                              FrenchTransaction.TYPE_CARD),
+        (re.compile('^(ACH.)?CARTE (?P<text>.*)', re.IGNORECASE),                           FrenchTransaction.TYPE_CARD),
         (re.compile('^RET.CARTE (?P<text>.*)', re.IGNORECASE),                              FrenchTransaction.TYPE_WITHDRAWAL),
     ]
 

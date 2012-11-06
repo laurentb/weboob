@@ -110,6 +110,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_LOAN_PAYMENT),
                 (re.compile(r'^(?P<category>REMISE CHEQUES)(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^CARTE RETRAIT (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
                ]
 
 class AccountHistory(BasePage):
