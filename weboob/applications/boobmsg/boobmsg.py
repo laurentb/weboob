@@ -100,7 +100,7 @@ class XHtmlFormatter(IFormatter):
         result  = "<div>\n"
         result += "<h1>%s</h1>" % (obj.title)
         result += "<dl>"
-        result += "<dt>Date</dt><dd>%s</dd>" % (obj.date)
+        result += "<dt>Date</dt><dd>%s</dd>" % (obj.date.strftime('%Y-%m-%d %H:%M'))
         result += "<dt>Sender</dt><dd>%s</dd>" % (obj.sender)
         result += "<dt>Signature</dt><dd>%s</dd>" % (obj.signature)
         result += "</dl>"
@@ -116,7 +116,7 @@ class MessageFormatter(IFormatter):
         result = u'%sTitle:%s %s\n' % (self.BOLD,
                                        self.NC, obj.title)
         result += u'%sDate:%s %s\n' % (self.BOLD,
-                                       self.NC, obj.date)
+                                       self.NC, obj.date.strftime('%Y-%m-%d %H:%M'))
         result += u'%sFrom:%s %s\n' % (self.BOLD,
                                        self.NC, obj.sender)
         if hasattr(obj, 'receivers') and obj.receivers:
