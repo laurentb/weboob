@@ -43,18 +43,19 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
     def get_thread(self, _id):
         if isinstance(_id, Thread):
             thread = _id
-            _id = thread.id
+            id = thread.id
         else:
             thread = None
+            id = _id
 
         with self.browser:
-            content = self.browser.get_content(_id)
+            content = self.browser.get_content(id)
 
         if content is None:
             return None
 
         if not thread:
-            thread = Thread(_id)
+            thread = Thread(id)
 
         flags = Message.IS_HTML
         if not thread.id in self.storage.get('seen', default={}):
