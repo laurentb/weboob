@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import ArticlePage, CartoonPage
+from .pages.article import PresseuropPage, CartoonPage
 from weboob.tools.browser import BaseBrowser
 
 
@@ -26,7 +26,7 @@ class NewspaperPresseuropBrowser(BaseBrowser):
     "NewspaperPresseuropBrowser class"
     PAGES = {
              "http://www.presseurop.eu/.*/cartoon/.*": CartoonPage,
-             "http://www.presseurop.eu/.*": ArticlePage,
+             "http://www.presseurop.eu/.*": PresseuropPage,
             }
 
     def is_logged(self):

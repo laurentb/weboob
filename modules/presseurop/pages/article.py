@@ -21,8 +21,8 @@
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, try_drop_tree
 
 
-class ArticlePage(GenericNewsPage):
-    "ArticlePage object for presseurop"
+class PresseuropPage(GenericNewsPage):
+    "PresseuropPage object for presseurop"
 
     def on_loaded(self):
         self.main_div = self.document.getroot()
@@ -43,7 +43,7 @@ class ArticlePage(GenericNewsPage):
         return title
 
 
-class CartoonPage(GenericNewsPage):
+class CartoonPage(PresseuropPage):
     "CartoonPage object for presseurop"
 
     def on_loaded(self):
@@ -51,14 +51,3 @@ class CartoonPage(GenericNewsPage):
         self.element_title_selector = "title"
         self.element_author_selector = "div.profilecartoontext>p>a"
         self.element_body_selector = "div.panel"
-
-    def get_body(self):
-        element_body = self.get_element_body()
-        try_drop_tree(self.parser, element_body, "li.button-social")
-        try_drop_tree(self.parser, element_body, "div.sharecount")
-        return self.parser.tostring(element_body)
-
-    def get_title(self):
-        title = GenericNewsPage.get_title(self)
-        title = title.split('|')[0]
-        return title
