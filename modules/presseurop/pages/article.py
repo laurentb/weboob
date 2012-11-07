@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, try_drop_tree
 
 
 class ArticlePage(GenericNewsPage):
@@ -32,6 +32,8 @@ class ArticlePage(GenericNewsPage):
 
     def get_body(self):
         element_body = self.get_element_body()
+        try_drop_tree(self.parser, element_body, "li.button-social")
+        try_drop_tree(self.parser, element_body, "div.sharecount")
 
         return self.parser.tostring(element_body)
 
@@ -52,6 +54,8 @@ class CartoonPage(GenericNewsPage):
 
     def get_body(self):
         element_body = self.get_element_body()
+        try_drop_tree(self.parser, element_body, "li.button-social")
+        try_drop_tree(self.parser, element_body, "div.sharecount")
         return self.parser.tostring(element_body)
 
     def get_title(self):
