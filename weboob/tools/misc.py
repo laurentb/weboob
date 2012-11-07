@@ -65,6 +65,8 @@ try:
     import html2text as h2t
     h2t.UNICODE_SNOB = 1
     h2t.SKIP_INTERNAL_LINKS = True
+    h2t.INLINE_LINKS = False
+    h2t.LINKS_EACH_PARAGRAPH = True
     html2text = h2t.html2text
 except ImportError:
     warning('python-html2text is not present. HTML pages will not be converted into text.')
