@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, remove_from_selector_list, try_remove_from_selector_list, try_drop_tree
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, remove_from_selector_list, try_remove_from_selector_list, try_drop_tree, clean_relativ_urls
 
 
 class ArticlePage(GenericNewsPage):
@@ -34,12 +34,6 @@ class ArticlePage(GenericNewsPage):
         remove_from_selector_list(self.parser, element_body, ["p.auteur", "h4"])
         try_remove_from_selector_list(self.parser, element_body, ["p.tag", "div.alire", self.element_title_selector, "h4"])
         try_drop_tree(self.parser, element_body, "script")
-        for a in element_body.findall('.//a'):
-            if a.attrib["href"][0:7] != "http://":
-                a.attrib["href"] = "http://ecrans.fr/" + a.attrib["href"]
-        for img in element_body.xpath('.//img'):
-            if img.attrib["src"][0:7] != "http://":
-                img.attrib["src"] = "http://ecrans.fr/" + img.attrib["src"]
-                
+        clean_relativ_urls(element_body, "http://ecrans.fr")
 
         return self.parser.tostring(element_body)
