@@ -459,6 +459,7 @@ class Boobmsg(ReplApplication):
 
         Read a message
         """
+        message = None
         if len(arg) == 0:
             print >>sys.stderr, 'Please give a message ID.'
             return 2
@@ -467,14 +468,16 @@ class Boobmsg(ReplApplication):
             message = self.messages[int(arg) - 1]
         except (IndexError, ValueError):
             id, backend_name = self.parse_id(arg)
-        else:
+            cmd = self.do('get_thread', id, backends=backend_name)
+            for backend, thread in cmd:
+                if thread is not None:
+                    message = thread.root
+        if message is not None:
+            self.start_format()
             self.format(message)
+            self.flush()
             self.weboob.do('set_message_read', message, backends=message.backend)
             return
-
-        if not self.interactive:
-            print >>sys.stderr,  'Oops, you need to be in interactive mode to read messages'
-            return 1
         else:
             print >>sys.stderr,  'Message not found'
             return 3
