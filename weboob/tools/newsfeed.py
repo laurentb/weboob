@@ -53,6 +53,8 @@ class Entry(object):
 
         if "updated_parsed" in entry:
             self.datetime = datetime.datetime(*entry['updated_parsed'][:7])
+        elif "published_parsed" in entry:
+            self.datetime = datetime.datetime(*entry['published_parsed'][:7])
         else:
             self.datetime = None
 
