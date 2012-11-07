@@ -440,9 +440,9 @@ class Boobmsg(ReplApplication):
 
     def do_export_thread(self, arg):
         """
-        export_thread
+        export_thread ID
 
-        Export a thread
+        Export the thread identified by ID
         """
         _id, backend_name = self.parse_id(arg)
         cmd = self.do('get_thread', _id, backends=backend_name)
