@@ -55,6 +55,7 @@ class GaugeSensor(CapBaseObject):
     forecast =  StringField('Forecast')
     lastvalue = Field('Last value', GaugeMeasure)
     history =   Field('Value history', list)  # lastvalue not included
+    gaugeid =   StringField('Id of the gauge')
 
 
 class ICapGauge(IBaseCap):
@@ -89,11 +90,11 @@ class ICapGauge(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_last_measure(self, id):
+    def get_last_measures(self, id):
         """
-        Get last measure of the gauge sensor.
+        Get last measures of the gauge.
 
-        :param id: ID of the gauge sensor.
+        :param id: ID of the gauge.
         :type id: str
         :rtype: :class:`GaugeMeasure`
         """
