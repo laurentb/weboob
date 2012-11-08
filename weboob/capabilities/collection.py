@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, UserError
+from .base import IBaseCap, CapBaseObject, UserError, StringField, Field
 
 
 __all__ = ['ICapCollection', 'BaseCollection', 'Collection', 'CollectionNotFound']
@@ -39,6 +39,7 @@ class BaseCollection(CapBaseObject):
     However, this probably will not work properly for now.
     """
     def __init__(self, split_path):
+        CapBaseObject.__init__(self, None)
         self.split_path = split_path
 
     @property
@@ -64,6 +65,9 @@ class Collection(BaseCollection):
     Do not inherit from this class if you want to make a regular CapBaseObject
     a Collection, use BaseCollection instead.
     """
+    title = StringField('Collection title')
+    split_path = Field('Full collection path', list)
+
     def __init__(self, split_path, title=None):
         self.title = title
         BaseCollection.__init__(self, split_path)
