@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.weather import ICapWeather
-from weboob.capabilities.gauge import ICapWaterLevel
+from weboob.capabilities.gauge import ICapGauge
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -60,7 +60,7 @@ class WetBoobs(ReplApplication):
     VERSION = '0.e'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to display weather and forecasts in your city.'
-    CAPS = (ICapWeather, ICapWaterLevel)
+    CAPS = (ICapWeather, ICapGauge)
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
                         'current':   CurrentFormatter,
@@ -146,7 +146,7 @@ class WetBoobs(ReplApplication):
         """
         self.change_path([u'gauges'])
         self.start_format()
-        for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapWaterLevel):
+        for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapGauge):
             self.cached_format(gauge)
         self.flush()
 
@@ -159,31 +159,31 @@ class WetBoobs(ReplApplication):
         """
         gauge GAUGE_ID
 
-        Get history of a specific gauge (use 'rivers' to find them).
+        Get history of a specific gauge (use 'gauges' to find them).
         """
         gauge, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapWaterLevel):
+        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
         self.flush()
 
-    def complete_last_gauge_measure(self, text, line, *ignored):
+    def complete_last_gauge_measures(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
 
-    def do_last_gauge_measure(self, line):
+    def do_last_gauge_measures(self, line):
         """
-        last_gauge_measure GAUGE_ID
+        last_gauge_measures GAUGE_ID
 
-        Get last measure of a gauge (use 'rivers' to find them).
+        Get last measures of a gauge (use 'gauges' to find them).
         """
         gauge, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapWaterLevel):
+        for backend, measure in self.do('get_last_measures', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
         self.flush()
