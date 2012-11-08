@@ -24,7 +24,7 @@ from weboob.tools.ordereddict import OrderedDict
 
 from weboob.capabilities.paste import PasteNotFound
 
-from .pages import PastePage, PostPage, UserPage
+from .pages import PastePage, PostPage, UserPage, LoginPage
 from .paste import PastebinPaste
 
 import urllib
@@ -43,6 +43,7 @@ class PastebinBrowser(BaseBrowser):
     PASTE_URL = 'http://%s/(?P<id>\w+)' % DOMAIN
     API_URL = 'http://%s/api/api_post.php' % DOMAIN
     PAGES = OrderedDict((
+            ('http://%s/login' % DOMAIN, LoginPage),
             ('http://%s/u/(?P<username>.+)' % DOMAIN, UserPage),
             ('http://%s/' % DOMAIN, PostPage),
             (PASTE_URL, PastePage),

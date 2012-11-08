@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BasePage, BrokenPageError
 
-__all__ = ['PastePage', 'PostPage']
+__all__ = ['PastePage', 'PostPage', 'LoginPage']
 
 
 class BasePastebinPage(BasePage):
