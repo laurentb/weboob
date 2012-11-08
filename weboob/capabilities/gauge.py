@@ -18,10 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, FloatField, DateField, Field
+from .base import IBaseCap, CapBaseObject, StringField, FloatField, DateField, Field, UserError
 
 
-__all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'ICapGauge']
+__all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'ICapGauge', 'SensorNotFound']
+
+
+class SensorNotFound(UserError):
+    """
+    Not found a sensor
+    """
 
 
 class Gauge(CapBaseObject):

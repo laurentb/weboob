@@ -21,7 +21,7 @@
 from __future__ import with_statement
 
 from .browser import SachsenBrowser
-from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge
+from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
 from weboob.tools.backend import BaseBackend
 
 
@@ -75,9 +75,13 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
     def iter_gauge_history(self, sensor):
         if not isinstance(sensor, GaugeSensor):
             sensor = self._get_sensor_by_id(sensor)
+        if sensor is None:
+            raise SensorNotFound()
         return self.browser.iter_history(sensor)
 
     def get_last_measure(self, sensor):
         if not isinstance(sensor, GaugeSensor):
             sensor = self._get_sensor_by_id(sensor)
+        if sensor is None:
+            raise SensorNotFound()
         return sensor.lastvalue
