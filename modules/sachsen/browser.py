@@ -45,16 +45,6 @@ class SachsenBrowser(BaseBrowser):
             self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
         return self.page.get_rivers_list()
 
-    def iter_history(self, id):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(id))
-        return self.page.iter_history()
-
-    def last_seen(self, id):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(id))
-        return self.page.last_seen()
-
-    def search(self, pattern):
-        lowpattern = pattern.lower()
-        for gauge in self.get_rivers_list():
-            if lowpattern in gauge.name.lower() or lowpattern in gauge.river.lower():
-                yield gauge
+    def iter_history(self, sensor):
+        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(sensor.gaugeid))
+        return self.page.iter_history(sensor)

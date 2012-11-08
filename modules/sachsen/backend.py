@@ -21,14 +21,14 @@
 from __future__ import with_statement
 
 from .browser import SachsenBrowser
-from weboob.capabilities.gauge import ICapWaterLevel
+from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge
 from weboob.tools.backend import BaseBackend
 
 
 __all__ = ['SachsenLevelBackend']
 
 
-class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
+class SachsenLevelBackend(BaseBackend, ICapGauge):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -37,14 +37,47 @@ class SachsenLevelBackend(BaseBackend, ICapWaterLevel):
     DESCRIPTION = u"Level of Sachsen river"
     BROWSER = SachsenBrowser
 
-    def iter_gauge_history(self, id):
-        return self.browser.iter_history(id)
-
-    def get_last_measure(self, id):
-        return self.browser.last_seen(id)
-
     def iter_gauges(self, pattern=None):
         if pattern is None:
-            return self.browser.get_rivers_list()
+            for gauge in self.browser.get_rivers_list():
+                yield gauge
         else:
-            return self.browser.search(pattern)
+            lowpattern = pattern.lower()
+            for gauge in self.get_rivers_list():
+                if lowpattern in gauge.name.lower() or lowpattern in gauge.river.lower():
+                    yield gauge
+
+    def _get_gauge_by_id(self, id):
+        for gauge in self.browser.get_rivers_list():
+            if id == gauge.id:
+                return gauge
+        return None
+
+    def _get_sensor_by_id(self, id):
+        for gauge in self.browser.get_rivers_list():
+            for sensor in gauge.sensors:
+                if id == sensor.id:
+                    return sensor
+        return None
+
+    def iter_sensors(self, gauge, pattern=None):
+        if not isinstance(gauge, Gauge):
+            gauge = self._get_gauge_by_id(gauge)
+        if pattern is None:
+            for sensor in gauge.sensors:
+                yield sensor
+        else:
+            lowpattern = pattern.lower()
+            for sensor in gauge.sensors:
+                if lowpattern in sensor.name.lower():
+                    yield sensor
+
+    def iter_gauge_history(self, sensor):
+        if not isinstance(sensor, GaugeSensor):
+            sensor = self._get_sensor_by_id(sensor)
+        return self.browser.iter_history(sensor)
+
+    def get_last_measure(self, sensor):
+        if not isinstance(sensor, GaugeSensor):
+            sensor = self._get_sensor_by_id(sensor)
+        return sensor.lastvalue
