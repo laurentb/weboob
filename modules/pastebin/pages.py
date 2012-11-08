@@ -46,15 +46,15 @@ class PastePage(BasePastebinPage):
     def fill_paste(self, paste):
         header = self.parser.select(self.document.getroot(),
                 'id("content_left")//div[@class="paste_box_info"]', 1, 'xpath')
-        paste.title = self.parser.select(header,
-                '//div[@class="paste_box_line1"]//h1', 1, 'xpath').text
-        paste.contents = self.parser.select(self.document.getroot(),
-                '//textarea[@id="paste_code"]', 1, 'xpath').text
+        paste.title = unicode(self.parser.select(header,
+                '//div[@class="paste_box_line1"]//h1', 1, 'xpath').text)
+        paste.contents = unicode(self.parser.select(self.document.getroot(),
+                '//textarea[@id="paste_code"]', 1, 'xpath').text)
         visibility_text = self.parser.select(header,
                 '//div[@class="paste_box_line1"]//img', 1, 'xpath').attrib['title']
         if visibility_text.startswith('Public'):
             paste.public = True
-        elif visibility_text.startswith('Private'):
+        elif visibility_text.startswith('Unlisted') or visibility_text.startswith('Private'):
             paste.public = False
         else:
             raise BrokenPageError('Unable to get the paste visibility')
