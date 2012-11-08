@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 import time
 
 from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.browser import BrowserForbidden
 from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.capabilities.messages import ICapMessages, ICapMessagesPost, Message, Thread, CantSendMessage
@@ -220,6 +221,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
 
     #### ICapMessagesReply #########################################
     def post_message(self, message):
+        if not self.browser.username:
+            raise BrowserForbidden()
         if not message.parent:
             raise CantSendMessage('Posting news and diaries on DLFP is not supported yet')
 
@@ -249,6 +252,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
         return content
 
     def push_content(self, content, message=None, minor=False):
+        if not self.browser.username:
+            raise BrowserForbidden()
         with self.browser:
             return self.browser.set_wiki_content(content.id, content.content, message)
 
