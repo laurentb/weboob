@@ -18,40 +18,72 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, FloatField, DateField
+from .base import IBaseCap, CapBaseObject, StringField, FloatField, DateField, Field
 
 
-__all__ = ['Gauge', 'GaugeMeasure', 'ICapWaterLevel']
+__all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'ICapGauge']
 
 
 class Gauge(CapBaseObject):
     """
     Gauge class.
     """
-    name =      StringField('Name of gauge')
-    river =     StringField('What river')
-    level =     FloatField('Level of gauge')
-    flow =      FloatField('Flow of gauge')
-    lastdate =  DateField('Last measure')
-    forecast =  StringField('Forecast')
+    name =       StringField('Name of gauge')
+    city =       StringField('City of the gauge')
+    object =     StringField('What is evaluate') # For example, name of a river
+    sensors =    Field('List of sensors on the gauge', list)
+
 
 class GaugeMeasure(CapBaseObject):
     """
-    Measure of a gauge.
+    Measure of a gauge sensor.
     """
     level =     FloatField('Level of measure')
-    flow =      FloatField('Flow of measure')
     date =      DateField('Date of measure')
+    alarm =     StringField('Alarm level')
 
     def __init__(self):
         CapBaseObject.__init__(self, None)
 
-class ICapWaterLevel(IBaseCap):
+
+class GaugeSensor(CapBaseObject):
+    """
+    GaugeSensor class.
+    """
+    name =      StringField('Name of the sensor')
+    unit =      StringField('Unit of values')
+    forecast =  StringField('Forecast')
+    lastvalue = Field('Last value', GaugeMeasure)
+    history =   Field('Value history', list)  # lastvalue not included
+
+
+class ICapGauge(IBaseCap):
+    def iter_gauges(self, pattern=None):
+        """
+        Iter gauges.
+
+        :param pattern: if specified, used to search gauges.
+        :type pattern: str
+        :rtype: iter[:class:`Gauge`]
+        """
+        raise NotImplementedError()
+
+    def iter_sensors(self, id, pattern=None):
+        """
+        Iter instrument of a gauge.
+
+        :param: ID of the gauge
+        :param pattern: if specified, used to search sensors.
+        :type pattern: str
+        :rtype: iter[:class:`GaugeSensor`]
+        """
+        raise NotImplementedError()
+
     def iter_gauge_history(self, id):
         """
-        Get history of a gauge.
+        Get history of a gauge sensor.
 
-        :param id: ID of the river
+        :param id: ID of the gauge sensor
         :type id: str
         :rtype: iter[:class:`GaugeMeasure`]
         """
@@ -59,20 +91,10 @@ class ICapWaterLevel(IBaseCap):
 
     def get_last_measure(self, id):
         """
-        Get last measure of the gauge.
+        Get last measure of the gauge sensor.
 
-        :param id: ID of the gauge
+        :param id: ID of the gauge sensor.
         :type id: str
         :rtype: :class:`GaugeMeasure`
-        """
-        raise NotImplementedError()
-
-    def iter_gauges(self, pattern=None):
-        """
-        Iter gauges.
-
-        :param pattern: if specified, used to search gauges
-        :type pattern: str
-        :rtype: iter[:class:`Gauge`]
         """
         raise NotImplementedError()
