@@ -195,6 +195,9 @@ class DLFP(BaseBrowser):
         return None
 
     def login(self):
+        if self.username:
+            return
+
         # not usefull for the moment
         #self.location('/', no_login=True)
         data = {'account[login]': self.username,
@@ -207,7 +210,7 @@ class DLFP(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def is_logged(self):
-        return (self.page and self.page.is_logged())
+        return (self.username is None or (self.page and self.page.is_logged()))
 
     def close_session(self):
         self.openurl('/compte/deconnexion', {})

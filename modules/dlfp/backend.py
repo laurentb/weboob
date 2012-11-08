@@ -43,8 +43,8 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     VERSION = '0.e'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "Da Linux French Page news website"
-    CONFIG = BackendConfig(Value('username',                label='Username', regexp='.+'),
-                           ValueBackendPassword('password', label='Password'),
+    CONFIG = BackendConfig(Value('username',                label='Username', default=''),
+                           ValueBackendPassword('password', label='Password', default=''),
                            ValueBool('get_news',            label='Get newspapers', default=True),
                            ValueBool('get_diaries',         label='Get diaries', default=False),
                            ValueBool('get_polls',           label='Get polls', default=False),
@@ -63,7 +63,12 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             }
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(username, password)
 
     def deinit(self):
         # don't need to logout if the browser hasn't been used.
