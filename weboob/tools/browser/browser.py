@@ -54,7 +54,7 @@ else:
     HAVE_COOKIES = True
 
 
-__all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
+__all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'BrowserUnavailable', 'BrowserRetry',
            'BrowserHTTPNotFound', 'BrowserHTTPError', 'BrokenPageError', 'BasePage',
            'StandardBrowser', 'BaseBrowser']
 
@@ -63,6 +63,8 @@ __all__ = ['BrowserIncorrectPassword', 'BrowserBanned', 'BrowserUnavailable', 'B
 class BrowserIncorrectPassword(Exception):
     pass
 
+class BrowserForbidden(Exception):
+    pass
 
 class BrowserBanned(BrowserIncorrectPassword):
     pass
