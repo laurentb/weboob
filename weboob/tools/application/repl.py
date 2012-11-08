@@ -948,7 +948,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         if path:
             # Let's go back to the parent directory
-            self.working_path.home()
+            self.working_path.restore()
         else:
             # Save collections only if we listed the current path.
             self.collections = collections
