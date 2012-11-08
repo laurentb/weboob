@@ -30,7 +30,7 @@ __all__ = ['YoupornBrowser']
 
 
 class YoupornBrowser(BaseBrowser):
-    DOMAIN = 'youporn.com'
+    DOMAIN = 'www.youporn.com'
     ENCODING = None
     PAGES = {r'http://[w\.]*youporn\.com/?': IndexPage,
              r'http://[w\.]*youporn\.com/search.*': IndexPage,
