@@ -169,21 +169,21 @@ class WetBoobs(ReplApplication):
             self.format(measure)
         self.flush()
 
-    def complete_last_gauge_measures(self, text, line, *ignored):
+    def complete_last_sensor_measure(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
 
-    def do_last_gauge_measures(self, line):
+    def do_last_sensor_measure(self, line):
         """
-        last_gauge_measures GAUGE_ID
+        last_sensor_measure GAUGE_ID
 
-        Get last measures of a gauge (use 'gauges' to find them).
+        Get last measure of a sensor.
         """
         gauge, = self.parse_command_args(line, 1, 1)
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, measure in self.do('get_last_measures', _id, backends=backend_name, caps=ICapGauge):
+        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
         self.flush()

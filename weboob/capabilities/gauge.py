@@ -90,11 +90,11 @@ class ICapGauge(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_last_measures(self, id):
+    def get_last_measure(self, id):
         """
-        Get last measures of the gauge.
+        Get last measures of a censor.
 
-        :param id: ID of the gauge.
+        :param id: ID of the censor.
         :type id: str
         :rtype: :class:`GaugeMeasure`
         """
