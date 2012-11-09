@@ -31,18 +31,20 @@ __all__ = ['CreditCooperatifBackend']
 
 class CreditCooperatifBackend(BaseBackend, ICapBank):
     NAME = 'creditcooperatif'
-    MAINTAINER = u'Kevin Pouget'
+    MAINTAINER = u'Kevin Pouget 1459'
     EMAIL = 'weboob@kevin.pouget.me'
     VERSION = '0.d'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False))
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False))
+                           
     BROWSER = CreditCooperatif
-    WEBSITE = "www.coopanet.com"
+    
     def create_default_browser(self):
-        return self.create_browser(WEBSITE,
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
+        print "One time PIN please: ",
+        pin = raw_input()
+        return self.create_browser(self.config['login'].get(),
+                                   pin)
 
     def iter_accounts(self):
         with self.browser:

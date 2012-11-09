@@ -29,21 +29,17 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['LoginPage', 'AccountsPage']
 
-
-class UnavailablePage(BasePage):
-    def on_loaded(self):
-        a = self.document.xpath('//a[@class="btn"]')[0]
-        self.browser.location(a.attrib['href'])
-
 class LoginPage(BasePage):
-    def login(self, login, passwd):
-        self.browser.select_form(name='loginCoForm')
+    def login(self, login, pin):
+        self.browser.select_form(name='loginCoForm', nr=1)
         self.browser['codeUtil'] = login
-        self.browser['motPasse'] = passwd
+        self.browser['motPasse'] = pin
+
+        assert self.browser['identType'] == "RENFORCE"
         self.browser.submit(nologin=True)
 
 class AccountsPage(BasePage):
-    ACCOUNT_TYPES = {u'COMPTE NEF':                Account.TYPE_CHECKING
+    ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING
                     }
     CPT_ROW_ID = 0
     CPT_ROW_NAME = 1
@@ -52,8 +48,8 @@ class AccountsPage(BasePage):
     CPT_ROW_ENCOURS = 4
     
     def is_error(self):
-        for script in self.document.xpath('//script'):
-            if script.text is not None and u"Le service est momentanément indisponible" in script.text:
+        for par in self.document.xpath('//p[@class=acctxtnoirlien]'):
+            if par.text is not None and u"La page demandée ne peut pas être affichée." in par.text:
                 return True
 
         return False
@@ -61,21 +57,19 @@ class AccountsPage(BasePage):
     def get_list(self):
         for tbCompte in self.document.xpath('//table[@id="compte"]'):
             for trCompte in tbCompte.xpath('.//tbody/tr'):
-                tds = tr.findall('td')
+                tds = trCompte.findall('td')
 
                 account = Account()
                 
-                account.id = tds[CPT_ROW_ID].text()
-                account.label = tds[CPT_ROW_NAME].text()
+                account.id = tds[self.CPT_ROW_ID].text.strip()
+                account.label = tds[self.CPT_ROW_NAME].text.strip()
 
-                account_type_str = "".join([td.text() for td in tds[CPT_ROW_ID].xpath('.//td[@id="tx"]')]).strip()
+                account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
 
-                account.type = ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
+                account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
 
-                balance_link = tds[CPT_ROW_BALANCE].find("a")
-                
-                account.balance = Decimal(FrenchTransaction.clean_amount(blance_link.text()))
-
+                account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
+                account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
                 yield account
 
         return
@@ -118,12 +112,22 @@ class TransactionsPage(BasePage):
 
         return params
 
+    TRA_ROW_DT_OP = 0
+    TRA_ROW_DT_VAL = 1
+    TRA_ROW_NAME = 3
+    TRA_ROW_DEBIT = 4
+    TRA_ROW_CREDIT = 5
+    
     def get_history(self):
-        for tr in self.document.xpath('//table[@id="tbl1"]/tbody/tr'):
+        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
+            import pdb;pdb.set_trace()
             tds = tr.findall('td')
 
+            def get_content(td):
+                ret = "".join([ttd.text for ttd in td.xpath(".//td")])
+                return ret.replace("&nbsp;", " ").strip()
+                               
             t = Transaction(tr.attrib['id'].split('_', 1)[1])
-
             date = u''.join([txt.strip() for txt in tds[4].itertext()])
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
             debit = u''.join([txt.strip() for txt in tds[-2].itertext()])

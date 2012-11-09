@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage
 
 
 __all__ = ['CreditCooperatif']
@@ -31,16 +31,21 @@ __all__ = ['CreditCooperatif']
 class CreditCooperatif(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
-    PAGES = {'https://[^/]+/banque/sso/ssologin.do".*':                                         LoginPage,
-             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':             AccountsPage
-            }
+    DOMAIN = "www.coopanet.com"
+    PAGES = {'https://www.coopanet.com/banque/sso/.*': LoginPage,
+             'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne=.*': TransactionsPage # not recognized
+            } 
 
-    def __init__(self, website, *args, **kwargs):
-        self.DOMAIN = website
+    def __init__(self, *args, **kwargs):
+        BaseBrowser.__init__(self, *args, **kwargs)
         self.token = None
 
-        BaseBrowser.__init__(self, *args, **kwargs)
+    def home(self):
+        self.location("/banque/sso/")
 
+        assert self.is_on_page(LoginPage)
+        
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 
@@ -49,6 +54,7 @@ class CreditCooperatif(BaseBrowser):
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
+
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
@@ -63,10 +69,8 @@ class CreditCooperatif(BaseBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-        self.token = self.page.get_token()
-
     def get_accounts_list(self):
-        self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptes', token=self.token))
+        self.location(self.buildurl('/banque/cpt/incoopanetj2ee.do?ssomode=ok'))
         if self.page.is_error():
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
 
@@ -83,7 +87,8 @@ class CreditCooperatif(BaseBrowser):
         return None
 
     def get_history(self, account):
-        self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
+        import pdb;pdb.set_trace()
+        self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
 
         while 1:
             assert self.is_on_page(TransactionsPage)
