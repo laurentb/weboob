@@ -44,9 +44,9 @@ class SearchPage(BasePage):
 
             video = InaVideo('boutique.%s' % id)
 
-            video.thumbnail = Thumbnail('http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src'])
+            video.thumbnail = Thumbnail(u'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src'])
 
-            video.title = self.parser.select(li, 'p.titre', 1).text
+            video.title = unicode(self.parser.select(li, 'p.titre', 1).text)
 
             date = self.parser.select(li, 'p.date', 1).text
             day, month, year = [int(s) for s in date.split('/')]

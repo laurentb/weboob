@@ -96,7 +96,7 @@ class GalleryPage(BasePage):
             thumbnail_style = self.document.xpath("//div[@class='gdtm']/div/attribute::style")[0]
             thumbnail_url = re.search(r"background:[^;]+url\((.+?)\)", thumbnail_style).group(1)
 
-        gallery.thumbnail = Thumbnail(thumbnail_url)
+        gallery.thumbnail = Thumbnail(unicode(thumbnail_url))
 
     def _prev_page_link(self):
         try:

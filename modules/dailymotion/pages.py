@@ -45,7 +45,7 @@ class IndexPage(BasePage):
             video = DailymotionVideo(_id)
             video.title = unicode(self.parser.select(div, 'h3 a', 1).text).strip()
             video.author = unicode(self.parser.select(div, 'div.dmpi_user_login', 1).find('a').find('span').text).strip()
-            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip()
+            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div.dmpi_video_description', 1))).strip() or unicode()
             try:
                 parts = self.parser.select(div, 'div.duration', 1).text.split(':')
             except BrokenPageError:
@@ -68,7 +68,7 @@ class IndexPage(BasePage):
             url = re.sub('\?\d+', '', url)
             # use the bigger thumbnail
             url = url.replace('jpeg_preview_medium.jpg', 'jpeg_preview_large.jpg')
-            video.thumbnail = Thumbnail(url)
+            video.thumbnail = Thumbnail(unicode(url))
 
             rating_div = self.parser.select(div, 'div.small_stars', 1)
             video.rating_max = self.get_rate(rating_div)
@@ -95,7 +95,7 @@ class VideoPage(BasePage):
         video.title = unicode(self.parser.select(div, 'span.title', 1).text).strip()
         video.author = unicode(self.parser.select(div, 'a.name, span.name', 1).text).strip()
         try:
-            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip()
+            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip() or unicode()
         except BrokenPageError:
             video.description = u''
         for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):

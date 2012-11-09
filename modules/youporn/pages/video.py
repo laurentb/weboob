@@ -52,7 +52,7 @@ class VideoPage(PornPage):
         if m:
             ext = m.group(1).lower()
         else:
-            ext = 'flv'
+            ext = u'flv'
         return unicode(a.attrib['href']), unicode(ext)
 
     def get_title(self):

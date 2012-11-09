@@ -62,6 +62,6 @@ class VideoPage(BasePage):
         elif len(video_file_urls) > 1:
             raise BrokenPageError('Many video file URL found')
         else:
-            video.url = video_file_urls[0]
+            video.url = to_unicode(video_file_urls[0])
 
         return video

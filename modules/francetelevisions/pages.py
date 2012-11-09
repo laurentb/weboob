@@ -61,7 +61,7 @@ class IndexPage(BasePage):
                                                minute)
 
             url = self.parser.select(div, 'img.illustration', 1).attrib['src']
-            video.thumbnail = Thumbnail('http://www.pluzz.fr/%s' % url)
+            video.thumbnail = Thumbnail(u'http://www.pluzz.fr/%s' % url)
 
             yield video
 

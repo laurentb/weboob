@@ -33,7 +33,7 @@ class Thumbnail(CapBaseObject):
 
     def __init__(self, url):
         CapBaseObject.__init__(self, url)
-        self.url = url.replace(' ', '%20')
+        self.url = url.replace(u' ', u'%20')
 
     def __str__(self):
         return self.url

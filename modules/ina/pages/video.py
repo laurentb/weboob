@@ -60,7 +60,7 @@ class BaseVideoPage(BasePage):
         qs = parse_qs(self.document.getroot().cssselect('param[name="flashvars"]')[0].attrib['value'])
         s = self.browser.readurl('http://boutique.ina.fr/player/infovideo/id_notice/%s' % qs['id_notice'][0])
         s = s[s.find('<Media>')+7:s.find('</Media>')]
-        return '%s/pkey/%s' % (s, qs['pkey'][0])
+        return u'%s/pkey/%s' % (s, qs['pkey'][0])
 
     def parse_date_and_duration(self, text):
         duration_regexp = re.compile('(.* - )?(.+) - ((.+)h)?((.+)min)?(.+)s')
@@ -99,10 +99,10 @@ class VideoPage(BaseVideoPage):
 
     def get_title(self):
         qr = self.parser.select(self.document.getroot(), 'div.container-global-qr')[0].find('div').findall('div')[1]
-        return qr.find('h2').text.strip()
+        return unicode(qr.find('h2').text.strip())
 
     def get_description(self):
-        return self.parser.select(self.document.getroot(), 'div.container-global-qr')[1].find('div').find('p').text.strip()
+        return unicode(self.parser.select(self.document.getroot(), 'div.container-global-qr')[1].find('div').find('p').text.strip())
 
 
 class BoutiqueVideoPage(BaseVideoPage):
@@ -114,7 +114,7 @@ class BoutiqueVideoPage(BaseVideoPage):
     def get_description(self):
         el = self.document.getroot().cssselect('div.bloc-produit-haut div.contenu p')[0]
         if el is not None:
-            return el.text.strip()
+            return unicode(el.text.strip())
 
     def get_date_and_duration(self):
         el = self.document.getroot().cssselect('div.bloc-produit-haut p.date')[0]

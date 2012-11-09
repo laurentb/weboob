@@ -40,7 +40,7 @@ class RadioFranceVideo(BaseVideo):
 
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
-        self.ext = 'mp3'
+        self.ext = u'mp3'
 
     @classmethod
     def id2url(cls, _id):

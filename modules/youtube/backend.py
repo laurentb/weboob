@@ -89,8 +89,8 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         with self.browser:
             url, ext = self.browser.get_video_url(player_url)
 
-        video.url = url
-        video.ext = ext
+        video.url = unicode(url)
+        video.ext = unicode(ext)
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)

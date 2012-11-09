@@ -193,7 +193,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
     def fill_video(self, video, fields):
         if 'url' in fields:
             with self.browser:
-                video.url = self.browser.get_url(video.id)
+                video.url = unicode(self.browser.get_url(video.id))
 
         return video
 
