@@ -38,8 +38,8 @@ class UnavailablePage(BasePage):
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(name='Login')
-        self.browser['IDToken1'] = login
-        self.browser['IDToken2'] = passwd
+        self.browser['IDToken1'] = login.encode(self.browser.ENCODING)
+        self.browser['IDToken2'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
 class IndexPage(BasePage):

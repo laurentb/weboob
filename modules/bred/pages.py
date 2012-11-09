@@ -33,8 +33,8 @@ __all__ = ['LoginPage', 'LoginResultPage', 'AccountsPage', 'TransactionsPage', '
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(name='authen')
-        self.browser['id'] = login
-        self.browser['pass'] = passwd
+        self.browser['id'] = login.encode(self.browser.ENCODING)
+        self.browser['pass'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
 class LoginResultPage(BasePage):
