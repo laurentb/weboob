@@ -31,7 +31,7 @@ class PastealaconTest(BackendTest):
         # html method
         p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['title'])
-        assert p.title == 'ouiboube'
+        assert p.title == u'ouiboube'
         assert p.page_url.startswith('http://pastealacon.com/')
         assert u'héhéhé' in p.contents
         assert p.public is True
@@ -45,7 +45,7 @@ class PastealaconTest(BackendTest):
         assert p.public is True
 
     def test_post(self):
-        p = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob Test héhéhé')
+        p = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob Test héhéhé')
         self.backend.post_paste(p, max_age=3600*24)
         assert p.id
         self.backend.fill_paste(p, ['title'])
@@ -60,7 +60,7 @@ class PastealaconTest(BackendTest):
         self._get_paste('http://pastealacon.com/'+p.id)
 
     def test_spam(self):
-        p = self.backend.new_paste(None, title='viagra', contents='http://example.com/')
+        p = self.backend.new_paste(None, title=u'viagra', contents=u'http://example.com/')
         self.assertRaises(BrowserUnavailable, self.backend.post_paste, p)
 
     def test_notfound(self):
@@ -81,13 +81,13 @@ class PastealaconTest(BackendTest):
         assert self.backend.get_paste('nJG9ZFG8') is None
 
     def test_can_post(self):
-        assert 0 == self.backend.can_post('hello', public=False)
-        assert 1 <= self.backend.can_post('hello', public=True)
-        assert 0 == self.backend.can_post('hello', public=True, max_age=600)
-        assert 1 <= self.backend.can_post('hello', public=True, max_age=3600*24)
-        assert 1 <= self.backend.can_post('hello', public=True, max_age=3600*24*3)
-        assert 1 <= self.backend.can_post('hello', public=True, max_age=False)
-        assert 1 <= self.backend.can_post('hello', public=None, max_age=False)
-        assert 1 <= self.backend.can_post('hello', public=True, max_age=3600*24*40)
+        assert 0 == self.backend.can_post(u'hello', public=False)
+        assert 1 <= self.backend.can_post(u'hello', public=True)
+        assert 0 == self.backend.can_post(u'hello', public=True, max_age=600)
+        assert 1 <= self.backend.can_post(u'hello', public=True, max_age=3600*24)
+        assert 1 <= self.backend.can_post(u'hello', public=True, max_age=3600*24*3)
+        assert 1 <= self.backend.can_post(u'hello', public=True, max_age=False)
+        assert 1 <= self.backend.can_post(u'hello', public=None, max_age=False)
+        assert 1 <= self.backend.can_post(u'hello', public=True, max_age=3600*24*40)
         assert 1 <= self.backend.can_post(u'héhé', public=True)
         assert 0 == self.backend.can_post(u'hello ♥', public=True)

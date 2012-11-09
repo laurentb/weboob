@@ -29,9 +29,9 @@ class PastebinTest(BackendTest):
             # html method
             p = self.backend.get_paste(_id)
             self.backend.fillobj(p, ['title'])
-            assert p.title == 'plop'
+            assert p.title == u'plop'
             assert p.page_url == 'http://pastebin.com/7HmXwzyt'
-            assert p.contents == 'prout'
+            assert p.contents == u'prout'
             assert p.public is True
 
             # raw method
@@ -39,21 +39,21 @@ class PastebinTest(BackendTest):
             self.backend.fillobj(p, ['contents'])
             assert p.title is NotLoaded
             assert p.page_url == 'http://pastebin.com/7HmXwzyt'
-            assert p.contents == 'prout'
+            assert p.contents == u'prout'
             assert p.public is NotLoaded
 
     def test_post(self):
-        p = self.backend.new_paste(None, title='ouiboube', contents='Weboob Test', public=True)
+        p = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob Test', public=True)
         self.backend.post_paste(p, max_age=600)
         assert p.id
         self.backend.fill_paste(p, ['title'])
-        assert p.title == 'ouiboube'
+        assert p.title == u'ouiboube'
         assert p.id in p.page_url
         assert p.public is True
 
     def test_specialchars(self):
         # post a paste and get the contents through the HTML response
-        p1 = self.backend.new_paste(None, title='ouiboube', contents=u'Weboob <test>¿¡', public=False)
+        p1 = self.backend.new_paste(None, title=u'ouiboube', contents=u'Weboob <test>¿¡', public=False)
         self.backend.post_paste(p1, max_age=600)
         assert p1.id
         # not related to testing special chars, but check if the paste is
@@ -81,14 +81,14 @@ class PastebinTest(BackendTest):
         assert self.backend.get_paste('http://pastealacon.com/1') is None
 
     def test_can_post(self):
-        assert self.backend.can_post('hello', public=None) > 0
-        assert self.backend.can_post('hello', public=True) > 0
-        assert self.backend.can_post('hello', public=False) > 0
-        assert self.backend.can_post('hello', public=True, max_age=600) > 0
-        assert self.backend.can_post('hello', public=True, max_age=3600*24) > 0
-        assert self.backend.can_post('hello', public=True, max_age=3600*24*3) > 0
-        assert self.backend.can_post('hello', public=True, max_age=False) > 0
-        assert self.backend.can_post('hello', public=None, max_age=False) > 0
-        assert self.backend.can_post('hello', public=True, max_age=3600*24*40) > 0
+        assert self.backend.can_post(u'hello', public=None) > 0
+        assert self.backend.can_post(u'hello', public=True) > 0
+        assert self.backend.can_post(u'hello', public=False) > 0
+        assert self.backend.can_post(u'hello', public=True, max_age=600) > 0
+        assert self.backend.can_post(u'hello', public=True, max_age=3600*24) > 0
+        assert self.backend.can_post(u'hello', public=True, max_age=3600*24*3) > 0
+        assert self.backend.can_post(u'hello', public=True, max_age=False) > 0
+        assert self.backend.can_post(u'hello', public=None, max_age=False) > 0
+        assert self.backend.can_post(u'hello', public=True, max_age=3600*24*40) > 0
         assert self.backend.can_post(u'héhé', public=True) > 0
         assert self.backend.can_post(u'hello ♥', public=True) > 0
