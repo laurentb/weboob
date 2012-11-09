@@ -14,6 +14,17 @@ fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
 [ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
 
+# allow private environment setup
+[ -f "${WEBOOB_WORKDIR}/pre-test.sh" ] && source "${WEBOOB_WORKDIR}/pre-test.sh"
+
+# setup xunit reporting (buildbot slaves only)
+if [ -n "${RSYNC_TARGET}" ]; then
+    # by default, builder name is containing directory name
+    [ -z "${BUILDER_NAME}" ] && BUILDER_NAME=$(basename $(readlink -e $(dirname $0)/..))
+else
+    RSYNC_TARGET=""
+fi
+
 # find executables
 if [ -z "${PYTHON}" ]; then
     which python >/dev/null 2>&1 && PYTHON=$(which python)
@@ -40,6 +51,13 @@ set -u
 WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
 cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/"
 
+# xunit nose setup
+if [ -n "${RSYNC_TARGET}" ]; then
+    XUNIT_ARGS="--with-xunit --xunit-file=${WEBOOB_TMPDIR}/xunit.xml"
+else
+    XUNIT_ARGS=""
+fi
+
 # path to sources
 WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
 find $WEBOOB_DIR -name "*.pyc" -delete
@@ -53,11 +71,17 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 # allow failing commands past this point
 set +e
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} ${NOSE} -sv "${WEBOOB_DIR}/modules/${BACKEND}"
+    ${PYTHON} ${NOSE} -sv "${WEBOOB_DIR}/modules/${BACKEND}" ${XUNIT_ARGS}
 else
-    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs ${PYTHON} ${NOSE} -sv
+    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs ${PYTHON} ${NOSE} -sv ${XUNIT_ARGS}
 fi
 STATUS=$?
+
+# xunit transfer
+if [ -n "${RSYNC_TARGET}" ]; then
+    rsync -iz "${WEBOOB_TMPDIR}/xunit.xml" "${RSYNC_TARGET}/${BUILDER_NAME}-$(date +%s).xml"
+    rm "${WEBOOB_TMPDIR}/xunit.xml"
+fi
 
 # safe removal
 rm -r "${WEBOOB_TMPDIR}/icons" "${WEBOOB_TMPDIR}/repositories" "${WEBOOB_TMPDIR}/modules" "${WEBOOB_TMPDIR}/keyrings"
