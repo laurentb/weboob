@@ -31,7 +31,7 @@ from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler
-from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.capabilities import UserError
@@ -175,6 +175,9 @@ class QtDo(QObject):
         elif isinstance(error, BrowserUnavailable):
             if not msg:
                 msg = 'Website is unavailable.'
+        elif isinstance(error, BrowserForbidden):
+            if not msg:
+                msg = 'This action is forbidden.'
         elif isinstance(error, NotImplementedError):
             msg = u'This feature is not supported by this backend.\n\n' \
                   u'To help the maintainer of this backend implement this feature, please contact: %s <%s>' % (backend.MAINTAINER, backend.EMAIL)
