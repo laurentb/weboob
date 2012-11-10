@@ -190,7 +190,8 @@ class TorrentsPage(BasePage):
                 title_t = title_t[0]
                 if title_t.find('strong') is not None:
                     title_t = title_t.find('strong')
-                title = title_t.text.strip()
+                if title_t.text is not None:
+                    title = title_t.text.strip()
 
             body_t = box.cssselect('div.body,div.desc')
             if body_t:
