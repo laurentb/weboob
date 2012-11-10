@@ -71,9 +71,14 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 # allow failing commands past this point
 set +e
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} ${NOSE} -sv "${WEBOOB_DIR}/modules/${BACKEND}" ${XUNIT_ARGS}
+    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_DIR}/modules/${BACKEND}" ${XUNIT_ARGS}
+    STATUS_CORE=0
 else
-    find "${WEBOOB_DIR}/weboob" "${WEBOOB_DIR}/modules" -name "test.py" | xargs ${PYTHON} ${NOSE} -sv ${XUNIT_ARGS}
+    echo "=== Weboob ==="
+    nosetests -c ${WEBOOB_DIR}/setup.cfg -sv
+    STATUS_CORE=$?
+    echo "=== Modules ==="
+    find "${WEBOOB_DIR}/modules" -name "test.py" | sort | xargs ${PYTHON} ${NOSE} -c /dev/null -sv ${XUNIT_ARGS}
 fi
 STATUS=$?
 
@@ -88,4 +93,5 @@ rm -r "${WEBOOB_TMPDIR}/icons" "${WEBOOB_TMPDIR}/repositories" "${WEBOOB_TMPDIR}
 rm "${WEBOOB_TMPDIR}/backends" "${WEBOOB_TMPDIR}/sources.list"
 rmdir "${WEBOOB_TMPDIR}"
 
+[ $STATUS_CORE -gt 0 ] && exit $STATUS_CORE
 exit $STATUS
