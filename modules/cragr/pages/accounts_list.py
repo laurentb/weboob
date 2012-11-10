@@ -126,6 +126,8 @@ class AccountsList(CragrBasePage):
                     if first_link is not None:
                         account._link_id = first_link.get('href')
                         self.logger.debug('  the history link appears to be %s' % account._link_id)
+                    else:
+                        account._link_id = None
                     l.append(account)
         return l
 
