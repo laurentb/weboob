@@ -403,12 +403,14 @@ class StandardBrowser(mechanize.Browser):
         except ControlNotFoundError:
             return
 
-    def lowsslcheck(self, domain, hash):
+    def lowsslcheck(self, domain, hsh):
         certs = ssl.get_server_certificate((domain,  443))
         certhash = hashlib.sha256(certs).hexdigest()
         if self.logger:
-            self.logger.debug('Found %s as certificat hash' % certhash)
-        if certhash != hash:
+            self.logger.debug('Found %s as certificate hash' % certhash)
+        if isinstance(hsh, basestring):
+            hsh = [hsh]
+        if certhash not in hsh:
             raise ssl.SSLError()
 
 
