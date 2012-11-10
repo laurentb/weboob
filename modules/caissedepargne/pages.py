@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'IndexPage']
+__all__ = ['LoginPage', 'ErrorPage', 'IndexPage']
 
 
 class LoginPage(BasePage):
@@ -53,6 +53,13 @@ class LoginPage(BasePage):
             raise BrokenPageError('Unable to find validate URL')
         self.browser.form.action = m.group(1)
         self.browser.submit(nologin=True)
+
+class ErrorPage(BasePage):
+    def get_error(self):
+        try:
+            return self.parser.select(self.document.getroot(), 'div.messErreur', 1).text.strip()
+        except BrokenPageError:
+            return None
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})'),
