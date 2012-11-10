@@ -79,7 +79,7 @@ class BredBrowser(BaseBrowser):
 
         return None
 
-    def iter_transactions(self, id):
+    def iter_transactions(self, id, is_coming=None):
         numero_compte, numero_poste = id.split('.')
         data = {'typeDemande':      'recherche',
                 'motRecherche':     '',
@@ -94,7 +94,7 @@ class BredBrowser(BaseBrowser):
         self.location('https://www.bred.fr/Andromede/Ecriture', urllib.urlencode(data))
 
         assert self.is_on_page(TransactionsPage)
-        return self.page.get_history()
+        return self.page.get_history(is_coming)
 
     def get_history(self, account):
         for tr in self.iter_transactions(account.id):
@@ -105,5 +105,5 @@ class BredBrowser(BaseBrowser):
 
     def get_card_operations(self, account):
         for id in account._card_links:
-            for tr in self.iter_transactions(id):
+            for tr in self.iter_transactions(id, True):
                 yield tr
