@@ -84,8 +84,7 @@ class CragrBackend(BaseBackend, ICapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
         if not _id.isdigit():
@@ -97,9 +96,7 @@ class CragrBackend(BaseBackend, ICapBank):
             raise AccountNotFound()
 
     def iter_history(self, account):
-        for history in self.browser.get_history(account):
-            yield history
-
+        return self.browser.get_history(account)
 
     def transfer(self, account, to, amount, reason=None):
         return self.browser.do_transfer(account, to, amount, reason)
