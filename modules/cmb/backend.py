@@ -190,6 +190,8 @@ class CmbBackend(BaseBackend, ICapBank):
                 href = a[0].get('href')
                 m = match(r"javascript:releve\((.*),'(.*)','(.*)'\)",
                              href)
+                if not m:
+                    continue
                 account.id = unicode(m.group(1) + m.group(2) + m.group(3))
                 account._cmbvaleur = m.group(1)
                 account._cmbvaleur2 = m.group(2)
