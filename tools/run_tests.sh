@@ -75,7 +75,7 @@ if [ -n "${BACKEND}" ]; then
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
-    nosetests -c ${WEBOOB_DIR}/setup.cfg -sv
+    ${PYTHON} ${NOSE} -c ${WEBOOB_DIR}/setup.cfg -sv
     STATUS_CORE=$?
     echo "=== Modules ==="
     find "${WEBOOB_DIR}/modules" -name "test.py" | sort | xargs ${PYTHON} ${NOSE} -c /dev/null -sv ${XUNIT_ARGS}
