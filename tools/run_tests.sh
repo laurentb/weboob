@@ -20,7 +20,7 @@ fi
 # setup xunit reporting (buildbot slaves only)
 if [ -n "${RSYNC_TARGET}" ]; then
     # by default, builder name is containing directory name
-    [ -z "${BUILDER_NAME}" ] && BUILDER_NAME=$(basename $(readlink -e $(dirname $0)/..))
+    [ -z "${BUILDER_NAME}" ] && BUILDER_NAME=$(basename $(readlink -e $(dirname $0)/../..))
 else
     RSYNC_TARGET=""
 fi
