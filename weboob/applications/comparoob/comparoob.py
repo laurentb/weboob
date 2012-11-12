@@ -92,7 +92,13 @@ class Comparoob(ReplApplication):
     def do_prices(self, pattern):
         products = []
         for backend, product in self.do('search_products', pattern):
-            products.append(product)
+            double = False
+            for prod in products:
+                if product.name == prod.name:
+                    double = True
+                    break
+            if not double:
+                products.append(product)
 
         product = None
         if len(products) == 0:
