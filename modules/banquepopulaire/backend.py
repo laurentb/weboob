@@ -39,7 +39,7 @@ class BanquePopulaireBackend(BaseBackend, ICapBank):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.ibps.alpes.banquepopulaire.fr': u'Alpes',
         'www.ibps.alsace.banquepopulaire.fr': u'Alsace',
-        'www.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
+        'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
         'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
         'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne-Franche Comté',
         'www.ibps.cotedazur.banquepopulaire.fr': u'Côte d\'azur',
