@@ -22,7 +22,7 @@ from urlparse import urlsplit
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, IndexPage, ErrorPage
+from .pages import LoginPage, IndexPage, ErrorPage, UnavailablePage
 
 
 __all__ = ['CaisseEpargne']
@@ -35,6 +35,7 @@ class CaisseEpargne(BaseBrowser):
     PAGES = {'https://[^/]+.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
              'https://[^/]+.caisse-epargne.fr/Portail.aspx':                                IndexPage,
              'https://[^/]+.caisse-epargne.fr/login.aspx':                                  ErrorPage,
+             'https://[^/]+.caisse-epargne.fr/page_hs_dei_.*.aspx':                         UnavailablePage,
             }
 
     def is_logged(self):

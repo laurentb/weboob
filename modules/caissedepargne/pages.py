@@ -22,12 +22,12 @@ from decimal import Decimal
 import re
 
 from weboob.tools.mech import ClientForm
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage, BrokenPageError, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'ErrorPage', 'IndexPage']
+__all__ = ['LoginPage', 'ErrorPage', 'IndexPage', 'UnavailablePage']
 
 
 class LoginPage(BasePage):
@@ -60,6 +60,13 @@ class ErrorPage(BasePage):
             return self.parser.select(self.document.getroot(), 'div.messErreur', 1).text.strip()
         except BrokenPageError:
             return None
+
+class UnavailablePage(BasePage):
+    def on_loaded(self):
+        try:
+            raise BrowserUnavailable(self.parser.select(self.document.getroot(), 'div#message_error_hs', 1).text.strip())
+        except BrokenPageError:
+            raise BrowserUnavailable()
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})'),
