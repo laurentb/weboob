@@ -119,9 +119,15 @@ class Comparoob(ReplApplication):
 
         self.change_path([u'prices'])
         self.start_format()
+        products = []
         for backend, price in self.do('iter_prices', product):
+            products.append(price)
+        for price in sorted(products, key=self._get_price):
             self.cached_format(price)
         self.flush()
+
+    def _get_price(self, price):
+        return price.cost
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
