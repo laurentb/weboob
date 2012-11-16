@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, ComingTransactionsPage
 
 
 __all__ = ['CreditCooperatif']
@@ -34,7 +34,9 @@ class CreditCooperatif(BaseBrowser):
     DOMAIN = "www.coopanet.com"
     PAGES = {'https://www.coopanet.com/banque/sso/.*': LoginPage,
              'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=(.*)': TransactionsPage
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': ComingTransactionsPage
             } 
 
     def __init__(self, *args, **kwargs):
@@ -85,18 +87,25 @@ class CreditCooperatif(BaseBrowser):
                 return a
 
         return None
-
+    
     def get_history(self, account):
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
-
         while 1:
             assert self.is_on_page(TransactionsPage)
-
+ 
             for tr in self.page.get_history():
                 yield tr
 
-            next_params = self.page.get_next_params()
-            if next_params is None:
+            next_url = self.page.get_next_url()
+            if next_url is None:
                 return
 
-            self.location(self.buildurl('/cyber/internet/Page.do', **next_params))
+            self.location(next_url)
+    
+    def get_coming(self, account):
+        self.location('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id)
+
+        assert self.is_on_page(ComingTransactionsPage)
+
+        for ctr in self.page.get_history():
+            yield ctr

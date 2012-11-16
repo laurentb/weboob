@@ -31,7 +31,7 @@ __all__ = ['CreditCooperatifBackend']
 
 class CreditCooperatifBackend(BaseBackend, ICapBank):
     NAME = 'creditcooperatif'
-    MAINTAINER = u'Kevin Pouget 1459'
+    MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
     VERSION = '0.d'
     DESCRIPTION = u'Credit Cooperatif French bank website'
@@ -61,3 +61,7 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         with self.browser:
             return self.browser.get_history(account)
+        
+    def iter_coming(self, account):
+        with self.browser:
+            return self.browser.get_coming(account)

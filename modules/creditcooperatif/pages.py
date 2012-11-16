@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'AccountsPage']
+__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage']
 
 class LoginPage(BasePage):
     def login(self, login, pin):
@@ -74,20 +74,16 @@ class AccountsPage(BasePage):
         return
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<text>.*?) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}).*'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET DAB (?P<text>.*?) CARTE ?:.*'),
+    PATTERNS = [(re.compile('^RETRAIT DAB (?P<text>.*?).*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('(\w+) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB:[^ ]+ (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^CARTE \d+ .*'),                     FrenchTransaction.TYPE_CARD),
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'),       FrenchTransaction.TYPE_BANK),
-                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_BANK),
+                (re.compile('^ABONNEMENT (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
                                                             FrenchTransaction.TYPE_ORDER),
@@ -97,43 +93,74 @@ class Transaction(FrenchTransaction):
 
 
 class TransactionsPage(BasePage):
-    def get_next_params(self):
-        if len(self.document.xpath('//li[@id="tbl1_nxt"]')) == 0:
+    def get_next_url(self):
+        # can be 'Suivant' or ' Suivant'
+        next = self.document.xpath("//a[normalize-space(text()) = 'Suivant']")
+
+        if not next:
             return None
 
-        params = {}
-        for field in self.document.xpath('//input'):
-            params[field.attrib['name']] = field.attrib.get('value', '')
+        return next[0].attrib["href"]
 
-        params['validationStrategy'] = 'NV'
-        params['pagingDirection'] = 'NEXT'
-        params['pagerName'] = 'tbl1'
-
-        return params
-
-    TRA_ROW_DT_OP = 0
-    TRA_ROW_DT_VAL = 1
-    TRA_ROW_NAME = 3
-    TRA_ROW_DEBIT = 4
-    TRA_ROW_CREDIT = 5
-    
+    TR_DATE = 0
+    TR_TEXT = 2
+    TR_DEBIT = 3
+    TR_CREDIT = 4
     def get_history(self):
-        import pdb;pdb.set_trace()
         for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
 
             def get_content(td):
-                ret = "".join([ttd.text for ttd in td.xpath(".//td")])
+                ret = "".join([ttd.text if ttd.text else "" for ttd in td.xpath(".//td")])
                 return ret.replace(u"\xa0", " ").strip()
                                
-            date = get_content(tds[0])
-            raw = get_content(tds[2])
+            date = get_content(tds[self.TR_DATE])
+            raw = get_content(tds[self.TR_TEXT])
             
-            debit = get_content(tds[3])
-            credit = get_content(tds[4])
+            debit = get_content(tds[self.TR_DEBIT])
+            credit = get_content(tds[self.TR_CREDIT])
 
             t = Transaction(date+""+raw)
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
             
             yield t
+
+class ComingTransactionsPage(BasePage):
+    COM_TR_COMMENT = 0
+    COM_TR_DATE = 1
+    COM_TR_TEXT = 2
+    COM_TR_VALUE = 3
+    
+    def get_history(self):
+        comment = None
+        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
+            tds = tr.findall('td')
+            
+            def get_content(td):
+                ret = td.text
+                return ret.replace(u"\xa0", " ").strip()
+
+            raw = get_content(tds[self.COM_TR_TEXT])
+
+            if comment is None:
+                comment = get_content(tds[self.COM_TR_COMMENT])
+                raw = "%s (%s) " % (raw, comment)
+            
+            debit = get_content(tds[self.COM_TR_VALUE])
+            date = get_content(tds[self.COM_TR_DATE])
+
+            if comment is not None:
+                #date is 'JJ/MM'. add '/YYYY'
+                date += comment[comment.rindex("/"):]
+            else:
+                import time
+                date += "/%d" % time.localtime().tm_year
+
+            
+            t = Transaction(date+""+raw)
+            t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            t.set_amount("", debit)
+            
+            yield t
+        pass
