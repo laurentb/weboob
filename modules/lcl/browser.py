@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon, Pierre Mazière
+# Copyright(C) 2010-2012  Romain Bignon, Pierre Mazière
 #
 # This file is part of weboob.
 #
@@ -33,7 +33,7 @@ __all__ = ['LCLBrowser']
 class LCLBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'particuliers.secure.lcl.fr'
-    CERTHASH = 'ddfafa91c3e4dba2e6730df723ab5559ae55db351307ea1190d09bd025f74cce'
+    CERTHASH = ['ddfafa91c3e4dba2e6730df723ab5559ae55db351307ea1190d09bd025f74cce', '430814d3713cf2556e74749335e9d7ad8bb2a9350a1969ee539d1e9e9492a59a']
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
