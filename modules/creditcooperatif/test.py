@@ -28,3 +28,4 @@ class CreditCooperatifTest(BackendTest):
         if len(l) > 0:
             a = l[0]
             list(self.backend.iter_history(a))
+            list(self.backend.iter_coming(a))

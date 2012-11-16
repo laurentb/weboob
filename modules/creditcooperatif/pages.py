@@ -39,8 +39,8 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 class AccountsPage(BasePage):
-    ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING
-                    }
+    ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
+    
     CPT_ROW_ID = 0
     CPT_ROW_NAME = 1
     CPT_ROW_NATURE = 2
@@ -90,7 +90,6 @@ class Transaction(FrenchTransaction):
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
-
 
 class TransactionsPage(BasePage):
     def get_next_url(self):
@@ -163,4 +162,3 @@ class ComingTransactionsPage(BasePage):
             t.set_amount("", debit)
             
             yield t
-        pass
