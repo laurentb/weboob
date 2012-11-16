@@ -36,15 +36,14 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     VERSION = '0.d'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False))
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False),
+                           ValueBackendPassword('pin', label='One time pin'))
                            
     BROWSER = CreditCooperatif
     
     def create_default_browser(self):
-        print "One time PIN please: ",
-        pin = raw_input()
         return self.create_browser(self.config['login'].get(),
-                                   pin)
+                                   self.config['pin'].get())
 
     def iter_accounts(self):
         with self.browser:

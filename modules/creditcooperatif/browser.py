@@ -34,7 +34,7 @@ class CreditCooperatif(BaseBrowser):
     DOMAIN = "www.coopanet.com"
     PAGES = {'https://www.coopanet.com/banque/sso/.*': LoginPage,
              'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne=.*': TransactionsPage # not recognized
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=(.*)': TransactionsPage
             } 
 
     def __init__(self, *args, **kwargs):
@@ -87,7 +87,6 @@ class CreditCooperatif(BaseBrowser):
         return None
 
     def get_history(self, account):
-        import pdb;pdb.set_trace()
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
 
         while 1:

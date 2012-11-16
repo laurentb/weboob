@@ -55,23 +55,22 @@ class AccountsPage(BasePage):
         return False
 
     def get_list(self):
-        for tbCompte in self.document.xpath('//table[@id="compte"]'):
-            for trCompte in tbCompte.xpath('.//tbody/tr'):
-                tds = trCompte.findall('td')
-
-                account = Account()
+        for trCompte in self.document.xpath('//table[@id="compte"]/tbody/tr'):
+            tds = trCompte.findall('td')
+            
+            account = Account()
+            
+            account.id = tds[self.CPT_ROW_ID].text.strip()
+            account.label = tds[self.CPT_ROW_NAME].text.strip()
+            
+            account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
+            
+            account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
                 
-                account.id = tds[self.CPT_ROW_ID].text.strip()
-                account.label = tds[self.CPT_ROW_NAME].text.strip()
-
-                account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
-
-                account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
-
-                account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
-                account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
-                yield account
-
+            account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
+            account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
+            yield account
+            
         return
 
 class Transaction(FrenchTransaction):
@@ -119,19 +118,22 @@ class TransactionsPage(BasePage):
     TRA_ROW_CREDIT = 5
     
     def get_history(self):
+        import pdb;pdb.set_trace()
         for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
-            import pdb;pdb.set_trace()
             tds = tr.findall('td')
 
             def get_content(td):
                 ret = "".join([ttd.text for ttd in td.xpath(".//td")])
-                return ret.replace("&nbsp;", " ").strip()
+                return ret.replace(u"\xa0", " ").strip()
                                
-            t = Transaction(tr.attrib['id'].split('_', 1)[1])
-            date = u''.join([txt.strip() for txt in tds[4].itertext()])
-            raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
-            debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
-            credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
+            date = get_content(tds[0])
+            raw = get_content(tds[2])
+            
+            debit = get_content(tds[3])
+            credit = get_content(tds[4])
+
+            t = Transaction(date+""+raw)
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
+            
             yield t
