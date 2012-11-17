@@ -43,7 +43,7 @@ class DetailsPage(BasePage):
     def on_loaded(self):
         self.details = {}
         self.datebills = []
-        for div in self.document.xpath('//div[@class="infosLigneDetail pointer"]'):
+        for div in self.document.xpath('//div[@class="infosLigne pointer"]'):
             phonenumber = div.text
             phonenumber = phonenumber.split("-")[-1].strip()
             virtualnumber = div.attrib['onclick'].split('(')[1][1]
@@ -90,22 +90,22 @@ class DetailsPage(BasePage):
         for div in divs:
             detail = Detail()
 
-            detail.label = unicode(div.find('div[@class="titreDetail"]/p').text_content())
+            detail.label = unicode(div.find('div[@class="titre"]/p').text_content())
             if inter:
                 detail.label = detail.label + u" (international)"
-            detail.infos = unicode(div.find('div[@class="consoDetail"]/p').text_content().lstrip())
+            detail.infos = unicode(div.find('div[@class="conso"]/p').text_content().lstrip())
             detail.price = convert_price(div)
 
             self.details[num].append(detail)
 
     def parse_voice(self, div, string, inter=False):
         voice = Detail()
-        voice.label = unicode(div.find('div[@class="titreDetail"]/p').text_content())
+        voice.label = unicode(div.find('div[@class="titre"]/p').text_content())
         if inter:
             voice.label = voice.label + " (international)"
         voice.price = convert_price(div)
-        voice1 = div.xpath('div[@class="consoDetail"]/p/span')[0].text
-        voice2 = div.xpath('div[@class="consoDetail"]/p/span')[1].text
+        voice1 = div.xpath('div[@class="conso"]/p/span')[0].text
+        voice2 = div.xpath('div[@class="conso"]/p/span')[1].text
         voice.infos = unicode(string) % (voice1, voice2)
 
         return voice
