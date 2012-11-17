@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 
 from weboob.tools.browser import BasePage
@@ -80,7 +80,14 @@ class AccountsPage(BredBasePage):
 
             cols = tr.findall('td')
 
-            amount = sum([Decimal(txt.strip(' EUR').replace(' ', '').replace(',', '.')) for txt in cols[-1].itertext() if len(txt.strip()) > 0])
+            if len(cols) < 2:
+                continue
+
+            try:
+                amount = sum([Decimal(txt.strip(' EUR').replace(' ', '').replace(',', '.')) for txt in cols[-1].itertext() if len(txt.strip()) > 0])
+            except InvalidOperation:
+                continue
+
             a = cols[0].find('a')
             if a is None:
                 # this line is a cards line. attach it on the first account.
