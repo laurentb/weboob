@@ -24,7 +24,6 @@ from decimal import Decimal
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
 
-import re
 
 __all__ = ['HistoryPage', 'DetailsPage']
 
@@ -61,7 +60,8 @@ class DetailsPage(BasePage):
             divint = div.xpath('div[@class="international hide"]')[0]
             self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
-        for trbill in self.document.xpath('//tr[@class="derniereFacture"]'):
+        divbill = self.document.xpath('//div[@class="facture"]')[0]
+        for trbill in divbill.xpath('table/tr'):
             mydate = unicode(trbill.find('td').text.split(":")[1].strip())
             bill = Bill()
             bill.label = unicode(mydate)
