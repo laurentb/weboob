@@ -126,15 +126,14 @@ class HistoryPage(BasePage):
 
     def on_loaded(self):
         self.calls = []
-        isdate = re.compile('[0-3][0-9]/[0-1][0-9]/2[0-9][0-9][0-9] [0-2][0-9]:[0-6][0-9]:[0-6][0-9]')
         for tr in self.document.xpath('//tr'):
             tds = tr.xpath('td')
-            if tds[0].text == None or tds[0].text == "Date" or not isdate.match(tds[0].text):
+            if tds[0].text == None or tds[0].text == "Date":
                 pass
             else:
                 detail = Detail()
                 mydate = date(*reversed([int(x) for x in tds[0].text.split(' ')[0].split("/")]))
-                mytime = time(*[int(x) for x in tds[0].text.split(' ')[1].split(":")])
+                mytime = time(*[int(x) for x in tds[0].text.split(' ')[2].split(":")])
                 detail.datetime = datetime.combine(mydate, mytime)
                 detail.label = u' '.join([unicode(td.text.strip()) for td in tds[1:4] if td.text is not None])
                 try:
