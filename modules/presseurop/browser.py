@@ -18,16 +18,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import PresseuropPage, CartoonPage
+from .pages.article import PresseuropPage, CartoonPage, DailyTitlesPage
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.ordereddict import OrderedDict
 
 
 class NewspaperPresseuropBrowser(BaseBrowser):
     "NewspaperPresseuropBrowser class"
-    PAGES = {
-             "http://www.presseurop.eu/.*/cartoon/.*": CartoonPage,
-             "http://www.presseurop.eu/.*": PresseuropPage,
-            }
+    PAGES = OrderedDict((
+             ("http://www.presseurop.eu/.*/todays-front-pages/.*", DailyTitlesPage),
+             ("http://www.presseurop.eu/.*/cartoon/.*", CartoonPage),
+             ("http://www.presseurop.eu/.*", PresseuropPage),
+            ))
 
     def is_logged(self):
         return False

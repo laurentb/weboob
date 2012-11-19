@@ -45,6 +45,14 @@ class PresseuropPage(GenericNewsPage):
         return title
 
 
+class DailyTitlesPage(PresseuropPage):
+    def on_loaded(self):
+        self.main_div = self.document.getroot()
+        self.element_title_selector = "title"
+        self.element_author_selector = "div[id=content-author]>a"
+        self.element_body_selector = "ul.articlebody"
+
+
 class CartoonPage(PresseuropPage):
     "CartoonPage object for presseurop"
 
