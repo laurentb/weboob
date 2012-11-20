@@ -30,12 +30,15 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage']
 
 class LoginPage(BasePage):
-    def login(self, login, pin):
-        self.browser.select_form(name='loginCoForm', nr=1)
+    def login(self, login, pin, strong_auth):
+        form_nb = 1 if strong_auth else 0
+        indentType = "RENFORCE" if strong_auth else "MDP"
+        
+        self.browser.select_form(name='loginCoForm', nr=form_nb)
         self.browser['codeUtil'] = login
         self.browser['motPasse'] = pin
 
-        assert self.browser['identType'] == "RENFORCE"
+        assert self.browser['identType'] == indentType
         self.browser.submit(nologin=True)
 
 class AccountsPage(BasePage):

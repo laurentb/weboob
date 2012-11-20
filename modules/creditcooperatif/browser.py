@@ -38,10 +38,11 @@ class CreditCooperatif(BaseBrowser):
              'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': ComingTransactionsPage
             } 
-
+    
     def __init__(self, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
-        self.token = None
+        #catch and remove the third/last arg
+        self.strong_auth = args[-1]
+        BaseBrowser.__init__(self, *args[:-1], **kwargs)
 
     def home(self):
         self.location("/banque/sso/")
@@ -59,6 +60,7 @@ class CreditCooperatif(BaseBrowser):
 
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
+        assert isinstance(self.strong_auth, bool)
 
         if self.is_logged():
             return
@@ -66,23 +68,20 @@ class CreditCooperatif(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.home()
 
-        self.page.login(self.username, self.password)
+        self.page.login(self.username, self.password, self.strong_auth)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
         self.location(self.buildurl('/banque/cpt/incoopanetj2ee.do?ssomode=ok'))
-        if self.page.is_error():
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
 
         return self.page.get_list()
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
-        for a in l:
+        for a in self.get_accounts_list():
             if a.id == id:
                 return a
 
@@ -90,6 +89,7 @@ class CreditCooperatif(BaseBrowser):
     
     def get_history(self, account):
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
+        
         while 1:
             assert self.is_on_page(TransactionsPage)
  

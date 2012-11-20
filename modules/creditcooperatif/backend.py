@@ -36,14 +36,21 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     VERSION = '0.d'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False),
+    auth_type = {"weak" : "Code confidentiel", 
+                 "strong": "Sesame"}
+    CONFIG = BackendConfig(Value('auth_type',  label='Authentication type', choices=auth_type, default="strong"),
+                           ValueBackendPassword('login', label='Account ID', masked=False),
                            ValueBackendPassword('pin', label='One time pin'))
                            
     BROWSER = CreditCooperatif
     
     def create_default_browser(self):
+        print self.config['login'].get()
+        print self.config['auth_type'].get()
+        
         return self.create_browser(self.config['login'].get(),
-                                   self.config['pin'].get())
+                                   self.config['pin'].get(),
+                                   self.config['auth_type'].get() == "strong")
 
     def iter_accounts(self):
         with self.browser:
