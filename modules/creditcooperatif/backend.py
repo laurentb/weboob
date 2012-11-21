@@ -33,7 +33,7 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
-    VERSION = '0.d'
+    VERSION = '0.e'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
     auth_type = {"weak" : "Code confidentiel", 
@@ -45,9 +45,6 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     BROWSER = CreditCooperatif
     
     def create_default_browser(self):
-        print self.config['login'].get()
-        print self.config['auth_type'].get()
-        
         return self.create_browser(self.config['login'].get(),
                                    self.config['pin'].get(),
                                    self.config['auth_type'].get() == "strong")
