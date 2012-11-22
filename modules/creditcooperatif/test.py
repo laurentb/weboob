@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Kevin Pouget, based on Romain Bignon
+# Copyright(C) 2012 Kevin Pouget
 #
 # This file is part of weboob.
 #

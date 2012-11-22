@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012 Kevin Pouget
 #
 # This file is part of weboob.
 #
@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
-
-import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
@@ -37,18 +34,17 @@ class CreditCooperatif(BaseBrowser):
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': ComingTransactionsPage
-            } 
-    
+            }
+
     def __init__(self, *args, **kwargs):
-        #catch and remove the third/last arg
-        self.strong_auth = args[-1]
-        BaseBrowser.__init__(self, *args[:-1], **kwargs)
+        self.strong_auth = kwargs.pop('strong_auth', False)
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
         self.location("/banque/sso/")
 
         assert self.is_on_page(LoginPage)
-        
+
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 
@@ -86,13 +82,13 @@ class CreditCooperatif(BaseBrowser):
                 return a
 
         return None
-    
+
     def get_history(self, account):
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
-        
+
         while 1:
             assert self.is_on_page(TransactionsPage)
- 
+
             for tr in self.page.get_history():
                 yield tr
 
@@ -101,7 +97,7 @@ class CreditCooperatif(BaseBrowser):
                 return
 
             self.location(next_url)
-    
+
     def get_coming(self, account):
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id)
 
