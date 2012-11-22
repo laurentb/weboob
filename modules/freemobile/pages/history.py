@@ -82,7 +82,7 @@ class DetailsPage(BasePage):
         divs = divglobal.xpath('div[@class="detail"]')
         # Two informations in one div...
         div = divs.pop(0)
-        voice = self.parse_voice(div, string, inter)
+        voice = self.parse_voice(div, string, num, inter)
         self.details[num].append(voice)
         self.iter_divs(divs, num, inter)
 
@@ -91,18 +91,22 @@ class DetailsPage(BasePage):
             detail = Detail()
 
             detail.label = unicode(div.find('div[@class="titre"]/p').text_content())
+            detail.id = "-" + detail.label.split(' ')[1].lower()
             if inter:
                 detail.label = detail.label + u" (international)"
+                detail.id = detail.id + "-inter"
             detail.infos = unicode(div.find('div[@class="conso"]/p').text_content().lstrip())
             detail.price = convert_price(div)
 
             self.details[num].append(detail)
 
-    def parse_voice(self, div, string, inter=False):
+    def parse_voice(self, div, string, num, inter=False):
         voice = Detail()
+        voice.id = "-voice"
         voice.label = unicode(div.find('div[@class="titre"]/p').text_content())
         if inter:
             voice.label = voice.label + " (international)"
+            voice.id = voice.id + "-inter"
         voice.price = convert_price(div)
         voice1 = div.xpath('div[@class="conso"]/p/span')[0].text
         voice2 = div.xpath('div[@class="conso"]/p/span')[1].text
@@ -112,7 +116,9 @@ class DetailsPage(BasePage):
 
     def get_details(self, subscription):
         num = self.details['num' + subscription.id]
-        return self.details[num]
+        for detail in self.details[num]:
+            detail.id = subscription.id + detail.id
+            yield detail
 
     def date_bills(self):
         return self.datebills
