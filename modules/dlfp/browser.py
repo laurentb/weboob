@@ -195,7 +195,7 @@ class DLFP(BaseBrowser):
         return None
 
     def login(self):
-        if self.username:
+        if self.username is None:
             return
 
         # not usefull for the moment
