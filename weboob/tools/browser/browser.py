@@ -665,8 +665,6 @@ class BaseBrowser(StandardBrowser):
         if self._cookie:
             self._cookie.save()
 
-import ssl
-
 def mywrap_socket(sock, *args, **kwargs):
     kwargs['do_handshake_on_connect']=False
     kwargs['ssl_version'] = kwargs.get('ssl_version', ssl.PROTOCOL_TLSv1)
