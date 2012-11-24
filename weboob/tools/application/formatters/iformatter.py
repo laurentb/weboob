@@ -30,7 +30,7 @@ try:
     import tty, termios
 except ImportError:
     PROMPT = '--Press return to continue--'
-    def readch():
+    def readch():  # NOQA
         return sys.stdin.readline()
 else:
     PROMPT = '--Press a key to continue--'
@@ -162,7 +162,6 @@ class IFormatter(object):
         if formatted:
             self.output(formatted)
         return formatted
-
 
     def format_obj(self, obj, alias=None):
         """

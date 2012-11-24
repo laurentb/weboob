@@ -25,7 +25,7 @@ from logging import warning, debug
 try:
     from urlparse import parse_qs
 except ImportError:
-    from cgi import parse_qs
+    from cgi import parse_qs  # NOQA
 
 from weboob.tools.misc import html2text, get_bytes_size
 from weboob.capabilities.torrent import Torrent
@@ -69,7 +69,7 @@ class TorrentsPage(BasePage):
                             current_group += ' - '
                         current_group += a.text
                 elif tr.attrib.get('class', '').startswith('group_torrent') or \
-                     tr.attrib.get('class', '').startswith('torrent'):
+                        tr.attrib.get('class', '').startswith('torrent'):
                     tds = tr.findall('td')
 
                     title = current_group
@@ -100,9 +100,9 @@ class TorrentsPage(BasePage):
                             continue
                         id = '%s.%s' % (params['id'][0], m.group(1))
                     try:
-                        size, unit = tds[i+3].text.split()
+                        size, unit = tds[i + 3].text.split()
                     except ValueError:
-                        size, unit = tds[i+2].text.split()
+                        size, unit = tds[i + 2].text.split()
                     size = get_bytes_size(float(size.replace(',', '')), unit)
                     seeders = int(tds[-2].text)
                     leechers = int(tds[-1].text)
@@ -159,8 +159,8 @@ class TorrentsPage(BasePage):
                 torrent.seeders = int(tds[3].text)
                 torrent.leechers = int(tds[4].text)
                 break
-            elif not is_table and tr.attrib.get('class', '').startswith('torrent_widget') and \
-                                  tr.attrib.get('class', '').endswith('pad'):
+            elif not is_table and tr.attrib.get('class', '').startswith('torrent_widget') \
+                    and tr.attrib.get('class', '').endswith('pad'):
                 url = tr.cssselect('a[title=Download]')[0].attrib['href']
                 m = self.TORRENTID_REGEXP.match(url)
                 if not m:

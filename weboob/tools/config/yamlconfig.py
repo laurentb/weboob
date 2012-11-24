@@ -29,8 +29,8 @@ try:
     from yaml import CLoader as Loader
     from yaml import CDumper as Dumper
 except ImportError:
-    from yaml import Loader
-    from yaml import Dumper
+    from yaml import Loader  # NOQA
+    from yaml import Dumper  # NOQA
 
 from .iconfig import IConfig, ConfigError
 

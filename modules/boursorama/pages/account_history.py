@@ -23,7 +23,6 @@ from datetime import date
 import re
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.bank import Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

@@ -30,7 +30,7 @@ from elementtidy import TidyHTMLTreeBuilder
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
-    from xml.etree import ElementTree
+    from xml.etree import ElementTree  # NOQA
 
 from .iparser import IParser
 

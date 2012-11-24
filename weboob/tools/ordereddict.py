@@ -22,16 +22,15 @@ try:
     from collections import OrderedDict
 except ImportError:
     try:
-        from simplejson import OrderedDict
+        from simplejson import OrderedDict  # NOQA
     except ImportError:
         try:
-            from ordereddict import OrderedDict
+            from ordereddict import OrderedDict  # NOQA
         except ImportError:
             ## {{{ http://code.activestate.com/recipes/576693/ (r6)
             from UserDict import DictMixin
 
-            class OrderedDict(dict, DictMixin):
-
+            class OrderedDict(dict, DictMixin):  # NOQA
                 def __init__(self, *args, **kwds):
                     if len(args) > 1:
                         raise TypeError('expected at most 1 arguments, got %d' % len(args))
@@ -123,7 +122,7 @@ except ImportError:
 
                 def __eq__(self, other):
                     if isinstance(other, OrderedDict):
-                        return len(self)==len(other) and self.items() == other.items()
+                        return len(self) == len(other) and self.items() == other.items()
                     return dict.__eq__(self, other)
 
                 def __ne__(self, other):

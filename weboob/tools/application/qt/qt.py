@@ -26,8 +26,7 @@ from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant, QMut
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette, QMessageBox, \
-                        QSpinBox, QLineEdit, QComboBox, QCheckBox, QInputDialog, \
-                        QLineEdit
+                        QSpinBox, QLineEdit, QComboBox, QCheckBox, QInputDialog
 
 from weboob.core.ouiboube import Weboob
 from weboob.core.scheduler import IScheduler

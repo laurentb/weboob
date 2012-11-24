@@ -24,6 +24,7 @@ from logging import warning
 
 import gtk
 
+
 class FakeConic(object):
     STATUS_CONNECTED = None
     STATUS_DISCONNECTED = None
@@ -37,11 +38,11 @@ except ImportError:
 else:
     toolkit = hildon
 
-try :
+try:
     import conic
 except ImportError:
     warning("conic is not found")
-    conic = FakeConic()
+    conic = FakeConic()  # NOQA
 
 
 from logging import debug
@@ -70,7 +71,7 @@ class MasstransitHildon():
         self.refresh_in_progress = False
         self.connected = False
         self.weboob = weboob
-        try :
+        try:
             self.connection = conic.Connection()
             self.connection.connect("connection-event", self.connect_event)
             self.connection.set_property("automatic-connection-events", True)
@@ -80,7 +81,7 @@ class MasstransitHildon():
 
         horizontal_box = gtk.HBox()
         self.main_window = toolkit.Window()
-        try :
+        try:
             self.refresh_button = toolkit.Button(
                 gtk.HILDON_SIZE_AUTO_WIDTH | gtk.HILDON_SIZE_FINGER_HEIGHT,
                 hildon.BUTTON_ARRANGEMENT_HORIZONTAL,
@@ -223,7 +224,7 @@ class MasstransitHildon():
         "the refresh button is clicked"
         debug("on_refresh_button_clicked")
         self.refresh_in_progress = True
-        try :
+        try:
             self.connection.request_connection(conic.CONNECT_FLAG_NONE)
         except AttributeError:
             if isinstance(conic, FakeConic):
@@ -232,7 +233,7 @@ class MasstransitHildon():
                 raise
 
     def check_station_input(self, widget, user_data):
-        if self.combo_source.get_current_text() is None :
+        if self.combo_source.get_current_text() is None:
             self.picker_button_dest.set_sensitive(False)
             self.refresh_button.set_sensitive(False)
             self.retour_button.set_sensitive(False)
@@ -251,7 +252,7 @@ class MasstransitHildon():
         banner.set_timeout(10000)
         hildon.hildon_gtk_window_set_progress_indicator(self.main_window, 1)
         self.treestore.clear()
-        try :
+        try:
             source_text = self.combo_source.get_current_text()
             dest_text = self.combo_dest.get_current_text()
         except AttributeError:

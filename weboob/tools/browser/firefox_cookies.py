@@ -21,7 +21,7 @@
 try:
     import sqlite3 as sqlite
 except ImportError, e:
-    from pysqlite2 import dbapi2 as sqlite
+    from pysqlite2 import dbapi2 as sqlite  # NOQA
 
 from mechanize import CookieJar, Cookie
 
@@ -47,7 +47,8 @@ class FirefoxCookieJar(CookieJar):
 
     def load(self):
         db = self.__connect()
-        if not db: return
+        if not db:
+            return
 
         cookies = db.execute("""SELECT host, path, name, value, expiry, lastAccessed, isSecure
                                 FROM moz_cookies
@@ -83,12 +84,15 @@ class FirefoxCookieJar(CookieJar):
 
     def save(self):
         db = self.__connect()
-        if not db: return
+        if not db:
+            return
 
         db.execute("DELETE FROM moz_cookies WHERE host LIKE '%%%s%%'" % self.domain)
         for cookie in self:
-            if cookie.secure: secure = 1
-            else: secure = 0
+            if cookie.secure:
+                secure = 1
+            else:
+                secure = 0
             if cookie.expires is not None:
                 expires = cookie.expires
             else:

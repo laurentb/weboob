@@ -104,8 +104,9 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
     def error(self):
-        error = self.document.find('//span[@class="error"]')
-        return error is not None
+        err = self.document.find('//span[@class="error"]')
+        return err is not None
+
 
 class LoginPage2(BasePage):
     def on_loaded(self):

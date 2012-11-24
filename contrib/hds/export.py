@@ -21,7 +21,7 @@
 try:
     import sqlite3 as sqlite
 except ImportError, e:
-    from pysqlite2 import dbapi2 as sqlite
+    from pysqlite2 import dbapi2 as sqlite  # NOQA
 
 from weboob.core import Weboob
 from weboob.core.modules import ModuleLoadError
@@ -29,6 +29,7 @@ import sys
 import logging
 level = logging.DEBUG
 logging.basicConfig(stream=sys.stdout, level=level)
+
 
 def main(filename):
     weboob = Weboob()

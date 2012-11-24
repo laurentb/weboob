@@ -29,7 +29,7 @@ import re
 try:
     from urlparse import parse_qs
 except ImportError:
-    from cgi import parse_qs
+    from cgi import parse_qs  # NOQA
 
 
 __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']
@@ -91,7 +91,6 @@ class ReplayPage(BasePage):
             if match:
                 player_id = match.groups()[0]
                 return (radio_domain, player_id)
-
 
 
 class DataPage(BasePage):

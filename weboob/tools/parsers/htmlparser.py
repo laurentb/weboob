@@ -23,7 +23,7 @@ import htmlentitydefs
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
-    from xml.etree import ElementTree
+    from xml.etree import ElementTree  # NOQA
 
 from .iparser import IParser
 
@@ -67,6 +67,7 @@ class HTMLTreeBuilder(_HTMLParser):
             self._target.end(tag)
         except:
             pass
+
 
 class HTMLParser(IParser):
     def parse(self, data, encoding=None):

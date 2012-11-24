@@ -23,7 +23,7 @@ import re
 try:
     from urlparse import parse_qs
 except ImportError:
-    from cgi import parse_qs
+    from cgi import parse_qs  # NOQA
 
 from weboob.capabilities import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError
@@ -86,6 +86,7 @@ class BaseVideoPage(BasePage):
 
     def get_description(self):
         raise NotImplementedError()
+
 
 class VideoPage(BaseVideoPage):
     URL_REGEXP = re.compile('http://www.ina.fr/(.+)\.html')
