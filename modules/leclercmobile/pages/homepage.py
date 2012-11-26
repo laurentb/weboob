@@ -32,7 +32,7 @@ class HomePage(BasePage):
         l = []
         phone = unicode(self.document.xpath('//span[@id="ctl00_ctl00_cMain_cEspCli_lblMsIsdn"]')[0].text.replace(' ', ''))
         self.browser.logger.debug('Found ' + phone + ' has phone number')
-        phoneplan = unicode(self.document.xpath('//span[@id="ctl00_ctl00_cMain_cEspCli_lblOffre"]')[0].text)
+        phoneplan = unicode(self.document.xpath('//span[@id="ctl00_ctl00_cMain_cEspCli_aoaOffreActuelle_aooOffreEtOptions"]/dl/dd/span')[0].text)
         self.browser.logger.debug('Found ' + phoneplan + ' has subscription type')
 
         subscription = Subscription(phone)
