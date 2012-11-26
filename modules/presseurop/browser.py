@@ -27,6 +27,7 @@ class NewspaperPresseuropBrowser(BaseBrowser):
     "NewspaperPresseuropBrowser class"
     PAGES = OrderedDict((
              ("http://www.presseurop.eu/.*/todays-front-pages/.*", DailyTitlesPage),
+             ("http://www.presseurop.eu/.*/front-page/.*", DailyTitlesPage),
              ("http://www.presseurop.eu/.*/cartoon/.*", CartoonPage),
              ("http://www.presseurop.eu/.*", PresseuropPage),
             ))
