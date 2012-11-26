@@ -55,13 +55,12 @@ class PdfPage():
         os.remove(temptxt)
         return txt
 
-
     def get_details(self):
         txt = self._parse_pdf()
         page = txt.split('CONSOMMATION MENSUELLE')[1].split('ACTIVITE DETAILLEE')[0]
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
-        numitems = (len(lines) + 1) / 3  # Each line has three columns
+        numitems = ((len(lines) + 1) / 3) - 1 # Each line has three columns, remove one element (pictures)
         lines.insert(len(lines) - 1, '')  # Add an empty column for "Prélèvement mensuel
         lines.pop(0)
         details = []
@@ -105,13 +104,24 @@ class PdfPage():
             lines = page.split('\n')
             lines = [x for x in lines if len(x) > 0]  # Remove empty lines
             numitems = (len(lines) + 1) / 5  # Each line has five columns
-            for i in range(numitems):
-                nature = i * 5
+            modif = 0
+            i = 0
+            while i < numitems:
+                if modif > 0:
+                    numitems = ((len(lines) + 1 + modif) / 5)
+                nature = i * 5 - modif
                 dateop = nature + 1
                 corres = dateop + 1
                 duree = corres + 1
                 price = duree + 1
 
+                if "Changement vers le Forfait" in lines[nature]:
+                    modif += 1
+                    i += 1
+                    continue
+
+                if not lines[corres][0:3].isdigit() and not lines[corres][0:3] == "-":
+                    modif += 1
                 detail = Detail()
                 mydate = date(*reversed([int(x) for x in lines[dateop].split(' ')[0].split("/")]))
                 mytime = time(*[int(x) for x in lines[dateop].split(' ')[1].split(":")])
@@ -130,6 +140,7 @@ class PdfPage():
                     detail.price = Decimal(0)
 
                 details.append(detail)
+                i += 1
         return sorted(details, key=_get_date, reverse=True)
 
 
