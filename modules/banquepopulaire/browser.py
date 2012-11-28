@@ -35,6 +35,7 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/cyber/internet/Login.do':                                           IndexPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*':             AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
+             'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*taskInfoOID=mesComptes.*':                TransactionsPage,
              'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
@@ -74,6 +75,8 @@ class BanquePopulaire(BaseBrowser):
         self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptes', token=self.token))
         if self.page.is_error():
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
+        if self.page.is_error():
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='accueilSynthese', token=self.token))
 
         return self.page.get_list()
 
