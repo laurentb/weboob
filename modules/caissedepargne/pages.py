@@ -99,7 +99,7 @@ class IndexPage(BasePage):
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
                 else:
                     a = tds[1].find('a')
-                    m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_COMPTE&(\d+)'\)", a.attrib['href'])
+                    m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_COMPTE&(\d+)'\)", a.attrib.get('href', ''))
 
                     if not m:
                         self.logger.warning('Unable to parse account %s' % (a.text.strip() if a.text is not None else ''))
