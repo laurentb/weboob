@@ -37,7 +37,7 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
-             'https://[^/]+/cyber/internet/Page.do\?.*taskInfoOID=mesComptes.*':                TransactionsPage,
+             'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
             }
 
