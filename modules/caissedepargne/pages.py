@@ -82,6 +82,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
                                                             FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CB [\d\*]+ (?P<text>.*)'),    FrenchTransaction.TYPE_CARD),
                ]
 
 class IndexPage(BasePage):
