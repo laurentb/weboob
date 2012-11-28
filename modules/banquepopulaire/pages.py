@@ -77,7 +77,8 @@ class AccountsPage(BasePage):
 
                 account = Account()
                 account.id = args['identifiant']
-                account.label = u''.join([txt.strip() for txt in tds[2].itertext()])
+                account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
+                                           u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
                 account.type = account_type
                 link = tds[3].find('a')
                 account.balance = Decimal(FrenchTransaction.clean_amount(link.find('span').text))
