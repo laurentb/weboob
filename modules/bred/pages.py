@@ -109,6 +109,10 @@ class AccountsPage(BredBasePage):
 
             args = self.js2args(a.attrib['href'])
 
+            if not 'numero_compte' in args or not 'numero_poste' in args:
+                self.logger.warning('Account link for %r with strange args: %s' % (a.attrib.get('alt', a.text), args))
+                continue
+
             account = Account()
             account.id = u'%s.%s' % (args['numero_compte'], args['numero_poste'])
             account.label = to_unicode(a.attrib.get('alt', a.text.strip()))
