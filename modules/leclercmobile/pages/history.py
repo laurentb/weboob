@@ -57,7 +57,7 @@ class PdfPage():
 
     def get_details(self):
         txt = self._parse_pdf()
-        page = txt.split('CONSOMMATION MENSUELLE')[1].split('ACTIVITE DETAILLEE')[0]
+        page = txt.split('CONSOMMATION')[2].split('ACTIVITE DETAILLEE')[0]
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
         numitems = ((len(lines) + 1) / 3) - 1 # Each line has three columns, remove one element (pictures)
@@ -96,7 +96,7 @@ class PdfPage():
     # The bad new is that ebook-convert doesn't support simple use with stdin/stdout
     def get_calls(self):
         txt = self._parse_pdf()
-        pages = txt.split("DEBIT (€)")
+        pages = txt.split("DEBIT")
         pages.pop(0)  # remove headers
         details = []
         for page in pages:
