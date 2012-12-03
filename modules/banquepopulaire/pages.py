@@ -114,7 +114,8 @@ class Transaction(FrenchTransaction):
 
 class TransactionsPage(BasePage):
     def get_next_params(self):
-        if len(self.document.xpath('//li[@id="tbl1_nxt"]')) == 0:
+        nxt = self.document.xpath('//li[@id="tbl1_nxt"]')
+        if len(nxt) == 0 or nxt[0].attrib.get('class', '') == 'nxt-dis':
             return None
 
         params = {}
