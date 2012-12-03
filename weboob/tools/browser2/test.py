@@ -26,8 +26,9 @@ import string
 
 from requests import HTTPError
 from nose.plugins.skip import SkipTest
+from nose.tools import assert_raises
 
-from .browser import BaseBrowser, DomainBrowser, Weboob
+from .browser import BaseBrowser, DomainBrowser, Weboob, UrlNotAllowed
 from .cookiejar import CookieJar, CookiePolicy
 from .cookies import Cookies
 
@@ -220,6 +221,35 @@ def test_relative():
     assert b.absurl('//example.com/aaa/bbb') == 'http://example.com/aaa/bbb'
     b.BASEURL = 'https://example.net/'
     assert b.absurl('//example.com/aaa/bbb') == 'https://example.com/aaa/bbb'
+
+
+def test_allow_url():
+    b = DomainBrowser()
+    b.RESTRICT_URL = True
+    assert b.url_allowed('http://example.com/')
+    assert b.url_allowed('http://example.net/')
+
+    b.BASEURL = 'http://example.com/'
+    assert b.url_allowed('http://example.com/')
+    assert b.url_allowed('http://example.com/aaa')
+    assert not b.url_allowed('https://example.com/')
+    assert not b.url_allowed('http://example.net/')
+    assert not b.url_allowed('http://')
+
+    b.BASEURL = 'https://example.com/'
+    assert not b.url_allowed('http://example.com/')
+    assert not b.url_allowed('http://example.com/aaa')
+    assert b.url_allowed('https://example.com/')
+    assert b.url_allowed('https://example.com/aaa/bbb')
+
+    b.RESTRICT_URL = ['https://example.com/', 'http://example.com/']
+    assert b.url_allowed('http://example.com/aaa/bbb')
+    assert b.url_allowed('https://example.com/aaa/bbb')
+    assert not b.url_allowed('http://example.net/aaa/bbb')
+    assert not b.url_allowed('https://example.net/aaa/bbb')
+
+    assert_raises(UrlNotAllowed, b.location, 'http://example.net/')
+    assert_raises(UrlNotAllowed, b.open, 'http://example.net/')
 
 
 def test_changereq():

@@ -389,6 +389,10 @@ class BaseBrowser(object):
         return oldurl
 
 
+class UrlNotAllowed(Exception):
+    pass
+
+
 class DomainBrowser(BaseBrowser):
     """
     A browser that handles relative URLs and can have a base URL (usually a domain).
@@ -402,6 +406,33 @@ class DomainBrowser(BaseBrowser):
     Base URL, e.g. 'http://weboob.org/' or 'https://weboob.org/'
     See absurl().
     """
+
+    """
+    URLs allowed to load.
+    This can be used to force SSL (if the BASEURL is SSL) or any other leakage.
+    Set to True to allow only URLs starting by the BASEURL.
+    Set it to a list of allowed URLs if you have multiple allowed URLs.
+    More complex behavior is possible by overloading url_allowed()
+    """
+    RESTRICT_URL = False
+
+    def url_allowed(self, url):
+        """
+        Checks if we are allowed to visit an URL.
+        See RESTRICT_URL.
+
+        :param url: Absolute URL
+        :type url: str
+        :rtype: bool
+        """
+        if self.BASEURL is None or self.RESTRICT_URL is False:
+            return True
+        if self.RESTRICT_URL is True:
+            return url.startswith(self.BASEURL)
+        for restrict_url in self.RESTRICT_URL:
+            if url.startswith(restrict_url):
+                return True
+        return False
 
     def absurl(self, uri, base=None):
         """
@@ -424,7 +455,10 @@ class DomainBrowser(BaseBrowser):
         return urljoin(base, uri)
 
     def open(self, uri, *args, **kwargs):
-        return super(DomainBrowser, self).open(self.absurl(uri), *args, **kwargs)
+        url = self.absurl(uri)
+        if not self.url_allowed(url):
+            raise UrlNotAllowed(url)
+        return super(DomainBrowser, self).open(url, *args, **kwargs)
 
     def home(self):
         """
