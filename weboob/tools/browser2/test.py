@@ -83,15 +83,15 @@ def test_redirects():
     assert r.history[1].request.url == HTTPBIN + 'redirect/3'
     assert r.history[1].request.headers.get('Referer') == HTTPBIN + 'redirect/4'
     assert r.history[0].request.url == HTTPBIN + 'redirect/4'
-    assert r.history[0].request.headers.get('Referer') == None
+    assert r.history[0].request.headers.get('Referer') is None
     assert r.url == HTTPBIN + 'get'
 
     # Disable all referers
     r = b.location(HTTPBIN + 'redirect/2', referrer=False)
-    assert json.loads(r.text)['headers'].get('Referer') == None
+    assert json.loads(r.text)['headers'].get('Referer') is None
     assert len(r.history) == 2
-    assert r.history[1].request.headers.get('Referer') == None
-    assert r.history[0].request.headers.get('Referer') == None
+    assert r.history[1].request.headers.get('Referer') is None
+    assert r.history[0].request.headers.get('Referer') is None
     assert r.url == HTTPBIN + 'get'
 
     # Only overrides first referer
@@ -315,25 +315,25 @@ def test_cookiepolicy():
 
     # security for received cookies
     assert policy.can_set(bc('k=v; domain=www.example.com'),
-            'http://www.example.com/')
+                          'http://www.example.com/')
     assert policy.can_set(bc('k=v; domain=sub.example.com'),
-            'http://www.example.com/')
+                          'http://www.example.com/')
     assert policy.can_set(bc('k=v; domain=sub.example.com'),
-            'http://example.com/')
+                          'http://example.com/')
     assert policy.can_set(bc('k=v; domain=.example.com'),
-            'http://example.com/')
+                          'http://example.com/')
     assert policy.can_set(bc('k=v; domain=www.example.com'),
-            'http://example.com/')
+                          'http://example.com/')
     assert not policy.can_set(bc('k=v; domain=example.com'),
-            'http://example.net/')
+                              'http://example.net/')
     assert not policy.can_set(bc('k=v; domain=.net'),
-            'http://example.net/')
+                              'http://example.net/')
     assert not policy.can_set(bc('k=v; domain=www.example.net'),
-            'http://www.example.com/')
+                              'http://www.example.com/')
     assert not policy.can_set(bc('k=v; domain=wwwexample.com'),
-            'http://example.com/')
+                              'http://example.com/')
     assert not policy.can_set(bc('k=v; domain=.example.com'),
-            'http://wwwexample.com/')
+                              'http://wwwexample.com/')
 
     # pattern matching domains
     assert not policy.domain_match('example.com', 's.example.com')
@@ -564,7 +564,7 @@ def test_cookie_srv2():
 
         def cookienum(self):
             return int(re.search('Number of cookies received: (\d+)',
-                    self.response.text).groups()[0])
+                       self.response.text).groups()[0])
 
         def mypost(self, **data):
             return self.location('', data)
