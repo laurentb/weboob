@@ -79,7 +79,8 @@ class Firefox(Profile):
         # Replace all base requests headers
         # https://developer.mozilla.org/en/Gecko_user_agent_string_reference
         # https://bugzilla.mozilla.org/show_bug.cgi?id=572650
-        session.config['base_headers'] = {'Accept-Language': 'en-us,en;q=0.5',
+        session.config['base_headers'] = {
+            'Accept-Language': 'en-us,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20100101 Firefox/10.0.3',
@@ -100,7 +101,8 @@ class Wget(Profile):
     def setup_session(self, session):
         # Don't remove base headers, if websites want to block fake browsers,
         # they will probably block any wget user agent anyway.
-        session.config['base_headers'].update({'Accept': '*/*',
+        session.config['base_headers'].update({
+            'Accept': '*/*',
             'User-Agent': 'Wget/%s' % self.version})
         session.config['keep_alive'] = True
 
@@ -188,8 +190,8 @@ class BaseBrowser(object):
         # Later python-request versions do it that way, but to stay
         # compatible with older versions, we use this.
         while request.allow_redirects is False \
-        and response.status_code in requests.models.REDIRECT_STATI \
-        and 'location' in response.headers:
+                and response.status_code in requests.models.REDIRECT_STATI \
+                and 'location' in response.headers:
             ## This is from requests.models._build_response
             response.content  # Consume socket so it can be released
 
@@ -210,7 +212,7 @@ class BaseBrowser(object):
                 # Do the same as Google Chrome.
                 # http://git.chromium.org/gitweb/?p=chromium/src/net.git;a=blob;f=url_request/url_request.cc;h=8597917f0cbf49c84b3bdae3a7bebacbc264f1e0;hb=HEAD#l673
                 if (response.status_code == 303 and request.method != 'HEAD') \
-                or (response.status_code in (requests.codes.moved, requests.codes.found) and request.method == 'POST'):
+                        or (response.status_code in (requests.codes.moved, requests.codes.found) and request.method == 'POST'):
                     # Once we use GET, all next requests will use GET.
                     orig_args['method'] = 'GET'
                     orig_args['data'] = None
@@ -254,8 +256,8 @@ class BaseBrowser(object):
         return response
 
     def location(self, url, data=None,
-            allow_redirects=True, referrer=None,
-            **kwargs):
+                 allow_redirects=True, referrer=None,
+                 **kwargs):
         """
         Like open() but also changes the current URL and response.
         This is the most common method to request web pages.
@@ -268,8 +270,8 @@ class BaseBrowser(object):
         return response
 
     def open(self, url, data=None,
-            allow_redirects=True, referrer=None,
-            **kwargs):
+             allow_redirects=True, referrer=None,
+             **kwargs):
         """
         Make an HTTP request like a browser does:
          * follow redirects (unless disabled)
