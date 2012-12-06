@@ -73,10 +73,7 @@ class MediaPlayer(object):
         _play_rtmp for special rtmp streams using SWF verification.
         """
         player_names = [player[0] for player in PLAYERS]
-        if player_name:
-            if player_name not in player_names:
-                raise InvalidMediaPlayer(player_name)
-        else:
+        if not player_name:
             self.logger.debug(u'No media player given. Using the first available from: %s.' % \
                 ', '.join(player_names))
             player_name = self.guess_player_name()
