@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from datetime import date, datetime
 
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError
@@ -40,6 +41,25 @@ class TransferError(UserError):
     A transfer has failed.
     """
 
+class Currency:
+    CUR_UNKNOWN        = 0
+    CUR_EUR            = 1
+    CUR_CHF            = 2
+    CUR_USD            = 3
+
+    TXT2CUR = {u'€':   CUR_EUR,
+               u'EUR': CUR_EUR,
+               u'CHF': CUR_CHF,
+               u'$':   CUR_USD,
+               u'USD': CUR_USD,
+              }
+
+    @classmethod
+    def get_currency(klass, text):
+        text = re.sub(u'[^A-Za-z€]', '', text)
+        return klass.TXT2CUR.get(text, klass.CUR_UNKNOWN)
+
+
 class Recipient(CapBaseObject):
     """
     Recipient of a transfer.
@@ -50,7 +70,7 @@ class Recipient(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
 
-class Account(Recipient):
+class Account(Recipient, Currency):
     """
     Bank account.
 
@@ -68,6 +88,7 @@ class Account(Recipient):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Coming balance')
+    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)

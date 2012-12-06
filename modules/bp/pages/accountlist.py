@@ -23,6 +23,7 @@ from decimal import Decimal
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['AccountList']
@@ -63,7 +64,8 @@ class AccountList(BasePage):
                 tmp_balance = tmp[0].text
 
             account.id = tmp_id
-            account.balance = Decimal(''.join(tmp_balance.replace('.','').replace(',','.').split()))
+            account.currency = account.get_currency(tmp_balance)
+            account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
             self.account_list.append(account)
 
     def get_account(self, id):

@@ -21,6 +21,7 @@
 import re
 from decimal import Decimal
 
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserPasswordExpired
@@ -69,6 +70,7 @@ class AccountsList(BasePage):
         account.label = u''+a.text.strip()
 
         tds = tr.findall('td')
+        account.currency = account.get_currency(tds[3].find('a').text)
         account.balance = self._parse_amount(tds[3].find('a'))
         if tds[4].find('a') is not None:
             account.coming = self._parse_amount(tds[4].find('a'))
@@ -78,7 +80,7 @@ class AccountsList(BasePage):
         return account
 
     def _parse_amount(self, elem):
-        return Decimal(elem.text.replace('.', '').replace(',', '.').strip(u' \t\u20ac\xa0€\n\r'))
+        return Decimal(FrenchTransaction.clean_amount(elem.text))
 
     def get_list(self):
         l = []

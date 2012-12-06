@@ -114,6 +114,7 @@ class AccountsList(CragrBasePage):
                     account.label = required_tokens['account_name']
                     account.id = required_tokens['account_number']
                     account.balance = FrenchTransaction.clean_amount(required_tokens['account_amount'])
+                    account.currency = account.get_currency(required_tokens['account_amount'])
                     # we found almost all required information to create an account object
                     self.logger.debug('Found account %s with number %s and balance = %.2f' % (account.label, account.id, account.balance))
                     # we may have found the owner name too

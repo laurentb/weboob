@@ -72,6 +72,7 @@ class AccountsPage(BasePage):
 
             account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
             account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
+            account.currency = account.get_currency(tds[self.CPT_ROW_BALANCE].find("a").text)
             yield account
 
         return

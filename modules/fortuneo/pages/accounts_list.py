@@ -22,12 +22,30 @@ import re
 import datetime
 
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import Transaction
 from weboob.tools.browser import BasePage#, BrokenPageError
 from weboob.capabilities import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['AccountsList', 'AccountHistoryPage']
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<category>FACTURE CARTE) DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*?)( CA?R?T?E? ?\d*X*\d*)?$'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>VIR(EMEN)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 class AccountHistoryPage(BasePage):
     def get_operations(self, _id):
@@ -42,23 +60,23 @@ class AccountHistoryPage(BasePage):
 
         for i in range(len(tables)):
             operation = Transaction(len(operations))
+            operation.type  = 0
+            operation.category  = NotAvailable
 
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
-            operation.label = operation.raw = unicode(label.strip())
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
-            operation.date  = datetime.datetime.strptime(date_val, "%d/%m/%Y")
+
+            operation.parse(date=date_val, raw=label)
             operation.rdate = datetime.datetime.strptime(date_oper,"%d/%m/%Y")
-            operation.type  = 0
 
             if amount[1] == u'\xa0':
-                amount = amount[0].replace(u"\xa0", "").replace(",", ".").strip()
+                amount = amount[0]
             else:
-                amount = amount[1].replace(u"\xa0", "").replace(",", ".").strip()
-            operation.amount = Decimal(amount)
+                amount = amount[1]
 
-            operation.category  = NotAvailable
+            operation.set_amount(amount)
 
             operations.append(operation)
 
@@ -75,7 +93,8 @@ class AccountsList(BasePage):
             account.id = cpt.xpath("./span[1]/text()")[0].replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xb0", '').replace(" ", "").replace('N', '')
 
             # account balance
-            account.balance = Decimal(cpt.xpath("./span[2]/text()")[0].replace("+", "").replace(u"\xa0", "").replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(" ", ""))
+            account.balance = Decimal(Transaction.clean_amount(cpt.xpath("./span[2]/text()")[0]))
+            account.currency = account.get_currency(cpt.xpath("./span[2]/text()")[0])
 
             # account coming TODO
             #mycomingval = cpt.xpath("../../following-sibling::*[1]/td[2]/a[@class='lien_synthese_encours']/span/text()")[0].replace(',', '.').replace("EUR", "").replace("\n", "").replace("\t", "").replace(u"\xa0", "")

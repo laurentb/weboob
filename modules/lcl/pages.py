@@ -168,10 +168,11 @@ class AccountsPage(BasePage):
                 if not div.text.strip():
                     div = div.find('div')
                 account.label=u''+div.text.strip()
-                balance=a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.').strip()
+                balance = FrenchTransaction.clean_amount(a.text)
                 if '-' in balance:
                     balance='-'+balance.replace('-', '')
                 account.balance=Decimal(balance)
+                account.currency = account.get_currency(a.text)
                 self.logger.debug('%s Type: %s' % (account.label, account._type))
                 l.append(account)
             if link.startswith('/outil/UWCB/UWCBEncours'):
@@ -181,7 +182,7 @@ class AccountsPage(BasePage):
 
                 account = l[-1]
 
-                coming = a.text.replace(u"\u00A0",'').replace(' ','').replace('.','').replace('+','').replace(',','.').strip()
+                coming = FrenchTransaction.clean_amount(a.text)
                 if '-' in coming:
                     coming = '-'+coming.replace('-', '')
                 if not account.coming:

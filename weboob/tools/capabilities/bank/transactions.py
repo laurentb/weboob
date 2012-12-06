@@ -20,6 +20,7 @@
 
 from decimal import Decimal
 import datetime
+import re
 
 from weboob.capabilities.bank import Transaction
 from weboob.capabilities import NotAvailable
@@ -40,8 +41,8 @@ class FrenchTransaction(Transaction):
         """
         Clean a string containing an amount.
         """
-        return text.replace(' ', '').replace('.','').replace(u'\xa0', '') \
-                   .replace(',','.').strip(u' \t\u20ac\xa0\x80€\n\rEUR')
+        text = text.replace('.','').replace(',','.')
+        return re.sub(u'[^\d\-\.]', '', text)
 
     def set_amount(self, credit='', debit=''):
         """

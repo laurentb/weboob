@@ -24,6 +24,7 @@ import re
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['AccountsList']
@@ -47,7 +48,7 @@ class AccountsList(BasePage):
                 linkbis = self.document.xpath(urltofind).pop()
                 if linkbis.text == link.text:
                     linkbis = self.document.xpath(urltofind)[1]
-                account.balance = Decimal(linkbis.text.replace('.', '').\
-                                          replace(' ', '').replace(',', '.'))
+                account.balance = Decimal(FrenchTransaction.clean_amount(linkbis.text))
+                account.currency = account.get_currency(linkbis.text)
                 account.coming = NotAvailable
                 yield account

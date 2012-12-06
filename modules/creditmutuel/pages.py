@@ -69,7 +69,8 @@ class AccountsPage(BasePage):
                     continue
 
                 for i in (2,1):
-                    balance = FrenchTransaction.clean_amount(tr.getchildren()[i].text.strip(' EUR'))
+                    balance = FrenchTransaction.clean_amount(tr.getchildren()[i].text)
+                    currency = Account.get_currency(tr.getchildren()[i].text)
                     if len(balance) > 0:
                         break
                 balance = Decimal(balance)
@@ -90,6 +91,7 @@ class AccountsPage(BasePage):
                 account._card_links = []
 
                 account.balance = balance
+                account.currency = currency
 
                 accounts[account.id] = account
 

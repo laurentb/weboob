@@ -72,15 +72,24 @@ class AccountsPage(BasePage):
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
 
             for tr in div.getnext().xpath('.//tbody/tr'):
+                if not 'id' in tr.attrib:
+                    continue
+
                 args = dict(parse_qsl(tr.attrib['id']))
                 tds = tr.findall('td')
+
+                if len(tds) < 4 or not 'identifiant' in args:
+                    self.logger.warning('Unable to parse an account')
+                    continue
 
                 account = Account()
                 account.id = args['identifiant']
                 account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
                                            u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
                 account.type = account_type
-                account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[3].itertext()])))
+                balance = u''.join([txt.strip() for txt in tds[3].itertext()])
+                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                account.currency = account.get_currency(balance)
                 account._params = params.copy()
                 account._params['dialogActionPerformed'] = 'SOLDE'
                 account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]

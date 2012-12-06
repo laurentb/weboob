@@ -53,7 +53,8 @@ class AccountsListPage(BasePage):
             tag = tds[2].find('font')
             if tag is None:
                 tag = tds[2]
-            account.balance = Decimal(tag.text.replace('.','').replace(',','.').replace(' ', '').strip(u' \t\u20ac\xa0€\n\r'))
+            account.balance = Decimal(FrenchTransaction.clean_amount(tag.text))
+            account.currency = account.get_currency(tag.text)
             account.coming = NotAvailable
 
             yield account

@@ -24,6 +24,7 @@ from decimal import Decimal
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 class AccountsList(BasePage):
@@ -31,7 +32,6 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
-        l = []
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'synthese-list':
                 for tr in div.getiterator('tr'):
@@ -57,7 +57,8 @@ class AccountsList(BasePage):
                                 balance = td.text
                             else:
                                 balance = span.text
-                            balance = balance.strip(u' \n\t€+').replace(',', '.').replace(' ', '')
+                            account.currency = account.get_currency(balance)
+                            balance = FrenchTransaction.clean_amount(balance)
                             if balance != "":
                                 account.balance = Decimal(balance)
                             else:
@@ -66,6 +67,4 @@ class AccountsList(BasePage):
                     else:
                         # because of some weird useless <tr>
                         if account.id is not None:
-                            l.append(account)
-
-        return l
+                            yield account

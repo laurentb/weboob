@@ -84,7 +84,7 @@ class AccountsPage(BredBasePage):
                 continue
 
             try:
-                amount = sum([Decimal(txt.strip(' EUR').replace(' ', '').replace(',', '.')) for txt in cols[-1].itertext() if len(txt.strip()) > 0])
+                amount = sum([Decimal(FrenchTransaction.clean_amount(txt)) for txt in cols[-1].itertext() if len(txt.strip()) > 0])
             except InvalidOperation:
                 continue
 
@@ -117,6 +117,7 @@ class AccountsPage(BredBasePage):
             account.id = u'%s.%s' % (args['numero_compte'], args['numero_poste'])
             account.label = to_unicode(a.attrib.get('alt', a.text.strip()))
             account.balance = amount
+            account.currency = [account.get_currency(txt) for txt in cols[-1].itertext() if len(txt.strip()) > 0][0]
             account._card_links = []
             accounts.append(account)
 

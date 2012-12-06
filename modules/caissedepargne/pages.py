@@ -110,7 +110,8 @@ class IndexPage(BasePage):
                     account.label = unicode(a.text.strip())
                     account.type = account_type
                     amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
-                    account.balance = Decimal(FrenchTransaction.clean_amount(amount.rstrip(' EUR')))
+                    account.balance = Decimal(FrenchTransaction.clean_amount(amount))
+                    account.currency = account.get_currency(amount)
                     yield account
 
     def go_history(self, id):
