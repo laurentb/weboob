@@ -147,10 +147,11 @@ class Videoob(ReplApplication):
             return 4
         try:
             player_name = self.config.get('media_player')
+            media_player_args = self.config.get('media_player_args')
             if not player_name:
                 self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
                                   'configuration file.')
-            self.player.play(video, player_name=player_name)
+            self.player.play(video, player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound), e:
             print '%s\nVideo URL: %s' % (e, video.url)
 

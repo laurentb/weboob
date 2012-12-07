@@ -65,7 +65,7 @@ class MediaPlayer(object):
                 return player_name
         return None
 
-    def play(self, media, player_name=None):
+    def play(self, media, player_name=None, player_args=None):
         """
         Play a media object, using programs from the PLAYERS list.
 
@@ -80,7 +80,7 @@ class MediaPlayer(object):
             if player_name is None:
                 raise MediaPlayerNotFound()
         if media.url.startswith('rtmp'):
-            self._play_rtmp(media, player_name)
+            self._play_rtmp(media, player_name, args=player_args)
         else:
             self._play_default(media, player_name)
 
@@ -91,7 +91,7 @@ class MediaPlayer(object):
         print 'Invoking "%s %s".' % (player_name, media.url)
         os.spawnlp(os.P_WAIT, player_name, player_name, media.url)
 
-    def _play_rtmp(self, media, player_name):
+    def _play_rtmp(self, media, player_name, args):
         """
         Download data with rtmpdump and pipe them to a media player.
 
@@ -117,10 +117,11 @@ class MediaPlayer(object):
 
         rtmp += ' --quiet'
 
-        args = None
-        for (binary, stdin_args) in PLAYERS:
-            if binary == player_name:
-                args = stdin_args
+        if args is None :
+            for (binary, stdin_args) in PLAYERS:
+                if binary == player_name:
+                    args = stdin_args
+
         assert args is not None
 
         print ':: Streaming from %s' % media_url

@@ -89,10 +89,11 @@ class Radioob(ReplApplication):
             return 1
         try:
             player_name = self.config.get('media_player')
+            media_player_args = self.config.get('media_player_args')
             if not player_name:
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
-            self.player.play(radio.streams[0], player_name=player_name)
+            self.player.play(radio.streams[0], player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound), e:
             print '%s\nRadio URL: %s' % (e, radio.streams[0].url)
 
