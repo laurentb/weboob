@@ -219,9 +219,10 @@ class AccountHistoryPage(BasePage):
         for table in tables:
             # Look for the relevant table in the Pro version
             header=table.getprevious()
-            while str(header.tag)=="<built-in function Comment>":
+            while header is not None and str(header.tag) != 'div':
                 header=header.getprevious()
-            header=header.find("div")
+            if header is not None:
+                header=header.find("div")
             if header is not None:
                 header=header.find("span")
 
