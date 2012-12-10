@@ -21,7 +21,7 @@
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Currency
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -38,6 +38,7 @@ class AccountsList(BasePage):
         ids = set()
         for td in self.document.xpath('.//td[@nowrap="nowrap"]'):
             account = Account()
+            account.currency = Currency.CUR_EUR
             link = td.xpath('.//a')[0]
             account._index = int(re.search('\d', link.attrib['href']).group(0))
             if not account._index in ids:
@@ -49,6 +50,5 @@ class AccountsList(BasePage):
                 if linkbis.text == link.text:
                     linkbis = self.document.xpath(urltofind)[1]
                 account.balance = Decimal(FrenchTransaction.clean_amount(linkbis.text))
-                account.currency = account.get_currency(linkbis.text)
                 account.coming = NotAvailable
                 yield account
