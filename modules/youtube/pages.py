@@ -56,7 +56,7 @@ class ForbiddenVideo(UserError):
 class BaseYoutubePage(BasePage):
     def is_logged(self):
         try:
-            self.parser.select(self.document.getroot(), 'span#masthead-user-expander', 1)
+            self.parser.select(self.document.getroot(), 'span#yt-masthead-user-displayname', 1)
         except BrokenPageError:
             return False
         else:
