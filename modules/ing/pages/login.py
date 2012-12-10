@@ -100,7 +100,7 @@ class LoginPage(BasePage):
         self.browser['zone1Form:dateDay'] = birthday[0:2]
         self.browser['zone1Form:dateMonth'] = birthday[2:4]
         self.browser['zone1Form:dateYear'] = birthday[4:9]
-        self.browser['zone1Form:radioSaveClientNumber'] = False
+        self.browser['zone1Form:idRememberMyCifCheck'] = False
         self.browser.submit(nologin=True)
 
     def error(self):
