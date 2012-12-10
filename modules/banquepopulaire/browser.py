@@ -91,6 +91,8 @@ class BanquePopulaire(BaseBrowser):
         return None
 
     def get_history(self, account):
+        if not self.is_on_page(AccountsPage):
+            account = self.get_account(account.id)
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
 
         while 1:
