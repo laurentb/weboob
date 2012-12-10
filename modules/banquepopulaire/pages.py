@@ -140,6 +140,9 @@ class TransactionsPage(BasePage):
         for tr in self.document.xpath('//table[@id="tbl1"]/tbody/tr'):
             tds = tr.findall('td')
 
+            if len(tds) < 5:
+                continue
+
             t = Transaction(tr.attrib['id'].split('_', 1)[1])
 
             date = u''.join([txt.strip() for txt in tds[4].itertext()])
