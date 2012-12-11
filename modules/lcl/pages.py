@@ -143,6 +143,7 @@ class ContractsPage(BasePage):
 class AccountsPage(BasePage):
     def get_list(self):
         l = []
+        ids = set()
         for a in self.document.getiterator('a'):
             link=a.attrib.get('href')
             if link is None:
@@ -164,6 +165,11 @@ class AccountsPage(BasePage):
                         # TODO parse this string to get the right Account.TYPE_* to
                         # store in account.type.
                         account._type=value
+
+                if account.id in ids:
+                    continue
+
+                ids.add(account.id)
                 div = a.getparent().getprevious()
                 if not div.text.strip():
                     div = div.find('div')
