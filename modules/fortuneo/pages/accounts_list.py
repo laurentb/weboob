@@ -106,11 +106,15 @@ class AccountsList(BasePage):
             #else:
             #    account.coming = Decimal(mycomingval)
 
-            # account._link_id
             url_to_parse = cpt.xpath('@href')[0].replace("\n", "")  # link
-            compte_id_re = re.compile(r'/prive/mes-comptes/([^/]+/).*COMPTE_ACTIF=([^\&]+)\&?')
-            account._link_id = '/fr/prive/mes-comptes/%sconsulter-situation/consulter-solde.jsp?COMPTE_ACTIF=%s' % \
-                    (compte_id_re.search(url_to_parse).groups()[0], compte_id_re.search(url_to_parse).groups()[1])
+
+            # account._link_id = lien vers historique d'un compte (courant of livret)
+            if '/mes-comptes/livret/' in url_to_parse:
+                compte_id_re = re.compile(r'.*\?(.*)$')
+                account._link_id = '/fr/prive/mes-comptes/livret/consulter-situation/consulter-solde.jsp?%s' % \
+                    (compte_id_re.search(url_to_parse).groups()[0])
+            else:
+                account._link_id = url_to_parse
 
             # account.label
             temp_label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")

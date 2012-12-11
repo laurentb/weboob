@@ -33,18 +33,14 @@ class Fortuneo(BaseBrowser):
     CERTHASH = 'f71bd27994f395963c4a500d9d330cb50cef37ee5946146f9ca2492c2552b2ba'
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-            '.*identification.jsp.*':
-                    LoginPage,
-            '.*/prive/mes-comptes/synthese-tous-comptes.jsp':
-                AccountsList,
-            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp':
-                    AccountsList,
-            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
-                    AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp\?COMPTE_ACTIF=.*':
-                    AccountHistoryPage,
-            '.*/prive/default\.jsp.*':
-                   AccountsList
+            '.*identification\.jsp.*' :                                                                         LoginPage,
+
+            '.*prive/default\.jsp.*' :                                                                           AccountsList,
+            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp' :                                                  AccountsList,
+
+            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*' :                          AccountHistoryPage,
+            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :                  AccountHistoryPage,
+
             }
 
     def __init__(self, *args, **kwargs):
