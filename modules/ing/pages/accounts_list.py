@@ -36,10 +36,10 @@ class AccountsList(BasePage):
 
     def get_list(self):
         ids = set()
-        for td in self.document.xpath('.//td[@nowrap="nowrap"]'):
+        for tr in self.document.xpath('//tr[@align="center"]'):
             account = Account()
             account.currency = Currency.CUR_EUR
-            link = td.xpath('.//a')[0]
+            link = tr.xpath('.//a')[0]
             account._index = int(re.search('\d', link.attrib['href']).group(0))
             if not account._index in ids:
                 ids.add(account._index)
