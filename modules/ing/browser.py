@@ -36,11 +36,11 @@ class Ing(BaseBrowser):
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*displayTRAccountSummary.*':    AccountsList,
              '.*displayLogin.jsf':             LoginPage,
-             '.*displayLogin.jsf.*':           LoginPage2,
+             '.*displayLogin.jsf.+':           LoginPage2,
              '.*accountDetail.jsf.*':          AccountHistory,
-             '.*displayTRHistoriqueLA.*':      AccountHistory,
+             '.*displayTRHistorique.*':        AccountHistory,
              '.*transferManagement.jsf':       TransferPage,
-             '.*onHoldTransferManagement.jsf':  TransferPage,
+             '.*onHoldTransferManagement.jsf': TransferPage,
              '.*DisplayDoTransferCommand.*':   TransferPage,
              '.*transferCreateValidation.jsf': TransferConfirmPage,
              '.*eStatement.jsf':               BillsPage
