@@ -85,7 +85,7 @@ class VideoPage(BasePage):
         return video
 
     def get_title(self):
-        return self.document.getroot().cssselect('h2')[0].text
+        return self.document.getroot().cssselect('h1')[0].text
 
     def get_url(self, lang, quality):
         obj = self.parser.select(self.document.getroot(), 'object', 1)
