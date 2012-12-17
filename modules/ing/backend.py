@@ -96,7 +96,7 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
             if not isinstance(recipient, Recipient):
                 # Remove weboob identifier prefix (LA-, CC-...)
                 if "-" in recipient:
-                    recipient = recipient[3:]
+                    recipient = recipient.split('-')[1]
             return self.browser.transfer(account, recipient, amount, reason)
 
     def iter_subscription(self):
