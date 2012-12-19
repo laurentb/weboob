@@ -85,6 +85,10 @@ class Cragr(BaseBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
+        self.addheaders = [
+                ['User-agent', self.USER_AGENTS['desktop_firefox']]
+            ]
+
     def get_accounts_list(self):
         self.logger.debug('accounts list required')
         self.home()
