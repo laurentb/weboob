@@ -160,7 +160,7 @@ class CardPage(BasePage):
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
             amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            t.label = tds[1].find('span').text.strip()
+            t.label = unicode(tds[1].find('span').text.strip())
             t.type = t.TYPE_CARD
             t.set_amount(amount)
             yield t

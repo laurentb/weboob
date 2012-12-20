@@ -94,6 +94,9 @@ class Barclays(BaseBrowser):
         return None
 
     def get_history(self, account):
+        if not self.is_on_page(AccountsPage):
+            self.location('tbord.do')
+
         self.location(account._link)
 
         assert self.is_on_page((TransactionsPage, ValuationPage))
@@ -101,6 +104,9 @@ class Barclays(BaseBrowser):
         return self.page.get_history()
 
     def get_coming_operations(self, account):
+        if not self.is_on_page(AccountsPage):
+            self.location('tbord.do')
+
         for card in account._card_links:
             self.location(card)
 
