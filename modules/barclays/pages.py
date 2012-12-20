@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 from decimal import Decimal
 import re
 
@@ -148,11 +149,16 @@ class TransactionsPage(BasePage):
 
 class CardPage(BasePage):
     def get_history(self):
+        debit_date = None
         for tr in self.document.xpath('//table[@class="report"]/tbody/tr'):
             tds = tr.findall('td')
 
+            if len(tds) == 2:
+                # headers
+                m = re.match('.* (\d+)/(\d+)/(\d+)', tds[0].text.strip())
+                debit_date = datetime.date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+
             if len(tds) != 3:
-                #header
                 continue
 
             t = Transaction(0)
@@ -160,6 +166,8 @@ class CardPage(BasePage):
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
             amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            if debit_date is not None:
+                t.date = debit_date
             t.label = unicode(tds[1].find('span').text.strip())
             t.type = t.TYPE_CARD
             t.set_amount(amount)
