@@ -44,7 +44,7 @@ class Barclays(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page((LoginPage, IndexPage, LoginPage))
+        return self.page is not None and not self.is_on_page((LoginPage, IndexPage, Login2Page))
 
     def home(self):
         if self.is_logged():
