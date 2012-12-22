@@ -165,7 +165,7 @@ class TransactionsPage(BasePage):
                 is_coming = False
                 continue
 
-            t = Transaction(col_label.attrib['id'])
+            t = Transaction(col_label.attrib.get('id', ''))
 
             # an optional tooltip on page contain the second part of the transaction label.
             tooltip = self.document.xpath('//div[@id="tooltip%s"]' % t.id)
