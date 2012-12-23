@@ -81,7 +81,6 @@ class Downloadboob:
             return True
 
     def download(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[]):
-
         print "For backend %s, search for '%s'" % (backend_name, pattern)
 
         # create directory for links
@@ -90,10 +89,11 @@ class Downloadboob:
             os.makedirs(self.links_directory)
 
         # search for videos
-        count = 0
         videos = []
-        l = list(self.backend.search_videos(pattern, sortby, nsfw, max_results))
-        for video in l:
+        for i, video in enumerate(self.backend.search_videos(pattern, sortby, nsfw, max_results)):
+            if i == max_results:
+                break
+
             if not self.is_downloaded(video):
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
                 if not(self.is_excluded(video.title, title_exclude)):
@@ -102,11 +102,9 @@ class Downloadboob:
             else:
                 print "Already downloaded, check %s" % video.id
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
-                self.set_linkname(video)
-
-            count=count+1
-            if count == max_results:
-                break
+                linkname = self.get_linkname(video)
+                if not os.path.exists(linkname):
+                    self.remove_download(video)
 
         # download videos
         print "Downloading..."
@@ -124,9 +122,8 @@ class Downloadboob:
             directory = os.path.join("..", DOWNLOAD_DIRECTORY, self.backend_name)
         else:
             directory = os.path.join(self.download_directory, self.backend_name)
-
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
         ext = video.ext
         if not ext:
@@ -153,6 +150,19 @@ class Downloadboob:
     def is_downloaded(self, video):
         # check if the file is 0 byte
         return os.path.isfile(self.get_filename(video))
+
+
+    def remove_download(self, video):
+        path = self.get_filename(video)
+        if os.stat(path).st_size == 0:
+            # already empty
+            return
+
+        print 'Remove video %s' % video.title
+
+        # Empty it to keep information we have already downloaded it.
+        with open(path, 'w'):
+            pass
 
 
     def set_linkname(self, video):
@@ -197,6 +207,7 @@ class Downloadboob:
             args = ('wget', video.url, '-O', dest)
 
         os.spawnlp(os.P_WAIT, args[0], *args)
+        self.set_linkname(video)
 
 
 config = ConfigParser.ConfigParser()
