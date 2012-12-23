@@ -19,6 +19,7 @@
 
 import datetime
 import re
+from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities import UserError
 from weboob.tools.capabilities.thumbnail import Thumbnail
@@ -33,35 +34,22 @@ __all__ = ['IndexPage', 'VideoPage']
 
 class IndexPage(BasePage):
     def iter_videos(self):
-        for div in self.parser.select(self.document.getroot(), 'li.vignette'):
-            title = self.parser.select(div, 'h4 a', 1)
+        for div in self.parser.select(self.document.getroot(), 'article.rs-cell'):
+            title = self.parser.select(div, 'h3 a', 1)
             url = title.attrib['href']
-            m = re.match('^http://www.pluzz.fr/([^/]+)\.html$', url)
+            m = re.match('^http://pluzz.francetv.fr/videos/(.+).html$', url)
             if not m:
                 self.logger.debug('url %s does not match' % url)
                 continue
             _id = m.group(1)
             video = PluzzVideo(_id)
-            m = re.match('^(.+) - ([0-2][0-9])h([0-5][0-9])$', title.text)
-            if m:
-                video.title = m.group(1)
-                hour = int(m.group(2))
-                minute = int(m.group(3))
-            else:
-                video.title = title.text
-                hour = 0
-                minute = 0
+            video.title = unicode(title.text.strip())
+            video.date = parse_dt(div.find('span').attrib['data-date'])
+            t = map(int, div.xpath('.//a[@class="rs-genre-temps"]')[0].text.split('|')[1].strip().split(':'))
+            video.duration = datetime.timedelta(hours=t[0], minutes=t[1])
 
-            m = re.match('(\d+)/(\d+)/(\d+)', self.parser.select(div, 'p.date', 1).text)
-            if m:
-                video.date = datetime.datetime(int(m.group(3)),
-                                               int(m.group(2)),
-                                               int(m.group(1)),
-                                               hour,
-                                               minute)
-
-            url = self.parser.select(div, 'img.illustration', 1).attrib['src']
-            video.thumbnail = Thumbnail(u'http://www.pluzz.fr/%s' % url)
+            url = self.parser.select(div, 'figure.rs-cell-image img', 1).attrib['src']
+            video.thumbnail = Thumbnail(url)
 
             yield video
 
@@ -82,7 +70,7 @@ class VideoPage(BasePage):
                 '^%s(\d+)$' % re.escape('http://info.francetelevisions.fr/?id-video='),
                 div.attrib['href'])
             if m:
-                return r'http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s' % m.group(1)
+                return r'http://pluzz.francetv.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s' % m.group(1)
 
     def get_id(self):
         return self.groups[0]

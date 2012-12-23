@@ -32,12 +32,10 @@ __all__ = ['PluzzBrowser']
 
 
 class PluzzBrowser(BaseBrowser):
-    DOMAIN = 'pluzz.fr'
-    ENCODING = 'ISO-8859-1'
-    PAGES = {r'http://[w\.]*pluzz.fr/replay/1': IndexPage,
-             r'http://[w\.]*pluzz.fr/recherche.html.*': IndexPage,
-             r'http://[w\.]*pluzz.fr/[-\w]+/.*': IndexPage,
-             r'http://[w\.]*pluzz.fr/((?!recherche).+)\.html': VideoPage,
+    DOMAIN = 'pluzz.francetv.fr'
+    PAGES = {r'http://[w\.]*pluzz.francetv.fr/replay/1': IndexPage,
+             r'http://[w\.]*pluzz.francetv.fr/recherche.*': IndexPage,
+             r'http://[w\.]*pluzz.francetv.fr/videos/(.+).html': VideoPage,
             }
 
     @id2url(PluzzVideo.id2url)
@@ -56,10 +54,10 @@ class PluzzBrowser(BaseBrowser):
         return video
 
     def home(self):
-        self.location('/replay/1')
+        self.search_videos('')
 
     def search_videos(self, pattern):
-        self.location(self.buildurl('/recherche.html', q=pattern.encode('utf-8')))
+        self.location(self.buildurl('/recherche', recherche=pattern.encode('utf-8')))
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
@@ -75,19 +73,19 @@ class PluzzBrowser(BaseBrowser):
         root = etree.XML(data, parser)
         assert root.tag == 'oeuvre'
 
-        video.title = root.findtext('titre')
+        video.title = unicode(root.findtext('titre'))
 
         hours, minutes, seconds = root.findtext('duree').split(':')
         video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
 
         for vid in root.find('videos'):
             if vid.findtext('statut') == 'ONLINE' and vid.findtext('format') == 'wmv':
-                video.url = vid.findtext('url')
+                video.url = unicode(vid.findtext('url'))
 
         date = root.findtext('diffusions/diffusion')
         if date:
             video.date = datetime.datetime.strptime(date, '%d/%m/%Y %H:%M')
 
-        video.description = root.findtext('synopsis')
+        video.description = unicode(root.findtext('synopsis'))
 
         return video
