@@ -44,6 +44,8 @@ class IndexPage(BasePage):
             _id = m.group(1)
             video = PluzzVideo(_id)
             video.title = unicode(title.text.strip())
+            for p in div.xpath('.//p[@class="bientot"]'):
+                video.title += ' - %s' % p.text.split('|')[0].strip()
             video.date = parse_dt(div.find('span').attrib['data-date'])
             t = map(int, div.xpath('.//a[@class="rs-genre-temps"]')[0].text.split('|')[1].strip().split(':'))
             video.duration = datetime.timedelta(hours=t[0], minutes=t[1])
