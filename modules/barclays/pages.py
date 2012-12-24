@@ -61,6 +61,8 @@ class IndexPage(BasePage):
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Epargne':                Account.TYPE_SAVINGS,
                      u'Liquidités':             Account.TYPE_CHECKING,
+                     u'Titres':                 Account.TYPE_MARKET,
+                     u'Prêts':                  Account.TYPE_LOAN,
                     }
 
     def get_list(self):
