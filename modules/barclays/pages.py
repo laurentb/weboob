@@ -28,7 +28,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['LoginPage', 'Login2Page', 'IndexPage', 'AccountsPage', 'TransactionsPage',
-           'CardPage', 'ValuationPage']
+           'CardPage', 'ValuationPage', 'LoanPage']
 
 
 class LoginPage(BasePage):
@@ -176,5 +176,9 @@ class CardPage(BasePage):
             yield t
 
 class ValuationPage(BasePage):
+    def get_history(self):
+        return iter([])
+
+class LoanPage(BasePage):
     def get_history(self):
         return iter([])
