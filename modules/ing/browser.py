@@ -102,7 +102,7 @@ class Ing(BaseBrowser):
             account = self.get_account(account)
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
-            self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf')
+            self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf?account=%s' % int(account._index))
         elif account.label[0:2] == "LA" or account.label[0:3] == "LEO":
             # we want "displayTRHistoriqueLA" but this fucking page
             # is not directly available...
