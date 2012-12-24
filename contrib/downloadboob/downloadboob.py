@@ -96,7 +96,7 @@ class Downloadboob:
 
             if not self.is_downloaded(video):
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
-                if not(self.is_excluded(video.title, title_exclude)):
+                if not(self.is_excluded(video.title.lower(), title_exclude)):
                     print "  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration)
                     videos.append(video)
             else:
@@ -113,7 +113,7 @@ class Downloadboob:
 
     def is_excluded(self, title, title_exclude):
         for exclude in title_exclude:
-            if title.find(exclude) > -1:
+            if title.find(exclude.lower()) > -1:
                 return True
         return False
 
