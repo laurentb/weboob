@@ -45,7 +45,11 @@ class AccountHistory(BasePage):
         pass
 
     def get_transactions(self):
-        table = self.document.findall('//tbody')[0]
+        try:
+            table = self.document.findall('//tbody')[0]
+        except IndexError:
+            return
+
         for tr in table.xpath('tr'):
             textdate = tr.find('td[@class="op_date"]').text_content()
             textraw = tr.find('td[@class="op_label"]').text_content().strip()
@@ -66,6 +70,9 @@ class AccountHistory(BasePage):
 
     def islast(self):
         form = self.document.find('//form[@id="navigation_form"]')
+        if form is None:
+            return True
+
         alinks = form.xpath('div/a')
         for a in alinks:
             if u'Page Suivante' in a.text:
