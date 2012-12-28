@@ -39,10 +39,14 @@ class LoginPage(BasePage):
 
 class AccountsPage(BasePage):
     def get_list(self):
+        names = set()
         for li in self.document.xpath('//div[@class="affichMontant"]/ul/li/a'):
             account = Account()
-            account.id = li.attrib['accesskey']
             account.label = unicode(li.cssselect('div.row-lib u')[0].text.strip())
+            account.id = re.sub('[ \.\-]+', '', account.label)
+            while account.id in names:
+                account.id = account.id + '1'
+            names.add(account.id)
             account.balance = Decimal(li.cssselect('p.row-right')[0].text.strip().replace(' ', '').replace(',', ''))
             account._link = li.attrib['href']
             yield account
