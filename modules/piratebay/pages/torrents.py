@@ -38,7 +38,11 @@ class TorrentsPage(BasePage):
 
     def iter_torrents(self):
         table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
+        first = True
         for tr in table.getiterator('tr'):
+            if first:
+                first = False
+                continue
             if tr.get('class', '') != "header":
                 td = tr.getchildren()[1]
                 div = td.getchildren()[0]
