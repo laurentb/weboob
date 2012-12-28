@@ -79,6 +79,9 @@ class Cmso(BaseBrowser):
         return None
 
     def get_history(self, account):
+        if not self.is_on_page(AccountsPage):
+            self.location('https://www.cmso.com/domimobile/m.jsp?a=sommaire')
+
         link = account._link
 
         while link is not None:
