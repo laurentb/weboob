@@ -208,6 +208,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(?P<category>RELEVE CB) AU (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>CB) (?P<text>.*) (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
+                                                            FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
