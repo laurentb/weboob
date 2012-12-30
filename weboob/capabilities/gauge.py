@@ -63,6 +63,9 @@ class GaugeSensor(CapBaseObject):
     history =   Field('Value history', list)  # lastvalue not included
     gaugeid =   StringField('Id of the gauge')
 
+    def __repr__(self):
+        return "<GaugeSensor id=%s name=%s>" % (self.id, self.name)
+
 
 class ICapGauge(IBaseCap):
     def iter_gauges(self, pattern=None):
