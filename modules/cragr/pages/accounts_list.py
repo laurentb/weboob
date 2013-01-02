@@ -19,7 +19,7 @@
 
 
 import re
-from datetime import date
+from datetime import date, timedelta
 from weboob.capabilities.bank import Account
 from .base import CragrBasePage
 from .tokenextractor import TokenExtractor
@@ -271,6 +271,27 @@ class AccountsList(CragrBasePage):
         data = re.sub(' +', ' ', data.replace("\n", ' ').strip())
         return data
 
+    def date_max_bump(self):
+        """
+        Returns the maximum number of days under which a date in the future
+        is still considered in the curent year. Defaults to a 7 days timedelta
+        object.
+        """
+        max_bump = timedelta(7) if not hasattr(self, 'parse_date_max_bump') else self.parse_date_max_bump
+        return max_bump
+
+    def set_date_max_bump(self, new_max_bump):
+        self.parse_date_max_bump = new_max_bump
+
+    def current_date(self):
+        """ Returns the current date as considered by this page when interpreting DD/MM dates """
+        today = date.today() if not hasattr(self, 'parse_date_current_date') else self.parse_date_current_date
+        return today
+
+    def set_current_date(self, date):
+        """ Set the current date; this is used to interpret DD/MM dates """
+        self.parse_date_current_date = date
+
     def fallback_date(self):
         """ Returns a fallback, default date. """
         return date(date.today().year, 1, 1)
@@ -286,14 +307,31 @@ class AccountsList(CragrBasePage):
 
     def date_from_day_month(self, day, month):
         """ Returns a date object built from a given day/month pair. """
-        today = date.today()
+        today = self.current_date()
         # This bank provides dates using the 'DD/MM' string, so we have to
-        # determine the most possible year by ourselves
-        if ((month > today.month) or (month == today.month and day > today.day)):
-            year = today.year - 1
+        # determine the most possible year by ourselves. This implies tracking
+        # the current date.
+        # However, we may also encounter "bumps" in the dates, e.g. "12/11,
+        # 10/11, 10/11, 12/11, 09/11", so we have to be, well, quite tolerant,
+        # by accepting dates in the near future (say, 7 days) of the current
+        # date. (Please, kill me...)
+        # we first try to keep the current year
+        naively_parsed_date = date(today.year, month, day)
+        if (naively_parsed_date > today + self.date_max_bump()):
+            # if the date ends up too far in the future, consider it actually
+            # belongs to the previous year
+            parsed_date = date(today.year - 1, month, day)
+            self.set_current_date(parsed_date)
+        elif (naively_parsed_date > today and naively_parsed_date <= today + self.date_max_bump()):
+            # if the date is in the near future, consider it is a bump
+            parsed_date = naively_parsed_date
+            # do not keep it as current date though
         else:
-            year = today.year
-        return date(year, month, day)
+            # if the date is in the past, as expected, simply keep it
+            parsed_date = naively_parsed_date
+            # and make it the new current date
+            self.set_current_date(parsed_date)
+        return parsed_date
 
     def look_like_account_owner(self, string):
         """ Returns a date object built from a given day/month pair. """
