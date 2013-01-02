@@ -20,9 +20,10 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import CreditCooperatif
+from .perso.browser import CreditCooperatif as CreditCooperatifPerso
+from .pro.browser import CreditCooperatif as CreditCooperatifPro
 
 
 __all__ = ['CreditCooperatifBackend']
@@ -35,14 +36,23 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     VERSION = '0.e'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False),
+    auth_type = {'particular': "Interface Particuliers",
+                 'weak' : "Code confidentiel (pro)",
+                 'strong': "Sesame (pro)"}
+    CONFIG = BackendConfig(Value('auth_type', label='Authentication type', choices=auth_type, default="particular"),
+                           ValueBackendPassword('login', label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password or one time pin'))
 
-    BROWSER = CreditCooperatif
-
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        if self.config['auth_type'].get() == 'particular':
+            self.BROWSER = CreditCooperatifPerso
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
+        else:
+            self.BROWSER = CreditCooperatifPro
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get(),
+                                       strong_auth=self.config['auth_type'].get() == "strong")
 
     def iter_accounts(self):
         with self.browser:

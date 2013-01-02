@@ -98,7 +98,7 @@ class TransactionsJSONPage(BasePage):
     ROW_DEBIT =  -2
 
     def get_transactions(self):
-        for tr in self.document['aaData']:
+        for tr in self.document['exportData'][1:]:
             t = Transaction(0)
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
