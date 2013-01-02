@@ -216,7 +216,7 @@ class StandardBrowser(mechanize.Browser):
 
         if parser is None:
             parser = get_parser()()
-        elif isinstance(parser, (tuple,list,str,unicode)):
+        elif isinstance(parser, (tuple,list,basestring)):
             parser = get_parser(parser)()
         self.parser = parser
         self.lock = RLock()
@@ -324,14 +324,19 @@ class StandardBrowser(mechanize.Browser):
         else:
             self.logger.info(msg)
 
-    def get_document(self, result):
+    def get_document(self, result, parser=None):
         """
         Get a parsed document from a stream.
 
         :param result: HTML page stream
         :type result: stream
         """
-        return self.parser.parse(result, self.ENCODING)
+        if parser is None:
+            parser = self.parser
+        elif isinstance(parser, (basestring, list, tuple)):
+            parser = get_parser(parser)()
+
+        return parser.parse(result, self.ENCODING)
 
     def location(self, *args, **kwargs):
         """
@@ -622,6 +627,7 @@ class BaseBrowser(StandardBrowser):
 
         # Find page from url
         pageCls = None
+        parser = None
         page_groups = None
         page_group_dict = None
         for key, value in self.PAGES.items():
@@ -634,7 +640,13 @@ class BaseBrowser(StandardBrowser):
                 regexp = key
             m = regexp.search(result.geturl())
             if m:
-                pageCls = value
+                if isinstance(value, (list, tuple)):
+                    pageCls = value[0]
+                    parser = value[1]
+                else:
+                    pageCls = value
+                    parser = self.parser
+
                 page_groups = m.groups()
                 page_group_dict = m.groupdict()
                 break
@@ -652,7 +664,7 @@ class BaseBrowser(StandardBrowser):
         if self.SAVE_RESPONSES:
             self.save_response(result)
 
-        document = self.get_document(result)
+        document = self.get_document(result, parser)
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
 
         if not no_login and self.password is not None and not self.is_logged():
