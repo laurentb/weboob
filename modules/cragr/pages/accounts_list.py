@@ -305,6 +305,24 @@ class AccountsList(CragrBasePage):
             return self.fallback_date()
         return self.date_from_day_month(int(matches.group(1)), int(matches.group(2)))
 
+    def try_assigning_year(self, day, month, start_year, max_year):
+        """
+        Tries to create a date object with day, month and start_year and returns
+        it.
+        If it fails due to the year not matching the day+month combination
+        (i.e. due to a ValueError -- TypeError and OverflowError are not
+        handled), the previous or next years are tried until max_year is
+        reached.
+        In case initialization still fails with max_year, this function raises
+        a ValueError.
+        """
+        try:
+            return date(start_year, month, day)
+        except ValueError, ve:
+            if start_year == max_year:
+                raise ve
+            return self.try_assigning_year(day, month, start_year + cmp(max_year, start_year), max_year)
+
     def date_from_day_month(self, day, month):
         """ Returns a date object built from a given day/month pair. """
         today = self.current_date()
@@ -315,8 +333,13 @@ class AccountsList(CragrBasePage):
         # 10/11, 10/11, 12/11, 09/11", so we have to be, well, quite tolerant,
         # by accepting dates in the near future (say, 7 days) of the current
         # date. (Please, kill me...)
-        # we first try to keep the current year
-        naively_parsed_date = date(today.year, month, day)
+        # We first try to keep the current year
+        naively_parsed_date = self.try_assigning_year(day, month, today.year, today.year - 4)
+        if (naively_parsed_date.year != today.year):
+            # we most likely hit a 29/02 leading to a change of year
+            self.set_current_date(naively_parsed_date)
+            return naively_parsed_date
+
         if (naively_parsed_date > today + self.date_max_bump()):
             # if the date ends up too far in the future, consider it actually
             # belongs to the previous year
