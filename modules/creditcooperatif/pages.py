@@ -20,8 +20,8 @@
 
 from decimal import Decimal
 import re
-import time
 
+from weboob.tools.json import json
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -29,64 +29,57 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage']
 
+
 class LoginPage(BasePage):
-    def login(self, login, pin, strong_auth):
-        form_nb = 1 if strong_auth else 0
-        indentType = "RENFORCE" if strong_auth else "MDP"
-
-        self.browser.select_form(name='loginCoForm', nr=form_nb)
-        self.browser['codeUtil'] = login
-        self.browser['motPasse'] = pin
-
-        assert self.browser['identType'] == indentType
+    def login(self, login, password):
+        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'AuthForm')
+        self.browser['j_username'] = login.encode('iso-8859-15')
+        self.browser['j_password'] = password.encode('iso-8859-15')
         self.browser.submit(nologin=True)
+
+class LoggedPage(BasePage):
+    def get_error(self):
+        div = self.document.xpath('//div[@class="errorForm-msg"]')
+        if len(div) == 0:
+            return None
+
+        msg = u', '.join([li.text.strip() for li in div[0].xpath('.//li')])
+        return re.sub('[\r\n\t\xa0]+', ' ', msg)
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
 
-    CPT_ROW_ID = 0
-    CPT_ROW_NAME = 1
-    CPT_ROW_NATURE = 2
-    CPT_ROW_BALANCE = 3
-    CPT_ROW_ENCOURS = 4
-
-    def is_error(self):
-        for par in self.document.xpath('//p[@class=acctxtnoirlien]'):
-            if par.text is not None and u"La page demandée ne peut pas être affichée." in par.text:
-                return True
-
-        return False
-
     def get_list(self):
-        for trCompte in self.document.xpath('//table[@id="compte"]/tbody/tr'):
-            tds = trCompte.findall('td')
-
+        for table in self.document.getroot().cssselect('table.table-synthese'):
             account = Account()
+            labels = table.xpath('.//ul[@class="nClient"]/li')
+            account_type_str = table.xpath('.//h2[@class="tt_compte"]')[0].text.strip()
 
-            account.id = tds[self.CPT_ROW_ID].text.strip()
-            account.label = tds[self.CPT_ROW_NAME].text.strip()
+            account.id = re.sub(u'[^0-9]', '', labels[-1].text)
+            account.label = u' '.join([account_type_str, labels[0].text.strip()])
+            account.type = self.ACCOUNT_TYPES.get(account_type_str, Account.TYPE_UNKNOWN)
 
-            account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
+            balance = table.xpath('.//td[@class="sum_solde"]//span')[-1].text
+            account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+            account.currency = account.get_currency(balance)
 
-            account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
-
-            account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
-            account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
-            account.currency = account.get_currency(tds[self.CPT_ROW_BALANCE].find("a").text)
             yield account
 
-        return
-
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RETRAIT DAB (?P<text>.*?).*'),
+    PATTERNS = [(re.compile('^(?P<text>RETRAIT DAB) (?P<dd>\d{2})-(?P<mm>\d{2})-([\d\-]+)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
+                (re.compile('^RETRAIT DAB (?P<dd>\d{2})-(?P<mm>\d{2})-([\d\-]+) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^CARTE \d+ .*'),                     FrenchTransaction.TYPE_CARD),
-                (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CARTE (?P<dd>\d{2})(?P<mm>\d{2}) \d+ (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^VIR COOPA (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^VIR(EMENT|EMT)? (?P<text>.*?)(- .*)?$'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*?)(- .*)?$'),
+                                                            FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'),       FrenchTransaction.TYPE_BANK),
+                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'),FrenchTransaction.TYPE_BANK),
                 (re.compile('^ABONNEMENT (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
                 (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
@@ -96,72 +89,46 @@ class Transaction(FrenchTransaction):
                ]
 
 class TransactionsPage(BasePage):
-    def get_next_url(self):
-        # can be 'Suivant' or ' Suivant'
-        next = self.document.xpath("//a[normalize-space(text()) = 'Suivant']")
+    pass
 
-        if not next:
-            return None
+class TransactionsJSONPage(BasePage):
+    ROW_DATE =    0
+    ROW_TEXT =    2
+    ROW_CREDIT = -1
+    ROW_DEBIT =  -2
 
-        return next[0].attrib["href"]
-
-    TR_DATE = 0
-    TR_TEXT = 2
-    TR_DEBIT = 3
-    TR_CREDIT = 4
-    def get_history(self):
-        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
-            tds = tr.findall('td')
-
-            def get_content(td):
-                ret = "".join([ttd.text if ttd.text else "" for ttd in td.xpath(".//td")])
-                return ret.replace(u"\xa0", " ").strip()
-
-            date = get_content(tds[self.TR_DATE])
-            raw = get_content(tds[self.TR_TEXT])
-
-            debit = get_content(tds[self.TR_DEBIT])
-            credit = get_content(tds[self.TR_CREDIT])
-
-            t = Transaction(date+""+raw)
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            t.set_amount(credit, debit)
-
+    def get_transactions(self):
+        for tr in self.document['aaData']:
+            t = Transaction(0)
+            t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
+            t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             yield t
 
 class ComingTransactionsPage(BasePage):
-    COM_TR_COMMENT = 0
-    COM_TR_DATE = 1
-    COM_TR_TEXT = 2
-    COM_TR_VALUE = 3
+    ROW_REF =     0
+    ROW_TEXT =    1
+    ROW_DATE =    2
+    ROW_CREDIT = -1
+    ROW_DEBIT =  -2
 
-    def get_history(self):
-        comment = None
-        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
-            tds = tr.findall('td')
+    def get_transactions(self):
+        data = []
+        for script in self.document.xpath('//script'):
+            txt = script.text
+            if txt is None:
+                continue
 
-            def get_content(td):
-                ret = td.text
-                return ret.replace(u"\xa0", " ").strip()
+            pattern = 'var jsonData ='
+            start = txt.find(pattern)
+            if start < 0:
+                continue
 
-            raw = get_content(tds[self.COM_TR_TEXT])
+            txt = txt[start+len(pattern):start+txt[start:].find(';')]
+            data = json.loads(txt)
+            break
 
-            if comment is None:
-                comment = get_content(tds[self.COM_TR_COMMENT])
-                raw = "%s (%s) " % (raw, comment)
-
-            debit = get_content(tds[self.COM_TR_VALUE])
-            date = get_content(tds[self.COM_TR_DATE])
-
-            if comment is not None:
-                #date is 'JJ/MM'. add '/YYYY'
-                date += comment[comment.rindex("/"):]
-            else:
-                date += "/%d" % time.localtime().tm_year
-
-
-            t = Transaction(date+""+raw)
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
-            t.set_amount("", debit)
-
+        for tr in data:
+            t = Transaction(0)
+            t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
+            t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             yield t

@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import CreditCooperatif
 
@@ -35,18 +35,14 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     VERSION = '0.e'
     DESCRIPTION = u'Credit Cooperatif French bank website'
     LICENSE = 'AGPLv3+'
-    auth_type = {"weak" : "Code confidentiel",
-                 "strong": "Sesame"}
-    CONFIG = BackendConfig(Value('auth_type',  label='Authentication type', choices=auth_type, default="strong"),
-                           ValueBackendPassword('login', label='Account ID', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password or one time pin'))
 
     BROWSER = CreditCooperatif
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   strong_auth=self.config['auth_type'].get() == "strong")
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         with self.browser:

@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, ComingTransactionsPage
+from .pages import LoginPage, LoggedPage, AccountsPage, TransactionsPage, TransactionsJSONPage, ComingTransactionsPage
 
 
 __all__ = ['CreditCooperatif']
@@ -28,22 +30,17 @@ __all__ = ['CreditCooperatif']
 class CreditCooperatif(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'iso-8859-15'
-    DOMAIN = "www.coopanet.com"
-    PAGES = {'https://www.coopanet.com/banque/sso/.*': LoginPage,
-             'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': ComingTransactionsPage
+    DOMAIN = "www.credit-cooperatif.coop"
+    PAGES = {'https://www.credit-cooperatif.coop/portail/particuliers/login.do': LoginPage,
+             'https://www.credit-cooperatif.coop/portail/particuliers/authentification.do': LoggedPage,
+             'https://www.credit-cooperatif.coop/portail/particuliers/mescomptes/synthese.do': AccountsPage,
+             'https://www.credit-cooperatif.coop/portail/particuliers/mescomptes/relevedesoperations.do': TransactionsPage,
+             'https://www.credit-cooperatif.coop/portail/particuliers/mescomptes/relevedesoperationsjson.do': (TransactionsJSONPage, 'json'),
+             'https://www.credit-cooperatif.coop/portail/particuliers/mescomptes/synthese/operationsencourslien.do': ComingTransactionsPage,
             }
 
-    def __init__(self, *args, **kwargs):
-        self.strong_auth = kwargs.pop('strong_auth', False)
-        BaseBrowser.__init__(self, *args, **kwargs)
-
     def home(self):
-        self.location("/banque/sso/")
-
-        assert self.is_on_page(LoginPage)
+        self.location("/portail/particuliers/mescomptes/synthese.do")
 
     def is_logged(self):
         return not self.is_on_page(LoginPage)
@@ -56,7 +53,6 @@ class CreditCooperatif(BaseBrowser):
 
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        assert isinstance(self.strong_auth, bool)
 
         if self.is_logged():
             return
@@ -64,13 +60,19 @@ class CreditCooperatif(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.home()
 
-        self.page.login(self.username, self.password, self.strong_auth)
+        self.page.login(self.username, self.password)
+
+        if self.is_on_page(LoggedPage):
+            error = self.page.get_error()
+            if error is not None:
+                raise BrowserIncorrectPassword(error)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        self.location(self.buildurl('/banque/cpt/incoopanetj2ee.do?ssomode=ok'))
+        if not self.is_on_page(AccountsPage):
+            self.location('/portail/particuliers/mescomptes/synthese.do')
 
         return self.page.get_list()
 
@@ -84,24 +86,25 @@ class CreditCooperatif(BaseBrowser):
         return None
 
     def get_history(self, account):
-        self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
+        data = {'accountExternalNumber': account.id}
+        self.location('/portail/particuliers/mescomptes/relevedesoperations.do', urllib.urlencode(data))
 
-        while 1:
-            assert self.is_on_page(TransactionsPage)
+        data = {'iDisplayLength':  400,
+                'iDisplayStart':   0,
+                'iSortCol_0':      0,
+                'iSortingCols':    1,
+                'sColumns':        '',
+                'sEcho':           1,
+                'sSortDir_0':      'asc',
+               }
+        self.location('/portail/particuliers/mescomptes/relevedesoperationsjson.do', urllib.urlencode(data))
 
-            for tr in self.page.get_history():
-                yield tr
-
-            next_url = self.page.get_next_url()
-            if next_url is None:
-                return
-
-            self.location(next_url)
+        return self.page.get_transactions()
 
     def get_coming(self, account):
-        self.location('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id)
+        data = {'accountExternalNumber': account.id}
+        self.location('/portail/particuliers/mescomptes/synthese/operationsencourslien.do', urllib.urlencode(data))
 
         assert self.is_on_page(ComingTransactionsPage)
 
-        for ctr in self.page.get_history():
-            yield ctr
+        return self.page.get_transactions()
