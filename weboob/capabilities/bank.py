@@ -56,7 +56,7 @@ class Currency:
 
     @classmethod
     def get_currency(klass, text):
-        text = re.sub(u'[^A-Za-z€]', '', text)
+        text = re.sub(u'[^A-Z€]', '', text.upper())
         return klass.TXT2CUR.get(text, klass.CUR_UNKNOWN)
 
 
