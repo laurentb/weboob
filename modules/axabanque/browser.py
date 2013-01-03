@@ -31,7 +31,7 @@ __all__ = ['AXABanque']
 class AXABanque(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.axabanque.fr'
-    PAGES = {'https?://www.axabanque.fr/connexion/index.html':                           LoginPage,
+    PAGES = {'https?://www.axabanque.fr/connexion/index.html.*':                         LoginPage,
              'https?://www.axabanque.fr/login_errors/indisponibilite.*':                 UnavailablePage,
              'https?://www.axabanque.fr/.*page-indisponible.html.*':                     UnavailablePage,
              'https?://www.axabanque.fr/transactionnel/client/liste-comptes.html':       AccountsPage,
