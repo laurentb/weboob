@@ -55,13 +55,16 @@ class VirtKeyboard(object):
             self.coords[i] = coord
             self.md5[i] = self.checksum(self.coords[i])
 
+    def check_color(self, pixel):
+        return pixel == self.color
+
     def get_symbol_coords(self, (x1, y1, x2, y2)):
         newY1 = -1
         newY2 = -1
         for y in range(y1, min(y2 + 1, self.height)):
             empty_line = True
             for x in range(x1, min(x2 + 1, self.width)):
-                if self.pixar[x, y] == self.color:
+                if self.check_color(self.pixar[x, y]):
                     empty_line = False
                     if newY1 == -1:
                         newY1 = y
@@ -75,7 +78,7 @@ class VirtKeyboard(object):
         for x in range(x1, min(x2 + 1, self.width)):
             empty_column = True
             for y in range(y1, min(y2 + 1, self.height)):
-                if self.pixar[x, y] == self.color:
+                if self.check_color(self.pixar[x, y]):
                     empty_column = False
                     if newX1 == -1:
                         newX1 = x
@@ -90,7 +93,7 @@ class VirtKeyboard(object):
         s = ''
         for y in range(y1, min(y2 + 1, self.height)):
             for x in range(x1, min(x2 + 1, self.width)):
-                if self.pixar[x, y] == self.color:
+                if self.check_color(self.pixar[x, y]):
                     s += "."
                 else:
                     s += " "
