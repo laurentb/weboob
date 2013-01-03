@@ -87,12 +87,12 @@ class TransactionsPage(BasePage):
             t = Transaction(0)
             raw = div.xpath('.//div[@class="row-lib"]')[0].text
             date = div.xpath('.//span')[0].text.strip()
-            m = re.match('(\d+) ([^ ]+)( \d+)?$', date)
+            m = re.match('(\d+)(er)? ([^ ]+)( \d+)?$', date)
             if m:
                 dd = int(m.group(1))
-                mm = self.months.index(m.group(2)) + 1
-                if m.group(3) is not None:
-                    yy = int(m.group(3))
+                mm = self.months.index(m.group(3)) + 1
+                if m.group(4) is not None:
+                    yy = int(m.group(4))
                 else:
 
                     d = datetime.date.today()
@@ -102,8 +102,6 @@ class TransactionsPage(BasePage):
                         d = d.replace(year=d.year-1, month=mm, day=dd)
 
                     yy = d.year
-                    if d > datetime.date.today():
-                        yy -= 1
 
                 date = datetime.date(yy, mm, dd)
 
