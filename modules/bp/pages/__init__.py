@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate
+from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate, UnavailablePage
 from .accountlist import AccountList
 from .accounthistory import AccountHistory
 from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 
 __all__ = ['LoginPage','Initident', 'CheckPassword', 'repositionnerCheminCourant', "AccountList", 'AccountHistory', 'BadLoginPage',
-           'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary']
+           'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary', 'UnavailablePage']

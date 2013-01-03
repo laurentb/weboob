@@ -24,7 +24,7 @@ from datetime import datetime
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
-                   AccountList, AccountHistory, \
+                   AccountList, AccountHistory, UnavailablePage, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 from weboob.capabilities.bank import Transfer
@@ -56,6 +56,7 @@ class BPBrowser(BaseBrowser):
 
              r'.*ost/messages\.CVS\.html\?param=0x132120c8.*'                            : BadLoginPage,
              r'.*ost/messages\.CVS\.html\?param=0x132120cb.*'                            : AccountDesactivate,
+             r'https?://.*.labanquepostale.fr/delestage.html'                            : UnavailablePage,
              }
 
     def __init__(self, *args, **kwargs):

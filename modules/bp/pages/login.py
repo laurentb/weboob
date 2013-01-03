@@ -20,15 +20,19 @@
 
 import hashlib
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 
-__all__ = ['LoginPage', 'BadLoginPage', 'AccountDesactivate', 'Initident', 'CheckPassword', 'repositionnerCheminCourant']
+__all__ = ['LoginPage', 'BadLoginPage', 'AccountDesactivate', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', 'UnavailablePage']
 
 
 def md5(f):
     md5 = hashlib.md5()
     md5.update(f.read())
     return md5.hexdigest()
+
+class UnavailablePage(BasePage):
+    def on_loaded(self):
+        raise BrowserUnavailable()
 
 
 class LoginPage(BasePage):
