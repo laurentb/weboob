@@ -104,6 +104,9 @@ class TransactionsPage(BasePage):
                     yy = d.year
 
                 date = datetime.date(yy, mm, dd)
+            else:
+                self.logger.error('Unable to parse date %r' % date)
+                continue
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.amount = Decimal(div.xpath('.//span')[-1].text.strip().replace(' ', '').replace(',', ''))
