@@ -166,6 +166,7 @@ class AccountHistory(BasePage):
 
 
     def _iter_transactions(self, doc, coming):
+        t = None
         for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):
             try:
                 raw = tr.attrib['title'].strip()
@@ -177,7 +178,8 @@ class AccountHistory(BasePage):
                 m = re.search('(\d+)/(\d+)', raw)
                 if not m:
                     continue
-                date = t.date.replace(day=int(m.group(1)), month=int(m.group(2)))
+                date = t.date if t else datetime.date.today()
+                date = date.replace(day=int(m.group(1)), month=int(m.group(2)))
                 if date <= datetime.date.today():
                     coming = False
                 continue
