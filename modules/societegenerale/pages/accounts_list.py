@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 from urlparse import parse_qs, urlparse
 from lxml.etree import XML
 from cStringIO import StringIO
@@ -166,15 +167,21 @@ class AccountHistory(BasePage):
 
     def _iter_transactions(self, doc, coming):
         for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):
-            date = tr.xpath('./td[@headers="Date"]')[0].text.strip()
-            if date == '':
-                coming = False
-                continue
-
             try:
                 raw = tr.attrib['title'].strip()
             except KeyError:
                 raw = tr.xpath('./td[@headers="Libelle"]//text()')[0].strip()
+
+            date = tr.xpath('./td[@headers="Date"]')[0].text.strip()
+            if date == '':
+                m = re.search('(\d+)/(\d+)', raw)
+                if not m:
+                    continue
+                date = t.date.replace(day=int(m.group(1)), month=int(m.group(2)))
+                if date <= datetime.date.today():
+                    coming = False
+                continue
+
             t = Transaction(i)
             t.parse(date=date, raw=raw)
             t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
