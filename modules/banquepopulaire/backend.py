@@ -56,7 +56,7 @@ class BanquePopulaireBackend(BaseBackend, ICapBank):
         'www.ibps.rivesparis.banquepopulaire.fr': u'Rives de Paris',
         'www.ibps.sud.banquepopulaire.fr': u'Sud',
         'www.ibps.valdefrance.banquepopulaire.fr': u'Val de France',
-        }.iteritems())])
+        }.iteritems(), key=lambda (k, v): (v, k))])
     CONFIG = BackendConfig(Value('website',  label='Website to use', choices=website_choices),
                            ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password'))
