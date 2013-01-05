@@ -21,7 +21,7 @@
 import re
 
 
-__all__ = ['IParser']
+__all__ = ['IParser', 'RawParser']
 
 
 class IParser(object):
@@ -53,3 +53,10 @@ class IParser(object):
         """
         p = re.compile(r'<.*?>')
         return p.sub(' ', data).strip()
+
+class RawParser(IParser):
+    def parse(self, data, encoding=None):
+        return data.read()
+
+    def tostring(self, elem):
+        return elem

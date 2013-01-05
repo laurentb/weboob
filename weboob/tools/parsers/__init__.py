@@ -59,6 +59,12 @@ def load_json():
     from .jsonparser import JsonParser
     return JsonParser
 
+def load_raw():
+    # This parser doesn't read HTML, don't include it in the
+    # preference_order default value below.
+    from .iparser import RawParser
+    return RawParser
+
 
 def get_parser(preference_order=('lxml', 'lxmlsoup')):
     """
