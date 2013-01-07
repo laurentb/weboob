@@ -64,14 +64,14 @@ class AccountsPage(BasePage):
             account = Account()
 
             account.id = tds[self.CPT_ROW_ID].text.strip()
-            account.label = tds[self.CPT_ROW_NAME].text.strip()
+            account.label = unicode(tds[self.CPT_ROW_NAME].text.strip())
 
             account_type_str = "".join([td.text for td in tds[self.CPT_ROW_NATURE].xpath('.//td[@class="txt"]')]).strip()
 
             account.type = self.ACCOUNT_TYPES.get(account_type_str,  Account.TYPE_UNKNOWN)
 
-            account.balance = Decimal(FrenchTransaction.clean_amount(tds[self.CPT_ROW_BALANCE].find("a").text))
-            account.coming = Decimal(FrenchTransaction.clean_amount( tds[self.CPT_ROW_ENCOURS].find("a").text))
+            account.balance = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(tds[self.CPT_ROW_BALANCE])))
+            account.coming = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring( tds[self.CPT_ROW_ENCOURS])))
             account.currency = account.get_currency(tds[self.CPT_ROW_BALANCE].find("a").text)
             yield account
 
