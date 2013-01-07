@@ -141,13 +141,9 @@ class OperationsPage(BasePage):
                 operation.parse(date=tds[0].text,
                                 raw=u' '.join(parts))
 
-                if tds[-1].text is not None and len(tds[-1].text) > 2:
-                    s = tds[-1].text.strip()
-                elif tds[-2].text is not None and len(tds[-2].text) > 2:
-                    s = tds[-2].text.strip()
-                else:
-                    s = "0"
-                operation.set_amount(s.rstrip('EUR'))
+                credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
+                debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
+                operation.set_amount(credit, debit)
                 yield operation
 
     def next_page_url(self):
