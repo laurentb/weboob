@@ -46,8 +46,8 @@ class LxmlHtmlParser(IParser):
         return lxml.html.tostring(element, encoding=unicode)
 
     def tocleanstring(self, element):
-        txt = element.xpath('text()')   # ['foo ', ' bar']
-        txt = ' '.join(txt)             # 'foo   bar'
+        txt = [txt.strip() for txt in element.itertext()]
+        txt = u' '.join(txt)            # 'foo   bar'
         txt = re.sub('\s+', ' ', txt)   # 'foo bar'
         return txt.strip()
 
