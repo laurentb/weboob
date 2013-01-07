@@ -22,7 +22,7 @@ from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -32,8 +32,12 @@ __all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'Unavai
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
-        a = self.document.xpath('//a[@class="btn"]')[0]
-        self.browser.location(a.attrib['href'])
+        try:
+            a = self.document.xpath('//a[@class="btn"]')[0]
+        except KeyError:
+            raise BrowserUnavailable()
+        else:
+            self.browser.location(a.attrib['href'])
 
 class LoginPage(BasePage):
     def login(self, login, passwd):
