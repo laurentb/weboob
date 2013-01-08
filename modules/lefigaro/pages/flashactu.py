@@ -1,4 +1,4 @@
-"ArticlePage object for inrocks"
+"ArticlePage object for lefigaro"
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2011  Julien Hebert
@@ -22,7 +22,7 @@ from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
 
 
 class FlashActuPage(GenericNewsPage):
-    "ArticlePage object for inrocks"
+    "ArticlePage object for lefigaro"
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector     = "h1"
