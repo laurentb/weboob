@@ -59,7 +59,11 @@ class Freemobile(BaseBrowser):
         if not self.is_on_page(HomePage):
             self.location('/moncompte/index.php?page=home')
 
-        return self.page.get_list()
+        subscriptions = self.page.get_list()
+        self.location('/moncompte/index.php?page=suiviconso')
+        for subscription in subscriptions:
+            subscription.renewdate = self.page.get_renew_date(subscription)
+            yield subscription
 
     def get_subscription(self, id):
         assert isinstance(id, basestring)

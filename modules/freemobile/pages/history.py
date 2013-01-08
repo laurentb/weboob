@@ -48,6 +48,7 @@ class DetailsPage(BasePage):
             virtualnumber = div.attrib['onclick'].split('(')[1][1]
             self.details['num' + str(phonenumber)] = virtualnumber
 
+
         for div in self.document.xpath('//div[@class="infosConso"]'):
             num = div.attrib['id'].split('_')[1][0]
             self.details[num] = []
@@ -122,6 +123,17 @@ class DetailsPage(BasePage):
 
     def date_bills(self):
         return self.datebills
+
+    def get_renew_date(self, subscription):
+        div = self.document.xpath('//div[@class="resumeConso"]')[0]
+        mydate = div.xpath('span[@class="actif"]')[0].text
+        mydate = date(*reversed([int(x) for x in mydate.split("/")]))
+        if mydate.month == 12:
+            mydate = mydate.replace(month = 1)
+            mydate = mydate.replace(year= mydate.year + 1)
+        else:
+            mydate = mydate.replace(month = mydate.month + 1)
+        return mydate
 
 
 def _get_date(detail):
