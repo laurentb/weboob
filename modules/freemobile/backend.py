@@ -70,7 +70,6 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             for history in self.browser.get_history(subscription):
                 yield history
 
-
     def get_bill(self, id):
         with self.browser:
             bill = self.browser.get_bill(id)
@@ -78,7 +77,6 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             return bill
         else:
             raise BillNotFound()
-
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):
@@ -88,7 +86,6 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             for bill in self.browser.iter_bills(subscription.id):
                 yield bill
 
-
     def get_details(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
@@ -96,7 +93,6 @@ class FreeMobileBackend(BaseBackend, ICapBill):
         with self.browser:
             for detail in self.browser.get_details(subscription):
                 yield detail
-
 
     def download_bill(self, bill):
         if not isinstance(bill, Bill):
