@@ -71,6 +71,8 @@ class Subscription(CapBaseObject):
     """
     label =         StringField('label of subscription')
     subscriber =    StringField('whe has subscribed')
+    validity =      DateField('End validity date of the subscription')
+    renewdate =     DateField('Reset date of consumption')
 
 class ICapBill(ICapCollection):
     def iter_resources(self, objs, split_path):
