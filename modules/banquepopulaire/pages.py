@@ -34,7 +34,7 @@ class UnavailablePage(BasePage):
     def on_loaded(self):
         try:
             a = self.document.xpath('//a[@class="btn"]')[0]
-        except KeyError:
+        except IndexError:
             raise BrowserUnavailable()
         else:
             self.browser.location(a.attrib['href'])
