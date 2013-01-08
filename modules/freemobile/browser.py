@@ -67,7 +67,7 @@ class Freemobile(BaseBrowser):
         if not self.is_on_page(HomePage):
             self.location('/moncompte/index.php?page=home')
 
-        for a in self.page.get_list():
+        for a in self.get_subscription_list():
             if a.id == id:
                 return a
 
