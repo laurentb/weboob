@@ -33,6 +33,8 @@ class SubscriptionsFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'label')
 
     def get_title(self, obj):
+        if obj.renewdate:
+            return u"%s - %s" % (obj.label, obj.renewdate.strftime('%d/%m/%y'))
         return obj.label
 
 
