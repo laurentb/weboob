@@ -19,7 +19,7 @@
 
 from weboob.capabilities.bill import Subscription
 from weboob.tools.browser import BasePage
-
+from datetime import date
 
 __all__ = ['HomePage']
 
@@ -43,8 +43,10 @@ class HomePage(BasePage):
         self.browser.logger.debug('Found ' + phoneplan + ' has subscription type')
 
         subscription = Subscription(phone)
-        subscription.label = unicode(phone + u' - ' + credit + u' - ' + expiredate + u' - ' + phoneplan)
+        subscription.label = unicode(phone + u' - ' + credit + u' - ' + phoneplan)
         subscription.subscriber = owner
+        expiredate = date(*reversed([int(x) for x in expiredate.split(".")]))
+        subscription.validity = expiredate
 
         l.append(subscription)
 
