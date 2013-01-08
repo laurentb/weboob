@@ -44,7 +44,7 @@ class HomePage(BasePage):
 
         subscription = Subscription(phone)
         subscription.label = unicode(phone + u' - ' + credit + u' - ' + phoneplan)
-        subscription.subscriber = owner
+        subscription.subscriber = unicode(owner)
         expiredate = date(*reversed([int(x) for x in expiredate.split(".")]))
         subscription.validity = expiredate
 
