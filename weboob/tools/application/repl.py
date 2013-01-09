@@ -916,13 +916,17 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def do_ls(self, line):
         """
-        ls [PATH]
+        ls [-d] [PATH]
 
         List objects in current path.
         If an argument is given, list the specified path.
         """
-
-        path = line.strip()
+        if line.strip().partition(' ')[0] == '-d':
+            path = None
+            only = line.strip().partition(' ')[2]
+        else:
+            path = line.strip()
+            only = False
 
         if path:
             # We have an argument, let's ch to the directory before the ls
@@ -933,18 +937,20 @@ class ReplApplication(Cmd, ConsoleApplication):
         self.start_format()
         self.objects = []
         for obj in objects:
-            if isinstance(obj, CapBaseObject):
-                self.cached_format(obj)
-            else:
-                print obj
+            if only is False or not hasattr(obj, 'id') or obj.id in only:
+                if isinstance(obj, CapBaseObject):
+                    self.cached_format(obj)
+                else:
+                    print obj
 
         for collection in collections:
-            if collection.basename and collection.title:
-                print u'%s~ (%s) %s (%s)%s' % \
-                (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
-            else:
-                print u'%s~ (%s) (%s)%s' % \
-                (self.BOLD, collection.basename, collection.backend, self.NC)
+            if only is False or collection.basename in only:
+                if collection.basename and collection.title:
+                    print u'%s~ (%s) %s (%s)%s' % \
+                    (self.BOLD, collection.basename, collection.title, collection.backend, self.NC)
+                else:
+                    print u'%s~ (%s) (%s)%s' % \
+                    (self.BOLD, collection.basename, collection.backend, self.NC)
 
         if path:
             # Let's go back to the parent directory
