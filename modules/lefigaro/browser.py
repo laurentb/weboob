@@ -20,7 +20,6 @@
 
 from .pages.article import ArticlePage
 from .pages.flashactu import FlashActuPage
-from .pages.special import SpecialPage
 from weboob.tools.browser import BaseBrowser, BasePage
 
 class IndexPage(BasePage):
