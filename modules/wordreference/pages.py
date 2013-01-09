@@ -28,5 +28,7 @@ class TranslatePage(BasePage):
     def get_translation(self):
       for tr in self.document.getiterator('tr'):
         if tr.attrib.get('class','') == 'odd' or tr.attrib.get('class','') == 'even':
-          return u''+tr.getchildren()[0].getchildren()[0].text
+            for td in tr.getiterator('td'):
+                if td.attrib.get('class','') == 'ToWrd':
+                    return u''+td.text
 
