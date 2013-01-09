@@ -58,15 +58,16 @@ class BaseVideoPage(BasePage):
 
     def get_url(self):
         qs = parse_qs(self.document.getroot().cssselect('param[name="flashvars"]')[0].attrib['value'])
-        s = self.browser.readurl('http://boutique.ina.fr/player/infovideo/id_notice/%s' % qs['id_notice'][0])
+        s = self.browser.readurl('http://www.ina.fr/player/infovideo/id_notice/%s/module_request/%s' % (qs['id_notice'][0], qs['module'][0]))
         s = s[s.find('<Media>')+7:s.find('</Media>')]
-        return u'%s/pkey/%s' % (s, qs['pkey'][0])
+        return u'%s/id_chaine/%s/module_request/%s/pkey/%s' % \
+            (s, qs['id_chaine'][0], qs['module'][0], qs['pkey'][0])
 
     def parse_date_and_duration(self, text):
         duration_regexp = re.compile('(.* - )?(.+) - ((.+)h)?((.+)min)?(.+)s')
         m = duration_regexp.match(text)
         if m:
-            day, month, year = [int(s) for s in m.group(2).split('/')]
+            day, month, year = [abs(int(s)) for s in m.group(2).split('/')]
             date = datetime.datetime(year, month, day)
             duration = datetime.timedelta(hours=int(m.group(4) if m.group(4) is not None else 0),
                                           minutes=int(m.group(6) if m.group(6) is not None else 0),
@@ -99,11 +100,13 @@ class VideoPage(BaseVideoPage):
         return self.parse_date_and_duration(qr.find('h2').tail.strip())
 
     def get_title(self):
-        qr = self.parser.select(self.document.getroot(), 'div.container-global-qr')[0].find('div').findall('div')[1]
-        return unicode(qr.find('h2').text.strip())
+        qr = self.parser.select(self.document.getroot(), 'div.container-global-qr')[0]
+        return unicode(qr.cssselect('h2.titre-propre')[0].text.strip())
 
     def get_description(self):
-        return unicode(self.parser.select(self.document.getroot(), 'div.container-global-qr')[1].find('div').find('p').text.strip())
+        desc = self.parser.select(self.document.getroot(), 'div.container-global-qr')[1].find('div').find('p')
+        if desc:
+            return unicode(desc.text.strip())
 
 
 class BoutiqueVideoPage(BaseVideoPage):
