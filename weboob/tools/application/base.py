@@ -151,6 +151,7 @@ class BaseApplication(object):
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
+        logging_options.add_option('-I', '--insecure', action='store_true', help='do not validate SSL')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
 
@@ -304,6 +305,9 @@ class BaseApplication(object):
             level = logging.ERROR
         else:
             level = logging.WARNING
+        if self.options.insecure:
+            from weboob.tools.browser import StandardBrowser
+            StandardBrowser.INSECURE = True
 
         # this only matters to developers
         if not self.options.debug and not self.options.save_responses:

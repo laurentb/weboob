@@ -173,6 +173,7 @@ class StandardBrowser(mechanize.Browser):
     DEBUG_HTTP = False
     DEBUG_MECHANIZE = False
     DEFAULT_TIMEOUT = 15
+    INSECURE = False  # if True, do not validate SSL
 
     responses_dirname = None
     responses_count = 0
@@ -495,7 +496,7 @@ class BaseBrowser(StandardBrowser):
         self.username = username
         self.password = password
 
-        if self.CERTHASH is not None and self.DOMAIN is not None:
+        if not self.INSECURE and self.CERTHASH is not None and self.DOMAIN is not None:
             self.lowsslcheck(self.DOMAIN, self.CERTHASH)
 
         if self.password and get_home:
