@@ -21,14 +21,20 @@ from datetime import datetime, date, time
 from weboob.tools.browser import BasePage
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
-
+from weboob.capabilities.base import NotAvailable
 
 __all__ = ['ListPage', 'HistoryPage']
 
 
 class ListPage(BasePage):
+    alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2", \
+                  "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4", \
+                  "qua_grau.gif": u"No alarm function", "p_gruen.gif": u"", \
+                  "qua_weiss.gif": u"no data"}
     def get_rivers_list(self):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
+            div = pegel.getparent()
+            img = div.find('.//img').attrib['src'].split('/')[1]
             data = pegel.attrib['onmouseover'].strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
             gauge.name = unicode(data[0].strip("'"))
@@ -55,36 +61,37 @@ class ListPage(BasePage):
 
             try:
                 level = float(data[3])
-                levelsensor = GaugeSensor(gauge.id + "-level")
-                levelsensor.name = u"Level"
-                # TODO levelsensor.unit =
-                levelsensor.forecast = forecast
-                lastvalue = GaugeMeasure()
-                lastvalue.level = level
-                lastvalue.date = lastdate
-                # TODO lastvalue.alarm =
-                levelsensor.lastvalue = lastvalue
-                levelsensor.history = NotLoaded
-                levelsensor.gaugeid = gauge.id
-                sensors.append(levelsensor)
             except:
-                pass
+                level = NotAvailable
+            levelsensor = GaugeSensor(gauge.id + "-level")
+            levelsensor.name = u"Level"
+            levelsensor.unit = u"cm"
+            levelsensor.forecast = forecast
+            lastvalue = GaugeMeasure()
+            lastvalue.level = level
+            lastvalue.date = lastdate
+            lastvalue.alarm = self.alarmlevel[img]
+            levelsensor.lastvalue = lastvalue
+            levelsensor.history = NotLoaded
+            levelsensor.gaugeid = gauge.id
+            sensors.append(levelsensor)
+
             try:
                 flow = float(data[4])
-                flowsensor = GaugeSensor(gauge.id + "-flow")
-                flowsensor.name = u"Flow"
-                # TODO flowsensor.unit =
-                flowsensor.forecast = forecast
-                lastvalue = GaugeMeasure()
-                lastvalue.level = flow
-                lastvalue.date = lastdate
-                # TODO lastvalue.alarm =
-                flowsensor.lastvalue = lastvalue
-                flowsensor.history = NotLoaded
-                flowsensor.gaugeid = gauge.id
-                sensors.append(flowsensor)
             except:
-                pass
+                flow = NotAvailable
+            flowsensor = GaugeSensor(gauge.id + "-flow")
+            flowsensor.name = u"Flow"
+            flowsensor.unit = u"m3/s"
+            flowsensor.forecast = forecast
+            lastvalue = GaugeMeasure()
+            lastvalue.level = flow
+            lastvalue.date = lastdate
+            lastvalue.alarm = self.alarmlevel[img]
+            flowsensor.lastvalue = lastvalue
+            flowsensor.history = NotLoaded
+            flowsensor.gaugeid = gauge.id
+            sensors.append(flowsensor)
 
             gauge.sensors = sensors
 
