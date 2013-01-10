@@ -187,3 +187,17 @@ class WetBoobs(ReplApplication):
         for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
         self.flush()
+
+    def do_sensors(self, line):
+        """
+        sensors GAUGE_ID
+
+        Iter sensors of a gauge.
+        """
+        gauge, = self.parse_command_args(line, 1, 1)
+        _id, backend_name = self.parse_id(gauge)
+
+        self.start_format()
+        for backend, sensor in self.do('iter_sensors', _id, backends=backend_name, caps=ICapGauge):
+            self.format(sensor)
+        self.flush()
