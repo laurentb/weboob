@@ -28,12 +28,16 @@ class VirtKeyboardError(Exception):
 
 
 class VirtKeyboard(object):
-    def __init__(self, file, coords, color):
+    def __init__(self, file, coords, color, convert=None):
         # file: virtual keyboard image
         # coords: dictionary <value to return>:<tuple(x1,y1,x2,y2)>
         # color: color of the symbols in the image
         #        depending on the image, it can be a single value or a tuple
+        # convert: if not None, convert image to this target type (for example 'RGB')
         img = Image.open(file)
+
+        if convert is not None:
+            img = img.convert(convert)
 
         self.bands = img.getbands()
         if isinstance(color, int) and not isinstance(self.bands, str) and len(self.bands) != 1:
@@ -128,7 +132,7 @@ class VirtKeyboard(object):
 
 
 class MappedVirtKeyboard(VirtKeyboard):
-    def __init__(self, file, document, img_element, color, map_attr="onclick"):
+    def __init__(self, file, document, img_element, color, map_attr="onclick", convert=None):
         map_id = img_element.attrib.get("usemap")[1:]
         map = document.find("//map[@id='" + map_id + "']")
         if map is None:
@@ -142,4 +146,4 @@ class MappedVirtKeyboard(VirtKeyboard):
                 area_coords.append(int(coord))
             coords[code] = tuple(area_coords)
 
-        VirtKeyboard.__init__(self, file, coords, color)
+        VirtKeyboard.__init__(self, file, coords, color, convert)
