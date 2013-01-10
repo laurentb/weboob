@@ -145,6 +145,7 @@ class BaseApplication(object):
         if len(app_options.option_list) > 0:
             self._parser.add_option_group(app_options)
         self._parser.add_option('-b', '--backends', help='what backend(s) to enable (comma separated)')
+        self._parser.add_option('-e', '--exclude-backends', help='what backend(s) to exclude (comma separated)')
         logging_options = OptionGroup(self._parser, 'Logging Options')
         logging_options.add_option('-d', '--debug', action='store_true', help='display debug messages')
         logging_options.add_option('-q', '--quiet', action='store_true', help='display only error messages')
@@ -214,10 +215,12 @@ class BaseApplication(object):
         """
         raise NotImplementedError()
 
-    def load_backends(self, caps=None, names=None, *args, **kwargs):
+    def load_backends(self, caps=None, names=None, exclude=None, *args, **kwargs):
         if names is None and self.options.backends:
             names = self.options.backends.split(',')
-        loaded = self.weboob.load_backends(caps, names, *args, **kwargs)
+        if exclude is None and self.options.exclude_backends:
+            exclude = self.options.exclude_backends.split(',')
+        loaded = self.weboob.load_backends(caps, names, exclude=exclude, *args, **kwargs)
         if not loaded:
             logging.info(u'No backend loaded')
         return loaded

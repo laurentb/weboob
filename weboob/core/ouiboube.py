@@ -171,7 +171,7 @@ class Weboob(object):
         backend_instance = module.create_instance(self, module_name, params or {}, storage)
         return backend_instance
 
-    def load_backends(self, caps=None, names=None, modules=None, storage=None, errors=None):
+    def load_backends(self, caps=None, names=None, modules=None, exclude=None, storage=None, errors=None):
         """
         Load backends listed in config file.
 
@@ -181,6 +181,8 @@ class Weboob(object):
         :type names: tuple[:class:`str`]
         :param modules: load backends which module is in list
         :type modules: tuple[:class:`str`]
+        :param exclude: do not load modules in list
+        :type exclude: tuple[:class:`str`]
         :param storage: use this storage if specified
         :type storage: :class:`weboob.tools.storage.IStorage`
         :param errors: if specified, store every errors in this list
@@ -195,7 +197,8 @@ class Weboob(object):
         for instance_name, module_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
                names is not None and instance_name not in names or \
-               modules is not None and module_name not in modules:
+               modules is not None and module_name not in modules or \
+               exclude is not None and module_name in exclude:
                 continue
 
             minfo = self.repositories.get_module_info(module_name)
