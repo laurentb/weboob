@@ -51,6 +51,8 @@ class AccountsList(BasePage):
             for td in tr.getiterator('td'):
                 if td.attrib.get('headers', '') == 'TypeCompte':
                     a = td.find('a')
+                    if a is None:
+                        continue
                     account.label = unicode(a.find("span").text)
                     account._link_id = a.get('href', '')
 
