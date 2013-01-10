@@ -66,6 +66,10 @@ my $cacheconfigfile = "$cachedir/nettokom-munin-config";
 
 my $refreshtime = $ENV{'cache_expire'} || 10800;
 my $weboob = "/usr/bin/env boobill details $id -f table";
+my @knowlabels = ("AbgehendeSMSimAusland", "AnkommendeGespr_cheimAusland",
+                  "Community", "D1", "D2", "Deutschland", "Festnetz",
+                  "FreeCall", "Mailbox", "O2", "SMS", "SMSinsAusland");
+
 my $cache_fh;
 
 sub config {
@@ -93,13 +97,30 @@ graph_category weboob
 graph_args -l 0
 EOF
 
+    my $first = 1;
+    for my $label (@knowlabels) {
+        my $shortlabel = $label;
+        if (!(grep {$_ == $shortlabel} @exclude)) {
+            doubleprint "$shortlabel.label $label\n";
+            if ($first > 0) {
+                doubleprint "$shortlabel.draw AREA\n";
+                $first = 0;
+            }
+            else {
+                doubleprint "$shortlabel.draw STACK\n";
+            }
+        }
+    }
     for my $line (@lines) {
         if ($line =~ /nettokom \| (.*) \| (\d)(.*) \| (\d).(\d)/) {
             my $label = $1;
             my $shortlabel = $label;
             $shortlabel =~ s/\s+//g;
             if (!(grep {$_ == $shortlabel} @exclude)) {
-                doubleprint "$shortlabel.label $label\n";
+                if (!(grep {$_ == $shortlabel} @knowlabels)) {
+                    doubleprint "$shortlabel.label $label\n";
+                    doubleprint "$shortlabel.draw STACK\n";
+                }
             }
         }
     }
