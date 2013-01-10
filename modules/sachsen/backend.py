@@ -21,7 +21,8 @@
 from __future__ import with_statement
 
 from .browser import SachsenBrowser
-from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
+from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge,\
+        SensorNotFound
 from weboob.tools.backend import BaseBackend
 
 
@@ -44,7 +45,8 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
         else:
             lowpattern = pattern.lower()
             for gauge in self.browser.get_rivers_list():
-                if lowpattern in gauge.name.lower() or lowpattern in gauge.object.lower():
+                if lowpattern in gauge.name.lower()\
+                    or lowpattern in gauge.object.lower():
                     yield gauge
 
     def _get_gauge_by_id(self, id):

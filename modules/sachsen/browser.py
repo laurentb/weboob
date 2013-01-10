@@ -34,17 +34,20 @@ class SachsenBrowser(BaseBrowser):
              '.*hwz/MP/.*': HistoryPage
             }
 
+    homepage = '/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html'
+
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
+        self.location(self.homepage)
 
     def get_rivers_list(self):
         if not self.is_on_page(ListPage):
-            self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/inhalt_re.html')
+            self.location(self.homepage)
         return self.page.get_rivers_list()
 
     def iter_history(self, sensor):
-        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html' % int(sensor.gaugeid))
+        self.location('/de/wu/umwelt/lfug/lfug-internet/hwz/MP/%d/index.html'
+                % int(sensor.gaugeid))
         return self.page.iter_history(sensor)

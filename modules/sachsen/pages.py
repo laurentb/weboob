@@ -27,24 +27,28 @@ __all__ = ['ListPage', 'HistoryPage']
 
 
 class ListPage(BasePage):
-    alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2", \
-                  "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4", \
-                  "qua_grau.gif": u"No alarm function", "p_gruen.gif": u"", \
+    alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2",
+                  "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4",
+                  "qua_grau.gif": u"No alarm function", "p_gruen.gif": u"",
                   "qua_weiss.gif": u"no data"}
+
     def get_rivers_list(self):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
             div = pegel.getparent()
             img = div.find('.//img').attrib['src'].split('/')[1]
-            data = pegel.attrib['onmouseover'].strip('pegelein(').strip(')').replace(",'", ",").split("',")
+            data = pegel.attrib['onmouseover']\
+                    .strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
             gauge.name = unicode(data[0].strip("'"))
-            gauge.city = gauge.name.split(' ')[0]  # TODO: real regexp to remove the number
+            gauge.city = gauge.name.split(' ')[0]
             gauge.object = unicode(data[1])
 
             sensors = []
             try:
-                lastdate = date(*reversed([int(x) for x in data[2].split(' ')[0].split(".")]))
-                lasttime = time(*[int(x) for x in data[2].split(' ')[1].split(":")])
+                lastdate = date(*reversed([int(x)
+                    for x in data[2].split(' ')[0].split(".")]))
+                lasttime = time(*[int(x)
+                    for x in data[2].split(' ')[1].split(":")])
                 lastdate = datetime.combine(lastdate, lasttime)
             except:
                 lastdate = NotAvailable
@@ -106,8 +110,10 @@ class HistoryPage(BasePage):
         lines.pop(0)  # remove first value (already in lastvalue)
         for line in lines:
             history = GaugeMeasure()
-            leveldate = date(*reversed([int(x) for x in line[0].text_content().split(' ')[0].split(".")]))
-            leveltime = time(*[int(x) for x in line[0].text_content().split(' ')[1].split(":")])
+            leveldate = date(*reversed([int(x)
+                for x in line[0].text_content().split(' ')[0].split(".")]))
+            leveltime = time(*[int(x)
+                for x in line[0].text_content().split(' ')[1].split(":")])
             history.date = datetime.combine(leveldate, leveltime)
 
             if sensor.name == u"Level":
