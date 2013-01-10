@@ -51,6 +51,12 @@ class GaugeMeasure(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, None)
 
+    def __repr__(self):
+        if self.level:
+            return "<GaugeMeasure level=%f alarm=%s>" % (self.level, self.alarm)
+        else:
+            return "<GaugeMeasure NotAvailable>"
+
 
 class GaugeSensor(CapBaseObject):
     """
