@@ -198,7 +198,7 @@ class CmbBackend(BaseBackend, ICapBank):
                 account._cmbtype = m.group(3)
 
 
-                balance = td[2].text
+                balance = u''.join([txt.strip() for txt in td[2].itertext()])
                 balance = balance.replace(',', '.').replace(u"\xa0", '')
                 account.balance = Decimal(balance)
 
