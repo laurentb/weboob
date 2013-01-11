@@ -26,7 +26,7 @@ class ArticlePage(GenericNewsPage):
     def on_loaded(self):
         self.main_div = self.document.getroot()
         self.element_title_selector = "h1"
-        self.element_author_selector    = "div.name>span"
+        self.element_author_selector    = "span.auteur>a, span.auteur_long>div"
         self.element_body_selector      = "#article, div.article"
 
     def get_body(self):
@@ -66,5 +66,19 @@ class ArticlePage(GenericNewsPage):
         txts = element_body.find_class("texte")
         if len(txts) > 0:
             txts[0].drop_tag()
+        element_body.tag = "div"
+        return self.parser.tostring(element_body)
+
+
+class ActuPage(GenericNewsPage):
+    def on_loaded(self):
+        self.main_div = self.document.getroot()
+        self.element_title_selector     = "h2"
+        self.element_author_selector    = "div.name>span"
+        self.element_body_selector      = ".block-text"
+
+    def get_body(self):
+        element_body = self.get_element_body()
+        try_remove_from_selector_list(self.parser, element_body, ['div'])
         element_body.tag = "div"
         return self.parser.tostring(element_body)

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import ArticlePage
+from .pages.article import ArticlePage, ActuPage
 from .pages.flashactu import FlashActuPage
 from weboob.tools.browser import BaseBrowser, BasePage
 
@@ -33,6 +33,7 @@ class NewspaperFigaroBrowser(BaseBrowser):
              "http://\w+.lefigaro.fr/flash-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://\w+.lefigaro.fr/bd/(\d{4})/(\d{2})/(\d{2})/(.*$)": FlashActuPage,
              "http://\w+.lefigaro.fr/(?!flash-|bd|actualite).+/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
+             "http://\w+.lefigaro.fr/actualite/(\d{4})/(\d{2})/(\d{2})/(.*$)": ActuPage,
              "http://\w+.lefigaro.fr/actualite-.*/(\d{4})/(\d{2})/(\d{2})/(.*$)": ArticlePage,
              "http://\w+.lefigaro.fr/": IndexPage,
             }
