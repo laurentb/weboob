@@ -103,9 +103,13 @@ class Barclays(BaseBrowser):
 
         assert self.is_on_page((TransactionsPage, ValuationPage, LoanPage))
 
-        return self.page.get_history()
+        for tr in self.page.get_history():
+            yield tr
 
-    def get_coming_operations(self, account):
+        for tr in self.get_card_operations(account):
+            yield tr
+
+    def get_card_operations(self, account):
         for card in account._card_links:
             if not self.is_on_page(AccountsPage):
                 self.location('tbord.do')

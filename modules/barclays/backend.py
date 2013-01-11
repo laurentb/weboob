@@ -60,8 +60,12 @@ class BarclaysBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            return self.browser.get_history(account)
+            for tr in self.browser.get_history(account):
+                if not tr._coming:
+                    yield tr
 
     def iter_coming(self, account):
         with self.browser:
-            return self.browser.get_coming_operations(account)
+            for tr in self.browser.get_card_operations(account):
+                if tr._coming:
+                    yield tr

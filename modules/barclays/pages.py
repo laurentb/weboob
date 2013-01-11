@@ -142,6 +142,7 @@ class TransactionsPage(BasePage):
             credit = u''.join([txt.strip() for txt in tds[-2].itertext()])
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
+            t._coming = False
 
             if t.raw.startswith('ACHAT CARTE -DEBIT DIFFERE'):
                 continue
@@ -152,6 +153,7 @@ class TransactionsPage(BasePage):
 class CardPage(BasePage):
     def get_history(self):
         debit_date = None
+        coming = True
         for tr in self.document.xpath('//table[@class="report"]/tbody/tr'):
             tds = tr.findall('td')
 
@@ -159,6 +161,8 @@ class CardPage(BasePage):
                 # headers
                 m = re.match('.* (\d+)/(\d+)/(\d+)', tds[0].text.strip())
                 debit_date = datetime.date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+                if debit_date < datetime.date.today():
+                    coming = False
 
             if len(tds) != 3:
                 continue
@@ -172,6 +176,7 @@ class CardPage(BasePage):
                 t.date = debit_date
             t.label = unicode(tds[1].find('span').text.strip())
             t.type = t.TYPE_CARD
+            t._coming = coming
             t.set_amount(amount)
             yield t
 
