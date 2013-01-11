@@ -90,10 +90,13 @@ theo <theocrite@theocrite.org>
         * Ergonomics enhancements.
 
 Alexandre Flament <alex@al-f.net>
-        * Script contrib/downloadboob
+        * Script contrib/downloadboob.
 
 BohwaZ <bohwaz@bohwaz.net>
-        * Script contrib/report_accounts.sh
+        * Script contrib/report_accounts.sh.
+
+Grmbl Frechneu <gloupagloups@hotmail.fr>
+        * Anonymizer script.
 
 Laurent Dufréchou <laurent.dufrechou@gmail.com>
         * Windows support.
