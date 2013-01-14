@@ -20,7 +20,11 @@
 
 from __future__ import with_statement
 
-from dateutil import tz
+try:
+    from dateutil import tz
+except ImportError:
+    raise ImportError('Please install python-dateutil')
+
 from logging import warning
 from time import time, sleep
 from tempfile import gettempdir

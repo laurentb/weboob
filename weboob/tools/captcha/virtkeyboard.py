@@ -19,7 +19,11 @@
 
 
 import hashlib
-import Image
+
+try:
+    import Image
+except ImportError:
+    raise ImportError('Please install python-imaging')
 
 
 class VirtKeyboardError(Exception):

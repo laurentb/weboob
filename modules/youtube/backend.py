@@ -20,8 +20,12 @@
 
 from __future__ import with_statement
 
+try:
+    import gdata.youtube.service
+except ImportError:
+    raise ImportError("Please install python-gdata")
+
 import datetime
-import gdata.youtube.service
 import re
 import urllib
 

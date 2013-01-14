@@ -19,7 +19,11 @@
 
 
 import time
-import Image
+
+try:
+    import Image
+except ImportError:
+    raise ImportError('Please install python-imaging')
 
 from weboob.tools.browser import BasePage
 

@@ -22,7 +22,12 @@ from __future__ import with_statement
 from copy import copy
 from httplib import BadStatusLine
 from logging import warning
-import mechanize
+
+try:
+    import mechanize
+except ImportError:
+    raise ImportError('Please install python-mechanize')
+
 import os
 import sys
 import re

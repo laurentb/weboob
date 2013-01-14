@@ -20,7 +20,11 @@
 
 import hashlib
 import sys
-import Image
+
+try:
+    import Image
+except ImportError:
+    raise ImportError('Please install python-imaging')
 
 class CaptchaError(Exception): pass
 
