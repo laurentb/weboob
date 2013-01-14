@@ -29,7 +29,7 @@ __all__ = ['Module', 'ModulesLoader', 'ModuleLoadError']
 
 class ModuleLoadError(Exception):
     def __init__(self, module_name, msg):
-        Exception.__init__(self, u'Unable to load module "%s": %s' % (module_name, msg))
+        Exception.__init__(self, msg)
         self.module = module_name
 
 class Module(object):

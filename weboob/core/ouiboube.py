@@ -217,7 +217,7 @@ class Weboob(object):
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
             except ModuleLoadError, e:
-                self.logger.error(e)
+                self.logger.error(u'Unable to load module "%s": %s' % (module_name, e))
                 continue
 
             if instance_name in self.backend_instances:
