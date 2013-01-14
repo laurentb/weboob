@@ -63,7 +63,7 @@ class HSBC(BaseBrowser):
         self._session = m.group(1)
 
         data = {'Secret': self.password}
-        r = self.readurl('https://client.hsbc.fr/cgi-bin/emcgi?sessionid=%s' % self._session, urllib.urlencode(data))
+        r = self.readurl('https://client.hsbc.fr/cgi-bin/emcgi?sessionid=%s' % self._session, urllib.urlencode(data), if_fail='raise')
         if r.find('Erreur Identification') >= 0:
             raise BrowserIncorrectPassword()
 
