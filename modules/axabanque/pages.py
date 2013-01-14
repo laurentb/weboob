@@ -121,6 +121,15 @@ class AccountsPage(BasePage):
 
             args = self.js2args(link.attrib['onclick'])
 
+            self.logger.debug('Args: %r' % args)
+            if not 'paramNumCompte' in args:
+                try:
+                    label = unicode(table.xpath('./caption')[0].text.strip())
+                except Exception:
+                    label = 'Unable to determine'
+                self.logger.warning('Unable to get account ID for %r' % label)
+                continue
+
             account.id = args['paramNumCompte']
             account.label = unicode(table.xpath('./caption')[0].text.strip())
 
