@@ -88,8 +88,13 @@ class MediaPlayer(object):
         """
         Play media.url with the media player.
         """
-        print 'Invoking "%s %s".' % (player_name, media.url)
-        os.spawnlp(os.P_WAIT, player_name, player_name, media.url)
+        args = player_name.split(' ')
+
+        player_name = args[0]
+        args.append(media.url)
+
+        print 'Invoking "%s".' % (' '.join(args))
+        os.spawnlp(os.P_WAIT, player_name, *args)
 
     def _play_rtmp(self, media, player_name, args):
         """
@@ -124,11 +129,14 @@ class MediaPlayer(object):
 
         assert args is not None
 
+        player_name = player_name.split(' ')
+        args = args.split(' ')
+
         print ':: Streaming from %s' % media_url
         print ':: to %s %s' % (player_name, args)
         print ':: %s' % rtmp
         p1 = Popen(rtmp.split(), stdout=PIPE)
-        Popen([player_name, args], stdin=p1.stdout, stderr=PIPE)
+        Popen(player_name + args, stdin=p1.stdout, stderr=PIPE)
 
     def _find_in_path(self,path, filename):
         for i in path.split(':'):
