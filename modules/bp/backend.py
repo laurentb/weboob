@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound
+from weboob.capabilities.bank import ICapBank
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -43,19 +43,20 @@ class BPBackend(BaseBackend, ICapBank):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return self.browser.get_account(_id)
 
     def iter_history(self, account):
-        for history in self.browser.get_history(account):
-            yield history
+        for tr in self.browser.get_history(account):
+            if not tr._coming:
+                yield tr
+
+    def iter_coming(self, account):
+        for tr in self.browser.get_coming(account):
+            if tr._coming:
+                yield tr
 
     def transfer(self, id_from, id_to, amount, reason=None):
         from_account = self.get_account(id_from)

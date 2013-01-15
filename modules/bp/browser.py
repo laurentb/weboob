@@ -24,7 +24,7 @@ from datetime import datetime
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
 
 from .pages import LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate, \
-                   AccountList, AccountHistory, UnavailablePage, \
+                   AccountList, AccountHistory, CardsList, UnavailablePage, \
                    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary
 
 from weboob.capabilities.bank import Transfer
@@ -48,6 +48,8 @@ class BPBrowser(BaseBrowser):
 
              r'.*CCP/releves_ccp/releveCPP-releve_ccp\.ea'                               : AccountHistory,
              r'.*CNE/releveCNE/releveCNE-releve_cne\.ea'                                 : AccountHistory,
+             r'.*CB/releveCB/preparerRecherche-mouvementsCarteDD.ea.*'                   : AccountHistory,
+             r'.*CB/releveCB/init-mouvementsCarteDD.ea.*'                                : CardsList,
 
              r'.*/virementSafran_aiguillage/init-saisieComptes\.ea'                      : TransferChooseAccounts,
              r'.*/virementSafran_aiguillage/formAiguillage-saisieComptes\.ea'            : CompleteTransfer,
@@ -98,9 +100,44 @@ class BPBrowser(BaseBrowser):
         args['typeRecherche'] = 10
 
         self.location(self.buildurl(v.path, **args))
-        if not self.is_on_page(AccountHistory):
-            return iter([])
-        return self.page.get_history()
+
+        if self.is_on_page(AccountHistory):
+            for tr in self.page.get_history():
+                yield tr
+
+        for tr in self.get_coming(account):
+            yield tr
+
+    def get_coming(self, account):
+        for card in account._card_links:
+            self.location(card)
+
+            if self.is_on_page(CardsList):
+                for link in self.page.get_cards():
+                    self.location(link)
+
+                    for tr in self._iter_card_tr():
+                        yield tr
+            else:
+                for tr in self._iter_card_tr():
+                    yield tr
+
+    def _iter_card_tr(self):
+        """
+        Iter all pages until there are no transactions.
+        """
+        ops = self.page.get_history(deferred=True)
+
+        while len(ops) > 0:
+            for tr in ops:
+                yield tr
+
+            link = self.page.get_next_link()
+            if link is None:
+                return
+
+            self.location(link)
+            ops = self.page.get_history(deferred=True)
 
     def make_transfer(self, from_account, to_account, amount):
         self.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/virement/virementSafran_aiguillage/init-saisieComptes.ea')

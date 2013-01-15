@@ -24,6 +24,7 @@ from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['AccountList']
@@ -31,7 +32,7 @@ __all__ = ['AccountList']
 
 class AccountList(BasePage):
     def on_loaded(self):
-        self.account_list = []
+        self.accounts = OrderedDict()
         self.parse_table('comptes')
         self.parse_table('comptesEpargne')
         self.parse_table('comptesTitres')
@@ -39,7 +40,7 @@ class AccountList(BasePage):
         self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
-        return self.account_list
+        return self.accounts.itervalues()
 
     def parse_table(self, what):
         tables = self.document.xpath("//table[@id='%s']" % what, smart_strings=False)
@@ -66,10 +67,19 @@ class AccountList(BasePage):
             account.id = tmp_id
             account.currency = account.get_currency(tmp_balance)
             account.balance = Decimal(FrenchTransaction.clean_amount(tmp_balance))
-            self.account_list.append(account)
+
+            if account.id in self.accounts:
+                a = self.accounts[account.id]
+                a._card_links.append(account._link_id)
+                if not a.coming:
+                    a.coming = Decimal('0.0')
+                a.coming += account.balance
+            else:
+                account._card_links = []
+                self.accounts[account.id] = account
 
     def get_account(self, id):
-        for account in self.account_list:
-            if account.id == id:
-                return account
-        raise AccountNotFound('Unable to find account: %s' % id)
+        try:
+            return self.accounts[id]
+        except KeyError:
+            raise AccountNotFound('Unable to find account: %s' % id)

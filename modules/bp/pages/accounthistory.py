@@ -18,13 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 import re
 
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['AccountHistory']
+__all__ = ['AccountHistory', 'CardsList']
 
 
 class Transaction(FrenchTransaction):
@@ -47,16 +48,38 @@ class Transaction(FrenchTransaction):
                ]
 
 class AccountHistory(BasePage):
-    def get_history(self):
+    def get_next_link(self):
+        for a in self.document.xpath('//a[@class="btn_crt"]'):
+            txt = u''.join([txt.strip() for txt in a.itertext()])
+            if u'mois précédent' in txt:
+                return a.attrib['href']
+
+    def get_history(self, deferred=False):
+        """
+        deffered is True when we are on a card page.
+        """
         mvt_table = self.document.xpath("//table[@id='mouvements']", smart_strings=False)[0]
         mvt_ligne = mvt_table.xpath("./tbody/tr")
 
         operations = []
 
+        if deferred:
+            # look for the debit date, and if it is already debited
+            txt = u''.join([txt.strip() for txt in self.document.xpath('//div[@class="infosynthese"]')[0].itertext()])
+            m = re.search('(\d+)/(\d+)/(\d+)', txt)
+            if m:
+                debit_date = datetime.date(*map(int, reversed(m.groups())))
+            coming = 'En cours' in txt
+        else:
+            coming = False
+
         for mvt in mvt_ligne:
             op = Transaction(len(operations))
             op.parse(date=mvt.xpath("./td/span")[0].text.strip(),
                      raw=unicode(self.parser.tocleanstring(mvt.xpath('./td/span')[1]).strip()))
+
+            if op.label.startswith('DEBIT CARTE BANCAIRE DIFFERE'):
+                continue
 
             r = re.compile(r'\d+')
 
@@ -70,5 +93,22 @@ class AccountHistory(BasePage):
 
             op.set_amount(amount)
 
+            if deferred:
+                op.rdate = op.date
+                op.date = debit_date
+                # on card page, amounts are without sign
+                if op.amount > 0:
+                    op.amount = - op.amount
+
+            op._coming = coming
+
             operations.append(op)
         return operations
+
+class CardsList(BasePage):
+    def get_cards(self):
+        cards = []
+        for tr in self.document.xpath('//table[@class="dataNum"]/tbody/tr'):
+            cards.append(tr.xpath('.//a')[0].attrib['href'])
+
+        return cards
