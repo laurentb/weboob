@@ -128,7 +128,7 @@ class BPBrowser(BaseBrowser):
         """
         ops = self.page.get_history(deferred=True)
 
-        while len(ops) > 0:
+        while 1:
             for tr in ops:
                 yield tr
 
