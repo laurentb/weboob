@@ -130,7 +130,8 @@ class CICBrowser(BaseBrowser):
             # useful with 12 -> 1
             if int(args['mois']) < month:
                 month = month + 1
-            month = int(args['mois'])
+            else:
+                month = int(args['mois'])
 
             for tr in self.list_operations(card_link):
                 if month > last_debit:

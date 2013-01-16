@@ -154,7 +154,7 @@ class CardPage(OperationsPage):
     def get_history(self):
         index = 0
         for tr in self.document.xpath('//table[@class="liste"]/tbody/tr'):
-            tds = tr.findall('td')
+            tds = tr.findall('td')[:4]
             if len(tds) < 4:
                 continue
 
@@ -166,7 +166,7 @@ class CardPage(OperationsPage):
                      raw=u' '.join(parts))
             tr.type = tr.TYPE_CARD
 
-            tr.set_amount(tds[-1].text.rstrip('EUR'))
+            tr.set_amount(tds[-1].text)
             yield tr
 
 class NoOperationsPage(OperationsPage):
