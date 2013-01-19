@@ -138,5 +138,5 @@ class LoginPage2(BasePage):
         self.browser.submit(nologin=True)
 
 class StopPage(BasePage):
-    def error(self):
-        return True
+    def on_loaded(self):
+        raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
