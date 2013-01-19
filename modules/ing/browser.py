@@ -22,7 +22,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
 from .pages import AccountsList, LoginPage, LoginPage2, \
                    AccountHistory, TransferPage, TransferConfirmPage, \
-                   BillsPage
+                   BillsPage, StopPage
 
 
 __all__ = ['Ing']
@@ -43,7 +43,8 @@ class Ing(BaseBrowser):
              '.*onHoldTransferManagement.jsf': TransferPage,
              '.*DisplayDoTransferCommand.*':   TransferPage,
              '.*transferCreateValidation.jsf': TransferConfirmPage,
-             '.*eStatement.jsf':               BillsPage
+             '.*eStatement.jsf':               BillsPage,
+             '.*displayCoordonneesCommand.*':  StopPage,
             }
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 

@@ -26,7 +26,7 @@ from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 import tempfile
 
 
-__all__ = ['LoginPage', 'LoginPage2', 'INGVirtKeyboard']
+__all__ = ['LoginPage', 'LoginPage2', 'INGVirtKeyboard', 'StopPage']
 
 
 class INGVirtKeyboard(VirtKeyboard):
@@ -136,3 +136,7 @@ class LoginPage2(BasePage):
         self.browser['mrc:mrldisplayLogin'] = vk.get_string_code(realpasswd)
         self.browser['mrc:mrg'] = 'mrc:mrg'
         self.browser.submit(nologin=True)
+
+class StopPage(BasePage):
+    def error(self):
+        return True
