@@ -47,8 +47,24 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
         self.RSS_FEED = 'http://www.presseurop.eu/%s/rss.xml' % (self.config['lang'].get())
 
     def iter_threads(self):
+        daily = []
         for article in Newsfeed(self.RSS_FEED, self.RSSID).iter_entries():
-            thread = Thread(article.link)
-            thread.title = article.title
-            thread.date = article.datetime
-            yield(thread)
+            if "/news-brief/" in article.link:
+                day = self.browser.get_daily_date(article.link)
+                if day and (day not in daily):
+                    daily.append(day)
+                    id, title, date = self.browser.get_daily_infos(day)
+                    thread = Thread(id)
+                    thread.title = title
+                    thread.date = date
+                    yield(thread)
+                elif day is None:
+                    thread = Thread(article.link)
+                    thread.title = article.title
+                    thread.date = article.datetime
+                    yield(thread)
+            else:
+                thread = Thread(article.link)
+                thread.title = article.title
+                thread.date = article.datetime
+                yield(thread)

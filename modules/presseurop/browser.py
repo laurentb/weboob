@@ -18,7 +18,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages.article import PresseuropPage, CartoonPage, DailyTitlesPage
+from datetime import date, datetime, time
+from .pages.article import PresseuropPage, CartoonPage, DailySinglePage,\
+                           DailyTitlesPage
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.ordereddict import OrderedDict
 
@@ -26,8 +28,8 @@ from weboob.tools.ordereddict import OrderedDict
 class NewspaperPresseuropBrowser(BaseBrowser):
     "NewspaperPresseuropBrowser class"
     PAGES = OrderedDict((
-             ("http://www.presseurop.eu/.*/todays-front-pages/.*", DailyTitlesPage),
-             ("http://www.presseurop.eu/.*/front-page/.*", DailyTitlesPage),
+             ("http://www.presseurop.eu/.*/news-brief/.*", DailySinglePage),
+             ("http://www.presseurop.eu/.*/today/.*", DailyTitlesPage),
              ("http://www.presseurop.eu/.*/cartoon/.*", CartoonPage),
              ("http://www.presseurop.eu/.*", PresseuropPage),
             ))
@@ -45,3 +47,17 @@ class NewspaperPresseuropBrowser(BaseBrowser):
         "return page article content"
         self.location(_id)
         return self.page.get_article(_id)
+
+    def get_daily_date(self, _id):
+        self.location(_id)
+        return self.page.get_daily_date()
+
+    def get_daily_infos(self, _id):
+        url = "http://www.presseurop.eu/fr/today/" + _id
+        self.location(url)
+        title = self.page.get_title()
+        article_date = date(*[int(x)
+            for x in _id.split('-')])
+        article_time = time(0, 0, 0)
+        article_datetime = datetime.combine(article_date, article_time)
+        return url, title, article_datetime

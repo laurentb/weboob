@@ -50,7 +50,25 @@ class DailyTitlesPage(PresseuropPage):
         self.main_div = self.document.getroot()
         self.element_title_selector = "title"
         self.element_author_selector = "div[id=content-author]>a"
-        self.element_body_selector = "ul.articlebody"
+        self.element_body_selector = "section.main"
+
+    def get_body(self):
+        element_body = self.get_element_body()
+        try_drop_tree(self.parser, element_body, "li.button-social")
+        try_drop_tree(self.parser, element_body, "aside.articlerelated")
+        try_drop_tree(self.parser, element_body, "div.sharecount")
+        clean_relativ_urls(element_body, "http://presseurop.eu")
+
+
+
+class DailySinglePage(PresseuropPage):
+    def get_daily_date(self):
+        ul = self.document.getroot().xpath("//ul[@class='carousel-skin carousel-today']")
+        if len(ul) > 0:
+            link = ul[0].xpath('li/a')[0]
+            date = link.attrib['href'].split('/')[3]
+            return date
+        return None
 
 
 class CartoonPage(PresseuropPage):
