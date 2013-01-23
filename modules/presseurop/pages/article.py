@@ -58,6 +58,7 @@ class DailyTitlesPage(PresseuropPage):
         try_drop_tree(self.parser, element_body, "aside.articlerelated")
         try_drop_tree(self.parser, element_body, "div.sharecount")
         clean_relativ_urls(element_body, "http://presseurop.eu")
+        return self.parser.tostring(element_body)
 
 
 
