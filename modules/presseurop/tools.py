@@ -29,4 +29,7 @@ def url2id(url):
 
 
 def rssid(entry):
-    return url2id(entry.link)
+    if "/today/" in entry.link:
+        return entry.link.split("#")[1]
+    else:
+        return url2id(entry.link)

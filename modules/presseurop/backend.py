@@ -52,8 +52,10 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
             if "/news-brief/" in article.link:
                 day = self.browser.get_daily_date(article.link)
                 if day and (day not in daily):
+                    localid = url2id(article.link)
                     daily.append(day)
                     id, title, date = self.browser.get_daily_infos(day)
+                    id = id + "#" + localid
                     thread = Thread(id)
                     thread.title = title
                     thread.date = date
