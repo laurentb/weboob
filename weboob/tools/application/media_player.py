@@ -28,6 +28,7 @@ __all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
 PLAYERS = (
+    ('mplayer2', '-'),
     ('mplayer', '-'),
     ('vlc',     '-'),
     ('parole',  'fd://0'),
