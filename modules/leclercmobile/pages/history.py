@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import os
 import subprocess
 import tempfile
@@ -25,6 +26,7 @@ import shutil
 from datetime import datetime, date, time
 from decimal import Decimal
 
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
 
@@ -61,22 +63,26 @@ class PdfPage():
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
         numitems = ((len(lines) + 1) / 3) - 1 # Each line has three columns, remove one element (pictures)
-        lines.insert(len(lines) - 1, '')  # Add an empty column for "Prélèvement mensuel
-        lines.pop(0)
+        lines.pop(0) # "MENSUELLE"
+        lines.pop(0) # "Votre consommation au "
         details = []
-        for i in range(numitems):
-            nature = i * 3
-            conso = nature + 1
-            price = conso + 1
-
-            detail = Detail()
-            detail.label = unicode(lines[nature], encoding='utf-8')
-            detail.infos = unicode(lines[conso], encoding='utf-8')
-            try:
-                detail.price = Decimal(lines[price].replace('€', ''))
-            except:
+        first = True
+        for line in lines:
+            if re.match('[A-Za-z]', line[0]):
+                # We have a new element, return the other one
+                if not first:
+                    details.append(detail)
+                else:
+                    first = False
+                detail = Detail()
                 detail.price = Decimal(0)
-            details.append(detail)
+                detail.infos = NotAvailable
+                detail.label = unicode(line, encoding='utf-8')
+            elif '€' in line:
+                detail.price = Decimal(line.replace('€', ''))
+            else:
+                detail.infos = unicode(line, encoding='utf-8')
+        details.append(detail)
         return details
 
     def get_balance(self):
