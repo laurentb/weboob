@@ -101,7 +101,7 @@ class TransferPage(BasePage):
             onclick = select.attrib['onchange']
             params = onclick.split(',')[6].split('{')[1]
             idparam = params.split("'")[1]
-            param =  params.split("'")[3]
+            param = params.split("'")[3]
             request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
                                             ("transfer_form:generalMessages", ""),
                                             ("transfer_issuer_radio", account.id[3:]),
@@ -123,7 +123,7 @@ class TransferPage(BasePage):
                     break
             params = onclick.split(',')[6].split('{')[1]
             idparam = params.split("'")[1]
-            param =  params.split("'")[3]
+            param = params.split("'")[3]
             request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
                                       ("transfer_form:generalMessages", ""),
                                       ('transfer_issuer_radio', account.id[3:]),
@@ -145,13 +145,12 @@ class TransferConfirmPage(BasePage):
     def on_loaded(self):
         pass
 
-
     def confirm(self, password):
         try:
             vk = INGVirtKeyboard(self)
         except VirtKeyboardError, err:
             error("Error: %s" % err)
-            return 
+            return
         realpasswd = ""
         span = self.document.find('//span[@id="digitpadtransfer"]')
         i = 0

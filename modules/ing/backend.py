@@ -21,8 +21,10 @@
 # python2.5 compatibility
 from __future__ import with_statement
 
-from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
-from weboob.capabilities.bill import ICapBill, Bill, Subscription, SubscriptionNotFound, BillNotFound
+from weboob.capabilities.bank import ICapBank, AccountNotFound,\
+        Account, Recipient
+from weboob.capabilities.bill import ICapBill, Bill, Subscription,\
+        SubscriptionNotFound, BillNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -55,7 +57,6 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get(),
                                    birthday=self.config['birthday'].get())
-
 
     def iter_resources(self, objs, split_path):
         if Account in objs:

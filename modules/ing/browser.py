@@ -48,12 +48,18 @@ class Ing(BaseBrowser):
             }
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
+    loginpage = '/public/displayLogin.jsf'
+    accountspage = '/general?command=displayTRAccountSummary'
+    transferpage = '/protected/pages/cc/transfer/transferManagement.jsf'
+    dotransferpage = '/general?command=DisplayDoTransferCommand'
+    valtransferpage = '/protected/pages/cc/transfer/create/transferCreateValidation.jsf'
+
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday', None)
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('https://secure.ingdirect.fr/public/displayLogin.jsf')
+        self.location(self.loginpage)
 
     def is_logged(self):
         return not self.is_on_page(LoginPage)
@@ -66,8 +72,7 @@ class Ing(BaseBrowser):
         assert self.birthday.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://secure.ingdirect.fr/\
-                           public/displayLogin.jsf')
+            self.location(self.loginpage)
 
         self.page.prelogin(self.username, self.birthday)
         self.page.login(self.password)
@@ -76,7 +81,7 @@ class Ing(BaseBrowser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):
-            self.location('/general?command=displayTRAccountSummary')
+            self.location(self.accountspage)
 
         return self.page.get_list()
 
@@ -84,7 +89,7 @@ class Ing(BaseBrowser):
         assert isinstance(id, basestring)
 
         if not self.is_on_page(AccountsList):
-            self.location('/general?command=displayTRAccountSummary')
+            self.location(self.accountspage)
 
         l = self.page.get_list()
         for a in l:
@@ -103,11 +108,13 @@ class Ing(BaseBrowser):
             account = self.get_account(account)
         # The first and the second letter of the label are the account type
         if account.label[0:2] == "CC":
-            self.location('https://secure.ingdirect.fr/protected/pages/cc/accountDetail.jsf?account=%s' % int(account._index))
+            self.location('/protected/pages/cc/accountDetail.jsf?account=%s'
+                    % int(account._index))
         elif account.label[0:2] == "LA" or account.label[0:3] == "LEO":
             # we want "displayTRHistoriqueLA" but this fucking page
             # is not directly available...
-            self.location('https://secure.ingdirect.fr/general?command=goToAccount&account=%d&zone=COMPTE' % int(account._index))
+            self.location('/general?command=goToAccount&account=%d&zone=COMPTE'
+                    % int(account._index))
         else:
             raise NotImplementedError()
         while 1:
@@ -120,19 +127,20 @@ class Ing(BaseBrowser):
             if self.page.islast():
                 return
 
-            # XXX server sends an unknown mimetype, we overload viewing_html() above to
-            # prevent this issue.
+            # XXX server sends an unknown mimetype, we overload
+            # viewing_html() above to prevent this issue.
             self.page.next_page()
 
     def get_recipients(self, account):
         if not self.is_on_page(TransferPage):
-            self.location('https://secure.ingdirect.fr/protected/pages/cc/transfer/transferManagement.jsf')
+            self.location(self.transferpage)
         if self.page.ischecked(account):
             return self.page.get_recipients()
         else:
-            # It is hard to check the box and to get the real list. We try an alternative way like normal users
+            # It is hard to check the box and to get the real list.
+            # We try an alternative way like normal users
             self.get_history(account.id).next()
-            self.location('https://secure.ingdirect.fr/general?command=DisplayDoTransferCommand')
+            self.location(self.dotransferpage)
             return self.page.get_recipients()
 
     def transfer(self, account, recipient, amount, reason):
@@ -146,25 +154,26 @@ class Ing(BaseBrowser):
                 recipient = destination
                 break
         if found:
-            self.openurl('/protected/pages/cc/transfer/transferManagement.jsf', self.page.buildonclick(recipient, account))
+            self.openurl(self.transferpage,
+                    self.page.buildonclick(recipient, account))
             self.page.transfer(recipient, amount, reason)
-            self.location('/protected/pages/cc/transfer/create/transferCreateValidation.jsf')
+            self.location(self.valtransferpage)
             if not self.is_on_page(TransferConfirmPage):
                 raise TransferError("Invalid transfer (no confirmation page)")
             else:
                 self.page.confirm(self.password)
-                self.location('/protected/pages/cc/transfer/create/transferCreateValidation.jsf')
+                self.location(self.valtransferpage)
                 return self.page.recap()
         else:
             raise TransferError('Recipient not found')
 
     def get_subscriptions(self):
-        self.location('https://secure.ingdirect.fr/protected/pages/common/estatement/eStatement.jsf')
+        self.location('/protected/pages/common/estatement/eStatement.jsf')
         return self.page.iter_account()
 
     def get_bills(self, subscription):
         if not self.is_on_page(BillsPage):
-            self.location('https://secure.ingdirect.fr/protected/pages/common/estatement/eStatement.jsf')
+            self.location('/protected/pages/common/estatement/eStatement.jsf')
         self.page.selectyear(subscription._localid)
         while 1:
             for bill in self.page.iter_bills(subscription.id):
