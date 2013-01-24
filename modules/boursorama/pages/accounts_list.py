@@ -44,7 +44,13 @@ class AccountsList(BasePage):
                         elif td.attrib.get('class', '') == 'account-name':
                             a = td.find('a')
                             account.label = to_unicode(a.text)
-                            account._link_id = a.get('href', '')
+
+                        elif td.attrib.get('class', '') == 'account-more-actions':
+                            for a in td.getiterator('a'):
+                                # For normal account, two "account-more-actions"
+                                # One for the account, one for the credit card. Take the good one
+                                if "mouvements.phtml" in a.attrib['href'] and "/cartes/" not in a.attrib['href']:
+                                    account._link_id = a.attrib['href']
 
                         elif td.attrib.get('class', '') == 'account-number':
                             id = td.text

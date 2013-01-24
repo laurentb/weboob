@@ -35,9 +35,9 @@ class Boursorama(BaseBrowser):
     CERTHASH = '74429081f489cb723a82171a94350913d42727053fc86cf5bf5c3d65d39ec449'
     ENCODING = None  # refer to the HTML encoding
     PAGES = {
-             '.*connexion.phtml.*':                         LoginPage,
-             '.*/comptes/synthese.phtml':                   AccountsList,
-             '.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
+             '.*connexion.phtml.*':             LoginPage,
+             '.*/comptes/synthese.phtml':       AccountsList,
+             '.*/mouvements.phtml.*':           AccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
