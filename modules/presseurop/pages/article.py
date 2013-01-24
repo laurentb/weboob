@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, try_drop_tree, \
-                                                              clean_relativ_urls
+from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage,\
+        try_drop_tree, clean_relativ_urls
 
 
 class PresseuropPage(GenericNewsPage):
@@ -61,10 +61,10 @@ class DailyTitlesPage(PresseuropPage):
         return self.parser.tostring(element_body)
 
 
-
 class DailySinglePage(PresseuropPage):
     def get_daily_date(self):
-        ul = self.document.getroot().xpath("//ul[@class='carousel-skin carousel-today']")
+        ul = self.document.getroot().xpath(
+                "//ul[@class='carousel-skin carousel-today']")
         if len(ul) > 0:
             link = ul[0].xpath('li/a')[0]
             date = link.attrib['href'].split('/')[3]

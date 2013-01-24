@@ -40,11 +40,14 @@ class NewspaperPresseuropBackend(GenericNewspaperBackend, ICapMessages):
     URL2ID = staticmethod(url2id)
     RSSSIZE = 180
     CONFIG = BackendConfig(Value('lang', label='Lang of articles',
-                           choices={'fr': 'fr', 'de': 'de', 'en': 'en', 'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl', 'pl': 'pl', 'pt': 'pt', 'ro': 'ro'}, default='fr'))
+                           choices={'fr': 'fr', 'de': 'de', 'en': 'en',
+                                'cs': 'cs', 'es': 'es', 'it': 'it', 'nl': 'nl',
+                                'pl': 'pl', 'pt': 'pt', 'ro': 'ro'},
+                           default='fr'))
 
     def __init__(self, *args, **kwargs):
         GenericNewspaperBackend.__init__(self, *args, **kwargs)
-        self.RSS_FEED = 'http://www.presseurop.eu/%s/rss.xml' % (self.config['lang'].get())
+        self.RSS_FEED = 'http://www.presseurop.eu/%s/rss.xml' % self.config['lang'].get()
 
     def iter_threads(self):
         daily = []
