@@ -62,18 +62,15 @@ class PdfPage():
         page = txt.split('CONSOMMATION')[2].split('ACTIVITE DETAILLEE')[0]
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
-        numitems = ((len(lines) + 1) / 3) - 1 # Each line has three columns, remove one element (pictures)
         lines.pop(0) # "MENSUELLE"
         lines.pop(0) # "Votre consommation au "
         details = []
-        first = True
+        detail = None
         for line in lines:
             if re.match('[A-Za-z]', line[0]):
                 # We have a new element, return the other one
-                if not first:
+                if detail is not None:
                     details.append(detail)
-                else:
-                    first = False
                 detail = Detail()
                 detail.price = Decimal(0)
                 detail.infos = NotAvailable
@@ -110,6 +107,7 @@ class PdfPage():
             lines = page.split('\n')
             lines = [x for x in lines if len(x) > 0]  # Remove empty lines
             numitems = (len(lines) + 1) / 5  # Each line has five columns
+            lines.pop(0)
             modif = 0
             i = 0
             while i < numitems:
