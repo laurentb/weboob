@@ -52,8 +52,9 @@ def drop_comments(base_element):
 # Arguments: the html element to clean, and the domain name (with http:// prefix)
 def clean_relativ_urls(base_element, domain):
     for a in base_element.findall('.//a'):
-        if a.attrib["href"][0:7] != "http://" and a.attrib["href"][0:7] != "https://":
-            a.attrib["href"] = domain + a.attrib["href"]
+        if "href" in a.attrib:
+            if a.attrib["href"] and a.attrib["href"][0:7] != "http://" and a.attrib["href"][0:7] != "https://":
+                a.attrib["href"] = domain + a.attrib["href"]
     for img in base_element.findall('.//img'):
         if img.attrib["src"][0:7] != "http://" and img.attrib["src"][0:7] != "https://":
             img.attrib["src"] = domain + img.attrib["src"]
