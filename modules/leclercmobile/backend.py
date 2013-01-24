@@ -19,7 +19,8 @@
 
 from __future__ import with_statement
 
-from weboob.capabilities.bill import ICapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
+from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
+        BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 

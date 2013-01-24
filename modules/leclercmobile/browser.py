@@ -38,6 +38,7 @@ class Leclercmobile(BaseBrowser):
     accueil = "/EspaceClient/pgeWERL013_Accueil.aspx"
     login = "/EspaceClient/pgeWERL008_Login.aspx"
     conso = "/EspaceClient/pgeWERL009_ReleveConso.aspx"
+    bills = '/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-'
 
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -102,7 +103,7 @@ class Leclercmobile(BaseBrowser):
         maxid = self.page.getmaxid()
 
         for i in range(maxid + 1):
-            response = self.openurl('/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-' + str(i))
+            response = self.openurl(self.bills + str(i))
             mimetype = response.info().get('Content-Type', '').split(';')[0]
             if mimetype == "application/pdf":
                 pdf = PdfPage(StringIO.StringIO(response.read()))
@@ -112,7 +113,7 @@ class Leclercmobile(BaseBrowser):
     def get_details(self):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
-        response = self.openurl('/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-0')
+        response = self.openurl(self.bills + "0")
         pdf = PdfPage(StringIO.StringIO(response.read()))
         for detail in pdf.get_details():
             yield detail
@@ -133,6 +134,6 @@ class Leclercmobile(BaseBrowser):
     def get_balance(self):
         if not self.is_on_page(HistoryPage):
             self.location(self.conso)
-        response = self.openurl('/EspaceClient/pgeWERL015_RecupReleveConso.aspx?m=-0')
+        response = self.openurl(self.bills + "0")
         pdf = PdfPage(StringIO.StringIO(response.read()))
         return pdf.get_balance()
