@@ -30,7 +30,7 @@ class HomePage(BasePage):
 
     def get_list(self):
         for divglobal in self.document.xpath('//div[@class="abonne"]'):
-            for link in divglobal.xpath('//div[@class="acceuil_btn"]/a'):
+            for link in divglobal.xpath('.//div[@class="acceuil_btn"]/a'):
                 login = link.attrib['href'].split('=').pop()
                 if login.isdigit():
                     break
