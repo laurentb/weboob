@@ -1,4 +1,4 @@
-.TH TRAVELOOB 1 "28 October 2012" "traveloob 0\&.d"
+.TH TRAVELOOB 1 "25 janvier 2013" "traveloob 0\&.e"
 .SH NAME
 traveloob
 .SH SYNOPSIS
@@ -152,7 +152,7 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR [\fIPATH\fR]
+\fBls\fR [\-d] [\fIPATH\fR]
 .br
 List objects in current path.
 .br
@@ -184,6 +184,9 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
 
 .SH TRAVELOOB OPTIONS
 .TP
@@ -207,6 +210,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH RESULTS OPTIONS
 .TP

@@ -1,4 +1,4 @@
-.TH WEBOOB-CONFIG-QT 1 "28 October 2012" "weboob-config-qt 0\&.d"
+.TH WEBOOB-CONFIG-QT 1 "25 janvier 2013" "weboob-config-qt 0\&.e"
 .SH NAME
 weboob-config-qt
 .SH SYNOPSIS
@@ -23,6 +23,9 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
 
 .SH LOGGING OPTIONS
 .TP
@@ -40,6 +43,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH COPYRIGHT
 Copyright(C) 2010-2011 Romain Bignon

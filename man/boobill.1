@@ -1,4 +1,4 @@
-.TH BOOBILL 1 "28 October 2012" "boobill 0\&.d"
+.TH BOOBILL 1 "25 janvier 2013" "boobill 0\&.e"
 .SH NAME
 boobill
 .SH SYNOPSIS
@@ -15,6 +15,8 @@ Console application allowing to get and download bills.
 
 .SS Supported websites:
 * freemobile (Free Mobile website)
+.br
+* ing (ING Direct French bank website)
 .br
 * leclercmobile (Leclerc Mobile website)
 .br
@@ -48,6 +50,18 @@ id is the identifier of the bill (hint: try bills command)
 FILENAME is where to write the file. If FILENAME is '\-',
 .br
 the file is written to stdout.
+.br
+
+.br
+download all [Id]
+.br
+
+.br
+You can use special word "all" and download all bills of
+.br
+subscription identified by Id.
+.br
+If Id not given, download bills of all subscriptions.
 .TP
 \fBhistory\fR [\fII\fRd]
 .br
@@ -162,7 +176,7 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR [\fIPATH\fR]
+\fBls\fR [\-d] [\fIPATH\fR]
 .br
 List objects in current path.
 .br
@@ -194,6 +208,9 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
 
 .SH LOGGING OPTIONS
 .TP
@@ -211,6 +228,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH RESULTS OPTIONS
 .TP

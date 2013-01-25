@@ -1,4 +1,4 @@
-.TH WETBOOBS 1 "28 October 2012" "wetboobs 0\&.d"
+.TH WETBOOBS 1 "25 janvier 2013" "wetboobs 0\&.e"
 .SH NAME
 wetboobs
 .SH SYNOPSIS
@@ -29,7 +29,7 @@ Get forecasts for specified city. Use the 'cities' command to find them.
 .TP
 \fBgauge\fR \fIGAUGE_ID\fR
 .br
-Get history of a specific gauge (use 'rivers' to find them).
+Get history of a specific gauge (use 'gauges' to find them).
 .TP
 \fBgauges\fR [\fIPATTERN\fR]
 .br
@@ -37,7 +37,11 @@ List all rivers. If PATTERN is specified, search on a pattern.
 .TP
 \fBlast_sensor_measure\fR \fIGAUGE_ID\fR
 .br
-Get last measure of a gauge (use 'rivers' to find them).
+Get last measure of a sensor.
+.TP
+\fBsensors\fR \fIGAUGE_ID\fR
+.br
+Iter sensors of a gauge.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -142,7 +146,7 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR [\fIPATH\fR]
+\fBls\fR [\-d] [\fIPATH\fR]
 .br
 List objects in current path.
 .br
@@ -174,6 +178,9 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
 
 .SH LOGGING OPTIONS
 .TP
@@ -191,6 +198,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH RESULTS OPTIONS
 .TP
