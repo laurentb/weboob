@@ -121,6 +121,9 @@ class Pastoob(ReplApplication):
                 'title': self.options.title}
 
     def str_to_duration(self, s):
+        if s.strip().lower() == 'never':
+            return False
+
         parts = re.findall(r'(\d*(?:\.\d+)?)\s*([A-z]+)', s)
         argsmap = {'Y|y|year|years|yr|yrs': 365.25 * 24 * 3600,
                    'M|o|month|months': 30.5 * 24 * 3600,
