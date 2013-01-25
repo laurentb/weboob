@@ -124,8 +124,9 @@ class DetailsPage(BasePage):
         return self.datebills
 
     def get_renew_date(self, subscription):
-        div = self.document.xpath('//div[@class="resumeConso"]')[0]
-        mydate = div.xpath('span[@class="actif"]')[0].text
+        login = subscription._login
+        div = self.document.xpath('//div[@login="%s"]' % login)[0]
+        mydate = div.xpath('.//span[@class="actif"]')[0].text
         mydate = date(*reversed([int(x) for x in mydate.split("/")]))
         if mydate.month == 12:
             mydate = mydate.replace(month=1)
