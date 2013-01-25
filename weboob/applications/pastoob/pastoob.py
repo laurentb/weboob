@@ -24,6 +24,7 @@ import os
 import sys
 import codecs
 import locale
+import re
 from random import choice
 
 from weboob.capabilities.paste import ICapPaste, PasteNotFound
@@ -57,10 +58,10 @@ class Pastoob(ReplApplication):
         try:
             paste = self.get_object(_id, 'get_paste', ['contents'])
         except PasteNotFound:
-            print >>sys.stderr, 'Paste not found: %s' %  _id
+            print >>sys.stderr, 'Paste not found: %s' % _id
             return 3
         if not paste:
-            print >>sys.stderr, 'Unable to handle paste: %s' %  _id
+            print >>sys.stderr, 'Unable to handle paste: %s' % _id
             return 1
         output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
         output.write(paste.contents)
@@ -91,7 +92,7 @@ class Pastoob(ReplApplication):
                 return 1
 
         # get and sort the backends able to satisfy our requirements
-        params = self._get_params()
+        params = self.get_params()
         backends = {}
         for backend in self.weboob.iter_backends():
             score = backend.can_post(contents, **params)
@@ -105,11 +106,44 @@ class Pastoob(ReplApplication):
             return 1
 
         p = backend.new_paste(_id=None)
-        p.public = params.get('public')
-        p.title = os.path.basename(filename)
+        p.public = params['public']
+        if self.options.title is not None:
+            p.title = self.options.title
+        else:
+            p.title = os.path.basename(filename)
         p.contents = contents
-        backend.post_paste(p, max_age=params.get('max_age'))
+        backend.post_paste(p, max_age=params['max_age'])
         print 'Successfuly posted paste: %s' % p.page_url
 
-    def _get_params(self):
-        return {'public': True, 'max_age': 3600*24*3}
+    def get_params(self):
+        return {'public': self.options.public,
+                'max_age': self.str_to_duration(self.options.max_age),
+                'title': self.options.title}
+
+    def str_to_duration(self, s):
+        parts = re.findall(r'(\d*(?:\.\d+)?)\s*([A-z]+)', s)
+        argsmap = {'Y|y|year|years|yr|yrs': 365.25 * 24 * 3600,
+                   'M|o|month|months': 30.5 * 24 * 3600,
+                   'W|w|week|weeks': 7 * 24 * 3600,
+                   'D|d|day|days': 24 * 3600,
+                   'H|h|hours|hour|hr|hrs': 3600,
+                   'm|i|minute|minutes|min|mins': 60,
+                   'S|s|second|seconds|sec|secs': 1}
+
+        seconds = 0
+        for number, unit in parts:
+            for rx, secs in argsmap.iteritems():
+                if re.match('^(%s)$' % rx, unit):
+                    seconds += float(number) * float(secs)
+
+        return int(seconds)
+
+    def add_application_options(self, group):
+        group.add_option('-p', '--public',  action='store_true',
+                         help='Make paste public.')
+        group.add_option('-t', '--title', action='store',
+                         help='Paste title',
+                         type='string')
+        group.add_option('-m', '--max-age', action='store',
+                         help='Maximum age (duration), default "1 month"',
+                         type='string', default='1 month')
