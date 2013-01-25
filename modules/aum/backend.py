@@ -59,7 +59,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
     NAME = 'aum'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.e'
+    VERSION = '0.f'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'"Adopte un Mec" French dating website'
     CONFIG = BackendConfig(Value('username',                label='Username'),

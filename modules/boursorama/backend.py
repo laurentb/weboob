@@ -36,7 +36,7 @@ class BoursoramaBackend(BaseBackend, ICapBank):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
-    VERSION = '0.e'
+    VERSION = '0.f'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Boursorama French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),

@@ -77,7 +77,7 @@ class PricesFormatter(PrettyFormatter):
 
 class Comparoob(ReplApplication):
     APPNAME = 'comparoob'
-    VERSION = '0.e'
+    VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = 'Console application to compare products.'
     DEFAULT_FORMATTER = 'table'

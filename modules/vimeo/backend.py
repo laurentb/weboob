@@ -36,7 +36,7 @@ class VimeoBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'vimeo'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = 'Vimeo video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = VimeoBrowser

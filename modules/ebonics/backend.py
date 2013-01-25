@@ -32,7 +32,7 @@ class EbonicsBackend(BaseBackend, ICapTranslate):
     NAME = 'ebonics'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.e'
+    VERSION = '0.f'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'English to Ebonics translation service'
     BROWSER = StandardBrowser

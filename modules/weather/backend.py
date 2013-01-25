@@ -29,7 +29,7 @@ class WeatherBackend(BaseBackend, ICapWeather):
     NAME = 'weather'
     MAINTAINER = u'Arno Renevier'
     EMAIL = 'arno@renevier.net'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = 'Get forecasts from weather.com'
     LICENSE = 'AGPLv3+'
     BROWSER = WeatherBrowser

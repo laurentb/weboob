@@ -35,7 +35,7 @@ class TricTracTVBackend(BaseBackend, ICapVideo):
     NAME = 'trictractv'
     MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = u'TricTrac.tv video website'
     LICENSE = 'AGPLv3+'
     BROWSER = TricTracTVBrowser

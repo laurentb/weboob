@@ -36,7 +36,7 @@ class NolifeTVBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'nolifetv'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = 'NolifeTV French video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = NolifeTVBrowser

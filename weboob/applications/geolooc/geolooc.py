@@ -29,7 +29,7 @@ __all__ = ['Geolooc']
 
 class Geolooc(ReplApplication):
     APPNAME = 'geolooc'
-    VERSION = '0.e'
+    VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Console application allowing to geolocalize IP addresses.'
     CAPS = ICapGeolocIp

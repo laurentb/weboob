@@ -67,7 +67,7 @@ class GenericComicReaderBackend(BaseBackend, ICapGallery):
     NAME = 'genericcomicreader'
     MAINTAINER = u'Noé Rubinstein'
     EMAIL = 'noe.rubinstein@gmail.com'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = 'Generic comic reader backend; subclasses implement specific sites'
     LICENSE = 'AGPLv3+'
     BROWSER = GenericComicReaderBrowser

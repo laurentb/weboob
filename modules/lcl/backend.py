@@ -34,7 +34,7 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = u'Le Crédit Lyonnais French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d+\w$', masked=False),

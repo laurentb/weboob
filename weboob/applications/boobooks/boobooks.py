@@ -38,7 +38,7 @@ class RentedListFormatter(PrettyFormatter):
 
 class Boobooks(ReplApplication):
     APPNAME = 'boobooks'
-    VERSION = '0.e'
+    VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Jeremy Monnet'
     CAPS = ICapBook
     DESCRIPTION = "Console application allowing to list your books rented or booked at the library, " \

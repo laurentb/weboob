@@ -33,7 +33,7 @@ class BanquePopulaireBackend(BaseBackend, ICapBank):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.e'
+    VERSION = '0.f'
     DESCRIPTION = u'Banque Populaire French bank website'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
