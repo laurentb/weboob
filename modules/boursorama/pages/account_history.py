@@ -57,6 +57,7 @@ class AccountHistory(BasePage):
                     # tds[1]: valeur
                     d = date(*reversed([int(x) for x in tds[1].text.split('/')]))
                     labeldiv = tds[2].find('div')
+                    inputid = tds[5].find('input[@type="hidden"]')
                     label = u''
                     label += labeldiv.text
                     if labeldiv.find('a') is not None:
@@ -69,7 +70,7 @@ class AccountHistory(BasePage):
                     debit = tds[3].text or ""
                     credit = tds[4].text or ""
 
-                    operation = Transaction(len(self.operations))
+                    operation = Transaction(inputid.attrib['id'].split('_')[1])
                     operation.parse(date=d, raw=label)
                     operation.set_amount(credit, debit)
                     operation.category = category
