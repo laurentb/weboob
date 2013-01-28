@@ -161,5 +161,5 @@ class HistoryPage(BasePage):
 
                 self.calls.append(detail)
 
-    def get_calls(self, subscription):
+    def get_calls(self):
         return sorted(self.calls, key=_get_date, reverse=True)

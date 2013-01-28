@@ -80,7 +80,11 @@ class Freemobile(BaseBrowser):
     def get_history(self, subscription):
         if not self.is_on_page(HistoryPage):
             self.location('/moncompte/ajax.php?page=consotel_current_month', 'login=' + subscription._login)
-        return self.page.get_calls(subscription)
+        num = 0
+        for call in self.page.get_calls():
+            call.id = subscription.id + "-%s" % num
+            num += 1
+            yield call
 
     def get_details(self, subscription):
         if not self.is_on_page(DetailsPage):
