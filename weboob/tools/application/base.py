@@ -26,7 +26,7 @@ import sys
 import tempfile
 import warnings
 
-from weboob.capabilities.base import NotAvailable, NotLoaded, ConversionWarning
+from weboob.capabilities.base import ConversionWarning
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
