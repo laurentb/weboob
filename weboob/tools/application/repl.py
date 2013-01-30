@@ -26,7 +26,7 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
 
-from weboob.capabilities.base import FieldNotFound, CapBaseObject, ObjectNotSupported, UserError
+from weboob.capabilities.base import FieldNotFound, CapBaseObject, UserError
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.misc import to_unicode
@@ -206,22 +206,13 @@ class ReplApplication(Cmd, ConsoleApplication):
                 try:
                     backend = self.weboob.get_backend(obj.backend)
                     return backend.fillobj(obj, fields)
-                except ObjectNotSupported:
-                    pass
                 except UserError, e:
                     self.bcall_error_handler(backend, e, '')
 
         _id, backend_name = self.parse_id(_id)
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, obj in self.do(method, _id, backends=backend_names):
+        for backend, obj in self.do(method, _id, backends=backend_names, fields=fields):
             if obj:
-                try:
-                    backend.fillobj(obj, fields)
-                except ObjectNotSupported:
-                    pass
-                except UserError, e:
-                    self.bcall_error_handler(backend, e, '')
-
                 return obj
 
     def get_object_list(self, method=None):
@@ -291,7 +282,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         backends = kwargs.pop('backends', None)
         kwargs['backends'] = self.enabled_backends if backends is None else backends
         kwargs['condition'] = self.condition
-        fields = self.selected_fields
+        fields = kwargs.pop('fields', self.selected_fields)
         if '$direct' in fields:
             fields = []
         elif '$full' in fields:

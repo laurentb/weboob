@@ -22,20 +22,14 @@ import os
 from threading import RLock
 from copy import copy
 
-from weboob.capabilities.base import CapBaseObject, FieldNotFound, ObjectNotSupported, \
-                                     IBaseCap, NotLoaded
+from weboob.capabilities.base import CapBaseObject, FieldNotFound, \
+                                     IBaseCap, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
 
 
-__all__ = ['ObjectNotAvailable', 'BackendStorage', 'BackendConfig', 'BaseBackend']
-
-
-class ObjectNotAvailable(Exception):
-    """
-    Raised when an object is not available.
-    """
+__all__ = ['BackendStorage', 'BackendConfig', 'BaseBackend']
 
 
 class BackendStorage(object):
@@ -361,9 +355,6 @@ class BaseBackend(object):
         :type fields: :class:`list`
         """
 
-        if type(obj) not in self.OBJECTS:
-            raise ObjectNotSupported('The object of type %s is not supported by the backend %s' % (type(obj).__name__, self))
-
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
 
@@ -402,3 +393,10 @@ class BaseBackend(object):
             if isinstance(obj, key):
                 self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 return value(self, obj, missing_fields) or obj
+
+        # Object is not supported by backend. Do not notice it to avoid flooding user.
+        # That's not so bad.
+        for field in missing_fields:
+            setattr(obj, field, NotAvailable)
+
+        return obj
