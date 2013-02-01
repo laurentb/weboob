@@ -32,21 +32,22 @@ class DetailsPage(BasePage):
 
     def on_loaded(self):
         self.details = []
-        table = self.document.xpath('//table[@id="reportTable"]')[0]
+        table = self.document.xpath('//table[@id="reportTable"]')
 
-        for tr in table.xpath('tbody/tr'):
-            detail = Detail()
-            # Skip global category
-            if tr.find('td/a') is not None:
-                continue
-            if tr.attrib["class"] == "totalAmount":
-                continue
-            tds = tr.xpath('td')
-            detail.label = unicode(tds[0].text.strip())
-            detail.infos = unicode(tds[1].text.strip())
-            detail.price = Decimal(tds[2].text.split(' ')[0].replace(',', '.'))
+        if len(table) > 0:
+            for tr in table[0].xpath('tbody/tr'):
+                detail = Detail()
+                # Skip global category
+                if tr.find('td/a') is not None:
+                    continue
+                if tr.attrib["class"] == "totalAmount":
+                    continue
+                tds = tr.xpath('td')
+                detail.label = unicode(tds[0].text.strip())
+                detail.infos = unicode(tds[1].text.strip())
+                detail.price = Decimal(tds[2].text.split(' ')[0].replace(',', '.'))
 
-            self.details.append(detail)
+                self.details.append(detail)
 
     def get_details(self):
         return self.details
