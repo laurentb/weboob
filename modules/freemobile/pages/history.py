@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 from datetime import datetime, date, time
 from decimal import Decimal
 
@@ -41,7 +42,7 @@ class DetailsPage(BasePage):
 
     def on_loaded(self):
         self.details = {}
-        self.datebills = []
+        self.datebills = {}
         for div in self.document.xpath('//div[@class="infosLigne pointer"]'):
             phonenumber = div.text
             phonenumber = phonenumber.split("-")[-1].strip()
@@ -60,23 +61,26 @@ class DetailsPage(BasePage):
             divint = div.xpath('div[@class="international hide"]')[0]
             self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
-        divbill = self.document.xpath('//div[@class="facture"]')[0]
-        for trbill in divbill.xpath('table/tr'):
-            mydate = unicode(trbill.find('td').text.split(":")[1].strip())
-            bill = Bill()
-            bill.label = unicode(mydate)
-            billid = mydate.replace('-', '')
-            billid = billid[4:8] + billid[2:4] + billid[0:2]
-            bill.id = phonenumber + "." + billid
-            bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
-            alink = trbill.find('td/a')
-            if alink.attrib.get("class") == "linkModal tips":
-                bill.format = u'html'
-                bill._url = alink.attrib.get('data-link')
-            else:
-                bill.format = u"pdf"
-                bill._url = alink.attrib.get('href')
-            self.datebills.append(bill)
+        for divbill in self.document.xpath('//div[@class="facture"]'):
+            for trbill in divbill.xpath('table/tr'):
+                mydate = unicode(trbill.find('td').text.split(":")[1].strip())
+                for alink in trbill.xpath('td/a'):
+                    bill = Bill()
+                    bill.label = unicode(mydate)
+                    billid = mydate.replace('-', '')
+                    billid = billid[4:8] + billid[2:4] + billid[0:2]
+                    bill.id = billid
+                    bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
+                    bill.format = u"pdf"
+                    bill._url = alink.attrib.get('href')
+                    if "pdfrecap" in alink.attrib.get('href'):
+                        bill.id = "recap-" + bill.id
+                    localid = re.search('&l=(?P<id>\d*)&id',
+                            alink.attrib.get('href')).group('id')
+                    if not self.datebills.has_key(localid):
+                        self.datebills[localid] = []
+                    self.datebills[localid].append(bill)
+
 
     def parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
@@ -120,8 +124,10 @@ class DetailsPage(BasePage):
             detail.id = subscription.id + detail.id
             yield detail
 
-    def date_bills(self):
-        return self.datebills
+    def date_bills(self, subscription):
+        for bill in self.datebills[subscription._login]:
+            bill.id = subscription.id + '.' + bill.id
+            yield bill
 
     def get_renew_date(self, subscription):
         login = subscription._login

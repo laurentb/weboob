@@ -83,7 +83,7 @@ class FreeMobileBackend(BaseBackend, ICapBill):
             subscription = self.get_subscription(subscription)
 
         with self.browser:
-            for bill in self.browser.iter_bills(subscription.id):
+            for bill in self.browser.iter_bills(subscription):
                 yield bill
 
     def get_details(self, subscription):

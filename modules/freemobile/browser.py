@@ -91,10 +91,10 @@ class Freemobile(BaseBrowser):
             self.location('/moncompte/index.php?page=suiviconso')
         return self.page.get_details(subscription)
 
-    def iter_bills(self, parentid):
+    def iter_bills(self, subscription):
         if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
-        return self.page.date_bills()
+        return self.page.date_bills(subscription)
 
     def get_bill(self, id):
         assert isinstance(id, basestring)
