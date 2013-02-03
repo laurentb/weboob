@@ -70,17 +70,17 @@ class DetailsPage(BasePage):
                     billid = mydate.replace('-', '')
                     billid = billid[4:8] + billid[2:4] + billid[0:2]
                     bill.id = billid
-                    bill.date = date(*reversed([int(x) for x in mydate.split("-")]))
+                    bill.date = date(*reversed([int(x)
+                        for x in mydate.split("-")]))
                     bill.format = u"pdf"
                     bill._url = alink.attrib.get('href')
                     if "pdfrecap" in alink.attrib.get('href'):
                         bill.id = "recap-" + bill.id
                     localid = re.search('&l=(?P<id>\d*)&id',
                             alink.attrib.get('href')).group('id')
-                    if not self.datebills.has_key(localid):
+                    if localid not in self.datebills:
                         self.datebills[localid] = []
                     self.datebills[localid].append(bill)
-
 
     def parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
