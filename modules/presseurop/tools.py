@@ -23,8 +23,8 @@ import re
 
 def url2id(url):
     "return an id from an url"
-    if "/today/" in entry.link:
-        return link.split("#")[1]
+    if "/today/" in url:
+        return url.split("#")[1]
     else:
         regexp = re.compile(".*/([0-9]+)-.*")
         id = regexp.match(url).group(1)
