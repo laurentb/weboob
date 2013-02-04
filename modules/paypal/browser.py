@@ -56,12 +56,12 @@ class Paypal(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts(self):
-        yield self.get_account(u"1")
+        if not self.is_on_page(AccountPage):
+            self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
+
+        return self.page.get_accounts()
 
     def get_account(self, _id):
-        if _id != u"1":
-            return None
-
         if not self.is_on_page(AccountPage):
             self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
 

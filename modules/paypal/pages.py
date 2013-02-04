@@ -19,7 +19,7 @@
 
 from decimal import Decimal
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -40,29 +40,55 @@ class LoginPage(BasePage):
 
 class AccountPage(BasePage):
     def get_account(self, _id):
-        assert _id == u"1"  # Only one "account" supported for now
+        return self.get_accounts().get(_id)
 
-        account = Account()
-        account.id = _id
-        account.label = unicode(self.browser.username)
-        account.type = Account.TYPE_CHECKING
-
+    def get_accounts(self):
+        accounts = {}
         content = self.document.xpath('//div[@id="main"]//div[@class="col first"]')[0]
+
         # Total currency balance.
         # If there are multiple currencies, this balance is all currencies
         # converted to the main currency.
-        balance = content.xpath('//h3/span[@class="balance"]')[0].text_content().strip()
-        account.balance = clean_amount(balance)
-        account.currency = account.get_currency(balance)
+        balance = content.xpath('.//h3/span[@class="balance"]')[0].text_content().strip()
+
+        # Primary currency account
+        primary_account = Account()
+        primary_account.type = Account.TYPE_CHECKING
+        primary_account.balance = clean_amount(balance)
+        primary_account.currency = Account.get_currency(balance)
+        primary_account.id = unicode(primary_account.currency)
+        primary_account.label = u'%s %s*' % (self.browser.username, balance.split()[-1])
+        accounts[primary_account.id] = primary_account
+
+        # The following code will only work if the user enabled multiple currencies.
+        balance = content.xpath('.//div[@class="body"]//ul/li[@class="balance"]/span')
+        table = content.xpath('.//table[@id="balanceDetails"]//tbody//tr')
+
+        # sanity check
+        if bool(balance) is not bool(table):
+            raise BrokenPageError('Unable to find all required multiple currency entries')
 
         # Primary currency balance.
         # If the user enabled multiple currencies, we get this one instead.
         # An Account object has only one currency; secondary currencies should be other accounts.
-        balance = content.xpath('//div[@class="body"]//ul/li[@class="balance"]/span')
         if balance:
             balance = balance[0].text_content().strip()
-            account.balance = clean_amount(balance)
+            primary_account.balance = clean_amount(balance)
             # The primary currency of the "head balance" is the same; ensure we got the right one
-            assert account.currency == account.get_currency(balance)
+            assert primary_account.currency == primary_account.get_currency(balance)
 
-        return account
+        for row in table:
+            balance = row.xpath('.//td')[-1].text_content().strip()
+            account = Account()
+            account.type = Account.TYPE_CHECKING
+            account.balance = clean_amount(balance)
+            account.currency = Account.get_currency(balance)
+            account.id = unicode(account.currency)
+            account.label = u'%s %s' % (self.browser.username, balance.split()[-1])
+            if account.id == primary_account.id:
+                assert account.balance == primary_account.balance
+                assert account.currency == primary_account.currency
+            elif account.currency:
+                accounts[account.id] = account
+
+        return accounts

@@ -47,8 +47,7 @@ class PaypalBackend(BaseBackend, ICapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts():
-            yield account
+        return self.browser.get_accounts().itervalues()
 
     def get_account(self, _id):
         with self.browser:
