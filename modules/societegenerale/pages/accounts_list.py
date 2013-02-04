@@ -52,7 +52,7 @@ class AccountsList(BasePage):
                 if td.attrib.get('headers', '') == 'TypeCompte':
                     a = td.find('a')
                     if a is None:
-                        continue
+                        break
                     account.label = unicode(a.find("span").text)
                     account._link_id = a.get('href', '')
 
@@ -65,13 +65,16 @@ class AccountsList(BasePage):
                     pass
 
                 elif td.attrib.get('headers', '') == 'Solde':
-                    balance = td.find('div').text
+                    balance = td.find('div').text if td.find('div') is not None else None
                     if balance != None:
                         account.currency = account.get_currency(balance)
                         balance = FrenchTransaction.clean_amount(balance)
                         account.balance = Decimal(balance)
                     else:
                         account.balance = Decimal(0)
+
+            if not account.label:
+                continue
 
             if 'CARTE_' in account._link_id:
                 ac = accounts[0]
