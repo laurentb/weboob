@@ -49,7 +49,10 @@ class AccountPage(BasePage):
         # Total currency balance.
         # If there are multiple currencies, this balance is all currencies
         # converted to the main currency.
-        balance = content.xpath('.//h3/span[@class="balance"]')[0].text_content().strip()
+        balance = content.xpath('.//h3/span[@class="balance"]')
+        if not balance:
+            balance = content.xpath('.//li[@class="balance"]//span/strong')
+        balance = balance[0].text_content().strip()
 
         # Primary currency account
         primary_account = Account()
