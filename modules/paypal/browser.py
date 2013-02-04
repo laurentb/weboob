@@ -55,6 +55,9 @@ class Paypal(BaseBrowser):
         if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
 
+    def get_accounts(self):
+        yield self.get_account(u"1")
+
     def get_account(self, _id):
         if _id != u"1":
             return None
@@ -62,7 +65,7 @@ class Paypal(BaseBrowser):
         if not self.is_on_page(AccountPage):
             self.location('/en/cgi-bin/webscr?cmd=_account&nav=0.0')
 
-        return self.page.get_account()
+        return self.page.get_account(_id)
 
     def get_history(self, account):
         raise NotImplementedError()

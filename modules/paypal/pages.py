@@ -26,6 +26,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 __all__ = ['LoginPage', 'AccountPage']
 
 
+def clean_amount(text):
+    return Decimal(FrenchTransaction.clean_amount(text))
+
+
 class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(name='login_form')
@@ -35,16 +39,30 @@ class LoginPage(BasePage):
 
 
 class AccountPage(BasePage):
-    def get_account(self):
+    def get_account(self, _id):
+        assert _id == u"1"  # Only one "account" supported for now
+
         account = Account()
-        account.id = u"1"
+        account.id = _id
         account.label = unicode(self.browser.username)
         account.type = Account.TYPE_CHECKING
 
-        balance = self.document.xpath('//div[@id="main"]')[0] \
-            .xpath('.//div[@class="col first"]//h3/span[@class="balance"]')[0] \
-            .balance.text_content().strip()
-        account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+        content = self.document.xpath('//div[@id="main"]//div[@class="col first"]')[0]
+        # Total currency balance.
+        # If there are multiple currencies, this balance is all currencies
+        # converted to the main currency.
+        balance = content.xpath('//h3/span[@class="balance"]')[0].text_content().strip()
+        account.balance = clean_amount(balance)
         account.currency = account.get_currency(balance)
+
+        # Primary currency balance.
+        # If the user enabled multiple currencies, we get this one instead.
+        # An Account object has only one currency; secondary currencies should be other accounts.
+        balance = content.xpath('//div[@class="body"]//ul/li[@class="balance"]/span')
+        if balance:
+            balance = balance[0].text_content().strip()
+            account.balance = clean_amount(balance)
+            # The primary currency of the "head balance" is the same; ensure we got the right one
+            assert account.currency == account.get_currency(balance)
 
         return account
