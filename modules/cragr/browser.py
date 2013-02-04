@@ -145,6 +145,9 @@ class Cragr(BaseBrowser):
         self.logger.debug('going on: %s' % history_url)
         self.location('https://%s%s' % (self.DOMAIN, history_url))
 
+        if self.page is None:
+            return
+
         # Some regions have a "Show more" (well, actually "Voir les 25
         # suivants") link we have to use to get all the operations.
         # However, it does not show only the 25 next results, it *adds* them
