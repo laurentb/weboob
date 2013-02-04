@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
@@ -27,6 +28,23 @@ __all__ = ['LoginPage', 'AccountPage']
 
 
 def clean_amount(text):
+    """
+    >>> clean_amount('42')
+    Decimal('42')
+    >>> clean_amount('42,12')
+    Decimal('42.12')
+    >>> clean_amount('42.12')
+    Decimal('42.12')
+    >>> clean_amount('$42.12 USD')
+    Decimal('42.12')
+    >>> clean_amount('$12.442,12 USD')
+    Decimal('12442.12')
+    >>> clean_amount('$12,442.12 USD')
+    Decimal('12442.12')
+    """
+    # Convert "American" UUU.CC format to "French" UUU,CC format
+    if re.search(r'\d\.\d\d(?: [A-Z]+)?$', text):
+        text = text.replace(',', ' ').replace('.', ',')
     return Decimal(FrenchTransaction.clean_amount(text))
 
 
