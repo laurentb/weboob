@@ -41,7 +41,7 @@ class TransferError(UserError):
     A transfer has failed.
     """
 
-class Currency:
+class Currency(object):
     CUR_UNKNOWN        = 0
     CUR_EUR            = 1
     CUR_CHF            = 2
@@ -54,10 +54,32 @@ class Currency:
                u'USD': CUR_USD,
               }
 
+    EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
+
     @classmethod
     def get_currency(klass, text):
-        text = re.sub(u'[^A-Z€]', '', text.upper())
-        return klass.TXT2CUR.get(text, klass.CUR_UNKNOWN)
+        u"""
+        >>> Currency.get_currency(u'42')
+        0
+        >>> Currency.get_currency(u'42 €')
+        1
+        >>> Currency.get_currency(u'$42')
+        3
+        >>> Currency.get_currency(u'42.000,00€')
+        1
+        >>> Currency.get_currency(u'$42 USD')
+        3
+        >>> Currency.get_currency(u'%42 USD')
+        3
+        >>> Currency.get_currency(u'US1D')
+        0
+        """
+        curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
+        for curtext in curtexts:
+            cur = klass.TXT2CUR.get(curtext)
+            if cur is not None:
+                return cur
+        return klass.CUR_UNKNOWN
 
 
 class Recipient(CapBaseObject):
