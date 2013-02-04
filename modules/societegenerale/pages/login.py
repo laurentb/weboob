@@ -79,6 +79,7 @@ class LoginPage(BasePage):
         self.browser['user_id'] = login
         self.browser['codsec'] = img.get_codes(password[:6])
         self.browser['cryptocvcs'] = infos["crypto"]
+        self.browser.form.action = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
         self.browser.submit(nologin=True)
 
 
