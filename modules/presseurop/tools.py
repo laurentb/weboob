@@ -23,13 +23,13 @@ import re
 
 def url2id(url):
     "return an id from an url"
-    regexp = re.compile(".*/([0-9]+)-.*")
-    id = regexp.match(url).group(1)
-    return id
+    if "/today/" in entry.link:
+        return link.split("#")[1]
+    else:
+        regexp = re.compile(".*/([0-9]+)-.*")
+        id = regexp.match(url).group(1)
+        return id
 
 
 def rssid(entry):
-    if "/today/" in entry.link:
-        return entry.link.split("#")[1]
-    else:
-        return url2id(entry.link)
+    return url2id(entry.link)
