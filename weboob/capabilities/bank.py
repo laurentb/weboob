@@ -140,8 +140,9 @@ class Transaction(CapBaseObject):
     amount =    DecimalField('Amount of transaction')
 
     def __repr__(self):
+        label = self.label.encode('utf-8') if self.label else self.label
         return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
-            self.label, self.amount)
+            label, self.amount)
 
 class Transfer(CapBaseObject):
     """
