@@ -145,8 +145,14 @@ class Transaction(FrenchTransaction):
 
 class TransactionsPage(BasePage):
     def get_history(self, is_coming=None):
+        last_debit = None
+        transactions = []
+
         for tr in self.document.xpath('//div[@class="scrollTbody"]/table//tr'):
             cols = tr.findall('td')
+
+            if len(cols) < 4:
+                continue
 
             # check if it's a card page, so by default transactions are not yet debited.
             if len(cols) == 6 and is_coming is None:
@@ -157,7 +163,7 @@ class TransactionsPage(BasePage):
                 col_label = col_label.find('a')
 
             date = u''.join([txt.strip() for txt in cols[0].itertext()])
-            label = unicode(col_label.text.strip())
+            label = u''.join([txt.strip() for txt in col_label.itertext()])
 
             # always strip card debits transactions. if we are on a card page, all next
             # transactions will be probably already debited.
@@ -186,6 +192,18 @@ class TransactionsPage(BasePage):
             credit = u''.join([txt.strip() for txt in cols[-1].itertext()])
             t.set_amount(credit, debit)
 
+            if 'CUMUL DES DEPENSES CARTES BANCAIRES REGLEES' in t.raw:
+                if last_debit is None:
+                    last_debit = t.date
+                continue
+
             t._is_coming = bool(is_coming)
 
-            yield t
+            transactions.append(t)
+
+        if last_debit is not None and is_coming is True:
+            for tr in transactions:
+                if tr.date <= last_debit.replace(day=1):
+                    tr._is_coming = False
+
+        return iter(transactions)
