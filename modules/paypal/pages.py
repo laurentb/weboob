@@ -129,7 +129,7 @@ class DownloadHistoryPage(BasePage):
         self.browser['from_a'] = str(today.month)
         self.browser['from_b'] = str(today.day)
 
-        self.browser['custom_file_type'] = ['comma_allactivity']
+        self.browser['custom_file_type'] = ['comma_balaffecting']
         self.browser['latest_completed_file_type'] = ['']
 
         self.browser.submit()
@@ -141,15 +141,9 @@ class SubmitPage(BasePage):
     """
     def iter_transactions(self, account):
         csv = self.document
-        for row in csv.drows:
-            # only "real" stuff, no cancelled payments etc.
-            if row['Status'] != 'Completed':
-                continue
+        for row in csv.rows:
             # we filter accounts by currency
             if account.get_currency(row['Currency']) != account.currency:
-                continue
-            # does not seem to be a real transaction; duplicates others
-            if row['Type'] == u'Authorization':
                 continue
 
             trans = Transaction(row['Transaction ID'])
