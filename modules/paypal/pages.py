@@ -140,46 +140,59 @@ class SubmitPage(BasePage):
     Any result of form submission
     """
     def iter_transactions(self, account):
+        DATE = 0
+        TIME = 1
+        NAME = 3
+        TYPE = 4
+        CURRENCY = 6
+        GROSS = 7
+        FEE = 8
+        NET = 9
+        FROM = 10
+        TO = 11
+        TRANS_ID = 12
+        ITEM = 15
+        SITE = 24
         csv = self.document
         for row in csv.rows:
             # we filter accounts by currency
-            if account.get_currency(row['Currency']) != account.currency:
+            if account.get_currency(row[CURRENCY]) != account.currency:
                 continue
 
-            trans = Transaction(row['Transaction ID'])
+            trans = Transaction(row[TRANS_ID])
 
             # silly American locale
-            if re.search(r'\d\.\d\d$', row['Net']):
-                date = datetime.datetime.strptime(row['Date'] + ' ' + row['Time'], "%m/%d/%Y %I:%M:%S %p")
+            if re.search(r'\d\.\d\d$', row[NET]):
+                date = datetime.datetime.strptime(row[DATE] + ' ' + row[TIME], "%m/%d/%Y %I:%M:%S %p")
             else:
-                date = datetime.datetime.strptime(row['Date'] + ' ' + row['Time'], "%d/%m/%Y %H:%M:%S")
+                date = datetime.datetime.strptime(row[DATE] + ' ' + row[TIME], "%d/%m/%Y %H:%M:%S")
             trans.date = date
             trans.rdate = date
 
-            line = row['Name']
-            if row['Item Title']:
-                line += u' ' + row['Item Title']
-            if row['Auction Site']:
-                line += u"(" + row['Auction Site'] + u")"
+            line = row[NAME]
+            if row[ITEM]:
+                line += u' ' + row[ITEM]
+            if row[SITE]:
+                line += u"(" + row[SITE] + u")"
             trans.raw = line
-            trans.label = row['Name']
+            trans.label = row[NAME]
 
-            if row['Type'].endswith(u'Credit Card'):
+            if row[TYPE].endswith(u'Credit Card') or row[TYPE].endswith(u'carte bancaire'):
                 trans.type = Transaction.TYPE_CARD
-            elif row['Type'].endswith(u'Payment Sent'):
+            elif row[TYPE].endswith(u'Payment Sent') or row[TYPE].startswith(u'Paiement'):
                 trans.type = Transaction.TYPE_ORDER
-            elif row['Type'] == u'Currency Conversion':
+            elif row[TYPE] in (u'Currency Conversion', u'Conversion de devise'):
                 trans.type = Transaction.TYPE_BANK
             else:
                 trans.type = Transaction.TYPE_UNKNOWN
 
             # Net is what happens after the fee (0 for most users), so what is the most "real"
-            trans.amount = clean_amount(row['Net'])
-            trans._gross = clean_amount(row['Gross'])
-            trans._fees = clean_amount(row['Fee'])
+            trans.amount = clean_amount(row[NET])
+            trans._gross = clean_amount(row[GROSS])
+            trans._fees = clean_amount(row[FEE])
 
-            trans._to = row['To Email Address'] or None
-            trans._from = row['From Email Address'] or None
+            trans._to = row[TO] or None
+            trans._from = row[FROM] or None
 
             yield trans
 
