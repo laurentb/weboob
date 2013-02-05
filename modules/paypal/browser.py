@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser
+from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser, UselessPage
 
 
 __all__ = ['Paypal']
@@ -33,6 +33,7 @@ class Paypal(BaseBrowser):
     PAGES = {
         '/cgi-bin/\?cmd=_login-run$':             LoginPage,
         '/cgi-bin/\?cmd=_login-submit.+$':        LoginPage,  # wrong login
+        '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),

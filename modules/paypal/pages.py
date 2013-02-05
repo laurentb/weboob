@@ -193,3 +193,6 @@ class SubmitPage(BasePage):
 class HistoryParser(CsvParser):
     HEADER = True
     FMTPARAMS = {'skipinitialspace': True}
+
+class UselessPage(BasePage):
+    pass
