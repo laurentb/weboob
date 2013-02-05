@@ -19,6 +19,7 @@
 
 from decimal import Decimal
 import re
+import datetime
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
@@ -113,3 +114,22 @@ class AccountPage(BasePage):
                 accounts[account.id] = account
 
         return accounts
+
+
+class DownloadHistoryPage(BasePage):
+    def download(self):
+        today = datetime.date.today()
+        self.browser.select_form(name='form1')
+        # download an entire year
+        self.browser['to_c'] = str(today.year)
+        self.browser['to_a'] = str(today.month)
+        self.browser['to_b'] = str(today.day)
+        self.browser['from_c'] = str(today.year - 1)
+        self.browser['from_a'] = str(today.month)
+        self.browser['from_b'] = str(today.day)
+
+        # only "real" stuff, no cancelled payments
+        self.browser['custom_file_type'] = ['comma_completed']
+        self.browser['latest_completed_file_type'] = ['']
+
+        self.browser.submit()

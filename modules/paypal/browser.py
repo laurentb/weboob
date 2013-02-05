@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage
+from .pages import LoginPage, AccountPage, DownloadHistoryPage
 
 
 __all__ = ['Paypal']
@@ -34,6 +34,7 @@ class Paypal(BaseBrowser):
         '/cgi-bin/\?cmd=_login-run$':             LoginPage,
         '/cgi-bin/\?cmd=_login-submit.+$':        LoginPage,  # wrong login
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
+        '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
     }
 
     def home(self):
@@ -69,6 +70,11 @@ class Paypal(BaseBrowser):
 
     def get_history(self, account):
         raise NotImplementedError()
+
+    def download_history(self):
+        self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
+        assert self.is_on_page(DownloadHistoryPage)
+        self.page.download()
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
