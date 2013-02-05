@@ -23,7 +23,7 @@ import re
 
 from weboob.capabilities.bank import Account, Currency
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -37,6 +37,10 @@ class AccountsList(BasePage):
     def get_list(self):
         ids = set()
         for tr in self.document.xpath('//tr[@align="center"]'):
+            error = tr.xpath('./td/font/b')
+            if len(error) > 0 and error[0].text == 'ERREUR':
+                raise BrowserUnavailable()
+
             account = Account()
             account.currency = Currency.CUR_EUR
             link = tr.xpath('.//a')[0]
