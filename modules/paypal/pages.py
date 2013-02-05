@@ -22,7 +22,8 @@ import re
 import datetime
 
 from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.capabilities.bank import Account
+from weboob.tools.parsers.csvparser import CsvParser
+from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['LoginPage', 'AccountPage']
@@ -128,8 +129,67 @@ class DownloadHistoryPage(BasePage):
         self.browser['from_a'] = str(today.month)
         self.browser['from_b'] = str(today.day)
 
-        # only "real" stuff, no cancelled payments
-        self.browser['custom_file_type'] = ['comma_completed']
+        self.browser['custom_file_type'] = ['comma_allactivity']
         self.browser['latest_completed_file_type'] = ['']
 
         self.browser.submit()
+
+
+class SubmitPage(BasePage):
+    """
+    Any result of form submission
+    """
+    def iter_transactions(self, account):
+        csv = self.document
+        for row in csv.drows:
+            # only "real" stuff, no cancelled payments etc.
+            if row['Status'] != 'Completed':
+                continue
+            # we filter accounts by currency
+            if account.get_currency(row['Currency']) != account.currency:
+                continue
+            # does not seem to be a real transaction; duplicates others
+            if row['Type'] == u'Authorization':
+                continue
+
+            trans = Transaction(row['Transaction ID'])
+
+            # silly American locale
+            if re.search(r'\d\.\d\d$', row['Net']):
+                date = datetime.datetime.strptime(row['Date'] + ' ' + row['Time'], "%m/%d/%Y %I:%M:%S %p")
+            else:
+                date = datetime.datetime.strptime(row['Date'] + ' ' + row['Time'], "%d/%m/%Y %H:%M:%S")
+            trans.date = date
+            trans.rdate = date
+
+            line = row['Name']
+            if row['Item Title']:
+                line += u' ' + row['Item Title']
+            if row['Auction Site']:
+                line += u"(" + row['Auction Site'] + u")"
+            trans.raw = line
+            trans.label = row['Name']
+
+            if row['Type'].endswith(u'Credit Card'):
+                trans.type = Transaction.TYPE_CARD
+            elif row['Type'].endswith(u'Payment Sent'):
+                trans.type = Transaction.TYPE_ORDER
+            elif row['Type'] == u'Currency Conversion':
+                trans.type = Transaction.TYPE_BANK
+            else:
+                trans.type = Transaction.TYPE_UNKNOWN
+
+            # Net is what happens after the fee (0 for most users), so what is the most "real"
+            trans.amount = clean_amount(row['Net'])
+            trans._gross = clean_amount(row['Gross'])
+            trans._fees = clean_amount(row['Fee'])
+
+            trans._to = row['To Email Address'] or None
+            trans._from = row['From Email Address'] or None
+
+            yield trans
+
+
+class HistoryParser(CsvParser):
+    HEADER = True
+    FMTPARAMS = {'skipinitialspace': True}

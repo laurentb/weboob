@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage
+from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser
 
 
 __all__ = ['Paypal']
@@ -29,12 +29,13 @@ class Paypal(BaseBrowser):
     DOMAIN = 'www.paypal.com'
     PROTOCOL = 'https'
     # CERTHASH = '74429081f489cb723a82171a94350913d42727053fc86cf5bf5c3d65d39ec449'
-    ENCODING = None  # refer to the HTML encoding
+    ENCODING = 'UTF-8'  # useful for CSV
     PAGES = {
         '/cgi-bin/\?cmd=_login-run$':             LoginPage,
         '/cgi-bin/\?cmd=_login-submit.+$':        LoginPage,  # wrong login
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
+        '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
     }
 
     def home(self):
@@ -69,12 +70,15 @@ class Paypal(BaseBrowser):
         return self.page.get_account(_id)
 
     def get_history(self, account):
-        raise NotImplementedError()
+        self.download_history()
+        for transaction in self.page.iter_transactions(account):
+            yield transaction
 
     def download_history(self):
         self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
         assert self.is_on_page(DownloadHistoryPage)
         self.page.download()
+        return self.page.document
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()
