@@ -23,6 +23,7 @@ import datetime
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.parsers.csvparser import CsvParser
+from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account, Transaction
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -200,6 +201,13 @@ class SubmitPage(BasePage):
 class HistoryParser(CsvParser):
     HEADER = True
     FMTPARAMS = {'skipinitialspace': True}
+
+    def decode_row(self, row, encoding):
+        """
+        PayPal returns different encodings (latin-1 and utf-8 are know ones)
+        """
+        return [to_unicode(cell) for cell in row]
+
 
 class UselessPage(BasePage):
     pass

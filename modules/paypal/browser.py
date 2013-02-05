@@ -29,7 +29,7 @@ class Paypal(BaseBrowser):
     DOMAIN = 'www.paypal.com'
     PROTOCOL = 'https'
     CERTHASH = '36dc457fa47a9c0cec67ce6ac00e4a7a3846a96ed40cabbb8e1504ed8b332108'
-    ENCODING = 'UTF-8'  # useful for CSV
+    ENCODING = 'UTF-8'
     PAGES = {
         '/cgi-bin/\?cmd=_login-run$':             LoginPage,
         '/cgi-bin/\?cmd=_login-submit.+$':        LoginPage,  # wrong login
