@@ -118,6 +118,9 @@ class BasePage(object):
     """
     Base page
     """
+
+    ENCODING = None
+
     def __init__(self, browser, document, url='', groups=None, group_dict=None, logger=None):
         self.browser = browser
         self.parser = browser.parser
@@ -330,7 +333,7 @@ class StandardBrowser(mechanize.Browser):
         else:
             self.logger.info(msg)
 
-    def get_document(self, result, parser=None):
+    def get_document(self, result, parser=None, encoding=None):
         """
         Get a parsed document from a stream.
 
@@ -342,7 +345,10 @@ class StandardBrowser(mechanize.Browser):
         elif isinstance(parser, (basestring, list, tuple)):
             parser = get_parser(parser)()
 
-        return parser.parse(result, self.ENCODING)
+        if encoding is None:
+            encoding = self.ENCODING
+
+        return parser.parse(result, encoding)
 
     def location(self, *args, **kwargs):
         """
@@ -670,7 +676,7 @@ class BaseBrowser(StandardBrowser):
         if self.SAVE_RESPONSES:
             self.save_response(result)
 
-        document = self.get_document(result, parser)
+        document = self.get_document(result, parser, encoding=pageCls.ENCODING)
         self.page = pageCls(self, document, result.geturl(), groups=page_groups, group_dict=page_group_dict, logger=self.logger)
 
         if not no_login and self.password is not None and not self.is_logged():
