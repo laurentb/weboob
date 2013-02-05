@@ -28,7 +28,7 @@ __all__ = ['Paypal']
 class Paypal(BaseBrowser):
     DOMAIN = 'www.paypal.com'
     PROTOCOL = 'https'
-    # CERTHASH = '74429081f489cb723a82171a94350913d42727053fc86cf5bf5c3d65d39ec449'
+    CERTHASH = '36dc457fa47a9c0cec67ce6ac00e4a7a3846a96ed40cabbb8e1504ed8b332108'
     ENCODING = 'UTF-8'  # useful for CSV
     PAGES = {
         '/cgi-bin/\?cmd=_login-run$':             LoginPage,
