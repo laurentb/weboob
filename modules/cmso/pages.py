@@ -53,7 +53,7 @@ class AccountsPage(BasePage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<text>.*)'),
+    PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_CARD),

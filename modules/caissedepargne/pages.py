@@ -71,7 +71,9 @@ class UnavailablePage(BasePage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})'),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('^RETRAIT DAB (?P<dd>\d+)-(?P<mm>\d+)-.*'),
+                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),

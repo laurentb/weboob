@@ -107,6 +107,8 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^RET DAB (?P<text>.*?) CARTE ?:.*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^RET DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<text>.*?) CARTE .*'),
+                                                              FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('(\w+) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB[:\*][^ ]+ (?P<text>.*)'),
