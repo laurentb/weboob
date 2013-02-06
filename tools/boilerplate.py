@@ -88,13 +88,15 @@ class BaseRecipe(Recipe):
 
     def generate(self):
         self.write('__init__.py', self.template('init'))
+        self.write('backend.py', self.template('base_backend'))
+        self.write('browser.py', self.template('base_browser'))
 
 
-class ComicRecipe(BaseRecipe):
+class ComicRecipe(Recipe):
     NAME = 'comic'
 
     def generate(self):
-        super(ComicRecipe, self).generate()
+        self.write('__init__.py', self.template('init'))
         self.write('backend.py', self.template('comic_backend'))
 
 
@@ -125,7 +127,7 @@ def main():
         default=gitconfig('user.email'))
     subparsers = parser.add_subparsers()
 
-    recipes = [ComicRecipe, ComicTestRecipe]
+    recipes = [BaseRecipe, ComicRecipe, ComicTestRecipe]
     for recipe in recipes:
         recipe.configure_subparser(subparsers)
 
