@@ -39,6 +39,8 @@ class Paypal(BaseBrowser):
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
     }
 
+    DEFAULT_TIMEOUT = 30  # CSV export is slow
+
     def home(self):
         self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
 
