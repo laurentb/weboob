@@ -31,8 +31,8 @@ class Paypal(BaseBrowser):
     CERTHASH = '36dc457fa47a9c0cec67ce6ac00e4a7a3846a96ed40cabbb8e1504ed8b332108'
     ENCODING = 'UTF-8'
     PAGES = {
-        '/cgi-bin/\?cmd=_login-run$':             LoginPage,
-        '/cgi-bin/\?cmd=_login-submit.+$':        LoginPage,  # wrong login
+        '/cgi-bin/webscr\?cmd=_login-run$':             LoginPage,
+        '/cgi-bin/webscr\?cmd=_login-submit.+$':        LoginPage,  # wrong login
         '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
@@ -40,7 +40,7 @@ class Paypal(BaseBrowser):
     }
 
     def home(self):
-        self.location('https://' + self.DOMAIN + '/en/cgi-bin/?cmd=_login-run')
+        self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
 
     def is_logged(self):
         # TODO Does not handle disconnect mid-session
@@ -51,7 +51,7 @@ class Paypal(BaseBrowser):
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN + '/en/cgi-bin/?cmd=_login-run')
+            self.location('https://' + self.DOMAIN + '/en/cgi-bin/webscr?cmd=_login-run')
 
         self.page.login(self.username, self.password)
 
