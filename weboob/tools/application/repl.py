@@ -282,7 +282,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         backends = kwargs.pop('backends', None)
         kwargs['backends'] = self.enabled_backends if backends is None else backends
         kwargs['condition'] = self.condition
-        fields = kwargs.pop('fields', self.selected_fields)
+        fields = kwargs.pop('fields', self.selected_fields) or self.selected_fields
         if '$direct' in fields:
             fields = []
         elif '$full' in fields:
