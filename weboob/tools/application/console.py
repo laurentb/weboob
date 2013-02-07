@@ -466,7 +466,6 @@ class ConsoleApplication(BaseApplication):
             msg = unicode(error)
             if not msg:
                 msg = 'invalid login/password.'
-            # TODO ask to reconfigure backend
             print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
             if self.ask('Do you want to reconfigure this backend?', default=True):
                 self.unload_backends(names=[backend.name])
