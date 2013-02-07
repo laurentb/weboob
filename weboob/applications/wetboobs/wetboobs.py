@@ -19,10 +19,11 @@
 
 
 from weboob.capabilities.weather import ICapWeather
-from weboob.capabilities.gauge import ICapGauge
+from weboob.capabilities.gauge import ICapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
+import sys
 
 __all__ = ['WetBoobs']
 
@@ -91,6 +92,13 @@ class WetBoobs(ReplApplication):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
+
+    def bcall_error_handler(self, backend, error, backtrace):
+        if isinstance(error, SensorNotFound):
+            msg = unicode(error) or 'Sensor not found (hint: try sensors command)'
+            print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
+        else:
+            return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
 
     def do_current(self, line):
         """
