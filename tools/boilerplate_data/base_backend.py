@@ -9,8 +9,8 @@ __all__ = ['${r.classname}Backend']
 
 class ${r.classname}Backend(BaseBackend):
     NAME = '${r.name}'
-    DESCRIPTION = '${r.name} website'
-    MAINTAINER = '${r.author}'
+    DESCRIPTION = u'${r.name} website'
+    MAINTAINER = u'${r.author}'
     EMAIL = '${r.email}'
     VERSION = '${r.version}'
 

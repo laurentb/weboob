@@ -7,8 +7,8 @@ __all__ = ['${r.classname}Backend']
 
 class ${r.classname}Backend(GenericComicReaderBackend):
     NAME = '${r.name}'
-    DESCRIPTION = '${r.name} manga reading site'
-    MAINTAINER = '${r.author}'
+    DESCRIPTION = u'${r.name} manga reading site'
+    MAINTAINER = u'${r.author}'
     EMAIL = '${r.email}'
     VERSION = '${r.version}'
 
