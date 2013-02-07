@@ -47,7 +47,11 @@ class IndexPage(BasePage):
             for p in div.xpath('.//p[@class="bientot"]'):
                 video.title += ' - %s' % p.text.split('|')[0].strip()
             video.date = parse_dt(div.find('span').attrib['data-date'])
-            t = map(int, div.xpath('.//a[@class="rs-genre-temps"]')[0].text.split('|')[1].strip().split(':'))
+            duration = div.xpath('.//a[@class="rs-genre-temps"]')[0].text.split('|')[1].strip()
+            if duration[-1:] == "'":
+                t = [0, int(duration[:-1])]
+            else:
+                t = map(int, duration.split(':'))
             video.duration = datetime.timedelta(hours=t[0], minutes=t[1])
 
             url = self.parser.select(div, 'figure.rs-cell-image img', 1).attrib['src']
