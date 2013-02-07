@@ -454,9 +454,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.condition = None
 
-        if self.options.count == 0:
-            self._parser.error('Count must be at least 1, or negative for infinite')
-        elif self.options.count < 0:
+        if self.options.count <= 0:
             # infinite search
             self.options.count = None
 
