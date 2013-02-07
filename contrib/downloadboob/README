@@ -10,6 +10,7 @@ For each entry in the configuration file, the script :
 In each section of the configuration file :
 - backend : the backend to use
 - pattern : specify the search pattern
-- title_exclude : a coma seperated list. If an item in this list is substring of the title, then the video is ignored.
+- title_exclude : a pipe seperated list. If an item in this list is substring of the title, then the video is ignored.
+- id_regexp : an optional regular expression that the video id must match
 - max_results : maximum number of result to parse
 - directory : the <user specify name> above.

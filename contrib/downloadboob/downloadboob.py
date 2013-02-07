@@ -80,7 +80,7 @@ class Downloadboob:
         else:
             return True
 
-    def download(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[]):
+    def download(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None, title_exclude=[], id_regexp=None):
         print "For backend %s, search for '%s'" % (backend_name, pattern)
 
         # create directory for links
@@ -96,7 +96,7 @@ class Downloadboob:
 
             if not self.is_downloaded(video):
                 self.backend.fill_video(video, ('url','title', 'url', 'duration'))
-                if not(self.is_excluded(video.title.lower(), title_exclude)):
+                if not(self.is_excluded(video.title.lower(), title_exclude)) and self.id_regexp_matched(video.id, id_regexp):
                     print "  %s\n    Id:%s\n    Duration:%s" % (video.title, video.id, video.duration)
                     videos.append(video)
             else:
@@ -116,6 +116,11 @@ class Downloadboob:
             if title.find(exclude.lower()) > -1:
                 return True
         return False
+
+    def id_regexp_matched(self, video_id, id_regexp):
+        if id_regexp:
+            return re.search(id_regexp, video_id) != None
+        return True
 
     def get_filename(self, video, relative=False):
         if relative:
@@ -228,6 +233,10 @@ for section in config.sections():
             title_exclude=config.get(section, "title_exclude").split('|')
         else:
             title_exclude=[]
+        if config.has_option(section, "id_regexp"):
+            id_regexp=config.get(section, "id_regexp")
+        else:
+            id_regexp=None
         max_result=config.getint(section, "max_results")
         section_sublinks_directory=config.get(section,"directory")
         section_links_directory=os.path.join(links_directory, section_sublinks_directory)
@@ -235,4 +244,4 @@ for section in config.sections():
         downloadboob = Downloadboob(backend_name, download_directory, section_links_directory)
         downloadboob.purge()
         # FIXME sortBy, title.match
-        downloadboob.download(pattern, ICapVideo.SEARCH_DATE, False, max_result, title_exclude)
+        downloadboob.download(pattern, ICapVideo.SEARCH_DATE, False, max_result, title_exclude, id_regexp)
