@@ -282,7 +282,7 @@ class AccountsList(CragrBasePage):
         matches = re.search('\s*([012]?[0-9]|3[01])\s*/\s*(0?[1-9]|1[012])\s*$', string)
         if matches is None:
             return self.fallback_date()
-        return date_guesser.guess(int(matches.group(1)), int(matches.group(2)))
+        return date_guesser.guess_date(int(matches.group(1)), int(matches.group(2)))
 
     def look_like_account_owner(self, string):
         """ Returns a date object built from a given day/month pair. """
