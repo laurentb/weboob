@@ -19,10 +19,11 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Transfer, TransferError
 from .pages import LoginPage, AccountsList
 import mechanize
-from datetime import date, datetime
+from datetime import datetime
 import re
 
 class Cragr(BaseBrowser):
@@ -155,19 +156,16 @@ class Cragr(BaseBrowser):
         # an offset, in order to ignore all already-fetched operations.
         # This especially occurs on CA Centre.
         use_expand_url = bool(self.page.expand_history_page_url())
-        page_date = date.today()
+        date_guesser = LinearDateGuesser()
         while True:
             # we skip "operations_count" operations on each page if we are in the case described above
             operations_offset = operations_count if use_expand_url else 0
-            # We provide the page with the current date it shall use to interpret dates
-            self.page.set_current_date(page_date)
-            for page_operation in self.page.get_history(operations_count, operations_offset):
+            for page_operation in self.page.get_history(date_guesser, operations_count, operations_offset):
                 operations_count += 1
                 yield page_operation
             history_url = self.page.expand_history_page_url() if use_expand_url else self.page.next_page_url()
             if not history_url:
                 break
-            page_date = self.page.current_date()
             self.logger.debug('going on: %s' % history_url)
             self.location('https://%s%s' % (self.DOMAIN, history_url))
 
