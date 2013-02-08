@@ -55,6 +55,10 @@ class AccountsListPage(BasePage):
                 if account_type != 'CPT':
                     account.id += '.%s' % account_type
 
+            if account_type == 'Ass':
+                # We don't like licking asses.
+                account._link_id = None
+
             if account_type == 'CB':
                 accounts[0]._card_links.append(account._link_id)
                 if not accounts[0].coming:
