@@ -91,7 +91,7 @@ class TransactionsFormatter(IFormatter):
         label = obj.label
         if not label and hasattr(obj, 'raw'):
             label = obj.raw
-        return ' %-10s   %-12s %-50s %10.2f' % (obj.date.strftime('%Y-%m-%d'), _type[:12], label[:50], obj.amount)
+        return ' %-10s   %-12s %-50s %10.2f' % (obj.date.strftime('%Y-%m-%d') if not empty(obj.date) else '', _type[:12], label[:50], obj.amount)
 
 
 class TransferFormatter(IFormatter):

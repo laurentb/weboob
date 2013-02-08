@@ -25,6 +25,7 @@ import re
 from weboob.capabilities.bank import Transaction
 from weboob.capabilities import NotAvailable
 from weboob.tools.misc import to_unicode
+from weboob.tools.log import getLogger
 
 
 __all__ = ['FrenchTransaction']
@@ -35,6 +36,10 @@ class FrenchTransaction(Transaction):
     Transaction with some helpers for french bank websites.
     """
     PATTERNS = []
+
+    def __init__(self, *args, **kwargs):
+        Transaction.__init__(self, *args, **kwargs)
+        self.logger = getLogger('FrenchTransaction')
 
     @classmethod
     def clean_amount(klass, text):
@@ -87,8 +92,11 @@ class FrenchTransaction(Transaction):
                 date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
             elif '/' in date:
                 date = datetime.date(*reversed([int(x) for x in date.split('/')]))
-            if date.year < 100:
-                date = date.replace(year=2000 + date.year)
+        if not isinstance(date, (datetime.date, datetime.datetime)):
+            self.logger.warning('Unable to parse date %r' % date)
+            date = NotAvailable
+        elif date.year < 100:
+            date = date.replace(year=2000 + date.year)
 
         self.date = date
         self.rdate = date
