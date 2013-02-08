@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -20,11 +20,6 @@
 
 from __future__ import with_statement
 
-try:
-    from dateutil import tz
-except ImportError:
-    raise ImportError('Please install python-dateutil')
-
 from logging import warning
 from time import time, sleep
 from tempfile import gettempdir
@@ -32,6 +27,8 @@ import os
 import sys
 import traceback
 import types
+# keep compatibility
+from .date import local2utc, utc2local
 
 
 __all__ = ['get_backtrace', 'get_bytes_size', 'html2text', 'iter_fields',
@@ -88,12 +85,6 @@ def iter_fields(obj):
             yield attribute_name, attribute
 
 
-def local2utc(date):
-    date = date.replace(tzinfo=tz.tzlocal())
-    date = date.astimezone(tz.tzutc())
-    return date
-
-
 def to_unicode(text):
     r"""
     >>> to_unicode('ascii')
@@ -117,12 +108,6 @@ def to_unicode(text):
             return unicode(text, 'iso-8859-15')
         except UnicodeError:
             return unicode(text, 'windows-1252', 'replace')
-
-
-def utc2local(date):
-    date = date.replace(tzinfo=tz.tzutc())
-    date = date.astimezone(tz.tzlocal())
-    return date
 
 
 def limit(iterator, lim):
