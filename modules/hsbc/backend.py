@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -58,12 +58,13 @@ class HSBCBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account):
         with self.browser:
-            for tr in self.browser.get_history(account._link_id):
-                if not tr._coming:
+            for tr in self.browser.get_history(account):
+                # If there are deferred cards, strip CB invoices.
+                if not tr._coming and not (tr.raw.startswith('FACTURES CB') or len(account._card_links) == 0):
                     yield tr
 
     def iter_coming(self, account):
         with self.browser:
-            for tr in self.browser.get_history(account._link_id):
+            for tr in self.browser.get_history(account):
                 if tr._coming:
                     yield tr

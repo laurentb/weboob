@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Romain Bignon
+# Copyright(C) 2012-2013  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -18,11 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import timedelta
 import urllib
 import re
 
+from weboob.tools.date import LinearDateGuesser
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BasePage, BrokenPageError
-from .pages.accounts import AccountsListPage, HistoryPage
+from .pages.accounts import AccountsListPage, CPTHistoryPage, CardHistoryPage
 
 
 __all__ = ['HSBC']
@@ -38,7 +40,8 @@ class HSBC(BaseBrowser):
     ENCODING = None # refer to the HTML encoding
     PAGES = {'https://client.hsbc.fr/session_absente.html':                 NotLoggedPage,
              'https://client.hsbc.fr/cgi-bin/emcgi\?.*debr=COMPTES_PAN':    AccountsListPage,
-             'https://client.hsbc.fr/cgi-bin/emcgi\?.*CPT_IdPrestation=.*': HistoryPage
+             'https://client.hsbc.fr/cgi-bin/emcgi\?.*CPT_IdPrestation=.*': CPTHistoryPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi\?.*CB_IdPrestation=.*':  CardHistoryPage,
             }
 
     _session = None
@@ -91,9 +94,28 @@ class HSBC(BaseBrowser):
 
         return None
 
-    def get_history(self, link):
-        if link is None:
-            return iter([])
+    def get_history(self, account):
+        if account._link_id is None:
+            return
 
-        self.location(link)
-        return self.page.get_operations()
+        for tr in self._get_history(account._link_id):
+            yield tr
+
+        for card in account._card_links:
+            for tr in self._get_history(card):
+                yield tr
+
+    def _get_history(self, link):
+        num_page = 0
+        guesser = LinearDateGuesser(date_max_bump=timedelta(45))
+        while link is not None:
+            self.location(link)
+
+            if self.page is None:
+                return
+
+            for tr in self.page.get_operations(num_page, guesser):
+                yield tr
+
+            link = self.page.get_next_link()
+            num_page += 1
