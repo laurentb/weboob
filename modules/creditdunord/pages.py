@@ -151,7 +151,7 @@ class TransactionsPage(CDNBasePage):
             t.parse(date, raw)
             t.set_amount(line[self.COL_VALUE])
 
-            if self.is_coming is True and raw.startswith('TOTAL DES') and t.amount > 0:
+            if self.is_coming is not None and raw.startswith('TOTAL DES') and t.amount > 0:
                 # ignore card credit and next transactions are already debited
                 self.is_coming = False
                 continue
