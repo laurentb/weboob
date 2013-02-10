@@ -39,7 +39,7 @@ class TorrentsPage(BasePage):
     def iter_torrents(self):
         try:
             table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
-        except BrokenPageError as e:
+        except BrokenPageError:
             return
         first = True
         for tr in table.getiterator('tr'):
