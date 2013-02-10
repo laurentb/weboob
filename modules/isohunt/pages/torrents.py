@@ -53,7 +53,11 @@ class TorrentsPage(BasePage):
                     torrent = Torrent(idt, title)
                     torrent.url = url
                     torrent.size = get_bytes_size(size, u)
+                    if seed == None or seed == "":
+                        seed = 0
                     torrent.seeders = int(seed)
+                    if leech == None or leech == "":
+                        leech = 0
                     torrent.leechers = int(leech)
                     yield torrent
 
