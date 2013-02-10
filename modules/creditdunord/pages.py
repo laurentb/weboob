@@ -75,7 +75,8 @@ class AccountsPage(CDNBasePage):
         for line in data:
             a = Account()
             a.id = line[self.COL_ID].replace(' ','')
-            a.label = self.parser.tocleanstring(self.parser.parse(StringIO(line[self.COL_LABEL])).xpath('//div[@class="libelleCompteTDB"]')[0])
+            fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
+            a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a._link = self.get_history_link()
             a._execution = self.get_execution()
