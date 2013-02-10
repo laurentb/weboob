@@ -49,8 +49,8 @@ class TranslatePage(BasePage):
           if table.attrib.get('class','') == "trans clickable":
             prev_was_roman1 = False
             for td in table.getiterator('td'):
-                if prev_was_nums1:
+                if prev_was_roman1:
                     return u''+td.text_content().split(';')[0].strip()
                 if td.attrib.get('class','') == 'roman1':
-                    prev_was_nums1 = True
+                    prev_was_roman1 = True
 
