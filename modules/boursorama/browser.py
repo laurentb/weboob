@@ -20,7 +20,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountsList, AccountHistory
+from .pages import LoginPage, AccountsList, AccountHistory, UpdateInfoPage
 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -38,6 +38,7 @@ class Boursorama(BaseBrowser):
              '.*connexion.phtml.*':             LoginPage,
              '.*/comptes/synthese.phtml':       AccountsList,
              '.*/mouvements.phtml.*':           AccountHistory,
+             '.*/date_anniversaire.phtml.*':    UpdateInfoPage,
             }
 
     def __init__(self, *args, **kwargs):

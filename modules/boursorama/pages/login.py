@@ -23,7 +23,7 @@ import hashlib
 import urllib
 import tempfile
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 
@@ -100,3 +100,7 @@ class LoginPage(BasePage):
                }
 
         self.browser.location(form.attrib['action'], urllib.urlencode(args), no_login=True)
+
+class UpdateInfoPage(BasePage):
+    def on_loaded(self):
+        raise BrowserIncorrectPassword('Please update your user informations')
