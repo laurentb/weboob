@@ -55,16 +55,16 @@ class AccountsListPage(BasePage):
                 if account_type != 'CPT':
                     account.id += '.%s' % account_type
 
-            if account_type == 'Ass':
-                # We don't like licking asses.
-                account._link_id = None
-
             if account_type == 'CB':
                 accounts[0]._card_links.append(account._link_id)
                 if not accounts[0].coming:
                     accounts[0].coming = Decimal('0.0')
                 accounts[0].coming += account.balance
                 continue
+
+            if account_type != 'CPT':
+                # Don't support other kind of account histories.
+                account._link_id = None
 
             account.currency = account.get_currency(tds[1].text)
             account._card_links = []
