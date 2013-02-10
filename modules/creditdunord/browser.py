@@ -31,7 +31,7 @@ __all__ = ['CreditDuNordBrowser']
 class CreditDuNordBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.credit-du-nord.fr'
-    #CERTHASH = 'b2f8a8a7a03c54d7bb918f10eb4e141c3fb51bebf0eb8371aefb33a997efc600'
+    CERTHASH = 'b2f8a8a7a03c54d7bb918f10eb4e141c3fb51bebf0eb8371aefb33a997efc600'
     ENCODING = 'UTF-8'
     PAGES = {'https://www.credit-du-nord.fr/?':                         LoginPage,
              'https://www.credit-du-nord.fr/vos-comptes/particuliers(\?.*)?':  AccountsPage,
