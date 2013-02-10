@@ -28,16 +28,17 @@ except ImportError:
 __all__ = ['local2utc', 'utc2local', 'LinearDateGuesser']
 
 
-def local2utc(date):
-    date = date.replace(tzinfo=tz.tzlocal())
-    date = date.astimezone(tz.tzutc())
-    return date
+def local2utc(dateobj):
+    dateobj = dateobj.replace(tzinfo=tz.tzlocal())
+    dateobj = dateobj.astimezone(tz.tzutc())
+    return dateobj
 
 
-def utc2local(date):
-    date = date.replace(tzinfo=tz.tzutc())
-    date = date.astimezone(tz.tzlocal())
-    return date
+def utc2local(dateobj):
+    dateobj = dateobj.replace(tzinfo=tz.tzutc())
+    dateobj = dateobj.astimezone(tz.tzlocal())
+    return dateobj
+
 
 class LinearDateGuesser(object):
     """
