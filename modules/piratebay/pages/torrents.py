@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage,BrokenPageError
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotAvailable
 
@@ -37,7 +37,10 @@ class TorrentsPage(BasePage):
         return float(n * m[u])
 
     def iter_torrents(self):
-        table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
+        try:
+            table = self.parser.select(self.document.getroot(), 'table#searchResult', 1)
+        except BrokenPageError as e:
+            return
         first = True
         for tr in table.getiterator('tr'):
             if first:
