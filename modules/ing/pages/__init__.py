@@ -20,7 +20,7 @@
 
 from .accounts_list import AccountsList
 from .account_history import AccountHistory
-from .login import LoginPage, LoginPage2, StopPage
+from .login import LoginPage, StopPage
 from .transfer import TransferPage, TransferConfirmPage
 from .bills import BillsPage
 
@@ -29,6 +29,5 @@ class AccountPrelevement(AccountsList):
     pass
 
 __all__ = ['AccountsList', 'AccountHistory', 'LoginPage',
-           'LoginPage2', 'AccountPrelevement',
-           'TransferPage', 'TransferConfirmPage',
+           'AccountPrelevement', 'TransferPage', 'TransferConfirmPage',
            'BillsPage', 'StopPage']

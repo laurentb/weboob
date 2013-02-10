@@ -20,7 +20,7 @@ import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
-from .pages import AccountsList, LoginPage, LoginPage2, \
+from .pages import AccountsList, LoginPage, \
                    AccountHistory, TransferPage, TransferConfirmPage, \
                    BillsPage, StopPage
 
@@ -35,8 +35,7 @@ class Ing(BaseBrowser):
     #DEBUG_HTTP = True
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*displayTRAccountSummary.*':    AccountsList,
-             '.*displayLogin.jsf':             LoginPage,
-             '.*displayLogin.jsf.+':           LoginPage2,
+             '.*displayLogin.jsf.*':           LoginPage,
              '.*accountDetail.jsf.*':          AccountHistory,
              '.*displayTRHistorique.*':        AccountHistory,
              '.*transferManagement.jsf':       TransferPage,

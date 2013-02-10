@@ -26,7 +26,7 @@ from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 import tempfile
 
 
-__all__ = ['LoginPage', 'LoginPage2', 'INGVirtKeyboard', 'StopPage']
+__all__ = ['LoginPage', 'INGVirtKeyboard', 'StopPage']
 
 
 class INGVirtKeyboard(VirtKeyboard):
@@ -107,10 +107,6 @@ class LoginPage(BasePage):
         err = self.document.find('//span[@class="error"]')
         return err is not None
 
-
-class LoginPage2(BasePage):
-    def on_loaded(self):
-        pass
 
     def login(self, password):
         # 2) And now, the virtual Keyboard
