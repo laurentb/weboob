@@ -81,7 +81,6 @@ class BackendsCall(object):
         # Create jobs for each backend
         with self.mutex:
             for backend in backends:
-                self.logger.debug('Creating a new thread for %s' % backend)
                 self.threads.append(Timer(0, self._caller, (backend, function, args, kwargs)).start())
             if not backends:
                 self.finish_event.set()
@@ -101,7 +100,6 @@ class BackendsCall(object):
             self.response_event.set()
 
     def _caller(self, backend, function, args, kwargs):
-        self.logger.debug('%s: Thread created successfully' % backend)
         with backend:
             try:
                 # Call method on backend
