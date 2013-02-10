@@ -28,7 +28,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['LoginPage', 'Login2Page', 'IndexPage', 'AccountsPage', 'TransactionsPage',
-           'CardPage', 'ValuationPage', 'LoanPage']
+           'CardPage', 'ValuationPage', 'LoanPage', 'MarketPage']
 
 
 class LoginPage(BasePage):
@@ -127,8 +127,12 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_UNKNOWN),
                ]
 
+class HistoryBasePage(BasePage):
+    def get_history(self):
+        self.logger.warning('Do not support account of type %s' % type(self).__name__)
+        return iter([])
 
-class TransactionsPage(BasePage):
+class TransactionsPage(HistoryBasePage):
     def get_history(self):
         for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
@@ -152,7 +156,7 @@ class TransactionsPage(BasePage):
             yield t
 
 
-class CardPage(BasePage):
+class CardPage(HistoryBasePage):
     def get_history(self):
         debit_date = None
         coming = True
@@ -182,10 +186,11 @@ class CardPage(BasePage):
             t.set_amount(amount)
             yield t
 
-class ValuationPage(BasePage):
-    def get_history(self):
-        return iter([])
+class ValuationPage(HistoryBasePage):
+    pass
 
-class LoanPage(BasePage):
-    def get_history(self):
-        return iter([])
+class LoanPage(HistoryBasePage):
+    pass
+
+class MarketPage(HistoryBasePage):
+    pass
