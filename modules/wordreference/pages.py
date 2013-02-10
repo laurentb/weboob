@@ -19,9 +19,11 @@
 
 
 from weboob.tools.browser import BasePage
+import re
 
 
 __all__ = ['TranslatePage']
+LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
 
 
 class TranslatePage(BasePage):
@@ -31,15 +33,16 @@ class TranslatePage(BasePage):
         prev_was_nums1 = False
         for td in tr.getiterator('td'):
             if prev_was_nums1:
-                return u''+td.text_content().split(';')[0].strip()
+                result = u''+td.text_content().split(';')[0].strip()
+                result = LAST_THING_IN_PARENTHESIS.sub("",result)
+                return result
             if td.attrib.get('class','') == 'nums1':
                 prev_was_nums1 = True
       # if only one signification is found
       for div in self.document.getiterator('div'):
           if div.attrib.get('class','') == "trans clickable":
               names = u''+" ".join(div.text_content().split(']')[1].split()[1:]).split(';')[0]
-              if ")" in names:
-                  names = names.split(")")[1]
+              names = LAST_THING_IN_PARENTHESIS.sub("",names)
               return names.strip()
       # another numerotation possibility...
       for table in self.document.getiterator('table'):
