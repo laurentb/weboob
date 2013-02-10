@@ -84,6 +84,9 @@ class CreditDuNordBrowser(BaseBrowser):
         return None
 
     def iter_transactions(self, link, link_id, execution, is_coming=None):
+        if link_id is None:
+            return
+
         event = 'clicDetailCompte'
         while 1:
             data = {'_eventId':         event,

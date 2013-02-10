@@ -55,6 +55,7 @@ class CDNBasePage(BasePage):
         return self.get_from_js("name: 'execution', value: '", "'")
 
 class AccountsPage(CDNBasePage):
+    COL_HISTORY = 2
     COL_ID = 4
     COL_LABEL = 5
     COL_BALANCE = -1
@@ -80,7 +81,10 @@ class AccountsPage(CDNBasePage):
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a._link = self.get_history_link()
             a._execution = self.get_execution()
-            a._link_id = line[self.COL_ID]
+            if line[self.COL_HISTORY] == 'true':
+                a._link_id = line[self.COL_ID]
+            else:
+                a._link_id = None
 
             if a.id.endswith('_CarteVisaPremier'):
                 accounts[0]._card_ids.append(a._link_id)
