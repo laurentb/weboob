@@ -39,7 +39,7 @@ class FrenchTransaction(Transaction):
 
     def __init__(self, *args, **kwargs):
         Transaction.__init__(self, *args, **kwargs)
-        self.logger = getLogger('FrenchTransaction')
+        self._logger = getLogger('FrenchTransaction')
 
     @classmethod
     def clean_amount(klass, text):
@@ -93,7 +93,7 @@ class FrenchTransaction(Transaction):
             elif '/' in date:
                 date = datetime.date(*reversed([int(x) for x in date.split('/')]))
         if not isinstance(date, (datetime.date, datetime.datetime)):
-            self.logger.warning('Unable to parse date %r' % date)
+            self._logger.warning('Unable to parse date %r' % date)
             date = NotAvailable
         elif date.year < 100:
             date = date.replace(year=2000 + date.year)
@@ -134,14 +134,14 @@ class FrenchTransaction(Transaction):
                     if inargs('yy'):
                         yy = int(args['yy'])
                     else:
-                        d = datetime.date.today()
+                        d = self.date
                         try:
                             d = d.replace(month=mm, day=dd)
                         except ValueError:
                             d = d.replace(year=d.year-1, month=mm, day=dd)
 
                         yy = d.year
-                        if d > datetime.date.today():
+                        if d > self.date:
                             yy -= 1
 
                     if yy < 100:
