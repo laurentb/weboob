@@ -86,7 +86,7 @@ class AccountsPage(CDNBasePage):
             else:
                 a._link_id = None
 
-            if a.id.endswith('_CarteVisaPremier'):
+            if a.id.find('_CarteVisa') >= 0:
                 accounts[0]._card_ids.append(a._link_id)
                 if not accounts[0].coming:
                     accounts[0].coming = Decimal('0.0')
