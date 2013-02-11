@@ -710,19 +710,27 @@ ssl.wrap_socket = mywrap_socket
 
 
 class HTTPSConnection2(httplib.HTTPSConnection):
+    _HOSTS = {}
+    _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv3]
+
     def _create_connection(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
         if self._tunnel_host:
             self._tunnel()
         return sock
 
+    def _get_protocols(self):
+        return self._HOSTS.get('%s:%s' % (self.host, self.port), self._PROTOCOLS)
+
     def connect(self):
-        sock = self._create_connection()
-        try:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
-        except ssl.SSLError:
-            sock.close()
+        for proto in self._get_protocols():
             sock = self._create_connection()
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+            try:
+                self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=proto)
+                self._HOSTS['%s:%s' % (self.host, self.port)] = [proto]
+                return
+            except ssl.SSLError, e:
+                sock.close()
+        raise e
 
 httplib.HTTPSConnection = HTTPSConnection2
