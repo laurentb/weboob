@@ -19,7 +19,7 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser, UselessPage
+from .pages import LoginPage, AccountPage, DownloadHistoryPage, SubmitPage, HistoryParser, UselessPage, HistoryPage
 
 
 __all__ = ['Paypal']
@@ -36,6 +36,8 @@ class Paypal(BaseBrowser):
         '/cgi-bin/webscr\?cmd=_login-processing.+$':    UselessPage,
         '/cgi-bin/webscr\?cmd=_account&nav=0.0$':  AccountPage,
         '/cgi-bin/webscr\?cmd=_history-download&nav=0.3.1$':  DownloadHistoryPage,
+        '/cgi-bin/webscr\?cmd=_history&nav=0.3.0$':  HistoryPage,
+        '/cgi-bin/webscr\?cmd=_history&dispatch=[a-z0-9]+$':  HistoryPage,
         '/cgi-bin/webscr\?dispatch=[a-z0-9]+$': (SubmitPage, HistoryParser()),
     }
 
@@ -73,11 +75,21 @@ class Paypal(BaseBrowser):
         return self.page.get_account(_id)
 
     def get_history(self, account):
-        self.download_history()
+        self.history()
         for transaction in self.page.iter_transactions(account):
             yield transaction
 
+    def history(self):
+        self.location('/en/cgi-bin/webscr?cmd=_history&nav=0.3.0')
+        self.page.filter()
+        assert self.is_on_page(HistoryPage)
+
     def download_history(self):
+        """
+        Download CSV history.
+        However, it is not normalized, and sometimes the download is refused
+        and sent later by mail.
+        """
         self.location('/en/cgi-bin/webscr?cmd=_history-download&nav=0.3.1')
         assert self.is_on_page(DownloadHistoryPage)
         self.page.download()

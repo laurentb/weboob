@@ -21,6 +21,8 @@ from decimal import Decimal
 import re
 import datetime
 
+import dateutil.parser
+
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.parsers.csvparser import CsvParser
 from weboob.tools.misc import to_unicode
@@ -121,14 +123,14 @@ class AccountPage(BasePage):
 class DownloadHistoryPage(BasePage):
     def download(self):
         today = datetime.date.today()
+        start = today - datetime.timedelta(days=90)
         self.browser.select_form(name='form1')
-        # download an entire year
         self.browser['to_c'] = str(today.year)
         self.browser['to_a'] = str(today.month)
         self.browser['to_b'] = str(today.day)
-        self.browser['from_c'] = str(today.year - 1)
-        self.browser['from_a'] = str(today.month)
-        self.browser['from_b'] = str(today.day)
+        self.browser['from_c'] = str(start.year)
+        self.browser['from_a'] = str(start.month)
+        self.browser['from_b'] = str(start.day)
 
         self.browser['custom_file_type'] = ['comma_balaffecting']
         self.browser['latest_completed_file_type'] = ['']
@@ -211,3 +213,82 @@ class HistoryParser(CsvParser):
 
 class UselessPage(BasePage):
     pass
+
+
+class HistoryPage(BasePage):
+    def guess_format(self):
+        rp = re.compile('PAYPAL\.widget\.CalendarLocales\.MDY_([A-Z]+)_POSITION\s*=\s*(\d)')
+        rd = re.compile('PAYPAL\.widget\.CalendarLocales\.DATE_DELIMITER\s*=\s*"(.)"')
+        rm = re.compile('PAYPAL\.widget\.CalendarLocales\.MONTH_NAMES\s*=\s*\[(.+)\]')
+        translate = {'DAY': '%d', 'MONTH': '%m', 'YEAR': '%Y'}
+        pos = {}
+        delim = '/'
+        months = {}
+        for script in self.document.xpath('//script'):
+            for line in script.text_content().splitlines():
+                m = rp.match(line)
+                if m and m.groups():
+                    pos[int(m.groups()[1])] = translate[m.groups()[0]]
+                else:
+                    m = rd.match(line)
+                    if m:
+                        delim = m.groups()[0]
+                    else:
+                        m = rm.match(line)
+                        if m:
+                            months = [month.strip("'").strip().lower()[0:3]
+                                      for month
+                                      in m.groups()[0].split(',')]
+        date_format = delim.join((pos[0], pos[1], pos[2]))
+        if date_format == "%m/%d/%Y":
+            time_format = "%I:%M:%S %p"
+        else:
+            time_format = "%H:%M:%S"
+        return date_format, time_format, months
+
+    def filter(self):
+        date_format = self.guess_format()[0]
+        today = datetime.date.today()
+        start = today - datetime.timedelta(days=90)
+        self.browser.select_form(name='history')
+        self.browser['dateoption'] = ['dateselect']
+        self.browser['from_date'] = start.strftime(date_format)
+        self.browser['to_date'] = today.strftime(date_format)
+        self.browser.submit(name='show')
+
+    def parse(self):
+        emonths = ['January', 'February', 'March', 'April',
+                   'May', 'June', 'July', 'August',
+                   'September', 'October', 'November', 'December']
+        date_format, time_format, months = self.guess_format()
+        for row in self.document.xpath('//table[@id="transactionTable"]/tbody/tr'):
+            amount = row.xpath('.//td[@headers="gross"]')[-1].text_content().strip()
+            if re.search('\d', amount):
+                currency = Account.get_currency(amount)
+                amount = clean_amount(amount)
+            else:
+                continue
+
+            idtext = row.xpath('.//td[@class="detailsNoPrint"]//span[@class="accessAid"]')[0] \
+                .text_content().replace(u'\xa0', u' ').strip().rpartition(' ')[-1]
+            trans = Transaction(idtext)
+            trans.amount = amount
+            trans._currency = currency
+
+            datetext = row.xpath('.//td[@class="dateInfo"]')[0].text_content().strip()
+            for i in range(0, 12):
+                datetext = datetext.replace(months[i], emonths[i])
+            date = dateutil.parser.parse(datetext)
+            trans.date = date
+            trans.rdate = date
+
+            trans.label = to_unicode(row.xpath('.//td[@class="emailInfo"]')[0].text_content().strip())
+            trans.raw = to_unicode(row.xpath('.//td[@class="paymentTypeInfo"]')[0].text_content().strip()) \
+                + u' ' + trans.label
+
+            yield trans
+
+    def iter_transactions(self, account):
+        for trans in self.parse():
+            if trans._currency == account.currency:
+                yield trans
