@@ -34,6 +34,8 @@ import re
 import tempfile
 from threading import RLock
 import ssl
+import httplib
+import socket
 import hashlib
 import time
 import urllib
@@ -689,9 +691,9 @@ class BaseBrowser(StandardBrowser):
         if self._cookie:
             self._cookie.save()
 
+
 def mywrap_socket(sock, *args, **kwargs):
-    kwargs['do_handshake_on_connect']=False
-    kwargs['ssl_version'] = kwargs.get('ssl_version', ssl.PROTOCOL_TLSv1)
+    kwargs['do_handshake_on_connect'] = False
     sock = ssl.wrap_socketold(sock, *args, **kwargs)
     sock.settimeout(StandardBrowser.DEFAULT_TIMEOUT)
     try:
@@ -702,5 +704,25 @@ def mywrap_socket(sock, *args, **kwargs):
         sock.do_handshake()
     return sock
 
-ssl.wrap_socketold=ssl.wrap_socket
-ssl.wrap_socket=mywrap_socket
+
+ssl.wrap_socketold = ssl.wrap_socket
+ssl.wrap_socket = mywrap_socket
+
+
+class HTTPSConnection2(httplib.HTTPSConnection):
+    def _create_connection(self):
+        sock = socket.create_connection((self.host, self.port), self.timeout)
+        if self._tunnel_host:
+            self._tunnel()
+        return sock
+
+    def connect(self):
+        sock = self._create_connection()
+        try:
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
+        except ssl.SSLError:
+            sock.close()
+            sock = self._create_connection()
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+
+httplib.HTTPSConnection = HTTPSConnection2
