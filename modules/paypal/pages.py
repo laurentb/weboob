@@ -262,6 +262,9 @@ class HistoryPage(BasePage):
                    'September', 'October', 'November', 'December']
         date_format, time_format, months = self.guess_format()
         for row in self.document.xpath('//table[@id="transactionTable"]/tbody/tr'):
+            if row.xpath('.//td') < 5:
+                continue
+
             amount = row.xpath('.//td[@headers="gross"]')[-1].text_content().strip()
             if re.search('\d', amount):
                 currency = Account.get_currency(amount)
