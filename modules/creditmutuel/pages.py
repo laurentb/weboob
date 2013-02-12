@@ -50,7 +50,6 @@ class UserSpacePage(BasePage):
     pass
 
 class AccountsPage(BasePage):
-    ALL_EXCEPT_DIGITS = re.compile("[^0-9]*")
     def get_list(self):
         accounts = OrderedDict()
 
@@ -86,8 +85,7 @@ class AccountsPage(BasePage):
                     continue
 
                 account = Account()
-                # the id is only formed by digits
-                account.id = self.ALL_EXCEPT_DIGITS.sub('',id)
+                account.id = id
                 account.label = unicode(a.text).strip().lstrip(' 0123456789').title()
                 account._link_id = link
                 account._card_links = []
