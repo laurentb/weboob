@@ -38,6 +38,7 @@ class WeboobCfg(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2012 Christophe Benz, Romain Bignon'
     DESCRIPTION = "Weboob-Config is a console application to add/edit/remove backends, " \
                   "and to register new website accounts."
+    SHORT_DESCRIPTION = "manage backends or register new accounts"
     COMMANDS_FORMATTERS = {'modules':     'table',
                            'list':        'table',
                            }
@@ -127,8 +128,8 @@ class WeboobCfg(ReplApplication):
             row = OrderedDict([('Name', instance_name),
                                ('Module', name),
                                ('Configuration', ', '.join(
-                                   '%s=%s' % (key, ('*****' if key in module.config and module.config[key].masked \
-                                                    else value)) \
+                                   '%s=%s' % (key, ('*****' if key in module.config and module.config[key].masked
+                                                    else value))
                                    for key, value in params.iteritems())),
                                ])
             self.format(row)
@@ -143,7 +144,6 @@ class WeboobCfg(ReplApplication):
         if not self.weboob.backends_config.remove_backend(instance_name):
             print >>sys.stderr, 'Backend instance "%s" does not exist' % instance_name
             return 1
-
 
     def _do_toggle(self, name, state):
         try:

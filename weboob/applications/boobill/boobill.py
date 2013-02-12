@@ -43,6 +43,7 @@ class Boobill(ReplApplication):
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get and download bills.'
+    SHORT_DESCRIPTION = "get and download bills"
     CAPS = ICapBill
     COLLECTION_OBJECTS = (Subscription, )
     EXTRA_FORMATTERS = {'subscriptions':   SubscriptionsFormatter,

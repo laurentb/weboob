@@ -33,6 +33,7 @@ class TranslationFormatter(IFormatter):
     def format_obj(self, obj, alias):
         return u'%s* %s%s\n\t%s' % (self.BOLD, obj.backend, self.NC, obj.text.replace('\n', '\n\t'))
 
+
 class XmlTranslationFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'text')
 
@@ -43,11 +44,13 @@ class XmlTranslationFormatter(IFormatter):
     def format_obj(self, obj, alias):
         return u'<translation %s>\n%s\n</translation>' % (obj.backend, obj.text)
 
+
 class Translaboob(ReplApplication):
     APPNAME = 'translaboob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Lucien Loiseau'
-    DESCRIPTION = 'Console application to translate text from one language to another'
+    DESCRIPTION = "Console application to translate text from one language to another"
+    SHORT_DESCRIPTION = "translate text from one language to another"
     CAPS = ICapTranslate
     EXTRA_FORMATTERS = {'translation': TranslationFormatter,
         'xmltrans':    XmlTranslationFormatter,
@@ -55,18 +58,17 @@ class Translaboob(ReplApplication):
     COMMANDS_FORMATTERS = {'translate': 'translation',
         }
     LANGUAGE = {
-        'ar':'Arabic', 'af':'Afrikaans', 'sq':'Albanian', 'hy':'Armenian', 'az':'Azerbaijani', 'eu':'Basque', 'be':'Belarusian',
-        'bn':'Bengali', 'bg':'Bulgarian', 'ca':'Catalan', 'zh':'Chinese', 'hr':'Croatian', 'cz':'Czech', 'da':'Danish',
-        'nl':'Dutch', 'en':'English', 'eo':'Esperanto', 'et':'Estonian', 'tl':'Filipino', 'fi':'Finnish', 'fr':'French',
-        'gl':'Galician', 'ka':'Georgian', 'de':'German', 'gr':'Greek', 'gu':'Gujarati', 'ht':'Haitian', 'iw':'Hebrew',
-        'hi':'Hindi', 'hu':'Hungaric', 'is':'Icelandic', 'id':'Indonesian', 'ga':'Irish', 'it':'Italian', 'ja':'Japanese',
-        'kn':'Kannada', 'ko':'Korean', 'la':'Latin', 'lv':'Latvian', 'lt':'Lithuanian', 'mk':'Macedonian', 'ms':'Malay',
-        'mt':'Maltese', 'no':'Norwegian', 'fa':'Persian', 'pl':'Polish', 'pt':'Portuguese', 'ro':'Romanian', 'ru':'Russian',
-        'sr':'Serbian', 'sk':'Slovak', 'sl':'Slovenian', 'es':'Spanish', 'sw':'Swahili', 'sv':'Swedish', 'ta':'Tamil',
-        'te':'Telugu', 'th':'Thai', 'tr':'Turkish', 'uk':'Ukrainian', 'ur':'Urdu', 'vi':'Vietnamese', 'cy':'Welsh', 'yi':'Yiddish',
+        'ar': 'Arabic', 'af': 'Afrikaans', 'sq': 'Albanian', 'hy': 'Armenian', 'az': 'Azerbaijani', 'eu': 'Basque', 'be': 'Belarusian',
+        'bn': 'Bengali', 'bg': 'Bulgarian', 'ca': 'Catalan', 'zh': 'Chinese', 'hr': 'Croatian', 'cz': 'Czech', 'da': 'Danish',
+        'nl': 'Dutch', 'en': 'English', 'eo': 'Esperanto', 'et': 'Estonian', 'tl': 'Filipino', 'fi': 'Finnish', 'fr': 'French',
+        'gl': 'Galician', 'ka': 'Georgian', 'de': 'German', 'gr': 'Greek', 'gu': 'Gujarati', 'ht': 'Haitian', 'iw': 'Hebrew',
+        'hi': 'Hindi', 'hu': 'Hungaric', 'is': 'Icelandic', 'id': 'Indonesian', 'ga': 'Irish', 'it': 'Italian', 'ja': 'Japanese',
+        'kn': 'Kannada', 'ko': 'Korean', 'la': 'Latin', 'lv': 'Latvian', 'lt': 'Lithuanian', 'mk': 'Macedonian', 'ms': 'Malay',
+        'mt': 'Maltese', 'no': 'Norwegian', 'fa': 'Persian', 'pl': 'Polish', 'pt': 'Portuguese', 'ro': 'Romanian', 'ru': 'Russian',
+        'sr': 'Serbian', 'sk': 'Slovak', 'sl': 'Slovenian', 'es': 'Spanish', 'sw': 'Swahili', 'sv': 'Swedish', 'ta': 'Tamil',
+        'te': 'Telugu', 'th': 'Thai', 'tr': 'Turkish', 'uk': 'Ukrainian', 'ur': 'Urdu', 'vi': 'Vietnamese', 'cy': 'Welsh', 'yi': 'Yiddish',
         'nigger': 'Nigger!',
         }
-
 
     def do_translate(self, line):
         """
@@ -110,7 +112,7 @@ class Translaboob(ReplApplication):
                 text = self.acquire_input()
 
             self.start_format(source=text)
-            for backend, translation  in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
+            for backend, translation in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
                 self.format(translation)
             self.flush()
         except (TranslationFail, LanguageNotSupported) as error:

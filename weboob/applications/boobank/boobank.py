@@ -159,6 +159,7 @@ class Boobank(ReplApplication):
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
                   "display accounts history and coming bank operations, and transfer money from an account to " \
                   "another (if available)."
+    SHORT_DESCRIPTION = "manage bank accounts"
     EXTRA_FORMATTERS = {'account_list':   AccountListFormatter,
                         'recipient_list': RecipientListFormatter,
                         'transfer':       TransferFormatter,

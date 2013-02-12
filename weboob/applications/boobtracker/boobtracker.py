@@ -59,6 +59,7 @@ class IssueFormatter(IFormatter):
                     result += html2text(u.message)
         return result
 
+
 class IssuesListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'project', 'status', 'title', 'category')
 
@@ -73,8 +74,8 @@ class BoobTracker(ReplApplication):
     APPNAME = 'boobtracker'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2011 Romain Bignon'
-    DESCRIPTION = "Console application allowing to send messages on various websites and " \
-                  "to display message threads and contents."
+    DESCRIPTION = "Console application allowing to create, edit, view bug tracking issues."
+    SHORT_DESCRIPTION = "manage bug tracking issues"
     CAPS = ICapBugTracker
     EXTRA_FORMATTERS = {'issue_info': IssueFormatter,
                         'issues_list': IssuesListFormatter,
@@ -151,7 +152,7 @@ class BoobTracker(ReplApplication):
 
         issue = self.get_object(line, 'get_issue')
         if not issue:
-            print >>sys.stderr, 'Issue not found: %s' %  line
+            print >>sys.stderr, 'Issue not found: %s' % line
             return 3
         self.format(issue)
         self.flush()
@@ -335,7 +336,7 @@ class BoobTracker(ReplApplication):
         _id, key, value = self.parse_command_args(line, 3, 1)
         issue = self.get_object(_id, 'get_issue')
         if not issue:
-            print >>sys.stderr, 'Issue not found: %s' %  _id
+            print >>sys.stderr, 'Issue not found: %s' % _id
             return 3
 
         self.prompt_issue(issue, key, value)

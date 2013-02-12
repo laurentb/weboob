@@ -281,6 +281,8 @@ class Masstransit(BaseApplication):
     APPNAME = 'masstransit'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2011 Julien Hébert'
+    DESCRIPTION = "Maemo application allowing to search for train stations and get departure times."
+    SHORT_DESCRIPTION = "search for train stations and departures"
 
     def main(self, argv):
         self.load_backends(ICapTravel)

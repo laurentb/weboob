@@ -1,12 +1,17 @@
-.TH MASSTRANSIT 1 "28 October 2012" "masstransit 0\&.d"
+.TH MASSTRANSIT 1 "13 February 2013" "masstransit 0\&.f"
 .SH NAME
-masstransit
+masstransit \- search for train stations and departures
 .SH SYNOPSIS
 .B masstransit
 [\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
 .B masstransit
 [\-\-help] [\-\-version]
+
+.SH DESCRIPTION
+.LP
+
+Maemo application allowing to search for train stations and get departure times.
 
 .SH OPTIONS
 .TP
@@ -18,6 +23,12 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH LOGGING OPTIONS
 .TP

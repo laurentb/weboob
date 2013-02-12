@@ -27,7 +27,8 @@ class QHaveDate(QtApplication):
     APPNAME = 'qhavedate'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
-    DESCRIPTION = 'Qt application allowing to interact with various dating websites.'
+    DESCRIPTION = "Qt application allowing to interact with various dating websites."
+    SHORT_DESCRIPTION = "interact with dating websites"
     CAPS = ICapDating
     STORAGE_FILENAME = 'dating.storage'
 

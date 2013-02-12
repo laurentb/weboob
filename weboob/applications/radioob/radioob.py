@@ -33,7 +33,6 @@ __all__ = ['Radioob']
 class RadioListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'description')
 
-
     def get_title(self, obj):
         return obj.title
 
@@ -51,8 +50,9 @@ class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
-    DESCRIPTION = 'Console application allowing to search for web radio stations, listen to them and get information ' \
-                  'like the current song.'
+    DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
+                  "like the current song."
+    SHORT_DESCRIPTION = "search, show or listen to radio stations"
     CAPS = ICapRadio
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
     COMMANDS_FORMATTERS = {'ls':     'radio_list',

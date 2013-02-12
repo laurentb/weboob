@@ -34,6 +34,7 @@ class WeboobCli(ReplApplication):
     SYNOPSIS += '       %prog [--help] [--version]'
     DESCRIPTION = "Weboob-Cli is a console application to call a specific method on backends " \
                   "which implement the given capability."
+    SHORT_DESCRIPTION = "call a method on backends"
     DISABLE_REPL = True
 
     def load_default_backends(self):

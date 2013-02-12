@@ -51,6 +51,7 @@ class Galleroob(ReplApplication):
     VERSION = '0.f'
     COPYRIGHT = u'Copyright(C) 2011 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
+    SHORT_DESCRIPTION = 'browse and download web image galleries'
     CAPS = ICapGallery
     EXTRA_FORMATTERS = {'gallery_list': GalleryListFormatter}
     COMMANDS_FORMATTERS = {'search': 'gallery_list', 'ls': 'gallery_list'}

@@ -29,6 +29,7 @@ class WeboobDebug(BaseApplication):
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Weboob-Debug is a console application to debug backends."
+    SHORT_DESCRIPTION = "debug backends"
 
     def __init__(self, option_parser=None):
         super(WeboobDebug, self).__init__(option_parser)

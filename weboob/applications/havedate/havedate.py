@@ -45,12 +45,14 @@ class EventListFormatter(PrettyFormatter):
         if hasattr(event, 'message'):
             return event.message
 
+
 class HaveDate(Boobmsg):
     APPNAME = 'havedate'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
-    DESCRIPTION = 'Console application allowing to interact with various dating websites ' \
-                  'and to optimize seduction algorithmically.'
+    DESCRIPTION = "Console application allowing to interact with various dating websites " \
+                  "and to optimize seduction algorithmically."
+    SHORT_DESCRIPTION = "interact with dating websites"
     STORAGE_FILENAME = 'dating.storage'
     STORAGE = {'optims': {}}
     CAPS = ICapDating

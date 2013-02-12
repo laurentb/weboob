@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtCore  import QUrl
+from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import QDialog
 from PyQt4.phonon import Phonon
 

@@ -73,8 +73,9 @@ class Weboorrents(ReplApplication):
     APPNAME = 'weboorrents'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
-    DESCRIPTION = 'Console application allowing to search for torrents on various trackers ' \
-                  'and download .torrent files.'
+    DESCRIPTION = "Console application allowing to search for torrents on various trackers " \
+                  "and download .torrent files."
+    SHORT_DESCRIPTION = "search and download torrents"
     CAPS = ICapTorrent
     EXTRA_FORMATTERS = {'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,
@@ -97,7 +98,7 @@ class Weboorrents(ReplApplication):
 
         torrent = self.get_object(id, 'get_torrent')
         if not torrent:
-            print >>sys.stderr, 'Torrent not found: %s' %  id
+            print >>sys.stderr, 'Torrent not found: %s' % id
             return 3
 
         self.start_format()
@@ -143,8 +144,8 @@ class Weboorrents(ReplApplication):
             for backend, error, backtrace in errors:
                 if isinstance(error, MagnetOnly):
                     print >>sys.stderr, u'Error(%s): No direct URL available, ' \
-                    u'please provide this magnet URL ' \
-                    u'to your client:\n%s' % (backend, error.magnet)
+                        u'please provide this magnet URL ' \
+                        u'to your client:\n%s' % (backend, error.magnet)
                     return 4
                 else:
                     self.bcall_error_handler(backend, error, backtrace)

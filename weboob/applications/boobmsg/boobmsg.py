@@ -271,6 +271,7 @@ class Boobmsg(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Christophe Benz'
     DESCRIPTION = "Console application allowing to send messages on various websites and " \
                   "to display message threads and contents."
+    SHORT_DESCRIPTION = "send and receive message threads"
     CAPS = ICapMessages
     EXTRA_FORMATTERS = {'msglist':  MessagesListFormatter,
                         'msg':      MessageFormatter,

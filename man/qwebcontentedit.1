@@ -1,6 +1,6 @@
-.TH QWEBCONTENTEDIT 1 "25 janvier 2013" "qwebcontentedit 0\&.e"
+.TH QWEBCONTENTEDIT 1 "13 February 2013" "qwebcontentedit 0\&.f"
 .SH NAME
-qwebcontentedit
+qwebcontentedit \- manage websites content
 .SH SYNOPSIS
 .B qwebcontentedit
 [\-h] [\-dqv] [\-b \fIbackends\fR] ...
@@ -11,7 +11,7 @@ qwebcontentedit
 .SH DESCRIPTION
 .LP
 
-Qt application allowing to manage contents of various websites.
+Qt application allowing to manage content of various websites.
 
 .SS Supported websites:
 * dlfp (Da Linux French Page news website)
@@ -32,6 +32,9 @@ what backend(s) to enable (comma separated)
 .TP
 \fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
 what backend(s) to exclude (comma separated)
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -49,9 +52,6 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
-.TP
-\fB\-I\fR, \fB\-\-insecure\fR
-do not validate SSL
 
 .SH COPYRIGHT
 Copyright(C) 2011 Clément Schreiner

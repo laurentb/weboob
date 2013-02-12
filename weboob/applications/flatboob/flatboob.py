@@ -58,6 +58,7 @@ class HousingFormatter(IFormatter):
                 result += ' %s: %s\n' % (key, value)
         return result
 
+
 class HousingListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'cost', 'text')
 
@@ -76,7 +77,8 @@ class Flatboob(ReplApplication):
     APPNAME = 'flatboob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
-    DESCRIPTION = 'Console application to search a house.'
+    DESCRIPTION = "Console application to search for housing."
+    SHORT_DESCRIPTION = "search for housing"
     CAPS = ICapHousing
     EXTRA_FORMATTERS = {'housing_list': HousingListFormatter,
                         'housing':      HousingFormatter,
@@ -160,7 +162,7 @@ class Flatboob(ReplApplication):
 
         housing = self.get_object(_id, 'get_housing')
         if not housing:
-            print >>sys.stderr, 'Housing not found: %s' %  _id
+            print >>sys.stderr, 'Housing not found: %s' % _id
             return 3
 
         self.start_format()

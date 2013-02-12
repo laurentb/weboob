@@ -79,7 +79,8 @@ class Comparoob(ReplApplication):
     APPNAME = 'comparoob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
-    DESCRIPTION = 'Console application to compare products.'
+    DESCRIPTION = "Console application to compare products."
+    SHORT_DESCRIPTION = "compare products"
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'prices':       PricesFormatter,
                         'price':        PriceFormatter,
@@ -141,7 +142,7 @@ class Comparoob(ReplApplication):
 
         price = self.get_object(_id, 'get_price')
         if not price:
-            print >>sys.stderr, 'Price not found: %s' %  _id
+            print >>sys.stderr, 'Price not found: %s' % _id
             return 3
 
         self.start_format()

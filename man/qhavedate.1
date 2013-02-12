@@ -1,6 +1,6 @@
-.TH QHAVEDATE 1 "25 janvier 2013" "qhavedate 0\&.e"
+.TH QHAVEDATE 1 "13 February 2013" "qhavedate 0\&.f"
 .SH NAME
-qhavedate
+qhavedate \- interact with dating websites
 .SH SYNOPSIS
 .B qhavedate
 [\-h] [\-dqv] [\-b \fIbackends\fR] ...
@@ -28,6 +28,9 @@ what backend(s) to enable (comma separated)
 .TP
 \fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
 what backend(s) to exclude (comma separated)
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -45,9 +48,6 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
-.TP
-\fB\-I\fR, \fB\-\-insecure\fR
-do not validate SSL
 
 .SH COPYRIGHT
 Copyright(C) 2010-2012 Romain Bignon

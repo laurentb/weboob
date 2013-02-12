@@ -37,11 +37,11 @@ DEST_DIR = 'man'
 
 class ManpageHelpFormatter(optparse.HelpFormatter):
     def __init__(self,
-            app,
-            indent_increment=0,
-            max_help_position=0,
-            width=80,
-            short_first=1):
+                 app,
+                 indent_increment=0,
+                 max_help_position=0,
+                 width=80,
+                 short_first=1):
         optparse.HelpFormatter.__init__(self, indent_increment, max_help_position, width, short_first)
         self.app = app
 
@@ -113,8 +113,7 @@ def main():
         if os.path.isfile(fpath) and os.access(fpath, os.X_OK):
             with open(fpath) as f:
                 # Python will likely want create a compiled file, we provide a place
-                tmpdir = os.path.join(tempfile.gettempdir(), \
-                        "weboob", "make_man")
+                tmpdir = os.path.join(tempfile.gettempdir(), "weboob", "make_man")
                 if not os.path.isdir(tmpdir):
                     os.makedirs(tmpdir)
                 tmpfile = os.path.join(tmpdir, fname)
@@ -164,7 +163,7 @@ def analyze_application(app, script_name):
     helptext = helptext.replace("-", r"\-")
     header = '.TH %s 1 "%s" "%s %s"' % (script_name.upper(), time.strftime("%d %B %Y"),
                                         script_name, app.VERSION.replace('.', '\\&.'))
-    name = ".SH NAME\n%s" % script_name
+    name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
     footer = """.SH COPYRIGHT
 %s
 .LP

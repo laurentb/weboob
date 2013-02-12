@@ -1,6 +1,6 @@
-.TH PASTOOB 1 "25 janvier 2013" "pastoob 0\&.e"
+.TH PASTOOB 1 "13 February 2013" "pastoob 0\&.f"
 .SH NAME
-pastoob
+pastoob \- post and get pastes from pastebins
 .SH SYNOPSIS
 .B pastoob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
@@ -167,6 +167,20 @@ what backend(s) to enable (comma separated)
 .TP
 \fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
 what backend(s) to exclude (comma separated)
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
+
+.SH PASTOOB OPTIONS
+.TP
+\fB\-p\fR, \fB\-\-public\fR
+Make paste public.
+.TP
+\fB\-t TITLE\fR, \fB\-\-title=TITLE\fR
+Paste title
+.TP
+\fB\-m MAX_AGE\fR, \fB\-\-max\-age=MAX_AGE\fR
+Maximum age (duration), default "1 month"
 
 .SH LOGGING OPTIONS
 .TP
@@ -184,9 +198,6 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
-.TP
-\fB\-I\fR, \fB\-\-insecure\fR
-do not validate SSL
 
 .SH RESULTS OPTIONS
 .TP
@@ -214,7 +225,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2011 Laurent Bachelier
+Copyright(C) 2011-2013 Laurent Bachelier
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP

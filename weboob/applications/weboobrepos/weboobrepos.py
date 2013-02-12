@@ -42,6 +42,7 @@ class WeboobRepos(ReplApplication):
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2012 Romain Bignon'
     DESCRIPTION = "Weboob-repos is a console application to manage a Weboob Repository."
+    SHORT_DESCRIPTION = "manage a weboob repository"
     COMMANDS_FORMATTERS = {'backends':    'table',
                            'list':        'table',
                            }

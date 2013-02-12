@@ -41,6 +41,7 @@ from weboob.tools.misc import html2text, get_backtrace, utc2local, to_unicode
 
 __all__ = ['Monboob']
 
+
 class FakeSMTPD(SMTPServer):
     def __init__(self, app, bindaddr, port):
         SMTPServer.__init__(self, (bindaddr, port), None)
@@ -49,6 +50,7 @@ class FakeSMTPD(SMTPServer):
     def process_message(self, peer, mailfrom, rcpttos, data):
         msg = message_from_string(data)
         self.app.process_incoming_mail(msg)
+
 
 class MonboobScheduler(Scheduler):
     def __init__(self, app):
@@ -89,6 +91,7 @@ class Monboob(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = 'Daemon allowing to regularly check for new messages on various websites, ' \
                   'and send an email for each message, and post a reply to a message on a website.'
+    SHORT_DESCRIPTION = "daemon to send and check messages"
     CONFIG = {'interval':  300,
               'domain':    'weboob.example.org',
               'recipient': 'weboob@example.org',
@@ -119,7 +122,7 @@ class Monboob(ReplApplication):
 
         try:
             self.config.set('html', int(self.config.get('html')))
-            if self.config.get('html') not in (0,1):
+            if self.config.get('html') not in (0, 1):
                 raise ValueError()
         except ValueError:
             print >>sys.stderr, 'Configuration error: html must be 0 or 1.'

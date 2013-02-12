@@ -24,11 +24,13 @@ from weboob.tools.config.yamlconfig import YamlConfig
 
 from .main_window import MainWindow
 
+
 class QFlatBoob(QtApplication):
     APPNAME = 'qflatboob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
-    DESCRIPTION = 'Qt application to find housings.'
+    DESCRIPTION = "Qt application to search for housing."
+    SHORT_DESCRIPTION = "search for housing"
     CAPS = ICapHousing
     CONFIG = {'queries': {}}
     STORAGE = {'bookmarks': [], 'read': [], 'notes': {}}

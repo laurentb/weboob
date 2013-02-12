@@ -1,6 +1,6 @@
-.TH QVIDEOOB 1 "28 October 2012" "qvideoob 0\&.d"
+.TH QVIDEOOB 1 "13 February 2013" "qvideoob 0\&.f"
 .SH NAME
-qvideoob
+qvideoob \- search and play videos
 .SH SYNOPSIS
 .B qvideoob
 [\-h] [\-dqv] [\-b \fIbackends\fR] ...
@@ -53,6 +53,12 @@ show this help message and exit
 .TP
 \fB\-b BACKENDS\fR, \fB\-\-backends=BACKENDS\fR
 what backend(s) to enable (comma separated)
+.TP
+\fB\-e EXCLUDE_BACKENDS\fR, \fB\-\-exclude\-backends=EXCLUDE_BACKENDS\fR
+what backend(s) to exclude (comma separated)
+.TP
+\fB\-I\fR, \fB\-\-insecure\fR
+do not validate SSL
 
 .SH LOGGING OPTIONS
 .TP

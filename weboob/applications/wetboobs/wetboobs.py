@@ -27,6 +27,7 @@ import sys
 
 __all__ = ['WetBoobs']
 
+
 class ForecastsFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'low', 'high')
 
@@ -37,6 +38,7 @@ class ForecastsFormatter(IFormatter):
         if hasattr(obj, 'text') and obj.text:
             result += ' %s' % obj.text
         return result
+
 
 class CurrentFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'temp')
@@ -49,6 +51,7 @@ class CurrentFormatter(IFormatter):
             result += u' - %s' % obj.text
         return result
 
+
 class CitiesFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'name')
 
@@ -60,7 +63,8 @@ class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = 'Console application allowing to display weather and forecasts in your city.'
+    DESCRIPTION = "Console application allowing to display weather and forecasts in your city."
+    SHORT_DESCRIPTION = "display weather and forecasts"
     CAPS = (ICapWeather, ICapGauge)
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,

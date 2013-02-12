@@ -23,11 +23,13 @@ from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
 
+
 class QBoobMsg(QtApplication):
     APPNAME = 'qboobmsg'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
-    DESCRIPTION = 'Qt application allowing to read messages on various websites and reply to them.'
+    DESCRIPTION = "Qt application allowing to read messages on various websites and reply to them."
+    SHORT_DESCRIPTION = "send and receive message threads"
     CAPS = ICapMessages
 
     def main(self, argv):
