@@ -121,9 +121,9 @@ class AccountPage(BasePage):
 
 
 class DownloadHistoryPage(BasePage):
-    def download(self):
+    def download(self, days=90):
         today = datetime.date.today()
-        start = today - datetime.timedelta(days=90)
+        start = today - datetime.timedelta(days)
         self.browser.select_form(name='form1')
         self.browser['to_c'] = str(today.year)
         self.browser['to_a'] = str(today.month)
@@ -246,15 +246,21 @@ class HistoryPage(BasePage):
             time_format = "%H:%M:%S"
         return date_format, time_format, months
 
-    def filter(self):
+    def filter(self, days=90):
         date_format = self.guess_format()[0]
         today = datetime.date.today()
-        start = today - datetime.timedelta(days=90)
+        start = today - datetime.timedelta(days)
         self.browser.select_form(name='history')
         self.browser['dateoption'] = ['dateselect']
         self.browser['from_date'] = start.strftime(date_format)
         self.browser['to_date'] = today.strftime(date_format)
         self.browser.submit(name='show')
+
+    def next(self):
+        if self.document.xpath('//span[@class="pageNext"]'):
+            self.browser.select_form(name='history')
+            self.browser.submit(name='next')
+            return True
 
     def parse(self):
         emonths = ['January', 'February', 'March', 'April',

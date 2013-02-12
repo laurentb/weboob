@@ -76,8 +76,11 @@ class Paypal(BaseBrowser):
 
     def get_history(self, account):
         self.history()
-        for transaction in self.page.iter_transactions(account):
-            yield transaction
+        parse = True
+        while parse:
+            for trans in self.page.iter_transactions(account):
+                yield trans
+            parse = self.page.next()
 
     def history(self):
         self.location('/en/cgi-bin/webscr?cmd=_history&nav=0.3.0')
