@@ -21,7 +21,7 @@ from datetime import datetime, date, time
 from weboob.tools.browser import BasePage
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.capabilities.base import NotAvailable
+
 
 __all__ = ['ListPage', 'HistoryPage']
 
@@ -36,8 +36,8 @@ class ListPage(BasePage):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
             div = pegel.getparent()
             img = div.find('.//img').attrib['src'].split('/')[1]
-            data = pegel.attrib['onmouseover']\
-                    .strip('pegelein(').strip(')').replace(",'", ",").split("',")
+            data = pegel.attrib['onmouseover'] \
+                .strip('pegelein(').strip(')').replace(",'", ",").split("',")
             gauge = Gauge(int(data[7]))
             gauge.name = unicode(data[0].strip("'"))
             gauge.city = gauge.name.split(' ')[0]
