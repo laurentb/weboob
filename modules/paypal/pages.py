@@ -292,8 +292,20 @@ class HistoryPage(BasePage):
             trans.rdate = date
 
             trans.label = to_unicode(row.xpath('.//td[@class="emailInfo"]')[0].text_content().strip())
-            trans.raw = to_unicode(row.xpath('.//td[@class="paymentTypeInfo"]')[0].text_content().strip()) \
-                + u' ' + trans.label
+            info = to_unicode(row.xpath('.//td[@class="paymentTypeInfo"]')[0].text_content().strip())
+            trans.raw = info + u' ' + trans.label
+
+            if u'Authorization' in info or u'Autorisation' in info:
+                continue
+
+            if u'Credit Card' in trans.label or u'Carte bancaire' in trans.label:
+                trans.type = Transaction.TYPE_CARD
+            elif info.startswith(u'Payment') or info.startswith(u'Paiement'):
+                trans.type = Transaction.TYPE_ORDER
+            elif u'Currency Conversion' in info or u'Conversion de devise' in info:
+                trans.type = Transaction.TYPE_BANK
+            else:
+                trans.type = Transaction.TYPE_UNKNOWN
 
             yield trans
 
