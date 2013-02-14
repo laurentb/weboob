@@ -91,6 +91,7 @@ class BaseRecipe(Recipe):
         self.write('backend.py', self.template('base_backend'))
         self.write('browser.py', self.template('base_browser'))
         self.write('pages.py', self.template('base_pages'))
+        self.write('test.py', self.template('base_test'))
 
 
 class ComicRecipe(Recipe):
