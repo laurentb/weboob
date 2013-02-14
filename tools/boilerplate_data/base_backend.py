@@ -14,5 +14,4 @@ class ${r.classname}Backend(BaseBackend):
     EMAIL = '${r.email}'
     VERSION = '${r.version}'
 
-    DOMAIN = 'www.${r.name}.com'
     BROWSER = ${r.classname}Browser
