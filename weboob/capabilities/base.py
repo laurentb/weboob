@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2013 Christophe Benz, Romain Bignon, Julien Hebert
 #
 # This file is part of weboob.
 #
@@ -389,3 +389,15 @@ class CapBaseObject(object):
             self._fields.pop(name)
         except KeyError:
             object.__delattr__(self, name)
+
+    def to_dict(self):
+        def iter_decorate(d):
+            for key, value in d:
+                if key == 'id' and self.backend is not None:
+                    value = self.fullid
+                yield key, value
+
+        fields_iterator = self.iter_fields()
+        return OrderedDict(iter_decorate(fields_iterator))
+
+

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Christophe Benz
+# Copyright(C) 2010-2013  Christophe Benz, Julien Hebert
 #
 # This file is part of weboob.
 #
@@ -48,7 +48,6 @@ else:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 from weboob.capabilities.base import CapBaseObject
-from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.application.console import ConsoleApplication
 
 
@@ -173,7 +172,7 @@ class IFormatter(object):
         :type obj: CapBaseObject
         :rtype: str
         """
-        return self.format_dict(self.to_dict(obj))
+        return self.format_dict(obj.to_dict())
 
     def format_dict(self, obj):
         """
@@ -185,23 +184,7 @@ class IFormatter(object):
         """
         return NotImplementedError()
 
-    def to_dict(self, obj):
-        if not isinstance(obj, CapBaseObject):
-            try:
-                return OrderedDict(obj)
-            except ValueError:
-                raise TypeError('Please give a CapBaseObject or a dict')
-
-        def iter_decorate(d):
-            for key, value in d:
-                if key == 'id' and obj.backend is not None:
-                    value = obj.fullid
-                yield key, value
-
-        fields_iterator = obj.iter_fields()
-        return OrderedDict(iter_decorate(fields_iterator))
-
-
+    
 class PrettyFormatter(IFormatter):
     def format_obj(self, obj, alias):
         title = self.get_title(obj)
