@@ -63,6 +63,7 @@ class AuMException(UserError):
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'
+    USER_AGENT = ''
 
     consts = None
     my_sex = 0
@@ -75,6 +76,7 @@ class AuMBrowser(BaseBrowser):
         BaseBrowser.__init__(self, username, password, *args, **kwargs)
 
         self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
+        self.login()
         self.home()
 
         self.search_query = search_query
@@ -131,7 +133,7 @@ class AuMBrowser(BaseBrowser):
         return r
 
     def login(self):
-        pass
+        self.api_request('applications/android')
         # XXX old API is disabled
         #r = self.api0_request('me', 'login', data={'login': self.username,
         #                                           'pass':  self.password,
@@ -147,7 +149,10 @@ class AuMBrowser(BaseBrowser):
             data = None
 
         url = self.buildurl(self.absurl('/api/%s' % command), **kwargs)
-        buf = self.openurl(url, data).read()
+        req = self.request_class(url, data,
+                                 {'X-Platform': 'android',
+                                  'X-Client-Version': '2.2.2'})
+        buf = self.openurl(req).read()
 
         try:
             r = json.loads(buf)
