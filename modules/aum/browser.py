@@ -21,6 +21,7 @@
 import math
 import re
 import urllib
+import urllib2
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound
 from weboob.tools.json import json
@@ -154,6 +155,13 @@ class AuMBrowser(BaseBrowser):
             raise ValueError(buf)
 
         return r
+
+    def get_exception(self, e):
+        if isinstance(e, urllib2.HTTPError) and hasattr(e, 'getcode'):
+            if e.getcode() in (410,):
+                return BrowserHTTPNotFound
+
+        return BaseBrowser.get_exception(self, e)
 
     def home(self):
         r = self.api_request('home/')
