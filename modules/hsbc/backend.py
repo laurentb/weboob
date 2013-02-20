@@ -60,7 +60,7 @@ class HSBCBackend(BaseBackend, ICapBank):
         with self.browser:
             for tr in self.browser.get_history(account):
                 # If there are deferred cards, strip CB invoices.
-                if not tr._coming and not (tr.raw.startswith('FACTURES CB') or len(account._card_links) == 0):
+                if not tr._coming and (not tr.raw.startswith('FACTURES CB') or len(account._card_links) == 0):
                     yield tr
 
     def iter_coming(self, account):
