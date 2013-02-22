@@ -35,24 +35,13 @@ class AccountsList(BasePage):
         pass
 
     def get_list(self):
-        ids = set()
-        for tr in self.document.xpath('//tr[@align="center"]'):
-            error = tr.xpath('./td/font/b')
-            if len(error) > 0 and error[0].text == 'ERREUR':
-                raise BrowserUnavailable()
-
+        # TODO: no idea abount how proxy account are displayed
+        for a in self.document.xpath('//a[@class="mainclic"]'):
             account = Account()
             account.currency = Currency.CUR_EUR
-            link = tr.xpath('.//a')[0]
-            account._index = int(re.search('\d', link.attrib['href']).group(0))
-            if not account._index in ids:
-                ids.add(account._index)
-                account.id = unicode(link.text.strip())
-                account.label = account.id
-                urltofind = './/a[@href="' + link.attrib['href'] + '"]'
-                linkbis = self.document.xpath(urltofind).pop()
-                if linkbis.text == link.text:
-                    linkbis = self.document.xpath(urltofind)[1]
-                account.balance = Decimal(FrenchTransaction.clean_amount(linkbis.text))
-                account.coming = NotAvailable
-                yield account
+            account.id = unicode(a.find('span[@class="account-number"]').text)
+            account.label = unicode(a.find('span[@class="title"]').text)
+            balance = a.find('span[@class="solde"]/label').text
+            account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+            account.coming = NotAvailable
+            yield account

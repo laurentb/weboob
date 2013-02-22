@@ -34,7 +34,7 @@ class Ing(BaseBrowser):
     DEBUG_HTTP = False
     #DEBUG_HTTP = True
     ENCODING = None  # refer to the HTML encoding
-    PAGES = {'.*displayTRAccountSummary.*':    AccountsList,
+    PAGES = {'.*pages/index.jsf.*':            AccountsList,
              '.*displayLogin.jsf.*':           LoginPage,
              '.*accountDetail.jsf.*':          AccountHistory,
              '.*displayTRHistorique.*':        AccountHistory,
