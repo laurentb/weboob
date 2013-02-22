@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import SubtitlesPage, SearchPage
+from .pages import SubtitlesPage, SearchPage, SubtitlePage
 
 
 __all__ = ['OpensubtitlesBrowser']
@@ -34,20 +34,21 @@ class OpensubtitlesBrowser(BaseBrowser):
     PAGES = {
         'http://www.opensubtitles.org.*search2/sublanguageid.*moviename.*': SearchPage,
         'http://www.opensubtitles.org.*search/sublanguageid.*idmovie.*': SubtitlesPage,
-        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*' : SubtitlesPage
+        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*' : SubtitlesPage,
+        'http://www.opensubtitles.org.*subtitles/[0-9]*/.*' : SubtitlePage
         }
     LANGUAGE_CONV = {'fr':'fre','en':'eng'}
 
     def iter_subtitles(self, language, pattern):
         lang = self.LANGUAGE_CONV[language]
         self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (lang,pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage)
-        return self.page.iter_subtitles(language,pattern)
+        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.browser.is_on_page(SubtitlePage)
+        return self.page.iter_subtitles()
 
     def get_subtitle(self, id):
         ids = id.split('|')
         id_movie = ids[0]
         id_file = ids[1]
         self.location('http://www.opensubtitles.org/search/sublanguageid-all/idmovie-%s' % id_movie)
-        assert self.is_on_page(SubtitlesPage)
+        assert self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
         return self.page.get_subtitle(id_file)
