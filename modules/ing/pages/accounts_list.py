@@ -19,7 +19,7 @@
 
 
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta
 import re
 import hashlib
 
@@ -43,7 +43,7 @@ class AccountsList(BasePage):
     def on_loaded(self):
         pass
 
-    monthvalue = {u'janv.': '01', u'févr.': '02', u'mars.': '03', u'avr.': '04',
+    monthvalue = {u'janv.': '01', u'févr.': '02', u'mars': '03', u'avr.': '04',
             u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
             u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
             }
@@ -78,10 +78,15 @@ class AccountsList(BasePage):
                 textdate = table.find('.//td[@class="elmt tdate"]').text_content()
             except AttributeError:
                 continue
-            frenchmonth = textdate.split(' ')[1]
-            month = self.monthvalue[frenchmonth]
-            textdate = textdate.replace(' ', '')
-            textdate = textdate.replace(frenchmonth, '/%s/' %month)
+            if textdate == 'hier':
+                textdate = (date.today() - timedelta(days=1)).strftime('%d/%m/%Y')
+            elif textdate == "aujourd'hui":
+                textdate = date.today().strftime('%d/%m/%Y')
+            else:
+                frenchmonth = textdate.split(' ')[1]
+                month = self.monthvalue[frenchmonth]
+                textdate = textdate.replace(' ', '')
+                textdate = textdate.replace(frenchmonth, '/%s/' %month)
             # We use lower for compatibility with old website
             textraw = table.find('.//td[@class="elmt lbl"]').text_content().strip().lower()
             # The id will be rewrite
