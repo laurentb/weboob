@@ -45,7 +45,7 @@ class AccountsList(BasePage):
     
     monthvalue = {u'janv.': '1', u'févr.': '2', u'mars.': '3', u'avri.': '4',
             u'mai.': '5', u'juin.': '6', u'juil.': '7', u'août.': '8',
-            u'sept.': '9', u'octo.': '10', u'nove.': '11', u'déce.': '12',
+            u'sept.': '9', u'oct.': '10', u'nov.': '11', u'déc.': '12',
             }
     def get_list(self):
         # TODO: no idea abount how proxy account are displayed
@@ -79,11 +79,12 @@ class AccountsList(BasePage):
             textdate = textdate.replace(' ', '')
             textdate = textdate.replace(frenchmonth, '/%s/' %month)
             # We use lower for compatibility with old website
-            textraw = table.find('.//td[@class="elmt lbl"]').text_content().strip().lower() 
+            textraw = table.find('.//td[@class="elmt lbl"]').text_content().strip().lower()
             # The id will be rewrite
             op = Transaction(1)
             amount = op.clean_amount(table.xpath('.//td[starts-with(@class, "elmt amount")]')[0].text_content())
-            id = hashlib.md5(textdate + textraw.encode('utf-8') + amount.encode('utf-8')).hexdigest()
+            id = hashlib.md5(textdate.encode('utf-8') + textraw.encode('utf-8')
+                    + amount.encode('utf-8')).hexdigest()
             op.id = id
             op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
                     raw = textraw)
