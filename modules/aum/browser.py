@@ -20,7 +20,7 @@
 
 from base64 import b64encode
 from hashlib import sha256
-from datetime import date
+from datetime import datetime
 import math
 import re
 import urllib
@@ -28,6 +28,7 @@ import urllib2
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound
 from weboob.tools.json import json
+from weboob.tools.date import local2utc
 
 from weboob.capabilities.base import UserError
 from weboob.capabilities.messages import CantSendMessage
@@ -156,7 +157,7 @@ class AuMBrowser(BaseBrowser):
 
         headers = {}
         if not command.startswith('applications'):
-            today = date.today().strftime('%Y-%m-%d')
+            today = local2utc(datetime.now()).strftime('%Y-%m-%d')
             token = sha256(self.username + self.APITOKEN + today).hexdigest()
 
             headers['Authorization'] = 'Basic %s' % (b64encode('%s:%s' % (self.username, self.password)))
