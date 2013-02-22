@@ -44,4 +44,10 @@ class AccountsList(BasePage):
             balance = a.find('span[@class="solde"]/label').text
             account.balance = Decimal(FrenchTransaction.clean_amount(balance))
             account.coming = NotAvailable
+            if "Courant" in account.label:
+                account.id = "CC-" + account.id
+            elif "Livret A" in account.label:
+                account.id = "LA-" + account.id
+            elif "Orange" in account.label:
+                account.id = "LEO-" + account.id
             yield account
