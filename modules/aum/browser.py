@@ -18,6 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from base64 import b64encode
+from hashlib import sha256
+from datetime import date
 import math
 import re
 import urllib
@@ -63,7 +66,9 @@ class AuMException(UserError):
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'
-    USER_AGENT = ''
+    APITOKEN = 'DCh7Se53v8ejS8466dQe63'
+    APIVERSION = '2.2.5'
+    USER_AGENT = 'Mozilla/5.0 (Linux; U; Android4.1.1; fr_FR; GT-N7100; Build/JRO03C) com.adopteunmec.androidfr/17'
 
     consts = None
     my_sex = 0
@@ -75,7 +80,8 @@ class AuMBrowser(BaseBrowser):
         kwargs['get_home'] = False
         BaseBrowser.__init__(self, username, password, *args, **kwargs)
 
-        self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
+        # now we do authentication ourselves
+        #self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
         self.login()
         self.home()
 
@@ -148,10 +154,18 @@ class AuMBrowser(BaseBrowser):
         else:
             data = None
 
+        headers = {}
+        if not command.startswith('applications'):
+            today = date.today().strftime('%Y-%m-%d')
+            token = sha256(self.username + self.APITOKEN + today).hexdigest()
+
+            headers['Authorization'] = 'Basic %s' % (b64encode('%s:%s' % (self.username, self.password)))
+            headers['X-Platform'] = 'android'
+            headers['X-Client-Version'] = self.APIVERSION
+            headers['X-AUM-Token'] = token
+
         url = self.buildurl(self.absurl('/api/%s' % command), **kwargs)
-        req = self.request_class(url, data,
-                                 {'X-Platform': 'android',
-                                  'X-Client-Version': '2.2.2'})
+        req = self.request_class(url, data, headers)
         buf = self.openurl(req).read()
 
         try:
