@@ -43,9 +43,9 @@ class AccountsList(BasePage):
     def on_loaded(self):
         pass
     
-    monthvalue = {u'janv.': '1', u'févr.': '2', u'mars.': '3', u'avri.': '4',
-            u'mai.': '5', u'juin.': '6', u'juil.': '7', u'août.': '8',
-            u'sept.': '9', u'oct.': '10', u'nov.': '11', u'déc.': '12',
+    monthvalue = {u'janv.': '01', u'févr.': '02', u'mars.': '03', u'avri.': '04',
+            u'mai.': '05', u'juin.': '06', u'juil.': '07', u'août.': '08',
+            u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
             }
     def get_list(self):
         # TODO: no idea abount how proxy account are displayed
