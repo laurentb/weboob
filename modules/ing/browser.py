@@ -81,7 +81,7 @@ class Ing(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
-        if not self.is_on_page(AccountsList):
+        if not self.is_on_page(AccountsList) or self.where != "start":
             self.location(self.accountspage)
         self.where = "start"
         return self.page.get_list()
@@ -89,8 +89,9 @@ class Ing(BaseBrowser):
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        if not self.is_on_page(AccountsList):
+        if not self.is_on_page(AccountsList) or self.where != "start":
             self.location(self.accountspage)
+        self.where = "start"
 
         l = self.page.get_list()
         for a in l:
