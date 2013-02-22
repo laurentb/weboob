@@ -44,7 +44,7 @@ class AccountsList(BasePage):
         pass
 
     monthvalue = {u'janv.': '01', u'févr.': '02', u'mars.': '03', u'avri.': '04',
-            u'mai.': '05', u'juin.': '06', u'juil.': '07', u'août.': '08',
+            u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
             u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
             }
     def get_list(self):
