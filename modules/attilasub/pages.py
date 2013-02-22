@@ -37,7 +37,7 @@ __all__ = ['SubtitlesPage','SearchPage']
 class SearchPage(BasePage):
     def iter_subtitles(self,pattern):
         fontresult = self.parser.select(self.document.getroot(),'div.search-results font.search-results')
-        # for each result in freefind, explore the page to iter subtitles
+        # for each result in freefind, explore the subtitle list page to iter subtitles
         for res in fontresult:
             a = self.parser.select(res,'a',1)
             url = a.attrib.get('href','')
@@ -49,6 +49,30 @@ class SearchPage(BasePage):
 
 
 class SubtitlesPage(BasePage):
+    def get_subtitle(self,id):
+        href = id.split('|')[1]
+        # we have to find the 'tr' which contains the link to this address
+        a = self.parser.select(self.document.getroot(),'a[href="%s"]'%href,1)
+        line = a.getparent().getparent().getparent().getparent().getparent()
+        cols = self.parser.select(line,'td')
+        traduced_title = self.parser.select(cols[0],'font',1).text.lower()
+        original_title = self.parser.select(cols[1],'font',1).text.lower()
+
+        traduced_title_words = traduced_title.split()
+        original_title_words = original_title.split()
+
+        # this is to trash special spacing chars
+        traduced_title = " ".join(traduced_title_words)
+        original_title = " ".join(original_title_words)
+
+        name = "%s (%s)"%(original_title,traduced_title)
+        url = "http://davidbillemont3.free.fr/%s"%href
+        subtitle = Subtitle(id,name)
+        subtitle.url = url
+        subtitle.fps = 0
+        subtitle.description = "no desc"
+        return subtitle
+
     def iter_subtitles(self,pattern):
         pattern = pattern.strip().replace('+',' ')
         pattern_words = pattern.split()
@@ -76,8 +100,12 @@ class SubtitlesPage(BasePage):
                 traduced_title = " ".join(traduced_title_words)
                 original_title = " ".join(original_title_words)
 
-                title = "%s (%s)"%(original_title,traduced_title)
-                subtitle = Subtitle(title,title)
-                subtitle.url = self.parser.select(cols[3],'a',1).attrib.get('href','')
+                name = "%s (%s)"%(original_title,traduced_title)
+                href = self.parser.select(cols[3],'a',1).attrib.get('href','')
+                url = "http://davidbillemont3.free.fr/%s"%href
+                id = "%s|%s"%(self.browser.geturl().split('/')[-1],href)
+                subtitle = Subtitle(id,name)
+                subtitle.url = url
                 subtitle.fps = 0
+                subtitle.description = "no desc"
                 yield subtitle

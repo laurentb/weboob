@@ -39,8 +39,8 @@ class AttilasubBackend(BaseBackend, ICapSubtitle):
     def create_default_browser(self):
         return self.create_browser()
 
-    #def get_subtitle(self, id):
-    #    return self.browser.get_subtitle(id)
+    def get_subtitle(self, id):
+        return self.browser.get_subtitle(id)
 
     def get_subtitle_file(self, id):
         subtitle = self.browser.get_subtitle(id)

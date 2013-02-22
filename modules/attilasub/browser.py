@@ -41,7 +41,8 @@ class AttilasubBrowser(BaseBrowser):
         assert self.is_on_page(SearchPage)
         return self.page.iter_subtitles(pattern)
 
-    #def get_torrent(self, id):
-    #    self.location('http://kat.ph/%s.html' % id)
-    #    assert self.is_on_page(TorrentPage)
-    #    return self.page.get_torrent(id)
+    def get_subtitle(self, id):
+        url_end = id.split('|')[0]
+        self.location('http://davidbillemont3.free.fr/%s' % url_end)
+        assert self.is_on_page(SubtitlesPage)
+        return self.page.get_subtitle(id)

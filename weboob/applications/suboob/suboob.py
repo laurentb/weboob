@@ -37,14 +37,27 @@ def sizeof_fmt(num):
         num /= 1024.0
 
 
+class SubtitleInfoFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'url', 'fps', 'description')
+
+    def format_obj(self, obj, alias):
+        result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
+        result += 'ID: %s\n' % obj.fullid
+        result += 'URL: %s\n' % obj.url
+        result += 'FPS: %s\n' % obj.fps
+        result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
+        result += obj.description
+        return result
+
+
 class SubtitleListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'url', 'fps')
+    MANDATORY_FIELDS = ('id', 'name', 'url')
 
     def get_title(self, obj):
         return obj.name
 
     def get_description(self, obj):
-        return '(%s fps)' % (obj.fps)
+        return 'url : %s' % (obj.url)
 
 
 class Suboob(ReplApplication):
@@ -55,10 +68,34 @@ class Suboob(ReplApplication):
                   "and download them."
     SHORT_DESCRIPTION = "search and download subtitles"
     CAPS = ICapSubtitle
-    EXTRA_FORMATTERS = {'subtitle_list': SubtitleListFormatter
+    EXTRA_FORMATTERS = {'subtitle_list': SubtitleListFormatter,
+                        'subtitle_info': SubtitleInfoFormatter
                        }
     COMMANDS_FORMATTERS = {'search':    'subtitle_list',
+                           'info':      'subtitle_info'
                           }
+
+    def complete_info(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
+    def do_info(self, id):
+        """
+        info ID
+
+        Get information about a subtitle.
+        """
+
+        subtitle = self.get_object(id, 'get_subtitle')
+        if not subtitle:
+            print >>sys.stderr, 'Subtitle not found: %s' % id
+            return 3
+
+        self.start_format()
+        self.format(subtitle)
+        self.flush()
+
 
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
