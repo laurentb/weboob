@@ -28,9 +28,10 @@ class AttilasubTest(BackendTest):
 
     def test_subtitle(self):
         subtitles = list(self.backend.iter_subtitles('spiderman'))
+        assert (len(subtitles) > 0)
         for subtitle in subtitles:
             path, qs = urllib.splitquery(subtitle.url)
-            #assert path.endswith('.torrent')
+            assert path.endswith('.rar')
 
         # get the file of a random sub
         if len(subtitles):
