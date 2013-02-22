@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import urllib
 import hashlib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
@@ -33,7 +34,7 @@ class Ing(BaseBrowser):
     PROTOCOL = 'https'
     DEBUG_HTTP = False
     #DEBUG_HTTP = True
-    ENCODING = None  # refer to the HTML encoding
+    ENCODING = "utf-8"
     PAGES = {'.*pages/index.jsf.*':            AccountsList,
              '.*displayLogin.jsf.*':           LoginPage,
              '.*accountDetail.jsf.*':          AccountHistory,
@@ -48,10 +49,11 @@ class Ing(BaseBrowser):
     CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
 
     loginpage = '/public/displayLogin.jsf'
-    accountspage = '/general?command=displayTRAccountSummary'
+    accountspage = '/protected/pages/index.jsf'
     transferpage = '/protected/pages/cc/transfer/transferManagement.jsf'
     dotransferpage = '/general?command=DisplayDoTransferCommand'
     valtransferpage = '/protected/pages/cc/transfer/create/transferCreateValidation.jsf'
+    where = None
 
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday', None)
@@ -81,7 +83,7 @@ class Ing(BaseBrowser):
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):
             self.location(self.accountspage)
-
+        self.where = "start"
         return self.page.get_list()
 
     def get_account(self, id):
@@ -105,17 +107,19 @@ class Ing(BaseBrowser):
     def get_history(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
-        # The first and the second letter of the label are the account type
-        if account.label[0:2] == "CC":
-            self.location('/protected/pages/cc/accountDetail.jsf?account=%s'
-                    % int(account._index))
-        elif account.label[0:2] == "LA" or account.label[0:3] == "LEO":
-            # we want "displayTRHistoriqueLA" but this fucking page
-            # is not directly available...
-            self.location('/general?command=goToAccount&account=%d&zone=COMPTE'
-                    % int(account._index))
-        else:
-            raise NotImplementedError()
+        if self.where != "start":
+            self.location(self.accountspage)
+        data = {"AJAX:EVENTS_COUNT": 1,
+                "AJAXREQUEST": "_viewRoot",
+                "ajaxSingle": "index:setAccount",
+                "autoScroll": "",
+                "index": "index",
+                "index:setAccount": "index:setAccount",
+                "javax.faces.ViewState": account._jid,
+                "cptnbr": account._id
+                }
+        self.location(self.accountspage, urllib.urlencode(data))
+        self.where = "history"
         while 1:
             hashlist = []
             for transaction in self.page.get_transactions():
