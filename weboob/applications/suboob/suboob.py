@@ -45,6 +45,7 @@ class SubtitleInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         result += 'URL: %s\n' % obj.url
         result += 'FPS: %s\n' % obj.fps
+        result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += obj.description
         return result
@@ -57,7 +58,7 @@ class SubtitleListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
-        return 'url : %s' % (obj.url)
+        return '%s CD ; url : %s' % (obj.nb_cd,obj.url)
 
 
 class Suboob(ReplApplication):

@@ -57,6 +57,8 @@ class SubtitlesPage(BasePage):
         cols = self.parser.select(line,'td')
         traduced_title = self.parser.select(cols[0],'font',1).text.lower()
         original_title = self.parser.select(cols[1],'font',1).text.lower()
+        nb_cd = self.parser.select(cols[2],'font',1).text.strip()
+        nb_cd = int(nb_cd.split()[0])
 
         traduced_title_words = traduced_title.split()
         original_title_words = original_title.split()
@@ -70,6 +72,7 @@ class SubtitlesPage(BasePage):
         subtitle = Subtitle(id,name)
         subtitle.url = url
         subtitle.fps = 0
+        subtitle.nb_cd = nb_cd
         subtitle.description = "no desc"
         return subtitle
 
@@ -100,6 +103,8 @@ class SubtitlesPage(BasePage):
                 traduced_title = " ".join(traduced_title_words)
                 original_title = " ".join(original_title_words)
 
+                nb_cd = self.parser.select(cols[2],'font',1).text.strip()
+                nb_cd = int(nb_cd.split()[0])
                 name = "%s (%s)"%(original_title,traduced_title)
                 href = self.parser.select(cols[3],'a',1).attrib.get('href','')
                 url = "http://davidbillemont3.free.fr/%s"%href
@@ -107,5 +112,6 @@ class SubtitlesPage(BasePage):
                 subtitle = Subtitle(id,name)
                 subtitle.url = url
                 subtitle.fps = 0
+                subtitle.nb_cd = nb_cd
                 subtitle.description = "no desc"
                 yield subtitle
