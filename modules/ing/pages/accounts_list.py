@@ -72,11 +72,16 @@ class AccountsList(BasePage):
             account._jid = jid.attrib['value']
             yield account
 
-    def get_transactions(self):
+    def get_transactions(self, index):
+        i = 0
         for table in self.document.xpath('//table[@cellpadding="0"]'):
             try:
                 textdate = table.find('.//td[@class="elmt tdate"]').text_content()
             except AttributeError:
+                continue
+            # Do not parse transactions already parsed
+            if i < index:
+                i += 1
                 continue
             if textdate == 'hier':
                 textdate = (date.today() - timedelta(days=1)).strftime('%d/%m/%Y')
@@ -102,5 +107,14 @@ class AccountsList(BasePage):
             op.amount = Decimal(amount)
             yield op
 
+    def get_history_jid(self):
+        span = self.document.xpath('//span[starts-with(@id, "index:j_id")]')[0]
+        jid = span.attrib['id'].split(':')[1]
+        return jid
+
     def islast(self):
-        return True
+        nomore = self.document.xpath('//span[@class="no-more-transactions"]')
+        if len(nomore) > 0:
+            return True
+        else:
+            return False
