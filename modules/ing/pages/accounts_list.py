@@ -42,7 +42,7 @@ class Transaction(FrenchTransaction):
 class AccountsList(BasePage):
     def on_loaded(self):
         pass
-    
+
     monthvalue = {u'janv.': '01', u'févr.': '02', u'mars.': '03', u'avri.': '04',
             u'mai.': '05', u'juin.': '06', u'juil.': '07', u'août.': '08',
             u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
@@ -64,6 +64,10 @@ class AccountsList(BasePage):
                 account.id = "LA-" + account.id
             elif "Orange" in account.label:
                 account.id = "LEO-" + account.id
+            elif "Titres" in account.label:
+                account.id = "TITRE-" + account.id
+            elif "PEA" in account.label:
+                account.id = "PEA-" + account.id
             jid = self.document.find('//input[@name="javax.faces.ViewState"]')
             account._jid = jid.attrib['value']
             yield account
