@@ -31,8 +31,9 @@ class Subtitle(CapBaseObject):
     """
     name =      StringField('Name of subtitle')
     url =       StringField('Direct url to subtitle file')
-    fps =       StringField('Framerate of corresponding video')
-    nb_cd =     StringField('Number of cd')
+    fps =       FloatField('Framerate of corresponding video')
+    nb_cd =     IntField('Number of cd')
+    language =  StringField('Language of the subtitle')
     description=StringField('Description of corresponding video')
 
     def __init__(self, id, name):

@@ -27,7 +27,7 @@ class AttilasubTest(BackendTest):
     BACKEND = 'attilasub'
 
     def test_subtitle(self):
-        subtitles = list(self.backend.iter_subtitles('spiderman'))
+        subtitles = list(self.backend.iter_subtitles('fr','spiderman'))
         assert (len(subtitles) > 0)
         for subtitle in subtitles:
             path, qs = urllib.splitquery(subtitle.url)

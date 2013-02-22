@@ -34,6 +34,7 @@ class AttilasubBackend(BaseBackend, ICapSubtitle):
     VERSION = '0.f'
     DESCRIPTION = '"Attila'' s Website 2.0" french subtitles'
     LICENSE = 'AGPLv3+'
+    LANGUAGE_LIST = ['fr']
     BROWSER = AttilasubBrowser
 
     def create_default_browser(self):
@@ -49,5 +50,7 @@ class AttilasubBackend(BaseBackend, ICapSubtitle):
 
         return self.browser.openurl(subtitle.url.encode('utf-8')).read()
 
-    def iter_subtitles(self, pattern):
-        return self.browser.iter_subtitles(quote_plus(pattern.encode('utf-8')))
+    def iter_subtitles(self, language, pattern):
+        if language not in self.LANGUAGE_LIST:
+            return []
+        return self.browser.iter_subtitles(language,quote_plus(pattern.encode('utf-8')))

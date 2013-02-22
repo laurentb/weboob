@@ -45,6 +45,7 @@ class SubtitleInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         result += 'URL: %s\n' % obj.url
         result += 'FPS: %s\n' % obj.fps
+        result += 'LANG: %s\n' % obj.language
         result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += obj.description
@@ -58,7 +59,7 @@ class SubtitleListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
-        return '%s CD ; url : %s' % (obj.nb_cd,obj.url)
+        return 'lang : %s ; %s CD ; url : %s' % (obj.language,obj.nb_cd,obj.url)
 
 
 class Suboob(ReplApplication):
@@ -140,17 +141,18 @@ class Suboob(ReplApplication):
         print >>sys.stderr, 'Subtitle "%s" not found' % id
         return 3
 
-    def do_search(self, pattern):
+    def do_search(self,line):
         """
-        search [PATTERN]
+        search language [PATTERN]
 
         Search subtitles.
         """
+        language, pattern = self.parse_command_args(line, 2, 1)
         self.change_path([u'search'])
         if not pattern:
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, subtitle in self.do('iter_subtitles', pattern=pattern):
+        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern):
             self.cached_format(subtitle)
         self.flush()

@@ -35,7 +35,7 @@ __all__ = ['SubtitlesPage','SearchPage']
 
 
 class SearchPage(BasePage):
-    def iter_subtitles(self,pattern):
+    def iter_subtitles(self, language, pattern):
         fontresult = self.parser.select(self.document.getroot(),'div.search-results font.search-results')
         # for each result in freefind, explore the subtitle list page to iter subtitles
         for res in fontresult:
@@ -44,7 +44,7 @@ class SearchPage(BasePage):
             self.browser.location(url)
             assert self.browser.is_on_page(SubtitlesPage)
             # subtitles page does the job
-            for subtitle in self.browser.page.iter_subtitles(pattern):
+            for subtitle in self.browser.page.iter_subtitles(language, pattern):
                 yield subtitle
 
 
@@ -72,11 +72,12 @@ class SubtitlesPage(BasePage):
         subtitle = Subtitle(id,name)
         subtitle.url = url
         subtitle.fps = 0
+        subtitle.language = "fre"
         subtitle.nb_cd = nb_cd
         subtitle.description = "no desc"
         return subtitle
 
-    def iter_subtitles(self,pattern):
+    def iter_subtitles(self,language, pattern):
         pattern = pattern.strip().replace('+',' ')
         pattern_words = pattern.split()
         tab = self.parser.select(self.document.getroot(),'table[bordercolor="#B8C0B2"]')
@@ -84,6 +85,9 @@ class SubtitlesPage(BasePage):
             tab = self.parser.select(self.document.getroot(),'table[bordercolordark="#B8C0B2"]')
             if len(tab) == 0:
                 return
+        # some results of freefind point on useless pages
+        if tab[0].attrib.get('width','') != '100%':
+            return
         for line in tab[0].getiterator('tr'):
             cols = self.parser.select(line,'td')
             traduced_title = self.parser.select(cols[0],'font',1).text.lower()
@@ -112,6 +116,7 @@ class SubtitlesPage(BasePage):
                 subtitle = Subtitle(id,name)
                 subtitle.url = url
                 subtitle.fps = 0
+                subtitle.language = "fre"
                 subtitle.nb_cd = nb_cd
                 subtitle.description = "no desc"
                 yield subtitle

@@ -36,10 +36,10 @@ class AttilasubBrowser(BaseBrowser):
         'http://davidbillemont3.free.fr/.*.htm': SubtitlesPage,
         }
 
-    def iter_subtitles(self, pattern):
+    def iter_subtitles(self, language, pattern):
         self.location('http://search.freefind.com/find.html?id=81131980&_charset_=&bcd=%%F7&scs=1&pageid=r&query=%s&mode=Find%%20pages%%20matching%%20ALL%%20words' % pattern.encode('utf-8'))
         assert self.is_on_page(SearchPage)
-        return self.page.iter_subtitles(pattern)
+        return self.page.iter_subtitles(language,pattern)
 
     def get_subtitle(self, id):
         url_end = id.split('|')[0]
