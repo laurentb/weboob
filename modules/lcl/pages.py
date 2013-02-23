@@ -141,6 +141,11 @@ class ContractsPage(BasePage):
         self.browser.submit()
 
 class AccountsPage(BasePage):
+    def on_loaded(self):
+        warn = self.document.xpath('//div[@id="attTxt"]')
+        if len(warn) > 0:
+            raise BrowserUnavailable(warn[0].text)
+
     def get_list(self):
         l = []
         ids = set()
