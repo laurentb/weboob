@@ -22,9 +22,6 @@
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from .pages import LoginPage, AccountsList, AccountHistory, UpdateInfoPage
 
-from datetime import date
-from dateutil.relativedelta import relativedelta
-
 
 __all__ = ['Boursorama']
 
@@ -83,21 +80,17 @@ class Boursorama(BaseBrowser):
         return None
 
     def get_history(self, account):
-        self.location(account._link_id)
-        if not self.is_on_page(AccountHistory):
-            raise NotImplementedError()
+        link = account._link_id
 
-        operations = self.page.get_operations()
-        # load last month as well
-        target = date.today() - relativedelta(months=1)
-        self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
-        operations += self.page.get_operations()
-        # and the month before, just in case you're greedy
-        target = date.today() - relativedelta(months=2)
-        self.location(account._link_id + ("&month=%d&year=%d" % (target.month, target.year)))
-        operations += self.page.get_operations()
+        while link is not None:
+            self.location(link)
+            if not self.is_on_page(AccountHistory):
+                raise NotImplementedError()
 
-        return operations
+            for tr in self.page.get_operations():
+                yield tr
+
+            link = self.page.get_next_url()
 
     def transfer(self, from_id, to_id, amount, reason=None):
         raise NotImplementedError()

@@ -19,6 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlparse
 from datetime import date
 import re
 
@@ -79,3 +80,18 @@ class AccountHistory(BasePage):
 
     def get_operations(self):
         return self.operations
+
+    def get_next_url(self):
+        items = self.document.getroot().cssselect('ul.mainmenu li')
+
+        current = False
+        for li in reversed(items):
+            if li.attrib.get('class', '') == 'selected':
+                current = True
+            elif current:
+                a = li.find('a')
+                if 'year' in a.attrib.get('href', ''):
+                    url = urlparse(self.url)
+                    return url.path + a.attrib['href']
+                else:
+                    return None
