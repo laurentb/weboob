@@ -99,6 +99,49 @@ class AccountsPage(BasePage):
                 account._card_links = []
                 accounts.append(account)
 
+        if len(accounts) == 0:
+            # Sometimes, accounts are only in javascript...
+            for script in self.document.xpath('//script'):
+                text = script.text
+                if text is None:
+                    continue
+                if not 'remotePerso' in text:
+                    continue
+
+                account = None
+                attribs = {}
+                account_type = Account.TYPE_UNKNOWN
+                for line in text.split('\n'):
+                    line = line.strip()
+                    m = re.match("data.libelle = '(.*)';", line)
+                    if m:
+                        account_type = self.ACCOUNT_TYPES.get(m.group(1), Account.TYPE_UNKNOWN)
+                    elif line == 'var remotePerso = new Object;':
+                        account = Account()
+                    elif account is not None:
+                        m = re.match("remotePerso.(\w+) = '?(.*?)'?;", line)
+                        if m:
+                            attribs[m.group(1)] = m.group(2)
+                        elif line.startswith('listProduitsGroup'):
+                            account.id = attribs['refContrat']
+
+                            account.label = attribs['libelle']
+                            account.type = account_type
+                            account.balance = Decimal(FrenchTransaction.clean_amount(attribs['soldeDateOpeValeurFormatted']))
+                            account.currency = account.get_currency(attribs['codeDevise'])
+                            account._link = 'tbord.do?id=%s' % attribs['id']
+                            account._card_links = []
+
+                            if account.id.endswith('CRT'):
+                                a = accounts[-1]
+                                a._card_links.append(account._link)
+                                if not a.coming:
+                                    a.coming = Decimal('0.0')
+                                a.coming += account.balance
+                            else:
+                                accounts.append(account)
+                            account = None
+
         return accounts
 
 
