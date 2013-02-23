@@ -96,21 +96,20 @@ class CICBrowser(BaseBrowser):
         self.currentSubBank = url.path.lstrip('/').split('/')[0]
 
     def list_operations(self, page_url):
-        l_ret = []
-        while page_url:
-            if page_url.startswith('/'):
-                self.location(page_url)
-            else:
-                self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
+        if page_url.startswith('/'):
+            self.location(page_url)
+        else:
+            self.location('https://%s/%s/fr/banque/%s' % (self.DOMAIN, self.currentSubBank, page_url))
 
+        go_next = True
+        while go_next:
             if not self.is_on_page(OperationsPage):
-                break
+                return
 
             for op in self.page.get_history():
-                l_ret.append(op)
-            page_url = self.page.next_page_url()
+                yield op
 
-        return l_ret
+            go_next = self.page.go_next()
 
     def get_history(self, account):
         transactions = []
@@ -190,8 +189,3 @@ class CICBrowser(BaseBrowser):
         transfer.recipient = to
         transfer.date = submit_date
         return transfer
-
-    #def get_coming_operations(self, account):
-    #    if not self.is_on_page(AccountComing) or self.page.account.id != account.id:
-    #        self.location('/NS_AVEEC?ch4=%s' % account._link_id)
-    #    return self.page.get_operations()

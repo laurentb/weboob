@@ -146,9 +146,28 @@ class OperationsPage(BasePage):
                 operation.set_amount(credit, debit)
                 yield operation
 
-    def next_page_url(self):
-        """ TODO pouvoir passer à la page des opérations suivantes """
-        return 0
+    def go_next(self):
+        form = self.document.xpath('//form[@id="paginationForm"]')
+        if len(form) == 0:
+            return False
+
+        text = self.parser.tocleanstring(form[0])
+        m = re.search(u'(\d+) / (\d+)', text or '', flags=re.MULTILINE)
+        if not m:
+            return False
+
+        cur = int(m.group(1))
+        last = int(m.group(2))
+
+        if cur == last:
+            return False
+
+        self.browser.select_form(name='paginationForm')
+        self.browser.set_all_readonly(False)
+        self.browser['page'] = str(cur + 1)
+        self.browser.submit()
+
+        return True
 
 class CardPage(OperationsPage):
     def get_history(self):
