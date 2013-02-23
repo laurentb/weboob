@@ -22,7 +22,7 @@ import re
 import datetime
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage#, BrokenPageError
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -85,6 +85,11 @@ class AccountHistoryPage(BasePage):
         return operations
 
 class AccountsList(BasePage):
+    def on_loaded(self):
+        warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"]')
+        if len(warn) > 0:
+            raise BrowserIncorrectPassword(warn[0].text)
+
     def get_list(self):
         l = []
 
