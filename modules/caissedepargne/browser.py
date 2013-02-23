@@ -90,6 +90,11 @@ class CaisseEpargne(BaseBrowser):
 
         self.page.go_history(account.id)
 
-        assert self.is_on_page(IndexPage)
+        while 1:
+            assert self.is_on_page(IndexPage)
 
-        return self.page.get_history()
+            for tr in self.page.get_history():
+                yield tr
+
+            if not self.page.go_next():
+                return

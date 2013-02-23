@@ -149,3 +149,22 @@ class IndexPage(BasePage):
             yield t
 
             i += 1
+
+    def go_next(self):
+        link = self.document.xpath('//a[contains(@id, "lnkSuivante")]')
+        if len(link) == 0:
+            return False
+
+        self.browser.select_form(name='main')
+        self.browser.set_all_readonly(False)
+        self.browser['__EVENTTARGET'] = 'MM$HISTORIQUE_COMPTE$lnkSuivante'
+        self.browser['__EVENTARGUMENT'] = ''
+        self.browser['MM$m_CH$IsMsgInit'] = 'N'
+        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+        self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante'
+        self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        self.browser.submit()
+
+        return True
