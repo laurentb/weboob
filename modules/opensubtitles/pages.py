@@ -35,6 +35,8 @@ __all__ = ['SubtitlesPage','SearchPage']
 
 
 class SearchPage(BasePage):
+    """ Page which contains results as a list of movies
+    """
     def iter_subtitles(self):
         tabresults = self.parser.select(self.document.getroot(),'table#search_results')
         if len(tabresults) > 0:
@@ -48,7 +50,7 @@ class SearchPage(BasePage):
                     if "ads.opensubtitles" in url:
                         continue
                     self.browser.location("http://www.opensubtitles.org%s"%url)
-                    # TODO verifier pourquoi on ne chope pas toutes les lignes. plusieurs tableaux ?
+                    # TODO verifier si on ne chope pas toutes les lignes. plusieurs tableaux ?
                     assert self.browser.is_on_page(SubtitlesPage) or self.browser.is_on_page(SubtitlePage)
                     # subtitles page does the job
                     for subtitle in self.browser.page.iter_subtitles():
@@ -56,81 +58,62 @@ class SearchPage(BasePage):
 
 
 class SubtitlesPage(BasePage):
-    def get_subtitle(self,id):
-        return []
-        href = id.split('|')[1]
-        # we have to find the 'tr' which contains the link to this address
-        a = self.parser.select(self.document.getroot(),'a[href="%s"]'%href,1)
-        line = a.getparent().getparent().getparent().getparent().getparent()
-        cols = self.parser.select(line,'td')
-        traduced_title = self.parser.select(cols[0],'font',1).text.lower()
-        original_title = self.parser.select(cols[1],'font',1).text.lower()
-        nb_cd = self.parser.select(cols[2],'font',1).text.strip()
-        nb_cd = int(nb_cd.split()[0])
-
-        traduced_title_words = traduced_title.split()
-        original_title_words = original_title.split()
-
-        # this is to trash special spacing chars
-        traduced_title = " ".join(traduced_title_words)
-        original_title = " ".join(original_title_words)
-
-        name = "%s (%s)"%(original_title,traduced_title)
-        url = "http://davidbillemont3.free.fr/%s"%href
-        subtitle = Subtitle(id,name)
-        subtitle.url = url
-        subtitle.fps = 0
-        subtitle.language = "fre"
-        subtitle.nb_cd = nb_cd
-        subtitle.description = "no desc"
-        return subtitle
+    """ Page which contains several subtitles for a single movie
+    """
+    def get_subtitle(self,id_file):
+        tabresults = self.parser.select(self.document.getroot(),'table#search_results')
+        if len(tabresults) > 0:
+            table = tabresults[0]
+            # for each result line, get informations
+            for line in table.getiterator('tr'):
+                idline = line.attrib.get('id','').replace('name','')
+                if idline == id_file:
+                    return self.get_subtitle_from_line(line)
 
     def iter_subtitles(self):
-        return
-        pattern = pattern.strip().replace('+',' ')
-        pattern_words = pattern.split()
-        tab = self.parser.select(self.document.getroot(),'table[bordercolor="#B8C0B2"]')
-        if len(tab) == 0:
-            tab = self.parser.select(self.document.getroot(),'table[bordercolordark="#B8C0B2"]')
-            if len(tab) == 0:
-                return
-        # some results of freefind point on useless pages
-        if tab[0].attrib.get('width','') != '100%':
-            return
-        for line in tab[0].getiterator('tr'):
-            cols = self.parser.select(line,'td')
-            traduced_title = self.parser.select(cols[0],'font',1).text.lower()
-            original_title = self.parser.select(cols[1],'font',1).text.lower()
+        # TODO verifier les ads
+        tabresults = self.parser.select(self.document.getroot(),'table#search_results')
+        if len(tabresults) > 0:
+            table = tabresults[0]
+            # for each result line, get informations
+            for line in table.getiterator('tr'):
+                yield self.get_subtitle_from_line(line)
 
-            traduced_title_words = traduced_title.split()
-            original_title_words = original_title.split()
+    def get_subtitle_from_line(self,line):
+        id_movie = line.attrib.get('id','').replace('name','')
+        cells = self.parser.select(line,'td')
+        if len(cells) > 0:
+            first_cell = cells[0]
+            links = self.parser.select(line,'a')
+            a = links[0]
+            urldetail = a.attrib.get('href','')
+            name = a.text
+            long_name = self.parser.select(first_cell,'span').attrib.get('title','')
+            name = "%s (%s)"%(name,long_name)
+            second_cell = cells[1]
+            link = self.parser.select(second_cell,'a',1)
+            lang = link.attrib.get('onclick','').split('/')[-1].split('-')[-1]
+            nb_cd = cells[2].text.strip().lower().replace('CD','')
+            fps = 0
+            desc = ''
+            cell_dl = cells[4]
+            href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
+            url = "http://www.opensubtitles.org%s"%href
+            id_file = href.split('/')[-1]
 
-            # if the pattern is one word and in the title OR if the 
-            # intersection between pattern and the title is at least 2 words
-            if (len(pattern_words) == 1 and pattern in traduced_title_words) or\
-               (len(pattern_words) == 1 and pattern in original_title_words) or\
-               (len(list(set(pattern_words) & set(traduced_title_words))) > 1) or\
-               (len(list(set(pattern_words) & set(original_title_words))) > 1):
+            id = "%s|%s"%(id_movie,id_file)
+            subtitle = Subtitle(id,name)
+            subtitle.url = url
+            subtitle.fps = fps
+            subtitle.language = lang
+            subtitle.nb_cd = nb_cd
+            subtitle.description = "no desc"
+            return subtitle
 
-                # this is to trash special spacing chars
-                traduced_title = " ".join(traduced_title_words)
-                original_title = " ".join(original_title_words)
-
-                nb_cd = self.parser.select(cols[2],'font',1).text.strip()
-                nb_cd = int(nb_cd.split()[0])
-                name = "%s (%s)"%(original_title,traduced_title)
-                href = self.parser.select(cols[3],'a',1).attrib.get('href','')
-                url = "http://davidbillemont3.free.fr/%s"%href
-                id = "%s|%s"%(self.browser.geturl().split('/')[-1],href)
-                subtitle = Subtitle(id,name)
-                subtitle.url = url
-                subtitle.fps = 0
-                subtitle.language = "fre"
-                subtitle.nb_cd = nb_cd
-                subtitle.description = "no desc"
-                yield subtitle
 
 class SubtitlePage(BasePage):
+    """ Page which contains a single subtitle for a movie
+    """
     def get_subtitle(self,id):
         return []
 

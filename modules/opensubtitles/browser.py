@@ -46,6 +46,10 @@ class OpensubtitlesBrowser(BaseBrowser):
         return self.page.iter_subtitles()
 
     def get_subtitle(self, id):
+        """ the id is formed this way : id_movie|id_file
+        the id_movie helps to find the page
+        the id_file help to find the file into the page
+        """
         ids = id.split('|')
         id_movie = ids[0]
         id_file = ids[1]
