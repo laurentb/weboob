@@ -30,6 +30,7 @@ __all__ = ['LoginPage']
 class LoginPage(CragrBasePage):
     def login(self, login, password):
         self.browser.select_form(nr=0)
+        self.browser.set_all_readonly(False)
         try:
             self.browser['numero'] = login
             self.browser['code'] = password
@@ -42,7 +43,6 @@ class LoginPage(CragrBasePage):
                 self.browser.controls.append(ClientForm.TextControl('text', 'code', {'value': ''}))
                 self.browser.controls.append(ClientForm.TextControl('text', 'userLogin', {'value': ''}))
                 self.browser.controls.append(ClientForm.TextControl('text', 'userPassword', {'value': ''}))
-                self.browser.set_all_readonly(False)
                 self.browser['numero'] = login
                 self.browser['code'] = password
                 self.browser['userLogin'] = login
