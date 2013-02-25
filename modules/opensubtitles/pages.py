@@ -29,7 +29,6 @@ from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
-import time
 
 
 __all__ = ['SubtitlesPage','SearchPage']

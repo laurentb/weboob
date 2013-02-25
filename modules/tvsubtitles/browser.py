@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import SubtitlesPage, SearchPage, SubtitlePage
+from .pages import SeriePage, SearchPage, SeasonPage,HomePage
 
 
 __all__ = ['OpensubtitlesBrowser']
@@ -43,25 +43,24 @@ LANGUAGE_CONV = {
 'nl':'dut', 'is':'ice',  'pt':'por', 'cy':'',
 'en':'eng', 'id':'ind',  'ro':'rum', 'yi':''}
 
-class OpensubtitlesBrowser(BaseBrowser):
-    DOMAIN = 'www.opensubtitles.org'
+class TvsubtitlesBrowser(BaseBrowser):
+    DOMAIN = 'www.tvsubtitles.net'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://www.opensubtitles.org.*search2/sublanguageid.*moviename.*': SearchPage,
-        'http://www.opensubtitles.org.*search/sublanguageid.*idmovie.*': SubtitlesPage,
-        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*' : SubtitlesPage,
-        'http://www.opensubtitles.org.*subtitles/[0-9]*/.*' : SubtitlePage
+        'http://www.tvsubtitles.net': HomePage,
+        'http://www.tvsubtitles.net/search.php': SearchPage,
+        'http://www.tvsubtitles.net/tvshow-.*.html': SeriePage,
+        'http://www.tvsubtitles.net/subtitle-[0-9]*-[0-9]*-.*.html' : SeasonPage
         }
 
     def iter_subtitles(self, language, pattern):
-        lang = LANGUAGE_CONV[language]
-        self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (lang,pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
-        return self.page.iter_subtitles()
+        self.location('http://www.tvsubtitles.net')
+        assert self.is_on_page(HomePage)
+        return self.page.iter_subtitles(language,pattern)
 
     def get_subtitle(self, id):
-        self.location('http://www.opensubtitles.org/subtitles/%s' % id)
-        assert self.is_on_page(SubtitlePage)
+        self.location('http://www.tvsubtitles.net/subtitle-%s.html' % id)
+        assert self.is_on_page(SeasonPage)
         return self.page.get_subtitle()
