@@ -64,7 +64,9 @@ class SubtitlesPage(BasePage):
         if len(tabresults) > 0:
             table = tabresults[0]
             # for each result line, get informations
-            for line in self.parser.select(table,'tr'):
+            # why following line doesn't work all the time (for example 'search fr sopranos guy walks' ?
+            #for line in self.parser.select(table,'tr'):
+            for line in table.getiterator('tr'):
                 # some lines are useless, specially ads
                 if line.attrib.get('id','').startswith('name'):
                     yield self.get_subtitle_from_line(line)
