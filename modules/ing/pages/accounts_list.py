@@ -122,6 +122,10 @@ class AccountsList(BasePage):
         return jid
 
     def islast(self):
+        havemore = self.document.getroot().cssselect('.show-more-transactions')
+        if len(havemore) == 0:
+            return True
+
         nomore = self.document.getroot().cssselect('.no-more-transactions')
         if len(nomore) > 0:
             return True
