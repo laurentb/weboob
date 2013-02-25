@@ -59,17 +59,6 @@ class SearchPage(BasePage):
 class SubtitlesPage(BasePage):
     """ Page which contains several subtitles for a single movie
     """
-    def get_subtitle(self,id_file):
-        tabresults = self.parser.select(self.document.getroot(),'table#search_results')
-        if len(tabresults) > 0:
-            table = tabresults[0]
-            # for each result line, get informations
-            for line in self.parser.select(table,'tr'):
-                id_line = line.attrib.get('id','').replace('name','')
-                # TODO gerer le multi pages
-                if id_line.strip() == id_file.strip():
-                    return self.get_subtitle_from_line(line)
-
     def iter_subtitles(self):
         tabresults = self.parser.select(self.document.getroot(),'table#search_results')
         if len(tabresults) > 0:
@@ -81,7 +70,6 @@ class SubtitlesPage(BasePage):
                     yield self.get_subtitle_from_line(line)
 
     def get_subtitle_from_line(self,line):
-        id_movie = self.browser.geturl().split('idmovie-')[-1].split('/')[0]
         cells = self.parser.select(line,'td')
         if len(cells) > 0:
             first_cell = cells[0]
@@ -106,9 +94,8 @@ class SubtitlesPage(BasePage):
             cell_dl = cells[4]
             href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
             url = "http://www.opensubtitles.org%s"%href
-            id_file = href.split('/')[-1]
+            id = href.split('/')[-1]
 
-            id = "%s|%s"%(id_movie,id_file)
             subtitle = Subtitle(id,name)
             subtitle.url = url
             subtitle.fps = fps
@@ -121,13 +108,11 @@ class SubtitlesPage(BasePage):
 class SubtitlePage(BasePage):
     """ Page which contains a single subtitle for a movie
     """
-    def get_subtitle(self,id):
+    def get_subtitle(self):
         father = self.parser.select(self.document.getroot(),'a#app_link',1).getparent()
         a = self.parser.select(father,'a')[1]
-        id_file = a.attrib.get('href','').split('/')[-1]
-        url = "http://www.opensubtitles.org/subtitleserve/sub/%s"%id_file
-        id_movie = ""
-        sid = "%s|%s"%(id_movie,id_file)
+        id = a.attrib.get('href','').split('/')[-1]
+        url = "http://www.opensubtitles.org/subtitleserve/sub/%s"%id
         link = self.parser.select(self.document.getroot(),'link[rel=bookmark]',1)
         title = link.attrib.get('title','')
         nb_cd = int(title.lower().split('cd')[0].split()[-1])
@@ -136,7 +121,7 @@ class SubtitlePage(BasePage):
         name = title
         fps = 0
 
-        subtitle = Subtitle(sid,name)
+        subtitle = Subtitle(id,name)
         subtitle.url = url
         subtitle.fps = fps
         subtitle.language = lang
@@ -145,4 +130,4 @@ class SubtitlePage(BasePage):
         return subtitle
 
     def iter_subtitles(self):
-        yield self.get_subtitle(None)
+        yield self.get_subtitle()

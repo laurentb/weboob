@@ -51,12 +51,6 @@ class OpensubtitlesBrowser(BaseBrowser):
         the id_file help to find the file into the page
         if NO id_movie set, using id_file to form the URL
         """
-        ids = id.split('|')
-        id_movie = ids[0]
-        id_file = ids[1]
-        if len(id_movie) > 0:
-            self.location('http://www.opensubtitles.org/search/sublanguageid-all/idmovie-%s' % id_movie)
-        else:
-            self.location('http://www.opensubtitles.org/subtitles/%s' % id_file)
-        assert self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
-        return self.page.get_subtitle(id_file)
+        self.location('http://www.opensubtitles.org/subtitles/%s' % id)
+        assert self.is_on_page(SubtitlePage)
+        return self.page.get_subtitle()
