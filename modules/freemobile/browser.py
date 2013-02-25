@@ -98,10 +98,12 @@ class Freemobile(BaseBrowser):
 
     def get_bill(self, id):
         assert isinstance(id, basestring)
+        subid = id.split('.')[0]
+        sub = self.get_subscription(subid)
 
         if not self.is_on_page(DetailsPage):
             self.location('/moncompte/index.php?page=suiviconso')
-        l = self.page.date_bills()
+        l = self.page.date_bills(sub)
         for a in l:
             if a.id == id:
                 return a
