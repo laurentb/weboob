@@ -37,6 +37,7 @@ class AccountsList(BasePage):
                 for tr in div.getiterator('tr'):
                     account = Account()
                     account.id = None
+                    account._link_id = None
                     for td in tr.getiterator('td'):
                         if td.attrib.get('class', '') == 'account-cb':
                             break
