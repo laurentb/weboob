@@ -120,17 +120,20 @@ class Ing(BaseBrowser):
         self.location(self.accountspage, urllib.urlencode(data))
         self.where = "history"
         jid = self.page.get_history_jid()
-        i = 0 # index, we get always the same page, but with more informations
+        index = 0 # index, we get always the same page, but with more informations
         while 1:
             hashlist = []
-            for transaction in self.page.get_transactions(i):
+            i = index
+            for transaction in self.page.get_transactions(index):
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
                 hashlist.append(transaction.id)
                 i += 1
                 yield transaction
-            if self.page.islast():
+            # if there is no more transactions, it is useless to continue
+            if i == index or self.page.islast():
                 return
+            index = i
             data = {"AJAX:EVENTS_COUNT": 1,
                     "AJAXREQUEST": "_viewRoot",
                     "autoScroll": "",
@@ -138,7 +141,7 @@ class Ing(BaseBrowser):
                     "index:%s:moreTransactions" % jid: "index:%s:moreTransactions" % jid,
                     "javax.faces.ViewState": account._jid
                     }
-            self.location(self.accountspage, urllib.urlencode(data)) 
+            self.location(self.accountspage, urllib.urlencode(data))
 
     def get_recipients(self, account):
         if not self.is_on_page(TransferPage):
@@ -189,7 +192,7 @@ class Ing(BaseBrowser):
                 yield bill
             if self.page.islast():
                 return
-                   
+
             self.page.next_page()
 
     def predownload(self, bill):
