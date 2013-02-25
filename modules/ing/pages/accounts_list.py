@@ -47,6 +47,11 @@ class AccountsList(BasePage):
             u'mai': '05', u'juin': '06', u'juil.': '07', u'août': '08',
             u'sept.': '09', u'oct.': '10', u'nov.': '11', u'déc.': '12',
             }
+    catvalue = {u'virt': u"Virement", u'autre': u"Autre",
+            u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
+            u'cb_ach': u'Carte achat', u'chq': u'Chèque',
+            u'frais': u'Frais bancaire'}
+
     def get_list(self):
         # TODO: no idea abount how proxy account are displayed
         for a in self.document.xpath('//a[@class="mainclic"]'):
@@ -102,8 +107,12 @@ class AccountsList(BasePage):
             op.id = id
             op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
                     raw = textraw)
-            # force the use of website category
-            #op.category = unicode(tr.find('td[@class="op_type"]').text)
+            category = table.find('.//td[@class="elmt picto"]/span')
+            category = unicode(category.attrib['class'].split('-')[0].lower())
+            try:
+                op.category = self.catvalue[category]
+            except:
+                op.category = category
             op.amount = Decimal(amount)
             yield op
 
