@@ -25,6 +25,23 @@ from .pages import SubtitlesPage, SearchPage, SubtitlePage
 
 __all__ = ['OpensubtitlesBrowser']
 
+LANGUAGE_CONV = {
+'ar':'ara', 'eo':'epo',  'ga':'',    'ru':'rus',
+'af':''   , 'et':'est',  'it':'ita', 'sr':'scc',
+'sq':'alb', 'tl':''   ,  'ja':'jpn', 'sk':'slo',
+'hy':'arm', 'fi':'fin',  'kn':'',    'sl':'slv',
+'az':''   , 'fr':'fre',  'ko':'kor', 'es':'spa',
+'eu':'baq', 'gl':'glg',  'la':'',    'sw':'swa',
+'be':''   , 'ka':'geo',  'lv':'lav', 'sv':'swe',
+'bn':'ben', 'de':'ger',  'lt':'lit', 'ta':'',
+'bg':'bul', 'gr':'ell',  'mk':'mac', 'te':'tel',
+'ca':'cat', 'gu':''   ,  'ms':'may', 'th':'tha',
+'zh':'chi', 'ht':''   ,  'mt':'',    'tr':'tur',
+'hr':'hrv', 'iw':'heb',  'no':'nor', 'uk':'ukr',
+'cz':'cze', 'hi':'hin',  'fa':'per', 'ur':'urd',
+'da':'dan', 'hu':'hun',  'pl':'pol', 'vi':'vie',
+'nl':'dut', 'is':'ice',  'pt':'por', 'cy':'',
+'en':'eng', 'id':'ind',  'ro':'rum', 'yi':''}
 
 class OpensubtitlesBrowser(BaseBrowser):
     DOMAIN = 'www.opensubtitles.org'
@@ -37,10 +54,9 @@ class OpensubtitlesBrowser(BaseBrowser):
         'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*' : SubtitlesPage,
         'http://www.opensubtitles.org.*subtitles/[0-9]*/.*' : SubtitlePage
         }
-    LANGUAGE_CONV = {'fr':'fre','en':'eng'}
 
     def iter_subtitles(self, language, pattern):
-        lang = self.LANGUAGE_CONV[language]
+        lang = LANGUAGE_CONV[language]
         self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (lang,pattern.encode('utf-8')))
         assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
         return self.page.iter_subtitles()

@@ -20,7 +20,7 @@
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.tools.backend import BaseBackend
 
-from .browser import OpensubtitlesBrowser
+from .browser import OpensubtitlesBrowser,LANGUAGE_CONV
 
 from urllib import quote_plus
 
@@ -34,7 +34,6 @@ class OpensubtitlesBackend(BaseBackend, ICapSubtitle):
     VERSION = '0.f'
     DESCRIPTION = 'Opensubtitles subtitle website'
     LICENSE = 'AGPLv3+'
-    LANGUAGE_CONV = {'fr':'fre','en':'eng'}
     BROWSER = OpensubtitlesBrowser
 
     def create_default_browser(self):
@@ -51,6 +50,6 @@ class OpensubtitlesBackend(BaseBackend, ICapSubtitle):
         return self.browser.openurl(subtitle.url.encode('utf-8')).read()
 
     def iter_subtitles(self, language, pattern):
-        if language not in self.LANGUAGE_CONV.keys():
+        if language not in LANGUAGE_CONV.keys():
             return []
         return self.browser.iter_subtitles(language,quote_plus(pattern.encode('utf-8')))
