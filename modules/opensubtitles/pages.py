@@ -81,9 +81,11 @@ class SubtitlesPage(BasePage):
             if len(spanlist) > 0:
                 long_name = spanlist[0].attrib.get('title','')
             else:
-                long_name = "plop"
-                # TODO
-                #long_name = first_cell.content().split('<br>')[1]
+                texts = first_cell.itertext()
+                long_name = texts.next()
+                long_name = texts.next()
+                if "Download at 25" in long_name:
+                    long_name = "---"
             name = "%s (%s)"%(name,long_name)
             second_cell = cells[1]
             link = self.parser.select(second_cell,'a',1)
@@ -117,8 +119,15 @@ class SubtitlePage(BasePage):
         title = link.attrib.get('title','')
         nb_cd = int(title.lower().split('cd')[0].split()[-1])
         lang = title.split('(')[1].split(')')[0]
-        # TODO improve
-        name = title
+        file_names = self.parser.select(self.document.getroot(),"img[title~=filename]")
+        if len(file_names) > 0:
+            file_name = file_names[0].getparent().text_content()
+            file_name = " ".join(file_name.split())
+            desc = u"files :"
+            for f in file_names:
+                desc_line = f.getparent().text_content()
+                desc += "\n"+" ".join(desc_line.split())
+        name = "%s (%s)"%(title,file_name)
         fps = 0
 
         subtitle = Subtitle(id,name)
@@ -126,7 +135,7 @@ class SubtitlePage(BasePage):
         subtitle.fps = fps
         subtitle.language = lang
         subtitle.nb_cd = nb_cd
-        subtitle.description = "no desc"
+        subtitle.description = desc
         return subtitle
 
     def iter_subtitles(self):
