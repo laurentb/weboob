@@ -122,7 +122,7 @@ class AccountsList(BasePage):
         return jid
 
     def islast(self):
-        nomore = self.document.xpath('//span[@class="no-more-transactions"]')
+        nomore = self.document.getroot().cssselect('.no-more-transactions')
         if len(nomore) > 0:
             return True
         else:
