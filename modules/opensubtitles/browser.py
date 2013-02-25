@@ -42,17 +42,21 @@ class OpensubtitlesBrowser(BaseBrowser):
     def iter_subtitles(self, language, pattern):
         lang = self.LANGUAGE_CONV[language]
         self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (lang,pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.browser.is_on_page(SubtitlePage)
+        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
         return self.page.iter_subtitles()
 
     def get_subtitle(self, id):
         """ the id is formed this way : id_movie|id_file
         the id_movie helps to find the page
         the id_file help to find the file into the page
+        if NO id_movie set, using id_file to form the URL
         """
         ids = id.split('|')
         id_movie = ids[0]
         id_file = ids[1]
-        self.location('http://www.opensubtitles.org/search/sublanguageid-all/idmovie-%s' % id_movie)
+        if len(id_movie) > 0:
+            self.location('http://www.opensubtitles.org/search/sublanguageid-all/idmovie-%s' % id_movie)
+        else:
+            self.location('http://www.opensubtitles.org/subtitles/%s' % id_file)
         assert self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
         return self.page.get_subtitle(id_file)

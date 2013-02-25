@@ -29,6 +29,7 @@ from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
+import time
 
 
 __all__ = ['SubtitlesPage','SearchPage']
@@ -42,19 +43,17 @@ class SearchPage(BasePage):
         if len(tabresults) > 0:
             table = tabresults[0]
             # for each result line, explore the subtitle list page to iter subtitles
-            for line in table.getiterator('tr'):
+            for line in self.parser.select(table,'tr'):
                 links = self.parser.select(line,'a')
                 if len(links) > 0:
                     a = links[0]
                     url = a.attrib.get('href','')
-                    if "ads.opensubtitles" in url:
-                        continue
-                    self.browser.location("http://www.opensubtitles.org%s"%url)
-                    # TODO verifier si on ne chope pas toutes les lignes. plusieurs tableaux ?
-                    assert self.browser.is_on_page(SubtitlesPage) or self.browser.is_on_page(SubtitlePage)
-                    # subtitles page does the job
-                    for subtitle in self.browser.page.iter_subtitles():
-                        yield subtitle
+                    if "ads.opensubtitles" not in url:
+                        self.browser.location("http://www.opensubtitles.org%s"%url)
+                        assert self.browser.is_on_page(SubtitlesPage) or self.browser.is_on_page(SubtitlePage)
+                        # subtitles page does the job
+                        for subtitle in self.browser.page.iter_subtitles():
+                            yield subtitle
 
 
 class SubtitlesPage(BasePage):
@@ -65,35 +64,43 @@ class SubtitlesPage(BasePage):
         if len(tabresults) > 0:
             table = tabresults[0]
             # for each result line, get informations
-            for line in table.getiterator('tr'):
-                idline = line.attrib.get('id','').replace('name','')
-                if idline == id_file:
+            for line in self.parser.select(table,'tr'):
+                id_line = line.attrib.get('id','').replace('name','')
+                # TODO gerer le multi pages
+                if id_line.strip() == id_file.strip():
                     return self.get_subtitle_from_line(line)
 
     def iter_subtitles(self):
-        # TODO verifier les ads
         tabresults = self.parser.select(self.document.getroot(),'table#search_results')
         if len(tabresults) > 0:
             table = tabresults[0]
             # for each result line, get informations
-            for line in table.getiterator('tr'):
-                yield self.get_subtitle_from_line(line)
+            for line in self.parser.select(table,'tr'):
+                # some lines are useless, specially ads
+                if line.attrib.get('id','').startswith('name'):
+                    yield self.get_subtitle_from_line(line)
 
     def get_subtitle_from_line(self,line):
-        id_movie = line.attrib.get('id','').replace('name','')
+        id_movie = self.browser.geturl().split('idmovie-')[-1].split('/')[0]
         cells = self.parser.select(line,'td')
         if len(cells) > 0:
             first_cell = cells[0]
             links = self.parser.select(line,'a')
             a = links[0]
             urldetail = a.attrib.get('href','')
-            name = a.text
-            long_name = self.parser.select(first_cell,'span').attrib.get('title','')
+            name = u" ".join(a.text.strip().split())
+            spanlist = self.parser.select(first_cell,'span')
+            if len(spanlist) > 0:
+                long_name = spanlist[0].attrib.get('title','')
+            else:
+                long_name = "plop"
+                # TODO
+                #long_name = first_cell.content().split('<br>')[1]
             name = "%s (%s)"%(name,long_name)
             second_cell = cells[1]
             link = self.parser.select(second_cell,'a',1)
-            lang = link.attrib.get('onclick','').split('/')[-1].split('-')[-1]
-            nb_cd = cells[2].text.strip().lower().replace('CD','')
+            lang = link.attrib.get('href','').split('/')[-1].split('-')[-1]
+            nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
             fps = 0
             desc = ''
             cell_dl = cells[4]
@@ -115,8 +122,27 @@ class SubtitlePage(BasePage):
     """ Page which contains a single subtitle for a movie
     """
     def get_subtitle(self,id):
-        return []
+        father = self.parser.select(self.document.getroot(),'a#app_link',1).getparent()
+        a = self.parser.select(father,'a')[1]
+        id_file = a.attrib.get('href','').split('/')[-1]
+        url = "http://www.opensubtitles.org/subtitleserve/sub/%s"%id_file
+        id_movie = ""
+        sid = "%s|%s"%(id_movie,id_file)
+        link = self.parser.select(self.document.getroot(),'link[rel=bookmark]',1)
+        title = link.attrib.get('title','')
+        nb_cd = int(title.lower().split('cd')[0].split()[-1])
+        lang = title.split('(')[1].split(')')[0]
+        # TODO improve
+        name = title
+        fps = 0
+
+        subtitle = Subtitle(sid,name)
+        subtitle.url = url
+        subtitle.fps = fps
+        subtitle.language = lang
+        subtitle.nb_cd = nb_cd
+        subtitle.description = "no desc"
+        return subtitle
 
     def iter_subtitles(self):
-        return
-        yield "plop"
+        yield self.get_subtitle(None)
