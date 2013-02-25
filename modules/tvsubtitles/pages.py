@@ -48,16 +48,17 @@ class SearchPage(BasePage):
     """ Page which contains results as a list of series
     """
     def iter_subtitles(self,language):
-        list_result = self.parser.select(self.document.getroot(),'div.left_articles ul',1)
-        li_result = self.parser.select(list_result,'li')
-        for line in li_result:
-            if len(self.parser.select(line,'img[alt=%s]'%language)) > 0:
-                link = self.parser.select(line,'a',1)
-                href = link.attrib.get('href','')
-                self.browser.location("http://%s%s"%(self.browser.DOMAIN,href))
-                assert self.browser.is_on_page(SeriePage)
-                for subtitle in self.browser.page.iter_subtitles(language):
-                    yield subtitle
+        list_result = self.parser.select(self.document.getroot(),'div.left_articles ul')
+        if len(list_result) > 0:
+            li_result = self.parser.select(list_result[0],'li')
+            for line in li_result:
+                if len(self.parser.select(line,'img[alt=%s]'%language)) > 0:
+                    link = self.parser.select(line,'a',1)
+                    href = link.attrib.get('href','')
+                    self.browser.location("http://%s%s"%(self.browser.DOMAIN,href))
+                    assert self.browser.is_on_page(SeriePage)
+                    for subtitle in self.browser.page.iter_subtitles(language):
+                        yield subtitle
 
 
 class SeriePage(BasePage):
