@@ -76,35 +76,43 @@ class SubtitlesPage(BasePage):
             links = self.parser.select(line,'a')
             a = links[0]
             urldetail = a.attrib.get('href','')
-            name = u" ".join(a.text.strip().split())
-            spanlist = self.parser.select(first_cell,'span')
-            if len(spanlist) > 0:
-                long_name = spanlist[0].attrib.get('title','')
-            else:
-                texts = first_cell.itertext()
-                long_name = texts.next()
-                long_name = texts.next()
-                if "Download at 25" in long_name:
-                    long_name = "---"
-            name = "%s (%s)"%(name,long_name)
-            second_cell = cells[1]
-            link = self.parser.select(second_cell,'a',1)
-            lang = link.attrib.get('href','').split('/')[-1].split('-')[-1]
-            nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
-            fps = 0
-            desc = ''
-            cell_dl = cells[4]
-            href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
-            url = "http://www.opensubtitles.org%s"%href
-            id = href.split('/')[-1]
+            self.browser.location("http://www.opensubtitles.org%s"%urldetail)
+            assert self.browser.is_on_page(SubtitlePage)
+            # subtitle page does the job
+            return self.browser.page.get_subtitle()
+            """
+            faster but less accurate
+            we can already get the subtitle from the list page
+            """
+            #name = u" ".join(a.text.strip().split())
+            #spanlist = self.parser.select(first_cell,'span')
+            #if len(spanlist) > 0:
+            #    long_name = spanlist[0].attrib.get('title','')
+            #else:
+            #    texts = first_cell.itertext()
+            #    long_name = texts.next()
+            #    long_name = texts.next()
+            #    if "Download at 25" in long_name:
+            #        long_name = "---"
+            #name = "%s (%s)"%(name,long_name)
+            #second_cell = cells[1]
+            #link = self.parser.select(second_cell,'a',1)
+            #lang = link.attrib.get('href','').split('/')[-1].split('-')[-1]
+            #nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
+            #fps = 0
+            #desc = ''
+            #cell_dl = cells[4]
+            #href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
+            #url = "http://www.opensubtitles.org%s"%href
+            #id = href.split('/')[-1]
 
-            subtitle = Subtitle(id,name)
-            subtitle.url = url
-            subtitle.fps = fps
-            subtitle.language = lang
-            subtitle.nb_cd = nb_cd
-            subtitle.description = "no desc"
-            return subtitle
+            #subtitle = Subtitle(id,name)
+            #subtitle.url = url
+            #subtitle.fps = fps
+            #subtitle.language = lang
+            #subtitle.nb_cd = nb_cd
+            #subtitle.description = "no desc"
+            #return subtitle
 
 
 class SubtitlePage(BasePage):
