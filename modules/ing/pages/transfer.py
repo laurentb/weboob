@@ -85,7 +85,12 @@ class TransferPage(BasePage):
             #for label in a.get_labels():
             if "transfer_form:_link_hidden_" in str(a) or "transfer_form:j_idcl" in str(a):
                 self.browser.controls.remove(a)
-        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': "transfer_form:transfer_region"}))
+            if "transfer_form:valide" in str(a):
+                self.browser.controls.remove(a)
+        self.browser.controls.append(ClientForm.TextControl('text',
+            'AJAXREQUEST', {'value': "_viewRoot"}))
+        self.browser.controls.append(ClientForm.TextControl('text',
+            'AJAX:EVENTS_COUNT', {'value': "1"}))
         self.browser['transfer_form:transferMotive'] = reason
         self.browser.controls.append(ClientForm.TextControl('text', 'transfer_form:valide', {'value': "transfer_form:valide"}))
         self.browser['transfer_form:validateDoTransfer'] = "needed"
@@ -123,18 +128,18 @@ class TransferPage(BasePage):
                 if input.attrib['name'] == "transfer_recipient_radio":
                     onclick = input.attrib['onclick']
                     break
-            params = onclick.split(',')[6].split('{')[1]
+            # Get something like transfer_form:issueAccount:0:click
+            params = onclick.split(',')[3].split('{')[1]
             idparam = params.split("'")[1]
             param = params.split("'")[3]
             request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
-                                      ("transfer_form:generalMessages", ""),
                                       ('transfer_issuer_radio', account.id[3:]),
                                       ("transfer_recipient_radio", recipient.id),
                                       ("transfer_form:externalAccounts", "na"),
                                       ("transfer_date", 0),
                                       ("transfer_form:transferAmount", ""),
                                       ("transfer_form:transferMotive", ""),
-                                      ("transfer_form:AvalidateDoTransfer", "needed"),
+                                      ("transfer_form:validateDoTransfer", "needed"),
                                       ("transfer_form", "transfer_form"),
                                       ("autoScroll", ""),
                                       ("javax.faces.ViewState", javax),
@@ -185,10 +190,12 @@ class TransferConfirmPage(BasePage):
         self.browser.submit(nologin=True)
 
     def recap(self):
-        div = self.document.find('//div[@class="content recap"]')
+        div = self.document.find(
+                '//div[@class="encadre transfert-validation"]')
         transfer = Transfer(0)
-        transfer.amount = Decimal(FrenchTransaction.clean_amount(div.xpath('.//span[@id="confirmtransferAmount"]')[0].text))
-        transfer.origin = div.xpath('.//span[@id="confirmfromAccount"]')[0].text
-        transfer.recipient = div.xpath('.//span[@id="confirmtoAccount"]')[0].text
-        transfer.reason = div.xpath('.//span[@id="confirmtransferMotive"]')[0].text
+        transfer.amount = Decimal(FrenchTransaction.clean_amount(
+            div.xpath('.//label[@id="transferAmount"]')[0].text))
+        transfer.origin = div.xpath('.//span[@id="fromAccount"]')[0].text
+        transfer.recipient = div.xpath('.//span[@id="toAccount"]')[0].text
+        transfer.reason = div.xpath('.//span[@id="transferMotive"]')[0].text
         return transfer
