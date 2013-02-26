@@ -180,22 +180,31 @@ class TransferConfirmPage(BasePage):
         self.browser.select_form(formname)
         self.browser.set_all_readonly(False)
         for a in self.browser.controls[:]:
-            if "transfer_form:_link_hidden_" in str(a) or "transfer_form:j_idcl" in str(a):
+            if "_link_hidden_" in str(a) or "j_idcl" in str(a):
                 self.browser.controls.remove(a)
         coordinates = vk.get_string_code(realpasswd)
         self.browser.logger.debug("Coordonates: " + coordinates)
-        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': '_viewRoot'}))
-        self.browser.controls.append(ClientForm.TextControl('text', '%s:mrg' % formname, {'value': '%s:mrg' % formname}))
+
+        self.browser.controls.append(ClientForm.TextControl('text',
+            'AJAXREQUEST', {'value': '_viewRoot'}))
+        self.browser.controls.append(ClientForm.TextControl(
+            'text', '%s:mrgtransfer' % formname,
+            {'value': '%s:mrgtransfer' % formname}))
         self.browser['%s:mrltransfer' % formname] = coordinates
         self.browser.submit(nologin=True)
 
     def recap(self):
+        if len(self.document.xpath('//p[@class="alert alert-success"]')) == 0:
+            raise BrokenPageError('Unable to find confirmation')
         div = self.document.find(
                 '//div[@class="encadre transfert-validation"]')
         transfer = Transfer(0)
         transfer.amount = Decimal(FrenchTransaction.clean_amount(
-            div.xpath('.//label[@id="transferAmount"]')[0].text))
-        transfer.origin = div.xpath('.//span[@id="fromAccount"]')[0].text
-        transfer.recipient = div.xpath('.//span[@id="toAccount"]')[0].text
-        transfer.reason = div.xpath('.//span[@id="transferMotive"]')[0].text
+            div.xpath('.//label[@id="confirmtransferAmount"]')[0].text))
+        transfer.origin = div.xpath(
+                './/span[@id="confirmfromAccount"]')[0].text
+        transfer.recipient = div.xpath(
+                './/span[@id="confirmtoAccount"]')[0].text
+        transfer.reason = div.xpath(
+                './/span[@id="confirmtransferMotive"]')[0].text
         return transfer
