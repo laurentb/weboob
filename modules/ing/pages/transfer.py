@@ -41,7 +41,8 @@ class TransferPage(BasePage):
             tds = tr.xpath('td')
             id = tds[0].xpath('input')[0].attrib['value']
             name = tds[0].xpath('label')[0].text
-            name += u" " + tds[1].xpath('span')[0].text
+            name += u" " + tds[1].xpath('label')[0].text.replace('\n', '')
+            name += u" " + tds[2].xpath('label')[0].text.replace('\n', '')
             recipient = Recipient()
             recipient.id = id
             recipient.label = name
@@ -50,14 +51,15 @@ class TransferPage(BasePage):
 
         # Second, externals recipients
         select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')
-        recipients = select[0].xpath('option')
-        recipients.pop(0)
-        for option in recipients:
-            recipient = Recipient()
-            recipient.id = option.attrib['value']
-            recipient.label = option.text
-            recipient._type = "ext"
-            yield recipient
+        if len(select) > 0:
+            recipients = select[0].xpath('option')
+            recipients.pop(0)
+            for option in recipients:
+                recipient = Recipient()
+                recipient.id = option.attrib['value']
+                recipient.label = option.text
+                recipient._type = "ext"
+                yield recipient
 
     def ischecked(self, account):
         id = account.id
