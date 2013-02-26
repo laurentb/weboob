@@ -22,7 +22,7 @@ from urlparse import urlparse, parse_qs
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -36,6 +36,10 @@ class LoginPage(BasePage):
 
 class LoginErrorPage(BasePage):
     pass
+
+class ChangePasswordPage(BasePage):
+    def on_loaded(self):
+        raise BrowserIncorrectPassword('Please change your password')
 
 class InfoPage(BasePage):
     pass

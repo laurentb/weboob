@@ -25,7 +25,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
-                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage
+                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage, \
+                   ChangePasswordPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -48,10 +49,11 @@ class CreditMutuelBrowser(BaseBrowser):
              'https://www.creditmutuel.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
              'https://www.creditmutuel.fr/.*/fr/banque/BAD.*': InfoPage,
              'https://www.creditmutuel.fr/.*/fr/banque/.*Vir.*': TransfertPage,
+             'https://www.creditmutuel.fr/.*/fr/validation/change_password.cgi': ChangePasswordPage,
              'https://www.creditmutuel.fr/.*/fr/': EmptyPage,
              'https://www.creditmutuel.fr/.*/fr/banques/index.html': EmptyPage,
              'https://www.creditmutuel.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
-             'https://www.creditmutuel.fr/.*/fr/validation/.*': EmptyPage,
+             'https://www.creditmutuel.fr/.*/fr/validation/(?!change_password).*': EmptyPage,
             }
 
     currentSubBank = None

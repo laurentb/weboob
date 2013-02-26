@@ -25,7 +25,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
-                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage
+                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage, \
+                   ChangePasswordPage
 
 
 __all__ = ['CICBrowser']
@@ -48,9 +49,11 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
              'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
              'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
+             'https://www.cic.fr/.*/fr/validation/change_password.cgi': ChangePasswordPage,
              'https://www.cic.fr/.*/fr/': EmptyPage,
+             'https://www.cic.fr/.*/fr/banques/index.html': EmptyPage,
              'https://www.cic.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
-             'https://www.cic.fr/.*/fr/validation/.*': EmptyPage,
+             'https://www.cic.fr/.*/fr/validation/(?!change_password).*': EmptyPage,
             }
 
     currentSubBank = None
