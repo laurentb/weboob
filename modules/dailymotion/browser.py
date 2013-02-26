@@ -34,7 +34,7 @@ class DailymotionBrowser(BaseBrowser):
     ENCODING = None
     PAGES = {r'http://[w\.]*dailymotion\.com/1': IndexPage,
              r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/1': IndexPage,
-             r'http://[w\.]*dailymotion\.com/(\w+/)?search/.*': IndexPage,
+             r'http://[w\.]*dailymotion\.com/[a-z\-]{2,5}/(\w+/)?search/.*': IndexPage,
              r'http://[w\.]*dailymotion\.com/video/(?P<id>.+)': VideoPage,
             }
 
@@ -58,9 +58,9 @@ class DailymotionBrowser(BaseBrowser):
     def search_videos(self, pattern, sortby):
         pattern = pattern.replace('/', '').encode('utf-8')
         if sortby is None:
-            url = '/search/%s/1' % quote_plus(pattern)
+            url = '/en/search/%s/1' % quote_plus(pattern)
         else:
-            url = '/%s/search/%s/1' % (sortby, quote_plus(pattern))
+            url = '/en/%s/search/%s/1' % (sortby, quote_plus(pattern))
         self.location(url)
 
         assert self.is_on_page(IndexPage)
