@@ -106,7 +106,7 @@ class TransferPage(BasePage):
         if recipient._type == "ext":
             select = self.document.xpath('//select[@id="transfer_form:externalAccounts"]')[0]
             onclick = select.attrib['onchange']
-            params = onclick.split(',')[6].split('{')[1]
+            params = onclick.split(',')[3].split('{')[1]
             idparam = params.split("'")[1]
             param = params.split("'")[3]
             request = self.browser.buildurl('', ("AJAXREQUEST", "transfer_form:transfer_radios_form"),
@@ -205,6 +205,6 @@ class TransferConfirmPage(BasePage):
                 './/span[@id="confirmfromAccount"]')[0].text
         transfer.recipient = div.xpath(
                 './/span[@id="confirmtoAccount"]')[0].text
-        transfer.reason = div.xpath(
-                './/span[@id="confirmtransferMotive"]')[0].text
+        transfer.reason = unicode(
+                div.xpath('.//span[@id="confirmtransferMotive"]')[0].text)
         return transfer
