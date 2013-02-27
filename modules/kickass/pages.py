@@ -75,6 +75,7 @@ class TorrentPage(BasePage):
         leech = 0
         description = NotAvailable
         url = NotAvailable
+        magnet = NotAvailable
         title = NotAvailable
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
@@ -97,10 +98,13 @@ class TorrentPage(BasePage):
                 'h1.torrentName span', 1)
         title = title.text
 
-        for a in self.document.getiterator('a'):
-            if ('Download' in a.attrib.get('title', '')) \
-            and ('torrent file' in a.attrib.get('title', '')):
-                url = a.attrib.get('href', '')
+        for a in self.parser.select(self.document.getroot(),
+                'div.downloadButtonGroup a'):
+            href = a.attrib.get('href', '')
+            if href.startswith('magnet'):
+                magnet = href
+            elif href.startswith('//') or href.startswith('http'):
+                url = href
 
         size = 0
         u = ''
@@ -123,6 +127,7 @@ class TorrentPage(BasePage):
         torrent.url = url
         if torrent.url:
             torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
+        torrent.magnet = magnet
         torrent.size = get_bytes_size(size, u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
