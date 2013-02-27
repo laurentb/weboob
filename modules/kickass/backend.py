@@ -23,6 +23,8 @@ from weboob.tools.backend import BaseBackend
 from .browser import KickassBrowser
 
 from urllib import quote_plus
+from contextlib import closing
+from gzip import GzipFile
 
 __all__ = ['KickassBackend']
 
@@ -47,7 +49,15 @@ class KickassBackend(BaseBackend, ICapTorrent):
         if not torrent:
             return None
 
-        return self.browser.openurl(torrent.url.encode('utf-8')).read()
+        # decode gzip if needed
+        response = self.browser.openurl(torrent.url.encode('utf-8'))
+        headers = response.info()
+        if headers.get('Content-Encoding', '') == 'gzip':
+            with closing(GzipFile(fileobj=response, mode='rb')) as gz:
+                data = gz.read()
+        else:
+            data = response.read()
+        return data
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
