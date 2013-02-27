@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.subtitle import ICapSubtitle,LanguageNotSupported
 from weboob.tools.backend import BaseBackend
 
-from .browser import TvsubtitlesBrowser,LANGUAGE_CONV
+from .browser import TvsubtitlesBrowser,LANGUAGE_LIST
 
 from urllib import quote_plus
 
@@ -50,6 +50,6 @@ class TvsubtitlesBackend(BaseBackend, ICapSubtitle):
         return self.browser.openurl(subtitle.url.encode('utf-8')).read()
 
     def iter_subtitles(self, language, pattern):
-        if language not in LANGUAGE_CONV.keys():
-            return []
+        if language not in LANGUAGE_LIST:
+            raise LanguageNotSupported()
         return self.browser.iter_subtitles(language,quote_plus(pattern.encode('utf-8')))

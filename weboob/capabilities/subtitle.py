@@ -25,6 +25,15 @@ from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, \
 __all__ = ['Subtitle', 'ICapSubtitle']
 
 
+class LanguageNotSupported(UserError):
+    """
+    Raised when the language is not supported
+    """
+
+    def __init__(self, msg='language is not supported'):
+        UserError.__init__(self, msg)
+
+
 class Subtitle(CapBaseObject):
     """
     Subtitle object.
