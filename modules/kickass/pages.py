@@ -38,6 +38,8 @@ class TorrentsPage(BasePage):
     def iter_torrents(self):
         for tr in self.document.getiterator('tr'):
             if tr.attrib.get('class', '') == 'odd' or tr.attrib.get('class', '') == ' even':
+                magnet = NotAvailable
+                url = NotAvailable
                 if not 'id' in tr.attrib:
                     continue
                 title = tr.getchildren()[0].getchildren()[1].getchildren()[1].text
@@ -49,11 +51,14 @@ class TorrentsPage(BasePage):
                     .replace('.html', '')
 
                 # look for url
-                for a in tr.getchildren()[0].getiterator('a'):
-                    if '.torrent' in a.attrib.get('href', ''):
-                        url = a.attrib['href']
-                        if url.startswith('//'):
-                            url = 'http:%s'%url
+                for a in self.parser.select(tr,'div.iaconbox a'):
+                    href = a.attrib.get('href', '')
+                    if href.startswith('magnet'):
+                        magnet = href
+                    elif href.startswith('http'):
+                        url = href
+                    elif href.startswith('//'):
+                        url = 'http:%s'%href
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
@@ -64,6 +69,7 @@ class TorrentsPage(BasePage):
 
                 torrent = Torrent(idt, title)
                 torrent.url = url
+                torrent.magnet = magnet
                 torrent.description = NotAvailable.__unicode__()
                 torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
                 torrent.size = get_bytes_size(size, u)
