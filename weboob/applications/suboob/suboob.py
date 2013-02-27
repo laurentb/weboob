@@ -38,13 +38,12 @@ def sizeof_fmt(num):
 
 
 class SubtitleInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'url', 'fps', 'description')
+    MANDATORY_FIELDS = ('id', 'name', 'url', 'description')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
         result += 'URL: %s\n' % obj.url
-        result += 'FPS: %s\n' % obj.fps
         result += 'LANG: %s\n' % obj.language
         result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)

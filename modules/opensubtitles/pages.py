@@ -118,7 +118,6 @@ class SubtitlesPage(BasePage):
             #link = self.parser.select(second_cell,'a',1)
             #lang = link.attrib.get('href','').split('/')[-1].split('-')[-1]
             #nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
-            #fps = 0
             #desc = ''
             #cell_dl = cells[4]
             #href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
@@ -127,7 +126,6 @@ class SubtitlesPage(BasePage):
 
             #subtitle = Subtitle(id,name)
             #subtitle.url = url
-            #subtitle.fps = fps
             #subtitle.language = lang
             #subtitle.nb_cd = nb_cd
             #subtitle.description = "no desc"
@@ -155,11 +153,9 @@ class SubtitlePage(BasePage):
                 desc_line = f.getparent().text_content()
                 desc += "\n"+" ".join(desc_line.split())
         name = "%s (%s)"%(title,file_name)
-        fps = 0
 
         subtitle = Subtitle(id,name)
         subtitle.url = url
-        subtitle.fps = fps
         for lshort,llong in LANGUAGE_CONV.items():
             if lang == llong:
                 lang = lshort

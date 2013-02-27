@@ -102,11 +102,9 @@ class SeasonPage(BasePage):
         file_names = self.parser.select(filenames_line,'td')[2].text_content().strip().replace('.srt','.srt\n')
         desc = u"files :\n"
         desc += file_names
-        fps = 0
 
         subtitle = Subtitle(id,name)
         subtitle.url = url
-        subtitle.fps = fps
         subtitle.language = lang
         subtitle.nb_cd = nb_cd
         subtitle.description = desc

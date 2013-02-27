@@ -71,7 +71,6 @@ class SubtitlesPage(BasePage):
         url = "http://davidbillemont3.free.fr/%s"%href
         subtitle = Subtitle(id,name)
         subtitle.url = url
-        subtitle.fps = 0
         subtitle.language = "fre"
         subtitle.nb_cd = nb_cd
         subtitle.description = "no desc"
@@ -115,7 +114,6 @@ class SubtitlesPage(BasePage):
                 id = "%s|%s"%(self.browser.geturl().split('/')[-1],href)
                 subtitle = Subtitle(id,name)
                 subtitle.url = url
-                subtitle.fps = 0
                 subtitle.language = "fre"
                 subtitle.nb_cd = nb_cd
                 subtitle.description = "no desc"
