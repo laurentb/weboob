@@ -62,6 +62,7 @@ class TorrentsPage(BasePage):
 
                 torrent = Torrent(idt, title)
                 torrent.url = url
+                torrent.description = NotAvailable.__unicode__()
                 torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
                 torrent.size = get_bytes_size(size, u)
                 torrent.seeders = int(seed)
@@ -73,7 +74,7 @@ class TorrentPage(BasePage):
     def get_torrent(self, id):
         seed = 0
         leech = 0
-        description = NotAvailable
+        description = NotAvailable.__unicode__()
         url = NotAvailable
         magnet = NotAvailable
         title = NotAvailable
