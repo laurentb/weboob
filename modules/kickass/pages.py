@@ -52,6 +52,8 @@ class TorrentsPage(BasePage):
                 for a in tr.getchildren()[0].getiterator('a'):
                     if '.torrent' in a.attrib.get('href', ''):
                         url = a.attrib['href']
+                        if url.startswith('//'):
+                            url = 'http:%s'%url
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
@@ -104,7 +106,9 @@ class TorrentPage(BasePage):
             href = a.attrib.get('href', '')
             if href.startswith('magnet'):
                 magnet = href
-            elif href.startswith('//') or href.startswith('http'):
+            elif href.startswith('//'):
+                url = 'http:%s'%href
+            elif href.startswith('http'):
                 url = href
 
         size = 0
