@@ -31,8 +31,26 @@ from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
 
-__all__ = ['SubtitlesPage','SearchPage']
+__all__ = ['SubtitlesPage','SubtitlePage','SearchPage']
 
+
+LANGUAGE_CONV = {
+'ar':'ara', 'eo':'epo',  'ga':'',    'ru':'rus',
+'af':''   , 'et':'est',  'it':'ita', 'sr':'scc',
+'sq':'alb', 'tl':''   ,  'ja':'jpn', 'sk':'slo',
+'hy':'arm', 'fi':'fin',  'kn':'',    'sl':'slv',
+'az':''   , 'fr':'fre',  'ko':'kor', 'es':'spa',
+'eu':'baq', 'gl':'glg',  'la':'',    'sw':'swa',
+'be':''   , 'ka':'geo',  'lv':'lav', 'sv':'swe',
+'bn':'ben', 'de':'ger',  'lt':'lit', 'ta':'',
+'bg':'bul', 'gr':'ell',  'mk':'mac', 'te':'tel',
+'ca':'cat', 'gu':''   ,  'ms':'may', 'th':'tha',
+'zh':'chi', 'ht':''   ,  'mt':'',    'tr':'tur',
+'hr':'hrv', 'iw':'heb',  'no':'nor', 'uk':'ukr',
+'cz':'cze', 'hi':'hin',  'fa':'per', 'ur':'urd',
+'da':'dan', 'hu':'hun',  'pl':'pol', 'vi':'vie',
+'nl':'dut', 'is':'ice',  'pt':'por', 'cy':'',
+'en':'eng', 'id':'ind',  'ro':'rum', 'yi':''}
 
 class SearchPage(BasePage):
     """ Page which contains results as a list of movies
@@ -142,6 +160,10 @@ class SubtitlePage(BasePage):
         subtitle = Subtitle(id,name)
         subtitle.url = url
         subtitle.fps = fps
+        for lshort,llong in LANGUAGE_CONV.items():
+            if lang == llong:
+                lang = lshort
+                break
         subtitle.language = lang
         subtitle.nb_cd = nb_cd
         subtitle.description = desc

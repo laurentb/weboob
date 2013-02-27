@@ -20,7 +20,8 @@
 from weboob.capabilities.subtitle import ICapSubtitle,LanguageNotSupported
 from weboob.tools.backend import BaseBackend
 
-from .browser import OpensubtitlesBrowser,LANGUAGE_CONV
+from .browser import OpensubtitlesBrowser
+from .pages import LANGUAGE_CONV
 
 from urllib import quote_plus
 

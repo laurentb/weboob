@@ -20,28 +20,10 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import SubtitlesPage, SearchPage, SubtitlePage
+from .pages import SubtitlesPage, SearchPage, SubtitlePage, LANGUAGE_CONV
 
 
 __all__ = ['OpensubtitlesBrowser']
-
-LANGUAGE_CONV = {
-'ar':'ara', 'eo':'epo',  'ga':'',    'ru':'rus',
-'af':''   , 'et':'est',  'it':'ita', 'sr':'scc',
-'sq':'alb', 'tl':''   ,  'ja':'jpn', 'sk':'slo',
-'hy':'arm', 'fi':'fin',  'kn':'',    'sl':'slv',
-'az':''   , 'fr':'fre',  'ko':'kor', 'es':'spa',
-'eu':'baq', 'gl':'glg',  'la':'',    'sw':'swa',
-'be':''   , 'ka':'geo',  'lv':'lav', 'sv':'swe',
-'bn':'ben', 'de':'ger',  'lt':'lit', 'ta':'',
-'bg':'bul', 'gr':'ell',  'mk':'mac', 'te':'tel',
-'ca':'cat', 'gu':''   ,  'ms':'may', 'th':'tha',
-'zh':'chi', 'ht':''   ,  'mt':'',    'tr':'tur',
-'hr':'hrv', 'iw':'heb',  'no':'nor', 'uk':'ukr',
-'cz':'cze', 'hi':'hin',  'fa':'per', 'ur':'urd',
-'da':'dan', 'hu':'hun',  'pl':'pol', 'vi':'vie',
-'nl':'dut', 'is':'ice',  'pt':'por', 'cy':'',
-'en':'eng', 'id':'ind',  'ro':'rum', 'yi':''}
 
 class OpensubtitlesBrowser(BaseBrowser):
     DOMAIN = 'www.opensubtitles.org'
