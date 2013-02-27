@@ -20,6 +20,7 @@
 from __future__ import with_statement
 
 from decimal import Decimal
+import string
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Recipient, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -79,6 +80,8 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
         if isinstance(account, Account):
             account = account.id
 
+        account = str(account).strip(string.letters)
+        to = str(to).strip(string.letters)
         try:
             assert account.isdigit()
             assert to.isdigit()
