@@ -23,7 +23,7 @@ from weboob.tools.browser import BaseBrowser
 from .pages import SeriePage, SearchPage, SeasonPage,HomePage
 
 
-__all__ = ['OpensubtitlesBrowser']
+__all__ = ['TvsubtitlesBrowser']
 
 LANGUAGE_LIST = ['en','es','fr','de','br','ru','ua','it','gr',
                  'ar','hu','pl','tr','nl','pt','sv','da','fi',

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Julien Veyssier
+# Copyright(C) 2013 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,17 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs  # NOQA
-
-from urlparse import urlsplit
-
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
-from weboob.tools.misc import get_bytes_size
 
 
 __all__ = ['SubtitlesPage','SubtitlePage','SearchPage']
@@ -84,14 +76,13 @@ class SubtitlesPage(BasePage):
             # why following line doesn't work all the time (for example 'search fr sopranos guy walks' ?
             #for line in self.parser.select(table,'tr'):
             for line in table.getiterator('tr'):
-                # some lines are useless, specially ads
+                # some tr are useless, specially ads
                 if line.attrib.get('id','').startswith('name'):
                     yield self.get_subtitle_from_line(line)
 
     def get_subtitle_from_line(self,line):
         cells = self.parser.select(line,'td')
         if len(cells) > 0:
-            first_cell = cells[0]
             links = self.parser.select(line,'a')
             a = links[0]
             urldetail = a.attrib.get('href','')
@@ -136,6 +127,7 @@ class SubtitlePage(BasePage):
     """ Page which contains a single subtitle for a movie
     """
     def get_subtitle(self):
+        desc = NotAvailable
         father = self.parser.select(self.document.getroot(),'a#app_link',1).getparent()
         a = self.parser.select(father,'a')[1]
         id = a.attrib.get('href','').split('/')[-1]

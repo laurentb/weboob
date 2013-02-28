@@ -24,7 +24,7 @@ from .browser import BtmonBrowser
 
 from urllib import quote_plus
 
-__all__ = ['KickassBackend']
+__all__ = ['BtmonBackend']
 
 
 class BtmonBackend(BaseBackend, ICapTorrent):

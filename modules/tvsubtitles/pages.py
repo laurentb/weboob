@@ -18,17 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs  # NOQA
-
-from urlparse import urlsplit
-
 from weboob.capabilities.subtitle import Subtitle
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
-from weboob.tools.misc import get_bytes_size
 
 
 __all__ = ['HomePage','SearchPage','SeriePage','SeasonPage']

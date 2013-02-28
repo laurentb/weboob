@@ -18,12 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs  # NOQA
-
-from urlparse import urlsplit
 import string
 
 from weboob.capabilities.torrent import Torrent
