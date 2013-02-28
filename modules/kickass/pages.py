@@ -31,7 +31,7 @@ from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
 
-__all__ = ['TorrentsPage']
+__all__ = ['TorrentsPage','TorrentPage']
 
 
 class TorrentsPage(BasePage):
