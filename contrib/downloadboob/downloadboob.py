@@ -230,7 +230,7 @@ for section in config.sections():
         backend_name=config.get(section, "backend")
         pattern=config.get(section, "pattern")
         if config.has_option(section, "title_exclude"):
-            title_exclude=config.get(section, "title_exclude").split('|')
+            title_exclude=config.get(section, "title_exclude").decode('utf-8').split('|')
         else:
             title_exclude=[]
         if config.has_option(section, "id_regexp"):
