@@ -103,7 +103,7 @@ env.title Solde restant
 env.vlabel Solde
 
 # Monitor water level in Dresden
-[flowdresden]
+[leveldresden]
 user florent
 group florent
 env.cache_expire 7200
@@ -114,6 +114,21 @@ env.import from weboob.capabilities.gauge import ICapGauge
 env.attribvalue level
 env.title Niveau de l'elbe
 env.label id
+
+# The level of the elbe in all Sachsen's cities
+[levelelbesachsen]
+user florent
+group florent
+env.cache_expire 7200
+env.HOME /home/flo
+env.capa ICapGauge
+env.do iter_gauges,Elbe,sachsen
+env.import from weboob.capabilities.gauge import ICapGauge
+env.attribvalue sensors/lastvalue/level
+env.title Niveau de l'elbe en Saxe
+env.label name
+
+
 
 # Temperature in Rennes
 env.cache_expire 7200
