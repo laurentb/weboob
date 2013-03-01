@@ -6,12 +6,69 @@ the "nameyouwant" is used to create cache directory is ~/.config/weboob/munin an
 
 2)
 Configure the plugin in /etc/munin/plugin-conf.d/ (you can go at the end of this files for some examples).
-Mandatory options are:
-TODO
+=== Mandatory options are: ===
+==== env.capa ====
+Example: env.capa ICapBank
+
+The Weboob capability to load.
+
+==== env.do ====
+Example: env.do get_balance
+
+The Weboob command to call the capability. It can take more than one argument. With two argument, the second is used as parameter for the command. The third is used to restrict backends.
+
+==== env.import ====
+Example: from weboob.capabilities.bank import ICapBank
+
+The import line to import the capability
+
+==== env.attribvalue ====
+Example: env.attribvalue balance
+
+The attribut name of objects that we get with the "do" command. In the example, we get some Account objects and the relevant value is "balance".
+If the attribut is itself one object, it is possible the use a hierarchical call (with / as separator). To get the temperature of a Current object use "temp/value".
 
 
-Optionnals options are:
-TODO
+
+=== Optionnals options are ===
+
+==== env.id_monitored ====
+Example: env.id_monitored account1@backend1 account2@backend2
+A list of object (space as separator). Only there objects are diplayed.
+
+==== env.cache_expire ====
+Example: env.cache_expire 7200 (default 3600)
+
+To avoid site flooding, we use a cache in ~/.config/weboob/munin/ The default value is to get new value every 3600 seconds, you can change this delay with this option.
+
+==== env.cumulate ====
+Example: env.cumulate 0 (default 1)
+
+Display data in Area mode (default) or in line mode.
+
+==== env.attribid ====
+Example env.attribid id
+
+Munin need an id for each value. The default is to use the id of results objects, but you can configure an other attribut. Like for env.attribvalue, you can configure a hierarchical attribut with / as separator, for example "temp/id".
+
+==== env.title ====
+Example env.title a wonderful graph
+
+A title for the graph (default: nothing)
+
+==== env.vlabel ====
+Example: env.vlabel Balance
+
+A vlabel for the graph (default: env.attribvalue)
+
+==== env.label ====
+Example: env.label id
+
+Each data in munin as a label. Per default, we take the "label" attribute of object, but it is not always possible (label attribute does not exist, etc). Configure the attribut to use as label here.
+
+
+
+3) restart munin-node
 
 
 
