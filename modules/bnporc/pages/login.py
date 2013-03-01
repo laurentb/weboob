@@ -25,7 +25,6 @@ import urllib
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard,VirtKeyboardError
-import tempfile
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
 

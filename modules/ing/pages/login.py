@@ -23,7 +23,6 @@ from logging import error
 
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
-import tempfile
 
 
 __all__ = ['LoginPage', 'INGVirtKeyboard', 'StopPage']

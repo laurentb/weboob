@@ -21,7 +21,6 @@ import re
 import base64
 from decimal import Decimal
 from logging import error
-import tempfile
 import math
 import random
 

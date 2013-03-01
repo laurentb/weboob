@@ -21,7 +21,6 @@
 import urllib
 from decimal import Decimal
 import re
-import tempfile
 
 from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account

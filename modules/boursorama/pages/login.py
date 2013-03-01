@@ -21,7 +21,6 @@
 import re
 import hashlib
 import urllib
-import tempfile
 
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard

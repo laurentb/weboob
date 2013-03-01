@@ -19,6 +19,7 @@
 
 
 import hashlib
+import tempfile
 
 try:
     import Image
