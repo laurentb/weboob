@@ -58,13 +58,13 @@ class GenericMuninPlugin(object):
         self.attribvalue = os.environ['attribvalue']
         self.title = ''
         if 'title' in os.environ:
-            self.title = os.environ['title']
+            self.title = os.environ['title'].decode('utf-8')
         self.attriblabel = "label"
         if 'label' in os.environ:
             self.attriblabel = os.environ['label']
         self.vlabel = self.attribvalue
         if 'vlabel' in os.environ:
-            self.vlabel = os.environ['vlabel']
+            self.vlabel = os.environ['vlabel'].decode('utf-8')
 
 
     def display_help(self):
@@ -176,8 +176,8 @@ class GenericMuninPlugin(object):
 
         self.new_cache('%s-config' % self.name)
         self.weboob.load_backends(self.capa)
-        self.write_output('graph_title %s' % self.title)
-        self.write_output('graph_vlabel %s' % self.vlabel)
+        self.write_output('graph_title %s' % self.title.encode('iso-8859-15'))
+        self.write_output('graph_vlabel %s' % self.vlabel.encode('iso-8859-15'))
         self.write_output('graph_category weboob')
         self.write_output('graph_args -l 0')
         try:

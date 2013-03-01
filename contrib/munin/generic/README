@@ -131,6 +131,8 @@ env.label name
 
 
 # Temperature in Rennes
+[temprennes]
+user florent
 env.cache_expire 7200
 env.HOME /home/flo
 env.capa ICapWeather
@@ -140,3 +142,4 @@ env.attribvalue temp/value
 env.attribid temp/id
 env.title Température à Rennes
 env.vlabel Température
+env.label id
