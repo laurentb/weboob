@@ -155,6 +155,8 @@ class GenericMuninPlugin(object):
         attribs = self.attribvalue.split('/')
         for attrib in attribs:
             result = getattr(result, attrib)
+            if type(result) is list:
+                result = result[0]
         return result
 
     def monitored(self, result):
@@ -201,7 +203,7 @@ class GenericMuninPlugin(object):
                 if first:
                     type = 'AREA'
                     first = False
-                self.write_output('%s.label %s' % (id, getattr(result, self.attriblabel).encode('iso-8859-15')))
+                self.write_output('%s.label %s' % (id.encode('iso-8859-15'), getattr(result, self.attriblabel).encode('iso-8859-15')))
                 if self.cumulate:
                     self.write_output('%s.draw %s' % (id, type))
         except CallErrors, errors:
