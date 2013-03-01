@@ -36,6 +36,27 @@ echo "========= ICapGauge config"
 ./gauge config
 rm gauge
 
+# Monitor water level of the Elbe in sachsen
+
+export cache_expire=7200
+export HOME=/home/flo
+export capa=ICapGauge
+export do=iter_gauges,Elbe,sachsen
+export import="from weboob.capabilities.gauge import ICapGauge"
+export attribvalue=sensors/lastvalue/level
+export title="Niveau de l'elbe en Saxe"
+export label="name"
+
+echo "========= ICapGauge fetch"
+cp ./generic-munin ./elbe
+./elbe
+echo "========= ICapGauge config"
+./elbe config
+rm elbe
+
+
+
+
 # Monitor leclercmobile balance
 
 export cache_expire=7200
