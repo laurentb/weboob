@@ -106,7 +106,7 @@ env.vlabel Solde
 [flowdresden]
 user florent
 group florent
-env.cache_expire=7200
+env.cache_expire 7200
 env.HOME /home/flo
 env.capa ICapGauge
 env.do get_last_measure,501060-level
@@ -115,3 +115,13 @@ env.attribvalue level
 env.title Niveau de l'elbe
 env.label id
 
+# Temperature in Rennes
+env.cache_expire 7200
+env.HOME /home/flo
+env.capa ICapWeather
+env.do get_current,619163,yahoo
+env.import from weboob.capabilities.weather import ICapWeather
+env.attribvalue temp/value
+env.attribid temp/id
+env.title Température à Rennes
+env.vlabel Température
