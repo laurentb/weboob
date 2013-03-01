@@ -53,8 +53,6 @@ class VirtKeyboard(MappedVirtKeyboard):
         img_file = page.browser.openurl(img.attrib['src'])
         MappedVirtKeyboard.__init__(self, img_file, page.document, img, self.color, convert='RGB')
 
-        if page.browser.responses_dirname is None:
-            page.browser.responses_dirname = tempfile.mkdtemp(prefix='weboob_session_')
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):

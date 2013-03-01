@@ -58,9 +58,6 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
         self.url+="%s"%str(long(math.floor(long(random.random()*1000000000000000000000))))
         MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url),
                                     basepage.document,img,self.color,"id")
-        if basepage.browser.responses_dirname is None:
-            basepage.browser.responses_dirname = \
-                    tempfile.mkdtemp(prefix='weboob_session_')
         self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):

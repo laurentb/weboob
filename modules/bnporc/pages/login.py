@@ -49,9 +49,6 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
     def __init__(self,basepage):
         img=basepage.document.find("//img[@usemap='#MapGril']")
         MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url % time.time()),basepage.document,img,self.color)
-        if basepage.browser.responses_dirname is None:
-            basepage.browser.responses_dirname = \
-                    tempfile.mkdtemp(prefix='weboob_session_')
         self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
     def get_symbol_code(self,md5sum):
