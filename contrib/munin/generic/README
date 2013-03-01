@@ -77,6 +77,7 @@ Examples:
 
 
 # Like boobank-munin does
+# Only for the example, you should use boobank-munin instead
 [bank]
 user florent
 group florent
@@ -93,13 +94,13 @@ env.title Solde des comptes
 [leclercmobile]
 user florent
 group florent
-env.cache_expire 7200
+env.cache_expire 16800
 env.HOME /home/flo
 env.capa ICapBill
-env.do get_balance,06XXXXXXXXXX@leclercmobile,leclercmobile
+env.do get_balance,06XXXXXXXX,leclercmobile
 env.import from weboob.capabilities.bill import ICapBill
 env.attribvalue price
-env.title Solde restant
+env.title Forfait leclercmobile
 env.vlabel Solde
 
 # Monitor water level in Dresden
@@ -118,23 +119,22 @@ env.label id
 # The level of the elbe in all Sachsen's cities
 [levelelbesachsen]
 user florent
-group florent
-env.cache_expire 7200
+env.cache_expire 800
 env.HOME /home/flo
+env.cumulate 0
 env.capa ICapGauge
 env.do iter_gauges,Elbe,sachsen
 env.import from weboob.capabilities.gauge import ICapGauge
 env.attribvalue sensors/lastvalue/level
 env.title Niveau de l'elbe en Saxe
 env.label name
-
-
+env.vlabel Hauteur du fleuve (cm)
 
 # Temperature in Rennes
 [temprennes]
 user florent
-env.cache_expire 7200
 env.HOME /home/flo
+env.cumulate 0
 env.capa ICapWeather
 env.do get_current,619163,yahoo
 env.import from weboob.capabilities.weather import ICapWeather
