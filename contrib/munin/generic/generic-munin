@@ -151,6 +151,23 @@ class GenericMuninPlugin(object):
         elif len(self.do) == 3:
             return self.weboob.do(self.do[0], self.do[1], backends=self.do[2])
 
+    def get_value(self, result):
+        attribs = self.attribvalue.split('/')
+        for attrib in attribs:
+            result = getattr(result, attrib)
+        return result
+
+    def monitored(self, result):
+        return not self.tomonitore or ('%s@%s' % (getattr(result, self.attribid), result.backend)) in self.tomonitore
+
+    def result2id(self, result):
+        attribs = self.attribid.split('/')
+        id = result
+        for attrib in attribs:
+            id = getattr(id, attrib)
+        return '%s_%s' % (result.backend, id)
+
+
     def config(self):
         if self.check_cache('%s-config' % self.name):
             return
@@ -167,7 +184,7 @@ class GenericMuninPlugin(object):
                 d = {}
                 for backend, result in self.build_do():
                     if self.monitored(result):
-                        d['%s@%s' % (getattr(value, self.attribid), result.backend)] = result
+                        d['%s@%s' % (self.result2id(result), result.backend)] = result
 
                 for id in self.tomonitore:
                     try:
@@ -193,12 +210,6 @@ class GenericMuninPlugin(object):
         else:
             self.flush_cache()
 
-    def monitored(self, result):
-        return not self.tomonitore or ('%s@%s' % (getattr(value, self.attribid), result.backend)) in self.tomonitore
-
-    def result2id(self, result):
-        return '%s_%s' % (result.backend, getattr(result, self.attribid))
-
     def print_errors(self, errors):
         for backend, err, backtrace in errors:
             print >>sys.stderr, (u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace')
@@ -214,7 +225,7 @@ class GenericMuninPlugin(object):
         try:
             for backend, result in self.build_do():
                 if self.monitored(result):
-                    value = getattr(result, self.attribvalue)
+                    value = self.get_value(result)
                     self.write_output('%s.value %d' % (self.result2id(result), value))
         except CallErrors, errors:
             self.print_errors(errors)

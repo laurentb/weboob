@@ -54,4 +54,22 @@ echo "========= ICapBill config"
 ./bill config
 rm bill
 
+# Monitor temperature in Rennes
+
+export cache_expire=7200
+export HOME="/home/flo"
+export capa="ICapWeather"
+export do="get_current,619163,yahoo"
+export import="from weboob.capabilities.weather import ICapWeather"
+export attribvalue="temp/value"
+export attribid="temp/id"
+export title="Température à Rennes"
+export vlabel="Température"
+
+echo "========= ICapWeather fetch"
+cp ./generic-munin ./rennes
+./rennes
+echo "========= ICapWeather config"
+./rennes config
+rm rennes
 
