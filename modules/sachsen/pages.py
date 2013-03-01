@@ -30,7 +30,8 @@ class ListPage(BasePage):
     alarmlevel = {"as1.gif": u"Alarmstufe 1", "as2.gif": u"Alarmstufe 2",
                   "as3.gif": u"Alarmstufe 3", "as4.gig": u"Alarmstufe 4",
                   "qua_grau.gif": u"No alarm function", "p_gruen.gif": u"",
-                  "qua_weiss.gif": u"no data"}
+                  "qua_weiss.gif": u"no data", "as0.gif": u"",
+                  "MNW.gif": u""}
 
     def get_rivers_list(self):
         for pegel in self.document.getroot().xpath(".//a[@onmouseout='pegelaus()']"):
