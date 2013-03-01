@@ -36,6 +36,10 @@ If the attribut is itself one object, it is possible the use a hierarchical call
 Example: env.id_monitored account1@backend1 account2@backend2
 A list of object (space as separator). Only there objects are diplayed.
 
+==== env.exclude ====
+Example: env.exclude 550810@sachsen
+Same as env.id_monitored, but to exclude an object of results
+
 ==== env.cache_expire ====
 Example: env.cache_expire 7200 (default 3600)
 
@@ -129,6 +133,7 @@ env.attribvalue sensors/lastvalue/level
 env.title Niveau de l'elbe en Saxe
 env.label name
 env.vlabel Hauteur du fleuve (cm)
+env.exclude 550810@sachsen
 
 # Temperature in Rennes
 [temprennes]

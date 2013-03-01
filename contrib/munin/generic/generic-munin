@@ -51,6 +51,9 @@ class GenericMuninPlugin(object):
         self.tomonitore = None
         if 'id_monitored' in os.environ:
             self.tomonitore = os.environ['id_monitored'].split(' ')
+        self.exclude = None
+        if 'exclude' in os.environ:
+            self.exclude = os.environ['exclude'].split(' ')
         # Attribut of object to use as ID (default: id)
         self.attribid = "id"
         if 'attribid' in os.environ:
@@ -160,7 +163,10 @@ class GenericMuninPlugin(object):
         return result
 
     def monitored(self, result):
-        return not self.tomonitore or ('%s@%s' % (getattr(result, self.attribid), result.backend)) in self.tomonitore
+        id = '%s@%s' % (getattr(result, self.attribid), result.backend)
+        if self.exclude and id in self.exclude:
+            return False
+        return not self.tomonitore or id in self.tomonitore
 
     def result2id(self, result):
         attribs = self.attribid.split('/')
@@ -182,7 +188,7 @@ class GenericMuninPlugin(object):
         self.write_output('graph_args -l 0')
         try:
             objects = []
-            if self.tomonitore is not None:
+            if self.tomonitore is not None or self.exclude is not None:
                 d = {}
                 for backend, result in self.build_do():
                     if self.monitored(result):
