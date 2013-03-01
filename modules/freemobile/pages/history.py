@@ -107,13 +107,14 @@ class DetailsPage(BasePage):
     def parse_voice(self, div, string, num, inter=False):
         voice = Detail()
         voice.id = "-voice"
+        voicediv = div.xpath('div[@class="conso"]')[0]
         voice.label = unicode(div.find('div[@class="titre"]/p').text_content())
         if inter:
             voice.label = voice.label + " (international)"
             voice.id = voice.id + "-inter"
         voice.price = convert_price(div)
-        voice1 = div.xpath('div[@class="conso"]/p/span')[0].text
-        voice2 = div.xpath('div[@class="conso"]/p/span')[1].text
+        voice1 = voicediv.xpath('.//span[@class="actif"]')[0].text
+        voice2 = voicediv.xpath('.//span[@class="actif"]')[1].text
         voice.infos = unicode(string) % (voice1, voice2)
 
         return voice
