@@ -54,7 +54,7 @@ echo "========= ICapGauge config"
 ./elbe config
 rm elbe
 
-
+unset label
 
 
 # Monitor leclercmobile balance
@@ -84,6 +84,7 @@ export do="get_current,619163,yahoo"
 export import="from weboob.capabilities.weather import ICapWeather"
 export attribvalue="temp/value"
 export attribid="temp/id"
+export label="id"
 export title="Température à Rennes"
 export vlabel="Température"
 
@@ -94,3 +95,6 @@ echo "========= ICapWeather config"
 ./rennes config
 rm rennes
 
+unset label
+unset vlabel
+unset title
