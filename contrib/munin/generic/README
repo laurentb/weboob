@@ -1,0 +1,60 @@
+How to use it
+
+1)
+Create a symlink from /etc/munin/plugins/nameyouwant to the script
+the "nameyouwant" is used to create cache directory is ~/.config/weboob/munin and is usefull to configure the plugin.
+
+2)
+Configure the plugin in /etc/munin/plugin-conf.d/ (you can go at the end of this files for some examples).
+Mandatory options are:
+TODO
+
+
+Optionnals options are:
+TODO
+
+
+
+
+Examples:
+
+
+# Like boobank-munin does
+[bank]
+user florent
+group florent
+env.cache_expire 7200
+env.HOME /home/flo
+env.capa ICapBank
+env.do iter_accounts
+env.import from weboob.capabilities.bank import ICapBank
+env.attribvalue balance
+env.title Solde des comptes
+
+
+# Balance of your leclercmobile subscription
+[leclercmobile]
+user florent
+group florent
+env.cache_expire 7200
+env.HOME /home/flo
+env.capa ICapBill
+env.do get_balance,06XXXXXXXXXX@leclercmobile,leclercmobile
+env.import from weboob.capabilities.bill import ICapBill
+env.attribvalue price
+env.title Solde restant
+env.vlabel Solde
+
+# Monitor water level in Dresden
+[flowdresden]
+user florent
+group florent
+env.cache_expire=7200
+env.HOME /home/flo
+env.capa ICapGauge
+env.do get_last_measure,501060-level
+env.import from weboob.capabilities.gauge import ICapGauge
+env.attribvalue level
+env.title Niveau de l'elbe
+env.label id
+
