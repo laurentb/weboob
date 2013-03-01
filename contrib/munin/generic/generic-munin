@@ -1,0 +1,246 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ft=python et softtabstop=4 cinoptions=4 shiftwidth=4 ts=4 ai
+
+# Copyright(C) 2013  Romain Bignon, Florent Fourcot
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import sys
+import locale
+import time
+import logging
+from weboob.core import Weboob, CallErrors
+from weboob.tools.browser import BrowserIncorrectPassword
+
+class GenericMuninPlugin(object):
+    def __init__(self):
+        if 'weboob_path' in os.environ:
+            self.weboob = Weboob(os.environ['weboob_path'])
+        else:
+            self.weboob = Weboob()
+        self.cache_expire = long(os.environ.get('cache_expire', 3600))
+        self.cumulate = int(os.environ.get('cumulate', 1))
+        self.cache = None
+        self.name = sys.argv[0]
+        if "/" in self.name:
+            self.name = self.name.split('/')[-1]
+
+        # Capability to load
+        self.capa = os.environ['capa']
+        # Command to pass to Weboob
+        self.do = os.environ['do'].split(',')
+        # Not easy to load modules automatically...
+        self.mimport = os.environ["import"]
+        exec(self.mimport)
+        # We can monitore only some objects
+        self.tomonitore = None
+        if 'id_monitored' in os.environ:
+            self.tomonitore = os.environ['id_monitored'].split(' ')
+        # Attribut of object to use as ID (default: id)
+        self.attribid = "id"
+        if 'attribid' in os.environ:
+            self.attribid = os.environ['attribid']
+        self.attribvalue = os.environ['attribvalue']
+        self.title = ''
+        if 'title' in os.environ:
+            self.title = os.environ['title']
+        self.attriblabel = "label"
+        if 'label' in os.environ:
+            self.attriblabel = os.environ['label']
+        self.vlabel = self.attribvalue
+        if 'vlabel' in os.environ:
+            self.vlabel = os.environ['vlabel']
+
+
+    def display_help(self):
+        print 'generic-munin is a plugin for munin'
+        print ''
+        print 'Copyright(C) 2013 Romain Bignon, Florent Fourcot'
+        print ''
+        print 'To use it, create a symlink /etc/munin/plugins/nameyouwant to this script'
+        print 'and add this section in /etc/munin/plugin-conf.d/munin-node:'
+        print ''
+        print '[nameyouwant]'
+        print 'user romain'
+        print 'group romain'
+        print 'env.HOME /home/romain'
+        print '# The weboob directory path.'
+        print 'env.weboob_path /home/romain/.config/weboob/'
+        print '# Monitored objects. If this parameter is missing, all objects'
+        print '# will be displayed.'
+        print 'env.id_monitored myid@backend1 otherid@backend2'
+        print '# To prevent mass connections to websites, results are cached.'
+        print '# You can set here the expiration delay (in seconds).'
+        print 'env.cache_expire 7200'
+        print '# Cumulate values'
+        print 'env.cumulate 1'
+        print ''
+
+    def cachepath(self, name):
+        tmpdir = os.path.join(self.weboob.workdir, "munin")
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+
+        return os.path.join(tmpdir, name)
+
+    def check_cache(self, name):
+        return self.print_cache(name, check=True)
+
+    def print_cache(self, name, check=False):
+        try:
+            f = open(self.cachepath(name), 'r')
+        except IOError:
+            return False
+
+        try:
+            last = int(f.readline().strip())
+        except ValueError:
+            return False
+
+        if check and (last + self.cache_expire) < time.time():
+            return False
+
+        for line in f.xreadlines():
+            sys.stdout.write(line)
+        return True
+
+    def new_cache(self, name):
+        os.umask(0077)
+        new_name = '%s.new' % name
+        filename = self.cachepath(new_name)
+        try:
+            f = open(filename, 'w')
+        except IOError, e:
+            print >>sys.stderr, 'Unable to create the cache file %s: %s' % (filename, e)
+            return
+
+        self.cache = f
+        self.cache.write('%d\n' % time.time())
+
+    def flush_cache(self):
+        old_name = self.cache.name
+        new_name = self.cache.name[:-4]
+        self.cache.close()
+        os.rename(old_name, new_name)
+
+    def write_output(self, line):
+        sys.stdout.write('%s\n' % line)
+        if self.cache:
+            self.cache.write('%s\n' % line)
+
+    def build_do(self):
+        if len(self.do) == 1:
+            return self.weboob.do(self.do[0])
+        elif len(self.do) == 2:
+            return self.weboob.do(self.do[0], self.do[1])
+        elif len(self.do) == 3:
+            return self.weboob.do(self.do[0], self.do[1], backends=self.do[2])
+
+    def config(self):
+        if self.check_cache('%s-config' % self.name):
+            return
+
+        self.new_cache('%s-config' % self.name)
+        self.weboob.load_backends(self.capa)
+        self.write_output('graph_title %s' % self.title)
+        self.write_output('graph_vlabel %s' % self.vlabel)
+        self.write_output('graph_category weboob')
+        self.write_output('graph_args -l 0')
+        try:
+            objects = []
+            if self.tomonitore is not None:
+                d = {}
+                for backend, result in self.build_do():
+                    if self.monitored(result):
+                        d['%s@%s' % (getattr(value, self.attribid), result.backend)] = result
+
+                for id in self.tomonitore:
+                    try:
+                        objects.append(d[id])
+                    except KeyError:
+                        pass
+            else:
+                objects = reversed([a for b, a in self.build_do()])
+
+            first = True
+            for result in objects:
+                id = self.result2id(result)
+                type = 'STACK'
+                if first:
+                    type = 'AREA'
+                    first = False
+                self.write_output('%s.label %s' % (id, getattr(result, self.attriblabel).encode('iso-8859-15')))
+                if self.cumulate:
+                    self.write_output('%s.draw %s' % (id, type))
+        except CallErrors, errors:
+            self.print_errors(errors)
+            self.print_cache('%s-config' % self.name)
+        else:
+            self.flush_cache()
+
+    def monitored(self, result):
+        return not self.tomonitore or ('%s@%s' % (getattr(value, self.attribid), result.backend)) in self.tomonitore
+
+    def result2id(self, result):
+        return '%s_%s' % (result.backend, getattr(result, self.attribid))
+
+    def print_errors(self, errors):
+        for backend, err, backtrace in errors:
+            print >>sys.stderr, (u'%s(%s): %s' % (type(err).__name__, backend.name, err)).encode(sys.stdout.encoding or locale.getpreferredencoding(), 'replace')
+            if isinstance(err, BrowserIncorrectPassword):
+                self.weboob.backends_config.edit_backend(backend.name, backend.NAME, {'_enabled': False})
+
+    def execute(self):
+        if self.check_cache(self.name):
+            return
+
+        self.new_cache(self.name)
+        self.weboob.load_backends(self.capa)
+        try:
+            for backend, result in self.build_do():
+                if self.monitored(result):
+                    value = getattr(result, self.attribvalue)
+                    self.write_output('%s.value %d' % (self.result2id(result), value))
+        except CallErrors, errors:
+            self.print_errors(errors)
+            self.print_cache(self.name)
+        else:
+            self.flush_cache()
+
+    def run(self):
+        cmd = (len(sys.argv) > 1 and sys.argv[1]) or "execute"
+        if cmd == 'execute':
+            self.execute()
+        elif cmd == 'config':
+            self.config()
+        elif cmd == 'autoconf':
+            print 'no'
+            sys.exit(1)
+        elif cmd == 'suggest':
+            sys.exit(1)
+        elif cmd == 'help' or cmd == '-h' or cmd == '--help':
+            self.display_help()
+
+        if self.cache:
+            self.cache.close()
+
+        sys.exit(0)
+
+if __name__ == '__main__':
+    logging.basicConfig()
+    GenericMuninPlugin().run()
