@@ -119,6 +119,8 @@ class VirtKeyboard(object):
             try:
                 self.get_symbol_code(symbols[s])
             except VirtKeyboardError:
+                if dirname is None:
+                    dirname = tempfile.mkdtemp(prefix='weboob_session_')
                 self.generate_MD5(dirname)
                 raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s"\
                                         % (s, dirname))

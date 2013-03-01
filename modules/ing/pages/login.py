@@ -66,9 +66,6 @@ class INGVirtKeyboard(VirtKeyboard):
 
         VirtKeyboard.__init__(self, basepage.browser.openurl(url), coords, self.color)
 
-        if basepage.browser.responses_dirname is None:
-            basepage.browser.responses_dirname = \
-                    tempfile.mkdtemp(prefix='weboob_session_')
         self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
     def get_string_code(self, string):
