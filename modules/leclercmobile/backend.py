@@ -99,5 +99,9 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
             return self.browser.readurl(bill._url)
 
     def get_balance(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
         with self.browser:
-            return self.browser.get_balance()
+            balance = self.browser.get_balance()
+            balance.id = "%s-balance" % subscription.id
+            return balance
