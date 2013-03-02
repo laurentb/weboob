@@ -45,14 +45,14 @@ def find_executable(name, names):
 
 
 def build_qt():
-    print 'Building Qt applications'
+    print 'Building Qt applications...'
     make = find_executable('make', ('gmake', 'make'))
     pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-python2.7', 'pyuic4-python2.6', 'pyuic4'))
     if not pyuic4 or not make:
         print >>sys.stderr, 'Install missing component(s) (see above) or disable Qt applications (with --no-qt).'
         sys.exit(1)
 
-    subprocess.check_call([make, 'all', 'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
+    subprocess.check_call([make, '-s', '-j2', 'all', 'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
 
 
 class Options(object):
