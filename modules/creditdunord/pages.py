@@ -116,9 +116,10 @@ class AccountsPage(CDNBasePage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>RET DAB \w+ .*?) LE (?P<dd>\d{2})(?P<mm>\d{2})$'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^VIR(EMENT)?\.?(DE)? (?P<text>.*)'),
+                (re.compile(r'^VIR(EMENT)?( INTERNET)?(\.| )?(DE)? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^PRLV (DE )?(?P<text>.*)'),   FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^PRLV (DE )?(?P<text>.*?)( Motif :.*)?$'),
+                                                            FrenchTransaction.TYPE_ORDER),
                 (re.compile(r'^CB (?P<text>.*) LE (?P<dd>\d{2})\.?(?P<mm>\d{2})$'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^CHEQUE.*'),                  FrenchTransaction.TYPE_CHECK),
