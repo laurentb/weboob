@@ -52,13 +52,7 @@ def build_qt():
         print >>sys.stderr, 'Install missing component(s) (see above) or disable Qt applications (with --no-qt).'
         sys.exit(1)
 
-    subprocess.check_call([make, '-C', 'weboob/applications/qboobmsg/ui', 'PYUIC=%s' % pyuic4])
-    subprocess.check_call([make, '-C', 'weboob/applications/qhavedate/ui', 'PYUIC=%s' % pyuic4])
-    subprocess.check_call([make, '-C', 'weboob/applications/qwebcontentedit/ui', 'PYUIC=%s' % pyuic4])
-    subprocess.check_call([make, '-C', 'weboob/applications/qflatboob/ui', 'PYUIC=%s' % pyuic4])
-    subprocess.check_call([make, '-C', 'weboob/tools/application/qt', 'PYUIC=%s' % pyuic4])
-    if sys.platform != 'win32':
-        subprocess.check_call([make, '-C', 'weboob/applications/qvideoob/ui', 'PYUIC=%s' % pyuic4])
+    subprocess.check_call([make, 'all', 'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
 
 
 class Options(object):
@@ -150,7 +144,7 @@ if options.xdg:
 
 setup(
     name='weboob',
-    version = '0.f',
+    version='0.f',
     description='Weboob, Web Outside Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',
