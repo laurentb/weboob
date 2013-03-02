@@ -117,6 +117,11 @@ class AccountsList(BasePage):
             yield op
 
     def get_history_jid(self):
+        span = self.document.xpath('//span[@id="index:panelASV"]')
+        if len(span) > 1:
+            # Assurance Vie, we do not support this kind of account.
+            return None
+
         span = self.document.xpath('//span[starts-with(@id, "index:j_id")]')[0]
         jid = span.attrib['id'].split(':')[1]
         return jid

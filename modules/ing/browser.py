@@ -120,6 +120,10 @@ class Ing(BaseBrowser):
         self.location(self.accountspage, urllib.urlencode(data))
         self.where = "history"
         jid = self.page.get_history_jid()
+        if jid is None:
+            self.logger.info('There is no history for this account')
+            return
+
         index = 0 # index, we get always the same page, but with more informations
         while 1:
             hashlist = []
