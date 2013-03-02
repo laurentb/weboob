@@ -22,7 +22,7 @@
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
-from .pages.accounts_list import AccountsList, AccountHistoryPage
+from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage
 
 __all__ = ['Fortuneo']
 
@@ -33,13 +33,14 @@ class Fortuneo(BaseBrowser):
     CERTHASH = ['f71bd27994f395963c4a500d9d330cb50cef37ee5946146f9ca2492c2552b2ba', '97628e02c676d88bb8eb6d91a10b50cffd7275e273902975b4e1eb7154270c4e']
     ENCODING = None # refer to the HTML encoding
     PAGES = {
-            '.*identification\.jsp.*' :                                                                         LoginPage,
+            '.*identification\.jsp.*' :                                                         LoginPage,
 
-            '.*prive/default\.jsp.*' :                                                                           AccountsList,
-            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp' :                                                  AccountsList,
+            '.*prive/default\.jsp.*' :                                                          AccountsList,
+            '.*/prive/mes-comptes/synthese-mes-comptes\.jsp' :                                  AccountsList,
+            '.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp' :                 GlobalAccountsList,
 
-            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*' :                          AccountHistoryPage,
-            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :                  AccountHistoryPage,
+            '.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*' :          AccountHistoryPage,
+            '.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*' :  AccountHistoryPage,
 
             }
 
@@ -49,15 +50,12 @@ class Fortuneo(BaseBrowser):
     def home(self):
         """main page (login)"""
 
-        self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/identification.jsp')
+        self.login()
 
     def is_logged(self):
         """Return True if we are logged on website"""
 
-        if self.is_on_page(AccountHistoryPage) or self.is_on_page(AccountsList):
-            return True
-        else:
-            return False
+        return self.page is not None and not self.is_on_page(LoginPage)
 
     def login(self):
         """Login to the website.
@@ -76,6 +74,9 @@ class Fortuneo(BaseBrowser):
             raise BrowserIncorrectPassword()
 
         self.location('https://' + self.DOMAIN_LOGIN + '/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
+
+        if self.is_on_page(AccountsList) and self.page.need_reload():
+            self.location('/ReloadContext?action=1&')
 
     def get_history(self, account):
         if not self.is_on_page(AccountHistoryPage):

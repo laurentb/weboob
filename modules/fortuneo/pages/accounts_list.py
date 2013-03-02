@@ -27,7 +27,7 @@ from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['AccountsList', 'AccountHistoryPage']
+__all__ = ['GlobalAccountsList', 'AccountsList', 'AccountHistoryPage']
 
 
 class Transaction(FrenchTransaction):
@@ -90,6 +90,10 @@ class AccountsList(BasePage):
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
 
+    def need_reload(self):
+        form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')
+        return len(form) > 0
+
     def get_list(self):
         l = []
 
@@ -130,5 +134,8 @@ class AccountsList(BasePage):
             l.append(account)
 
         return l
+
+class GlobalAccountsList(BasePage):
+    pass
 
 # vim:ts=4:sw=4
