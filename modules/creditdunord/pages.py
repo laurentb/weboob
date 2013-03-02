@@ -35,10 +35,11 @@ class LoginPage(BasePage):
     pass
 
 class CDNBasePage(BasePage):
-    def get_from_js(self, pattern, end):
+    def get_from_js(self, pattern, end, is_list=False):
         """
         find a pattern in any javascript text
         """
+        value = None
         for script in self.document.xpath('//script'):
             txt = script.text
             if txt is None:
@@ -48,8 +49,22 @@ class CDNBasePage(BasePage):
             if start < 0:
                 continue
 
-            txt = txt[start+len(pattern):start+txt[start+len(pattern):].find(end)+len(pattern)]
-            return txt
+            while 1:
+                if value is None:
+                    value = ''
+                else:
+                    value += ','
+                value += txt[start+len(pattern):start+txt[start+len(pattern):].find(end)+len(pattern)]
+
+                if not is_list:
+                    break
+
+                txt = txt[start+len(pattern)+txt[start+len(pattern):].find(end):]
+
+                start = txt.find(pattern)
+                if start < 0:
+                    break
+            return value
 
     def get_execution(self):
         return self.get_from_js("name: 'execution', value: '", "'")
@@ -66,7 +81,7 @@ class AccountsPage(CDNBasePage):
     def get_list(self):
         accounts = []
 
-        txt = self.get_from_js('_data = new Array(', ');')
+        txt = self.get_from_js('_data = new Array(', ');', is_list=True)
 
         if txt is None:
             raise BrokenPageError('Unable to find accounts list in scripts')
