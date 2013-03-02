@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
 from urlparse import urlparse, parse_qs
 from decimal import Decimal
 import re
@@ -155,7 +156,9 @@ class OperationsPage(BasePage):
         if len(form) == 0:
             return False
 
-        text = self.parser.tocleanstring(form[0])
+        form = form[0]
+
+        text = self.parser.tocleanstring(form)
         m = re.search(u'(\d+) / (\d+)', text or '', flags=re.MULTILINE)
         if not m:
             return False
@@ -166,10 +169,15 @@ class OperationsPage(BasePage):
         if cur == last:
             return False
 
-        self.browser.select_form(name='paginationForm')
-        self.browser.set_all_readonly(False)
-        self.browser['page'] = str(cur + 1)
-        self.browser.submit()
+        inputs = {}
+        for elm in form.xpath('.//input[@type="input"]'):
+            key = elm.attrib['name']
+            value = elm.attrib['value']
+            inputs[key] = value
+
+        inputs['page'] = str(cur + 1)
+
+        self.browser.location(form.attrib['action'], urllib.urlencode(inputs))
 
         return True
 
