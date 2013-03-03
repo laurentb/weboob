@@ -110,6 +110,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<category>(COTISATION|PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile(r'^(\d+ )?VIR (PERM )?POUR: \d+ (REF: \d+ )?MOTIF: (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^(?P<category>VIR(EMEN)?T? \w+) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^(CHEQUE) (?P<text>.*)'),     FrenchTransaction.TYPE_CHECK),
