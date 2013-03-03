@@ -25,7 +25,6 @@ from datetime import datetime
 from weboob.capabilities.cinema import ICapCinema
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-from weboob.core import CallErrors
 
 
 __all__ = ['Cineoob']
@@ -65,6 +64,17 @@ class MovieListFormatter(PrettyFormatter):
     def get_description(self, obj):
         return 'Released: %s   (note: %d, duration: %d)' % (obj.release_date, obj.note, obj.duration)
 
+def yearsago(years, from_date=None):
+    if from_date is None:
+        from_date = datetime.now()
+    try:
+        return from_date.replace(year=from_date.year - years)
+    except:
+        # Must be 2/29
+        assert from_date.month == 2 and from_date.day == 29
+        return from_date.replace(month=2, day=28,
+                                 year=from_date.year-years)
+
 def num_years(begin, end=None):
     if end is None:
         end = datetime.now()
@@ -83,7 +93,7 @@ class PersonInfoFormatter(IFormatter):
         result += 'Real name: %s\n' % obj.real_name
         result += 'Birth date: %s\n' % obj.birth_date
         age = num_years(obj.birth_date)
-        result += 'Age: %s\n' % obj.age
+        result += 'Age: %s\n' % age
         result += 'Birth place: %d\n' % obj.birth_place
         result += 'Gender: %s\n' % obj.gender
         result += 'Nationality: %s\n' % obj.nationality
