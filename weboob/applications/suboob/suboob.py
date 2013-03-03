@@ -64,7 +64,7 @@ class SubtitleListFormatter(PrettyFormatter):
 class Suboob(ReplApplication):
     APPNAME = 'suboob'
     VERSION = '0.f'
-    COPYRIGHT = 'Copyright(C) 2010-2012 Julien Veyssier'
+    COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for subtitles on various services " \
                   "and download them."
     SHORT_DESCRIPTION = "search and download subtitles"

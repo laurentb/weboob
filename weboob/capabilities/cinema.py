@@ -49,7 +49,6 @@ class Person(CapBaseObject):
     name            = StringField('Star name of a person')
     real_name       = StringField('Real name of a person')
     birth_date      = DateField('Birth date of a person')
-    age             = IntField('Current age of a person in year')
     birth_place     = StringField('City and country of birth of a person')
     gender          = StringField('Gender of a person')
     nationality     = StringField('Nationality of a person')
@@ -96,7 +95,7 @@ class ICapCinema(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_movie_actors(self, _id):
+    def iter_movie_persons(self, _id):
         """
         Get the list of persons who are related to a movie.
 
@@ -126,7 +125,7 @@ class ICapCinema(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_person_movies(self, _id):
+    def iter_person_movies(self, _id):
         """
         Get the list of movies related to a person.
 
