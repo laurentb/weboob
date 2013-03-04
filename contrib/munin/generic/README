@@ -107,6 +107,8 @@ env.attribvalue price
 env.title Forfait leclercmobile
 env.vlabel Solde
 
+Result: http://fourcot.fr/weboob/leclercmobile-day.png
+
 # Monitor water level in Dresden
 [leveldresden]
 user florent
@@ -119,6 +121,7 @@ env.import from weboob.capabilities.gauge import ICapGauge
 env.attribvalue level
 env.title Niveau de l'elbe
 env.label id
+
 
 # The level of the elbe in all Sachsen's cities
 [levelelbesachsen]
@@ -135,6 +138,8 @@ env.label name
 env.vlabel Hauteur du fleuve (cm)
 env.exclude 550810@sachsen
 
+Result: http://fourcot.fr/weboob/elbesachsen-day.png
+
 # Temperature in Rennes
 [temprennes]
 user florent
@@ -148,3 +153,5 @@ env.attribid temp/id
 env.title Température à Rennes
 env.vlabel Température
 env.label id
+
+Result: http://fourcot.fr/weboob/temprennes-day.png
