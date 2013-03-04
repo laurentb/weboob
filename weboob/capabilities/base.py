@@ -30,7 +30,7 @@ from weboob.tools.ordereddict import OrderedDict
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
            'NotLoaded', 'IBaseCap', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField', 'DateField',
-           'DeltaField', 'HashTableField', 'empty', 'CapBaseObject']
+           'DeltaField', 'empty', 'CapBaseObject']
 
 
 def empty(value):

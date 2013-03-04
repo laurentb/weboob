@@ -23,6 +23,7 @@ import sys
 from datetime import datetime
 
 from weboob.capabilities.cinema import ICapCinema
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -38,7 +39,7 @@ class MovieInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         result += 'Other titles: %s\n' % obj.other_titles
         result += 'Released: %s\n' % obj.release_date
-        result += 'Duration: %d\n' % obj.duration
+        result += 'Duration: %s\n' % obj.duration
         result += 'Note: %s\n' % obj.note
         if obj.roles:
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
@@ -62,7 +63,7 @@ class MovieListFormatter(PrettyFormatter):
         return obj.original_title
 
     def get_description(self, obj):
-        return 'Released: %s   (note: %d, duration: %d)' % (obj.release_date, obj.note, obj.duration)
+        return 'Released: %s   (note: %s, duration: %s)' % (obj.release_date, obj.note, obj.duration)
 
 def yearsago(years, from_date=None):
     if from_date is None:
@@ -94,7 +95,7 @@ class PersonInfoFormatter(IFormatter):
         result += 'Birth date: %s\n' % obj.birth_date
         age = num_years(obj.birth_date)
         result += 'Age: %s\n' % age
-        result += 'Birth place: %d\n' % obj.birth_place
+        result += 'Birth place: %s\n' % obj.birth_place
         result += 'Gender: %s\n' % obj.gender
         result += 'Nationality: %s\n' % obj.nationality
         if obj.roles:
@@ -107,7 +108,7 @@ class PersonInfoFormatter(IFormatter):
             result += '\n%sAwards%s\n' % (self.BOLD, self.NC)
             for a in obj.awards:
                 result += ' * %s\n' % a
-        result += '\n%Biography%s\n' % (self.BOLD, self.NC)
+        result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
         result += obj.biography
         return result
 
@@ -119,8 +120,11 @@ class PersonListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
-        age = num_years(obj.birth_date)
-        return 'Real name: %s   (age: %d, nationality: %s, gender: %s)' % (obj.real_name, age, obj.nationality, obj.gender)
+        if obj.birth_date != NotAvailable:
+            age = num_years(obj.birth_date)
+        else:
+            age = NotAvailable
+        return 'Real name: %s   (age: %s, nationality: %s, gender: %s)' % (obj.real_name, age, obj.nationality, obj.gender)
 
 
 class Cineoob(ReplApplication):
@@ -155,7 +159,7 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-
+        # TODO verify if path = search movie or filmo
         movie = self.get_object(id, 'get_movie')
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
@@ -171,7 +175,7 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-
+        # TODO verify if path = search person or casting
         person = self.get_object(id, 'get_person')
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
@@ -217,8 +221,13 @@ class Cineoob(ReplApplication):
 
         List persons related to a movie.
         """
+        movie = self.get_object(movie_id, 'get_movie')
+        if not movie:
+            print >>sys.stderr, 'Movie not found: %s' % id
+            return 3
+
         self.change_path([u'casting'])
-        for backend, person in self.do('iter_movie_persons', movie_id):
+        for backend, person in self.do('iter_movie_persons', movie.id):
             self.cached_format(person)
         self.flush()
 
@@ -228,7 +237,12 @@ class Cineoob(ReplApplication):
 
         List movies of a person.
         """
+        person = self.get_object(person_id, 'get_person')
+        if not person:
+            print >>sys.stderr, 'Person not found: %s' % id
+            return 3
+
         self.change_path([u'filmography'])
-        for backend, movie in self.do('iter_person_movies', person_id):
+        for backend, movie in self.do('iter_person_movies', person.id):
             self.cached_format(movie)
         self.flush()

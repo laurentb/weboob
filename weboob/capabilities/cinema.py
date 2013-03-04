@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, DateField, StringField, IntField, HashTableField
+from .base import IBaseCap, CapBaseObject, DateField, StringField, IntField, Field
 
 
 __all__ = ['Movie', 'Person', 'ICapCinema']
@@ -34,8 +34,8 @@ class Movie(CapBaseObject):
     duration        = IntField('Duration of the movie in minutes')
     description     = StringField('Short description of the movie')
     note            = StringField('Notation of the movie')
-    awards          = StringField('Awards won by the movie')
-    roles           = HashTableField('Lists of Persons related to the movie indexed by roles')
+    awards          = Field('Awards won by the movie',list)
+    roles           = Field('Lists of Persons related to the movie indexed by roles',dict)
 
     def __init__(self, id, original_title):
         CapBaseObject.__init__(self, id)
@@ -53,8 +53,8 @@ class Person(CapBaseObject):
     gender          = StringField('Gender of a person')
     nationality     = StringField('Nationality of a person')
     biography       = StringField('Short biography of a person')
-    awards          = StringField('Awards won by the person')
-    roles           = HashTableField('Lists of movies related to the person indexed by roles')
+    awards          = Field('Awards won by the person',list)
+    roles           = Field('Lists of movies related to the person indexed by roles',dict)
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
