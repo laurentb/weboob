@@ -1,44 +1,53 @@
-.\" -*- coding: utf-8 -*-
-.TH SUBOOB 1 "09 March 2013" "suboob 0\&.f"
+.TH CINEOOB 1 "4 March 2013" "cienoob 0\&.f"
 .SH NAME
-suboob \- search and download subtitles
+cineoob \- search informations about movies and cinema personalities
 .SH SYNOPSIS
-.B suboob
+.B cineoob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B suboob
+.B cineoob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to search for subtitles on various services and download them.
+Console application allowing to search for movies and persons on various cinema databases,
+list persons related to a movie, list movies related to a person and list common movies
+of two persons.
+
 
 .SS Supported websites:
-* attilasub (Attila' s Website 2.0 french subtitles)
-* opensubtitles (Opensubtitles subtitle website)
-* Tvsubtitles (Tvsubtitle subtitle website)
+* Imdb (Internet Movie Database)
 .br
-* opensubtitles (Opensubtitles subtitle website)
-.br
-* tvsubtitles (Tvsubtitles subtitle website)
-.SH SUBOOB COMMANDS
+.SH  COMMANDS
 .TP
-\fBgetfile\fR \fIID\fR [\fIFILENAME\fR]
+\fBsearch_movie\fR [\fIPATTERN\fR]
 .br
-Get the subtitle or archive file.
-.br
-FILENAME is where to write the file. If FILENAME is '\-',
-.br
-the file is written to stdout.
+Search for a movie.
 .TP
-\fBinfo\fR \fIID\fR
+\fBsearch_person\fR [\fIPATTERN\fR]
 .br
-Get information about a subtitle.
+Search for a person.
 .TP
-\fBsearch\fR language [\fIPATTERN\fR]
+\fBinfo_movie\fR \fIID\fR
 .br
-Search subtitles.
+Get information about a movie.
+.TP
+\fBinfo_person\fR \fIID\fR
+.br
+Get information about a person.
+.TP
+\fBfilmography\fR \fIID\fR
+.br
+List movies related to a person.
+.TP
+\fBcasting\fR \fIID\fR
+.br
+List persons related to a movie.
+.TP
+\fBmovies_in_common\fR \fIID1\fR \fIID2\fR
+.br
+List movies in common between two person.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -213,8 +222,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, multiline, simple, subtitle_info,
-subtitle_list, table, webkit)
+select output formatter (csv, htmltable, multiline, simple, table, torrent_info,
+torrent_list, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -226,7 +235,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2012 Julien Veyssier
+Copyright(C) 2010-2012 Romain Bignon
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -235,4 +244,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/suboob
+Home page: http://weboob.org/applications/weboorrents

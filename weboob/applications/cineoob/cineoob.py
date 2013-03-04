@@ -144,7 +144,8 @@ class Cineoob(ReplApplication):
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for movies and persons on various cinema databases " \
-                  ", list persons related to a movie and list movies related to a person."
+                  ", list persons related to a movie, list movies related to a person and list common movies " \
+                  "of two persons."
     SHORT_DESCRIPTION = "search movies and persons around cinema"
     CAPS = ICapCinema
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,

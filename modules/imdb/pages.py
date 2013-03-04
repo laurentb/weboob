@@ -18,11 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.cinema import Movie, Person
+from weboob.capabilities.cinema import Person
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 
-import string
 from datetime import datetime
 
 
