@@ -44,7 +44,7 @@ class ImdbBrowser(BaseBrowser):
     def iter_movies(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
-        for cat in ['title_exact','title_popular','title_approx']:
+        for cat in ['title_popular','title_exact','title_approx']:
             if jres.has_key(cat):
                 for m in jres[cat]:
                     yield self.get_movie(m['id'])
@@ -52,7 +52,7 @@ class ImdbBrowser(BaseBrowser):
     def iter_persons(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
-        for cat in ['name_exact','name_popular','name_approx']:
+        for cat in ['name_popular','name_exact','name_approx']:
             if jres.has_key(cat):
                 for p in jres[cat]:
                     yield self.get_person(p['id'])
