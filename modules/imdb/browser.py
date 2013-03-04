@@ -19,10 +19,13 @@
 
 
 from weboob.tools.browser import BaseBrowser
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.cinema import Movie
 from weboob.tools.json import json
 
 from .pages import MoviePage, PersonPage, MovieCrewPage
 
+from datetime import datetime
 
 __all__ = ['ImdbBrowser']
 
@@ -39,35 +42,81 @@ class ImdbBrowser(BaseBrowser):
         }
 
     def iter_movies(self, pattern):
-        # the api leads to a json result or the html movie page if there is only one result
-        self.location('http://www.imdb.com/xml/find?json=1&tt=on&q=%s' % pattern.encode('utf-8'))
-        if self.is_on_page(MoviePage):
-            id = 'tt'+self.geturl().split('/tt')[1].split('/')[0]
-            yield self.page.get_movie(id)
-        else:
-            res = self.readurl('http://www.imdb.com/xml/find?json=1&tt=on&q=%s' % pattern.encode('utf-8'))
-            jres = json.loads(res)
-            for restype,mlist in jres.items():
-                for m in mlist:
+        res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
+        jres = json.loads(res)
+        for cat in ['title_exact','title_popular','title_approx']:
+            if jres.has_key(cat):
+                for m in jres[cat]:
                     yield self.get_movie(m['id'])
 
     def iter_persons(self, pattern):
-        # the api leads to a json result or the html person page if there is only one result
-        self.location('http://www.imdb.com/xml/find?json=1&nm=on&q=%s' % pattern.encode('utf-8'))
-        if self.is_on_page(PersonPage):
-            id = 'nm'+self.geturl().split('/nm')[1].split('/')[0]
-            yield self.page.get_person(id)
-        else:
-            res = self.readurl('http://www.imdb.com/xml/find?json=1&nm=on&q=%s' % pattern.encode('utf-8'))
-            jres = json.loads(res)
-            for restype,plist in jres.items():
-                for p in plist:
+        res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
+        jres = json.loads(res)
+        for cat in ['name_exact','name_popular','name_approx']:
+            if jres.has_key(cat):
+                for p in jres[cat]:
                     yield self.get_person(p['id'])
 
     def get_movie(self, id):
-        self.location('http://www.imdb.com/title/%s' % id)
-        assert self.is_on_page(MoviePage)
-        return self.page.get_movie(id)
+        res = self.readurl('http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id )
+        jres = json.loads(res)
+
+        title = NotAvailable
+        duration = NotAvailable
+        release_date = NotAvailable
+        description = NotAvailable
+        country = NotAvailable
+        note = NotAvailable
+        other_titles = []
+        roles = {}
+
+        title = jres['title']
+        if jres.has_key('runtime'):
+            duration = int(jres['runtime'][0].split()[0])
+        if jres.has_key('also_known_as'):
+            for other_t in jres['also_known_as']:
+                if other_t.has_key('country') and other_t.has_key('title'):
+                    other_titles.append('%s : %s' % (other_t['country'],other_t['title']))
+        if jres.has_key('release_date'):
+            dstr = str(jres['release_date'])
+            year = int(dstr[:4])
+            if year == 0:
+                year = 1
+            month = int(dstr[4:5])
+            if month == 0:
+                month = 1
+            day = int(dstr[-2:])
+            if day == 0:
+                day = 1
+            release_date = datetime(year,month,day)
+        if jres.has_key('country'):
+            country = ''
+            for c in jres['country']:
+                country += '%s, '%c
+            country = country[:-2]
+        if jres.has_key('plot_simple'):
+            description = jres['plot_simple']
+        if jres.has_key('rating') and jres.has_key('rating_count'):
+            note = "%s/10 (%s votes)"%(jres['rating'],jres['rating_count'])
+        for r in ['actor','director','writer']:
+            if jres.has_key('%ss'%r):
+                roles['%s'%r] = list(jres['%ss'%r])
+
+
+        movie = Movie(id,title.strip())
+        movie.other_titles    = other_titles
+        movie.release_date    = release_date
+        movie.duration        = duration
+        movie.description     = description
+        movie.country         = country
+        movie.note            = note
+        movie.roles           = roles
+        return movie
+
+
+        #self.location('http://www.imdb.com/title/%s' % id)
+        #assert self.is_on_page(MoviePage)
+        #return self.page.get_movie(id)
 
     def get_person(self, id):
         self.location('http://www.imdb.com/name/%s' % id)

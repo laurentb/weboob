@@ -29,12 +29,12 @@ class Movie(CapBaseObject):
     Movie object.
     """
     original_title  = StringField('Original title of the movie')
-    other_titles    = StringField('Titles in other languages')
+    other_titles    = Field('Titles in other countries',list)
     release_date    = DateField('Release date of the movie')
     duration        = IntField('Duration of the movie in minutes')
     description     = StringField('Short description of the movie')
+    country         = StringField('Origin country of the movie')
     note            = StringField('Notation of the movie')
-    awards          = Field('Awards won by the movie',list)
     roles           = Field('Lists of Persons related to the movie indexed by roles',dict)
 
     def __init__(self, id, original_title):

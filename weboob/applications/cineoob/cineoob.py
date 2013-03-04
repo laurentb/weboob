@@ -32,25 +32,25 @@ __all__ = ['Cineoob']
 
 
 class MovieInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'description', 'note', 'awards','roles')
+    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'description', 'note', 'roles', 'country')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.original_title, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        result += 'Other titles: %s\n' % obj.other_titles
         result += 'Released: %s\n' % obj.release_date
+        result += 'Country: %s\n' % obj.country
         result += 'Duration: %s\n' % obj.duration
         result += 'Note: %s\n' % obj.note
         if obj.roles:
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
             for role,lpersons in obj.roles.items():
                 result += ' -- %s\n' % role
-                for person in lpersons:
-                    result += '   * %s\n' % person.name
-        if obj.awards:
-            result += '\n%sAwards%s\n' % (self.BOLD, self.NC)
-            for a in obj.awards:
-                result += ' * %s\n' % a
+                for name in lpersons:
+                    result += '   * %s\n' % name
+        if obj.other_titles:
+            result += '\n%sOther titles%s\n' % (self.BOLD, self.NC)
+            for t in obj.other_titles:
+                result += ' * %s\n' % t
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += '%s'%obj.description
         return result
