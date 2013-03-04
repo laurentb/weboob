@@ -37,7 +37,7 @@ class EventListFormatter(PrettyFormatter):
     def get_title(self, event):
         s = u'(%s) %s' % (event.date, event.type)
         if hasattr(event, 'contact') and event.contact:
-            s += u' — %s' % (event.contact.name)
+            s += u' — %s (%s)' % (event.contact.name, event.contact.id)
 
         return s
 
