@@ -49,6 +49,7 @@ class Person(CapBaseObject):
     name            = StringField('Star name of a person')
     real_name       = StringField('Real name of a person')
     birth_date      = DateField('Birth date of a person')
+    death_date      = DateField('Death date of a person')
     birth_place     = StringField('City and country of birth of a person')
     gender          = StringField('Gender of a person')
     nationality     = StringField('Nationality of a person')

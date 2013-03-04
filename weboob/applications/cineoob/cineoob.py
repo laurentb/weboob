@@ -104,14 +104,17 @@ class PersonInfoFormatter(IFormatter):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
         result += 'Real name: %s\n' % obj.real_name
+        result += 'Birth place: %s\n' % obj.birth_place
         if obj.birth_date != NotAvailable:
             result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
-            age = num_years(obj.birth_date)
+            if obj.death_date != NotAvailable:
+                age = num_years(obj.birth_date,obj.death_date)
+                result += 'Death date: %s at %s years old\n' % (obj.death_date.strftime('%Y-%m-%d'),age)
+            else:
+                age = num_years(obj.birth_date)
+                result += 'Age: %s\n' % age
         else:
             result += 'Birth date: %s\n' % obj.birth_date
-            age = NotAvailable
-        result += 'Age: %s\n' % age
-        result += 'Birth place: %s\n' % obj.birth_place
         result += 'Gender: %s\n' % obj.gender
         result += 'Nationality: %s\n' % obj.nationality
         if obj.roles:
@@ -132,7 +135,7 @@ class PersonListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
-        if obj.birth_date != NotAvailable:
+        if obj.birth_date != NotAvailable and obj.death_date == NotAvailable:
             age = num_years(obj.birth_date)
         else:
             age = NotAvailable

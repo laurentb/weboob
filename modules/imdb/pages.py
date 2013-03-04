@@ -75,6 +75,7 @@ class PersonPage(BasePage):
         biography = NotAvailable
         birth_place = NotAvailable
         birth_date = NotAvailable
+        death_date = NotAvailable
         real_name = NotAvailable
         gender = NotAvailable
         nationality = NotAvailable
@@ -103,10 +104,20 @@ class PersonPage(BasePage):
                 time.append('1')
                 time.append('1')
             birth_date = datetime(int(time[0]),int(time[1]),int(time[2]))
+        dtimes = self.parser.select(td_overview,'time[itemprop=deathDate]')
+        if len(dtimes) > 0:
+            dtime = dtimes[0].attrib.get('datetime','').split('-')
+            if len(dtime) == 2:
+                dtime.append('1')
+            elif len(dtime) == 1:
+                dtime.append('1')
+                dtime.append('1')
+            death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
 
         person = Person(id,name)
         person.real_name       = real_name
         person.birth_date      = birth_date
+        person.death_date      = death_date
         person.birth_place     = birth_place
         person.gender          = gender
         person.nationality     = nationality
