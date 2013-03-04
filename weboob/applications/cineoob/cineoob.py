@@ -37,9 +37,15 @@ class MovieInfoFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.original_title, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        result += 'Released: %s\n' % obj.release_date
+        if obj.release_date != NotAvailable:
+            result += 'Released: %s\n' % obj.release_date.strftime('%Y-%m-%d')
+        else:
+            result += 'Released: %s\n' % obj.release_date
         result += 'Country: %s\n' % obj.country
-        result += 'Duration: %s\n' % obj.duration
+        if obj.duration != NotAvailable:
+            result += 'Duration: %smin\n' % obj.duration
+        else:
+            result += 'Duration: %s\n' % obj.duration
         result += 'Note: %s\n' % obj.note
         if obj.roles:
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
@@ -63,7 +69,13 @@ class MovieListFormatter(PrettyFormatter):
         return obj.original_title
 
     def get_description(self, obj):
-        return 'Released: %s   (note: %s, duration: %s)' % (obj.release_date, obj.note, obj.duration)
+        date_str = obj.release_date
+        if obj.release_date != NotAvailable:
+            date_str = obj.release_date.strftime('%Y-%m-%d')
+        duration_suffix = ''
+        if obj.duration != NotAvailable:
+            duration_suffix = 'min'
+        return 'Released: %s   (note: %s, duration: %s%s)' % (date_str, obj.note, obj.duration, duration_suffix)
 
 def yearsago(years, from_date=None):
     if from_date is None:

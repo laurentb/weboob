@@ -30,41 +30,6 @@ __all__ = ['MoviePage','PersonPage','MovieCrewPage']
 
 
 class MoviePage(BasePage):
-    def get_movie(self,id):
-        title = NotAvailable
-        duration = NotAvailable
-        release_date = NotAvailable
-        description = NotAvailable
-        td_overview = self.parser.select(self.document.getroot(),'td#overview-top',1)
-        for span in self.parser.select(td_overview,'h1.header span[itemprop=name]'):
-            if span.attrib.get('class','') == 'itemprop':
-                other_titles = span.text
-                if title == NotAvailable:
-                    title = other_titles
-            elif span.attrib.get('class','') == 'title-extra':
-                title = span.text
-        metas = self.parser.select(td_overview,'meta[itemprop=datePublished]')
-        if len(metas) > 0:
-            datestrings = metas[0].attrib.get('content','').split('-')
-            if len(datestrings) == 2:
-                datestrings.append('1')
-            release_date = datetime(int(datestrings[0]),int(datestrings[1]),int(datestrings[2]))
-        time = self.parser.select(td_overview,'time[itemprop=duration]')
-        if len(time) > 0:
-            duration = int(time[0].attrib.get('datetime','').strip(string.letters))
-        desc = self.parser.select(td_overview,'p[itemprop=description]')
-        if len(desc) > 0:
-            description = desc[0].text
-        movie = Movie(id,title.strip())
-        movie.other_titles    = other_titles.strip()
-        movie.release_date    = release_date
-        movie.duration        = duration
-        movie.description     = description
-        movie.note            = "10/10"
-        movie.awards          = ["aw1","aw2"]
-        movie.roles           = {}
-        return movie
-
     def iter_persons(self,id):
         self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
         assert self.browser.is_on_page(MovieCrewPage)
@@ -78,15 +43,8 @@ class MovieCrewPage(BasePage):
             table = tables[0]
             tds = self.parser.select(table,'td.nm')
             for td in tds:
-                name = td.text_content()
                 id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
-                person = Person(id,name)
-                person.real_name = NotAvailable
-                person.birth_date = NotAvailable
-                person.nationality = NotAvailable
-                person.biography = NotAvailable
-                person.gender = NotAvailable
-                yield person
+                yield self.browser.get_person(id)
 
 
 class PersonPage(BasePage):
@@ -131,13 +89,3 @@ class PersonPage(BasePage):
             a = self.parser.select(movie_div,'b a',1)
             id = a.attrib.get('href','').strip('/').split('/')[-1]
             yield self.browser.get_movie(id)
-            #title = a.text
-            #movie = Movie(id,title)
-            #movie.other_titles    = NotAvailable 
-            #movie.release_date    = NotAvailable 
-            #movie.duration        = NotAvailable 
-            #movie.description     = NotAvailable 
-            #movie.note            = NotAvailable 
-            #movie.awards          = NotAvailable 
-            #movie.roles           = NotAvailable
-            #yield movie

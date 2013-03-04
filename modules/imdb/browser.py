@@ -72,7 +72,7 @@ class ImdbBrowser(BaseBrowser):
 
         title = jres['title']
         if jres.has_key('runtime'):
-            duration = int(jres['runtime'][0].split()[0])
+            duration = int(jres['runtime'][0].split(':')[-1].split()[0])
         if jres.has_key('also_known_as'):
             for other_t in jres['also_known_as']:
                 if other_t.has_key('country') and other_t.has_key('title'):
@@ -102,7 +102,6 @@ class ImdbBrowser(BaseBrowser):
             if jres.has_key('%ss'%r):
                 roles['%s'%r] = list(jres['%ss'%r])
 
-
         movie = Movie(id,title.strip())
         movie.other_titles    = other_titles
         movie.release_date    = release_date
@@ -112,11 +111,6 @@ class ImdbBrowser(BaseBrowser):
         movie.note            = note
         movie.roles           = roles
         return movie
-
-
-        #self.location('http://www.imdb.com/title/%s' % id)
-        #assert self.is_on_page(MoviePage)
-        #return self.page.get_movie(id)
 
     def get_person(self, id):
         self.location('http://www.imdb.com/name/%s' % id)
