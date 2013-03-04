@@ -42,7 +42,8 @@ class ImdbBrowser(BaseBrowser):
         # the api leads to a json result or the html movie page if there is only one result
         self.location('http://www.imdb.com/xml/find?json=1&tt=on&q=%s' % pattern.encode('utf-8'))
         if self.is_on_page(MoviePage):
-            yield self.page.get_movie()
+            id = 'tt'+self.geturl().split('/tt')[1].split('/')[0]
+            yield self.page.get_movie(id)
         else:
             res = self.readurl('http://www.imdb.com/xml/find?json=1&tt=on&q=%s' % pattern.encode('utf-8'))
             jres = json.loads(res)
@@ -51,10 +52,11 @@ class ImdbBrowser(BaseBrowser):
                     yield self.get_movie(m['id'])
 
     def iter_persons(self, pattern):
-        # the api leads to a json result or the html movie page if there is only one result
+        # the api leads to a json result or the html person page if there is only one result
         self.location('http://www.imdb.com/xml/find?json=1&nm=on&q=%s' % pattern.encode('utf-8'))
         if self.is_on_page(PersonPage):
-            yield self.page.get_person()
+            id = 'nm'+self.geturl().split('/nm')[1].split('/')[0]
+            yield self.page.get_person(id)
         else:
             res = self.readurl('http://www.imdb.com/xml/find?json=1&nm=on&q=%s' % pattern.encode('utf-8'))
             jres = json.loads(res)

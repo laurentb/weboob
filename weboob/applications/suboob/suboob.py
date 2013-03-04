@@ -47,7 +47,7 @@ class SubtitleInfoFormatter(IFormatter):
         result += 'LANG: %s\n' % obj.language
         result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += obj.description
+        result += '%s'%obj.description
         return result
 
 

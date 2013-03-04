@@ -52,7 +52,7 @@ class MovieInfoFormatter(IFormatter):
             for a in obj.awards:
                 result += ' * %s\n' % a
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += obj.description
+        result += '%s'%obj.description
         return result
 
 
@@ -93,7 +93,10 @@ class PersonInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         result += 'Real name: %s\n' % obj.real_name
         result += 'Birth date: %s\n' % obj.birth_date
-        age = num_years(obj.birth_date)
+        if obj.birth_date != NotAvailable:
+            age = num_years(obj.birth_date)
+        else:
+            age = NotAvailable
         result += 'Age: %s\n' % age
         result += 'Birth place: %s\n' % obj.birth_place
         result += 'Gender: %s\n' % obj.gender
@@ -109,7 +112,7 @@ class PersonInfoFormatter(IFormatter):
             for a in obj.awards:
                 result += ' * %s\n' % a
         result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
-        result += obj.biography
+        result += '%s'%obj.biography
         return result
 
 
