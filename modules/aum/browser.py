@@ -189,8 +189,10 @@ class AuMBrowser(BaseBrowser):
         self.my_id = int(r['user']['id'])
         self.my_name = r['user']['pseudo']
 
-        profile = self.get_profile(self.my_id)
-        self.my_coords = [profile['lat'], profile['lng']]
+        if self.my_coords == (0,0):
+            profile = self.get_profile(self.my_id)
+            if 'lat' in profile and 'lng' in profile:
+                self.my_coords = [profile['lat'], profile['lng']]
 
         return r
 
@@ -326,10 +328,10 @@ class AuMBrowser(BaseBrowser):
                 text = script.text
                 if text is None:
                     continue
-                m = re.search('memberLat: ([\d\.]+),', text, re.IGNORECASE)
+                m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
                 if m:
                     profile['lat'] = float(m.group(1))
-                m = re.search('memberLng: ([\d\.]+),', text, re.IGNORECASE)
+                m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
                 if m:
                     profile['lng'] = float(m.group(1))
 
