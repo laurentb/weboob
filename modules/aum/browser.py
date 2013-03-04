@@ -26,7 +26,7 @@ import re
 import urllib
 import urllib2
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
 
@@ -189,6 +189,9 @@ class AuMBrowser(BaseBrowser):
         self.my_id = int(r['user']['id'])
         self.my_name = r['user']['pseudo']
 
+        profile = self.get_profile(self.my_id)
+        self.my_coords = [profile['lat'], profile['lng']]
+
         return r
 
     def get_consts(self):
@@ -304,6 +307,31 @@ class AuMBrowser(BaseBrowser):
         profile = {}
 
         profile.update(self.api_request('users/%s' % id))
+
+        try:
+            doc = self.get_document(self.openurl('http://www.adopteunmec.com/profile/%s' % id))
+        except BrowserUnavailable:
+            self.logger.warning('Unable to find profile of %s on website' % id)
+        else:
+            profile['popu'] = {}
+            for tr in doc.xpath('//div[@id="popularity"]//tr'):
+                cols = tr.findall('td')
+                if cols[0].text is None:
+                    continue
+                key = self.parser.tocleanstring(tr.find('th')).strip().lower()
+                value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
+                profile['popu'][key] = value
+
+            for script in doc.xpath('//script'):
+                text = script.text
+                if text is None:
+                    continue
+                m = re.search('memberLat: ([\d\.]+),', text, re.IGNORECASE)
+                if m:
+                    profile['lat'] = float(m.group(1))
+                m = re.search('memberLng: ([\d\.]+),', text, re.IGNORECASE)
+                if m:
+                    profile['lng'] = float(m.group(1))
 
         # Calculate distance in km.
         profile['dist'] = 0.0

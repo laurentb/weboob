@@ -153,9 +153,9 @@ class Contact(_Contact):
                                   ))),
                  ('_stats',       OrderedDict((
                                     ('mails',               FieldPopu('mails')),
-                                    ('baskets',             FieldPopu('contacts')),
-                                    ('charms',              FieldPopu('flashs')),
+                                    ('charms',              FieldPopu('charmes')),
                                     ('visites',             FieldPopu('visites')),
+                                    ('baskets',             FieldPopu('panier')),
                                     ('invits',              FieldPopu('invits')),
                                     ('bonus',               FieldPopu('bonus')),
                                     ('score',               FieldStr('points')),
