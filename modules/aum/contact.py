@@ -220,9 +220,9 @@ class Contact(_Contact):
             self.status = Contact.STATUS_OFFLINE
             self.status_msg = u'last connection %s' % profile['last_cnx']
 
-        self.summary = html2text(profile.get('announce', '')).strip().replace('\n\n', '\n')
+        self.summary = profile.get('announce', '').strip()
         if len(profile.get('shopping_list', '')) > 0:
-            self.summary += u'\n\nLooking for:\n%s' % html2text(profile['shopping_list']).strip().replace('\n\n', '\n')
+            self.summary += u'\n\nLooking for:\n%s' % profile['shopping_list'].strip()
 
         for photo in profile['pics']:
             self.set_photo(photo.split('/')[-1],
