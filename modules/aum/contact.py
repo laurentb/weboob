@@ -184,6 +184,7 @@ class Contact(_Contact):
                                     ('job',                 FieldStr('job')),
                                     ('style',               FieldConst('style')),
                                     ('food',                FieldConst('diet')),
+                                    ('favorite_food',       FieldConst('favourite_food')),
                                     ('drink',               FieldConst('alcohol')),
                                     ('smoke',               FieldConst('tobacco')),
                                   ))),
