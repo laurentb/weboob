@@ -133,3 +133,13 @@ class ICapCinema(IBaseCap):
         :rtype: iter[:class:`Movie`]
         """
         raise NotImplementedError()
+
+    def iter_person_movies_ids(self, _id):
+        """
+        Get the list of movie ids related to a person.
+
+        :param _id: ID of person
+        :type _id: str
+        :rtype: iter[str]
+        """
+        raise NotImplementedError()

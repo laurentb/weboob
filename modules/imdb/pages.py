@@ -70,7 +70,7 @@ class PersonPage(BasePage):
             biography = descs[0].text
         names = self.parser.select(td_overview,'h1[itemprop=name]')
         if len(names) > 0:
-            name = names[0].text
+            name = names[0].text.strip()
         times = self.parser.select(td_overview,'time[itemprop=birthDate]')
         if len(times) > 0:
             time = times[0].attrib.get('datetime','').split('-')
@@ -96,3 +96,9 @@ class PersonPage(BasePage):
             a = self.parser.select(movie_div,'b a',1)
             id = a.attrib.get('href','').strip('/').split('/')[-1]
             yield self.browser.get_movie(id)
+
+    def iter_movies_ids(self,person_id):
+        for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
+            a = self.parser.select(movie_div,'b a',1)
+            id = a.attrib.get('href','').strip('/').split('/')[-1]
+            yield id

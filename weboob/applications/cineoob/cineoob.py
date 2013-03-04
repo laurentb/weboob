@@ -157,13 +157,49 @@ class Cineoob(ReplApplication):
                            'search_person':   'person_list',
                            'info_person':     'person_info',
                            'casting':         'person_list',
-                           'filmography':     'movie_list'
+                           'filmography':     'movie_list',
+                           'movies_in_common':'movie_list'
                           }
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
+
+    def do_movies_in_common(self, line):
+        """
+        movies_in_common  person_ID  person_ID
+
+        Get the list of common movies between two persons.
+        """
+        id1, id2 = self.parse_command_args(line, 2, 1)
+
+        person1 = self.get_object(id1, 'get_person')
+        if not person1:
+            print >>sys.stderr, 'Person not found: %s' % id1
+            return 3
+        person2 = self.get_object(id2, 'get_person')
+        if not person2:
+            print >>sys.stderr, 'Person not found: %s' % id2
+            return 3
+
+        initial_count = self.options.count
+        self.options.count = None
+
+        lid1 = []
+        for backend, id in self.do('iter_person_movies_ids', person1.id):
+            lid1.append(id)
+        self.flush()
+        lid2 = []
+        for backend, id in self.do('iter_person_movies_ids', person2.id):
+            lid2.append(id)
+        self.flush()
+        self.options.count = initial_count
+        inter = list(set(lid1) & set(lid2))
+        for common in inter:
+            movie = self.get_object(common, 'get_movie')
+            self.cached_format(movie)
+        self.flush()
 
     def do_info_movie(self, id):
         """
