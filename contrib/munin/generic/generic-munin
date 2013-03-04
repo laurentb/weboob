@@ -163,10 +163,15 @@ class GenericMuninPlugin(object):
         return result
 
     def monitored(self, result):
-        id = '%s@%s' % (getattr(result, self.attribid), result.backend)
+        id = self.result2weboobid(result)
         if self.exclude and id in self.exclude:
             return False
         return not self.tomonitore or id in self.tomonitore
+
+    def result2weboobid(self, result):
+        attribs = self.attribid.split('/')
+        id = '%s@%s' % (getattr(result, attribs[0]), result.backend)
+        return id
 
     def result2id(self, result):
         attribs = self.attribid.split('/')
@@ -188,17 +193,21 @@ class GenericMuninPlugin(object):
         self.write_output('graph_args -l 0')
         try:
             objects = []
-            if self.tomonitore is not None or self.exclude is not None:
+            if self.tomonitore or self.exclude:
                 d = {}
                 for backend, result in self.build_do():
                     if self.monitored(result):
-                        d['%s@%s' % (self.result2id(result), result.backend)] = result
+                        d[self.result2weboobid(result)] = result
 
-                for id in self.tomonitore:
-                    try:
+                if self.tomonitore:
+                    for id in self.tomonitore:
+                        try:
+                            objects.append(d[id])
+                        except KeyError:
+                            pass
+                else:
+                    for id in d:
                         objects.append(d[id])
-                    except KeyError:
-                        pass
             else:
                 objects = reversed([a for b, a in self.build_do()])
 
