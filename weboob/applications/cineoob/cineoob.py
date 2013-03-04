@@ -98,16 +98,17 @@ def num_years(begin, end=None):
         return num_years
 
 class PersonInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'birth_place', 'gender', 'nationality', 'biography', 'awards','roles')
+    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'birth_place', 'gender', 'nationality', 'biography', 'roles')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
         result += 'Real name: %s\n' % obj.real_name
-        result += 'Birth date: %s\n' % obj.birth_date
         if obj.birth_date != NotAvailable:
+            result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
             age = num_years(obj.birth_date)
         else:
+            result += 'Birth date: %s\n' % obj.birth_date
             age = NotAvailable
         result += 'Age: %s\n' % age
         result += 'Birth place: %s\n' % obj.birth_place
@@ -119,10 +120,6 @@ class PersonInfoFormatter(IFormatter):
                 result += ' -- %s\n' % role
                 for movie in lmovies:
                     result += '   * %s\n' % movie.original_title
-        if obj.awards:
-            result += '\n%sAwards%s\n' % (self.BOLD, self.NC)
-            for a in obj.awards:
-                result += ' * %s\n' % a
         result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
         result += '%s'%obj.biography
         return result
@@ -170,7 +167,7 @@ class Cineoob(ReplApplication):
 
     def do_info_movie(self, id):
         """
-        info_movie ID
+        info_movie  movie_ID
 
         Get information about a movie.
         """
@@ -186,7 +183,7 @@ class Cineoob(ReplApplication):
 
     def do_info_person(self, id):
         """
-        info_person ID
+        info_person  person_ID
 
         Get information about a person.
         """
@@ -202,7 +199,7 @@ class Cineoob(ReplApplication):
 
     def do_search_movie(self, pattern):
         """
-        search [PATTERN]
+        search_movie  [PATTERN]
 
         Search movies.
         """
@@ -217,7 +214,7 @@ class Cineoob(ReplApplication):
 
     def do_search_person(self, pattern):
         """
-        search [PATTERN]
+        search_person  [PATTERN]
 
         Search persons.
         """
@@ -232,7 +229,7 @@ class Cineoob(ReplApplication):
 
     def do_casting(self, movie_id):
         """
-        casting movie_id
+        casting  movie_ID
 
         List persons related to a movie.
         """
@@ -248,7 +245,7 @@ class Cineoob(ReplApplication):
 
     def do_filmography(self, person_id):
         """
-        filmography person_id
+        filmography  person_ID
 
         List movies of a person.
         """

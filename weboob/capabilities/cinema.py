@@ -53,7 +53,6 @@ class Person(CapBaseObject):
     gender          = StringField('Gender of a person')
     nationality     = StringField('Nationality of a person')
     biography       = StringField('Short biography of a person')
-    awards          = Field('Awards won by the person',list)
     roles           = Field('Lists of movies related to the person indexed by roles',dict)
 
     def __init__(self, id, name):

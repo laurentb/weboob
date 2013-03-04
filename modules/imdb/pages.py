@@ -30,13 +30,18 @@ __all__ = ['MoviePage','PersonPage','MovieCrewPage']
 
 
 class MoviePage(BasePage):
+    ''' Page describing a movie, only used to go on the MovieCrewPage
+    '''
     def iter_persons(self,id):
         self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
         assert self.browser.is_on_page(MovieCrewPage)
         for p in self.browser.page.iter_persons():
             yield p
 
+
 class MovieCrewPage(BasePage):
+    ''' Page listing all the persons related to a movie
+    '''
     def iter_persons(self):
         tables = self.parser.select(self.document.getroot(),'table.cast')
         if len(tables) > 0:
@@ -48,6 +53,9 @@ class MovieCrewPage(BasePage):
 
 
 class PersonPage(BasePage):
+    ''' Page giving informations about a person
+    It is used to build a Person instance and to get the movie list related to a person
+    '''
     def get_person(self,id):
         name = NotAvailable
         biography = NotAvailable
@@ -80,7 +88,6 @@ class PersonPage(BasePage):
         person.gender          = gender
         person.nationality     = nationality
         person.biography       = biography
-        person.awards          = ["aw1","aw2"]
         person.roles           = {}
         return person
 
