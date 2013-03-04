@@ -37,6 +37,12 @@ class MoviePage(BasePage):
         for p in self.browser.page.iter_persons():
             yield p
 
+    def iter_persons_ids(self,id):
+        self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
+        assert self.browser.is_on_page(MovieCrewPage)
+        for p in self.browser.page.iter_persons_ids():
+            yield p
+
 
 class MovieCrewPage(BasePage):
     ''' Page listing all the persons related to a movie
@@ -49,6 +55,15 @@ class MovieCrewPage(BasePage):
             for td in tds:
                 id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
                 yield self.browser.get_person(id)
+
+    def iter_persons_ids(self):
+        tables = self.parser.select(self.document.getroot(),'table.cast')
+        if len(tables) > 0:
+            table = tables[0]
+            tds = self.parser.select(table,'td.nm')
+            for td in tds:
+                id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
+                yield id
 
 
 class PersonPage(BasePage):
@@ -67,6 +82,15 @@ class PersonPage(BasePage):
         descs = self.parser.select(td_overview,'span[itemprop=description]')
         if len(descs) > 0:
             biography = descs[0].text
+        rname_block = self.parser.select(td_overview,'div.txt-block h4.inline')
+        if len(rname_block) > 0 and "born" in rname_block[0].text.lower():
+            links = self.parser.select(rname_block[0].getparent(),'a')
+            for a in links:
+                href = a.attrib.get('href','').strip()
+                if href == 'bio':
+                    real_name = a.text.strip()
+                elif 'birth_place' in href:
+                    birth_place = a.text.lower().strip()
         names = self.parser.select(td_overview,'h1[itemprop=name]')
         if len(names) > 0:
             name = names[0].text.strip()

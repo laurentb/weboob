@@ -159,7 +159,8 @@ class Cineoob(ReplApplication):
                            'info_person':     'person_info',
                            'casting':         'person_list',
                            'filmography':     'movie_list',
-                           'movies_in_common':'movie_list'
+                           'movies_in_common':'movie_list',
+                           'persons_in_common':'person_list'
                           }
 
     def complete_info(self, text, line, *ignored):
@@ -200,6 +201,42 @@ class Cineoob(ReplApplication):
         for common in inter:
             movie = self.get_object(common, 'get_movie')
             self.cached_format(movie)
+        self.flush()
+
+    def do_persons_in_common(self, line):
+        """
+        persons_in_common  movie_ID  movie_ID
+
+        Get the list of common persons between two movies.
+        """
+        id1, id2 = self.parse_command_args(line, 2, 1)
+        self.flush()
+
+        movie1 = self.get_object(id1, 'get_movie')
+        if not movie1:
+            print >>sys.stderr, 'Movie not found: %s' % id1
+            return 3
+        movie2 = self.get_object(id2, 'get_movie')
+        if not movie2:
+            print >>sys.stderr, 'Movie not found: %s' % id2
+            return 3
+
+        initial_count = self.options.count
+        self.options.count = None
+
+        lid1 = []
+        for backend, id in self.do('iter_movie_persons_ids', movie1.id):
+            lid1.append(id)
+        self.flush()
+        lid2 = []
+        for backend, id in self.do('iter_movie_persons_ids', movie2.id):
+            lid2.append(id)
+        self.flush()
+        self.options.count = initial_count
+        inter = list(set(lid1) & set(lid2))
+        for common in inter:
+            person = self.get_object(common, 'get_person')
+            self.cached_format(person)
         self.flush()
 
     def do_info_movie(self, id):
