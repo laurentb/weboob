@@ -44,6 +44,17 @@ class MoviePage(BasePage):
             yield p
 
 
+class BiographyPage(BasePage):
+    ''' Page containing biography of a person
+    '''
+    def get_biography(self):
+        bio = ''
+        tn = self.parser.select(self.document.getroot(),'div#tn15content',1)
+        for p in self.parser.select(tn,'p'):
+            bio += '\n\n%s'%p.text_content().strip()
+        return bio
+
+
 class MovieCrewPage(BasePage):
     ''' Page listing all the persons related to a movie
     '''
@@ -72,7 +83,7 @@ class PersonPage(BasePage):
     '''
     def get_person(self,id):
         name = NotAvailable
-        biography = NotAvailable
+        short_biography = NotAvailable
         birth_place = NotAvailable
         birth_date = NotAvailable
         death_date = NotAvailable
@@ -83,7 +94,7 @@ class PersonPage(BasePage):
         td_overview = self.parser.select(self.document.getroot(),'td#overview-top',1)
         descs = self.parser.select(td_overview,'span[itemprop=description]')
         if len(descs) > 0:
-            biography = descs[0].text
+            short_biography = descs[0].text
         rname_block = self.parser.select(td_overview,'div.txt-block h4.inline')
         if len(rname_block) > 0 and "born" in rname_block[0].text.lower():
             links = self.parser.select(rname_block[0].getparent(),'a')
@@ -114,17 +125,31 @@ class PersonPage(BasePage):
                 dtime.append('1')
                 dtime.append('1')
             death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
-        # TODO IMPROVE THIS -----------
-        #for role in ['Actor','Composer']:
-        #    show_span =  self.parser.select(self.document.getroot(),'span[id=show-%s]' % role)
-        #    if len(show_span) > 0:
-        #        roles[role] = []
-        #        filmo_block = show_span[0].getparent()
-        #        filmo_block = filmo_block.getnext()
-        roles['actor'] = []
+        # TODO IMPROVE THIS, apparently there's an error in parsing, quite hard to handle -----------
+
+        #filmo_block =  self.parser.select(self.document.getroot(),'div#filmography',1)
+        #role_list = []
+        #for span in self.parser.select(self.document.getroot(),'span.show-link'):
+        #    role_list.append(span.attrib.get('id','').replace('show-',''))
+        #role_index = -1
+        #current_parent = None
+        ##for sp in self.parser.select(filmo_block[0],'span.show-link'):
+        #for divmovie in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
+        #    divhead = divmovie.getparent()
+        #    print "-- %s"%(self.document.getpath(divhead))
+        #    print divmovie.attrib.get('class','')
+        #    if current_parent != self.document.getpath(divhead):
+        #        role_index += 1
+        #        current_parent = self.document.getpath(divhead)
+        #    role = role_list[role_index]
+        #    a = self.parser.select(divmovie,'b a',1)
+        #    roles[role].append(a.text)
+        #print roles
+
+        roles['any activity'] = []
         for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
             a = self.parser.select(movie_div,'b a',1)
-            roles['actor'].append(a.text)
+            roles['any activity'].append(a.text)
 
         person = Person(id,name)
         person.real_name       = real_name
@@ -133,7 +158,7 @@ class PersonPage(BasePage):
         person.birth_place     = birth_place
         person.gender          = gender
         person.nationality     = nationality
-        person.biography       = biography
+        person.short_biography = short_biography
         person.roles           = roles
         return person
 

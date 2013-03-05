@@ -98,7 +98,7 @@ def num_years(begin, end=None):
         return num_years
 
 class PersonInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'birth_place', 'gender', 'nationality', 'biography', 'roles')
+    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'birth_place', 'gender', 'nationality', 'short_biography', 'roles')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
@@ -124,7 +124,7 @@ class PersonInfoFormatter(IFormatter):
                 for movie in lmovies:
                     result += '   * %s\n' % movie
         result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.biography
+        result += '%s'%obj.short_biography
         return result
 
 
@@ -334,4 +334,20 @@ class Cineoob(ReplApplication):
         self.change_path([u'filmography'])
         for backend, movie in self.do('iter_person_movies', person.id):
             self.cached_format(movie)
+        self.flush()
+
+    def do_biography(self, person_id):
+        """
+        biography  person_ID
+
+        Show the complete biography of a person.
+        """
+        person = self.get_object(person_id, 'get_person')
+        if not person:
+            print >>sys.stderr, 'Person not found: %s' % id
+            return 3
+
+        self.change_path([u'biography'])
+        for backend, bio in self.do('get_person_biography', person.id):
+            print bio
         self.flush()

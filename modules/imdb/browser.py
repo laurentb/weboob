@@ -23,7 +23,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.cinema import Movie
 from weboob.tools.json import json
 
-from .pages import MoviePage, PersonPage, MovieCrewPage
+from .pages import MoviePage, PersonPage, MovieCrewPage, BiographyPage
 
 from datetime import datetime
 
@@ -38,7 +38,8 @@ class ImdbBrowser(BaseBrowser):
     PAGES = {
         'http://www.imdb.com/title/tt[0-9]*/*': MoviePage,
         'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
-        'http://www.imdb.com/name/nm.*': PersonPage,
+        'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
+        'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
         }
 
     def iter_movies(self, pattern):
@@ -120,6 +121,11 @@ class ImdbBrowser(BaseBrowser):
         self.location('http://www.imdb.com/name/%s' % id)
         assert self.is_on_page(PersonPage)
         return self.page.get_person(id)
+
+    def get_person_biography(self, id):
+        self.location('http://www.imdb.com/name/%s/bio' % id)
+        assert self.is_on_page(BiographyPage)
+        return self.page.get_biography()
 
     def iter_movie_persons(self, movie_id):
         self.location('http://www.imdb.com/title/%s' % movie_id)

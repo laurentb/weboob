@@ -62,3 +62,6 @@ class ImdbBackend(BaseBackend, ICapCinema):
 
     def iter_movie_persons_ids(self, id):
         return self.browser.iter_movie_persons_ids(id)
+
+    def get_person_biography(self,id):
+        return self.browser.get_person_biography(id)
