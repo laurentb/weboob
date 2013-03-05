@@ -152,6 +152,9 @@ class PersonPage(BasePage):
             yield id
 
 class FilmographyPage(BasePage):
+    ''' Page of detailed filmography of a person, sorted by type of role
+    This page is easier to parse than the main person page filmography
+    '''
     def get_roles(self):
         roles = {}
         for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
@@ -160,8 +163,6 @@ class FilmographyPage(BasePage):
             for a in self.parser.select(role_div,'ol > li > a'):
                 id = a.attrib.get('href','').strip('/').split('/')[-1]
                 if id.startswith('tt'):
-                    #li = a.getparent()
-                    #between_p = li.text_content().split(')')[0].split('(')[1]
                     if '(' in a.tail and ')' in a.tail:
                         between_p = a.tail.split(')')[0].split('(')[1]
                     else:
@@ -179,4 +180,3 @@ class FilmographyPage(BasePage):
                         movie = self.browser.get_movie(id)
                         if movie != None:
                             yield movie
-            
