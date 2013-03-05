@@ -122,7 +122,7 @@ class PersonInfoFormatter(IFormatter):
             for role,lmovies in obj.roles.items():
                 result += ' -- %s\n' % role
                 for movie in lmovies:
-                    result += '   * %s\n' % movie.original_title
+                    result += '   * %s\n' % movie
         result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
         result += '%s'%obj.biography
         return result

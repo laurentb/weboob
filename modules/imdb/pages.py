@@ -78,6 +78,7 @@ class PersonPage(BasePage):
         death_date = NotAvailable
         real_name = NotAvailable
         gender = NotAvailable
+        roles = {}
         nationality = NotAvailable
         td_overview = self.parser.select(self.document.getroot(),'td#overview-top',1)
         descs = self.parser.select(td_overview,'span[itemprop=description]')
@@ -113,6 +114,17 @@ class PersonPage(BasePage):
                 dtime.append('1')
                 dtime.append('1')
             death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
+        # TODO IMPROVE THIS -----------
+        #for role in ['Actor','Composer']:
+        #    show_span =  self.parser.select(self.document.getroot(),'span[id=show-%s]' % role)
+        #    if len(show_span) > 0:
+        #        roles[role] = []
+        #        filmo_block = show_span[0].getparent()
+        #        filmo_block = filmo_block.getnext()
+        roles['actor'] = []
+        for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
+            a = self.parser.select(movie_div,'b a',1)
+            roles['actor'].append(a.text)
 
         person = Person(id,name)
         person.real_name       = real_name
@@ -122,7 +134,7 @@ class PersonPage(BasePage):
         person.gender          = gender
         person.nationality     = nationality
         person.biography       = biography
-        person.roles           = {}
+        person.roles           = roles
         return person
 
     def iter_movies(self,person_id):
