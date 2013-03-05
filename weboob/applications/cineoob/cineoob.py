@@ -347,7 +347,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        self.change_path([u'biography'])
         for backend, bio in self.do('get_person_biography', person.id):
             print bio
-        self.flush()
+        if bio != NotAvailable:
+            self.flush()

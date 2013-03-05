@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage
 from datetime import datetime
 
 
-__all__ = ['MoviePage','PersonPage','MovieCrewPage']
+__all__ = ['MoviePage','PersonPage','MovieCrewPage','BiographyPage','FilmographyPage']
 
 
 class MoviePage(BasePage):
@@ -50,8 +50,12 @@ class BiographyPage(BasePage):
     def get_biography(self):
         bio = ''
         tn = self.parser.select(self.document.getroot(),'div#tn15content',1)
-        for p in self.parser.select(tn,'p'):
-            bio += '\n\n%s'%p.text_content().strip()
+        #for p in self.parser.select(tn,'p'):
+        #    bio += '\n\n%s'%p.text_content().strip()
+        # get children, append if label or tag = a,p,h...
+        bio = tn.text_content().strip()
+        if bio == "":
+            bio = NotAvailable
         return bio
 
 
@@ -125,31 +129,10 @@ class PersonPage(BasePage):
                 dtime.append('1')
                 dtime.append('1')
             death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
-        # TODO IMPROVE THIS, apparently there's an error in parsing, quite hard to handle -----------
-
-        #filmo_block =  self.parser.select(self.document.getroot(),'div#filmography',1)
-        #role_list = []
-        #for span in self.parser.select(self.document.getroot(),'span.show-link'):
-        #    role_list.append(span.attrib.get('id','').replace('show-',''))
-        #role_index = -1
-        #current_parent = None
-        ##for sp in self.parser.select(filmo_block[0],'span.show-link'):
-        #for divmovie in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
-        #    divhead = divmovie.getparent()
-        #    print "-- %s"%(self.document.getpath(divhead))
-        #    print divmovie.attrib.get('class','')
-        #    if current_parent != self.document.getpath(divhead):
-        #        role_index += 1
-        #        current_parent = self.document.getpath(divhead)
-        #    role = role_list[role_index]
-        #    a = self.parser.select(divmovie,'b a',1)
-        #    roles[role].append(a.text)
-        #print roles
-
-        roles['any activity'] = []
-        for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
-            a = self.parser.select(movie_div,'b a',1)
-            roles['any activity'].append(a.text)
+        # go to the filmography page
+        self.browser.location('http://www.imdb.com/name/%s/filmotype'%id)
+        assert self.browser.is_on_page(FilmographyPage)
+        roles = self.browser.page.get_roles()
 
         person = Person(id,name)
         person.real_name       = real_name
@@ -162,14 +145,38 @@ class PersonPage(BasePage):
         person.roles           = roles
         return person
 
-    def iter_movies(self,person_id):
-        for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
-            a = self.parser.select(movie_div,'b a',1)
-            id = a.attrib.get('href','').strip('/').split('/')[-1]
-            yield self.browser.get_movie(id)
-
     def iter_movies_ids(self,person_id):
         for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
             a = self.parser.select(movie_div,'b a',1)
             id = a.attrib.get('href','').strip('/').split('/')[-1]
             yield id
+
+class FilmographyPage(BasePage):
+    def get_roles(self):
+        roles = {}
+        for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
+            role = self.parser.select(role_div,'h5 a',1).text.replace(':','')
+            roles[role] = []
+            for a in self.parser.select(role_div,'ol > li > a'):
+                id = a.attrib.get('href','').strip('/').split('/')[-1]
+                if id.startswith('tt'):
+                    #li = a.getparent()
+                    #between_p = li.text_content().split(')')[0].split('(')[1]
+                    if '(' in a.tail and ')' in a.tail:
+                        between_p = a.tail.split(')')[0].split('(')[1]
+                    else:
+                        between_p = '????'
+                    roles[role].append('(%s) %s'%(between_p,a.text))
+        return roles
+
+    def iter_movies(self):
+        for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
+            role = self.parser.select(role_div,'h5 a',1).text.replace(':','')
+            if role != 'In Development':
+                for a in self.parser.select(role_div,'ol > li > a'):
+                    id = a.attrib.get('href','').strip('/').split('/')[-1]
+                    if id.startswith('tt'):
+                        movie = self.browser.get_movie(id)
+                        if movie != None:
+                            yield movie
+            

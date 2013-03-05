@@ -23,7 +23,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.cinema import Movie
 from weboob.tools.json import json
 
-from .pages import MoviePage, PersonPage, MovieCrewPage, BiographyPage
+from .pages import MoviePage, PersonPage, MovieCrewPage, BiographyPage, FilmographyPage
 
 from datetime import datetime
 
@@ -40,6 +40,7 @@ class ImdbBrowser(BaseBrowser):
         'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
         'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
         'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
+        'http://www.imdb.com/name/nm[0-9]*/filmo.*': FilmographyPage,
         }
 
     def iter_movies(self, pattern):
@@ -48,7 +49,9 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['title_popular','title_exact','title_approx']:
             if jres.has_key(cat):
                 for m in jres[cat]:
-                    yield self.get_movie(m['id'])
+                    movie = self.get_movie(m['id'])
+                    if movie != None:
+                        yield movie
 
     def iter_persons(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
@@ -60,7 +63,10 @@ class ImdbBrowser(BaseBrowser):
 
     def get_movie(self, id):
         res = self.readurl('http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id )
-        jres = json.loads(res)
+        if res != None:
+            jres = json.loads(res)
+        else:
+            return None
 
         title = NotAvailable
         duration = NotAvailable
@@ -133,9 +139,9 @@ class ImdbBrowser(BaseBrowser):
         return self.page.iter_persons(movie_id)
 
     def iter_person_movies(self, person_id):
-        self.location('http://www.imdb.com/name/%s' % person_id)
-        assert self.is_on_page(PersonPage)
-        return self.page.iter_movies(person_id)
+        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
+        assert self.is_on_page(FilmographyPage)
+        return self.page.iter_movies()
 
     def iter_person_movies_ids(self, person_id):
         self.location('http://www.imdb.com/name/%s' % person_id)
