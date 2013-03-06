@@ -39,13 +39,9 @@ class MovieInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         if obj.release_date != NotAvailable:
             result += 'Released: %s\n' % obj.release_date.strftime('%Y-%m-%d')
-        else:
-            result += 'Released: %s\n' % obj.release_date
         result += 'Country: %s\n' % obj.country
         if obj.duration != NotAvailable:
             result += 'Duration: %smin\n' % obj.duration
-        else:
-            result += 'Duration: %s\n' % obj.duration
         result += 'Note: %s\n' % obj.note
         if obj.roles:
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
@@ -57,8 +53,9 @@ class MovieInfoFormatter(IFormatter):
             result += '\n%sOther titles%s\n' % (self.BOLD, self.NC)
             for t in obj.other_titles:
                 result += ' * %s\n' % t
-        result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.description
+        if obj.description != NotAvailable:
+            result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
+            result += '%s'%obj.description
         return result
 
 
@@ -69,13 +66,16 @@ class MovieListFormatter(PrettyFormatter):
         return obj.original_title
 
     def get_description(self, obj):
-        date_str = obj.release_date
+        date_str = ''
         if obj.release_date != NotAvailable:
-            date_str = obj.release_date.strftime('%Y-%m-%d')
-        duration_suffix = ''
+            date_str = 'released: %s, '%obj.release_date.strftime('%Y-%m-%d')
+        duration = ''
         if obj.duration != NotAvailable:
-            duration_suffix = 'min'
-        return 'Released: %s   (note: %s, duration: %s%s)' % (date_str, obj.note, obj.duration, duration_suffix)
+            duration = 'duration: %smin, '%obj.duration
+        note = ''
+        if obj.note != NotAvailable:
+            note = 'note: %s, '%obj.note
+        return ('%s %s %s' % (date_str, note, duration)).strip(', ')
 
 def yearsago(years, from_date=None):
     if from_date is None:
@@ -103,8 +103,10 @@ class PersonInfoFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        result += 'Real name: %s\n' % obj.real_name
-        result += 'Birth place: %s\n' % obj.birth_place
+        if obj.real_name != NotAvailable:
+            result += 'Real name: %s\n' % obj.real_name
+        if obj.birth_place != NotAvailable:
+            result += 'Birth place: %s\n' % obj.birth_place
         if obj.birth_date != NotAvailable:
             result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
             if obj.death_date != NotAvailable:
@@ -113,18 +115,19 @@ class PersonInfoFormatter(IFormatter):
             else:
                 age = num_years(obj.birth_date)
                 result += 'Age: %s\n' % age
-        else:
-            result += 'Birth date: %s\n' % obj.birth_date
-        result += 'Gender: %s\n' % obj.gender
-        result += 'Nationality: %s\n' % obj.nationality
+        if obj.gender != NotAvailable:
+            result += 'Gender: %s\n' % obj.gender
+        if obj.nationality != NotAvailable:
+            result += 'Nationality: %s\n' % obj.nationality
         if obj.roles:
             result += '\n%sRelated movies%s\n' % (self.BOLD, self.NC)
             for role,lmovies in obj.roles.items():
                 result += ' -- %s\n' % role
                 for movie in lmovies:
                     result += '   * %s\n' % movie
-        result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.short_biography
+        if obj.short_biography != NotAvailable:
+            result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
+            result += '%s'%obj.short_biography
         return result
 
 
@@ -135,11 +138,19 @@ class PersonListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
+        age = ''
         if obj.birth_date != NotAvailable and obj.death_date == NotAvailable:
-            age = num_years(obj.birth_date)
-        else:
-            age = NotAvailable
-        return 'Real name: %s   (age: %s, nationality: %s, gender: %s)' % (obj.real_name, age, obj.nationality, obj.gender)
+            age = 'age: %s'%num_years(obj.birth_date)
+        gender = ''
+        if obj.gender != NotAvailable:
+            gender = 'gender: %s, '%obj.gender
+        real_name = ''
+        if obj.real_name != NotAvailable:
+            real_name = 'real name: %s, '%obj.real_name
+        nationality = ''
+        if obj.nationality != NotAvailable:
+            nationality = 'nationality: %s, '%obj.nationality
+        return ('%s%s%s%s' % (real_name, age, nationality, gender)).strip(' ,')
 
 
 class Cineoob(ReplApplication):
