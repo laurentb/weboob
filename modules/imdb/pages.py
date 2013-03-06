@@ -110,19 +110,19 @@ class PersonPage(BasePage):
         td_overview = self.parser.select(self.document.getroot(),'td#overview-top',1)
         descs = self.parser.select(td_overview,'span[itemprop=description]')
         if len(descs) > 0:
-            short_biography = u'%s'%descs[0].text
+            short_biography = unicode(descs[0].text)
         rname_block = self.parser.select(td_overview,'div.txt-block h4.inline')
         if len(rname_block) > 0 and "born" in rname_block[0].text.lower():
             links = self.parser.select(rname_block[0].getparent(),'a')
             for a in links:
                 href = a.attrib.get('href','').strip()
                 if href == 'bio':
-                    real_name = u'%s'%a.text.strip()
+                    real_name = unicode(a.text.strip())
                 elif 'birth_place' in href:
-                    birth_place = u'%s'%a.text.lower().strip()
+                    birth_place = unicode(a.text.lower().strip())
         names = self.parser.select(td_overview,'h1[itemprop=name]')
         if len(names) > 0:
-            name = u'%s'%names[0].text.strip()
+            name = unicode(names[0].text.strip())
         times = self.parser.select(td_overview,'time[itemprop=birthDate]')
         if len(times) > 0:
             time = times[0].attrib.get('datetime','').split('-')
