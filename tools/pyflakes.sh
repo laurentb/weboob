@@ -12,7 +12,7 @@ fi
 
 if [ -n "${FLAKE8}" ]; then
     set -e
-    ${FLAKE8} --ignore=E,W *.py weboob modules contrib scripts/*
+    ${FLAKE8} --ignore=E,W --exclude='*_ui.py' *.py weboob modules contrib scripts/*
 else
     # grep will return 0 only if it founds something, but our script
     # wants to return 0 when it founds nothing!
