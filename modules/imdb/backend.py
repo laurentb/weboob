@@ -65,3 +65,22 @@ class ImdbBackend(BaseBackend, ICapCinema):
 
     def get_person_biography(self,id):
         return self.browser.get_person_biography(id)
+
+    def fill_person(self, person, fields):
+        if 'real_name' in fields or 'birth_place' in fields\
+        or 'death_date' in fields or 'nationality' in fields\
+        or 'short_biography' in fields or 'roles' in fields\
+        or 'birth_date' in fields\
+        or 'gender' in fields or fields == None:
+            return self.get_person(person.id)
+        else:
+            return person
+
+    def fill_movie(self, movie, fields):
+        if 'other_titles' in fields or 'release_date' in fields\
+        or 'duration' in fields or 'description' in fields\
+        or 'country' in fields or 'roles' in fields\
+        or 'note' in fields or fields == None:
+            return self.get_movie(movie.id)
+        else:
+            return movie

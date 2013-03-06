@@ -23,7 +23,7 @@ import sys
 from datetime import datetime
 
 from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -67,13 +67,13 @@ class MovieListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         date_str = ''
-        if obj.release_date != NotAvailable:
+        if obj.release_date != NotAvailable and obj.release_date != NotLoaded:
             date_str = 'released: %s, '%obj.release_date.strftime('%Y-%m-%d')
         duration = ''
-        if obj.duration != NotAvailable:
+        if obj.duration != NotAvailable and obj.duration != NotLoaded:
             duration = 'duration: %smin, '%obj.duration
         note = ''
-        if obj.note != NotAvailable:
+        if obj.note != NotAvailable and obj.note != NotLoaded:
             note = 'note: %s, '%obj.note
         return ('%s %s %s' % (date_str, note, duration)).strip(', ')
 
@@ -263,11 +263,20 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        # TODO verify if path = search movie or filmo
-        movie = self.get_object(id, 'get_movie')
+        # TODO correct core to call fillobj when get_object is called
+        #movie = self.get_object(id, 'get_movie',['duration'])
+        movie = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_movie', _id, backends=backend):
+            if result:
+                backend = _backend
+                movie = result
+
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
+
+        backend.fillobj(movie, ('description','duration'))
 
         self.start_format()
         self.format(movie)
@@ -279,11 +288,20 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        # TODO verify if path = search person or casting
-        person = self.get_object(id, 'get_person')
+        # TODO correct core to call fillobj when get_object is called
+        #person = self.get_object(id, 'get_person')
+        person = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_person', _id, backends=backend):
+            if result:
+                backend = _backend
+                person = result
+
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
+
+        backend.fillobj(person, ('birth_date','short_biography'))
 
         self.start_format()
         self.format(person)

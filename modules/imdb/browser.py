@@ -19,8 +19,8 @@
 
 
 from weboob.tools.browser import BaseBrowser
-from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.cinema import Movie
+from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
 
 from .pages import MoviePage, PersonPage, MovieCrewPage, BiographyPage, FilmographyPage
@@ -49,9 +49,16 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['title_popular','title_exact','title_approx']:
             if jres.has_key(cat):
                 for m in jres[cat]:
-                    movie = self.get_movie(m['id'])
-                    if movie != None:
-                        yield movie
+                    #movie = self.get_movie(m['id'])
+                    movie = Movie(m['id'],unicode(m['title']))
+                    movie.other_titles    = NotLoaded
+                    movie.release_date    = NotLoaded
+                    movie.duration        = NotLoaded
+                    movie.description     = NotLoaded
+                    movie.country         = NotLoaded
+                    movie.note            = NotLoaded
+                    movie.roles           = NotLoaded
+                    yield movie
 
     def iter_persons(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
@@ -59,7 +66,17 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['name_popular','name_exact','name_approx']:
             if jres.has_key(cat):
                 for p in jres[cat]:
-                    yield self.get_person(p['id'])
+                    #person = self.get_person(p['id'])
+                    person = Person(p['id'],p['name'])
+                    person.real_name    = NotLoaded
+                    person.birth_place    = NotLoaded
+                    person.birth_date     = NotLoaded
+                    person.death_date     = NotLoaded
+                    person.gender         = NotLoaded
+                    person.nationality    = NotLoaded
+                    person.short_biography= NotLoaded
+                    person.roles          = NotLoaded
+                    yield person
 
     def get_movie(self, id):
         res = self.readurl('http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id )

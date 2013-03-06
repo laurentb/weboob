@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.cinema import Person
+from weboob.capabilities.cinema import Person, Movie
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 
@@ -70,7 +70,10 @@ class MovieCrewPage(BasePage):
                 tds = self.parser.select(table,'td.nm')
                 for td in tds:
                     id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
-                    yield self.browser.get_person(id)
+                    name = td.find('a').text
+                    #yield self.browser.get_person(id)
+                    person = Person(id,name)
+                    yield person
 
         for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
             role = gloss_link.attrib.get('name','').rstrip('s')
@@ -81,7 +84,10 @@ class MovieCrewPage(BasePage):
                         href = a.attrib.get('href','')
                         if '/name/nm' in href:
                             id = href.strip('/').split('/')[-1]
-                            yield self.browser.get_person(id)
+                            name = a.text
+                            person = Person(id,name)
+                            yield person
+                            #yield self.browser.get_person(id)
 
     def iter_persons_ids(self):
         tables = self.parser.select(self.document.getroot(),'table.cast')
@@ -190,6 +196,7 @@ class FilmographyPage(BasePage):
                 for a in self.parser.select(role_div,'ol > li > a'):
                     id = a.attrib.get('href','').strip('/').split('/')[-1]
                     if id.startswith('tt'):
-                        movie = self.browser.get_movie(id)
-                        if movie != None:
-                            yield movie
+                        title = a.text
+                        #movie = self.browser.get_movie(id)
+                        movie = Movie(id,title)
+                        yield movie
