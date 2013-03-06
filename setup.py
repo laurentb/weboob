@@ -45,7 +45,7 @@ def find_executable(name, names):
 
 
 def build_qt():
-    print 'Building Qt applications...'
+    print >>sys.stderr, 'Building Qt applications...'
     make = find_executable('make', ('gmake', 'make'))
     pyuic4 = find_executable('pyuic4', ('python2-pyuic4', 'pyuic4-python2.7', 'pyuic4-python2.6', 'pyuic4'))
     if not pyuic4 or not make:
