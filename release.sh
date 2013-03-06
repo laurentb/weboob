@@ -29,8 +29,11 @@ vi +2 ChangeLog
 
 set_version $VERSION
 
+echo "Building Qt applications..."
+make clean && make all
+
 echo "Generating manpages..."
-tools/make_man.py
+tools/make_man.sh
 echo -e "done!\n"
 
 echo "Release commit:"
