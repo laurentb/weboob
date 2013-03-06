@@ -57,10 +57,10 @@ class GeolocIpBackend(BaseBackend, ICapGeolocIp):
                     tab[key] = value
                 last_line = line
             iploc = IpLocation(ipaddr)
-            iploc.city = tab['City']
-            iploc.region = tab['Region']
-            iploc.zipcode = tab['Postal code']
-            iploc.country = tab['Country name']
+            iploc.city = u'%s'%tab['City']
+            iploc.region = u'%s'%tab['Region']
+            iploc.zipcode = u'%s'%tab['Postal code']
+            iploc.country = u'%s'%tab['Country name']
             if tab['Latitude'] != '':
                 iploc.lt = float(tab['Latitude'])
             else:

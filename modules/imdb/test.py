@@ -24,16 +24,40 @@ from weboob.tools.test import BackendTest
 class ImdbTest(BackendTest):
     BACKEND = 'imdb'
 
-    def test_movie(self):
+    def test_search_movie(self):
         movies = list(self.backend.iter_movies('spiderman'))
         for movie in movies:
             assert movie.id
-            assert movie.original_title
-            assert movie.release_date
     
-    def test_persons(self):
-        persons = list(self.backend.iter_persons('robert'))
+    def test_get_movie(self):
+        movie = self.backend.get_movie('tt0079980')
+        assert movie.id
+        assert movie.original_title
+
+    def test_search_person(self):
+        persons = list(self.backend.iter_persons('dewaere'))
+        for person in persons:
+            assert person.id
+
+    def test_get_person(self):
+        person = self.backend.get_person('nm0223033')
+        assert person.id
+        assert person.name
+        assert person.birth_date
+
+    def test_movie_persons(self):
+        persons = list(self.backend.iter_movie_persons('tt0079980'))
         for person in persons:
             assert person.id
             assert person.name
-            assert person.birth_date
+
+    def test_person_movies(self):
+        movies = list(self.backend.iter_person_movies('nm0223033'))
+        for movie in movies:
+            assert movie.id
+            assert movie.original_title
+
+    def test_get_person_biography(self):
+        bio = self.backend.get_person_biography('nm0223033')
+        assert bio != ''
+        assert bio != None
