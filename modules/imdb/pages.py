@@ -31,10 +31,10 @@ __all__ = ['MoviePage','PersonPage','MovieCrewPage','BiographyPage','Filmography
 class MoviePage(BasePage):
     ''' Page describing a movie, only used to go on the MovieCrewPage
     '''
-    def iter_persons(self,id):
+    def iter_persons(self, id, role=None):
         self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
         assert self.browser.is_on_page(MovieCrewPage)
-        for p in self.browser.page.iter_persons():
+        for p in self.browser.page.iter_persons(role):
             yield p
 
     def iter_persons_ids(self,id):
@@ -62,14 +62,26 @@ class BiographyPage(BasePage):
 class MovieCrewPage(BasePage):
     ''' Page listing all the persons related to a movie
     '''
-    def iter_persons(self):
-        tables = self.parser.select(self.document.getroot(),'table.cast')
-        if len(tables) > 0:
-            table = tables[0]
-            tds = self.parser.select(table,'td.nm')
-            for td in tds:
-                id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
-                yield self.browser.get_person(id)
+    def iter_persons(self, role_filter=None):
+        if (role_filter == None or (role_filter != None and role_filter == 'actor')):
+            tables = self.parser.select(self.document.getroot(),'table.cast')
+            if len(tables) > 0:
+                table = tables[0]
+                tds = self.parser.select(table,'td.nm')
+                for td in tds:
+                    id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
+                    yield self.browser.get_person(id)
+
+        for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
+            role = gloss_link.attrib.get('name','').rstrip('s')
+            if (role_filter == None or (role_filter != None and role == role_filter)):
+                tbody = gloss_link.getparent().getparent().getparent().getparent()
+                for line in self.parser.select(tbody,'tr')[1:]:
+                    for a in self.parser.select(line,'a'):
+                        href = a.attrib.get('href','')
+                        if '/name/nm' in href:
+                            id = href.strip('/').split('/')[-1]
+                            yield self.browser.get_person(id)
 
     def iter_persons_ids(self):
         tables = self.parser.select(self.document.getroot(),'table.cast')
@@ -170,10 +182,11 @@ class FilmographyPage(BasePage):
                     roles[role].append('(%s) %s'%(between_p,a.text))
         return roles
 
-    def iter_movies(self):
+    def iter_movies(self, role_filter=None):
         for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
             role = self.parser.select(role_div,'h5 a',1).text.replace(':','')
-            if role != 'In Development':
+            if (role_filter == None or (role_filter != None and role.lower().strip() == role_filter))\
+            and role != 'In Development':
                 for a in self.parser.select(role_div,'ol > li > a'):
                     id = a.attrib.get('href','').strip('/').split('/')[-1]
                     if id.startswith('tt'):

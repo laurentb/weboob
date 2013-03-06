@@ -165,11 +165,15 @@ class Cineoob(ReplApplication):
                            'movies_in_common':'movie_list',
                            'persons_in_common':'person_list'
                           }
+    ROLE_LIST = ['actor','director','writer','composer','producer']
 
-    def complete_info(self, text, line, *ignored):
+    def complete_filmography(self, text, line, *ignored):
         args = line.split(' ')
-        if len(args) == 2:
-            return self._complete_object()
+        if len(args) == 3:
+            return self.ROLE_LIST
+
+    def complete_casting(self, text, line, *ignored):
+        return self.complete_filmography(text,line,ignored)
 
     def do_movies_in_common(self, line):
         """
@@ -304,35 +308,39 @@ class Cineoob(ReplApplication):
             self.cached_format(person)
         self.flush()
 
-    def do_casting(self, movie_id):
+    def do_casting(self, line):
         """
-        casting  movie_ID
+        casting  movie_ID  [ROLE]
 
         List persons related to a movie.
+        If ROLE is given, filter by ROLE
         """
+        movie_id, role = self.parse_command_args(line, 2, 1)
+
         movie = self.get_object(movie_id, 'get_movie')
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        self.change_path([u'casting'])
-        for backend, person in self.do('iter_movie_persons', movie.id):
+        for backend, person in self.do('iter_movie_persons', movie.id, role):
             self.cached_format(person)
         self.flush()
 
-    def do_filmography(self, person_id):
+    def do_filmography(self, line):
         """
-        filmography  person_ID
+        filmography  person_ID  [ROLE]
 
         List movies of a person.
+        If ROLE is given, filter by ROLE
         """
+        person_id, role = self.parse_command_args(line, 2, 1)
+
         person = self.get_object(person_id, 'get_person')
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        self.change_path([u'filmography'])
-        for backend, movie in self.do('iter_person_movies', person.id):
+        for backend, movie in self.do('iter_person_movies', person.id, role):
             self.cached_format(movie)
         self.flush()
 

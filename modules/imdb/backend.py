@@ -51,11 +51,11 @@ class ImdbBackend(BaseBackend, ICapCinema):
     def iter_persons(self, pattern):
         return self.browser.iter_persons(quote_plus(pattern.encode('utf-8')))
 
-    def iter_movie_persons(self, id):
-        return self.browser.iter_movie_persons(id)
+    def iter_movie_persons(self, id, role):
+        return self.browser.iter_movie_persons(id, role)
 
-    def iter_person_movies(self, id):
-        return self.browser.iter_person_movies(id)
+    def iter_person_movies(self, id, role):
+        return self.browser.iter_person_movies(id, role)
 
     def iter_person_movies_ids(self, id):
         return self.browser.iter_person_movies_ids(id)

@@ -133,15 +133,15 @@ class ImdbBrowser(BaseBrowser):
         assert self.is_on_page(BiographyPage)
         return self.page.get_biography()
 
-    def iter_movie_persons(self, movie_id):
+    def iter_movie_persons(self, movie_id, role):
         self.location('http://www.imdb.com/title/%s' % movie_id)
         assert self.is_on_page(MoviePage)
-        return self.page.iter_persons(movie_id)
+        return self.page.iter_persons(movie_id, role)
 
-    def iter_person_movies(self, person_id):
+    def iter_person_movies(self, person_id, role):
         self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
         assert self.is_on_page(FilmographyPage)
-        return self.page.iter_movies()
+        return self.page.iter_movies(role)
 
     def iter_person_movies_ids(self, person_id):
         self.location('http://www.imdb.com/name/%s' % person_id)
