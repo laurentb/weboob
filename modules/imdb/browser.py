@@ -77,7 +77,7 @@ class ImdbBrowser(BaseBrowser):
         other_titles = []
         roles = {}
 
-        title = jres['title']
+        title = u'%s'%jres['title'].strip()
         if jres.has_key('runtime'):
             dur_str = jres['runtime'][0].split(':')
             if len(dur_str) == 1:
@@ -101,19 +101,19 @@ class ImdbBrowser(BaseBrowser):
                 day = 1
             release_date = datetime(year,month,day)
         if jres.has_key('country'):
-            country = ''
+            country = u''
             for c in jres['country']:
                 country += '%s, '%c
             country = country[:-2]
         if jres.has_key('plot_simple'):
-            description = jres['plot_simple']
+            description = u'%s'%jres['plot_simple']
         if jres.has_key('rating') and jres.has_key('rating_count'):
-            note = "%s/10 (%s votes)"%(jres['rating'],jres['rating_count'])
+            note = u'%s/10 (%s votes)'%(jres['rating'],jres['rating_count'])
         for r in ['actor','director','writer']:
             if jres.has_key('%ss'%r):
                 roles['%s'%r] = list(jres['%ss'%r])
 
-        movie = Movie(id,title.strip())
+        movie = Movie(id,title)
         movie.other_titles    = other_titles
         movie.release_date    = release_date
         movie.duration        = duration
