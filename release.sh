@@ -30,7 +30,8 @@ vi +2 ChangeLog
 set_version $VERSION
 
 echo "Building Qt applications..."
-make clean && make all
+make clean
+./setup.py sdist bdist clean -a || exit 1
 
 echo "Generating manpages..."
 tools/make_man.sh
