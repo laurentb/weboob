@@ -159,7 +159,7 @@ class Contact(_Contact):
                                     ('invits',              FieldPopu('invits')),
                                     ('bonus',               FieldPopu('bonus')),
                                     ('score',               FieldStr('points')),
-                                    ('ratio',               FieldPopuRatio('mails', 'flashs')),
+                                    ('ratio',               FieldPopuRatio('mails', 'charmes')),
                                     ('mailable',            FieldBool('can_mail')),
                                   ))),
                  ('details',      OrderedDict((
