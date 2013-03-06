@@ -48,13 +48,13 @@ class BiographyPage(BasePage):
     ''' Page containing biography of a person
     '''
     def get_biography(self):
-        bio = ''
+        bio = unicode()
         tn = self.parser.select(self.document.getroot(),'div#tn15content',1)
-        #for p in self.parser.select(tn,'p'):
-        #    bio += '\n\n%s'%p.text_content().strip()
-        # get children, append if label or tag = a,p,h...
-        bio = tn.text_content().strip()
-        if bio == "":
+        # we only read paragraphs, titles and links
+        for ch in tn.getchildren():
+            if ch.tag in ['p','h5','a']:
+                bio += '%s\n\n'%ch.text_content().strip()
+        if bio == u'':
             bio = NotAvailable
         return bio
 

@@ -367,6 +367,6 @@ class Cineoob(ReplApplication):
             return 3
 
         for backend, bio in self.do('get_person_biography', person.id):
-            print bio
+            print '%s :\n\n%s' % (person.name,bio)
         if bio != NotAvailable:
             self.flush()
