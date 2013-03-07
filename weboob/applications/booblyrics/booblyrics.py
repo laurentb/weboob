@@ -40,7 +40,7 @@ class LyricsInfoFormatter(IFormatter):
         result += 'Title: %s\n' % obj.title
         result += 'Artist: %s\n' % obj.artist
         result += '\n%sContent%s\n' % (self.BOLD, self.NC)
-        result += obj.content
+        result += '%s'%obj.content
         return result
 
 
@@ -63,7 +63,7 @@ class Booblyrics(ReplApplication):
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Console application allowing to search for song lyrics on various websites."
     SHORT_DESCRIPTION = "search and display song lyrics"
-    CAPS = ICapTorrent
+    CAPS = ICapLyrics
     EXTRA_FORMATTERS = {'lyrics_list': LyricsListFormatter,
                         'lyrics_info': LyricsInfoFormatter,
                        }
@@ -83,13 +83,21 @@ class Booblyrics(ReplApplication):
         Get information about song lyrics.
         """
 
-        songlyrics = self.get_object(id, 'get_lyrics')
-        if not lyrics:
+        # TODO restore get_object line and handle fillobj
+        #songlyrics = self.get_object(id, 'get_lyrics')
+        songlyrics = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_lyrics', _id, backends=backend):
+            if result:
+                backend = _backend
+                songlyrics = result
+
+        if not songlyrics:
             print >>sys.stderr, 'Song lyrics not found: %s' % id
             return 3
 
         self.start_format()
-        self.format(torrent)
+        self.format(songlyrics)
         self.flush()
 
     def do_search(self, pattern):
