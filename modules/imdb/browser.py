@@ -53,11 +53,11 @@ class ImdbBrowser(BaseBrowser):
                         short_description = u'%s %s'%(tdesc.split('<')[0].strip(', '), tdesc.split('>')[1].split('<')[0])
                     else:
                         short_description = tdesc.strip(', ')
-                    movie = Movie(m['id'],unicode(m['title']))
+                    movie = Movie(m['id'],latin2unicode(m['title']))
                     movie.other_titles    = NotLoaded
                     movie.release_date    = NotLoaded
                     movie.duration        = NotLoaded
-                    movie.short_description = short_description
+                    movie.short_description = latin2unicode(short_description)
                     movie.pitch           = NotLoaded
                     movie.country         = NotLoaded
                     movie.note            = NotLoaded
@@ -70,7 +70,7 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['name_popular','name_exact','name_approx']:
             if jres.has_key(cat):
                 for p in jres[cat]:
-                    person = Person(p['id'],unicode(p['name']))
+                    person = Person(p['id'],latin2unicode(p['name']))
                     person.real_name      = NotLoaded
                     person.birth_place    = NotLoaded
                     person.birth_date     = NotLoaded
@@ -78,7 +78,7 @@ class ImdbBrowser(BaseBrowser):
                     person.gender         = NotLoaded
                     person.nationality    = NotLoaded
                     person.short_biography= NotLoaded
-                    person.short_description= unicode(p['description'])
+                    person.short_description= latin2unicode(p['description'])
                     person.roles          = NotLoaded
                     yield person
 
@@ -180,3 +180,20 @@ class ImdbBrowser(BaseBrowser):
         assert self.is_on_page(MovieCrewPage)
         for person in self.page.iter_persons_ids():
             yield person
+
+
+dict_hex = {'&#xE1;': u'á',
+            '&#xE9;': u'é',
+            '&#xE8;': u'è',
+            '&#xED;': u'í',
+            '&#xF1;': u'ñ',
+            '&#xF3;': u'ó',
+            '&#xFA;': u'ú',
+            '&#xFC;': u'ü',
+            '&#x26;': u'&',
+            '&#xE7;': u'ç'
+            }
+def latin2unicode(word):
+    for key in dict_hex.keys():
+        word = word.replace(key,dict_hex[key])
+    return unicode(word)
