@@ -23,8 +23,6 @@ from weboob.tools.backend import BaseBackend
 from .browser import SeeklyricsBrowser
 
 from urllib import quote_plus
-from contextlib import closing
-from gzip import GzipFile
 
 __all__ = ['SeeklyricsBackend']
 

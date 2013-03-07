@@ -18,13 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs  # NOQA
-
-from urlparse import urlsplit
-
 from weboob.capabilities.lyrics import SongLyrics
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
@@ -42,10 +35,10 @@ class ResultsPage(BasePage):
                 continue
             artist = NotAvailable
             ftitle = self.parser.select(tr,'a > font > font',1)
-            title = ftitle.getparent().getparent().text_content()
+            title = unicode(ftitle.getparent().getparent().text_content())
             id = ftitle.getparent().getparent().attrib.get('href','').replace('/lyrics/','').replace('.html','')
             aartist = self.parser.select(tr,'a')[-1]
-            artist = aartist.text
+            artist = unicode(aartist.text)
             songlyrics = SongLyrics(id, title)
             songlyrics.artist = artist
             songlyrics.content = NotLoaded
@@ -59,9 +52,9 @@ class SonglyricsPage(BasePage):
         l_artitle = self.parser.select(self.document.getroot(),'table.text td > b > h2')
         if len(l_artitle) > 0:
             artitle = l_artitle[0].text.split(' Lyrics by ')
-            artist = artitle[1]
-            title = artitle[0]
-        content = self.parser.select(self.document.getroot(),'div#songlyrics',1).text_content().strip()
+            artist = unicode(artitle[1])
+            title = unicode(artitle[0])
+        content = unicode(self.parser.select(self.document.getroot(),'div#songlyrics',1).text_content().strip())
         songlyrics = SongLyrics(id, title)
         songlyrics.artist = artist
         songlyrics.content = content

@@ -18,8 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, Field, StringField, FloatField, \
-                  DateField, IntField, UserError
+from .base import IBaseCap, CapBaseObject, StringField
 
 
 __all__ = ['SongLyrics', 'ICapLyrics']

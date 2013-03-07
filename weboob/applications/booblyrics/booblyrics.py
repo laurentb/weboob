@@ -25,7 +25,6 @@ from weboob.capabilities.lyrics import ICapLyrics
 from weboob.tools.application.repl import ReplApplication
 from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-from weboob.core import CallErrors
 
 
 __all__ = ['Booblyrics']

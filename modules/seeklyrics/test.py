@@ -20,8 +20,6 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
-from random import choice
-
 class SeeklyricsTest(BackendTest):
     BACKEND = 'seeklyrics'
 
