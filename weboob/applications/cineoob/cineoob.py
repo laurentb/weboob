@@ -32,7 +32,7 @@ __all__ = ['Cineoob']
 
 
 class MovieInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'description', 'note', 'roles', 'country')
+    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'pitch', 'note', 'roles', 'country')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.original_title, self.NC)
@@ -53,29 +53,23 @@ class MovieInfoFormatter(IFormatter):
             result += '\n%sOther titles%s\n' % (self.BOLD, self.NC)
             for t in obj.other_titles:
                 result += ' * %s\n' % t
-        if obj.description != NotAvailable:
-            result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-            result += '%s'%obj.description
+        if obj.pitch != NotAvailable:
+            result += '\n%sStory%s\n' % (self.BOLD, self.NC)
+            result += '%s'%obj.pitch
         return result
 
 
 class MovieListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'duration', 'note')
+    MANDATORY_FIELDS = ('id', 'original_title', 'short_description')
 
     def get_title(self, obj):
         return obj.original_title
 
     def get_description(self, obj):
-        date_str = ''
-        if obj.release_date != NotAvailable and obj.release_date != NotLoaded:
-            date_str = 'released: %s, '%obj.release_date.strftime('%Y-%m-%d')
-        duration = ''
-        if obj.duration != NotAvailable and obj.duration != NotLoaded:
-            duration = 'duration: %smin, '%obj.duration
-        note = ''
-        if obj.note != NotAvailable and obj.note != NotLoaded:
-            note = 'note: %s, '%obj.note
-        return ('%s %s %s' % (date_str, note, duration)).strip(', ')
+        result = u''
+        if obj.short_description != NotAvailable:
+            result = obj.short_description
+        return result
 
 def yearsago(years, from_date=None):
     if from_date is None:
@@ -132,25 +126,16 @@ class PersonInfoFormatter(IFormatter):
 
 
 class PersonListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'nationality', 'gender')
+    MANDATORY_FIELDS = ('id', 'name', 'short_description')
 
     def get_title(self, obj):
         return obj.name
 
     def get_description(self, obj):
-        age = ''
-        if obj.birth_date != NotAvailable and obj.death_date == NotAvailable:
-            age = 'age: %s'%num_years(obj.birth_date)
-        gender = ''
-        if obj.gender != NotAvailable:
-            gender = 'gender: %s, '%obj.gender
-        real_name = ''
-        if obj.real_name != NotAvailable:
-            real_name = 'real name: %s, '%obj.real_name
-        nationality = ''
-        if obj.nationality != NotAvailable:
-            nationality = 'nationality: %s, '%obj.nationality
-        return ('%s%s%s%s' % (real_name, age, nationality, gender)).strip(' ,')
+        result = u''
+        if obj.short_description != NotAvailable:
+            result = obj.short_description
+        return result
 
 
 class Cineoob(ReplApplication):
@@ -276,7 +261,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        backend.fillobj(movie, ('description','duration'))
+        backend.fillobj(movie, ('duration'))
 
         self.start_format()
         self.format(movie)

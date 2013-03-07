@@ -49,12 +49,18 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['title_popular','title_exact','title_approx']:
             if jres.has_key(cat):
                 for m in jres[cat]:
+                    tdesc = unicode(m['title_description'])
+                    if '<a' in tdesc and '>' in tdesc:
+                        short_description = u'%s %s'%(tdesc.split('<')[0].strip(', '), tdesc.split('>')[1].split('<')[0])
+                    else:
+                        short_description = tdesc.strip(', ')
                     #movie = self.get_movie(m['id'])
                     movie = Movie(m['id'],unicode(m['title']))
                     movie.other_titles    = NotLoaded
                     movie.release_date    = NotLoaded
                     movie.duration        = NotLoaded
-                    movie.description     = NotLoaded
+                    movie.short_description = short_description
+                    movie.pitch           = NotLoaded
                     movie.country         = NotLoaded
                     movie.note            = NotLoaded
                     movie.roles           = NotLoaded
@@ -75,6 +81,7 @@ class ImdbBrowser(BaseBrowser):
                     person.gender         = NotLoaded
                     person.nationality    = NotLoaded
                     person.short_biography= NotLoaded
+                    person.short_description= unicode(p['description'])
                     person.roles          = NotLoaded
                     yield person
 
@@ -88,7 +95,7 @@ class ImdbBrowser(BaseBrowser):
         title = NotAvailable
         duration = NotAvailable
         release_date = NotAvailable
-        description = NotAvailable
+        pitch = NotAvailable
         country = NotAvailable
         note = NotAvailable
         other_titles = []
@@ -123,7 +130,7 @@ class ImdbBrowser(BaseBrowser):
                 country += '%s, '%c
             country = country[:-2]
         if jres.has_key('plot_simple'):
-            description = unicode(jres['plot_simple'])
+            pitch = unicode(jres['plot_simple'])
         if jres.has_key('rating') and jres.has_key('rating_count'):
             note = u'%s/10 (%s votes)'%(jres['rating'],jres['rating_count'])
         for r in ['actor','director','writer']:
@@ -134,7 +141,7 @@ class ImdbBrowser(BaseBrowser):
         movie.other_titles    = other_titles
         movie.release_date    = release_date
         movie.duration        = duration
-        movie.description     = description
+        movie.pitch           = pitch
         movie.country         = country
         movie.note            = note
         movie.roles           = roles

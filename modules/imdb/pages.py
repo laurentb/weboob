@@ -106,6 +106,7 @@ class PersonPage(BasePage):
     def get_person(self,id):
         name = NotAvailable
         short_biography = NotAvailable
+        short_description = NotAvailable
         birth_place = NotAvailable
         birth_date = NotAvailable
         death_date = NotAvailable
@@ -160,6 +161,7 @@ class PersonPage(BasePage):
         person.gender          = gender
         person.nationality     = nationality
         person.short_biography = short_biography
+        person.short_description = short_description
         person.roles           = roles
         return person
 

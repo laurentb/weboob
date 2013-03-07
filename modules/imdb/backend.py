@@ -78,9 +78,9 @@ class ImdbBackend(BaseBackend, ICapCinema):
 
     def fill_movie(self, movie, fields):
         if 'other_titles' in fields or 'release_date' in fields\
-        or 'duration' in fields or 'description' in fields\
-        or 'country' in fields or 'roles' in fields\
-        or 'note' in fields or fields == None:
+        or 'duration' in fields or 'country' in fields\
+        or 'roles' in fields or 'note' in fields\
+        or fields == None:
             return self.get_movie(movie.id)
         else:
             return movie

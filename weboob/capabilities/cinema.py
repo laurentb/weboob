@@ -28,14 +28,15 @@ class Movie(CapBaseObject):
     """
     Movie object.
     """
-    original_title  = StringField('Original title of the movie')
-    other_titles    = Field('Titles in other countries',list)
-    release_date    = DateField('Release date of the movie')
-    duration        = IntField('Duration of the movie in minutes')
-    description     = StringField('Short description of the movie')
-    country         = StringField('Origin country of the movie')
-    note            = StringField('Notation of the movie')
-    roles           = Field('Lists of Persons related to the movie indexed by roles',dict)
+    original_title   = StringField('Original title of the movie')
+    other_titles     = Field('Titles in other countries',list)
+    release_date     = DateField('Release date of the movie')
+    duration         = IntField('Duration of the movie in minutes')
+    short_description= StringField('Short description of the movie')
+    pitch            = StringField('Short story description of the movie')
+    country          = StringField('Origin country of the movie')
+    note             = StringField('Notation of the movie')
+    roles            = Field('Lists of Persons related to the movie indexed by roles',dict)
 
     def __init__(self, id, original_title):
         CapBaseObject.__init__(self, id)
@@ -54,6 +55,7 @@ class Person(CapBaseObject):
     gender          = StringField('Gender of a person')
     nationality     = StringField('Nationality of a person')
     short_biography = StringField('Short biography of a person')
+    short_description = StringField('Short description of a person')
     roles           = Field('Lists of movies related to the person indexed by roles',dict)
 
     def __init__(self, id, name):
