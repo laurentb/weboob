@@ -39,7 +39,10 @@ class ReleasePage(BasePage):
             if href.strip('/').split('/')[0] == 'calendar' and\
             (country_filter == None or href.split('region=')[-1].lower() == country_filter):
                 country = a.text
-                date = self.parser.select(a.getparent().getparent().getparent(),'td')[1].text_content()
+                td_date = self.parser.select(a.getparent().getparent().getparent(),'td')[1]
+                date_links = self.parser.select(td_date,'a')
+                date = date_links[1].attrib.get('href','').strip('/').split('/')[-1]
+                date += '-'+date_links[0].attrib.get('href','').strip('/').split('/')[-1]
                 result += '%s : %s\n' % (country,date)
         if result == u'':
             result = NotAvailable
