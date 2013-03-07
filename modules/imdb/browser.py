@@ -53,7 +53,6 @@ class ImdbBrowser(BaseBrowser):
                         short_description = u'%s %s'%(tdesc.split('<')[0].strip(', '), tdesc.split('>')[1].split('<')[0])
                     else:
                         short_description = tdesc.strip(', ')
-                    #movie = self.get_movie(m['id'])
                     movie = Movie(m['id'],unicode(m['title']))
                     movie.other_titles    = NotLoaded
                     movie.release_date    = NotLoaded
@@ -71,9 +70,8 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['name_popular','name_exact','name_approx']:
             if jres.has_key(cat):
                 for p in jres[cat]:
-                    #person = self.get_person(p['id'])
-                    person = Person(p['id'],p['name'])
-                    person.real_name    = NotLoaded
+                    person = Person(p['id'],unicode(p['name']))
+                    person.real_name      = NotLoaded
                     person.birth_place    = NotLoaded
                     person.birth_date     = NotLoaded
                     person.death_date     = NotLoaded
@@ -103,7 +101,7 @@ class ImdbBrowser(BaseBrowser):
 
         title = unicode(jres['title'].strip())
         if jres.has_key('directors'):
-            short_description = ', '.join(jres['directors'])
+            short_description = unicode(', '.join(jres['directors']))
         if jres.has_key('runtime'):
             dur_str = jres['runtime'][0].split(':')
             if len(dur_str) == 1:

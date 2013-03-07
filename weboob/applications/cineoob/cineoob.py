@@ -23,7 +23,7 @@ import sys
 from datetime import datetime
 
 from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -262,7 +262,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        backend.fillobj(movie, ('duration'))
+        #backend.fillobj(movie, ('duration'))
 
         self.start_format()
         self.format(movie)
@@ -287,7 +287,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        backend.fillobj(person, ('birth_date','short_biography'))
+        #backend.fillobj(person, ('birth_date','short_biography'))
 
         self.start_format()
         self.format(person)

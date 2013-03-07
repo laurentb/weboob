@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.cinema import Person, Movie
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 from datetime import datetime
@@ -56,9 +56,16 @@ class MovieCrewPage(BasePage):
                     id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
                     name = unicode(td.find('a').text)
                     char_name = unicode(self.parser.select(td.getparent(),'td.char',1).text_content())
-                    #yield self.browser.get_person(id)
                     person = Person(id,name)
                     person.short_description = char_name
+                    person.real_name      = NotLoaded
+                    person.birth_place    = NotLoaded
+                    person.birth_date     = NotLoaded
+                    person.death_date     = NotLoaded
+                    person.gender         = NotLoaded
+                    person.nationality    = NotLoaded
+                    person.short_biography= NotLoaded
+                    person.roles          = NotLoaded
                     yield person
 
         for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
@@ -189,7 +196,7 @@ class FilmographyPage(BasePage):
                 for a in self.parser.select(role_div,'ol > li > a'):
                     id = a.attrib.get('href','').strip('/').split('/')[-1]
                     if id.startswith('tt'):
-                        title = a.text
+                        title = unicode(a.text)
                         role_detail = NotAvailable
                         if len(a.tail) > 0:
                             role_detail = unicode(' '.join(a.tail.replace('..','').split()))

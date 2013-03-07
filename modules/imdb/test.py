@@ -19,8 +19,6 @@
 
 from weboob.tools.test import BackendTest
 
-#from random import choice
-
 class ImdbTest(BackendTest):
     BACKEND = 'imdb'
 
