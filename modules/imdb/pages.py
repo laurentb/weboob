@@ -25,23 +25,7 @@ from weboob.tools.browser import BasePage
 from datetime import datetime
 
 
-__all__ = ['MoviePage','PersonPage','MovieCrewPage','BiographyPage','FilmographyPage']
-
-
-class MoviePage(BasePage):
-    ''' Page describing a movie, only used to go on the MovieCrewPage
-    '''
-    def iter_persons(self, id, role=None):
-        self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
-        assert self.browser.is_on_page(MovieCrewPage)
-        for p in self.browser.page.iter_persons(role):
-            yield p
-
-    def iter_persons_ids(self,id):
-        self.browser.location('http://www.imdb.com/title/%s/fullcredits'%id)
-        assert self.browser.is_on_page(MovieCrewPage)
-        for p in self.browser.page.iter_persons_ids():
-            yield p
+__all__ = ['PersonPage','MovieCrewPage','BiographyPage','FilmographyPage']
 
 
 class BiographyPage(BasePage):
@@ -171,16 +155,17 @@ class PersonPage(BasePage):
         person.roles           = roles
         return person
 
-    def iter_movies_ids(self,person_id):
-        for movie_div in self.parser.select(self.document.getroot(),'div[class~=filmo-row]'):
-            a = self.parser.select(movie_div,'b a',1)
-            id = a.attrib.get('href','').strip('/').split('/')[-1]
-            yield id
-
 class FilmographyPage(BasePage):
     ''' Page of detailed filmography of a person, sorted by type of role
     This page is easier to parse than the main person page filmography
     '''
+    def iter_movies_ids(self):
+        for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
+            for a in self.parser.select(role_div,'ol > li > a'):
+                id = a.attrib.get('href','').strip('/').split('/')[-1]
+                if id.startswith('tt'):
+                    yield id
+
     def get_roles(self):
         roles = {}
         for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
@@ -205,6 +190,9 @@ class FilmographyPage(BasePage):
                     id = a.attrib.get('href','').strip('/').split('/')[-1]
                     if id.startswith('tt'):
                         title = a.text
-                        #movie = self.browser.get_movie(id)
+                        role_detail = NotAvailable
+                        if len(a.tail) > 0:
+                            role_detail = unicode(' '.join(a.tail.replace('..','').split()))
                         movie = Movie(id,title)
+                        movie.short_description = role_detail
                         yield movie

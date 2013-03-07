@@ -23,7 +23,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
 
-from .pages import MoviePage, PersonPage, MovieCrewPage, BiographyPage, FilmographyPage
+from .pages import PersonPage, MovieCrewPage, BiographyPage, FilmographyPage
 
 from datetime import datetime
 
@@ -36,7 +36,6 @@ class ImdbBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://www.imdb.com/title/tt[0-9]*/*': MoviePage,
         'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
         'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
         'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
@@ -98,10 +97,13 @@ class ImdbBrowser(BaseBrowser):
         pitch = NotAvailable
         country = NotAvailable
         note = NotAvailable
+        short_description = NotAvailable
         other_titles = []
         roles = {}
 
         title = unicode(jres['title'].strip())
+        if jres.has_key('directors'):
+            short_description = ', '.join(jres['directors'])
         if jres.has_key('runtime'):
             dur_str = jres['runtime'][0].split(':')
             if len(dur_str) == 1:
@@ -145,6 +147,7 @@ class ImdbBrowser(BaseBrowser):
         movie.country         = country
         movie.note            = note
         movie.roles           = roles
+        movie.short_description= short_description
         return movie
 
     def get_person(self, id):
@@ -158,9 +161,10 @@ class ImdbBrowser(BaseBrowser):
         return self.page.get_biography()
 
     def iter_movie_persons(self, movie_id, role):
-        self.location('http://www.imdb.com/title/%s' % movie_id)
-        assert self.is_on_page(MoviePage)
-        return self.page.iter_persons(movie_id, role)
+        self.location('http://www.imdb.com/title/%s/fullcredits'%movie_id)
+        assert self.is_on_page(MovieCrewPage)
+        for p in self.page.iter_persons(role):
+            yield p
 
     def iter_person_movies(self, person_id, role):
         self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
@@ -168,11 +172,13 @@ class ImdbBrowser(BaseBrowser):
         return self.page.iter_movies(role)
 
     def iter_person_movies_ids(self, person_id):
-        self.location('http://www.imdb.com/name/%s' % person_id)
-        assert self.is_on_page(PersonPage)
-        return self.page.iter_movies_ids(person_id)
+        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
+        assert self.is_on_page(FilmographyPage)
+        for movie in self.page.iter_movies_ids():
+            yield movie
 
     def iter_movie_persons_ids(self, movie_id):
-        self.location('http://www.imdb.com/title/%s' % movie_id)
-        assert self.is_on_page(MoviePage)
-        return self.page.iter_persons_ids(movie_id)
+        self.location('http://www.imdb.com/title/%s/fullcredits'%movie_id)
+        assert self.is_on_page(MovieCrewPage)
+        for person in self.page.iter_persons_ids():
+            yield person

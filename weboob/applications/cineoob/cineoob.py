@@ -203,7 +203,8 @@ class Cineoob(ReplApplication):
         inter = list(set(lid1) & set(lid2))
         for common in inter:
             movie = self.get_object(common, 'get_movie')
-            self.cached_format(movie)
+            if movie:
+                self.cached_format(movie)
         self.flush()
 
     def do_persons_in_common(self, line):
