@@ -59,3 +59,8 @@ class ImdbTest(BackendTest):
         bio = self.backend.get_person_biography('nm0223033')
         assert bio != ''
         assert bio != None
+
+    def test_get_movie_releases(self):
+        rel = self.backend.get_movie_releases('tt0079980')
+        assert rel != ''
+        assert rel != None

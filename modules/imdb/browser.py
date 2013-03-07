@@ -23,7 +23,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
 
-from .pages import PersonPage, MovieCrewPage, BiographyPage, FilmographyPage
+from .pages import PersonPage, MovieCrewPage, BiographyPage, FilmographyPage, ReleasePage
 
 from datetime import datetime
 
@@ -37,6 +37,7 @@ class ImdbBrowser(BaseBrowser):
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
         'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
+        'http://www.imdb.com/title/tt[0-9]*/releaseinfo.*': ReleasePage,
         'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
         'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
         'http://www.imdb.com/name/nm[0-9]*/filmo.*': FilmographyPage,
@@ -181,6 +182,11 @@ class ImdbBrowser(BaseBrowser):
         for person in self.page.iter_persons_ids():
             yield person
 
+    def get_movie_releases(self,id, country):
+        self.location('http://www.imdb.com/title/%s/releaseinfo'%id)
+        assert self.is_on_page(ReleasePage)
+        return self.page.get_movie_releases(country)
+
 
 dict_hex = {'&#xE1;': u'á',
             '&#xE9;': u'é',
@@ -191,6 +197,7 @@ dict_hex = {'&#xE1;': u'á',
             '&#xFA;': u'ú',
             '&#xFC;': u'ü',
             '&#x26;': u'&',
+            '&#x27;': u"'",
             '&#xE7;': u'ç'
             }
 def latin2unicode(word):

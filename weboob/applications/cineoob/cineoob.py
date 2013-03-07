@@ -162,6 +162,7 @@ class Cineoob(ReplApplication):
                            'persons_in_common':'person_list'
                           }
     ROLE_LIST = ['actor','director','writer','composer','producer']
+    COUNTRY_LIST = ['us','fr','de','jp']
 
     def complete_filmography(self, text, line, *ignored):
         args = line.split(' ')
@@ -375,3 +376,29 @@ class Cineoob(ReplApplication):
             print '%s :\n\n%s' % (person.name,bio)
         if bio != NotAvailable:
             self.flush()
+
+    def complete_releases(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 3:
+            return self.COUNTRY_LIST
+
+    def do_releases(self, line):
+        """
+        releases  movie_ID [COUNTRY]
+
+        Get releases dates of a movie.
+        If COUNTRY is given, show release in this country.
+        """
+        id, country = self.parse_command_args(line, 2, 1)
+        # TODO try without getting object 
+        movie = self.get_object(id, 'get_movie')
+
+        if not movie:
+            print >>sys.stderr, 'Movie not found: %s' % id
+            return 3
+
+        for backend, release in self.do('get_movie_releases', movie.id, country):
+            print '%s :\n\n%s' % (movie.original_title,release)
+        if release != NotAvailable:
+            self.flush()
+

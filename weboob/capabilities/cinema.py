@@ -87,17 +87,17 @@ class ICapCinema(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_movie_persons(self, _id):
+    def get_movie_releases(self, _id, country=None):
         """
-        Get the list of persons who are actors in a movie.
+        Get a list of a movie releases from an ID.
 
         :param _id: ID of movie
         :type _id: str
-        :rtype: iter[:class:`Person`]
+        :rtype: :class:`String`
         """
         raise NotImplementedError()
 
-    def iter_movie_persons(self, _id):
+    def iter_movie_persons(self, _id, role=None):
         """
         Get the list of persons who are related to a movie.
 
@@ -127,7 +127,7 @@ class ICapCinema(IBaseCap):
         """
         raise NotImplementedError()
 
-    def iter_person_movies(self, _id):
+    def iter_person_movies(self, _id, role=None):
         """
         Get the list of movies related to a person.
 

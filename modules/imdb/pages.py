@@ -25,7 +25,25 @@ from weboob.tools.browser import BasePage
 from datetime import datetime
 
 
-__all__ = ['PersonPage','MovieCrewPage','BiographyPage','FilmographyPage']
+__all__ = ['PersonPage','MovieCrewPage','BiographyPage','FilmographyPage','ReleasePage']
+
+
+class ReleasePage(BasePage):
+    ''' Page containing releases of a movie
+    '''
+    def get_movie_releases(self,country_filter):
+        result = unicode()
+        links = self.parser.select(self.document.getroot(),'b a')
+        for a in links:
+            href = a.attrib.get('href','')
+            if href.strip('/').split('/')[0] == 'calendar' and\
+            (country_filter == None or href.split('region=')[-1].lower() == country_filter):
+                country = a.text
+                date = self.parser.select(a.getparent().getparent().getparent(),'td')[1].text_content()
+                result += '%s : %s\n' % (country,date)
+        if result == u'':
+            result = NotAvailable
+        return result.strip()
 
 
 class BiographyPage(BasePage):
