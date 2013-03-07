@@ -23,7 +23,7 @@ import sys
 from datetime import datetime
 
 from weboob.capabilities.cinema import ICapCinema
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -101,7 +101,7 @@ class PersonInfoFormatter(IFormatter):
             result += 'Real name: %s\n' % obj.real_name
         if obj.birth_place != NotAvailable:
             result += 'Birth place: %s\n' % obj.birth_place
-        if obj.birth_date != NotAvailable:
+        if obj.birth_date != NotAvailable and obj.birth_date != NotLoaded:
             result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
             if obj.death_date != NotAvailable:
                 age = num_years(obj.birth_date,obj.death_date)
@@ -249,7 +249,8 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        # TODO correct core to call fillobj when get_object is called
+        # TODO understand core to get a call to Backend.fill_movie when get_object is called
+        # then the following paragraph can be replace by the following commented line
         #movie = self.get_object(id, 'get_movie',['duration'])
         movie = None
         _id, backend = self.parse_id(id)
@@ -274,8 +275,8 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        # TODO correct core to call fillobj when get_object is called
-        #person = self.get_object(id, 'get_person')
+        # TODO understand core to get a call to Backend.fill_person when get_object is called
+        #person = self.get_object(id, 'get_person',None)
         person = None
         _id, backend = self.parse_id(id)
         for _backend, result in self.do('get_person', _id, backends=backend):
