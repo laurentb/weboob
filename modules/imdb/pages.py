@@ -70,9 +70,11 @@ class MovieCrewPage(BasePage):
                 tds = self.parser.select(table,'td.nm')
                 for td in tds:
                     id = td.find('a').attrib.get('href','').strip('/').split('/')[-1]
-                    name = td.find('a').text
+                    name = unicode(td.find('a').text)
+                    char_name = unicode(self.parser.select(td.getparent(),'td.char',1).text_content())
                     #yield self.browser.get_person(id)
                     person = Person(id,name)
+                    person.short_description = char_name
                     yield person
 
         for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
@@ -81,12 +83,16 @@ class MovieCrewPage(BasePage):
                 tbody = gloss_link.getparent().getparent().getparent().getparent()
                 for line in self.parser.select(tbody,'tr')[1:]:
                     for a in self.parser.select(line,'a'):
+                        role_detail = NotAvailable
                         href = a.attrib.get('href','')
                         if '/name/nm' in href:
                             id = href.strip('/').split('/')[-1]
-                            name = a.text
-                            person = Person(id,name)
-                            yield person
+                            name = unicode(a.text)
+                        if 'glossary' in href:
+                            role_detail = unicode(a.text)
+                        person = Person(id,name)
+                        person.short_description = role_detail
+                        yield person
                             #yield self.browser.get_person(id)
 
     def iter_persons_ids(self):
