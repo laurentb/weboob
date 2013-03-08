@@ -21,10 +21,10 @@ from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
 class SeeklyricsTest(BackendTest):
-    BACKEND = 'seeklyrics'
+    BACKEND = 'parolesmusique'
 
     def test_search_song_n_get(self):
-        l_lyrics = list(self.backend.iter_lyrics('song','Complainte'))
+        l_lyrics = list(self.backend.iter_lyrics('song','chien'))
         for songlyrics in l_lyrics:
             assert songlyrics.id
             assert songlyrics.title
@@ -38,7 +38,7 @@ class SeeklyricsTest(BackendTest):
 
 
     def test_search_artist(self):
-        l_lyrics = list(self.backend.iter_lyrics('artist','boris vian'))
+        l_lyrics = list(self.backend.iter_lyrics('artist','boris'))
         for songlyrics in l_lyrics:
             assert songlyrics.id
             assert songlyrics.title
