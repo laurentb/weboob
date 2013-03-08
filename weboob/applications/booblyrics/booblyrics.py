@@ -27,10 +27,10 @@ from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
-__all__ = ['Booblyrics']
+__all__ = ['Booblyrics','LyricsGetFormatter','LyricsListFormatter']
 
 
-class LyricsInfoFormatter(IFormatter):
+class LyricsGetFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'artist', 'content')
 
     def format_obj(self, obj, alias):
@@ -64,22 +64,22 @@ class Booblyrics(ReplApplication):
     SHORT_DESCRIPTION = "search and display song lyrics"
     CAPS = ICapLyrics
     EXTRA_FORMATTERS = {'lyrics_list': LyricsListFormatter,
-                        'lyrics_info': LyricsInfoFormatter,
+                        'lyrics_get': LyricsGetFormatter,
                        }
     COMMANDS_FORMATTERS = {'search':    'lyrics_list',
-                           'info':      'lyrics_info',
+                           'get':      'lyrics_get',
                           }
 
-    def complete_info(self, text, line, *ignored):
+    def complete_get(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
 
-    def do_info(self, id):
+    def do_get(self, id):
         """
-        info ID
+        get ID
 
-        Get information about song lyrics.
+        Display lyrics of the song.
         """
 
         # TODO restore get_object line and handle fillobj

@@ -23,7 +23,7 @@ from weboob.capabilities.base import NotLoaded
 class SeeklyricsTest(BackendTest):
     BACKEND = 'seeklyrics'
 
-    def test_search(self):
+    def test_search_n_get(self):
         l_lyrics = list(self.backend.iter_lyrics('Complainte'))
         for songlyrics in l_lyrics:
             assert songlyrics.id
