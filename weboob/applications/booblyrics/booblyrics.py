@@ -69,6 +69,7 @@ class Booblyrics(ReplApplication):
     COMMANDS_FORMATTERS = {'search':    'lyrics_list',
                            'get':      'lyrics_get',
                           }
+    SEARCH_CRITERIAS = ['artist','song']
 
     def complete_get(self, text, line, *ignored):
         args = line.split(' ')
@@ -99,17 +100,23 @@ class Booblyrics(ReplApplication):
         self.format(songlyrics)
         self.flush()
 
-    def do_search(self, pattern):
-        """
-        search [PATTERN]
+    def complete_search(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self.SEARCH_CRITERIAS
 
-        Search lyrics.
+    def do_search(self, line):
         """
+        search [artist | song] [PATTERN]
+
+        Search lyrics by artist name or by song title.
+        """
+        criteria, pattern = self.parse_command_args(line, 2, 1)
         self.change_path([u'search'])
         if not pattern:
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, songlyrics in self.do('iter_lyrics', pattern=pattern):
+        for backend, songlyrics in self.do('iter_lyrics', criteria, pattern):
             self.cached_format(songlyrics)
         self.flush()

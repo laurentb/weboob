@@ -41,10 +41,13 @@ class ICapLyrics(IBaseCap):
     """
     Lyrics websites.
     """
-    def iter_lyrics(self, pattern):
+    def iter_lyrics(self, criteria, pattern):
         """
-        Search lyrics and iterate on results.
+        Search lyrics by artist or by song
+        and iterate on results.
 
+        :param criteria: 'artist' or 'song'
+        :type criteria: str
         :param pattern: pattern to search
         :type pattern: str
         :rtype: iter[:class:`SongLyrics`]

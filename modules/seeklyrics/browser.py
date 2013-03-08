@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import ResultsPage, SonglyricsPage
+from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage
 
 
 __all__ = ['SeeklyricsBrowser']
@@ -32,13 +32,19 @@ class SeeklyricsBrowser(BaseBrowser):
     ENCODING = 'iso-8859-1'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'http://www.seeklyrics.com/search.php.*': ResultsPage,
-        'http://www.seeklyrics.com/lyrics/.*': SonglyricsPage,
+        'http://www.seeklyrics.com/search.php.*t=1': SongResultsPage,
+        'http://www.seeklyrics.com/search.php.*t=2': ArtistResultsPage,
+        'http://www.seeklyrics.com/lyrics/.*html': SonglyricsPage,
+        'http://www.seeklyrics.com/lyrics/.*/': ArtistSongsPage,
         }
 
-    def iter_lyrics(self, pattern):
-        self.location('http://www.seeklyrics.com/search.php?q=%s&t=1' % pattern.encode('utf-8'))
-        assert self.is_on_page(ResultsPage)
+    def iter_lyrics(self, criteria, pattern):
+        if criteria == 'artist':
+            type = 2
+        else:
+            type = 1
+        self.location('http://www.seeklyrics.com/search.php?q=%s&t=%s' % (pattern,type))
+        assert self.is_on_page(ArtistResultsPage) or self.is_on_page(SongResultsPage)
         return self.page.iter_lyrics()
 
     def get_lyrics(self, id):

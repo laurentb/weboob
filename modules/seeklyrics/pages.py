@@ -23,10 +23,34 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['ResultsPage','SonglyricsPage']
+__all__ = ['SongResultsPage','SonglyricsPage', 'ArtistResultsPage', 'ArtistSongsPage']
 
 
-class ResultsPage(BasePage):
+class ArtistResultsPage(BasePage):
+    def iter_lyrics(self):
+        for link in self.parser.select(self.document.getroot(),'table[title~=Results] a.tlink'):
+            artist = unicode(link.text_content())
+            self.browser.location('http://www.seeklyrics.com%s'%link.attrib.get('href',''))
+            assert self.browser.is_on_page(ArtistSongsPage)
+            for lyr in self.browser.page.iter_lyrics(artist):
+                yield lyr
+
+
+class ArtistSongsPage(BasePage):
+    def iter_lyrics(self,artist):
+        for th in self.parser.select(self.document.getroot(),'th.text'):
+            txt = th.text_content()
+            if txt.startswith('Top') and txt.endswith('Lyrics'):
+                for link in self.parser.select(th.getparent().getparent(),'a.tlink'):
+                    title = unicode(link.attrib.get('title','').replace(' Lyrics',''))
+                    id = link.attrib.get('href','').replace('/lyrics/','').replace('.html','')
+                    songlyrics = SongLyrics(id, title)
+                    songlyrics.artist = artist
+                    songlyrics.content = NotLoaded
+                    yield songlyrics
+
+
+class SongResultsPage(BasePage):
     def iter_lyrics(self):
         first = True
         for tr in self.parser.select(self.document.getroot(),'table[title~=Results] tr'):

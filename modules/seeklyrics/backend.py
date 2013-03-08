@@ -42,5 +42,5 @@ class SeeklyricsBackend(BaseBackend, ICapLyrics):
     def get_lyrics(self, id):
         return self.browser.get_lyrics(id)
 
-    def iter_lyrics(self, pattern):
-        return self.browser.iter_lyrics(quote_plus(pattern.encode('iso-8859-1')))
+    def iter_lyrics(self, criteria, pattern):
+        return self.browser.iter_lyrics(criteria,quote_plus(pattern.encode('iso-8859-1')))
