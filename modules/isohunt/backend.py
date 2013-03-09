@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import ICapTorrent, Torrent
 from weboob.tools.backend import BaseBackend
 
 from .browser import IsohuntBrowser
@@ -50,3 +50,11 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern.replace(' ','+'))
+
+    def fill_torrent(self, torrent, fields):
+        if 'description' in fields or fields == None or 'files' in fields:
+            return self.get_torrent(torrent.id)
+
+    OBJECTS = {
+            Torrent:fill_torrent
+    }

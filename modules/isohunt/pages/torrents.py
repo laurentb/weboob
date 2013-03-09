@@ -21,7 +21,7 @@
 from weboob.capabilities.torrent import Torrent
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 
 
 __all__ = ['TorrentsPage']
@@ -34,6 +34,9 @@ class TorrentsPage(BasePage):
                 # sometimes the first tr also has the attribute hlRow
                 # i use that to ditinct it from the others
                 if 'onmouseout' in tr.attrib:
+                    size = NotAvailable
+                    seed = NotAvailable
+                    leech = NotAvailable
                     atitle = tr.getchildren()[2].getchildren()[1]
                     title = atitle.text
                     if not title:
@@ -48,18 +51,20 @@ class TorrentsPage(BasePage):
                     size = tr.getchildren()[3].text
                     u = size[-2:]
                     size = float(size[:-3])
-                    seed = tr.getchildren()[4].text
-                    leech = tr.getchildren()[5].text
+                    sseed = tr.getchildren()[4].text
+                    sleech = tr.getchildren()[5].text
+                    if sseed != None and sseed != "":
+                        seed = int(sseed)
+                    if sleech != None and sleech != "":
+                        leech = int(sleech)
                     url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
                     torrent = Torrent(idt, title)
                     torrent.url = url
                     torrent.size = get_bytes_size(size, u)
-                    if seed == None or seed == "":
-                        seed = 0
-                    torrent.seeders = int(seed)
-                    if leech == None or leech == "":
-                        leech = 0
-                    torrent.leechers = int(leech)
+                    torrent.seeders = seed
+                    torrent.leechers = leech
+                    torrent.description = NotLoaded
+                    torrent.files = NotLoaded
                     yield torrent
 
 
@@ -91,7 +96,7 @@ class TorrentPage(BasePage):
                 size = get_bytes_size(size, u)
 
         # files and description (uploader's comment)
-        description = 'No description'
+        description = NotAvailable
         files = []
         count_p_found = 0
         for p in self.document.getiterator('p'):
