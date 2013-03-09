@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.cinema import ICapCinema, Person
+from weboob.capabilities.cinema import ICapCinema, Person, Movie
 from weboob.tools.backend import BaseBackend
 
 from .browser import ImdbBrowser
@@ -88,9 +88,9 @@ class ImdbBackend(BaseBackend, ICapCinema):
         or 'roles' in fields or 'note' in fields\
         or fields == None:
             return self.get_movie(movie.id)
-        else:
-            return movie
+        return movie
 
     OBJECTS = {
-            Person:fill_person
+            Person:fill_person,
+            Movie:fill_movie
             }

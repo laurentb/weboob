@@ -31,6 +31,7 @@ class Movie(CapBaseObject):
     original_title   = StringField('Original title of the movie')
     other_titles     = Field('Titles in other countries',list)
     release_date     = DateField('Release date of the movie')
+    all_release_dates= StringField('Release dates list of the movie')
     duration         = IntField('Duration of the movie in minutes')
     short_description= StringField('Short description of the movie')
     pitch            = StringField('Short story description of the movie')

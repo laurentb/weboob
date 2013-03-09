@@ -76,6 +76,17 @@ class MovieListFormatter(PrettyFormatter):
             result = obj.short_description
         return result
 
+
+class MovieReleasesFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'original_title', 'all_release_dates')
+
+    def get_title(self, obj):
+        return u'Releases of %s'%obj.original_title
+
+    def get_description(self, obj):
+        return u'\n%s'%obj.all_release_dates
+
+
 def yearsago(years, from_date=None):
     if from_date is None:
         from_date = datetime.now()
@@ -150,7 +161,7 @@ class PersonBiographyFormatter(PrettyFormatter):
         return u'Biography of %s'%obj.name
 
     def get_description(self, obj):
-        result = obj.biography
+        result = u'\n%s'%obj.biography
         return result
 
 
@@ -165,6 +176,7 @@ class Cineoob(ReplApplication):
     CAPS = (ICapCinema,ICapTorrent,ICapSubtitle)
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,
                         'movie_info': MovieInfoFormatter,
+                        'movie_releases': MovieReleasesFormatter,
                         'person_list': PersonListFormatter,
                         'person_info': PersonInfoFormatter,
                         'person_bio': PersonBiographyFormatter,
@@ -180,6 +192,7 @@ class Cineoob(ReplApplication):
                            'casting':         'person_list',
                            'filmography':     'movie_list',
                            'biography':     'person_bio',
+                           'releases':     'movie_releases',
                            'movies_in_common':'movie_list',
                            'persons_in_common':'person_list',
                            'search_torrent':    'torrent_list',
@@ -425,17 +438,28 @@ class Cineoob(ReplApplication):
         If COUNTRY is given, show release in this country.
         """
         id, country = self.parse_command_args(line, 2, 1)
-        # TODO try without getting object 
-        movie = self.get_object(id, 'get_movie')
+
+        movie = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
+            if result:
+                backend = _backend
+                movie = result
 
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
+        # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
         for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema):
-            print '%s :\n\n%s' % (movie.original_title,release)
-        if release != NotAvailable:
-            self.flush()
+            if release != NotAvailable:
+                movie.all_release_dates = u'%s' % (release)
+            else:
+                print >>sys.stderr, 'Movie releases not found: %s' % id
+                return 3
+        self.start_format()
+        self.format(movie)
+        self.flush()
 
     #================== TORRENT ==================
 
