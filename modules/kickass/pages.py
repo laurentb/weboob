@@ -26,7 +26,7 @@ except ImportError:
 from urlparse import urlsplit
 
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
@@ -70,7 +70,8 @@ class TorrentsPage(BasePage):
                 torrent = Torrent(idt, title)
                 torrent.url = url
                 torrent.magnet = magnet
-                torrent.description = NotAvailable.__unicode__()
+                torrent.description = NotLoaded
+                torrent.files = NotLoaded
                 torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
                 torrent.size = get_bytes_size(size, u)
                 torrent.seeders = int(seed)
@@ -82,7 +83,7 @@ class TorrentPage(BasePage):
     def get_torrent(self, id):
         seed = 0
         leech = 0
-        description = NotAvailable.__unicode__()
+        description = NotAvailable
         url = NotAvailable
         magnet = NotAvailable
         title = NotAvailable
@@ -142,6 +143,8 @@ class TorrentPage(BasePage):
         torrent.size = get_bytes_size(size, u)
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
+        if description == '':
+            description = NotAvailable
         torrent.description = description
         torrent.files = files
         return torrent

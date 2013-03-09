@@ -54,7 +54,7 @@ class TorrentInfoFormatter(IFormatter):
             for f in obj.files:
                 result += ' * %s\n' % f
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += obj.description
+        result += '%s'%obj.description
         return result
 
 
@@ -95,14 +95,7 @@ class Weboorrents(ReplApplication):
 
         Get information about a torrent.
         """
-        # Following commented line could be better
-        #torrent = self.get_object(id, 'get_torrent', ('description','files'))
-        torrent = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_torrent', _id, backends=backend, caps=ICapTorrent):
-            if result:
-                backend = _backend
-                torrent = result
+        torrent = self.get_object(id, 'get_torrent', ('description','files'))
         if not torrent:
             print >>sys.stderr, 'Torrent not found: %s' % id
             return 3

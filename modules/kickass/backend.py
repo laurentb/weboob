@@ -63,7 +63,6 @@ class KickassBackend(BaseBackend, ICapTorrent):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
 
     def fill_torrent(self, torrent, fields):
-        print "plpl"
         if 'description' in fields or fields == None:
             return self.get_torrent(torrent.id)
 
