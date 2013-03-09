@@ -41,8 +41,9 @@ from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from ConfigParser import RawConfigParser, DEFAULTSECT
 
 
-__all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable', \
+__all__ = ['IProgress', 'ModuleInstallError', 'ModuleInfo', 'RepositoryUnavailable',
            'Repository', 'Versions', 'Repositories', 'InvalidSignature', 'Keyring']
+
 
 class WeboobBrowser(StandardBrowser):
     """
@@ -52,6 +53,7 @@ class WeboobBrowser(StandardBrowser):
     @classmethod
     def set_version(klass, version):
         klass.USER_AGENT = 'weboob/%s' % version
+
 
 class ModuleInfo(object):
     """
@@ -108,10 +110,12 @@ class ModuleInfo(object):
                 ('urls', self.urls),
                )
 
+
 class RepositoryUnavailable(Exception):
     """
     Repository in not available.
     """
+
 
 class Repository(object):
     """
@@ -149,7 +153,7 @@ class Repository(object):
         """
         Get a local path of a file:// URL.
         """
-        assert self.local == True
+        assert self.local is True
 
         if self.url.startswith('file://'):
             return self.url[len('file://'):]
@@ -348,6 +352,7 @@ class Repository(object):
         with open(filename, 'wb') as f:
             config.write(f)
 
+
 class Versions(object):
     VERSIONS_LIST = 'versions.list'
 
@@ -380,6 +385,7 @@ class Versions(object):
         with open(os.path.join(self.path, self.VERSIONS_LIST), 'wb') as fp:
             config.write(fp)
 
+
 class IProgress(object):
     def progress(self, percent, message):
         print '=== [%3.0f%%] %s' % (percent*100, message)
@@ -387,8 +393,10 @@ class IProgress(object):
     def error(self, message):
         print >>sys.stderr, 'ERROR: %s' % message
 
+
 class ModuleInstallError(Exception):
     pass
+
 
 DEFAULT_SOURCES_LIST = \
 """# List of Weboob repositories
@@ -403,6 +411,7 @@ http://updates.weboob.org/%(version)s/main/
 # reference to sources, for example:
 #file:///home/rom1/src/weboob/modules/
 """
+
 
 class Repositories(object):
     SOURCES_LIST = 'sources.list'
@@ -421,7 +430,7 @@ class Repositories(object):
         self.workdir = workdir
         self.datadir = datadir
         self.sources_list = os.path.join(self.workdir, self.SOURCES_LIST)
-        self.modules_dir = os.path.join(self.datadir, self.MODULES_DIR)
+        self.modules_dir = os.path.join(self.datadir, self.MODULES_DIR, self.version)
         self.repos_dir = os.path.join(self.datadir, self.REPOS_DIR)
         self.keyrings_dir = os.path.join(self.datadir, self.KEYRINGS_DIR)
         self.icons_dir = os.path.join(self.datadir, self.ICONS_DIR)
@@ -521,7 +530,7 @@ class Repositories(object):
         try:
             icon = browser.openurl(icon_url)
         except BrowserUnavailable:
-            pass # no icon, no problem
+            pass  # no icon, no problem
         else:
             with open(dest_path, 'wb') as fp:
                 fp.write(icon.read())
