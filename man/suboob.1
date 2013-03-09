@@ -1,4 +1,5 @@
-.TH SUBOOB 1 "22 February 2013" "weboorrents 0\&.f"
+.\" -*- coding: utf-8 -*-
+.TH SUBOOB 1 "09 March 2013" "suboob 0\&.f"
 .SH NAME
 suboob \- search and download subtitles
 .SH SYNOPSIS
@@ -11,16 +12,19 @@ suboob \- search and download subtitles
 .SH DESCRIPTION
 .LP
 
-Console application allowing to search for subtitles on various websites and download them.
+Console application allowing to search for subtitles on various services and download them.
 
 .SS Supported websites:
-* attilasub (Attila' s Website 2.0 french subtitles)
+* attilasub ("Attila s Website 2.0" french subtitles)
 .br
+* opensubtitles (Opensubtitles subtitle website)
+.br
+* tvsubtitles (Tvsubtitles subtitle website)
 .SH SUBOOB COMMANDS
 .TP
 \fBgetfile\fR \fIID\fR [\fIFILENAME\fR]
 .br
-Get the subtitle file.
+Get the subtitle or archive file.
 .br
 FILENAME is where to write the file. If FILENAME is '\-',
 .br
@@ -30,7 +34,7 @@ the file is written to stdout.
 .br
 Get information about a subtitle.
 .TP
-\fBsearch\fR [\fIPATTERN\fR]
+\fBsearch\fR language [\fIPATTERN\fR]
 .br
 Search subtitles.
 .SH WEBOOB COMMANDS
@@ -207,8 +211,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, torrent_info,
-torrent_list, webkit)
+select output formatter (csv, htmltable, json, multiline, simple, subtitle_info,
+subtitle_list, table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -220,7 +224,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2012 Romain Bignon
+Copyright(C) 2010-2012 Julien Veyssier
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -229,4 +233,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/weboorrents
+Home page: http://weboob.org/applications/suboob

@@ -1,4 +1,5 @@
-.TH WEBOORRENTS 1 "13 February 2013" "weboorrents 0\&.f"
+.\" -*- coding: utf-8 -*-
+.TH WEBOORRENTS 1 "09 March 2013" "weboorrents 0\&.f"
 .SH NAME
 weboorrents \- search and download torrents
 .SH SYNOPSIS
@@ -14,6 +15,8 @@ weboorrents \- search and download torrents
 Console application allowing to search for torrents on various trackers and download .torrent files.
 
 .SS Supported websites:
+* btmon (Btmon BitTorrent tracker)
+.br
 * gazelle (Gazelle\-based BitTorrent trackers)
 .br
 * isohunt (isoHunt BitTorrent tracker)
@@ -212,8 +215,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, multiline, simple, table, torrent_info,
-torrent_list, webkit)
+select output formatter (csv, htmltable, json, multiline, simple, table,
+torrent_info, torrent_list, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
