@@ -116,11 +116,11 @@ class Videoob(ReplApplication):
         elif video.url.startswith('mms'):
             if not check_exec('mimms'):
                 return 1
-            args = ('mimms', video.url, dest)
+            args = ('mimms', '-r', video.url, dest)
         else:
             if not check_exec('wget'):
                 return 1
-            args = ('wget', video.url, '-O', dest)
+            args = ('wget', '-c', video.url, '-O', dest)
 
         os.spawnlp(os.P_WAIT, args[0], *args)
 
