@@ -1,16 +1,16 @@
 Weboob is a free software written by:
 
 Romain Bignon <romain@weboob.org>
-        * Manager;
         * Core team;
         * Qt Applications;
         * Maintainer of too many modules.
 
 Laurent Bachelier <laurent@bachelier.name>
         * Core team;
-        * Pastealacon, PasteBin and RadioFrance modules maintainer.
+        * Pastealacon, PasteBin, PayPal and RadioFrance modules maintainer.
 
 Florent Fourcot <weboob@flo.fourcot.fr>
+        * Release manager;
         * Champslibres, Freemobile, ING, LeclercMobile, Presseurop, Sachsen
           and Taz modules maintainer;
         * BNPorc patches.
