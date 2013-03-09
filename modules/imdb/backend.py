@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.cinema import ICapCinema
+from weboob.capabilities.cinema import ICapCinema, Person
 from weboob.tools.backend import BaseBackend
 
 from .browser import ImdbBrowser
@@ -76,8 +76,11 @@ class ImdbBackend(BaseBackend, ICapCinema):
         or 'birth_date' in fields\
         or 'gender' in fields or fields == None:
             return self.get_person(person.id)
-        else:
-            return person
+
+        if 'biography' in fields:
+            person.biography = self.get_person_biography(person.id)
+
+        return person
 
     def fill_movie(self, movie, fields):
         if 'other_titles' in fields or 'release_date' in fields\
@@ -87,3 +90,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
             return self.get_movie(movie.id)
         else:
             return movie
+
+    OBJECTS = {
+            Person:fill_person
+            }

@@ -47,16 +47,17 @@ class Person(CapBaseObject):
     """
     Person object.
     """
-    name            = StringField('Star name of a person')
-    real_name       = StringField('Real name of a person')
-    birth_date      = DateField('Birth date of a person')
-    death_date      = DateField('Death date of a person')
-    birth_place     = StringField('City and country of birth of a person')
-    gender          = StringField('Gender of a person')
-    nationality     = StringField('Nationality of a person')
-    short_biography = StringField('Short biography of a person')
-    short_description = StringField('Short description of a person')
-    roles           = Field('Lists of movies related to the person indexed by roles',dict)
+    name             = StringField('Star name of a person')
+    real_name        = StringField('Real name of a person')
+    birth_date       = DateField('Birth date of a person')
+    death_date       = DateField('Death date of a person')
+    birth_place      = StringField('City and country of birth of a person')
+    gender           = StringField('Gender of a person')
+    nationality      = StringField('Nationality of a person')
+    short_biography  = StringField('Short biography of a person')
+    biography        = StringField('Full biography of a person')
+    short_description= StringField('Short description of a person')
+    roles            = Field('Lists of movies related to the person indexed by roles',dict)
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
@@ -154,5 +155,15 @@ class ICapCinema(IBaseCap):
         :param _id: ID of movie
         :type _id: str
         :rtype: iter[str]
+        """
+        raise NotImplementedError()
+
+    def get_person_biography(self, id):
+        """
+        Get the person full biography.
+
+        :param _id: ID of person
+        :type _id: str
+        :rtype: str
         """
         raise NotImplementedError()

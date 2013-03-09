@@ -24,12 +24,13 @@ from datetime import datetime
 
 from weboob.applications.weboorrents.weboorrents import TorrentInfoFormatter, TorrentListFormatter
 from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleListFormatter
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.core import CallErrors
 
 
 __all__ = ['Cineoob']
@@ -142,6 +143,17 @@ class PersonListFormatter(PrettyFormatter):
         return result
 
 
+class PersonBiographyFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'name', 'biography')
+
+    def get_title(self, obj):
+        return u'Biography of %s'%obj.name
+
+    def get_description(self, obj):
+        result = obj.biography
+        return result
+
+
 class Cineoob(ReplApplication):
     APPNAME = 'cineoob'
     VERSION = '0.f'
@@ -155,6 +167,7 @@ class Cineoob(ReplApplication):
                         'movie_info': MovieInfoFormatter,
                         'person_list': PersonListFormatter,
                         'person_info': PersonInfoFormatter,
+                        'person_bio': PersonBiographyFormatter,
                         'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,
                         'subtitle_list': SubtitleListFormatter,
@@ -166,6 +179,7 @@ class Cineoob(ReplApplication):
                            'info_person':     'person_info',
                            'casting':         'person_list',
                            'filmography':     'movie_list',
+                           'biography':     'person_bio',
                            'movies_in_common':'movie_list',
                            'persons_in_common':'person_list',
                            'search_torrent':    'torrent_list',
@@ -291,7 +305,7 @@ class Cineoob(ReplApplication):
         Get information about a person.
         """
         # TODO understand core to get a call to Backend.fill_person when get_object is called
-        #person = self.get_object(id, 'get_person',None)
+        #person = self.get_object(id, 'get_person')
         person = None
         _id, backend = self.parse_id(id)
         for _backend, result in self.do('get_person', _id, backends=backend, caps=ICapCinema):
@@ -302,8 +316,6 @@ class Cineoob(ReplApplication):
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
-
-        #backend.fillobj(person, ('birth_date','short_biography'))
 
         self.start_format()
         self.format(person)
@@ -381,15 +393,24 @@ class Cineoob(ReplApplication):
 
         Show the complete biography of a person.
         """
-        person = self.get_object(person_id, 'get_person')
+        # TODO understand how to handle short id trying to be get by wrong backends and validate this line !
+        # in other words, find a way to select CAP when 'get_object' to avoid useless errors and clarify the following code
+        #person = self.get_object(person_id,'get_person',('name','biography'))
+
+        person = None
+        _id, backend = self.parse_id(person_id)
+        for _backend, result in self.do('get_person', _id, backends=backend, caps=ICapCinema):
+            if result:
+                backend = _backend
+                person = result
         if not person:
-            print >>sys.stderr, 'Person not found: %s' % id
+            print >>sys.stderr, 'Person not found: %s' % _id
             return 3
 
-        for backend, bio in self.do('get_person_biography', person.id, caps=ICapCinema):
-            print '%s :\n\n%s' % (person.name,bio)
-        if bio != NotAvailable:
-            self.flush()
+        backend.fillobj(person,('biography'))
+        self.start_format()
+        self.format(person)
+        self.flush()
 
     def complete_releases(self, text, line, *ignored):
         args = line.split(' ')
