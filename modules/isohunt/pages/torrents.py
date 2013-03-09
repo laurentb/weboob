@@ -21,6 +21,7 @@
 from weboob.capabilities.torrent import Torrent
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
+from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['TorrentsPage']
@@ -65,27 +66,29 @@ class TorrentsPage(BasePage):
 class TorrentPage(BasePage):
     def get_torrent(self, id):
         title = ''
+        size = NotAvailable
         url = 'https://isohunt.com/download/%s/%s.torrent' % (id, id)
         for a in self.document.getiterator('a'):
             if 'Search more torrents of' in a.attrib.get('title', ''):
                 title = a.tail
-        seed = -1
-        leech = -1
+        seed = NotAvailable
+        leech = NotAvailable
         tip_id = "none"
         for span in self.document.getiterator('span'):
             if span.attrib.get('style', '') == 'color:green;' and ('ShowTip' in span.attrib.get('onmouseover', '')):
-                seed = span.tail.split(' ')[1]
+                seed = int(span.tail.split(' ')[1])
                 tip_id = span.attrib.get('onmouseover', '').split("'")[1]
         for div in self.document.getiterator('div'):
             # find the corresponding super tip which appears on super mouse hover!
             if div.attrib.get('class', '') == 'dirs ydsf' and tip_id in div.attrib.get('id', ''):
-                leech = div.getchildren()[0].getchildren()[1].tail.split(' ')[2]
+                leech = int(div.getchildren()[0].getchildren()[1].tail.split(' ')[2])
             # the <b> with the size in it doesn't have a distinction
             # have to get it by higher
             elif div.attrib.get('id', '') == 'torrent_details':
                 size = div.getchildren()[6].getchildren()[0].getchildren()[0].text
                 u = size[-2:]
                 size = float(size[:-3])
+                size = get_bytes_size(size, u)
 
         # files and description (uploader's comment)
         description = 'No description'
@@ -115,9 +118,9 @@ class TorrentPage(BasePage):
 
         torrent = Torrent(id, title)
         torrent.url = url
-        torrent.size = get_bytes_size(size, u)
-        torrent.seeders = int(seed)
-        torrent.leechers = int(leech)
+        torrent.size = size
+        torrent.seeders = seed
+        torrent.leechers = leech
         torrent.description = description
         torrent.files = files
         return torrent

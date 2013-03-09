@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.torrent import ICapTorrent, Torrent
 from weboob.tools.backend import BaseBackend
 
 from .browser import KickassBrowser
@@ -61,3 +61,12 @@ class KickassBackend(BaseBackend, ICapTorrent):
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
+
+    def fill_torrent(self, torrent, fields):
+        print "plpl"
+        if 'description' in fields or fields == None:
+            return self.get_torrent(torrent.id)
+
+    OBJECTS = {
+        Torrent:fill_torrent
+    }

@@ -95,8 +95,14 @@ class Weboorrents(ReplApplication):
 
         Get information about a torrent.
         """
-
-        torrent = self.get_object(id, 'get_torrent')
+        # Following commented line could be better
+        #torrent = self.get_object(id, 'get_torrent', ('description','files'))
+        torrent = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_torrent', _id, backends=backend, caps=ICapTorrent):
+            if result:
+                backend = _backend
+                torrent = result
         if not torrent:
             print >>sys.stderr, 'Torrent not found: %s' % id
             return 3
