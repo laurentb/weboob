@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
+from weboob.capabilities.torrent import ICapTorrent, MagnetOnly, Torrent
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.base import NotAvailable
 
@@ -52,3 +52,11 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(pattern.replace(' ', '+'))
+
+    def fill_torrent(self, torrent, fields):
+        if 'description' in fields or fields == None:
+            return self.get_torrent(torrent.id)
+
+    OBJECTS = {
+        Torrent:fill_torrent
+    }

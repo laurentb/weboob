@@ -50,11 +50,11 @@ class TorrentsPage(BasePage):
                 td = tr.getchildren()[1]
                 div = td.getchildren()[0]
                 link = div.find('a').attrib['href']
-                title = div.find('a').text
+                title = unicode(div.find('a').text)
                 idt = link.split('/')[2]
 
                 a = td.getchildren()[1]
-                url = a.attrib['href']
+                url = unicode(a.attrib['href'])
 
                 size = td.find('font').text.split(',')[1].strip()
                 u = size.split(' ')[1].split(u'\xa0')[1].replace('i', '')
@@ -68,6 +68,8 @@ class TorrentsPage(BasePage):
                 torrent.size = self.unit(float(size), u)
                 torrent.seeders = int(seed)
                 torrent.leechers = int(leech)
+                torrent.description = NotAvailable
+                torrent.files = NotAvailable
                 yield torrent
 
 
@@ -77,7 +79,7 @@ class TorrentPage(BasePage):
         magnet = None
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'title':
-                title = div.text.strip()
+                title = unicode(div.text.strip())
             elif div.attrib.get('class', '') == 'download':
                 for link in self.parser.select(div, 'a'):
                     href = link.attrib.get('href', '')
@@ -85,9 +87,9 @@ class TorrentPage(BasePage):
                     if href.startswith('https://'):
                         href = href.replace('https://', 'http://', 1)
                     if href.startswith('magnet:'):
-                        magnet = href
+                        magnet = unicode(href)
                     elif len(href):
-                        url = href
+                        url = unicode(href)
             elif div.attrib.get('id', '') == 'details':
                 size = float(div.getchildren()[0].getchildren()[5].text.split('(')[1].split('Bytes')[0])
                 if len(div.getchildren()) > 1 \
@@ -105,14 +107,14 @@ class TorrentPage(BasePage):
                         leech = ch.text
                     prev_child_txt = ch.text
             elif div.attrib.get('class', '') == 'nfo':
-                description = div.getchildren()[0].text.strip()
+                description = unicode(div.getchildren()[0].text.strip())
         torrent = Torrent(id, title)
         torrent.url = url or NotAvailable
         torrent.magnet = magnet
         torrent.size = size
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
-        torrent.description = description.strip()
+        torrent.description = description
         torrent.files = ['NYI']
 
         return torrent
