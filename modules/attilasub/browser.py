@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages import SubtitlesPage, SearchPage
 
@@ -29,7 +29,7 @@ __all__ = ['AttilasubBrowser']
 class AttilasubBrowser(BaseBrowser):
     DOMAIN = 'davidbillemont3.free.fr'
     PROTOCOL = 'http'
-    ENCODING = 'utf-8'
+    ENCODING = 'windows-1252'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
         'http://search.freefind.com/find.html.*': SearchPage,
@@ -43,6 +43,9 @@ class AttilasubBrowser(BaseBrowser):
 
     def get_subtitle(self, id):
         url_end = id.split('|')[0]
-        self.location('http://davidbillemont3.free.fr/%s' % url_end)
+        try:
+            self.location('http://davidbillemont3.free.fr/%s' % url_end)
+        except BrowserHTTPNotFound:
+            return
         assert self.is_on_page(SubtitlesPage)
         return self.page.get_subtitle(id)

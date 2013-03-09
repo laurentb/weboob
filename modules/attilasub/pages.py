@@ -99,7 +99,7 @@ class SubtitlesPage(BasePage):
                 original_title = " ".join(original_title_words)
 
                 nb_cd = self.parser.select(cols[2],'font',1).text.strip()
-                nb_cd = int(nb_cd.split()[0])
+                nb_cd = int(nb_cd.strip(' CD'))
                 name = "%s (%s)"%(original_title,traduced_title)
                 href = self.parser.select(cols[3],'a',1).attrib.get('href','')
                 url = "http://davidbillemont3.free.fr/%s"%href

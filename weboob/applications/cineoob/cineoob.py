@@ -23,8 +23,10 @@ import sys
 from datetime import datetime
 
 from weboob.applications.weboorrents.weboorrents import TorrentInfoFormatter, TorrentListFormatter
+from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleListFormatter
 from weboob.capabilities.torrent import ICapTorrent
 from weboob.capabilities.cinema import ICapCinema
+from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -148,13 +150,15 @@ class Cineoob(ReplApplication):
                   ", list persons related to a movie, list movies related to a person and list common movies " \
                   "of two persons."
     SHORT_DESCRIPTION = "search movies and persons around cinema"
-    CAPS = (ICapCinema,ICapTorrent)
+    CAPS = (ICapCinema,ICapTorrent,ICapSubtitle)
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,
                         'movie_info': MovieInfoFormatter,
                         'person_list': PersonListFormatter,
                         'person_info': PersonInfoFormatter,
                         'torrent_list': TorrentListFormatter,
                         'torrent_info': TorrentInfoFormatter,
+                        'subtitle_list': SubtitleListFormatter,
+                        'subtitle_info': SubtitleInfoFormatter
                        }
     COMMANDS_FORMATTERS = {'search_movie':    'movie_list',
                            'info_movie':      'movie_info',
@@ -167,6 +171,9 @@ class Cineoob(ReplApplication):
                            'search_torrent':    'torrent_list',
                            'search_movie_torrent':    'torrent_list',
                            'info_torrent':      'torrent_info',
+                           'search_subtitle':    'subtitle_list',
+                           'search_movie_subtitle':    'subtitle_list',
+                           'info_subtitle':      'subtitle_info'
                           }
     ROLE_LIST = ['actor','director','writer','composer','producer']
     COUNTRY_LIST = ['us','fr','de','jp']
@@ -520,4 +527,118 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
             self.cached_format(torrent)
+        self.flush()
+
+    #================== SUBTITLE ==================
+
+    def complete_info_subtitle(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
+    def do_info_subtitle(self, id):
+        """
+        info_subtitle subtitle_ID
+
+        Get information about a subtitle.
+        """
+
+        subtitle = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_subtitle', _id, backends=backend, caps=ICapSubtitle):
+            if result:
+                backend = _backend
+                subtitle = result
+        if not subtitle:
+            print >>sys.stderr, 'Subtitle not found: %s' % id
+            return 3
+
+        self.start_format()
+        self.format(subtitle)
+        self.flush()
+
+
+    def complete_getfile_subtitle(self, text, line, *ignored):
+        args = line.split(' ', 2)
+        if len(args) == 2:
+            return self._complete_object()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+    def do_getfile_subtitle(self, line):
+        """
+        getfile_subtitle subtitle_ID [FILENAME]
+
+        Get the subtitle or archive file.
+        FILENAME is where to write the file. If FILENAME is '-',
+        the file is written to stdout.
+        """
+        id, dest = self.parse_command_args(line, 2, 1)
+
+        _id, backend_name = self.parse_id(id)
+
+        if dest is None:
+            dest = '%s' % _id
+
+        try:
+            for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=ICapSubtitle):
+                if buf:
+                    if dest == '-':
+                        print buf
+                    else:
+                        try:
+                            with open(dest, 'w') as f:
+                                f.write(buf)
+                        except IOError, e:
+                            print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                            return 1
+                    return
+        except CallErrors, errors:
+            for backend, error, backtrace in errors:
+                self.bcall_error_handler(backend, error, backtrace)
+
+        print >>sys.stderr, 'Subtitle "%s" not found' % id
+        return 3
+
+    def do_search_subtitle(self,line):
+        """
+        search_subtitle language [PATTERN]
+
+        Search subtitles.
+        """
+        language, pattern = self.parse_command_args(line, 2, 1)
+        self.change_path([u'search subtitle'])
+        if not pattern:
+            pattern = None
+
+        self.start_format(pattern=pattern)
+        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
+            self.cached_format(subtitle)
+        self.flush()
+
+    def do_search_movie_subtitle(self,line):
+        """
+        search_movie_subtitle language movie_ID
+
+        Search subtitles of movie_ID.
+        """
+        language, id = self.parse_command_args(line, 2, 2)
+        movie = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
+            if result:
+                backend = _backend
+                movie = result
+        if not movie:
+            print >>sys.stderr, 'Movie not found: %s' % id
+            return 3
+
+        pattern = movie.original_title
+        self.change_path([u'search subtitle'])
+        if not pattern:
+            pattern = None
+
+        self.start_format(pattern=pattern)
+        for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
+            self.cached_format(subtitle)
         self.flush()
