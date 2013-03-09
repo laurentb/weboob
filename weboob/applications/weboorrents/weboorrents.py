@@ -25,6 +25,7 @@ from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
+from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['Weboorrents']
@@ -43,7 +44,8 @@ class TorrentInfoFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        result += 'Size: %s\n' % sizeof_fmt(obj.size)
+        if obj.size != NotAvailable:
+            result += 'Size: %s\n' % sizeof_fmt(obj.size)
         result += 'Seeders: %s\n' % obj.seeders
         result += 'Leechers: %s\n' % obj.leechers
         result += 'URL: %s\n' % obj.url

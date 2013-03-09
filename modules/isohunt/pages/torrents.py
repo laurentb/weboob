@@ -38,9 +38,9 @@ class TorrentsPage(BasePage):
                     seed = NotAvailable
                     leech = NotAvailable
                     atitle = tr.getchildren()[2].getchildren()[1]
-                    title = atitle.text
+                    title = unicode(atitle.text)
                     if not title:
-                        title = ''
+                        title = u''
                     for bold in atitle.getchildren():
                         if bold.text:
                             title += bold.text
@@ -57,7 +57,7 @@ class TorrentsPage(BasePage):
                         seed = int(sseed)
                     if sleech != None and sleech != "":
                         leech = int(sleech)
-                    url = 'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
+                    url = u'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
                     torrent = Torrent(idt, title)
                     torrent.url = url
                     torrent.size = get_bytes_size(size, u)
@@ -70,12 +70,12 @@ class TorrentsPage(BasePage):
 
 class TorrentPage(BasePage):
     def get_torrent(self, id):
-        title = ''
+        title = NotAvailable
         size = NotAvailable
         url = 'https://isohunt.com/download/%s/%s.torrent' % (id, id)
         for a in self.document.getiterator('a'):
             if 'Search more torrents of' in a.attrib.get('title', ''):
-                title = a.tail
+                title = unicode(a.tail)
         seed = NotAvailable
         leech = NotAvailable
         tip_id = "none"
@@ -104,7 +104,7 @@ class TorrentPage(BasePage):
                 count_p_found += 1
                 if count_p_found == 1:
                     if p.getchildren()[1].tail != None:
-                        description = p.getchildren()[1].tail
+                        description = unicode(p.getchildren()[1].tail)
                 if count_p_found == 2:
                     if p.getchildren()[0].text == 'Directory:':
                         files.append(p.getchildren()[0].tail.strip() + '/')
@@ -118,8 +118,6 @@ class TorrentPage(BasePage):
                     filename += '/'
                     filename += slash.tail
                 files.append(filename)
-
-        #--------------------------TODO
 
         torrent = Torrent(id, title)
         torrent.url = url
