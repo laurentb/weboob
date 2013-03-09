@@ -59,11 +59,11 @@ class SubtitlesPage(BasePage):
         traduced_title = " ".join(traduced_title_words)
         original_title = " ".join(original_title_words)
 
-        name = "%s (%s)"%(original_title,traduced_title)
-        url = "http://davidbillemont3.free.fr/%s"%href
+        name = unicode('%s (%s)'%(original_title,traduced_title))
+        url = unicode('http://davidbillemont3.free.fr/%s'%href)
         subtitle = Subtitle(id,name)
         subtitle.url = url
-        subtitle.language = "fre"
+        subtitle.language = unicode('fr')
         subtitle.nb_cd = nb_cd
         subtitle.description = NotAvailable.__unicode__()
         return subtitle
@@ -100,13 +100,13 @@ class SubtitlesPage(BasePage):
 
                 nb_cd = self.parser.select(cols[2],'font',1).text.strip()
                 nb_cd = int(nb_cd.strip(' CD'))
-                name = "%s (%s)"%(original_title,traduced_title)
+                name = unicode('%s (%s)'%(original_title,traduced_title))
                 href = self.parser.select(cols[3],'a',1).attrib.get('href','')
-                url = "http://davidbillemont3.free.fr/%s"%href
-                id = "%s|%s"%(self.browser.geturl().split('/')[-1],href)
+                url = unicode('http://davidbillemont3.free.fr/%s'%href)
+                id = unicode('%s|%s'%(self.browser.geturl().split('/')[-1],href))
                 subtitle = Subtitle(id,name)
                 subtitle.url = url
-                subtitle.language = "fre"
+                subtitle.language = unicode('fr')
                 subtitle.nb_cd = nb_cd
                 subtitle.description = NotAvailable.__unicode__()
                 yield subtitle
