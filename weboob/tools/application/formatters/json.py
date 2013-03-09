@@ -18,22 +18,25 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .iformatter import IFormatter
 from weboob.tools.json import json
+
+from .iformatter import IFormatter
+
 __all__ = ['JsonFormatter']
 
+
 class Encoder(json.JSONEncoder):
-    "generic weboob objects encoder"
+    "generic weboob object encoder"
+
     def default(self, obj):
-        try :
+        try:
             return json.JSONEncoder.default(self, obj)
         except TypeError:
-            i = IFormatter()
-            try :
-                dico = i.to_dict(obj)
-            except TypeError:
+            try:
+                dct = obj.to_dict()
+            except AttributeError:
                 return str(obj)
-            for z in dico:
+            for z in dct:
                 return z
 
 

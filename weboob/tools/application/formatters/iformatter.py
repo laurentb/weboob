@@ -27,13 +27,16 @@ if sys.platform == 'win32':
     import WConio
 
 try:
-    import tty, termios
+    import tty
+    import termios
 except ImportError:
     PROMPT = '--Press return to continue--'
+
     def readch():  # NOQA
         return sys.stdin.readline()
 else:
     PROMPT = '--Press a key to continue--'
+
     def readch():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
@@ -49,6 +52,7 @@ else:
 
 from weboob.capabilities.base import CapBaseObject
 from weboob.tools.application.console import ConsoleApplication
+from weboob.tools.ordereddict import OrderedDict
 
 
 __all__ = ['IFormatter', 'MandatoryFieldsNotFound']
@@ -90,7 +94,9 @@ class IFormatter(object):
             if sys.platform == 'win32':
                 self.termrows = WConio.gettextinfo()[8]
             else:
-                self.termrows = int(subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0])
+                self.termrows = int(
+                    subprocess.Popen('stty size', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0]
+                )
 
     def output(self, formatted):
         if self.outfile != sys.stdout:
@@ -143,7 +149,10 @@ class IFormatter(object):
 
             formatted = self.format_obj(obj, alias)
         else:
-            obj = self.to_dict(obj)
+            try:
+                return OrderedDict(obj)
+            except ValueError:
+                raise TypeError('Please give a CapBaseObject or a dict')
 
             if selected_fields is not None and not '*' in selected_fields:
                 obj = obj.copy()
@@ -184,7 +193,7 @@ class IFormatter(object):
         """
         return NotImplementedError()
 
-    
+
 class PrettyFormatter(IFormatter):
     def format_obj(self, obj, alias):
         title = self.get_title(obj)

@@ -62,7 +62,8 @@ class FieldNotFound(Exception):
     """
     def __init__(self, obj, field):
         Exception.__init__(self,
-            u'Field "%s" not found for object %s' % (field, obj))
+                           u'Field "%s" not found for object %s' % (field, obj))
+
 
 class ConversionWarning(UserWarning):
     """
@@ -71,11 +72,13 @@ class ConversionWarning(UserWarning):
     """
     pass
 
+
 class AttributeCreationWarning(UserWarning):
     """
     A non-field attribute has been created with a name not
     prefixed with a _.
     """
+
 
 class NotAvailableMeta(type):
     def __str__(self):
@@ -158,6 +161,7 @@ class Field(object):
         """
         return value
 
+
 class IntField(Field):
     """
     A field which accepts only :class:`int` and :class:`long` types.
@@ -167,6 +171,7 @@ class IntField(Field):
 
     def convert(self, value):
         return int(value)
+
 
 class DecimalField(Field):
     """
@@ -180,6 +185,7 @@ class DecimalField(Field):
             return value
         return Decimal(value)
 
+
 class FloatField(Field):
     """
     A field which accepts only :class:`float` type.
@@ -190,6 +196,7 @@ class FloatField(Field):
     def convert(self, value):
         return float(value)
 
+
 class StringField(Field):
     """
     A field which accepts only :class:`unicode` strings.
@@ -199,6 +206,7 @@ class StringField(Field):
 
     def convert(self, value):
         return to_unicode(value)
+
 
 class BytesField(Field):
     """
@@ -212,12 +220,14 @@ class BytesField(Field):
             value = value.encode('utf-8')
         return str(value)
 
+
 class DateField(Field):
     """
     A field which accepts only :class:`datetime.date` and :class:`datetime.datetime` types.
     """
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
+
 
 class TimeField(Field):
     """
@@ -226,12 +236,14 @@ class TimeField(Field):
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.time, datetime.datetime, **kwargs)
 
+
 class DeltaField(Field):
     """
     A field which accepts only :class:`datetime.timedelta` type.
     """
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.timedelta, **kwargs)
+
 
 class _CapBaseObjectMeta(type):
     def __new__(cls, name, bases, attrs):
@@ -253,6 +265,7 @@ class _CapBaseObjectMeta(type):
                 doc += ' (default: %s)' % field.value
             new_class.__doc__ += '\n:var %s: %s' % (name, doc)
         return new_class
+
 
 class CapBaseObject(object):
     """
@@ -370,7 +383,8 @@ class CapBaseObject(object):
                     # If the value was converted
                     if nvalue is not value:
                         warnings.warn('Value %s was converted from %s to %s' %
-                            (name, type(value), type(nvalue)), ConversionWarning, stacklevel=2)
+                                      (name, type(value), type(nvalue)),
+                                      ConversionWarning, stacklevel=2)
                     value = nvalue
                 except Exception:
                     # error during conversion, it will probably not
@@ -399,5 +413,3 @@ class CapBaseObject(object):
 
         fields_iterator = self.iter_fields()
         return OrderedDict(iter_decorate(fields_iterator))
-
-
