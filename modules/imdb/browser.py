@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
@@ -100,6 +100,8 @@ class ImdbBrowser(BaseBrowser):
         other_titles = []
         roles = {}
 
+        if not jres.has_key('title'):
+            return
         title = unicode(jres['title'].strip())
         if jres.has_key('directors'):
             short_description = unicode(', '.join(jres['directors']))
@@ -150,7 +152,10 @@ class ImdbBrowser(BaseBrowser):
         return movie
 
     def get_person(self, id):
-        self.location('http://www.imdb.com/name/%s' % id)
+        try:
+            self.location('http://www.imdb.com/name/%s' % id)
+        except BrowserHTTPNotFound:
+            return
         assert self.is_on_page(PersonPage)
         return self.page.get_person(id)
 

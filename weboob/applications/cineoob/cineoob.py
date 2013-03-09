@@ -22,6 +22,8 @@ from __future__ import with_statement
 import sys
 from datetime import datetime
 
+from weboob.applications.weboorrents.weboorrents import TorrentInfoFormatter, TorrentListFormatter
+from weboob.capabilities.torrent import ICapTorrent
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.repl import ReplApplication
@@ -146,11 +148,13 @@ class Cineoob(ReplApplication):
                   ", list persons related to a movie, list movies related to a person and list common movies " \
                   "of two persons."
     SHORT_DESCRIPTION = "search movies and persons around cinema"
-    CAPS = ICapCinema
+    CAPS = (ICapCinema,ICapTorrent)
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,
                         'movie_info': MovieInfoFormatter,
                         'person_list': PersonListFormatter,
                         'person_info': PersonInfoFormatter,
+                        'torrent_list': TorrentListFormatter,
+                        'torrent_info': TorrentInfoFormatter,
                        }
     COMMANDS_FORMATTERS = {'search_movie':    'movie_list',
                            'info_movie':      'movie_info',
@@ -159,7 +163,10 @@ class Cineoob(ReplApplication):
                            'casting':         'person_list',
                            'filmography':     'movie_list',
                            'movies_in_common':'movie_list',
-                           'persons_in_common':'person_list'
+                           'persons_in_common':'person_list',
+                           'search_torrent':    'torrent_list',
+                           'search_movie_torrent':    'torrent_list',
+                           'info_torrent':      'torrent_info',
                           }
     ROLE_LIST = ['actor','director','writer','composer','producer']
     COUNTRY_LIST = ['us','fr','de','jp']
@@ -193,11 +200,11 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_person_movies_ids', person1.id):
+        for backend, id in self.do('iter_person_movies_ids', person1.id, caps=ICapCinema):
             lid1.append(id)
         self.flush()
         lid2 = []
-        for backend, id in self.do('iter_person_movies_ids', person2.id):
+        for backend, id in self.do('iter_person_movies_ids', person2.id, caps=ICapCinema):
             lid2.append(id)
         self.flush()
         self.options.count = initial_count
@@ -230,11 +237,11 @@ class Cineoob(ReplApplication):
         self.options.count = None
 
         lid1 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie1.id):
+        for backend, id in self.do('iter_movie_persons_ids', movie1.id, caps=ICapCinema):
             lid1.append(id)
         self.flush()
         lid2 = []
-        for backend, id in self.do('iter_movie_persons_ids', movie2.id):
+        for backend, id in self.do('iter_movie_persons_ids', movie2.id, caps=ICapCinema):
             lid2.append(id)
         self.flush()
         self.options.count = initial_count
@@ -255,7 +262,7 @@ class Cineoob(ReplApplication):
         #movie = self.get_object(id, 'get_movie',['duration'])
         movie = None
         _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_movie', _id, backends=backend):
+        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
             if result:
                 backend = _backend
                 movie = result
@@ -280,7 +287,7 @@ class Cineoob(ReplApplication):
         #person = self.get_object(id, 'get_person',None)
         person = None
         _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_person', _id, backends=backend):
+        for _backend, result in self.do('get_person', _id, backends=backend, caps=ICapCinema):
             if result:
                 backend = _backend
                 person = result
@@ -306,7 +313,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, movie in self.do('iter_movies', pattern=pattern):
+        for backend, movie in self.do('iter_movies', pattern=pattern, caps=ICapCinema):
             self.cached_format(movie)
         self.flush()
 
@@ -321,7 +328,7 @@ class Cineoob(ReplApplication):
             pattern = None
 
         self.start_format(pattern=pattern)
-        for backend, person in self.do('iter_persons', pattern=pattern):
+        for backend, person in self.do('iter_persons', pattern=pattern, caps=ICapCinema):
             self.cached_format(person)
         self.flush()
 
@@ -339,7 +346,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        for backend, person in self.do('iter_movie_persons', movie.id, role):
+        for backend, person in self.do('iter_movie_persons', movie.id, role, caps=ICapCinema):
             self.cached_format(person)
         self.flush()
 
@@ -357,7 +364,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        for backend, movie in self.do('iter_person_movies', person.id, role):
+        for backend, movie in self.do('iter_person_movies', person.id, role, caps=ICapCinema):
             self.cached_format(movie)
         self.flush()
 
@@ -372,7 +379,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        for backend, bio in self.do('get_person_biography', person.id):
+        for backend, bio in self.do('get_person_biography', person.id, caps=ICapCinema):
             print '%s :\n\n%s' % (person.name,bio)
         if bio != NotAvailable:
             self.flush()
@@ -397,8 +404,120 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        for backend, release in self.do('get_movie_releases', movie.id, country):
+        for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema):
             print '%s :\n\n%s' % (movie.original_title,release)
         if release != NotAvailable:
             self.flush()
 
+    #================== TORRENT ==================
+
+    def complete_info_torrent(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
+    def do_info_torrent(self, id):
+        """
+        info_torrent ID
+
+        Get information about a torrent.
+        """
+
+        torrent = self.get_object(id, 'get_torrent')
+        if not torrent:
+            print >>sys.stderr, 'Torrent not found: %s' % id
+            return 3
+
+        self.start_format()
+        self.format(torrent)
+        self.flush()
+
+    def complete_getfile_torrent(self, text, line, *ignored):
+        args = line.split(' ', 2)
+        if len(args) == 2:
+            return self._complete_object()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+    def do_getfile_torrent(self, line):
+        """
+        getfile_torrent ID [FILENAME]
+
+        Get the .torrent file.
+        FILENAME is where to write the file. If FILENAME is '-',
+        the file is written to stdout.
+        """
+        id, dest = self.parse_command_args(line, 2, 1)
+
+        _id, backend_name = self.parse_id(id)
+
+        if dest is None:
+            dest = '%s.torrent' % _id
+
+        try:
+            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name, caps=ICapTorrent):
+                if buf:
+                    if dest == '-':
+                        print buf
+                    else:
+                        try:
+                            with open(dest, 'w') as f:
+                                f.write(buf)
+                        except IOError, e:
+                            print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
+                            return 1
+                    return
+        except CallErrors, errors:
+            for backend, error, backtrace in errors:
+                if isinstance(error, MagnetOnly):
+                    print >>sys.stderr, u'Error(%s): No direct URL available, ' \
+                        u'please provide this magnet URL ' \
+                        u'to your client:\n%s' % (backend, error.magnet)
+                    return 4
+                else:
+                    self.bcall_error_handler(backend, error, backtrace)
+
+        print >>sys.stderr, 'Torrent "%s" not found' % id
+        return 3
+
+    def do_search_torrent(self, pattern):
+        """
+        search_torrent [PATTERN]
+
+        Search torrents.
+        """
+        self.change_path([u'search torrent'])
+        if not pattern:
+            pattern = None
+
+        self.start_format(pattern=pattern)
+        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
+            self.cached_format(torrent)
+        self.flush()
+
+    def do_search_movie_torrent(self, id):
+        """
+        search_movie_torrent movie_ID
+
+        Search torrents of movie_ID.
+        """
+        movie = None
+        _id, backend = self.parse_id(id)
+        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
+            if result:
+                backend = _backend
+                movie = result
+        if not movie:
+            print >>sys.stderr, 'Movie not found: %s' % id
+            return 3
+
+        pattern = movie.original_title
+
+        self.change_path([u'search torrent'])
+        if not pattern:
+            pattern = None
+
+        self.start_format(pattern=pattern)
+        for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
+            self.cached_format(torrent)
+        self.flush()
