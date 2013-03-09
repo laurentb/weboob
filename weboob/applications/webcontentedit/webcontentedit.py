@@ -24,6 +24,7 @@ from __future__ import with_statement
 import os
 import sys
 import tempfile
+import locale
 
 from weboob.core.bcall import CallErrors
 from weboob.capabilities.content import ICapContent
@@ -58,64 +59,87 @@ class WebContentEdit(ReplApplication):
             print >>sys.stderr, 'No contents found'
             return 3
 
-        paths = {}
-        for content in contents:
-            tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
-            if not os.path.isdir(tmpdir):
-                os.makedirs(tmpdir)
-            fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
-            with os.fdopen(fd, 'w') as f:
-                data = content.content
-                if isinstance(data, unicode):
-                    data = data.encode('utf-8')
-                elif data is None:
-                    content.content = u''
-                    data = ''
-                f.write(data)
-            paths[path.encode('utf-8')] = content
+        if sys.stdin.isatty():
+            paths = {}
+            for content in contents:
+                tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
+                if not os.path.isdir(tmpdir):
+                    os.makedirs(tmpdir)
+                fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
+                with os.fdopen(fd, 'w') as f:
+                    data = content.content
+                    if isinstance(data, unicode):
+                        data = data.encode('utf-8')
+                    elif data is None:
+                        content.content = u''
+                        data = ''
+                    f.write(data)
+                paths[path.encode('utf-8')] = content
 
-        params = ''
-        editor = os.environ.get('EDITOR', 'vim')
-        if editor == 'vim':
-            params = '-p'
-        os.system("%s %s %s" % (editor, params, ' '.join(['"%s"' % path.replace('"', '\\"') for path in paths.iterkeys()])))
+            params = ''
+            editor = os.environ.get('EDITOR', 'vim')
+            if editor == 'vim':
+                params = '-p'
+            os.system("%s %s %s" % (editor, params, ' '.join(['"%s"' % path.replace('"', '\\"') for path in paths.iterkeys()])))
 
-        for path, content in paths.iteritems():
-            with open(path, 'r') as f:
-                data = f.read()
+            for path, content in paths.iteritems():
+                with open(path, 'r') as f:
+                    data = f.read()
+                    try:
+                        data = data.decode('utf-8')
+                    except UnicodeError:
+                        pass
+                if content.content != data:
+                    content.content = data
+                else:
+                    contents.remove(content)
+
+            if len(contents) == 0:
+                print >>sys.stderr, 'No changes. Abort.'
+                return 1
+
+            print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
+
+            message = self.ask('Enter a commit message', default='')
+            minor = self.ask('Is this a minor edit?', default=False)
+            if not self.ask('Do you want to push?', default=True):
+                return
+
+            errors = CallErrors([])
+            for content in contents:
+                path = [path for path, c in paths.iteritems() if c == content][0]
+                sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
+                sys.stdout.flush()
                 try:
-                    data = data.decode('utf-8')
-                except UnicodeError:
-                    pass
-            if content.content != data:
-                content.content = data
-            else:
-                contents.remove(content)
+                    self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
+                except CallErrors, e:
+                    errors.errors += e.errors
+                    sys.stdout.write(' error (content saved in %s)\n' % path)
+                else:
+                    sys.stdout.write(' done\n')
+                    os.unlink(path)
+        else:
+            # stdin is not a tty
 
-        if len(contents) == 0:
-            print >>sys.stderr, 'No changes. Abort.'
-            return 1
+            if len(contents) != 1:
+                print >>sys.stderr, "Multiple ids not supported with pipe"
+                return 2
 
-        print 'Contents changed:\n%s' % ('\n'.join(' * %s' % content.id for content in contents))
+            message, minor = '', False
+            data = sys.stdin.read()
+            contents[0].content = data.decode(sys.stdin.encoding or locale.getpreferredencoding())
 
-        message = self.ask('Enter a commit message', default='')
-        minor = self.ask('Is this a minor edit?', default=False)
-        if not self.ask('Do you want to push?', default=True):
-            return
-
-        errors = CallErrors([])
-        for content in contents:
-            path = [path for path, c in paths.iteritems() if c == content][0]
-            sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
-            sys.stdout.flush()
-            try:
-                self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
-            except CallErrors, e:
-                errors.errors += e.errors
-                sys.stdout.write(' error (content saved in %s)\n' % path)
-            else:
-                sys.stdout.write(' done\n')
-                os.unlink(path)
+            errors = CallErrors([])
+            for content in contents:
+                sys.stdout.write('Pushing %s...' % content.id.encode('utf-8'))
+                sys.stdout.flush()
+                try:
+                    self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
+                except CallErrors, e:
+                    errors.errors += e.errors
+                    sys.stdout.write(' error\n')
+                else:
+                    sys.stdout.write(' done\n')
 
         if len(errors.errors) > 0:
             raise errors
