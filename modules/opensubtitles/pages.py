@@ -100,26 +100,26 @@ class SubtitlePage(BasePage):
         father = self.parser.select(self.document.getroot(),'a#app_link',1).getparent()
         a = self.parser.select(father,'a')[1]
         id = a.attrib.get('href','').split('/')[-1]
-        url = "http://www.opensubtitles.org/subtitleserve/sub/%s"%id
+        url = unicode('http://www.opensubtitles.org/subtitleserve/sub/%s'%id)
         link = self.parser.select(self.document.getroot(),'link[rel=bookmark]',1)
-        title = link.attrib.get('title','')
+        title = unicode(link.attrib.get('title',''))
         nb_cd = int(title.lower().split('cd')[0].split()[-1])
-        lang = title.split('(')[1].split(')')[0]
+        lang = unicode(title.split('(')[1].split(')')[0])
         file_names = self.parser.select(self.document.getroot(),"img[title~=filename]")
         if len(file_names) > 0:
             file_name = file_names[0].getparent().text_content()
-            file_name = " ".join(file_name.split())
-            desc = u"files :"
+            file_name = ' '.join(file_name.split())
+            desc = u'files :'
             for f in file_names:
                 desc_line = f.getparent().text_content()
-                desc += "\n"+" ".join(desc_line.split())
-        name = "%s (%s)"%(title,file_name)
+                desc += '\n'+' '.join(desc_line.split())
+        name = unicode('%s (%s)'%(title,file_name))
 
         subtitle = Subtitle(id,name)
         subtitle.url = url
         for lshort,llong in LANGUAGE_CONV.items():
             if lang == llong:
-                lang = lshort
+                lang = unicode(lshort)
                 break
         subtitle.language = lang
         subtitle.nb_cd = nb_cd

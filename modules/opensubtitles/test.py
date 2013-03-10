@@ -19,20 +19,21 @@
 
 from weboob.tools.test import BackendTest
 
-import urllib
 from random import choice
 
 class OpensubtitlesTest(BackendTest):
     BACKEND = 'opensubtitles'
 
     def test_subtitle(self):
-        subtitles = list(self.backend.iter_subtitles('fr','spiderman'))
-        assert (len(subtitles) > 0)
-        for subtitle in subtitles:
-            path, qs = urllib.splitquery(subtitle.url)
-            assert path.endswith('.zip')
+        lsub = []
+        subtitles = self.backend.iter_subtitles('fr','spiderman')
+        for i in range(5):
+            subtitle = subtitles.next()
+            lsub.append(subtitle)
+            assert subtitle.url.startswith('http')
+        assert (len(lsub) > 0)
 
         # get the file of a random sub
-        if len(subtitles):
-            subtitle = choice(subtitles)
+        if len(lsub):
+            subtitle = choice(lsub)
             self.backend.get_subtitle_file(subtitle.id)
