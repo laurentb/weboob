@@ -57,7 +57,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     def id2path(self, id):
         return id.split('/', 2)
 
-    def get_content(self, id):
+    def get_content(self, id, revision=None):
         if isinstance(id, basestring):
             content = Content(id)
         else:
@@ -69,8 +69,9 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
         except ValueError:
             return None
 
+        version = revision.id if revision else None
         with self.browser:
-            data = self.browser.get_wiki_source(project, page)
+            data = self.browser.get_wiki_source(project, page, version)
 
         content.content = data
         return content

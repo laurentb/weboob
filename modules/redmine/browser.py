@@ -36,21 +36,22 @@ __all__ = ['RedmineBrowser']
 # Browser
 class RedmineBrowser(BaseBrowser):
     ENCODING = 'utf-8'
-    PAGES = {'https?://[^/]+/':                                        IndexPage,
-             'https?://[^/]+/login':                                   LoginPage,
-             # compatibility with redmine 0.9
-             'https?://[^/]+/login\?back_url.*':                       MyPage,
-             'https?://[^/]+/my/page':                                 MyPage,
-             'https?://[^/]+/projects':                                ProjectsPage,
-             'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit':    WikiEditPage,
-             'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
-             'https?://[^/]+/projects/[\w-]+/issues/new':              NewIssuePage,
-             'https?://[^/]+/projects/[\w-]+/issues':                  IssuesPage,
-             'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
-             'https?://[^/]+/issues/(\d+)':                            IssuePage,
-             'https?://[^/]+/issues/(\d+)/time_entries/new':           IssueLogTimePage,
-             'https?://[^/]+/projects/[\w-]+/time_entries':            IssueTimeEntriesPage,
-            }
+    PAGES = {
+        'https?://[^/]+/':                                        IndexPage,
+        'https?://[^/]+/login':                                   LoginPage,
+        # compatibility with redmine 0.9
+        'https?://[^/]+/login\?back_url.*':                       MyPage,
+        'https?://[^/]+/my/page':                                 MyPage,
+        'https?://[^/]+/projects':                                ProjectsPage,
+        'https?://[^/]+/projects/([\w-]+)/wiki/([^\/]+)/edit(?:\?version=\d+)?': WikiEditPage,
+        'https?://[^/]+/projects/[\w-]+/wiki/[^\/]*':             WikiPage,
+        'https?://[^/]+/projects/[\w-]+/issues/new':              NewIssuePage,
+        'https?://[^/]+/projects/[\w-]+/issues':                  IssuesPage,
+        'https?://[^/]+/issues(|/?\?.*)':                         IssuesPage,
+        'https?://[^/]+/issues/(\d+)':                            IssuePage,
+        'https?://[^/]+/issues/(\d+)/time_entries/new':           IssueLogTimePage,
+        'https?://[^/]+/projects/[\w-]+/time_entries':            IssueTimeEntriesPage,
+    }
 
     def __init__(self, url, *args, **kwargs):
         self._userid = 0
@@ -86,8 +87,11 @@ class RedmineBrowser(BaseBrowser):
     def get_userid(self):
         return self._userid
 
-    def get_wiki_source(self, project, page):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
+    def get_wiki_source(self, project, page, version=None):
+        url = '%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
+        if version:
+            url += '?version=%s' % version
+        self.location(url)
         return self.page.get_source()
 
     def set_wiki_source(self, project, page, data, message):
@@ -96,7 +100,7 @@ class RedmineBrowser(BaseBrowser):
 
     def get_wiki_preview(self, project, page, data):
         if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project
-            or self.page.groups[1] != page):
+                or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
                                                            project, urllib.quote(page.encode('utf-8'))))
         url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
