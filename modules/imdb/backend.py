@@ -75,7 +75,16 @@ class ImdbBackend(BaseBackend, ICapCinema):
         or 'short_biography' in fields or 'roles' in fields\
         or 'birth_date' in fields\
         or 'gender' in fields or fields == None:
-            return self.get_person(person.id)
+            per = self.get_person(person.id)
+            person.real_name       = per.real_name
+            person.birth_date      = per.birth_date
+            person.death_date      = per.death_date
+            person.birth_place     = per.birth_place
+            person.gender          = per.gender
+            person.nationality     = per.nationality
+            person.short_biography = per.short_biography
+            person.short_description = per.short_description
+            person.roles           = per.roles
 
         if 'biography' in fields:
             person.biography = self.get_person_biography(person.id)
@@ -85,9 +94,16 @@ class ImdbBackend(BaseBackend, ICapCinema):
     def fill_movie(self, movie, fields):
         if 'other_titles' in fields or 'release_date' in fields\
         or 'duration' in fields or 'country' in fields\
-        or 'roles' in fields or 'note' in fields\
-        or fields == None:
-            return self.get_movie(movie.id)
+        or 'roles' in fields or 'note' in fields:
+            mov = self.get_movie(movie.id)
+            movie.other_titles    = mov.other_titles
+            movie.release_date    = mov.release_date
+            movie.duration        = mov.duration
+            movie.pitch           = mov.pitch
+            movie.country         = mov.country
+            movie.note            = mov.note
+            movie.roles           = mov.roles
+            movie.short_description= mov.short_description
         return movie
 
     OBJECTS = {

@@ -49,7 +49,9 @@ class PiratebayBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('https://thepiratebay.se/torrent/%s/' % id)
-
+        try:
+            self.location('https://thepiratebay.se/torrent/%s/' % id)
+        except:
+            return None
         assert self.is_on_page(TorrentPage)
         return self.page.get_torrent(id)

@@ -291,15 +291,7 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        # TODO understand core to get a call to Backend.fill_movie when get_object is called
-        # then the following paragraph can be replace by the following commented line
-        #movie = self.get_object(id, 'get_movie',['duration'])
-        movie = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                movie = result
+        movie = self.get_object(id, 'get_movie',('duration','release_date'))
 
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
@@ -317,14 +309,7 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        # TODO understand core to get a call to Backend.fill_person when get_object is called
-        #person = self.get_object(id, 'get_person')
-        person = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_person', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                person = result
+        person = self.get_object(id, 'get_person',('birth_date','birth_place'))
 
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
