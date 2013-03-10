@@ -55,24 +55,32 @@ class MediawikiBrowser(BaseBrowser):
             return m.group(1)
         else:
             return page
-        
-    def get_wiki_source(self, page):
+
+    def get_wiki_source(self, page, rev=None):
         assert isinstance(self.apiurl, basestring)
 
-        page = self.url2page(page)   
+        page = self.url2page(page)
 
         data = {'action':           'query',
                 'prop':             'revisions|info',
                 'titles':           page,
-                'rvprop':           'content|timestamp',
+                'rvprop':           'content|timestamp|ids',
                 'rvlimit':          '1',
                 'intoken':          'edit',
                 }
+        if rev:
+            data['rvstartid'] = rev
 
         result = self.API_get(data)
         pageid = result['query']['pages'].keys()[0]
         if pageid == "-1":    # Page does not exist
             return ""
+
+        if 'revisions' not in repr(result['query']['pages'][str(pageid)]):
+            raise APIError('Revision %s does not exist' % rev)
+        if rev and result['query']['pages'][str(pageid)]['revisions'][0]['revid'] != int(rev):
+            raise APIError('Revision %s does not exist' % rev)
+
         return result['query']['pages'][str(pageid)]['revisions'][0]['*']
 
     def get_token(self, page, _type):

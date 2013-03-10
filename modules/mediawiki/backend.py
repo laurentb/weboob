@@ -54,12 +54,13 @@ class MediawikiBackend(BaseBackend, ICapContent):
                                    self.config['apiurl'].get(),
                                    username, password)
 
-    def get_content(self, _id):
+    def get_content(self, _id, revision=None):
         _id = _id.replace(' ', '_').encode('utf-8')
         content = Content(_id)
         page = _id
+        rev = revision.id if revision else None
         with self.browser:
-            data = self.browser.get_wiki_source(page)
+            data = self.browser.get_wiki_source(page, rev)
 
         content.content = data
         return content
