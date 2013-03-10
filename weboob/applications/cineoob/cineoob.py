@@ -291,13 +291,11 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        movie = self.get_object(id, 'get_movie',('duration','release_date'))
+        movie = self.get_object(id, 'get_movie')
 
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
-
-        #backend.fillobj(movie, ('duration'))
 
         self.start_format()
         self.format(movie)
@@ -309,7 +307,7 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        person = self.get_object(id, 'get_person',('birth_date','birth_place'))
+        person = self.get_object(id, 'get_person')
 
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
