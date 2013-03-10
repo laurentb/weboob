@@ -391,21 +391,11 @@ class Cineoob(ReplApplication):
 
         Show the complete biography of a person.
         """
-        # TODO understand how to handle short id trying to be get by wrong backends and validate this line !
-        # in other words, find a way to select CAP when 'get_object' to avoid useless errors and clarify the following code
-        #person = self.get_object(person_id,'get_person',('name','biography'))
-
-        person = None
-        _id, backend = self.parse_id(person_id)
-        for _backend, result in self.do('get_person', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                person = result
+        person = self.get_object(person_id,'get_person',('name','biography'))
         if not person:
-            print >>sys.stderr, 'Person not found: %s' % _id
+            print >>sys.stderr, 'Person not found: %s' % person_id
             return 3
 
-        backend.fillobj(person,('biography'))
         self.start_format()
         self.format(person)
         self.flush()
@@ -424,13 +414,7 @@ class Cineoob(ReplApplication):
         """
         id, country = self.parse_command_args(line, 2, 1)
 
-        movie = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                movie = result
-
+        movie = self.get_object(id,'get_movie',('original_title'))
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -538,12 +522,7 @@ class Cineoob(ReplApplication):
 
         Search torrents of movie_ID.
         """
-        movie = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                movie = result
+        movie = self.get_object(id, 'get_movie', ('original_title'))
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3

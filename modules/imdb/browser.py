@@ -63,6 +63,7 @@ class ImdbBrowser(BaseBrowser):
                     movie.country         = NotLoaded
                     movie.note            = NotLoaded
                     movie.roles           = NotLoaded
+                    movie.all_release_dates= NotLoaded
                     yield movie
 
     def iter_persons(self, pattern):
@@ -149,6 +150,7 @@ class ImdbBrowser(BaseBrowser):
         movie.note            = note
         movie.roles           = roles
         movie.short_description= short_description
+        movie.all_release_dates= NotLoaded
         return movie
 
     def get_person(self, id):

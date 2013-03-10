@@ -104,6 +104,10 @@ class ImdbBackend(BaseBackend, ICapCinema):
             movie.note            = mov.note
             movie.roles           = mov.roles
             movie.short_description= mov.short_description
+
+        if 'all_release_dates' in fields:
+            movie.all_release_dates = self.get_movie_releases(movie.id)
+
         return movie
 
     OBJECTS = {

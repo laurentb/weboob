@@ -41,12 +41,17 @@ class ReleasePage(BasePage):
                 country = a.text
                 td_date = self.parser.select(a.getparent().getparent().getparent(),'td')[1]
                 date_links = self.parser.select(td_date,'a')
-                date = date_links[1].attrib.get('href','').strip('/').split('/')[-1]
-                date += '-'+date_links[0].attrib.get('href','').strip('/').split('/')[-1]
+                if len(date_links) > 1:
+                    date = date_links[1].attrib.get('href','').strip('/').split('/')[-1]
+                    date += '-'+date_links[0].attrib.get('href','').strip('/').split('/')[-1]
+                else:
+                    date = unicode(self.parser.select(a.getparent().getparent().getparent(),'td')[1].text_content())
                 result += '%s : %s\n' % (country,date)
         if result == u'':
             result = NotAvailable
-        return result.strip()
+        else:
+            result = result.strip()
+        return result
 
 
 class BiographyPage(BasePage):
