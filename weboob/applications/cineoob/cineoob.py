@@ -550,12 +550,7 @@ class Cineoob(ReplApplication):
         Get information about a subtitle.
         """
 
-        subtitle = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_subtitle', _id, backends=backend, caps=ICapSubtitle):
-            if result:
-                backend = _backend
-                subtitle = result
+        subtitle = self.get_object(id, 'get_subtitle')
         if not subtitle:
             print >>sys.stderr, 'Subtitle not found: %s' % id
             return 3
@@ -630,12 +625,7 @@ class Cineoob(ReplApplication):
         Search subtitles of movie_ID.
         """
         language, id = self.parse_command_args(line, 2, 2)
-        movie = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_movie', _id, backends=backend, caps=ICapCinema):
-            if result:
-                backend = _backend
-                movie = result
+        movie = self.get_object(id, 'get_movie', ('original_title'))
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
