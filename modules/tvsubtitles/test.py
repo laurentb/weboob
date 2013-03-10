@@ -29,8 +29,7 @@ class TvsubtitlesTest(BackendTest):
         subtitles = list(self.backend.iter_subtitles('fr','sopranos'))
         assert (len(subtitles) > 0)
         for subtitle in subtitles:
-            path, qs = urllib.splitquery(subtitle.url)
-            assert path.endswith('.zip')
+            assert subtitle.url.startswith('http')
 
         # get the file of a random sub
         if len(subtitles):

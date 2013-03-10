@@ -83,12 +83,12 @@ class SeasonPage(BasePage):
     """
     def get_subtitle(self):
         filename_line = self.parser.select(self.document.getroot(),'img[alt=filename]',1).getparent().getparent()
-        name = self.parser.select(filename_line,'td')[2].text
+        name = unicode(self.parser.select(filename_line,'td')[2].text)
         id = self.browser.geturl().split('/')[-1].replace('.html','').replace('subtitle-','')
-        url = "http://%s/download-%s.html"%(self.browser.DOMAIN,id)
+        url = unicode('http://%s/download-%s.html'%(self.browser.DOMAIN,id))
         amount_line = self.parser.select(self.document.getroot(),'tr[title~=amount]',1)
         nb_cd = int(self.parser.select(amount_line,'td')[2].text)
-        lang = url.split('-')[-1].split('.html')[0]
+        lang = unicode(url.split('-')[-1].split('.html')[0])
         filenames_line = self.parser.select(self.document.getroot(),'tr[title~=list]',1)
         file_names = self.parser.select(filenames_line,'td')[2].text_content().strip().replace('.srt','.srt\n')
         desc = u"files :\n"
