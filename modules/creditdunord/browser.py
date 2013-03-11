@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
@@ -30,24 +31,27 @@ __all__ = ['CreditDuNordBrowser']
 
 class CreditDuNordBrowser(BaseBrowser):
     PROTOCOL = 'https'
-    DOMAIN = 'www.credit-du-nord.fr'
-    CERTHASH = 'b2f8a8a7a03c54d7bb918f10eb4e141c3fb51bebf0eb8371aefb33a997efc600'
     ENCODING = 'UTF-8'
-    PAGES = {'https://www.credit-du-nord.fr/?':                         LoginPage,
-             'https://www.credit-du-nord.fr/vos-comptes/particuliers(\?.*)?':  AccountsPage,
-             'https://www.credit-du-nord.fr/vos-comptes/.*/transac/.*': TransactionsPage,
+    PAGES = {'https://[^/]+/?':                                         LoginPage,
+             'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion':    LoginPage,
+             'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
+             'https://[^/]+/vos-comptes/.*/transac/.*':                 TransactionsPage,
             }
+
+    def __init__(self, website, *args, **kwargs):
+        self.DOMAIN = website
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page(LoginPage)
 
     def home(self):
         if self.is_logged():
-            self.location('https://www.credit-du-nord.fr/vos-comptes/particuliers')
+            self.location(self.buildurl('/vos-comptes/particuliers'))
         else:
             self.login()
         return
-        return self.location('https://www.credit-du-nord.fr/vos-comptes/particuliers')
+        return self.location(self.buildurl('/vos-comptes/particuliers'))
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -56,21 +60,28 @@ class CreditDuNordBrowser(BaseBrowser):
         # not necessary (and very slow)
         #self.location('https://www.credit-du-nord.fr/', no_login=True)
 
-        data = {'bank':         'credit-du-nord',
+        m = re.match('www.([^\.]+).fr', self.DOMAIN)
+        if not m:
+            bank_name = 'credit-du-nord'
+            self.logger.error('Unable to find bank name for %s' % self.DOMAIN)
+        else:
+            bank_name = m.group(1)
+
+        data = {'bank':         bank_name,
                 'pagecible':    'vos-comptes',
                 'password':     self.password.encode(self.ENCODING),
                 'pwAuth':       'Authentification+mot+de+passe',
                 'username':     self.username.encode(self.ENCODING),
                }
 
-        self.location('https://www.credit-du-nord.fr/saga/authentification', urllib.urlencode(data), no_login=True)
+        self.location(self.buildurl('/saga/authentification'), urllib.urlencode(data), no_login=True)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('https://www.credit-du-nord.fr/vos-comptes/particuliers')
+            self.location(self.buildurl('/vos-comptes/particuliers'))
         return self.page.get_list()
 
     def get_account(self, id):

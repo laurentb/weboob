@@ -21,7 +21,8 @@ from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import CreditDuNordBrowser
 
@@ -36,12 +37,20 @@ class CreditDuNordBackend(BaseBackend, ICapBank):
     VERSION = '0.f'
     DESCRIPTION = u'Crédit du Nord French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
+    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
+        'www.credit-du-nord.fr':    u'Crédit du Nord',
+        'www.banque-courtois.fr':   u'Banque Courtois',
+        'www.tarneaud.fr':          u'Tarneaud',
+        }.iteritems(), key=lambda (k, v): (v, k))])
+    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='www.credit-du-nord.fr'),
+                           ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password of account'))
     BROWSER = CreditDuNordBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config['website'].get(),
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         with self.browser:
