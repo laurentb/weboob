@@ -281,13 +281,13 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                     for basket in baskets:
                         if parse_dt(basket['date']) <= slut['lastmsg']:
                             continue
-                        contact = self.get_contact(basket['id'])
+                        contact = self.get_contact(basket['who']['id'])
                         if self.antispam and not self.antispam.check_contact(contact):
                             self.logger.info('Skipped a spam-basket from %s' % contact.name)
-                            self.report_spam(basket['id'])
+                            self.report_spam(basket['who']['id'])
                             continue
 
-                        thread = Thread(int(basket['id']))
+                        thread = Thread(int(basket['who']['id']))
                         thread.title = 'Basket of %s' % contact.name
                         thread.root = Message(thread=thread,
                                               id=self.MAGIC_ID_BASKET,
