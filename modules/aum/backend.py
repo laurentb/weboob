@@ -34,7 +34,7 @@ from weboob.capabilities.dating import ICapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import ICapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.browser import BrowserUnavailable
+from weboob.tools.browser import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValuesDict, ValueBool, ValueBackendPassword
 from weboob.tools.log import getLogger
 from weboob.tools.misc import local2utc, to_unicode
@@ -194,9 +194,12 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
 
                 if get_profiles:
                     if not mail['from'] in contacts:
-                        with self.browser:
-                            contacts[mail['from']] = self.get_contact(mail['from'])
-                    if self.antispam and not self.antispam.check_contact(contacts[mail['from']]):
+                        try:
+                            with self.browser:
+                                contacts[mail['from']] = self.get_contact(mail['from'])
+                        except BrowserHTTPNotFound:
+                            pass
+                    if self.antispam and mail['from'] in contacts and not self.antispam.check_contact(contacts[mail['from']]):
                         self.logger.info('Skipped a spam-mail-profile from %s' % mails['who']['pseudo'])
                         self.report_spam(thread.id)
                         break
