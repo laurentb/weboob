@@ -35,12 +35,12 @@ class MiniPerson(QFrame):
         self.weboob = weboob
         self.backend = backend
         self.person = person
-        self.ui.nameLabel.setText(person.name)
-        self.ui.shortDescLabel.setText(person.short_description)
+        self.ui.nameLabel.setText('%s'%person.name)
+        self.ui.shortDescLabel.setText('%s'%person.short_description)
         self.ui.backendLabel.setText(backend.name)
 
-        self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
-        self.process_thumbnail.do('fillobj', self.person, ['thumbnail_url'], backends=backend)
+        #self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
+        #self.process_thumbnail.do('fillobj', self.person, ['thumbnail_url'], backends=backend)
 
     def gotThumbnail(self, backend, person):
         if self.person.thumbnail_url != NotAvailable:

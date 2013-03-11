@@ -91,6 +91,21 @@ class MainWindow(QtMainWindow):
                 self.ui.backButton.setDisabled(True)
             return todo['function'](*todo['args'])
 
+    def castingAction(self, id, role):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.person_list_page)
+        for miniperson in self.minipersons:
+            self.ui.person_list_content.layout().removeWidget(miniperson)
+            miniperson.hide()
+            miniperson.deleteLater()
+
+        self.minipersons = []
+        self.ui.searchEdit.setEnabled(False)
+
+        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addPerson)
+        self.process.do('iter_movie_persons', id, role, backends=backend_name)
+
     def search(self):
         tosearch = self.ui.typeCombo.currentText()
         if tosearch == 'person':

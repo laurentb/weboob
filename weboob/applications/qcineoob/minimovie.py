@@ -39,8 +39,8 @@ class MiniMovie(QFrame):
         self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
-        self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
-        self.process_thumbnail.do('fillobj', self.movie, ['thumbnail_url'], backends=backend)
+        #self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
+        #self.process_thumbnail.do('fillobj', self.movie, ['thumbnail_url'], backends=backend)
 
     def gotThumbnail(self, backend, movie):
         if self.movie.thumbnail_url != NotAvailable:

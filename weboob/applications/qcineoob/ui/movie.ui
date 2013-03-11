@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>428</width>
-    <height>490</height>
+    <width>434</width>
+    <height>552</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,12 +46,50 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QLabel" name="imageLabel">
         <property name="text">
          <string/>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame_10">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QPushButton" name="castingButton">
+           <property name="text">
+            <string>view casting</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="castingCombo">
+           <item>
+            <property name="text">
+             <string>all</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>actors</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>directors</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

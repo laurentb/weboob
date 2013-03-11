@@ -19,7 +19,7 @@
 
 import urllib
 
-from PyQt4.QtCore import QUrl,Qt
+from PyQt4.QtCore import QUrl,Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
@@ -31,6 +31,8 @@ class Movie(QFrame):
         self.parent = parent
         self.ui = Ui_Movie()
         self.ui.setupUi(self)
+
+        self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
 
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
@@ -53,4 +55,11 @@ class Movie(QFrame):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
+    def casting(self):
+        role = None
+        tosearch = self.ui.castingCombo.currentText()
+        if tosearch != 'all':
+            role = tosearch[:-1]
+        self.parent.doAction(self.parent.castingAction,[self.movie.id,role])
 
