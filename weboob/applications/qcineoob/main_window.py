@@ -107,7 +107,7 @@ class MainWindow(QtMainWindow):
     def searchMovieAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.movie_list_page)
         for minimovie in self.minimovies:
-            self.ui.movie_list_page.layout().removeWidget(minimovie)
+            self.ui.movie_list_content.layout().removeWidget(minimovie)
             minimovie.hide()
             minimovie.deleteLater()
 
@@ -125,17 +125,17 @@ class MainWindow(QtMainWindow):
             self.process = None
             return
         minimovie = MiniMovie(self.weboob, backend, movie, self)
-        self.ui.scrollAreaContent.layout().addWidget(minimovie)
+        self.ui.movie_list_content.layout().addWidget(minimovie)
         self.minimovies.append(minimovie)
 
     def displayMovie(self, movie):
         self.ui.stackedWidget.setCurrentWidget(self.ui.movie_info_page)
         if self.current_movie_widget != None:
-            self.ui.movie_info_page.layout().removeWidget(self.current_movie_widget)
+            self.ui.movie_info_content.layout().removeWidget(self.current_movie_widget)
             self.current_movie_widget.hide()
             self.current_movie_widget.deleteLater()
         wmovie = Movie(movie,self)
-        self.ui.movie_info_page.layout().addWidget(wmovie)
+        self.ui.movie_info_content.layout().addWidget(wmovie)
         self.current_movie_widget = wmovie
 
     def searchPerson(self):
@@ -147,7 +147,7 @@ class MainWindow(QtMainWindow):
     def searchPersonAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.person_list_page)
         for miniperson in self.minipersons:
-            self.ui.person_list_page.layout().removeWidget(miniperson)
+            self.ui.person_list_content.layout().removeWidget(miniperson)
             miniperson.hide()
             miniperson.deleteLater()
 
@@ -165,17 +165,17 @@ class MainWindow(QtMainWindow):
             self.process = None
             return
         miniperson = MiniPerson(self.weboob, backend, person, self)
-        self.ui.scrollAreaContent_2.layout().addWidget(miniperson)
+        self.ui.person_list_content.layout().addWidget(miniperson)
         self.minipersons.append(miniperson)
 
     def displayPerson(self, person):
         self.ui.stackedWidget.setCurrentWidget(self.ui.person_info_page)
         if self.current_person_widget != None:
-            self.ui.person_info_page.layout().removeWidget(self.current_person_widget)
+            self.ui.person_info_content.layout().removeWidget(self.current_person_widget)
             self.current_person_widget.hide()
             self.current_person_widget.deleteLater()
         wperson = Person(person,self)
-        self.ui.person_info_page.layout().addWidget(wperson)
+        self.ui.person_info_content.layout().addWidget(wperson)
         self.current_person_widget = wperson
 
     def closeEvent(self, ev):

@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
 from PyQt4.QtCore import QUrl
-from PyQt4.QtGui import QFrame
-from PyQt4.phonon import Phonon
+from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
+from weboob.capabilities.base import NotAvailable, NotLoaded
 
 class Person(QFrame):
     def __init__(self, person, parent=None):
@@ -32,5 +33,20 @@ class Person(QFrame):
         self.ui.setupUi(self)
 
         self.person = person
+        self.gotThumbnail()
         self.ui.nameLabel.setText(person.name)
-        self.ui.birthdateLabel.setText(person.birth_date.isoformat())
+
+        self.ui.realNameLabel.setText('%s'%person.real_name)
+        self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
+        self.ui.birthDateLabel.setText(person.birth_date.isoformat())
+        if person.death_date != NotAvailable:
+            self.ui.deathDateLabel.setText(person.death_date.isoformat())
+        else:
+            self.ui.deathDateLabel.parent().hide()
+        self.ui.shortBioPlain.setPlainText('%s'%person.short_biography)
+
+    def gotThumbnail(self):
+        if self.person.thumbnail_url != NotAvailable:
+            data = urllib.urlopen(self.person.thumbnail_url).read()
+            img = QImage.fromData(data)
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))

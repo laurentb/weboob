@@ -79,13 +79,10 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QScrollArea" name="scrollArea">
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="scrollAreaContent">
+          <widget class="QWidget" name="movie_list_content">
            <property name="geometry">
             <rect>
              <x>0</x>
@@ -94,56 +91,77 @@
              <height>313</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-           </layout>
+           <layout class="QVBoxLayout" name="verticalLayout_2"/>
           </widget>
          </widget>
         </item>
        </layout>
       </widget>
       <widget class="QWidget" name="movie_info_page">
-       <layout class="QVBoxLayout" name="movieInfoLayout"/>
-      </widget>
-      <widget class="QWidget" name="person_list_page">
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QVBoxLayout" name="movieInfoLayout">
         <item>
          <widget class="QScrollArea" name="scrollArea_2">
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
-          <widget class="QWidget" name="scrollAreaContent_2">
+          <widget class="QWidget" name="movie_info_content">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>78</width>
-             <height>16</height>
+             <width>542</width>
+             <height>313</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-           </layout>
+           <layout class="QVBoxLayout" name="verticalLayout_8"/>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="person_list_page">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QScrollArea" name="scrollArea_4">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="person_list_content">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>542</width>
+             <height>313</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5"/>
           </widget>
          </widget>
         </item>
        </layout>
       </widget>
       <widget class="QWidget" name="person_info_page">
-       <layout class="QVBoxLayout" name="verticalLayout_7"/>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <widget class="QScrollArea" name="scrollArea_5">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="person_info_content">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>542</width>
+             <height>313</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4"/>
+          </widget>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>

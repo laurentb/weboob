@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
-from PyQt4.QtCore import QUrl
-from PyQt4.QtGui import QFrame
-from PyQt4.phonon import Phonon
+from PyQt4.QtCore import QUrl,Qt
+from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
+from weboob.capabilities.base import NotAvailable, NotLoaded
 
 class Movie(QFrame):
     def __init__(self, movie, parent=None):
@@ -34,3 +35,22 @@ class Movie(QFrame):
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
         self.ui.durationLabel.setText(unicode(movie.duration))
+        self.gotThumbnail()
+
+        if movie.other_titles != NotAvailable:
+            self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
+        if movie.release_date != NotAvailable:
+            self.ui.releaseDateLabel.setText(movie.release_date.isoformat())
+        self.ui.durationLabel.setText('%s'%movie.duration)
+        self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
+        self.ui.countryLabel.setText('%s'%movie.country)
+        self.ui.noteLabel.setText('%s'%movie.note)
+
+        self.ui.verticalLayout.setAlignment(Qt.AlignTop)
+
+    def gotThumbnail(self):
+        if self.movie.thumbnail_url != NotAvailable:
+            data = urllib.urlopen(self.movie.thumbnail_url).read()
+            img = QImage.fromData(data)
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
