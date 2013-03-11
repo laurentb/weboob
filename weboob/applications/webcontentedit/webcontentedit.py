@@ -25,9 +25,10 @@ import os
 import sys
 import tempfile
 import locale
+import codecs
 
 from weboob.core.bcall import CallErrors
-from weboob.capabilities.content import ICapContent
+from weboob.capabilities.content import ICapContent, Revision
 from weboob.tools.application.repl import ReplApplication
 
 
@@ -163,3 +164,32 @@ class WebContentEdit(ReplApplication):
         for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count, backends=backend_names):
             self.format(revision)
         self.flush()
+
+    def do_get(self, line):
+        """
+        get ID [revision]
+
+        Get page contents
+        """
+        if not line:
+            print >>sys.stderr, 'Error: please give a page ID'
+            return 2
+        line = line.rsplit(' ', 1)
+        if len(line) > 1:
+            revision = Revision(line[1])
+        else:
+            revision = None
+        _id, backend_name = self.parse_id(line[0])
+
+        backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
+
+        _id = _id.encode('utf-8')
+
+        output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
+        for contents in [content for backend, content in self.do('get_content', _id, revision, backends=backend_names) if content]:
+            output.write(contents.content)
+
+        # add a newline unless we are writing
+        # in a file or in a pipe
+        if os.isatty(output.fileno()):
+            output.write('\n')
