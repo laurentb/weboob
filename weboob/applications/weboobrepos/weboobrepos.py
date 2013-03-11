@@ -119,7 +119,8 @@ class WeboobRepos(ReplApplication):
                 for keyfile in os.listdir(os.path.join(source_path, r.KEYDIR)):
                     print 'Adding key %s' % keyfile
                     keypath = os.path.join(source_path, r.KEYDIR, keyfile)
-                    subprocess.check_call([gpg,
+                    subprocess.check_call([
+                        gpg,
                         '--quiet',
                         '--no-default-keyring',
                         '--keyring', os.path.realpath(krname),
@@ -158,19 +159,21 @@ class WeboobRepos(ReplApplication):
 
         if r.signed:
             # Find out which keys are allowed to sign
-            fingerprints = [line.strip(':').split(':')[-1]
-                    for line
-                    in subprocess.Popen([gpg,
-                        '--with-fingerprint', '--with-colons',
-                        '--list-public-keys',
-                        '--no-default-keyring',
-                        '--keyring', os.path.realpath(krname)],
-                        stdout=subprocess.PIPE).communicate()[0].splitlines()
-                    if line.startswith('fpr:')]
+            fingerprints = [gpgline.strip(':').split(':')[-1]
+                            for gpgline
+                            in subprocess.Popen([
+                                gpg,
+                                '--with-fingerprint', '--with-colons',
+                                '--list-public-keys',
+                                '--no-default-keyring',
+                                '--keyring', os.path.realpath(krname)],
+                                stdout=subprocess.PIPE).communicate()[0].splitlines()
+                            if gpgline.startswith('fpr:')]
             # Find out the first secret key we have that is allowed to sign
             secret_fingerprint = None
             for fingerprint in fingerprints:
-                proc = subprocess.Popen([gpg,
+                proc = subprocess.Popen([
+                    gpg,
                     '--list-secret-keys', fingerprint],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
@@ -193,7 +196,8 @@ class WeboobRepos(ReplApplication):
                     print 'Signing %s' % filename
                     if os.path.exists(sigpath):
                         os.remove(sigpath)
-                    subprocess.check_call([gpg,
+                    subprocess.check_call([
+                        gpg,
                         '--quiet',
                         '--local-user', secret_fingerprint,
                         '--detach-sign',
