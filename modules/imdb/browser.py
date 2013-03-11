@@ -64,6 +64,7 @@ class ImdbBrowser(BaseBrowser):
                     movie.note            = NotLoaded
                     movie.roles           = NotLoaded
                     movie.all_release_dates= NotLoaded
+                    movie.thumbnail_url  = NotLoaded
                     yield movie
 
     def iter_persons(self, pattern):
@@ -82,6 +83,7 @@ class ImdbBrowser(BaseBrowser):
                     person.short_biography= NotLoaded
                     person.short_description= latin2unicode(p['description'])
                     person.roles          = NotLoaded
+                    person.thumbnail_url  = NotLoaded
                     yield person
 
     def get_movie(self, id):
@@ -209,6 +211,9 @@ dict_hex = {'&#xE1;': u'á',
             '&#xFC;': u'ü',
             '&#x26;': u'&',
             '&#x27;': u"'",
+            '&#xE0;': u'à',
+            '&#xC0;': u'À',
+            '&#xE2;': u'â',
             '&#xE7;': u'ç'
             }
 def latin2unicode(word):

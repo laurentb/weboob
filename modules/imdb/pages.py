@@ -92,6 +92,7 @@ class MovieCrewPage(BasePage):
                     person.nationality    = NotLoaded
                     person.short_biography= NotLoaded
                     person.roles          = NotLoaded
+                    person.thumbnail_url  = NotLoaded
                     yield person
 
         for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
@@ -135,6 +136,7 @@ class PersonPage(BasePage):
         death_date = NotAvailable
         real_name = NotAvailable
         gender = NotAvailable
+        thumbnail_url = NotAvailable
         roles = {}
         nationality = NotAvailable
         td_overview = self.parser.select(self.document.getroot(),'td#overview-top',1)
@@ -171,6 +173,10 @@ class PersonPage(BasePage):
                 dtime.append('1')
                 dtime.append('1')
             death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
+        img_thumbnail = self.parser.select(self.document.getroot(),'td#img_primary img')
+        if len(img_thumbnail) > 0:
+            thumbnail_url = unicode(img_thumbnail[0].attrib.get('src',''))
+
         # go to the filmography page
         self.browser.location('http://www.imdb.com/name/%s/filmotype'%id)
         assert self.browser.is_on_page(FilmographyPage)
@@ -186,6 +192,7 @@ class PersonPage(BasePage):
         person.short_biography = short_biography
         person.short_description = short_description
         person.roles           = roles
+        person.thumbnail_url   = thumbnail_url
         return person
 
 class FilmographyPage(BasePage):

@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.tools.application.qt import QtDo
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
+from weboob.capabilities.base import NotAvailable, NotLoaded
 
 class MiniMovie(QFrame):
     def __init__(self, weboob, backend, movie, parent=None):
@@ -34,17 +36,16 @@ class MiniMovie(QFrame):
         self.backend = backend
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
+        self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
-        #self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
-        #self.process_thumbnail.do('fillobj', self.movie, ['thumbnail_url'], backends=backend)
+        self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
+        self.process_thumbnail.do('fillobj', self.movie, ['thumbnail_url'], backends=backend)
 
     def gotThumbnail(self, backend, movie):
-        if not backend:
-            return
-
-        if movie.thumbnail_url:
-            img = QImage.fromData(movie.thumbnail.data)
+        if self.movie.thumbnail_url != NotAvailable:
+            data = urllib.urlopen(self.movie.thumbnail_url).read()
+            img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 
     def enterEvent(self, event):

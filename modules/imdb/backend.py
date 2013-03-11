@@ -73,7 +73,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
         if 'real_name' in fields or 'birth_place' in fields\
         or 'death_date' in fields or 'nationality' in fields\
         or 'short_biography' in fields or 'roles' in fields\
-        or 'birth_date' in fields\
+        or 'birth_date' in fields or 'thumbnail_url' in fields\
         or 'gender' in fields or fields == None:
             per = self.get_person(person.id)
             person.real_name       = per.real_name
@@ -85,6 +85,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
             person.short_biography = per.short_biography
             person.short_description = per.short_description
             person.roles           = per.roles
+            person.thumbnail_url   = per.thumbnail_url
 
         if 'biography' in fields:
             person.biography = self.get_person_biography(person.id)
@@ -94,7 +95,8 @@ class ImdbBackend(BaseBackend, ICapCinema):
     def fill_movie(self, movie, fields):
         if 'other_titles' in fields or 'release_date' in fields\
         or 'duration' in fields or 'country' in fields\
-        or 'roles' in fields or 'note' in fields:
+        or 'roles' in fields or 'note' in fields\
+        or 'thumbnail_url' in fields:
             mov = self.get_movie(movie.id)
             movie.other_titles    = mov.other_titles
             movie.release_date    = mov.release_date
@@ -104,6 +106,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
             movie.note            = mov.note
             movie.roles           = mov.roles
             movie.short_description= mov.short_description
+            movie.thumbnail_url  = mov.thumbnail_url
 
         if 'all_release_dates' in fields:
             movie.all_release_dates = self.get_movie_releases(movie.id)

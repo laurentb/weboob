@@ -60,6 +60,7 @@ class Person(CapBaseObject):
     biography        = StringField('Full biography of a person')
     short_description= StringField('Short description of a person')
     roles            = Field('Lists of movies related to the person indexed by roles',dict)
+    thumbnail_url    = StringField('Url of person thumbnail')
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
