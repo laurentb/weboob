@@ -98,12 +98,15 @@ class ImdbBrowser(BaseBrowser):
         country = NotAvailable
         note = NotAvailable
         short_description = NotAvailable
+        thumbnail_url = NotAvailable
         other_titles = []
         roles = {}
 
         if not jres.has_key('title'):
             return
         title = unicode(jres['title'].strip())
+        if jres.has_key('poster'):
+            thumbnail_url = unicode(jres['poster'])
         if jres.has_key('directors'):
             short_description = unicode(', '.join(jres['directors']))
         if jres.has_key('runtime'):
@@ -151,6 +154,7 @@ class ImdbBrowser(BaseBrowser):
         movie.roles           = roles
         movie.short_description= short_description
         movie.all_release_dates= NotLoaded
+        movie.thumbnail_url   = thumbnail_url
         return movie
 
     def get_person(self, id):

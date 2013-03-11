@@ -38,6 +38,7 @@ class Movie(CapBaseObject):
     country          = StringField('Origin country of the movie')
     note             = StringField('Notation of the movie')
     roles            = Field('Lists of Persons related to the movie indexed by roles',dict)
+    thumbnail_url    = StringField('Url of movie thumbnail')
 
     def __init__(self, id, original_title):
         CapBaseObject.__init__(self, id)
