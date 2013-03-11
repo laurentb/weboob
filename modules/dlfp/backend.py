@@ -235,15 +235,17 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
                                              message.content)
 
     #### ICapContent ###############################################
-    def get_content(self, id):
-        if isinstance(id, basestring):
-            content = Content(id)
+    def get_content(self, _id, revision=None):
+        if isinstance(_id, basestring):
+            content = Content(_id)
         else:
-            content = id
-            id = content.id
+            content = _id
+            _id = content.id
 
+        if revision:
+            raise NotImplementedError('Website does not provide access to older revisions sources.')
         with self.browser:
-            data = self.browser.get_wiki_content(id)
+            data = self.browser.get_wiki_content(_id)
 
         if data is None:
             return None
