@@ -39,7 +39,8 @@ class MiniMovie(QFrame):
         self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
-    def gotThumbnail(self, backend, movie):
+    def gotThumbnail(self):
+        self.backend.fill_movie(self.movie,('thumbnail_url'))
         if self.movie.thumbnail_url != NotAvailable:
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
@@ -56,7 +57,10 @@ class MiniMovie(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        QApplication.setOverrideCursor( Qt.WaitCursor )
-        movie = self.backend.get_movie(self.movie.id)
-        if movie:
-            self.parent.doAction('Details of movie "%s"'%movie.original_title,self.parent.displayMovie,[movie])
+        if event.button() == 2:
+            self.gotThumbnail()
+        else:
+            QApplication.setOverrideCursor( Qt.WaitCursor )
+            movie = self.backend.get_movie(self.movie.id)
+            if movie:
+                self.parent.doAction('Details of movie "%s"'%movie.original_title,self.parent.displayMovie,[movie])

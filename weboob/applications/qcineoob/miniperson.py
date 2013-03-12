@@ -45,7 +45,8 @@ class MiniPerson(QFrame):
             self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
-    def gotThumbnail(self, backend, person):
+    def gotThumbnail(self):
+        self.backend.fill_person(self.person,('thumbnail_url'))
         if self.person.thumbnail_url != NotAvailable:
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
@@ -62,7 +63,10 @@ class MiniPerson(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        QApplication.setOverrideCursor( Qt.WaitCursor )
-        person = self.backend.get_person(self.person.id)
-        if person:
-            self.parent.doAction(u'Details of person "%s"'%person.name,self.parent.displayPerson,[person])
+        if event.button() == 2:
+            self.gotThumbnail()
+        else:
+            QApplication.setOverrideCursor( Qt.WaitCursor )
+            person = self.backend.get_person(self.person.id)
+            if person:
+                self.parent.doAction(u'Details of person "%s"'%person.name,self.parent.displayPerson,[person])
