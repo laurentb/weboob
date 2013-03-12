@@ -64,9 +64,10 @@ class TransferPage(BasePage):
     def ischecked(self, account):
         id = account.id
         # remove prefix (CC-, LA-, ...)
-        id = id[3:]
+        if "-" in id:
+            id = id.split('-')[1]
         option = self.document.xpath('//input[@value="%s"]' % id)
-        if len(option) < 0:
+        if len(option) == 0:
             raise AccountNotFound()
         else:
             option = option[0]
