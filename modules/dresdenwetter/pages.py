@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, date, time
 from weboob.tools.browser import BasePage
-from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.gauge import GaugeMeasure, GaugeSensor
+from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['StartPage']
