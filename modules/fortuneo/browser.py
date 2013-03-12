@@ -19,6 +19,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.login import LoginPage
@@ -80,6 +83,13 @@ class Fortuneo(BaseBrowser):
 
     def get_history(self, account):
         self.location(account._link_id)
+
+        self.select_form(name='ConsultationHistoriqueOperationsForm')
+        self.set_all_readonly(False)
+        self['dateRechercheDebut'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        self['nbrEltsParPage'] = '100'
+        self.submit()
+
         return self.page.get_operations(account)
 
     def get_accounts_list(self):

@@ -57,20 +57,20 @@ class AccountHistoryPage(BasePage):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 
         # TODO need to rewrite that with FrenchTransaction class http://tinyurl.com/6lq4r9t
-        operations = []
         tables = self.document.findall(".//*[@id='tabHistoriqueOperations']/tbody/tr")
 
         if len(tables) == 0:
-            return []
+            return
 
         for i in range(len(tables)):
-            operation = Transaction(len(operations))
+            operation = Transaction(i)
             operation.type  = 0
             operation.category  = NotAvailable
 
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
+            label           = re.sub(r'[ \xa0]+', ' ', label).strip()
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
 
             operation.parse(date=date_val, raw=label)
@@ -83,9 +83,7 @@ class AccountHistoryPage(BasePage):
 
             operation.set_amount(amount)
 
-            operations.append(operation)
-
-        return operations
+            yield operation
 
 class AccountsList(BasePage):
     def on_loaded(self):
@@ -122,8 +120,6 @@ class AccountsList(BasePage):
         return len(form) > 0
 
     def get_list(self):
-        l = []
-
         for cpt in self.document.xpath(".//*[@class='synthese_id_compte']"):
             account = Account()
 
@@ -158,9 +154,7 @@ class AccountsList(BasePage):
             temp_label = cpt.xpath('./text()')[1].replace(u'-\xa0', '').replace("\n", "").replace("\t", "")
             account.label = " ".join(temp_label.split(" ")[:2])
 
-            l.append(account)
-
-        return l
+            yield account
 
 class GlobalAccountsList(BasePage):
     pass
