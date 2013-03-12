@@ -25,6 +25,7 @@ from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
+
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
 
 from .minimovie import MiniMovie
@@ -247,13 +248,13 @@ class MainWindow(QtMainWindow):
         self.ui.list_content.layout().addWidget(minitorrent)
         self.minis.append(minitorrent)
 
-    def displayTorrent(self, torrent):
+    def displayTorrent(self, torrent, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
         if self.current_info_widget != None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
-        wtorrent = Torrent(torrent,self)
+        wtorrent = Torrent(torrent, backend, self)
         self.ui.info_content.layout().addWidget(wtorrent)
         self.current_info_widget = wtorrent
 

@@ -17,13 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+from PyQt4.QtGui import QFrame
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap
-
-from weboob.tools.application.qt import QtDo
 from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 
 class MiniTorrent(QFrame):
     def __init__(self, weboob, backend, torrent, parent=None):
@@ -53,4 +50,4 @@ class MiniTorrent(QFrame):
 
         torrent = self.backend.get_torrent(self.torrent.id)
         if torrent:
-            self.parent.doAction('Details of torrent "%s"'%torrent.name,self.parent.displayTorrent,[torrent])
+            self.parent.doAction('Details of torrent "%s"'%torrent.name,self.parent.displayTorrent,[torrent,self.backend])

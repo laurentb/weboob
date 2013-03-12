@@ -21,9 +21,8 @@ import urllib
 
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
-from weboob.tools.application.qt import QtDo
 from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 
 class MiniPerson(QFrame):
     def __init__(self, weboob, backend, person, parent=None):
@@ -38,9 +37,6 @@ class MiniPerson(QFrame):
         self.ui.nameLabel.setText('%s'%person.name)
         self.ui.shortDescLabel.setText('%s'%person.short_description)
         self.ui.backendLabel.setText(backend.name)
-
-        #self.process_thumbnail = QtDo(self.weboob, self.gotThumbnail)
-        #self.process_thumbnail.do('fillobj', self.person, ['thumbnail_url'], backends=backend)
 
     def gotThumbnail(self, backend, person):
         if self.person.thumbnail_url != NotAvailable:

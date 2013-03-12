@@ -19,11 +19,11 @@
 
 import urllib
 
-from PyQt4.QtCore import QUrl,Qt,SIGNAL
+from PyQt4.QtCore import Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 class Movie(QFrame):
@@ -39,6 +39,7 @@ class Movie(QFrame):
 
         self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
         self.connect(self.ui.torrentButton, SIGNAL("clicked()"), self.searchTorrent)
+        self.connect(self.ui.subtitleButton, SIGNAL("clicked()"), self.searchSubtitle)
 
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
@@ -61,6 +62,12 @@ class Movie(QFrame):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
+    def searchSubtitle(self):
+        tosearch = self.movie.original_title
+        lang = unicode(self.ui.langCombo.currentText())
+        desc = 'Search subtitles for "%s" (lang:%s)'%(tosearch,lang)
+        self.parent.doAction(desc, self.parent.searchSubtitleAction,[lang,tosearch])
 
     def searchTorrent(self):
         tosearch = self.movie.original_title

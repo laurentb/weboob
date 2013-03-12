@@ -19,11 +19,11 @@
 
 import urllib
 
-from PyQt4.QtCore import QUrl,Qt,SIGNAL
+from PyQt4.QtCore import SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 
 class Person(QFrame):
     def __init__(self, person, parent=None):
