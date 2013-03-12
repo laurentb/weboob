@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
+from lxml.html import etree
 from decimal import Decimal
 import re
 import datetime
@@ -25,6 +27,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.json import json
 
 
 __all__ = ['GlobalAccountsList', 'AccountsList', 'AccountHistoryPage']
@@ -89,6 +92,30 @@ class AccountsList(BasePage):
         warn = self.document.xpath('//div[@id="message_renouvellement_mot_passe"]')
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
+
+        # load content of loading divs.
+        divs = []
+        for div in self.document.xpath('//div[starts-with(@id, "as_")]'):
+            loading = div.xpath('.//span[@class="loading"]')
+            if len(loading) == 0:
+                continue
+
+            input = div.xpath('.//input')[0]
+            divs.append([div, input.attrib['name']])
+
+        if len(divs) > 0:
+            args = {}
+            for i, (div, name) in enumerate(divs):
+                args['key%s' % i] = name
+                args['div%s' % i] = div.attrib['id']
+            args['time'] = 0
+            r = self.browser.openurl(self.browser.buildurl('/AsynchAjax', **args))
+            data = json.load(r)
+
+            for i, (div, name) in enumerate(divs):
+                html = data['data'][i]['flux']
+                div.clear()
+                div.insert(0, etree.fromstring(html, parser=etree.HTMLParser()))
 
     def need_reload(self):
         form = self.document.xpath('//form[@name="InformationsPersonnellesForm"]')

@@ -79,8 +79,7 @@ class Fortuneo(BaseBrowser):
             self.location('/ReloadContext?action=1&')
 
     def get_history(self, account):
-        if not self.is_on_page(AccountHistoryPage):
-            self.location(account._link_id)
+        self.location(account._link_id)
         return self.page.get_operations(account)
 
     def get_accounts_list(self):
