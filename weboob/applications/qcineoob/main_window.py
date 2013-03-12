@@ -76,16 +76,18 @@ class MainWindow(QtMainWindow):
         else:
             self.ui.searchEdit.setEnabled(True)
 
-    def doAction(self, fun, args):
+    def doAction(self, description, fun, args):
+        self.ui.currentActionLabel.setText(description)
         if self.history['last_action'] != None:
             self.history['action_list'].append(self.history['last_action'])
             self.ui.backButton.setDisabled(False)
-        self.history['last_action'] = {'function':fun,'args':args}
+        self.history['last_action'] = {'function':fun,'args':args,'description':description}
         return fun(*args)
 
     def doBack(self):
         if len(self.history['action_list']) > 0:
             todo = self.history['action_list'].pop()
+            self.ui.currentActionLabel.setText(todo['description'])
             self.history['last_action'] = todo
             if len(self.history['action_list']) == 0:
                 self.ui.backButton.setDisabled(True)
@@ -117,7 +119,7 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(self.searchMovieAction,[pattern])
+        self.doAction(u'Search movie results for "%s"'%pattern,self.searchMovieAction,[pattern])
 
     def searchMovieAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.movie_list_page)
@@ -157,7 +159,7 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(self.searchPersonAction,[pattern])
+        self.doAction(u'Search person results for "%s"'%pattern,self.searchPersonAction,[pattern])
 
     def searchPersonAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.person_list_page)

@@ -74,6 +74,16 @@
      </widget>
     </item>
     <item>
+     <widget class="QLabel" name="currentActionLabel">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <widget class="QWidget" name="movie_list_page">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -88,7 +98,7 @@
              <x>0</x>
              <y>0</y>
              <width>660</width>
-             <height>313</height>
+             <height>292</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -109,8 +119,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>63</width>
-             <height>18</height>
+             <width>96</width>
+             <height>26</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8"/>
@@ -131,8 +141,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>63</width>
-             <height>18</height>
+             <width>96</width>
+             <height>26</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5"/>
@@ -153,8 +163,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>63</width>
-             <height>18</height>
+             <width>96</width>
+             <height>26</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_4"/>

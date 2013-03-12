@@ -61,4 +61,4 @@ class MiniPerson(QFrame):
 
         person = self.backend.get_person(self.person.id)
         if person:
-            self.parent.doAction(self.parent.displayPerson,[person])
+            self.parent.doAction(u'Details of person "%s"'%person.name,self.parent.displayPerson,[person])

@@ -59,7 +59,10 @@ class Movie(QFrame):
     def casting(self):
         role = None
         tosearch = self.ui.castingCombo.currentText()
+        role_desc = ''
         if tosearch != 'all':
             role = tosearch[:-1]
-        self.parent.doAction(self.parent.castingAction,[self.movie.id,role])
+            role_desc = ' as %s'%role
+        self.parent.doAction('Casting%s of movie "%s"'%(role_desc,self.movie.original_title),
+                self.parent.castingAction,[self.movie.id,role])
 

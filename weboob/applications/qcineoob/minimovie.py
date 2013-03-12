@@ -61,4 +61,4 @@ class MiniMovie(QFrame):
 
         movie = self.backend.get_movie(self.movie.id)
         if movie:
-            self.parent.doAction(self.parent.displayMovie,[movie])
+            self.parent.doAction('Details of movie "%s"'%movie.original_title,self.parent.displayMovie,[movie])
