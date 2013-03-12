@@ -65,4 +65,3 @@ class Movie(QFrame):
             role_desc = ' as %s'%role
         self.parent.doAction('Casting%s of movie "%s"'%(role_desc,self.movie.original_title),
                 self.parent.castingAction,[self.movie.id,role])
-

@@ -19,7 +19,7 @@
 
 import urllib
 
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl,Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
@@ -31,6 +31,8 @@ class Person(QFrame):
         self.parent = parent
         self.ui = Ui_Person()
         self.ui.setupUi(self)
+
+        self.connect(self.ui.filmographyButton, SIGNAL("clicked()"), self.filmography)
 
         self.person = person
         self.gotThumbnail()
@@ -50,3 +52,13 @@ class Person(QFrame):
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
+    def filmography(self):
+        role = None
+        tosearch = self.ui.filmographyCombo.currentText()
+        role_desc = ''
+        if tosearch != 'all':
+            role = tosearch
+            role_desc = ' as %s'%role
+        self.parent.doAction('Filmography of "%s"%s'%(self.person.name,role_desc),
+                self.parent.filmographyAction,[self.person.id,role])

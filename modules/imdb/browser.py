@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import HTMLParser
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
@@ -92,6 +93,7 @@ class ImdbBrowser(BaseBrowser):
             jres = json.loads(res)
         else:
             return None
+        htmlparser = HTMLParser.HTMLParser()
 
         title = NotAvailable
         duration = NotAvailable
@@ -106,7 +108,7 @@ class ImdbBrowser(BaseBrowser):
 
         if not jres.has_key('title'):
             return
-        title = unicode(jres['title'].strip())
+        title = htmlparser.unescape(unicode(jres['title'].strip()))
         if jres.has_key('poster'):
             thumbnail_url = unicode(jres['poster'])
         if jres.has_key('directors'):
@@ -120,7 +122,7 @@ class ImdbBrowser(BaseBrowser):
         if jres.has_key('also_known_as'):
             for other_t in jres['also_known_as']:
                 if other_t.has_key('country') and other_t.has_key('title'):
-                    other_titles.append('%s : %s' % (other_t['country'],other_t['title']))
+                    other_titles.append('%s : %s' % (other_t['country'],htmlparser.unescape(other_t['title'])))
         if jres.has_key('release_date'):
             dstr = str(jres['release_date'])
             year = int(dstr[:4])

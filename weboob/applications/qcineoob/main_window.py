@@ -49,6 +49,7 @@ class MainWindow(QtMainWindow):
         self.ui.backButton.setDisabled(True)
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
+        self.connect(self.ui.typeCombo, SIGNAL("returnPressed()"), self.search)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
 
@@ -107,6 +108,21 @@ class MainWindow(QtMainWindow):
 
         self.process = QtDo(self.weboob, self.addPerson)
         self.process.do('iter_movie_persons', id, role, backends=backend_name)
+
+    def filmographyAction(self, id, role):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.movie_list_page)
+        for minimovie in self.minimovies:
+            self.ui.movie_list_content.layout().removeWidget(minimovie)
+            minimovie.hide()
+            minimovie.deleteLater()
+
+        self.minimovies = []
+        self.ui.searchEdit.setEnabled(False)
+
+        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addMovie)
+        self.process.do('iter_person_movies', id, role, backends=backend_name)
 
     def search(self):
         tosearch = self.ui.typeCombo.currentText()
