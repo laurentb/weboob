@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtGui import QApplication
 
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.torrent import ICapTorrent
@@ -108,6 +109,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -123,6 +125,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -153,6 +156,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -162,6 +166,7 @@ class MainWindow(QtMainWindow):
     def addMovie(self, backend, movie):
         if not backend:
             self.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
             self.process = None
             return
         minimovie = MiniMovie(self.weboob, backend, movie, self)
@@ -177,6 +182,7 @@ class MainWindow(QtMainWindow):
         wmovie = Movie(movie,self)
         self.ui.info_content.layout().addWidget(wmovie)
         self.current_info_widget = wmovie
+        QApplication.restoreOverrideCursor()
 
     def searchPerson(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -193,6 +199,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -202,6 +209,7 @@ class MainWindow(QtMainWindow):
     def addPerson(self, backend, person):
         if not backend:
             self.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
             self.process = None
             return
         miniperson = MiniPerson(self.weboob, backend, person, self)
@@ -233,6 +241,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -242,6 +251,7 @@ class MainWindow(QtMainWindow):
     def addTorrent(self, backend, torrent):
         if not backend:
             self.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
             self.process = None
             return
         minitorrent = MiniTorrent(self.weboob, backend, torrent, self)

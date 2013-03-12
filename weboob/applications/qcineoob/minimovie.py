@@ -19,7 +19,8 @@
 
 import urllib
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap
+from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
+from PyQt4.QtCore import Qt
 
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
 from weboob.capabilities.base import NotAvailable
@@ -55,6 +56,7 @@ class MiniMovie(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
+        QApplication.setOverrideCursor( Qt.WaitCursor )
         movie = self.backend.get_movie(self.movie.id)
         if movie:
             self.parent.doAction('Details of movie "%s"'%movie.original_title,self.parent.displayMovie,[movie])

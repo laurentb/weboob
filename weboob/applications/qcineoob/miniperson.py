@@ -35,7 +35,13 @@ class MiniPerson(QFrame):
         self.backend = backend
         self.person = person
         self.ui.nameLabel.setText('%s'%person.name)
-        self.ui.shortDescLabel.setText('%s'%person.short_description)
+        if person.short_description != NotAvailable:
+            if unicode(self.parent.ui.currentActionLabel.text()).startswith('Casting'):
+                self.ui.shortDescTitleLabel.setText(u'Role')
+            self.ui.shortDescLabel.setText('%s'%person.short_description)
+        else:
+            self.ui.shortDescTitleLabel.hide()
+            self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
     def gotThumbnail(self, backend, person):
