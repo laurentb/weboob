@@ -112,6 +112,10 @@ class AccountsPage(BasePage):
         for table in self.document.getroot().cssselect('div#table-panorama table.table-client'):
             account = Account()
 
+            tds = table.xpath('./tbody/tr')[0].findall('td')
+            if len(tds) < 3:
+                continue
+
             link = table.xpath('./tfoot//a')[0]
             if not 'onclick' in link.attrib:
                 continue
@@ -139,8 +143,6 @@ class AccountsPage(BasePage):
                 self.logger.warning('Unable to parse currency %r' % currency_title)
             else:
                 account.currency = account.get_currency(m.group(1))
-
-            tds = table.xpath('./tbody/tr')[0].findall('td')
 
             account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[-1].itertext()])))
             account._args = args
