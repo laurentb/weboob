@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.subtitle import ICapSubtitle,LanguageNotSupported
+from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.tools.backend import BaseBackend
 
 from .browser import OpensubtitlesBrowser
-from .pages import LANGUAGE_CONV
 
 from urllib import quote_plus
 

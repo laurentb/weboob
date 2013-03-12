@@ -19,8 +19,9 @@
 
 
 from weboob.tools.browser import BaseBrowser
+from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
-from .pages import SubtitlesPage, SearchPage, SubtitlePage, LANGUAGE_CONV
+from .pages import SubtitlesPage, SearchPage, SubtitlePage
 
 
 __all__ = ['OpensubtitlesBrowser']

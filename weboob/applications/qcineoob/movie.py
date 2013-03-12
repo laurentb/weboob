@@ -24,6 +24,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
 from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 class Movie(QFrame):
     def __init__(self, movie, parent=None):
@@ -31,6 +32,10 @@ class Movie(QFrame):
         self.parent = parent
         self.ui = Ui_Movie()
         self.ui.setupUi(self)
+        langs = LANGUAGE_CONV.keys()
+        langs.sort()
+        for lang in langs:
+            self.ui.langCombo.addItem(lang)
 
         self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
         self.connect(self.ui.torrentButton, SIGNAL("clicked()"), self.searchTorrent)
