@@ -26,7 +26,7 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserPasswordExpired
 
-__all__ = ['AccountsList']
+__all__ = ['AccountsList', 'AccountPrelevement']
 
 
 class AccountsList(BasePage):
@@ -52,6 +52,9 @@ class AccountsList(BasePage):
 
     def _parse_account(self, tr):
         account = Account()
+
+        # for pro usage
+        account._stp = None
 
         account.id = tr.xpath('.//td[@class="libelleCompte"]/input')[0].attrib['id'][len('libelleCompte'):]
         if len(str(account.id)) == 23:
@@ -107,3 +110,7 @@ class AccountsList(BasePage):
             if 'MessagesRecus' in link.attrib.get('href', ''):
                 return link.attrib['href']
         raise BrokenPageError('Unable to find the link to the messages page')
+
+
+class AccountPrelevement(AccountsList):
+    pass
