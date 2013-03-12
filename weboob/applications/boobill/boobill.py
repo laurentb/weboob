@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Florent Fourcot
+# Copyright(C) 2012-2013 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -149,6 +149,8 @@ class Boobill(ReplApplication):
 
     def do_download(self, line):
         """
+        download [Id | all] [FILENAME]
+
         download Id [FILENAME]
 
         download the bill
