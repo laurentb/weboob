@@ -33,6 +33,7 @@ class Movie(QFrame):
         self.ui.setupUi(self)
 
         self.connect(self.ui.castingButton, SIGNAL("clicked()"), self.casting)
+        self.connect(self.ui.torrentButton, SIGNAL("clicked()"), self.searchTorrent)
 
         self.movie = movie
         self.ui.titleLabel.setText(movie.original_title)
@@ -55,6 +56,13 @@ class Movie(QFrame):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+
+    def searchTorrent(self):
+        tosearch = self.movie.original_title
+        if self.movie.release_date != NotAvailable:
+            tosearch += ' %s'%self.movie.release_date.year
+        desc = 'Search torrents for "%s"'%tosearch
+        self.parent.doAction(desc, self.parent.searchTorrentAction,[tosearch])
 
     def casting(self):
         role = None

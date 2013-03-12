@@ -141,7 +141,7 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search movie results for "%s"'%pattern,self.searchMovieAction,[pattern])
+        self.doAction(u'Search movie "%s"'%pattern,self.searchMovieAction,[pattern])
 
     def searchMovieAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
@@ -181,7 +181,7 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search person results for "%s"'%pattern,self.searchPersonAction,[pattern])
+        self.doAction(u'Search person "%s"'%pattern,self.searchPersonAction,[pattern])
 
     def searchPersonAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
@@ -221,7 +221,7 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search torrent for "%s"'%pattern,self.searchTorrentAction,[pattern])
+        self.doAction(u'Search torrent "%s"'%pattern,self.searchTorrentAction,[pattern])
 
     def searchTorrentAction(self,pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
@@ -230,7 +230,7 @@ class MainWindow(QtMainWindow):
             mini.hide()
             mini.deleteLater()
 
-        self.mini = []
+        self.minis = []
         self.ui.searchEdit.setEnabled(False)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
