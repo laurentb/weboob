@@ -17,39 +17,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+from PyQt4.QtGui import QFrame
 
-from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
-from PyQt4.QtCore import Qt
-
-from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
+from weboob.applications.qcineoob.ui.minisubtitle_ui import Ui_MiniSubtitle
 from weboob.capabilities.base import NotAvailable
 
-class MiniPerson(QFrame):
-    def __init__(self, weboob, backend, person, parent=None):
+class MiniSubtitle(QFrame):
+    def __init__(self, weboob, backend, subtitle, parent=None):
         QFrame.__init__(self, parent)
         self.parent = parent
-        self.ui = Ui_MiniPerson()
+        self.ui = Ui_MiniSubtitle()
         self.ui.setupUi(self)
 
         self.weboob = weboob
         self.backend = backend
-        self.person = person
-        self.ui.nameLabel.setText('%s'%person.name)
-        if person.short_description != NotAvailable:
-            if unicode(self.parent.ui.currentActionLabel.text()).startswith('Casting'):
-                self.ui.shortDescTitleLabel.setText(u'Role')
-            self.ui.shortDescLabel.setText('%s'%person.short_description)
-        else:
-            self.ui.shortDescTitleLabel.hide()
-            self.ui.shortDescLabel.hide()
+        self.subtitle = subtitle
+        self.ui.nameLabel.setText(subtitle.name)
+        if subtitle.nb_cd != NotAvailable:
+            self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
         self.ui.backendLabel.setText(backend.name)
-
-    def gotThumbnail(self, backend, person):
-        if self.person.thumbnail_url != NotAvailable:
-            data = urllib.urlopen(self.person.thumbnail_url).read()
-            img = QImage.fromData(data)
-            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 
     def enterEvent(self, event):
         self.setFrameShadow(self.Sunken)
@@ -62,7 +48,6 @@ class MiniPerson(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        QApplication.setOverrideCursor( Qt.WaitCursor )
-        person = self.backend.get_person(self.person.id)
-        if person:
-            self.parent.doAction(u'Details of person "%s"'%person.name,self.parent.displayPerson,[person])
+        subtitle = self.backend.get_subtitle(self.subtitle.id)
+        if subtitle:
+            self.parent.doAction('Details of subtitle "%s"'%subtitle.name,self.parent.displaySubtitle,[subtitle,self.backend])

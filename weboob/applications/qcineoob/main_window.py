@@ -23,18 +23,21 @@ from PyQt4.QtGui import QApplication
 
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
-
+from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
 
 from .minimovie import MiniMovie
 from .miniperson import MiniPerson
 from .minitorrent import MiniTorrent
+from .minisubtitle import MiniSubtitle
 from .movie import Movie
 from .person import Person
 from .torrent import Torrent
+from .subtitle import Subtitle
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
@@ -53,6 +56,7 @@ class MainWindow(QtMainWindow):
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.typeCombo, SIGNAL("returnPressed()"), self.search)
+        self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
 
@@ -61,8 +65,14 @@ class MainWindow(QtMainWindow):
         if self.ui.backendEdit.count() == 0:
             self.backendsConfig()
 
+        langs = LANGUAGE_CONV.keys()
+        langs.sort()
+        for lang in langs:
+            self.ui.langCombo.addItem(lang)
+        self.ui.langCombo.hide()
+
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapCinema,ICapTorrent,), self)
+        bckndcfg = BackendCfg(self.weboob, (ICapCinema,ICapTorrent,ICapSubtitle,), self)
         if bckndcfg.run():
             self.loadBackendsList()
 
@@ -79,6 +89,12 @@ class MainWindow(QtMainWindow):
             self.ui.searchEdit.setEnabled(False)
         else:
             self.ui.searchEdit.setEnabled(True)
+
+    def typeComboChanged(self,value):
+        if unicode(value) == 'subtitle':
+            self.ui.langCombo.show()
+        else:
+            self.ui.langCombo.hide()
 
     def doAction(self, description, fun, args):
         self.ui.currentActionLabel.setText(description)
@@ -140,6 +156,8 @@ class MainWindow(QtMainWindow):
             self.searchMovie()
         elif tosearch == 'torrent':
             self.searchTorrent()
+        elif tosearch == 'subtitle':
+            self.searchSubtitle()
 
     def searchMovie(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -225,6 +243,7 @@ class MainWindow(QtMainWindow):
         wperson = Person(person,self)
         self.ui.info_content.layout().addWidget(wperson)
         self.current_info_widget = wperson
+        QApplication.restoreOverrideCursor()
 
     def searchTorrent(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -267,6 +286,49 @@ class MainWindow(QtMainWindow):
         wtorrent = Torrent(torrent, backend, self)
         self.ui.info_content.layout().addWidget(wtorrent)
         self.current_info_widget = wtorrent
+
+    def searchSubtitle(self):
+        pattern = unicode(self.ui.searchEdit.text())
+        lang = unicode(self.ui.langCombo.currentText())
+        if not pattern:
+            return
+        self.doAction(u'Search subtitle "%s"'%pattern,self.searchSubtitleAction,[lang,pattern])
+
+    def searchSubtitleAction(self, lang, pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor( Qt.WaitCursor )
+
+        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addSubtitle)
+        self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+
+    def addSubtitle(self, backend, subtitle):
+        if not backend:
+            self.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
+            self.process = None
+            return
+        minisubtitle = MiniSubtitle(self.weboob, backend, subtitle, self)
+        self.ui.list_content.layout().addWidget(minisubtitle)
+        self.minis.append(minisubtitle)
+
+    def displaySubtitle(self, subtitle, backend):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget != None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wsubtitle = Subtitle(subtitle, backend, self)
+        self.ui.info_content.layout().addWidget(wsubtitle)
+        self.current_info_widget = wsubtitle
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))

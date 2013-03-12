@@ -20,6 +20,7 @@
 
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.torrent import ICapTorrent
+from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
@@ -31,7 +32,7 @@ class QCineoob(QtApplication):
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Qt application allowing to search movies etc..."
     SHORT_DESCRIPTION = "search movies"
-    CAPS = ICapCinema,ICapTorrent
+    CAPS = ICapCinema,ICapTorrent,ICapSubtitle
     CONFIG = {'settings': {'nsfw': 1,
                            'sfw': 1,
                            'sortby': 0,
@@ -39,7 +40,7 @@ class QCineoob(QtApplication):
                           }
              }
     def main(self, argv):
-        self.load_backends([ICapCinema,ICapTorrent])
+        self.load_backends([ICapCinema,ICapTorrent,ICapSubtitle])
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob)
