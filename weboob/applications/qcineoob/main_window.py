@@ -21,6 +21,7 @@
 from PyQt4.QtCore import SIGNAL
 
 from weboob.capabilities.cinema import ICapCinema
+from weboob.capabilities.torrent import ICapTorrent
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 
@@ -28,8 +29,10 @@ from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
 
 from .minimovie import MiniMovie
 from .miniperson import MiniPerson
+from .minitorrent import MiniTorrent
 from .movie import Movie
 from .person import Person
+from .torrent import Torrent
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
@@ -39,10 +42,8 @@ class MainWindow(QtMainWindow):
 
         self.config = config
         self.weboob = weboob
-        self.minimovies = []
-        self.minipersons = []
-        self.current_movie_widget = None
-        self.current_person_widget = None
+        self.minis = []
+        self.current_info_widget = None
 
         self.history = {'last_action':None,'action_list':[]}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
@@ -59,7 +60,7 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapCinema,), self)
+        bckndcfg = BackendCfg(self.weboob, (ICapCinema,ICapTorrent,), self)
         if bckndcfg.run():
             self.loadBackendsList()
 
@@ -81,6 +82,7 @@ class MainWindow(QtMainWindow):
         self.ui.currentActionLabel.setText(description)
         if self.history['last_action'] != None:
             self.history['action_list'].append(self.history['last_action'])
+            self.ui.backButton.setToolTip(self.history['last_action']['description'])
             self.ui.backButton.setDisabled(False)
         self.history['last_action'] = {'function':fun,'args':args,'description':description}
         return fun(*args)
@@ -92,37 +94,39 @@ class MainWindow(QtMainWindow):
             self.history['last_action'] = todo
             if len(self.history['action_list']) == 0:
                 self.ui.backButton.setDisabled(True)
+            else:
+                self.ui.backButton.setToolTip(self.history['action_list'][-1]['description'])
             return todo['function'](*todo['args'])
 
     def castingAction(self, id, role):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.person_list_page)
-        for miniperson in self.minipersons:
-            self.ui.person_list_content.layout().removeWidget(miniperson)
-            miniperson.hide()
-            miniperson.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
 
-        self.minipersons = []
+        self.minis = []
         self.ui.searchEdit.setEnabled(False)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addPerson)
-        self.process.do('iter_movie_persons', id, role, backends=backend_name)
+        self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=ICapCinema)
 
     def filmographyAction(self, id, role):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.movie_list_page)
-        for minimovie in self.minimovies:
-            self.ui.movie_list_content.layout().removeWidget(minimovie)
-            minimovie.hide()
-            minimovie.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
 
-        self.minimovies = []
+        self.minis = []
         self.ui.searchEdit.setEnabled(False)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addMovie)
-        self.process.do('iter_person_movies', id, role, backends=backend_name)
+        self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)
 
     def search(self):
         tosearch = self.ui.typeCombo.currentText()
@@ -130,6 +134,8 @@ class MainWindow(QtMainWindow):
             self.searchPerson()
         elif tosearch == 'movie':
             self.searchMovie()
+        elif tosearch == 'torrent':
+            self.searchTorrent()
 
     def searchMovie(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -138,19 +144,19 @@ class MainWindow(QtMainWindow):
         self.doAction(u'Search movie results for "%s"'%pattern,self.searchMovieAction,[pattern])
 
     def searchMovieAction(self,pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.movie_list_page)
-        for minimovie in self.minimovies:
-            self.ui.movie_list_content.layout().removeWidget(minimovie)
-            minimovie.hide()
-            minimovie.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
 
-        self.minimovies = []
+        self.minis = []
         self.ui.searchEdit.setEnabled(False)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addMovie)
-        self.process.do('iter_movies', pattern, backends=backend_name)
+        self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
 
     def addMovie(self, backend, movie):
         if not backend:
@@ -158,18 +164,18 @@ class MainWindow(QtMainWindow):
             self.process = None
             return
         minimovie = MiniMovie(self.weboob, backend, movie, self)
-        self.ui.movie_list_content.layout().addWidget(minimovie)
-        self.minimovies.append(minimovie)
+        self.ui.list_content.layout().addWidget(minimovie)
+        self.minis.append(minimovie)
 
     def displayMovie(self, movie):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.movie_info_page)
-        if self.current_movie_widget != None:
-            self.ui.movie_info_content.layout().removeWidget(self.current_movie_widget)
-            self.current_movie_widget.hide()
-            self.current_movie_widget.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget != None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
         wmovie = Movie(movie,self)
-        self.ui.movie_info_content.layout().addWidget(wmovie)
-        self.current_movie_widget = wmovie
+        self.ui.info_content.layout().addWidget(wmovie)
+        self.current_info_widget = wmovie
 
     def searchPerson(self):
         pattern = unicode(self.ui.searchEdit.text())
@@ -178,19 +184,19 @@ class MainWindow(QtMainWindow):
         self.doAction(u'Search person results for "%s"'%pattern,self.searchPersonAction,[pattern])
 
     def searchPersonAction(self,pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.person_list_page)
-        for miniperson in self.minipersons:
-            self.ui.person_list_content.layout().removeWidget(miniperson)
-            miniperson.hide()
-            miniperson.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
 
-        self.minipersons = []
+        self.minis = []
         self.ui.searchEdit.setEnabled(False)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addPerson)
-        self.process.do('iter_persons', pattern, backends=backend_name)
+        self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
 
     def addPerson(self, backend, person):
         if not backend:
@@ -198,18 +204,58 @@ class MainWindow(QtMainWindow):
             self.process = None
             return
         miniperson = MiniPerson(self.weboob, backend, person, self)
-        self.ui.person_list_content.layout().addWidget(miniperson)
-        self.minipersons.append(miniperson)
+        self.ui.list_content.layout().addWidget(miniperson)
+        self.minis.append(miniperson)
 
     def displayPerson(self, person):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.person_info_page)
-        if self.current_person_widget != None:
-            self.ui.person_info_content.layout().removeWidget(self.current_person_widget)
-            self.current_person_widget.hide()
-            self.current_person_widget.deleteLater()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget != None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
         wperson = Person(person,self)
-        self.ui.person_info_content.layout().addWidget(wperson)
-        self.current_person_widget = wperson
+        self.ui.info_content.layout().addWidget(wperson)
+        self.current_info_widget = wperson
+
+    def searchTorrent(self):
+        pattern = unicode(self.ui.searchEdit.text())
+        if not pattern:
+            return
+        self.doAction(u'Search torrent for "%s"'%pattern,self.searchTorrentAction,[pattern])
+
+    def searchTorrentAction(self,pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.mini = []
+        self.ui.searchEdit.setEnabled(False)
+
+        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addTorrent)
+        self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+
+    def addTorrent(self, backend, torrent):
+        if not backend:
+            self.ui.searchEdit.setEnabled(True)
+            self.process = None
+            return
+        minitorrent = MiniTorrent(self.weboob, backend, torrent, self)
+        self.ui.list_content.layout().addWidget(minitorrent)
+        self.minis.append(minitorrent)
+
+    def displayTorrent(self, torrent):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget != None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wtorrent = Torrent(torrent,self)
+        self.ui.info_content.layout().addWidget(wtorrent)
+        self.current_info_widget = wtorrent
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
