@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2009-2011  Romain Bignon
+# Copyright(C) 2009-2013  Romain Bignon, Xavier Guerrin
 #
 # This file is part of weboob.
 #

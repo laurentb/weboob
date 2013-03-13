@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2013 Xavier Guerrin
 #
 # This file is part of weboob.
 #
@@ -31,8 +31,8 @@ __all__ = ['CragrBackend']
 
 class CragrBackend(BaseBackend, ICapBank):
     NAME = 'cragr'
-    MAINTAINER = u'Xavier Guerrin'
-    EMAIL = 'xavier@tuxfamily.org'
+    MAINTAINER = u'Romain Bignon'
+    EMAIL = 'romain@weboob.org'
     VERSION = '0.f'
     DESCRIPTION = u'Crédit Agricole French bank website'
     LICENSE = 'AGPLv3+'
