@@ -20,6 +20,7 @@
 from PyQt4.QtGui import QFrame
 
 from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
+from weboob.applications.weboorrents.weboorrents import sizeof_fmt
 from weboob.capabilities.base import NotAvailable
 
 class MiniTorrent(QFrame):
@@ -35,6 +36,8 @@ class MiniTorrent(QFrame):
         self.ui.nameLabel.setText(torrent.name)
         if torrent.seeders != NotAvailable and torrent.leechers != NotAvailable:
             self.ui.seedLeechLabel.setText('%s/%s'%(torrent.seeders,torrent.leechers))
+        if torrent.size != NotAvailable:
+            self.ui.sizeLabel.setText(u'%s'%sizeof_fmt(torrent.size))
         self.ui.backendLabel.setText(backend.name)
 
     def enterEvent(self, event):

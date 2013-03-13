@@ -36,7 +36,14 @@ class Subtitle(QFrame):
         self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
 
         self.subtitle = subtitle
+        self.ui.idEdit.setText(u'%s@%s'%(subtitle.id,backend.name))
         self.ui.nameLabel.setText(u'%s'%subtitle.name)
+        if subtitle.nb_cd != NotAvailable:
+            self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
+        if subtitle.language != NotAvailable:
+            self.ui.langLabel.setText(u'%s'%subtitle.language)
+        if subtitle.description != NotAvailable:
+            self.ui.descriptionPlain.setPlainText(u'%s'%subtitle.description)
         if subtitle.url != NotAvailable:
             self.ui.urlEdit.setText(u'%s'%subtitle.url)
 

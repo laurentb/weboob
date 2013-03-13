@@ -40,14 +40,16 @@ class Person(QFrame):
         self.gotThumbnail()
         self.ui.nameLabel.setText(person.name)
 
+        self.ui.idEdit.setText(u'%s@%s'%(person.id,backend.name))
         self.ui.realNameLabel.setText('%s'%person.real_name)
         self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
-        self.ui.birthDateLabel.setText(person.birth_date.isoformat())
+        self.ui.birthDateLabel.setText(person.birth_date.strftime('%Y-%m-%d'))
         if person.death_date != NotAvailable:
-            self.ui.deathDateLabel.setText(person.death_date.isoformat())
+            self.ui.deathDateLabel.setText(person.death_date.strftime('%Y-%m-%d'))
         else:
             self.ui.deathDateLabel.parent().hide()
         self.ui.shortBioPlain.setPlainText('%s'%person.short_biography)
+        self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
     def gotThumbnail(self):
         if self.person.thumbnail_url != NotAvailable:

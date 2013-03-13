@@ -48,16 +48,18 @@ class Movie(QFrame):
         self.gotThumbnail()
         self.putReleases()
 
+        self.ui.idEdit.setText(u'%s@%s'%(movie.id,backend.name))
         if movie.other_titles != NotAvailable:
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
         if movie.release_date != NotAvailable:
-            self.ui.releaseDateLabel.setText(movie.release_date.isoformat())
+            self.ui.releaseDateLabel.setText(movie.release_date.strftime('%Y-%m-%d'))
         self.ui.durationLabel.setText('%s min'%movie.duration)
         self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
         self.ui.countryLabel.setText('%s'%movie.country)
         self.ui.noteLabel.setText('%s'%movie.note)
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
+        self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
     def putReleases(self):
         rel = self.backend.get_movie_releases(self.movie.id)

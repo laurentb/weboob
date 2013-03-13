@@ -23,6 +23,7 @@ from PyQt4.QtCore import Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.torrent_ui import Ui_Torrent
+from weboob.applications.weboorrents.weboorrents import sizeof_fmt
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
 class Torrent(QFrame):
@@ -36,17 +37,24 @@ class Torrent(QFrame):
         self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
 
         self.torrent = torrent
+        self.ui.idEdit.setText(u'%s@%s'%(torrent.id,backend.name))
         self.ui.nameLabel.setText(u'%s'%torrent.name)
         if torrent.url != NotAvailable:
             self.ui.urlEdit.setText(u'%s'%torrent.url)
         else:
             self.ui.urlFrame.hide()
             self.ui.downloadButton.setDisabled(True)
-            self.ui.downloadButton.setToolTip('Use the magnet link')
+            if torrent.magnet != NotAvailable and torrent.magnet != NotLoaded:
+                self.ui.downloadButton.setText(u'Download not available\nbut magnet link provided')
+                self.ui.downloadButton.setToolTip(u'Use the magnet link')
         if torrent.magnet != NotAvailable and torrent.magnet != NotLoaded:
             self.ui.magnetEdit.setText(u'%s'%torrent.magnet)
         else:
             self.ui.magnetFrame.hide()
+        if torrent.seeders != NotAvailable and torrent.leechers != NotAvailable:
+            self.ui.seedLeechLabel.setText(u'%s/%s'%(torrent.seeders,torrent.leechers))
+        if torrent.size != NotAvailable:
+            self.ui.sizeLabel.setText(u'%s'%sizeof_fmt(torrent.size))
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
