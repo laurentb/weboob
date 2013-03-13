@@ -52,7 +52,7 @@ class MainWindow(QtMainWindow):
 
         self.history = {'last_action':None,'action_list':[]}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
-        self.ui.backButton.setDisabled(True)
+        self.ui.backButton.hide()
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.typeCombo, SIGNAL("returnPressed()"), self.search)
@@ -70,6 +70,7 @@ class MainWindow(QtMainWindow):
         for lang in langs:
             self.ui.langCombo.addItem(lang)
         self.ui.langCombo.hide()
+        self.ui.langLabel.hide()
 
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapCinema,ICapTorrent,ICapSubtitle,), self)
@@ -93,15 +94,17 @@ class MainWindow(QtMainWindow):
     def typeComboChanged(self,value):
         if unicode(value) == 'subtitle':
             self.ui.langCombo.show()
+            self.ui.langLabel.show()
         else:
             self.ui.langCombo.hide()
+            self.ui.langLabel.hide()
 
     def doAction(self, description, fun, args):
         self.ui.currentActionLabel.setText(description)
         if self.history['last_action'] != None:
             self.history['action_list'].append(self.history['last_action'])
             self.ui.backButton.setToolTip(self.history['last_action']['description'])
-            self.ui.backButton.setDisabled(False)
+            self.ui.backButton.show()
         self.history['last_action'] = {'function':fun,'args':args,'description':description}
         return fun(*args)
 
@@ -111,7 +114,7 @@ class MainWindow(QtMainWindow):
             self.ui.currentActionLabel.setText(todo['description'])
             self.history['last_action'] = todo
             if len(self.history['action_list']) == 0:
-                self.ui.backButton.setDisabled(True)
+                self.ui.backButton.hide()
             else:
                 self.ui.backButton.setToolTip(self.history['action_list'][-1]['description'])
             return todo['function'](*todo['args'])
