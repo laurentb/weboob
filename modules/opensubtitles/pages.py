@@ -68,11 +68,6 @@ class SubtitlesPage(BasePage):
         if len(cells) > 0:
             links = self.parser.select(line,'a')
             a = links[0]
-            urldetail = a.attrib.get('href','')
-            #self.browser.location("http://www.opensubtitles.org%s"%urldetail)
-            #assert self.browser.is_on_page(SubtitlePage)
-            ## subtitle page does the job
-            #return self.browser.page.get_subtitle()
             name = u" ".join(a.text.strip().split())
             first_cell = cells[0]
             spanlist = self.parser.select(first_cell,'span')
@@ -95,7 +90,7 @@ class SubtitlesPage(BasePage):
             nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
             cell_dl = cells[4]
             href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
-            url = "http://www.opensubtitles.org%s"%href
+            url = unicode('http://www.opensubtitles.org%s'%href)
             id = href.split('/')[-1]
 
             subtitle = Subtitle(id,name)
