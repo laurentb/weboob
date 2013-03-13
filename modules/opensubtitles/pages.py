@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.subtitle import Subtitle
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
@@ -69,10 +69,42 @@ class SubtitlesPage(BasePage):
             links = self.parser.select(line,'a')
             a = links[0]
             urldetail = a.attrib.get('href','')
-            self.browser.location("http://www.opensubtitles.org%s"%urldetail)
-            assert self.browser.is_on_page(SubtitlePage)
-            # subtitle page does the job
-            return self.browser.page.get_subtitle()
+            #self.browser.location("http://www.opensubtitles.org%s"%urldetail)
+            #assert self.browser.is_on_page(SubtitlePage)
+            ## subtitle page does the job
+            #return self.browser.page.get_subtitle()
+            name = u" ".join(a.text.strip().split())
+            first_cell = cells[0]
+            spanlist = self.parser.select(first_cell,'span')
+            if len(spanlist) > 0:
+                long_name = spanlist[0].attrib.get('title','')
+            else:
+                texts = first_cell.itertext()
+                long_name = texts.next()
+                long_name = texts.next()
+                if "Download at 25" in long_name:
+                    long_name = "---"
+            name = "%s (%s)"%(name,long_name)
+            second_cell = cells[1]
+            link = self.parser.select(second_cell,'a',1)
+            lang = link.attrib.get('href','').split('/')[-1].split('-')[-1]
+            for lshort,llong in LANGUAGE_CONV.items():
+                if lang == llong:
+                    lang = unicode(lshort)
+                    break
+            nb_cd = int(cells[2].text.strip().lower().replace('cd',''))
+            cell_dl = cells[4]
+            href = self.parser.select(cell_dl,'a',1).attrib.get('href','')
+            url = "http://www.opensubtitles.org%s"%href
+            id = href.split('/')[-1]
+
+            subtitle = Subtitle(id,name)
+            subtitle.url = url
+            subtitle.language = lang
+            subtitle.nb_cd = nb_cd
+            subtitle.description = NotLoaded
+            return subtitle
+
 
 
 class SubtitlePage(BasePage):
