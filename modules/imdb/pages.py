@@ -163,12 +163,8 @@ class PersonPage(BasePage):
         dtimes = self.parser.select(td_overview,'time[itemprop=deathDate]')
         if len(dtimes) > 0:
             dtime = dtimes[0].attrib.get('datetime','').split('-')
-            if len(dtime) == 2:
-                dtime.append('1')
-            elif len(dtime) == 1:
-                dtime.append('1')
-                dtime.append('1')
-            death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
+            if len(dtime) == 3 and int(dtime[0]) >= 1900:
+                death_date = datetime(int(dtime[0]),int(dtime[1]),int(dtime[2]))
         img_thumbnail = self.parser.select(self.document.getroot(),'td#img_primary img')
         if len(img_thumbnail) > 0:
             thumbnail_url = unicode(img_thumbnail[0].attrib.get('src',''))
