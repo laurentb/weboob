@@ -27,7 +27,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 class Movie(QFrame):
-    def __init__(self, movie, parent=None):
+    def __init__(self, movie, backend, parent=None):
         QFrame.__init__(self, parent)
         self.parent = parent
         self.ui = Ui_Movie()
@@ -42,20 +42,26 @@ class Movie(QFrame):
         self.connect(self.ui.subtitleButton, SIGNAL("clicked()"), self.searchSubtitle)
 
         self.movie = movie
+        self.backend = backend
         self.ui.titleLabel.setText(movie.original_title)
         self.ui.durationLabel.setText(unicode(movie.duration))
         self.gotThumbnail()
+        self.putReleases()
 
         if movie.other_titles != NotAvailable:
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
         if movie.release_date != NotAvailable:
             self.ui.releaseDateLabel.setText(movie.release_date.isoformat())
-        self.ui.durationLabel.setText('%s'%movie.duration)
+        self.ui.durationLabel.setText('%s min'%movie.duration)
         self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
         self.ui.countryLabel.setText('%s'%movie.country)
         self.ui.noteLabel.setText('%s'%movie.note)
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
+
+    def putReleases(self):
+        rel = self.backend.get_movie_releases(self.movie.id)
+        self.ui.allReleasesPlain.setPlainText(rel)
 
     def gotThumbnail(self):
         if self.movie.thumbnail_url != NotAvailable:

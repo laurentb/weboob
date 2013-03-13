@@ -39,7 +39,7 @@
       <item>
        <widget class="QFrame" name="frame_12">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -234,10 +234,30 @@ filmography</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_8">
          <item>
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>Short biography:</string>
+          <widget class="QFrame" name="frame_5">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
            </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QLabel" name="biographyLabel">
+              <property name="text">
+               <string>Short biography:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="biographyButton">
+              <property name="text">
+               <string>view full
+biography</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
@@ -247,6 +267,9 @@ filmography</string>
              <width>16777215</width>
              <height>100</height>
             </size>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>

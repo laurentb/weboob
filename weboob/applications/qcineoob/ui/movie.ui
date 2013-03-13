@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
+    <width>645</width>
     <height>552</height>
    </rect>
   </property>
@@ -57,7 +57,7 @@
       <item>
        <widget class="QFrame" name="frame_10">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -95,7 +95,7 @@
       <item>
        <widget class="QFrame" name="frame_12">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -114,7 +114,7 @@
       <item>
        <widget class="QFrame" name="frame_11">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
@@ -218,7 +218,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QPlainTextEdit" name="otherTitlesPlain"/>
+          <widget class="QPlainTextEdit" name="otherTitlesPlain">
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -310,7 +314,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QTextEdit" name="pitchPlain"/>
+          <widget class="QTextEdit" name="pitchPlain">
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -373,6 +381,38 @@
           <widget class="QLabel" name="noteLabel">
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame_13">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>All release dates:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTextEdit" name="allReleasesPlain">
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
           </widget>
          </item>

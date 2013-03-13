@@ -19,22 +19,24 @@
 
 import urllib
 
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtGui import QFrame, QImage, QPixmap
+from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import NotAvailable
 
 class Person(QFrame):
-    def __init__(self, person, parent=None):
+    def __init__(self, person, backend, parent=None):
         QFrame.__init__(self, parent)
         self.parent = parent
         self.ui = Ui_Person()
         self.ui.setupUi(self)
 
         self.connect(self.ui.filmographyButton, SIGNAL("clicked()"), self.filmography)
+        self.connect(self.ui.biographyButton, SIGNAL("clicked()"), self.biography)
 
         self.person = person
+        self.backend = backend
         self.gotThumbnail()
         self.ui.nameLabel.setText(person.name)
 
@@ -62,3 +64,11 @@ class Person(QFrame):
             role_desc = ' as %s'%role
         self.parent.doAction('Filmography of "%s"%s'%(self.person.name,role_desc),
                 self.parent.filmographyAction,[self.person.id,role])
+
+    def biography(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        bio = self.backend.get_person_biography(self.person.id)
+        self.ui.shortBioPlain.setPlainText(bio)
+        self.ui.biographyLabel.setText('Full biography:')
+        self.ui.biographyButton.hide()
+        QApplication.restoreOverrideCursor()

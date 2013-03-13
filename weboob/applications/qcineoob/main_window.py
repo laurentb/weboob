@@ -191,13 +191,13 @@ class MainWindow(QtMainWindow):
         self.ui.list_content.layout().addWidget(minimovie)
         self.minis.append(minimovie)
 
-    def displayMovie(self, movie):
+    def displayMovie(self, movie, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
         if self.current_info_widget != None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
-        wmovie = Movie(movie,self)
+        wmovie = Movie(movie,backend,self)
         self.ui.info_content.layout().addWidget(wmovie)
         self.current_info_widget = wmovie
         QApplication.restoreOverrideCursor()
@@ -234,13 +234,13 @@ class MainWindow(QtMainWindow):
         self.ui.list_content.layout().addWidget(miniperson)
         self.minis.append(miniperson)
 
-    def displayPerson(self, person):
+    def displayPerson(self, person, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
         if self.current_info_widget != None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
-        wperson = Person(person,self)
+        wperson = Person(person,backend,self)
         self.ui.info_content.layout().addWidget(wperson)
         self.current_info_widget = wperson
         QApplication.restoreOverrideCursor()
