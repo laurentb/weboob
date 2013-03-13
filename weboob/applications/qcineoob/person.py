@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2013 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -42,9 +42,18 @@ class Person(QFrame):
         self.ui.nameLabel.setText(person.name)
 
         self.ui.idEdit.setText(u'%s@%s'%(person.id,backend.name))
-        self.ui.realNameLabel.setText('%s'%person.real_name)
-        self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
-        self.ui.birthDateLabel.setText(person.birth_date.strftime('%Y-%m-%d'))
+        if person.real_name != NotAvailable:
+            self.ui.realNameLabel.setText('%s'%person.real_name)
+        else:
+            self.ui.realNameLabel.parent().hide()
+        if person.birth_place != NotAvailable:
+            self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
+        else:
+            self.ui.birthPlaceLabel.parent().hide()
+        if person.birth_date != NotAvailable:
+            self.ui.birthDateLabel.setText(person.birth_date.strftime('%Y-%m-%d'))
+        else:
+            self.ui.birthDateLabel.parent().hide()
         if person.death_date != NotAvailable:
             self.ui.deathDateLabel.setText(person.death_date.strftime('%Y-%m-%d'))
         else:

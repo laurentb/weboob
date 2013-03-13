@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2013 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -52,12 +52,28 @@ class Movie(QFrame):
         self.ui.idEdit.setText(u'%s@%s'%(movie.id,backend.name))
         if movie.other_titles != NotAvailable:
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
+        else:
+            self.ui.otherTitlesPlain.parent().hide()
         if movie.release_date != NotAvailable:
             self.ui.releaseDateLabel.setText(movie.release_date.strftime('%Y-%m-%d'))
-        self.ui.durationLabel.setText('%s min'%movie.duration)
-        self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
-        self.ui.countryLabel.setText('%s'%movie.country)
-        self.ui.noteLabel.setText('%s'%movie.note)
+        else:
+            self.ui.releaseDateLabel.parent().hide()
+        if movie.duration != NotAvailable:
+            self.ui.durationLabel.setText('%s min'%movie.duration)
+        else:
+            self.ui.durationLabel.parent().hide()
+        if movie.pitch != NotAvailable:
+            self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
+        else:
+            self.ui.pitchPlain.parent().hide()
+        if movie.country != NotAvailable:
+            self.ui.countryLabel.setText('%s'%movie.country)
+        else:
+            self.ui.countryLabel.parent().hide()
+        if movie.note != NotAvailable:
+            self.ui.noteLabel.setText('%s'%movie.note)
+        else:
+            self.ui.noteLabel.parent().hide()
         for role in ROLE_LIST:
             self.ui.castingCombo.addItem('%ss'%role)
 
