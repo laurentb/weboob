@@ -67,16 +67,6 @@ filmography</string>
              <string>all</string>
             </property>
            </item>
-           <item>
-            <property name="text">
-             <string>actor</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>director</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>

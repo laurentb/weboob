@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2010-2011 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -24,6 +24,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import NotAvailable
+from weboob.applications.cineoob.cineoob import ROLE_LIST
 
 class Person(QFrame):
     def __init__(self, person, backend, parent=None):
@@ -49,6 +50,8 @@ class Person(QFrame):
         else:
             self.ui.deathDateLabel.parent().hide()
         self.ui.shortBioPlain.setPlainText('%s'%person.short_biography)
+        for role in ROLE_LIST:
+            self.ui.filmographyCombo.addItem(role)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
     def gotThumbnail(self):

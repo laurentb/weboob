@@ -83,16 +83,6 @@
              <string>all</string>
             </property>
            </item>
-           <item>
-            <property name="text">
-             <string>actors</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>directors</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>

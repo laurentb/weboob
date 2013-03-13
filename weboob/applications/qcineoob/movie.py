@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2010-2011 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -25,6 +25,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
 from weboob.capabilities.base import NotAvailable
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
+from weboob.applications.cineoob.cineoob import ROLE_LIST
 
 class Movie(QFrame):
     def __init__(self, movie, backend, parent=None):
@@ -57,6 +58,8 @@ class Movie(QFrame):
         self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
         self.ui.countryLabel.setText('%s'%movie.country)
         self.ui.noteLabel.setText('%s'%movie.note)
+        for role in ROLE_LIST:
+            self.ui.castingCombo.addItem('%ss'%role)
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)

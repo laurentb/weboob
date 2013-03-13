@@ -35,6 +35,8 @@ from weboob.core import CallErrors
 
 __all__ = ['Cineoob']
 
+ROLE_LIST = ['actor','director','writer','composer','producer']
+COUNTRY_LIST = ['us','fr','de','jp']
 
 class MovieInfoFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'pitch', 'note', 'roles', 'country')
@@ -202,13 +204,11 @@ class Cineoob(ReplApplication):
                            'search_movie_subtitle':    'subtitle_list',
                            'info_subtitle':      'subtitle_info'
                           }
-    ROLE_LIST = ['actor','director','writer','composer','producer']
-    COUNTRY_LIST = ['us','fr','de','jp']
 
     def complete_filmography(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 3:
-            return self.ROLE_LIST
+            return ROLE_LIST
 
     def complete_casting(self, text, line, *ignored):
         return self.complete_filmography(text,line,ignored)

@@ -158,12 +158,8 @@ class PersonPage(BasePage):
         times = self.parser.select(td_overview,'time[itemprop=birthDate]')
         if len(times) > 0:
             time = times[0].attrib.get('datetime','').split('-')
-            if len(time) == 2:
-                time.append('1')
-            elif len(time) == 1:
-                time.append('1')
-                time.append('1')
-            birth_date = datetime(int(time[0]),int(time[1]),int(time[2]))
+            if len(time) == 3 and int(time[0]) >= 1900:
+                birth_date = datetime(int(time[0]),int(time[1]),int(time[2]))
         dtimes = self.parser.select(td_overview,'time[itemprop=deathDate]')
         if len(dtimes) > 0:
             dtime = dtimes[0].attrib.get('datetime','').split('-')
