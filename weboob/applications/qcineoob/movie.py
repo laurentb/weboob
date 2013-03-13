@@ -82,7 +82,10 @@ class Movie(QFrame):
 
     def putReleases(self):
         rel = self.backend.get_movie_releases(self.movie.id)
-        self.ui.allReleasesPlain.setPlainText(rel)
+        if rel != NotAvailable:
+            self.ui.allReleasesPlain.setPlainText(rel)
+        else:
+            self.ui.allReleasesPlain.parent().hide()
 
     def gotThumbnail(self):
         if self.movie.thumbnail_url != NotAvailable:
