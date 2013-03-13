@@ -101,7 +101,7 @@ scripts = set(os.listdir('scripts'))
 packages = set(find_packages())
 
 hildon_scripts = set(('masstransit',))
-qt_scripts = set(('qboobmsg', 'qhavedate', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob'))
+qt_scripts = set(('qboobmsg', 'qhavedate', 'qvideoob', 'weboob-config-qt', 'qwebcontentedit', 'qflatboob', 'qcineoob'))
 
 if not options.hildon:
     scripts = scripts - hildon_scripts
@@ -116,6 +116,8 @@ hildon_packages = set((
 qt_packages = set((
     'weboob.applications.qboobmsg',
     'weboob.applications.qboobmsg.ui',
+    'weboob.applications.qcineoob',
+    'weboob.applications.qcineoob.ui',
     'weboob.applications.qhavedate',
     'weboob.applications.qhavedate.ui',
     'weboob.applications.qvideoob',
