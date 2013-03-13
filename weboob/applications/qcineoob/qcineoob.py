@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2013 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -29,7 +29,7 @@ from .main_window import MainWindow
 class QCineoob(QtApplication):
     APPNAME = 'qcineoob'
     VERSION = '0.f'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search movies etc..."
     SHORT_DESCRIPTION = "search movies"
     CAPS = ICapCinema,ICapTorrent,ICapSubtitle
