@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.subtitle_ui import Ui_Subtitle
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable
 
 class Subtitle(QFrame):
     def __init__(self, subtitle, backend, parent=None):

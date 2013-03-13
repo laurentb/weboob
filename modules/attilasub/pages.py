@@ -69,7 +69,7 @@ class SubtitlesPage(BasePage):
         return subtitle
 
     def iter_subtitles(self,language, pattern):
-        pattern = pattern.strip().replace('+',' ')
+        pattern = pattern.strip().replace('+',' ').lower()
         pattern_words = pattern.split()
         tab = self.parser.select(self.document.getroot(),'table[bordercolor="#B8C0B2"]')
         if len(tab) == 0:

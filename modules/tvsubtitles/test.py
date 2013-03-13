@@ -19,7 +19,6 @@
 
 from weboob.tools.test import BackendTest
 
-import urllib
 from random import choice
 
 class TvsubtitlesTest(BackendTest):

@@ -160,7 +160,7 @@ class MainWindow(QtMainWindow):
             self.searchSubtitle()
 
     def searchMovie(self):
-        pattern = unicode(self.ui.searchEdit.text()).lower()
+        pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
         self.doAction(u'Search movie "%s"'%pattern,self.searchMovieAction,[pattern])
@@ -203,7 +203,7 @@ class MainWindow(QtMainWindow):
         QApplication.restoreOverrideCursor()
 
     def searchPerson(self):
-        pattern = unicode(self.ui.searchEdit.text()).lower()
+        pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
         self.doAction(u'Search person "%s"'%pattern,self.searchPersonAction,[pattern])
@@ -246,7 +246,7 @@ class MainWindow(QtMainWindow):
         QApplication.restoreOverrideCursor()
 
     def searchTorrent(self):
-        pattern = unicode(self.ui.searchEdit.text()).lower()
+        pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
         self.doAction(u'Search torrent "%s"'%pattern,self.searchTorrentAction,[pattern])
@@ -288,7 +288,7 @@ class MainWindow(QtMainWindow):
         self.current_info_widget = wtorrent
 
     def searchSubtitle(self):
-        pattern = unicode(self.ui.searchEdit.text()).lower()
+        pattern = unicode(self.ui.searchEdit.text())
         lang = unicode(self.ui.langCombo.currentText())
         if not pattern:
             return
