@@ -59,6 +59,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+        self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
 
         self.loadBackendsList()
 

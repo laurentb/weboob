@@ -200,8 +200,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>96</width>
-             <height>26</height>
+             <width>63</width>
+             <height>18</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8"/>
@@ -236,10 +236,19 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionBackends"/>
+   <addaction name="actionQuit"/>
   </widget>
   <action name="actionBackends">
    <property name="text">
     <string>Backends</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>
