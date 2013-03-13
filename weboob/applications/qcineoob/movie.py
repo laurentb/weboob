@@ -64,7 +64,7 @@ class Movie(QFrame):
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
 
     def searchSubtitle(self):
-        tosearch = self.movie.original_title
+        tosearch = unicode(self.movie.original_title).lower()
         lang = unicode(self.ui.langCombo.currentText())
         desc = 'Search subtitles for "%s" (lang:%s)'%(tosearch,lang)
         self.parent.doAction(desc, self.parent.searchSubtitleAction,[lang,tosearch])
