@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, IntField, UserError, Field
+from .base import IBaseCap, CapBaseObject, StringField, IntField, Field
 
 
 __all__ = ['Recipe', 'ICapRecipe']
@@ -30,11 +30,14 @@ class Recipe(CapBaseObject):
     """
     title =             StringField('Title of the recipe')
     thumbnail_url =     StringField('Direct url to recipe thumbnail')
+    picture_url =       StringField('Direct url to recipe picture')
+    short_description = StringField('Short description of a recipe')
     nb_person =         IntField('The recipe was made for this amount of persons')
     preparation_time =  IntField('Preparation time of the recipe in minutes')
     cooking_time =      IntField('Cooking time of the recipe in minutes')
     ingredients =       Field('Ingredient list necessary for the recipe',list)
-    instructions =      Field('Instruction step list of the recipe',list)
+    instructions =      StringField('Instruction step list of the recipe')
+    comments =          Field('User comments about the recipe',list)
 
     def __init__(self, id, title):
         CapBaseObject.__init__(self, id)

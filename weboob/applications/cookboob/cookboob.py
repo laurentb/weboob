@@ -22,16 +22,16 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.recipe import ICapRecipe
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-from weboob.core import CallErrors
 
 
 __all__ = ['Cookboob']
 
 
 class RecipeInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'title', 'preparation_time', 'cooking_time', 'ingredients', 'instructions', 'nb_person')
+    MANDATORY_FIELDS = ('id', 'title', 'preparation_time', 'cooking_time', 'ingredients', 'instructions', 'nb_person', 'comments')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
@@ -39,12 +39,14 @@ class RecipeInfoFormatter(IFormatter):
         result += 'Preparation time: %s\n' % obj.preparation_time
         result += 'Cooking time: %s\n' % obj.cooking_time
         result += 'Amount of people: %s\n' % obj.nb_person
-        result += '\n%Ingredients%s\n' % (self.BOLD, self.NC)
+        result += '\n%sIngredients%s\n' % (self.BOLD, self.NC)
         for i in obj.ingredients:
-            result += '  * %s'%i
-        result += '\n\n%Instructions%s\n' % (self.BOLD, self.NC)
-        for i in obj.instructions:
-            result += '  * %s'%i
+            result += '  * %s\n'%i
+        result += '\n%sInstructions%s\n' % (self.BOLD, self.NC)
+        result += '%s\n'%obj.instructions
+        result += '\n%sComments%s\n' % (self.BOLD, self.NC)
+        for c in obj.comments:
+            result += '  * %s\n'%c
         return result
 
 
@@ -56,10 +58,10 @@ class RecipeListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         result = u''
-        if obj.short_description != NotAvailable:
-            result += 'description: %s '%obj.short_description
-        if obj.preparation_time != NotAvailable:
+        if obj.preparation_time != NotAvailable and obj.preparation_time != NotLoaded:
             result += 'prep time: %smin'%obj.preparation_time
+        if obj.short_description != NotAvailable:
+            result += 'description: %s\n'%obj.short_description
         return result
 
 
@@ -90,7 +92,7 @@ class Cookboob(ReplApplication):
         """
 
         recipe = self.get_object(id, 'get_recipe')
-        if not recipee:
+        if not recipe:
             print >>sys.stderr, 'Recipe not found: %s' % id
             return 3
 
