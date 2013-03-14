@@ -30,13 +30,10 @@ class QCineoob(QtApplication):
     APPNAME = 'qcineoob'
     VERSION = '0.f'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
-    DESCRIPTION = "Qt application allowing to search movies etc..."
-    SHORT_DESCRIPTION = "search movies"
+    DESCRIPTION = "Qt application allowing to search movies, people, torrent and subtitles."
+    SHORT_DESCRIPTION = "search movies, people, torrent and subtitles"
     CAPS = ICapCinema,ICapTorrent,ICapSubtitle
-    CONFIG = {'settings': {'nsfw': 1,
-                           'sfw': 1,
-                           'sortby': 0,
-                           'backend': ''
+    CONFIG = {'settings': {'backend': '',
                           }
              }
     def main(self, argv):

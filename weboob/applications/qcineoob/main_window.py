@@ -51,17 +51,8 @@ class MainWindow(QtMainWindow):
         self.minis = []
         self.current_info_widget = None
 
-        self.search_history = []
-        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
-        if os.path.exists(history_path):
-            f=codecs.open(history_path,'r','utf-8')
-            conf_hist = f.read()
-            f.close()
-            if conf_hist != None and conf_hist.strip() != '':
-                self.search_history = conf_hist.strip().split('\n')
-                qc = QCompleter(QStringList(self.search_history),self)
-                qc.setCaseSensitivity(Qt.CaseInsensitive)
-                self.ui.searchEdit.setCompleter(qc)
+        self.search_history = self.loadHistory()
+        self.updateCompletion()
 
         self.history = {'last_action':None,'action_list':[]}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
@@ -104,6 +95,29 @@ class MainWindow(QtMainWindow):
             self.ui.searchEdit.setEnabled(False)
         else:
             self.ui.searchEdit.setEnabled(True)
+
+    def loadHistory(self):
+        result = []
+        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
+        if os.path.exists(history_path):
+            f=codecs.open(history_path,'r','utf-8')
+            conf_hist = f.read()
+            f.close()
+            if conf_hist != None and conf_hist.strip() != '':
+                result = conf_hist.strip().split('\n')
+        return result
+
+    def saveHistory(self):
+        if len(self.search_history) > 0:
+            history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
+            f=codecs.open(history_path,'w','utf-8')
+            f.write('\n'.join(self.search_history))
+            f.close()
+
+    def updateCompletion(self):
+        qc = QCompleter(QStringList(self.search_history),self)
+        qc.setCaseSensitivity(Qt.CaseInsensitive)
+        self.ui.searchEdit.setCompleter(qc)
 
     def typeComboChanged(self,value):
         if unicode(value) == 'subtitle':
@@ -172,9 +186,7 @@ class MainWindow(QtMainWindow):
             self.search_history.pop(0)
         if pattern not in self.search_history:
             self.search_history.append(pattern)
-            qc = QCompleter(QStringList(self.search_history),self)
-            qc.setCaseSensitivity(Qt.CaseInsensitive)
-            self.ui.searchEdit.setCompleter(qc)
+            self.updateCompletion()
 
         tosearch = self.ui.typeCombo.currentText()
         if tosearch == 'person':
@@ -359,10 +371,7 @@ class MainWindow(QtMainWindow):
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
-        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
-        f=codecs.open(history_path,'w','utf-8')
-        f.write('\n'.join(self.search_history))
-        f.close()
+        self.saveHistory()
 
         self.config.save()
         ev.accept()
