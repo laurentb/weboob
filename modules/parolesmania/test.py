@@ -20,8 +20,8 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
-class ParolesmusiqueTest(BackendTest):
-    BACKEND = 'parolesmusique'
+class ParolesmaniaTest(BackendTest):
+    BACKEND = 'parolesmania'
 
     def test_search_song_n_get(self):
         l_lyrics = list(self.backend.iter_lyrics('song','chien'))
