@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import os,codecs
 
-from PyQt4.QtCore import SIGNAL, Qt
-from PyQt4.QtGui import QApplication
+from PyQt4.QtCore import SIGNAL, Qt, QStringList
+from PyQt4.QtGui import QApplication, QCompleter
 
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.torrent import ICapTorrent
@@ -49,6 +50,18 @@ class MainWindow(QtMainWindow):
         self.weboob = weboob
         self.minis = []
         self.current_info_widget = None
+
+        self.search_history = []
+        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
+        if os.path.exists(history_path):
+            f=codecs.open(history_path,'r','utf-8')
+            conf_hist = f.read()
+            f.close()
+            if conf_hist != None and conf_hist.strip() != '':
+                self.search_history = conf_hist.strip().split('\n')
+                qc = QCompleter(QStringList(self.search_history),self)
+                qc.setCaseSensitivity(Qt.CaseInsensitive)
+                self.ui.searchEdit.setCompleter(qc)
 
         self.history = {'last_action':None,'action_list':[]}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
@@ -153,6 +166,16 @@ class MainWindow(QtMainWindow):
         self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)
 
     def search(self):
+        pattern = unicode(self.ui.searchEdit.text())
+        # arbitrary max number of completion word
+        if len(self.search_history) > 50:
+            self.search_history.pop(0)
+        if pattern not in self.search_history:
+            self.search_history.append(pattern)
+            qc = QCompleter(QStringList(self.search_history),self)
+            qc.setCaseSensitivity(Qt.CaseInsensitive)
+            self.ui.searchEdit.setCompleter(qc)
+
         tosearch = self.ui.typeCombo.currentText()
         if tosearch == 'person':
             self.searchPerson()
@@ -336,5 +359,10 @@ class MainWindow(QtMainWindow):
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
+        history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
+        f=codecs.open(history_path,'w','utf-8')
+        f.write('\n'.join(self.search_history))
+        f.close()
+
         self.config.save()
         ev.accept()
