@@ -27,6 +27,7 @@ from urllib2 import HTTPError
 from weboob.tools.browser import BasePage
 from weboob.tools.json import json
 
+import re
 import datetime
 from dateutil.parser import parse as parse_dt
 
@@ -65,12 +66,24 @@ class VideoPage(BasePage):
         if len(obj) > 0:
             v.thumbnail = Thumbnail(unicode(obj[0].attrib['content']))
 
-        # for the rest, use the JSON config descriptor
-        json_data = self.browser.openurl('http://%s/config/%s?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
-        data = json.load(json_data)
+        data = None
+
+        # First try to find the JSON data in the page itself.
+        # it's the only location in case the video is not allowed to be embeded
+        for script in self.parser.select(self.document.getroot(), 'script'):
+            m = re.match('.* = {config:({.*}),assets:.*', unicode(script.text), re.DOTALL)
+            if m:
+                data = json.loads(m.group(1))
+                break
+
+        # Else fall back to the API
+        if data is None:
+            # for the rest, use the JSON config descriptor
+            json_data = self.browser.openurl('http://%s/config/%s?type=%s&referrer=%s' % ("player.vimeo.com", int(v.id), "html5_desktop_local", ""))
+            data = json.load(json_data)
+
         if data is None:
             raise BrokenPageError('Unable to get JSON config for id: %r' % int(v.id))
-        #print data
 
         if v.title is None:
             v.title = unicode(data['video']['title'])
