@@ -40,12 +40,21 @@ class Subtitle(QFrame):
         self.ui.nameLabel.setText(u'%s'%subtitle.name)
         if subtitle.nb_cd != NotAvailable:
             self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
+        else:
+            self.ui.nbcdLabel.parent().hide()
         if subtitle.language != NotAvailable:
             self.ui.langLabel.setText(u'%s'%subtitle.language)
+        else:
+            self.ui.langLabel.parent().hide()
         if subtitle.description != NotAvailable:
             self.ui.descriptionPlain.setPlainText(u'%s'%subtitle.description)
+        else:
+            self.ui.descriptionPlain.parent().hide()
         if subtitle.url != NotAvailable:
             self.ui.urlEdit.setText(u'%s'%subtitle.url)
+        else:
+            self.ui.downloadButton.setDisabled(True)
+            self.ui.downloadButton.setText('Impossible to download this subtitle')
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 

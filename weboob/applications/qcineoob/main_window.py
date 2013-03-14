@@ -51,10 +51,13 @@ class MainWindow(QtMainWindow):
         self.minis = []
         self.current_info_widget = None
 
-        self.search_history = self.loadHistory()
+        # search history is a list of patterns which have been searched
+        self.search_history = self.loadSearchHistory()
         self.updateCompletion()
 
-        self.history = {'last_action':None,'action_list':[]}
+        # action history is composed by the last action and the action list
+        # An action is a function, a list of arguments and a description string
+        self.action_history = {'last_action':None,'action_list':[]}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
         self.ui.backButton.hide()
 
@@ -96,7 +99,9 @@ class MainWindow(QtMainWindow):
         else:
             self.ui.searchEdit.setEnabled(True)
 
-    def loadHistory(self):
+    def loadSearchHistory(self):
+        ''' Return search string history list loaded from history file
+        '''
         result = []
         history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
         if os.path.exists(history_path):
@@ -107,7 +112,9 @@ class MainWindow(QtMainWindow):
                 result = conf_hist.strip().split('\n')
         return result
 
-    def saveHistory(self):
+    def saveSearchHistory(self):
+        ''' Save search history in history file
+        '''
         if len(self.search_history) > 0:
             history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
             f=codecs.open(history_path,'w','utf-8')
@@ -128,23 +135,29 @@ class MainWindow(QtMainWindow):
             self.ui.langLabel.hide()
 
     def doAction(self, description, fun, args):
+        ''' Call fun with args as arguments
+        and save it in the action history
+        '''
         self.ui.currentActionLabel.setText(description)
-        if self.history['last_action'] != None:
-            self.history['action_list'].append(self.history['last_action'])
-            self.ui.backButton.setToolTip(self.history['last_action']['description'])
+        if self.action_history['last_action'] != None:
+            self.action_history['action_list'].append(self.action_history['last_action'])
+            self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
             self.ui.backButton.show()
-        self.history['last_action'] = {'function':fun,'args':args,'description':description}
+        self.action_history['last_action'] = {'function':fun,'args':args,'description':description}
         return fun(*args)
 
     def doBack(self):
-        if len(self.history['action_list']) > 0:
-            todo = self.history['action_list'].pop()
+        ''' Go back in action history
+        Basically call previous function and update history
+        '''
+        if len(self.action_history['action_list']) > 0:
+            todo = self.action_history['action_list'].pop()
             self.ui.currentActionLabel.setText(todo['description'])
-            self.history['last_action'] = todo
-            if len(self.history['action_list']) == 0:
+            self.action_history['last_action'] = todo
+            if len(self.action_history['action_list']) == 0:
                 self.ui.backButton.hide()
             else:
-                self.ui.backButton.setToolTip(self.history['action_list'][-1]['description'])
+                self.ui.backButton.setToolTip(self.action_history['action_list'][-1]['description'])
             return todo['function'](*todo['args'])
 
     def castingAction(self, id, role):
@@ -371,7 +384,7 @@ class MainWindow(QtMainWindow):
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
-        self.saveHistory()
+        self.saveSearchHistory()
 
         self.config.save()
         ev.accept()
