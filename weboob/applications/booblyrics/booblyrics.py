@@ -83,15 +83,7 @@ class Booblyrics(ReplApplication):
         Display lyrics of the song.
         """
 
-        # TODO restore get_object line and handle fillobj
-        #songlyrics = self.get_object(id, 'get_lyrics')
-        songlyrics = None
-        _id, backend = self.parse_id(id)
-        for _backend, result in self.do('get_lyrics', _id, backends=backend):
-            if result:
-                backend = _backend
-                songlyrics = result
-
+        songlyrics = self.get_object(id, 'get_lyrics')
         if not songlyrics:
             print >>sys.stderr, 'Song lyrics not found: %s' % id
             return 3

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.lyrics import ICapLyrics
+from weboob.capabilities.lyrics import ICapLyrics, SongLyrics
 from weboob.tools.backend import BaseBackend
 
 from .browser import SeeklyricsBrowser
@@ -44,3 +44,13 @@ class SeeklyricsBackend(BaseBackend, ICapLyrics):
 
     def iter_lyrics(self, criteria, pattern):
         return self.browser.iter_lyrics(criteria,quote_plus(pattern.encode('iso-8859-1')))
+
+    def fill_songlyrics(self, songlyrics, fields):
+        if 'content' in fields:
+            sl = self.get_lyrics(songlyrics.id)
+            songlyrics.content = sl.content
+        return songlyrics
+
+    OBJECTS = {
+        SongLyrics:fill_songlyrics
+    }
