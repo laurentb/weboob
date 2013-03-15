@@ -30,19 +30,26 @@ class ResultsPage(BasePage):
     """ Page which contains results as a list of recipies
     """
     def iter_recipes(self):
-        for div in self.parser.select(self.document.getroot(),'div.m_search_result'):
-            tds = self.parser.select(div,'td')
-            if len(tds) == 2:
-                title = NotAvailable
+        for div in self.parser.select(self.document.getroot(),'div.recette_description > div.data'):
+            links = self.parser.select(div,'div.info > p.title > a.fn')
+            if len(links) > 0:
+                link = links[0]
+                title = unicode(link.text)
+                id = unicode(link.attrib.get('href','').strip('/').replace('.htm','htm'))
                 thumbnail_url = NotAvailable
                 short_description = NotAvailable
-                imgs = self.parser.select(tds[0],'img')
+
+                imgs = self.parser.select(div,'img.recipe-image')
                 if len(imgs) > 0:
                     thumbnail_url = unicode(imgs[0].attrib.get('src',''))
-                link = self.parser.select(tds[1],'div.m_search_titre_recette a',1)
-                title = unicode(link.text)
-                id = link.attrib.get('href','').replace('.aspx','').replace('/recettes/recette_','')
-                short_description = unicode(' '.join(self.parser.select(tds[1],'div.m_search_result_part4',1).text.strip().split('\n')))
+                short_description =  unicode(' '.join(self.parser.select(div,'div.infos_column',1).text_content().split()).strip())
+                imgs_cost = self.parser.select(div,'div.infos_column img')
+                cost_tot = len(imgs_cost)
+                cost_on = 0
+                for img in imgs_cost:
+                    if img.attrib.get('src','').endswith('euro_on.png'):
+                        cost_on += 1
+                short_description += u' %s/%s'%(cost_on,cost_tot)
 
                 recipe = Recipe(id,title)
                 recipe.thumbnail_url = thumbnail_url
