@@ -27,12 +27,12 @@ __all__ = ['HomePage','SearchPage','SeriePage','SeasonPage']
 
 class HomePage(BasePage):
     def iter_subtitles(self,language,pattern):
-       self.browser.select_form(nr=0)
-       self.browser['q'] = pattern.encode('utf-8')
-       self.browser.submit()
-       assert self.browser.is_on_page(SearchPage)
-       for subtitle in self.browser.page.iter_subtitles(language):
-           yield subtitle
+        self.browser.select_form(nr=0)
+        self.browser['q'] = pattern.encode('utf-8')
+        self.browser.submit()
+        assert self.browser.is_on_page(SearchPage)
+        for subtitle in self.browser.page.iter_subtitles(language):
+            yield subtitle
 
 
 class SearchPage(BasePage):

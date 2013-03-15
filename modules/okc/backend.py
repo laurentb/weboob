@@ -42,10 +42,10 @@ __all__ = ['OkCBackend']
 def parse_dt(s):
     now = datetime.datetime.now()
     if s is None:
-       return local2utc(now)
+        return local2utc(now)
     if 'minutes ago' in s:
-       m = int(s.split()[0])
-       d = now - datetime.timedelta(minutes=m)
+        m = int(s.split()[0])
+        d = now - datetime.timedelta(minutes=m)
     elif u'–' in s:
         # Date in form : "Yesterday – 20:45"
         day, hour = s.split(u'–')

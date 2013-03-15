@@ -109,7 +109,7 @@ class VideoPage(BasePage):
                     raise BrokenPageError('Unable to extract video url')
                 flashvars = urllib.unquote(mobj.group(1))
                 for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
-                     if key in flashvars:
+                    if key in flashvars:
                         max_quality = key
                         break
 

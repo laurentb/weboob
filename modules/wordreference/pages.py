@@ -28,28 +28,28 @@ LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
 
 class TranslatePage(BasePage):
     def get_translation(self):
-      # taking the first signification in the case several were found
-      for tr in self.document.getiterator('tr'):
-        prev_was_nums1 = False
-        for td in tr.getiterator('td'):
-            if prev_was_nums1:
-                result = u''+td.text_content().split(';')[0].strip()
-                result = LAST_THING_IN_PARENTHESIS.sub("",result)
-                return result
-            if td.attrib.get('class','') == 'nums1':
-                prev_was_nums1 = True
-      # if only one signification is found
-      for div in self.document.getiterator('div'):
-          if div.attrib.get('class','') == "trans clickable":
-              names = u''+" ".join(div.text_content().split(']')[1].split()[1:]).split(';')[0]
-              names = LAST_THING_IN_PARENTHESIS.sub("",names)
-              return names.strip()
-      # another numerotation possibility...
-      for table in self.document.getiterator('table'):
-          if table.attrib.get('class','') == "trans clickable":
-            prev_was_roman1 = False
-            for td in table.getiterator('td'):
-                if prev_was_roman1:
-                    return u''+td.text_content().split(';')[0].strip()
-                if td.attrib.get('class','') == 'roman1':
-                    prev_was_roman1 = True
+        # taking the first signification in the case several were found
+        for tr in self.document.getiterator('tr'):
+            prev_was_nums1 = False
+            for td in tr.getiterator('td'):
+                if prev_was_nums1:
+                    result = u''+td.text_content().split(';')[0].strip()
+                    result = LAST_THING_IN_PARENTHESIS.sub("",result)
+                    return result
+                if td.attrib.get('class','') == 'nums1':
+                    prev_was_nums1 = True
+        # if only one signification is found
+        for div in self.document.getiterator('div'):
+            if div.attrib.get('class','') == "trans clickable":
+                names = u''+" ".join(div.text_content().split(']')[1].split()[1:]).split(';')[0]
+                names = LAST_THING_IN_PARENTHESIS.sub("",names)
+                return names.strip()
+        # another numerotation possibility...
+        for table in self.document.getiterator('table'):
+            if table.attrib.get('class','') == "trans clickable":
+                prev_was_roman1 = False
+                for td in table.getiterator('td'):
+                    if prev_was_roman1:
+                        return u''+td.text_content().split(';')[0].strip()
+                    if td.attrib.get('class','') == 'roman1':
+                        prev_was_roman1 = True
