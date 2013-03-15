@@ -28,11 +28,11 @@ __all__ = ['SevenFiftyGramsBrowser']
 class SevenFiftyGramsBrowser(BaseBrowser):
     DOMAIN = 'www.750g.com'
     PROTOCOL = 'http'
-    ENCODING = 'utf-8'
+    ENCODING = 'windows-1252'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
         'http://www.750g.com/recettes_.*.htm': ResultsPage,
-        'http://www.750g.com/.*r[0-9]*.htm': RecipePage,
+        'http://www.750g.com/fiche_de_cuisine_complete.htm\?recettes_id=[0-9]*': RecipePage,
         }
 
     def iter_recipes(self, pattern):
@@ -41,6 +41,6 @@ class SevenFiftyGramsBrowser(BaseBrowser):
         return self.page.iter_recipes()
 
     def get_recipe(self, id):
-        self.location('http://www.750g.com/%s.htm' % id)
+        self.location('http://www.750g.com/fiche_de_cuisine_complete.htm?recettes_id=%s' % id)
         assert self.is_on_page(RecipePage)
         return self.page.get_recipe(id)
