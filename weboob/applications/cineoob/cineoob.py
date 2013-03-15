@@ -27,7 +27,7 @@ from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleLis
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.subtitle import ICapSubtitle
-from weboob.capabilities.base import NotAvailable,NotLoaded
+from weboob.capabilities.base import NotAvailable,NotLoaded,empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
@@ -44,23 +44,23 @@ class MovieInfoFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.original_title, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        if obj.release_date != NotAvailable:
+        if not empty(obj.release_date):
             result += 'Released: %s\n' % obj.release_date.strftime('%Y-%m-%d')
         result += 'Country: %s\n' % obj.country
-        if obj.duration != NotAvailable:
+        if not empty(obj.duration):
             result += 'Duration: %smin\n' % obj.duration
         result += 'Note: %s\n' % obj.note
-        if obj.roles:
+        if not empty(obj.roles):
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
             for role,lpersons in obj.roles.items():
                 result += ' -- %s\n' % role
                 for name in lpersons:
                     result += '   * %s\n' % name
-        if obj.other_titles:
+        if not empty(obj.other_titles):
             result += '\n%sOther titles%s\n' % (self.BOLD, self.NC)
             for t in obj.other_titles:
                 result += ' * %s\n' % t
-        if obj.pitch != NotAvailable:
+        if not empty(obj.pitch):
             result += '\n%sStory%s\n' % (self.BOLD, self.NC)
             result += '%s'%obj.pitch
         return result
@@ -74,7 +74,7 @@ class MovieListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         result = u''
-        if obj.short_description != NotAvailable:
+        if not empty(obj.short_description):
             result = obj.short_description
         return result
 
@@ -110,34 +110,34 @@ def num_years(begin, end=None):
         return num_years
 
 class PersonInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'real_name', 'birth_date', 'birth_place', 'gender', 'nationality', 'short_biography', 'roles')
+    MANDATORY_FIELDS = ('id', 'name', 'birth_date', 'birth_place', 'short_biography')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        if obj.real_name != NotAvailable:
+        if not empty(obj.real_name):
             result += 'Real name: %s\n' % obj.real_name
-        if obj.birth_place != NotAvailable:
+        if not empty(obj.birth_place):
             result += 'Birth place: %s\n' % obj.birth_place
-        if obj.birth_date != NotAvailable and obj.birth_date != NotLoaded:
+        if not empty(obj.birth_date):
             result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
-            if obj.death_date != NotAvailable:
+            if not empty(obj.death_date):
                 age = num_years(obj.birth_date,obj.death_date)
                 result += 'Death date: %s at %s years old\n' % (obj.death_date.strftime('%Y-%m-%d'),age)
             else:
                 age = num_years(obj.birth_date)
                 result += 'Age: %s\n' % age
-        if obj.gender != NotAvailable:
+        if not empty(obj.gender):
             result += 'Gender: %s\n' % obj.gender
-        if obj.nationality != NotAvailable:
+        if not empty(obj.nationality):
             result += 'Nationality: %s\n' % obj.nationality
-        if obj.roles:
+        if not empty(obj.roles):
             result += '\n%sRelated movies%s\n' % (self.BOLD, self.NC)
             for role,lmovies in obj.roles.items():
                 result += ' -- %s\n' % role
                 for movie in lmovies:
                     result += '   * %s\n' % movie
-        if obj.short_biography != NotAvailable:
+        if not empty(obj.short_biography):
             result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
             result += '%s'%obj.short_biography
         return result
@@ -151,7 +151,7 @@ class PersonListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         result = u''
-        if obj.short_description != NotAvailable:
+        if not empty(obj.short_description):
             result = obj.short_description
         return result
 
