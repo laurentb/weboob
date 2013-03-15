@@ -364,8 +364,8 @@ class CapBaseObject(object):
         if self._fields is not None and name in self._fields:
             return self._fields[name].value
         else:
-            raise AttributeError, "'%s' object has no attribute '%s'" % (
-                self.__class__.__name__, name)
+            raise AttributeError("'%s' object has no attribute '%s'" % (
+                self.__class__.__name__, name))
 
     def __setattr__(self, name, value):
         try:

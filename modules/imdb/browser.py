@@ -48,7 +48,7 @@ class ImdbBrowser(BaseBrowser):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
         for cat in ['title_popular','title_exact','title_approx']:
-            if jres.has_key(cat):
+            if cat in jres:
                 for m in jres[cat]:
                     tdesc = unicode(m['title_description'])
                     if '<a' in tdesc and '>' in tdesc:
@@ -72,7 +72,7 @@ class ImdbBrowser(BaseBrowser):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
         for cat in ['name_popular','name_exact','name_approx']:
-            if jres.has_key(cat):
+            if cat in jres:
                 for p in jres[cat]:
                     person = Person(p['id'],latin2unicode(p['name']))
                     person.real_name      = NotLoaded
@@ -106,24 +106,24 @@ class ImdbBrowser(BaseBrowser):
         other_titles = []
         roles = {}
 
-        if not jres.has_key('title'):
+        if 'title' not in jres:
             return
         title = htmlparser.unescape(unicode(jres['title'].strip()))
-        if jres.has_key('poster'):
+        if 'poster' in jres:
             thumbnail_url = unicode(jres['poster'])
-        if jres.has_key('directors'):
+        if 'directors' in jres:
             short_description = unicode(', '.join(jres['directors']))
-        if jres.has_key('runtime'):
+        if 'runtime' in jres:
             dur_str = jres['runtime'][0].split(':')
             if len(dur_str) == 1:
                 duration = int(dur_str[0].split()[0])
             else:
                 duration = int(dur_str[1].split()[0])
-        if jres.has_key('also_known_as'):
+        if 'also_known_as' in jres:
             for other_t in jres['also_known_as']:
-                if other_t.has_key('country') and other_t.has_key('title'):
+                if 'country' in other_t and 'title' in other_t:
                     other_titles.append('%s : %s' % (other_t['country'],htmlparser.unescape(other_t['title'])))
-        if jres.has_key('release_date'):
+        if 'release_date' in jres:
             dstr = str(jres['release_date'])
             year = int(dstr[:4])
             if year == 0:
@@ -135,17 +135,17 @@ class ImdbBrowser(BaseBrowser):
             if day == 0:
                 day = 1
             release_date = datetime(year,month,day)
-        if jres.has_key('country'):
+        if 'country' in jres:
             country = u''
             for c in jres['country']:
                 country += '%s, '%c
             country = country[:-2]
-        if jres.has_key('plot_simple'):
+        if 'plot_simple' in jres:
             pitch = unicode(jres['plot_simple'])
-        if jres.has_key('rating') and jres.has_key('rating_count'):
+        if 'rating' in jres and 'rating_count' in jres:
             note = u'%s/10 (%s votes)'%(jres['rating'],jres['rating_count'])
         for r in ['actor','director','writer']:
-            if jres.has_key('%ss'%r):
+            if '%ss'%r in jres:
                 roles['%s'%r] = list(jres['%ss'%r])
 
         movie = Movie(id,title)
