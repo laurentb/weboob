@@ -764,7 +764,6 @@ class Boobathon(ReplApplication):
         print >>sys.stderr, "There isn't any task in progress."
         return 1
 
-
     def load_default_backends(self):
         """
         Overload a BaseApplication method.

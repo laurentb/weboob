@@ -101,7 +101,6 @@ class SubtitlesPage(BasePage):
             return subtitle
 
 
-
 class SubtitlePage(BasePage):
     """ Page which contains a single subtitle for a movie
     """

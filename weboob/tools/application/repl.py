@@ -330,7 +330,6 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         return cmd, arg, ignored
 
-
     def onecmd(self, line):
         """
         This REPL method is overrided to catch some particular exceptions.

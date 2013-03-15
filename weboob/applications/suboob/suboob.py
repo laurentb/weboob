@@ -118,7 +118,6 @@ class Suboob(ReplApplication):
         self.format(subtitle)
         self.flush()
 
-
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
         if len(args) == 2:

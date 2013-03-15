@@ -289,7 +289,6 @@ class MainWindow(QtMainWindow):
 
         return False
 
-
     def setHousing(self, housing, nottext='Loading...'):
         if self.housing is not None:
             self.saveNotes()

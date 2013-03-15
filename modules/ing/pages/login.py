@@ -103,7 +103,6 @@ class LoginPage(BasePage):
         err = self.document.find('//span[@class="error"]')
         return err is not None
 
-
     def login(self, password):
         # 2) And now, the virtual Keyboard
         try:

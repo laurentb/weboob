@@ -37,6 +37,5 @@ class WikiEditPage(BasePage):
         return wiki_form.xpath('div/input')[0].get('value')
 
 
-
 class WikiPage(BasePage):
     pass

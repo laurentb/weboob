@@ -45,7 +45,6 @@ from hellhttp import HellHTTPS
 __all__ = ['CmbBackend']
 
 
-
 class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
     MAINTAINER = u'Johann Broudin'
@@ -97,8 +96,6 @@ class CmbBackend(BaseBackend, ICapBank):
                 '%(text)s'
             )
             ]
-
-
 
     cookie = None
     headers = {
@@ -197,7 +194,6 @@ class CmbBackend(BaseBackend, ICapBank):
                 account._cmbvaleur2 = m.group(2)
                 account._cmbtype = m.group(3)
 
-
                 balance = u''.join([txt.strip() for txt in td[2].itertext()])
                 balance = balance.replace(',', '.').replace(u"\xa0", '')
                 account.balance = Decimal(balance)
@@ -252,7 +248,6 @@ class CmbBackend(BaseBackend, ICapBank):
         parser = etree.HTMLParser()
         tree = etree.parse(StringIO(data), parser)
 
-
         tables = tree.xpath('/html/body/table')
         if len(tables) == 0:
             title = tree.xpath('/html/head/title')[0].text
@@ -275,7 +270,7 @@ class CmbBackend(BaseBackend, ICapBank):
                 continue
             for tr in table.getiterator('tr'):
                 if (tr.get('class') != 'LnTit' and
-                    tr.get('class') != 'LnTot'):
+                        tr.get('class') != 'LnTot'):
                     operation = Transaction(i)
                     td = tr.xpath('td')
 

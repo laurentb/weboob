@@ -34,7 +34,6 @@ class HTTPSVerifiedConnection(httplib.HTTPSConnection):
     This class allows communication via SSL, and will checks certificates
     """
 
-
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  ca_file=None, strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
                  callBack=None):

@@ -159,7 +159,6 @@ class ComingTransactionsPage(BasePage):
             else:
                 date += "/%d" % time.localtime().tm_year
 
-
             t = Transaction(date+""+raw)
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount("", debit)

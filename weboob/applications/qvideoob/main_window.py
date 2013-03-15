@@ -87,7 +87,7 @@ class MainWindow(QtMainWindow):
     def updateVideosDisplay(self):
         for minivideo in self.minivideos:
             if (minivideo.video.nsfw and self.ui.nsfwCheckBox.isChecked() or
-                not minivideo.video.nsfw and self.ui.sfwCheckBox.isChecked()):
+                    not minivideo.video.nsfw and self.ui.sfwCheckBox.isChecked()):
                 minivideo.show()
             else:
                 minivideo.hide()
@@ -119,7 +119,7 @@ class MainWindow(QtMainWindow):
         self.ui.scrollAreaContent.layout().addWidget(minivideo)
         self.minivideos.append(minivideo)
         if (video.nsfw and not self.ui.nsfwCheckBox.isChecked() or
-            not video.nsfw and not self.ui.sfwCheckBox.isChecked()):
+                not video.nsfw and not self.ui.sfwCheckBox.isChecked()):
             minivideo.hide()
 
     def openURL(self):

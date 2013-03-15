@@ -65,7 +65,6 @@ class ThreadMessage(QFrame):
             content = message.content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br />')
         self.ui.contentLabel.setText(content)
 
-
     def __eq__(self, m):
         if not isinstance(m, Message):
             return False
@@ -197,8 +196,6 @@ class ContactThread(QWidget):
         QMessageBox.critical(self, self.tr('Error while posting reply'),
                              content, QMessageBox.Ok)
         self.process_reply = None
-
-
 
 
 class ContactProfile(QWidget):
@@ -361,7 +358,6 @@ class ContactNotes(QWidget):
         self.process.do('get_notes', self.contact.id, backends=(self.contact.backend,))
 
         self.connect(self.ui.saveButton, SIGNAL('clicked()'), self.saveNotes)
-
 
     def _getNotes_cb(self, backend, data):
         if not backend or not data:

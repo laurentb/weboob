@@ -35,8 +35,6 @@ from .video import GDCVaultVideo
 #import lxml.etree
 
 
-
-
 __all__ = ['VideoPage']
 
 class VideoPage(BasePage):

@@ -44,7 +44,6 @@ class OkCBrowser(BaseBrowser):
             ('http://%s/profile/[^/]*' % DOMAIN, ProfilePage),
     ))
 
-
     logged_in = False
 
     def home(self):

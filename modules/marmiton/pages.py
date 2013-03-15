@@ -55,7 +55,6 @@ class ResultsPage(BasePage):
                 yield recipe
                     
 
-
 class RecipePage(BasePage):
     """ Page which contains a recipe
     """

@@ -27,7 +27,6 @@ from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-
 __all__ = ['AccountHistory']
 
 class Transaction(FrenchTransaction):

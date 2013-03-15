@@ -132,7 +132,6 @@ class MasstransitHildon():
         self.treestore = gtk.TreeStore(str, str, str, str, str)
         treeview = gtk.TreeView(self.treestore)
 
-
         treeview.append_column(
             gtk.TreeViewColumn(
                 'Train',
@@ -165,8 +164,6 @@ class MasstransitHildon():
                 gtk.CellRendererText(),
                 text=4
             ))
-
-
 
         vertical_box = gtk.VBox()
         vertical_box.pack_start(horizontal_box)

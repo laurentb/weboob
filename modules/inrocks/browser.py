@@ -23,7 +23,6 @@ from .pages.inrockstv import InrocksTvPage
 from weboob.tools.browser import BaseBrowser
 
 
-
 class NewspaperInrocksBrowser(BaseBrowser):
     "NewspaperInrocksBrowser class"
     PAGES = {

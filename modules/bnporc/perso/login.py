@@ -61,7 +61,6 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
         return code
 
 
-
 class LoginPage(BasePage):
     def on_loaded(self):
         for td in self.document.getroot().cssselect('td.LibelleErreur'):
@@ -127,7 +126,6 @@ class ChangePasswordPage(BasePage):
         cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
 
         cookiejar.set_cookie(c)
-
 
         code_current=vk.get_string_code(current)
         code_new=vk.get_string_code(new)

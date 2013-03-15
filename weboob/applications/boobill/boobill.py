@@ -181,7 +181,6 @@ class Boobill(ReplApplication):
                 self.download_all(dest, names)
                 return
 
-
         if dest is None:
             for backend, bill in self.do('get_bill', id, backends=names):
                 dest = id + "." + bill.format
@@ -214,6 +213,5 @@ class Boobill(ReplApplication):
                         except IOError, e:
                             print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                             return 1
-
 
         return

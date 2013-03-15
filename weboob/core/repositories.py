@@ -639,7 +639,6 @@ class Repositories(object):
         except BrowserUnavailable, e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
 
-
         # Check signature
         if module.signed and Keyring.find_gpgv():
             progress.progress(0.5, 'Checking module authenticity...')
@@ -650,7 +649,6 @@ class Repositories(object):
                 raise ModuleInstallError('No keyring found, please update repos.')
             if not keyring.is_valid(tardata, sig_data):
                 raise ModuleInstallError('Invalid signature for %s.' % module.name)
-
 
         # Extract module from tarball.
         if os.path.isdir(module_dir):

@@ -171,7 +171,6 @@ class AccountHistory(BasePage):
                                                   sign=p['sign'][0],
                                                   src=p['src'][0])
 
-
     def _iter_transactions(self, doc, coming):
         t = None
         for i, tr in enumerate(self.parser.select(doc.getroot(), 'tr')):

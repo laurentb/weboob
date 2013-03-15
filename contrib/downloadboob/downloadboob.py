@@ -136,7 +136,6 @@ class Downloadboob:
 
         return u"%s/%s.%s" % (directory, removeNonAscii(video.id), ext)
 
-
     def get_linkname(self, video):
         if not os.path.exists(self.links_directory):
             os.makedirs(self.links_directory)
@@ -151,11 +150,9 @@ class Downloadboob:
 
         return u"%s/%s (%s).%s" % (self.links_directory, removeSpecial(video.title), removeSpecial(misc), ext)
 
-
     def is_downloaded(self, video):
         # check if the file is 0 byte
         return os.path.isfile(self.get_filename(video))
-
 
     def remove_download(self, video):
         path = self.get_filename(video)
@@ -169,7 +166,6 @@ class Downloadboob:
         with open(path, 'w'):
             pass
 
-
     def set_linkname(self, video):
         linkname = self.get_linkname(video)
         idname = self.get_filename(video, relative=True)
@@ -177,7 +173,6 @@ class Downloadboob:
         if not os.path.islink(linkname) and os.path.isfile(absolute_idname):
             print "%s -> %s" % (linkname, idname)
             os.symlink(idname, linkname)
-
 
     def do_download(self, video):
         if not video:

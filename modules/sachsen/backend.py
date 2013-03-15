@@ -46,7 +46,7 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
             lowpattern = pattern.lower()
             for gauge in self.browser.get_rivers_list():
                 if lowpattern in gauge.name.lower()\
-                    or lowpattern in gauge.object.lower():
+                        or lowpattern in gauge.object.lower():
                     yield gauge
 
     def _get_gauge_by_id(self, id):

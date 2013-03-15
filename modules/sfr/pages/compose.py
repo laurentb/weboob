@@ -24,7 +24,6 @@ from weboob.capabilities.messages import CantSendMessage
 from weboob.tools.browser import BasePage
 
 
-
 __all__ = ['ClosePage', 'ComposePage', 'ConfirmPage', 'SentPage']
 
 

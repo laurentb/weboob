@@ -30,7 +30,6 @@ class StartPage(BasePage):
             u"Niederschlag", u"Globalstrahlung", u"Schneehoehe"]
     unit = [u"°C", u"km/h", u"hPa", u"%", u"mm", u"W/m²", u"cm"]
 
-
     def get_sensors_list(self):
         paraphs = self.document.xpath('//p[@align="center"]')
         sensors = []

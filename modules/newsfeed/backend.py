@@ -37,7 +37,6 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
     CONFIG = BackendConfig(Value('url', label="Atom/RSS feed's url", regexp='https?://.*'))
     STORAGE = {'seen': []}
 
-
     def iter_threads(self):
         for article in Newsfeed(self.config['url'].get()).iter_entries():
             yield self.get_thread(article.id, article)
@@ -75,14 +74,11 @@ class NewsfeedBackend(BaseBackend, ICapMessages):
                               flags=flags)
         return thread
 
-
-
     def iter_unread_messages(self):
         for thread in self.iter_threads():
             for m in thread.iter_all_messages():
                 if m.flags & m.IS_UNREAD:
                     yield m
-
 
     def set_message_read(self, message):
         self.storage.get('seen', default=[]).append(message.thread.id)

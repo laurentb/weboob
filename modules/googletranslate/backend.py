@@ -48,7 +48,6 @@ class GoogleTranslateBackend(BaseBackend, ICapTranslate):
         'Telugu':'te', 'Thai':'th', 'Turkish':'tr', 'Ukrainian':'uk', 'Urdu':'ur', 'Vietnamese':'vi', 'Welsh':'cy', 'Yiddish':'yi',
         }
 
-
     def translate(self, lan_from, lan_to, text):
         if not lan_from in self.GOOGLELANGUAGE.keys():
             raise LanguageNotSupported()

@@ -38,7 +38,6 @@ from weboob.tools.browser import BrokenPageError
 from .video import VimeoVideo
 
 
-
 __all__ = ['VideoPage']
 
 class VideoPage(BasePage):
