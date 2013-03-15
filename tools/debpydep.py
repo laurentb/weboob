@@ -4,7 +4,6 @@
 import os
 import subprocess
 import sys
-from cStringIO import StringIO
 
 selection = set()
 dependencies = set()

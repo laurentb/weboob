@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
 
 os.system('./genapi.py')
 
@@ -174,8 +174,8 @@ htmlhelp_basename = 'Weboobdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Weboob.tex', u'Weboob Documentation',
-   u'Weboob Team', 'manual'),
+    ('index', 'Weboob.tex', u'Weboob Documentation',
+     u'Weboob Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
