@@ -54,6 +54,7 @@ class RoadmapSearchPage(BasePage):
                 raise RoadmapError('Unable to establish a roadmap with %s time at "%s"' % ('departure' if departure_time else 'arrival', time))
         self.browser.submit()
 
+
 class RoadmapPage(BasePage):
     def get_steps(self):
         errors = []
@@ -94,6 +95,7 @@ class RoadmapPage(BasePage):
         if m:
             return datetime.timedelta(hours=int(m.group(1)),
                                       minutes=int(m.group(2)))
+
 
 class RoadmapConfirmPage(RoadmapPage):
     def select(self, name, num):

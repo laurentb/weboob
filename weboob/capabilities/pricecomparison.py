@@ -31,6 +31,7 @@ class Product(CapBaseObject):
     """
     name =      StringField('Name of product')
 
+
 class Shop(CapBaseObject):
     """
     A shop where the price is.
@@ -38,6 +39,7 @@ class Shop(CapBaseObject):
     name =      StringField('Name of shop')
     location =  StringField('Location of the shop')
     info =      StringField('Information about the shop')
+
 
 class Price(CapBaseObject):
     """
@@ -49,6 +51,7 @@ class Price(CapBaseObject):
     message =   StringField('Message related to this price')
     shop =      Field('Shop information', Shop)
     product =   Field('Product', Product)
+
 
 class ICapPriceComparison(IBaseCap):
     """

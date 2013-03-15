@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class CreditCooperatifTest(BackendTest):
     BACKEND = 'creditcooperatif'
 

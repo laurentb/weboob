@@ -40,6 +40,7 @@ class Station(CapBaseObject):
     def __repr__(self):
         return "<Station id=%r name=%r>" % (self.id, self.name)
 
+
 class Departure(CapBaseObject):
     """
     Describes a departure.
@@ -62,6 +63,7 @@ class Departure(CapBaseObject):
         return u"<Departure id=%r type=%r time=%r departure=%r arrival=%r>" % (
             self.id, self.type, self.time.strftime('%H:%M'), self.departure_station, self.arrival_station)
 
+
 class RoadStep(CapBaseObject):
     """
     A step on a roadmap.
@@ -73,10 +75,12 @@ class RoadStep(CapBaseObject):
     arrival =       StringField('Arrival station')
     duration =      DeltaField('Duration of this step')
 
+
 class RoadmapError(UserError):
     """
     Raised when the roadmap is unable to be calculated.
     """
+
 
 class RoadmapFilters(CapBaseObject):
     """
@@ -87,6 +91,7 @@ class RoadmapFilters(CapBaseObject):
 
     def __init__(self):
         CapBaseObject.__init__(self, '')
+
 
 class ICapTravel(IBaseCap):
     """

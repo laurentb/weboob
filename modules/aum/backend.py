@@ -55,6 +55,7 @@ def parse_dt(s):
     d = _parse_dt(s)
     return local2utc(d)
 
+
 class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapChat, ICapContact, ICapAccount):
     NAME = 'aum'
     MAINTAINER = u'Romain Bignon'
@@ -503,6 +504,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                 browser = None
 
     REGISTER_REGEXP = re.compile('.*http://www.adopteunmec.com/register4.php\?([^\' ]*)\'')
+
     def confirm_account(self, mail):
         msg = email.message_from_string(mail)
 

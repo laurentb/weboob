@@ -26,6 +26,7 @@ import mechanize
 from datetime import datetime
 import re
 
+
 class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'

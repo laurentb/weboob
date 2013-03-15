@@ -25,6 +25,7 @@ from PyQt4.QtCore import Qt
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
 from weboob.capabilities.base import empty
 
+
 class MiniMovie(QFrame):
     def __init__(self, weboob, backend, movie, parent=None):
         QFrame.__init__(self, parent)

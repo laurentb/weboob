@@ -41,6 +41,7 @@ class Emission(CapBaseObject):
         else:
             return self.title
 
+
 class Stream(CapBaseObject):
     """
     Stream of a radio.
@@ -54,6 +55,7 @@ class Stream(CapBaseObject):
     def __repr__(self):
         return self.__unicode__()
 
+
 class Radio(CapBaseObject):
     """
     Radio object.
@@ -62,6 +64,7 @@ class Radio(CapBaseObject):
     description =   StringField('Description of radio')
     current =       Field('Current emission', Emission)
     streams =       Field('List of streams', list)
+
 
 class ICapRadio(IBaseCap):
     """

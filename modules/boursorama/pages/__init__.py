@@ -23,6 +23,7 @@ from .account_history import AccountHistory
 from .accounts_list import AccountsList
 from .login import LoginPage, UpdateInfoPage
 
+
 class AccountPrelevement(AccountsList):
     pass
 

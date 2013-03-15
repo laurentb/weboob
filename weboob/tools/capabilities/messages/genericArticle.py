@@ -50,6 +50,8 @@ def drop_comments(base_element):
 
 # Replace relative url in link and image with a complete url
 # Arguments: the html element to clean, and the domain name (with http:// prefix)
+
+
 def clean_relativ_urls(base_element, domain):
     for a in base_element.findall('.//a'):
         if "href" in a.attrib:

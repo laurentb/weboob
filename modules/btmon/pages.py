@@ -64,7 +64,6 @@ class TorrentsPage(BasePage):
             torrent.description = NotLoaded
             torrent.files = NotLoaded
             yield torrent
-            
 
 
 class TorrentPage(BasePage):
@@ -86,7 +85,7 @@ class TorrentPage(BasePage):
         href_t = self.parser.select(div,'a.down',1).attrib.get('href','')
         url = u'http://%s%s'%(self.browser.DOMAIN,href_t)
         magnet = unicode(self.parser.select(div,'a.magnet',1).attrib.get('href',''))
-        
+
         divtabs = self.parser.select(div,'div#tabs',1)
         files_div = self.parser.select(divtabs,'div.body > div.doubleblock > div.leftblock')
         files = []

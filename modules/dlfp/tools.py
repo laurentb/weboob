@@ -31,8 +31,10 @@ REGEXPS = {'/users/%s/journaux/%s': 'D%s.%s',
            '/forums/%s/posts/%s':   'B%s.%s',
           }
 
+
 def f2re(f):
     return '.*' + f.replace('%s', '([^ /]+)')
+
 
 def rssid(entry):
     m = RSSID_RE.match(entry.id)
@@ -53,6 +55,7 @@ def rssid(entry):
         else:
             return '%s.%s' % (ind, m.group(2))
 
+
 def id2url(id):
     m = ID2URL_RE.match(id)
     if not m:
@@ -67,6 +70,7 @@ def id2url(id):
         else:
             return url_re % m.group(3)
 
+
 def url2id(url):
     for url_re, id_re in REGEXPS.iteritems():
         m = re.match(f2re(url_re), url)
@@ -74,6 +78,7 @@ def url2id(url):
             continue
 
         return id_re % m.groups()
+
 
 def id2threadid(id):
     m = ID2URL_RE.match(id)

@@ -21,9 +21,11 @@ from weboob.capabilities.gallery import BaseGallery, BaseImage
 
 __all_ = ['EHentaiGallery', 'EHentaiImage']
 
+
 class EHentaiGallery(BaseGallery):
     def __init__(self, *args, **kwargs):
         BaseGallery.__init__(self, *args, **kwargs)
+
 
 class EHentaiImage(BaseImage):
     def __init__(self, *args, **kwargs):

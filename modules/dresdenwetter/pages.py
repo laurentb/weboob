@@ -26,7 +26,7 @@ __all__ = ['StartPage']
 
 
 class StartPage(BasePage):
-    name = [u"Temperatur", u"Wind", u"Luftdruck", u"Luftfeuchtigkeit",\
+    name = [u"Temperatur", u"Wind", u"Luftdruck", u"Luftfeuchtigkeit",
             u"Niederschlag", u"Globalstrahlung", u"Schneehoehe"]
     unit = [u"°C", u"km/h", u"hPa", u"%", u"mm", u"W/m²", u"cm"]
 
@@ -54,7 +54,7 @@ class StartPage(BasePage):
                 lastvalue.level = float(text.split('\n')[2].split('hPa')[0])
             if i == 3:
                 text = paraph.xpath('span/font[@size="4"]/b')[0].text
-                lastvalue.level = float(text.split('\n')[2].split(u'%')[0]\
+                lastvalue.level = float(text.split('\n')[2].split(u'%')[0]
                         .split(':')[1])
             if i == 4:
                 text = paraph.xpath('b/font[@size="4"]/span')[0].text

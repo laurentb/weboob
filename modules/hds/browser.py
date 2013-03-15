@@ -23,6 +23,8 @@ from weboob.tools.browser import BaseBrowser
 from .pages import ValidationPage, HomePage, HistoryPage, StoryPage, AuthorPage
 
 # Browser
+
+
 class HDSBrowser(BaseBrowser):
     ENCODING = 'ISO-8859-1'
     DOMAIN = 'histoires-de-sexe.net'

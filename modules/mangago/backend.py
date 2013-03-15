@@ -22,6 +22,7 @@ from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicRea
 
 __all__ = ['MangagoBackend']
 
+
 class MangagoBackend(GenericComicReaderBackend):
     NAME = 'mangago'
     DESCRIPTION = 'Mangago manga reading site'
@@ -33,4 +34,3 @@ class MangagoBackend(GenericComicReaderBackend):
     URL_REGEXP = r'.+mangago.com/r/l_manga/(%s).+' % ID_REGEXP
     ID_TO_URL = 'http://www.mangago.com/r/l_manga/%s'
     PAGES = { URL_REGEXP: DisplayPage }
-

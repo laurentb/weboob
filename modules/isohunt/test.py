@@ -21,6 +21,7 @@ from weboob.tools.test import BackendTest
 
 from random import choice
 
+
 class IsohuntTest(BackendTest):
     BACKEND = 'isohunt'
 

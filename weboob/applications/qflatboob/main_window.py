@@ -30,6 +30,7 @@ from weboob.capabilities.base import NotLoaded, NotAvailable
 from .ui.main_window_ui import Ui_MainWindow
 from .query import QueryDialog
 
+
 class HousingListWidgetItem(QListWidgetItem):
     def __init__(self, housing, *args, **kwargs):
         QListWidgetItem.__init__(self, *args, **kwargs)
@@ -55,6 +56,7 @@ class HousingListWidgetItem(QListWidgetItem):
             self.setBackground(QBrush(QColor(255, 200, 200)))
         elif self.background().color() != QColor(0,0,0):
             self.setBackground(QBrush())
+
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):

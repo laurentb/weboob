@@ -40,6 +40,7 @@ from .person import Person
 from .torrent import Torrent
 from .subtitle import Subtitle
 
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
         QtMainWindow.__init__(self, parent)

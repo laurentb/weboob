@@ -23,6 +23,7 @@ from weboob.capabilities.base import NotLoaded
 import urllib
 from random import choice
 
+
 class KickassTest(BackendTest):
     BACKEND = 'kickass'
 

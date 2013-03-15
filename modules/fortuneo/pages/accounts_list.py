@@ -52,6 +52,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class AccountHistoryPage(BasePage):
     def get_operations(self, _id):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
@@ -84,6 +85,7 @@ class AccountHistoryPage(BasePage):
             operation.set_amount(amount)
 
             yield operation
+
 
 class AccountsList(BasePage):
     def on_loaded(self):
@@ -155,6 +157,7 @@ class AccountsList(BasePage):
             account.label = " ".join(temp_label.split(" ")[:2])
 
             yield account
+
 
 class GlobalAccountsList(BasePage):
     pass

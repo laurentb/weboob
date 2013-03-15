@@ -26,6 +26,7 @@ from weboob.capabilities.paste import PasteNotFound
 
 __all__ = ['PastePage', 'PostPage', 'CaptchaPage']
 
+
 class PastePage(BasePage):
     def fill_paste(self, paste):
         root = self.document.getroot()
@@ -46,6 +47,7 @@ class PastePage(BasePage):
         """
         return self.group_dict['id']
 
+
 class PostPage(BasePage):
     def post(self, paste, expiration=None):
         self.browser.select_form(name='editor')
@@ -54,6 +56,7 @@ class PostPage(BasePage):
         if expiration:
             self.browser['expiry'] = [expiration]
         self.browser.submit()
+
 
 class CaptchaPage(BasePage):
     pass

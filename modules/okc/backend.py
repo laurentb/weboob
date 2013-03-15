@@ -38,6 +38,7 @@ from .browser import OkCBrowser
 
 __all__ = ['OkCBackend']
 
+
 def parse_dt(s):
     now = datetime.datetime.now()
     if s is None:
@@ -61,6 +62,7 @@ def parse_dt(s):
         # Date in form : "Dec 28, 2011")
         d = _parse_dt(s)
     return local2utc(d)
+
 
 class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     NAME = 'okc'

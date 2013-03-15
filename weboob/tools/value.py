@@ -37,6 +37,7 @@ class ValuesDict(OrderedDict):
         for v in values:
             self[v.id] = v
 
+
 class Value(object):
     """
     Value.
@@ -116,6 +117,7 @@ class Value(object):
         """
         return self._value
 
+
 class ValueBackendPassword(Value):
     _domain = None
     _callbacks = {}
@@ -190,6 +192,7 @@ class ValueBackendPassword(Value):
                 self._stored = False
         return self._value
 
+
 class ValueInt(Value):
     def __init__(self, *args, **kwargs):
         kwargs['regexp'] = '^\d+$'
@@ -197,6 +200,7 @@ class ValueInt(Value):
 
     def get(self):
         return int(self._value)
+
 
 class ValueFloat(Value):
     def __init__(self, *args, **kwargs):
@@ -211,6 +215,7 @@ class ValueFloat(Value):
 
     def get(self):
         return float(self._value)
+
 
 class ValueBool(Value):
     def __init__(self, *args, **kwargs):

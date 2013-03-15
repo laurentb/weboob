@@ -26,7 +26,9 @@ try:
 except ImportError:
     raise ImportError('Please install python-imaging')
 
+
 class CaptchaError(Exception): pass
+
 
 class Tile(object):
     hash = {
@@ -115,6 +117,7 @@ class Tile(object):
             print 'hash: %s' % checksum
             raise CaptchaError()
 
+
 class Captcha(object):
     def __init__(self, f):
         self.img = Image.open(f)
@@ -155,6 +158,7 @@ class Captcha(object):
         for tile in self.tiles:
             s += tile.letter
         return s
+
 
 class Decoder(object):
     def __init__(self):

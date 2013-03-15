@@ -54,6 +54,7 @@ class LoginPage(BasePage):
         self.browser.form.action = m.group(1)
         self.browser.submit(nologin=True)
 
+
 class ErrorPage(BasePage):
     def get_error(self):
         try:
@@ -61,12 +62,14 @@ class ErrorPage(BasePage):
         except BrokenPageError:
             return None
 
+
 class UnavailablePage(BasePage):
     def on_loaded(self):
         try:
             raise BrowserUnavailable(self.parser.select(self.document.getroot(), 'div#message_error_hs', 1).text.strip())
         except BrokenPageError:
             raise BrowserUnavailable()
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})'),
@@ -86,6 +89,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CB [\d\*]+ (?P<text>.*)'),    FrenchTransaction.TYPE_CARD),
                ]
+
 
 class IndexPage(BasePage):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,

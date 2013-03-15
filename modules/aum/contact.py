@@ -140,6 +140,7 @@ class FieldConst(FieldBase):
                 labels.append(consts[self.key][i])
             return labels
 
+
 class Contact(_Contact):
     TABLE = OrderedDict((
                  ('_info',        OrderedDict((

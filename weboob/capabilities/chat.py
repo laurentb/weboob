@@ -51,6 +51,7 @@ class ChatMessage(CapBaseObject):
         if self.date is None:
             self.date = datetime.datetime.utcnow()
 
+
 class ICapChat(IBaseCap):
     """
     Websites with a chat system.

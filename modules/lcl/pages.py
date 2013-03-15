@@ -136,6 +136,7 @@ class ContractsPage(BasePage):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'mainForm')
         self.browser.submit()
 
+
 class AccountsPage(BasePage):
     def on_loaded(self):
         warn = self.document.xpath('//div[@id="attTxt"]')
@@ -222,6 +223,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class AccountHistoryPage(BasePage):
     def get_table(self):
         tables=self.document.findall("//table[@class='tagTab pyjama']")
@@ -303,6 +305,7 @@ class AccountHistoryPage(BasePage):
             operations.append(operation)
         return operations
 
+
 class CBHistoryPage(AccountHistoryPage):
     def get_table(self):
         # there is only one table on the page
@@ -319,6 +322,7 @@ class CBHistoryPage(AccountHistoryPage):
         for tr in AccountHistoryPage.get_operations(self):
             tr.type = tr.TYPE_CARD
             yield tr
+
 
 class CBListPage(CBHistoryPage):
     def get_cards(self):

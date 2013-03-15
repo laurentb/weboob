@@ -19,8 +19,9 @@
 
 from weboob.tools.capabilities.gallery.genericcomicreader import GenericComicReaderTest
 
+
 class MangagoTest(GenericComicReaderTest):
     BACKEND = 'mangago'
+
     def test_download(self):
         return self._test_download('manga/love_scar/mh/manga/love_scar/c001/')
-

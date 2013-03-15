@@ -40,6 +40,7 @@ class Link(object):
         self.title = u''
         self.date = None
 
+
 class ForumPage(PhpBBPage):
     def iter_links(self):
         for li in self.parser.select(self.document.getroot(), 'ul.forums li.row'):
@@ -72,6 +73,7 @@ class ForumPage(PhpBBPage):
 
             yield value, option.text.strip(u'» \xa0\n\r')
 
+
 class Post(object):
     def __init__(self, forum_id, topic_id, id):
         self.id = int(id)
@@ -83,6 +85,7 @@ class Post(object):
         self.content = u''
         self.signature = u''
         self.parent = 0
+
 
 class TopicPage(PhpBBPage):
     def on_loaded(self):

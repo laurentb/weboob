@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class CreditMutuelTest(BackendTest):
     BACKEND = 'creditmutuel'
 
@@ -28,5 +29,3 @@ class CreditMutuelTest(BackendTest):
         if len(l) > 0:
             a = l[0]
             list(self.backend.iter_history(a))
-
-

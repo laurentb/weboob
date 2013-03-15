@@ -30,6 +30,7 @@ def md5(f):
     md5.update(f.read())
     return md5.hexdigest()
 
+
 class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable()
@@ -57,13 +58,16 @@ class LoginPage(BasePage):
         self.browser['username'] = login
         self.browser.submit()
 
+
 class repositionnerCheminCourant(BasePage):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
 
+
 class Initident(BasePage):
     def on_loaded(self):
         self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/verifierMotDePasse-identif.ea")
+
 
 class CheckPassword(BasePage):
     def on_loaded(self):

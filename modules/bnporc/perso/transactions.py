@@ -44,6 +44,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class AccountHistory(BasePage):
     def iter_operations(self):
         for tr in self.document.xpath('//table[@id="tableCompte"]//tr'):

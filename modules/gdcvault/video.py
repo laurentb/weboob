@@ -41,4 +41,3 @@ class GDCVaultVideo(BaseVideo):
         if m:
             return u'http://www.gdcvault.com/play/%s#slides' % _id
         return u'http://www.gdcvault.com/play/%s' % _id
-

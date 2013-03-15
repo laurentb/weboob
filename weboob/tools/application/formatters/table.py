@@ -70,7 +70,7 @@ class TableFormatter(IFormatter):
         table = PrettyTable(list(column_headers))
         for column_header in column_headers:
             # API changed in python-prettytable. The try/except is a bad hack to support both versions
-            # Note: two versions are not exactly the same... 
+            # Note: two versions are not exactly the same...
             # (first one: header in center. Second one: left align for header too)
             try:
                 table.set_field_align(column_header, 'l')

@@ -40,6 +40,7 @@ class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable()
 
+
 class VirtKeyboard(MappedVirtKeyboard):
     symbols={'0':'f47e48cfdf3abc6716a6b0aadf8eebe3',
              '1':'3495abaf658dc550e51c5c92ea56b60b',
@@ -147,6 +148,7 @@ class AccountsPage(BasePage):
             account.balance = Decimal(FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[-1].itertext()])))
             account._args = args
             yield account
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RET(RAIT) DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),

@@ -29,6 +29,7 @@ class PasteNotFound(UserError):
     Raised when a paste is not found.
     """
 
+
 class BasePaste(CapBaseObject):
     """
     Represents a pasted text.

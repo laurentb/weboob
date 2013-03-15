@@ -30,6 +30,7 @@ __all__ = ['OkCBrowser']
 class OkCException(Exception):
     pass
 
+
 class OkCBrowser(BaseBrowser):
     DOMAIN = 'm.okcupid.com'
     PROTOCOL = 'https'

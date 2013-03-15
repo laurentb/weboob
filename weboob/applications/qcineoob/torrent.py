@@ -26,6 +26,7 @@ from weboob.applications.qcineoob.ui.torrent_ui import Ui_Torrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
 from weboob.capabilities.base import empty
 
+
 class Torrent(QFrame):
     def __init__(self, torrent, backend, parent=None):
         QFrame.__init__(self, parent)
@@ -77,4 +78,3 @@ class Torrent(QFrame):
                 print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
                 return 1
             return
-

@@ -26,6 +26,7 @@ from .pages import ForecastPage, WeatherPage, CityPage
 
 __all__ = ['WeatherBrowser']
 
+
 class WeatherBrowser(BaseBrowser):
     DOMAIN = 'www.weather.com'
     PROTOCOL = 'http'

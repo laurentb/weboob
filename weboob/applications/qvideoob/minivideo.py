@@ -24,6 +24,7 @@ from weboob.tools.application.qt import QtDo
 from weboob.applications.qvideoob.ui.minivideo_ui import Ui_MiniVideo
 from .video import Video
 
+
 class MiniVideo(QFrame):
     def __init__(self, weboob, backend, video, parent=None):
         QFrame.__init__(self, parent)

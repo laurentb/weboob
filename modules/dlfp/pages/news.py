@@ -26,9 +26,11 @@ from ..tools import url2id
 
 from .index import DLFPPage
 
+
 class RSSComment(DLFPPage):
     def on_loaded(self):
         pass
+
 
 class Content(object):
     TAGGABLE = False
@@ -49,6 +51,7 @@ class Content(object):
 
     def is_taggable(self):
         return False
+
 
 class Comment(Content):
     def __init__(self, article, div, reply_id):
@@ -105,6 +108,7 @@ class Comment(Content):
     def __repr__(self):
         return u"<Comment id=%r author=%r title=%r>" % (self.id, self.author, self.title)
 
+
 class Article(Content):
     TAGGABLE = True
 
@@ -149,10 +153,12 @@ class Article(Content):
             for c in comment.iter_all_comments():
                 yield c
 
+
 class CommentPage(DLFPPage):
     def get_comment(self):
         article = Article(self.browser, self.url, None)
         return Comment(article, self.parser.select(self.document.getroot(), 'li.comment', 1), 0)
+
 
 class ContentPage(DLFPPage):
     def on_loaded(self):
@@ -192,8 +198,10 @@ class ContentPage(DLFPPage):
     def get_tag_url(self):
         return self.parser.select(self.document.getroot(), 'div.tag_in_place', 1).find('a').attrib['href']
 
+
 class NewCommentPage(DLFPPage):
     pass
+
 
 class NewTagPage(DLFPPage):
     def _is_tag_form(self, form):
@@ -203,6 +211,7 @@ class NewTagPage(DLFPPage):
         self.browser.select_form(predicate=self._is_tag_form)
         self.browser['tags'] = tag
         self.browser.submit()
+
 
 class NodePage(DLFPPage):
     def get_errors(self):

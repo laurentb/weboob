@@ -26,6 +26,7 @@ from weboob.capabilities.messages import ICapMessages
 from .ui.main_window_ui import Ui_MainWindow
 from .messages_manager import MessagesManager
 
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
         QtMainWindow.__init__(self, parent)

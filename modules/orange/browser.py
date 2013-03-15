@@ -37,6 +37,7 @@ class OrangeBrowser(BaseBrowser):
         'http://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
         'http://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
         }
+
     def get_nb_remaining_free_sms(self):
         self.location("http://smsmms1.orange.fr/M/Sms/sms_write.php")
         return self.page.get_nb_remaining_free_sms()

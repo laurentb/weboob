@@ -29,6 +29,7 @@ __all__ = ['HTTPSVerifiedConnection', 'HellHTTPS']
 
 PROXY_PORT = 8080
 
+
 class HTTPSVerifiedConnection(httplib.HTTPSConnection):
     """
     This class allows communication via SSL, and will checks certificates
@@ -54,7 +55,7 @@ class HTTPSVerifiedConnection(httplib.HTTPSConnection):
         if self._tunnel_host:
             self.sock = sock
             self._tunnel()
-            
+
         if self.ca_file:
             self.sock = ssl.wrap_socket(sock,
                                         self.key_file,
@@ -102,7 +103,7 @@ class HellHTTPS:
         else:
             self.conn = HTTPSVerifiedConnection(host, port, key_file, cert_file,
                     ca_file, strict, timeout, callBack)
-        
+
     def request(self, *args, **kwargs):
         self.conn.request(*args, **kwargs)
 

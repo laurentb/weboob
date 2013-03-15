@@ -37,6 +37,7 @@ class QVideoob(QtApplication):
                            'backend': ''
                           }
              }
+
     def main(self, argv):
         self.load_backends(ICapVideo)
         self.load_config()

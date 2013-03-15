@@ -88,6 +88,7 @@ class Event(CapBaseObject):
     type =      StringField('Type of event')
     message =   StringField('Message of the event')
 
+
 class ICapDating(IBaseCap):
     """
     Capability for dating websites.

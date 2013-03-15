@@ -26,6 +26,7 @@ from .pages import SubtitlesPage, SearchPage, SubtitlePage
 
 __all__ = ['OpensubtitlesBrowser']
 
+
 class OpensubtitlesBrowser(BaseBrowser):
     DOMAIN = 'www.opensubtitles.org'
     PROTOCOL = 'http'

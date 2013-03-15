@@ -53,4 +53,3 @@ class TranslatePage(BasePage):
                     return u''+td.text_content().split(';')[0].strip()
                 if td.attrib.get('class','') == 'roman1':
                     prev_was_roman1 = True
-

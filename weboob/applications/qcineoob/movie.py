@@ -27,6 +27,7 @@ from weboob.capabilities.base import empty
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.cineoob.cineoob import ROLE_LIST
 
+
 class Movie(QFrame):
     def __init__(self, movie, backend, parent=None):
         QFrame.__init__(self, parent)

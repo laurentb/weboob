@@ -26,6 +26,7 @@ from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import empty
 from weboob.applications.cineoob.cineoob import ROLE_LIST
 
+
 class Person(QFrame):
     def __init__(self, person, backend, parent=None):
         QFrame.__init__(self, parent)

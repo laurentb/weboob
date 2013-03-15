@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BasePage
 
+
 class PhpBBPage(BasePage):
     def is_logged(self):
         return len(self.document.getroot().cssselect('li.icon-register')) == 0
@@ -34,6 +35,7 @@ class PhpBBPage(BasePage):
             if div.text:
                 errors.append(div.text.strip())
         return ', '.join(errors)
+
 
 class LoginPage(PhpBBPage):
     pass

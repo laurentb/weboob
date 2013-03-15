@@ -22,11 +22,14 @@ from weboob.capabilities.library import Book
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.mech import ClientForm
 
+
 class SkipPage(BasePage):
     pass
 
+
 class HomePage(BasePage):
     pass
+
 
 def txt2date(s):
     return date(*reversed([int(x) for x in s.split(' ')[-1].split('/')]))
@@ -51,6 +54,7 @@ class RentedPage(BasePage):
             book.date = txt2date(tr[start+5].text)
             yield book
 
+
 class HistoryPage(BasePage):
     pass
 
@@ -74,6 +78,7 @@ class BookedPage(BasePage):
             book.date = txt2date(tr[start+3].text)
             book.late = False
             yield book
+
 
 class LoginPage(BasePage):
     def login(self, login, passwd):

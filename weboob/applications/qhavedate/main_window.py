@@ -35,6 +35,7 @@ from .status import AccountsStatus
 from .contacts import ContactsWidget
 from .events import EventsWidget
 
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
         QtMainWindow.__init__(self, parent)

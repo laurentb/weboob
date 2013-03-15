@@ -23,6 +23,7 @@ from weboob.applications.qcineoob.ui.minitorrent_ui import Ui_MiniTorrent
 from weboob.applications.weboorrents.weboorrents import sizeof_fmt
 from weboob.capabilities.base import empty
 
+
 class MiniTorrent(QFrame):
     def __init__(self, weboob, backend, torrent, parent=None):
         QFrame.__init__(self, parent)

@@ -25,6 +25,7 @@ from .base import CragrBasePage
 from .tokenextractor import TokenExtractor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile('^(Vp|Vt|Vrt|Virt|Vir(ement)?)\s*(?P<text>.*)', re.IGNORECASE),         FrenchTransaction.TYPE_TRANSFER),
@@ -43,6 +44,7 @@ class Transaction(FrenchTransaction):
         (re.compile('^(ACH.)?CARTE (?P<text>.*)', re.IGNORECASE),                           FrenchTransaction.TYPE_CARD),
         (re.compile('^RET.CARTE (?P<text>.*)', re.IGNORECASE),                              FrenchTransaction.TYPE_WITHDRAWAL),
     ]
+
 
 class AccountsList(CragrBasePage):
     """

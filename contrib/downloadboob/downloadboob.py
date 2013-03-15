@@ -39,13 +39,17 @@ if sys.stdout.encoding is None:
 
 # end of hack
 
+
 def removeNonAscii(s): return "".join(i for i in s if ord(i)<128)
 
 rx = re.compile(u'[ \\/\\?\\:\\>\\<\\!\\\\\\*]+', re.UNICODE)
+
+
 def removeSpecial(s):
     return rx.sub(u' ', u'%s' % s)
 
 DOWNLOAD_DIRECTORY=".files"
+
 
 class Downloadboob:
 

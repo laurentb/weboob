@@ -34,11 +34,13 @@ class Book(CapBaseObject):
     date =      DateField('The due date')
     late =      Field('Are you late?', bool)
 
+
 class Renew(CapBaseObject):
     """
     A renew message.
     """
     message = StringField('Message')
+
 
 class ICapBook(ICapCollection):
     """

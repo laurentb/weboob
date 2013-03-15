@@ -37,6 +37,7 @@ from .video import GDCVaultVideo
 
 __all__ = ['VideoPage']
 
+
 class VideoPage(BasePage):
     def get_video(self, video=None):
         if video is None:
@@ -127,7 +128,7 @@ class VideoPage(BasePage):
                                        day=int(day),
                                        hour=int(hour),
                                        minute=int(minute))
-            
+
         obj = self.parser.select(self.document.getroot(), 'span.ep_subtitle', 1)
         if obj is not None:
             span = self.parser.select(obj, 'span.ep_date', 1)
@@ -142,7 +143,7 @@ class VideoPage(BasePage):
             day = m.group(5)
             month = m.group(6)
             year = m.group(7)
-            
+
             start = datetime.datetime(year=int(year),
                                       month=int(month),
                                       day=int(day),

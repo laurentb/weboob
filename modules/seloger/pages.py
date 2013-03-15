@@ -59,6 +59,7 @@ class SearchResultsPage(BasePage):
 
             yield housing
 
+
 class HousingPage(BasePage):
     def get_housing(self, housing=None):
         if housing is None:

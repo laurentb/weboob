@@ -21,6 +21,7 @@ from weboob.tools.browser import BrokenPageError
 
 from .index import DLFPPage
 
+
 class WikiEditPage(DLFPPage):
     def get_body(self):
         try:

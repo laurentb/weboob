@@ -28,6 +28,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard,VirtKeyboardErr
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
 
+
 class BNPVirtKeyboard(MappedVirtKeyboard):
     symbols={'0':'9cc4789a2cb223e8f2d5e676e90264b5',
              '1':'e10b58fc085f9683052d5a63c96fc912',
@@ -100,9 +101,11 @@ class ConfirmPage(BasePage):
         if m:
             return m.group(1)
 
+
 class InfoMessagePage(BasePage):
     def on_loaded(self):
         pass
+
 
 class ChangePasswordPage(BasePage):
     def change_password(self, current, new):

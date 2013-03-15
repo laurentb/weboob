@@ -33,6 +33,7 @@ IRC_NICKNAME = 'boobot'
 IRC_SERVER = 'irc.freenode.org'
 STORAGE_FILE = 'boobot.storage'
 
+
 class MyThread(Thread):
     def __init__(self, bot):
         Thread.__init__(self)
@@ -50,9 +51,9 @@ class MyThread(Thread):
         self.weboob.loop()
 
     def find_keywords(self, text):
-        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg', \
-                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', \
-                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs', \
+        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
+                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
+                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
                      'webcontentedit', 'weboorrents', 'capabilit', u'sàt', u'salut à toi']:
             if word in text.lower():
                 return word
@@ -79,6 +80,7 @@ class MyThread(Thread):
 
     def stop(self):
         self.weboob.want_stop()
+
 
 class TestBot(SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
@@ -120,6 +122,7 @@ class TestBot(SingleServerIRCBot):
         h = backend.get_housing(id)
         if h:
             self.send_message(u'Housing: %s (%sm² / %s%s)' % (h.title, h.area, h.cost, h.currency))
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG)

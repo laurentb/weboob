@@ -22,6 +22,7 @@ from weboob.tools.test import BackendTest
 import urllib
 from random import choice
 
+
 class AttilasubTest(BackendTest):
     BACKEND = 'attilasub'
 

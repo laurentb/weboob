@@ -25,6 +25,7 @@ from .pages import RecipePage, ResultsPage
 
 __all__ = ['MarmitonBrowser']
 
+
 class MarmitonBrowser(BaseBrowser):
     DOMAIN = 'www.marmiton.org'
     PROTOCOL = 'http'

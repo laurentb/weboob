@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BasePage
 
+
 class DLFPPage(BasePage):
     def is_logged(self):
         for form in self.document.getiterator('form'):
@@ -28,12 +29,14 @@ class DLFPPage(BasePage):
 
         return True
 
+
 class IndexPage(DLFPPage):
     def get_login_token(self):
         form = self.parser.select(self.document.getroot(), 'form#new_account_sidebar', 1)
         for i in form.find('div').getiterator('input'):
             if i.attrib['name'] == 'authenticity_token':
                 return  i.attrib['value']
+
 
 class LoginPage(DLFPPage):
     pass

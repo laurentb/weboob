@@ -26,6 +26,7 @@ from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.misc import to_unicode
 from weboob.tools.mech import ClientForm
 
+
 class BaseIssuePage(BasePage):
     def parse_datetime(self, text):
         m = re.match('(\d+)/(\d+)/(\d+) (\d+):(\d+) (\w+)', text)
@@ -80,6 +81,7 @@ class BaseIssuePage(BasePage):
         token = tokens[0].attrib['value']
         return token
 
+
 class IssuesPage(BaseIssuePage):
     PROJECT_FIELDS = {'members':    'values_assigned_to_id',
                       'categories': 'values_category_id',
@@ -128,6 +130,7 @@ class IssuesPage(BaseIssuePage):
 
             if len(issue) != 0:
                 yield issue
+
 
 class NewIssuePage(BaseIssuePage):
     PROJECT_FIELDS = {'members':    'issue_assigned_to_id',
@@ -181,6 +184,7 @@ class NewIssuePage(BaseIssuePage):
             if value is not None:
                 getattr(self, 'set_%s' % key)(value)
         self.browser.submit()
+
 
 class IssuePage(NewIssuePage):
     def _parse_selection(self, id):
@@ -291,6 +295,7 @@ class IssuePage(NewIssuePage):
 
         return params
 
+
 class IssueLogTimePage(BasePage):
     def logtime(self, hours, message):
         self.browser.select_form(predicate=lambda form: form.attrs.get('action', '').endswith('/edit'))
@@ -298,6 +303,7 @@ class IssueLogTimePage(BasePage):
         self.browser['time_entry[comments]'] = message.encode('utf-8')
         self.browser['time_entry[activity_id]'] = ['8']
         self.browser.submit()
+
 
 class IssueTimeEntriesPage(BasePage):
     pass

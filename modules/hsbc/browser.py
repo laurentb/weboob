@@ -33,6 +33,7 @@ __all__ = ['HSBC']
 class NotLoggedPage(BasePage):
     pass
 
+
 class HSBC(BaseBrowser):
     DOMAIN = 'client.hsbc.fr'
     PROTOCOL = 'https'

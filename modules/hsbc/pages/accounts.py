@@ -73,6 +73,7 @@ class AccountsListPage(BasePage):
 
         return iter(accounts)
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
@@ -85,12 +86,14 @@ class Transaction(FrenchTransaction):
                 (re.compile('^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class HistoryPage(BasePage):
     def get_next_link(self):
         return None
 
     def get_operations(self, num_page, date_guesser):
         raise NotImplementedError()
+
 
 class CPTHistoryPage(HistoryPage):
     def get_operations(self, num_page, date_guesser):
@@ -104,6 +107,7 @@ class CPTHistoryPage(HistoryPage):
                 op.set_amount(m.group(5))
                 op._coming = (re.match('\d+/\d+/\d+', m.group(2)) is None)
                 yield op
+
 
 class CardHistoryPage(HistoryPage):
     def get_next_link(self):

@@ -100,7 +100,7 @@ class VideoobWeb(BaseApplication):
                                page_url=video.page_url,
                                url=video.url if video.url else '/download?id=%s' % video.id,
                                thumbnail_url=video.thumbnail.url,
-                             ) \
+                             )
                          for video in backend.search_videos(pattern=q, nsfw=nsfw)]
                 if videos:
                     if merge:

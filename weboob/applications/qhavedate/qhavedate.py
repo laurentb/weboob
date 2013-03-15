@@ -23,6 +23,7 @@ from weboob.tools.application.qt import QtApplication
 
 from .main_window import MainWindow
 
+
 class QHaveDate(QtApplication):
     APPNAME = 'qhavedate'
     VERSION = '0.f'

@@ -29,6 +29,7 @@ LANGUAGE_LIST = ['en','es','fr','de','br','ru','ua','it','gr',
                  'ar','hu','pl','tr','nl','pt','sv','da','fi',
                  'ko','cn','jp','bg','cz','ro']
 
+
 class TvsubtitlesBrowser(BaseBrowser):
     DOMAIN = 'www.tvsubtitles.net'
     PROTOCOL = 'http'

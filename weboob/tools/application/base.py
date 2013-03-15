@@ -64,6 +64,7 @@ class ApplicationStorage(object):
         if self.storage:
             return self.storage.save('applications', self.name)
 
+
 class BaseApplication(object):
     """
     Base application.

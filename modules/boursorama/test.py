@@ -21,6 +21,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class BoursoramaTest(BackendTest):
     BACKEND = 'boursorama'
 

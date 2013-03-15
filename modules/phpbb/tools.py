@@ -42,6 +42,7 @@ def url2id(url, nopost=False):
 
     return None
 
+
 def id2url(id):
     v = id.split('.')
     if len(v) == 1:
@@ -54,14 +55,17 @@ def id2url(id):
                                                      int(v[2]),
                                                      int(v[2]))
 
+
 def id2topic(id):
     try:
         return int(id.split('.')[1])
     except IndexError:
         return None
 
+
 def rssid(id):
     return id
+
 
 def parse_date(s):
     s = s.replace(u'Fév', 'Feb') \

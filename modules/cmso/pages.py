@@ -37,6 +37,7 @@ class LoginPage(BasePage):
         self.browser['motDePasse'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
+
 class AccountsPage(BasePage):
     def get_list(self):
         names = set()

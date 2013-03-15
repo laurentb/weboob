@@ -20,6 +20,7 @@
 
 from weboob.tools.browser import BasePage
 
+
 class LoginPage(BasePage):
     def login(self, username, password):
         self.browser.select_form(nr=1)
@@ -27,11 +28,14 @@ class LoginPage(BasePage):
         self.browser['password'] = password
         self.browser.submit()
 
+
 class IndexPage(BasePage):
     pass
 
+
 class MyPage(BasePage):
     pass
+
 
 class ProjectsPage(BasePage):
     def iter_projects(self):

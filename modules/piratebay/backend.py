@@ -26,6 +26,7 @@ from .browser import PiratebayBrowser
 
 __all__ = ['PiratebayBackend']
 
+
 class PiratebayBackend(BaseBackend, ICapTorrent):
     NAME = 'piratebay'
     MAINTAINER = u'Julien Veyssier'

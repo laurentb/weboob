@@ -29,6 +29,7 @@ class AccountRegisterError(UserError):
     Raised when there is an error during registration.
     """
 
+
 class Account(CapBaseObject):
     """
     Describe an account and its properties.
@@ -39,6 +40,7 @@ class Account(CapBaseObject):
 
     def __init__(self, id=None):
         CapBaseObject.__init__(self, id)
+
 
 class StatusField(object):
     """

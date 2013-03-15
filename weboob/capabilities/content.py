@@ -33,6 +33,7 @@ class Content(CapBaseObject):
     content =       StringField('Body')
     revision =      StringField('ID of revision')
 
+
 class Revision(CapBaseObject):
     """
     Revision of a change on a content.
@@ -41,6 +42,7 @@ class Revision(CapBaseObject):
     comment =       StringField('Comment log about revision')
     timestamp =     DateField('Date of revision')
     minor =         Field('Is this change minor?', bool)
+
 
 class ICapContent(IBaseCap):
     def get_content(self, id, revision=None):

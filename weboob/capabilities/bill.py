@@ -53,6 +53,7 @@ class Detail(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
 
+
 class Bill(CapBaseObject):
     """
     Bill.
@@ -65,6 +66,7 @@ class Bill(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, 0)
 
+
 class Subscription(CapBaseObject):
     """
     Subscription to a service.
@@ -73,6 +75,7 @@ class Subscription(CapBaseObject):
     subscriber =    StringField('whe has subscribed')
     validity =      DateField('End validity date of the subscription')
     renewdate =     DateField('Reset date of consumption')
+
 
 class ICapBill(ICapCollection):
     def iter_resources(self, objs, split_path):

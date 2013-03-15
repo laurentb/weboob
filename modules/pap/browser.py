@@ -47,6 +47,7 @@ class PapBrowser(BaseBrowser):
     TYPES = {Query.TYPE_RENT: 'location',
              Query.TYPE_SALE: 'vente',
             }
+
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max):
         data = {'geo_objets_ids': ','.join(cities),
                 'surface[min]':   area_min or '',

@@ -36,10 +36,12 @@ class AccountNotFound(UserError):
     def __init__(self, msg='Account not found'):
         UserError.__init__(self, msg)
 
+
 class TransferError(UserError):
     """
     A transfer has failed.
     """
+
 
 class Currency(object):
     CUR_UNKNOWN        = 0
@@ -91,6 +93,7 @@ class Recipient(CapBaseObject):
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)
+
 
 class Account(Recipient, Currency):
     """
@@ -144,6 +147,7 @@ class Transaction(CapBaseObject):
         return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
             label, self.amount)
 
+
 class Transfer(CapBaseObject):
     """
     Transfer from an account to a recipient.
@@ -154,6 +158,7 @@ class Transfer(CapBaseObject):
     origin =    Field('Origin of transfer', int, long, basestring)
     recipient = Field('Recipient', int, long, basestring)
     reason =    StringField('Reason')
+
 
 class ICapBank(ICapCollection):
     """

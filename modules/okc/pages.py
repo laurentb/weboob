@@ -23,12 +23,14 @@ from weboob.tools.browser import BasePage
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.contact import ProfileNode
 
+
 class LoginPage(BasePage):
     def login(self, username, password):
         self.browser.select_form(name='loginf')
         self.browser['username'] = username.encode(self.browser.ENCODING)
         self.browser['password'] = password.encode(self.browser.ENCODING)
         self.browser.submit(id='login_btn', nologin=True)
+
 
 class ThreadPage(BasePage):
     def get_threads(self):
@@ -44,6 +46,7 @@ class ThreadPage(BasePage):
                 })
 
         return threads
+
 
 class MessagesPage(BasePage):
     def get_thread_mails(self, count):
@@ -158,10 +161,12 @@ class ProfilePage(BasePage):
 
         return profile
 
+
 class PhotosPage(BasePage):
     def get_photos(self):
         imgs = self.parser.select(self.document.getroot(), "//div[@class='pic clearfix']//img", method='xpath')
         return [unicode(img.get('src')) for img in imgs]
+
 
 class PostMessagePage(BasePage):
     def post_mail(self, id, content):

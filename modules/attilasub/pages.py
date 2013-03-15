@@ -87,7 +87,7 @@ class SubtitlesPage(BasePage):
             traduced_title_words = traduced_title.split()
             original_title_words = original_title.split()
 
-            # if the pattern is one word and in the title OR if the 
+            # if the pattern is one word and in the title OR if the
             # intersection between pattern and the title is at least 2 words
             if (len(pattern_words) == 1 and pattern in traduced_title_words) or\
                (len(pattern_words) == 1 and pattern in original_title_words) or\

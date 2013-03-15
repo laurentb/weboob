@@ -25,6 +25,7 @@ from PyQt4.QtCore import Qt
 from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
 from weboob.capabilities.base import empty
 
+
 class MiniPerson(QFrame):
     def __init__(self, weboob, backend, person, parent=None):
         QFrame.__init__(self, parent)

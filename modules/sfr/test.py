@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class SFRTest(BackendTest):
     BACKEND = 'sfr'
 

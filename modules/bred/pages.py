@@ -37,6 +37,7 @@ class LoginPage(BasePage):
         self.browser['pass'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
+
 class LoginResultPage(BasePage):
     def confirm(self):
         self.browser.location('MainAuth?typeDemande=AC', no_login=True)
@@ -52,8 +53,10 @@ class LoginResultPage(BasePage):
 
         return error.text.strip()
 
+
 class EmptyPage(BasePage):
     pass
+
 
 class BredBasePage(BasePage):
     def js2args(self, s):
@@ -69,6 +72,7 @@ class BredBasePage(BasePage):
                 cur_arg = None
 
         return args
+
 
 class AccountsPage(BredBasePage):
     def get_list(self):
@@ -122,6 +126,7 @@ class AccountsPage(BredBasePage):
             accounts.append(account)
 
         return accounts
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RETRAIT G.A.B. \d+ (?P<text>.*?)( CARTE .*)? LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}).*'),

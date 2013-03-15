@@ -25,6 +25,7 @@ from .browser import WeatherBrowser
 
 __all__ = ['WeatherBackend']
 
+
 class WeatherBackend(BaseBackend, ICapWeather):
     NAME = 'weather'
     MAINTAINER = u'Arno Renevier'

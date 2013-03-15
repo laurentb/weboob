@@ -47,6 +47,7 @@ class Task(object):
     def __repr__(self):
         return '<Task (%s,%s)>' % (self.backend, self.capability)
 
+
 class Member(object):
     def __init__(self, id, name):
         self.name = name
@@ -62,6 +63,7 @@ class Member(object):
         if len(name) > 20:
             name = '%s..' % name[:18]
         return name
+
 
 class Event(object):
     def __init__(self, name, backend):
@@ -271,6 +273,7 @@ h2. Attendees
 
         self.content.content = s
         self.backend.push_content(self.content, message)
+
 
 class Boobathon(ReplApplication):
     APPNAME = 'boobathon'

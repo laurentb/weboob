@@ -29,6 +29,7 @@ class FakeConic(object):
     STATUS_CONNECTED = None
     STATUS_DISCONNECTED = None
     CONNECT_FLAG_NONE = None
+
     def Connection(self):
         raise NotImplementedError()
 try:
@@ -49,6 +50,7 @@ from logging import debug
 
 
 __all__ = ['Masstransit']
+
 
 class MasstransitHildon():
     "hildon interface"

@@ -48,6 +48,7 @@ class BasePasteBackend(ICapPaste):
             if max_age is False or max_age >= e:
                 return e
 
+
 def test():
     class MockPasteBackend(BasePasteBackend):
         def __init__(self, expirations):

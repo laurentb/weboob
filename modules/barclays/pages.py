@@ -44,6 +44,7 @@ class LoginPage(BasePage):
         else:
             return True
 
+
 class Login2Page(BasePage):
     def login(self, secret):
         label = self.document.xpath('//span[@class="PF_LABEL"]')[0].text.strip()
@@ -55,8 +56,10 @@ class Login2Page(BasePage):
         self.browser['word'] = letters
         self.browser.submit(name='valider', nologin=True)
 
+
 class IndexPage(BasePage):
     pass
+
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Epargne':                Account.TYPE_SAVINGS,
@@ -170,10 +173,12 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_UNKNOWN),
                ]
 
+
 class HistoryBasePage(BasePage):
     def get_history(self):
         self.logger.warning('Do not support account of type %s' % type(self).__name__)
         return iter([])
+
 
 class TransactionsPage(HistoryBasePage):
     def get_history(self):
@@ -229,11 +234,14 @@ class CardPage(HistoryBasePage):
             t.set_amount(amount)
             yield t
 
+
 class ValuationPage(HistoryBasePage):
     pass
 
+
 class LoanPage(HistoryBasePage):
     pass
+
 
 class MarketPage(HistoryBasePage):
     pass

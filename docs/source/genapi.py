@@ -4,6 +4,7 @@ from __future__ import with_statement
 
 import os
 
+
 def genapi():
     os.system('rm -rf api')
     os.system('mkdir api')

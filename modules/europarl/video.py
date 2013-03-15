@@ -47,4 +47,3 @@ class EuroparlVideo(BaseVideo):
         if m:
             return u'http://www.europarl.europa.eu/ep-live/en/plenary/video?debate=%s' % _id
         return None
-

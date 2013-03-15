@@ -23,6 +23,7 @@ from weboob.tools.capabilities.messages.GenericBackend import GenericNewspaperBa
 from .browser import NewspaperFigaroBrowser
 from .tools import rssid
 
+
 class NewspaperFigaroBackend(GenericNewspaperBackend, ICapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'

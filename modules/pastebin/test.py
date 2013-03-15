@@ -21,6 +21,7 @@ from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.paste import PasteNotFound
 
+
 class PastebinTest(BackendTest):
     BACKEND = 'pastebin'
 

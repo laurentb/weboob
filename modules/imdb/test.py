@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class ImdbTest(BackendTest):
     BACKEND = 'imdb'
 
@@ -26,7 +27,7 @@ class ImdbTest(BackendTest):
         movies = list(self.backend.iter_movies('spiderman'))
         for movie in movies:
             assert movie.id
-    
+
     def test_get_movie(self):
         movie = self.backend.get_movie('tt0079980')
         assert movie.id

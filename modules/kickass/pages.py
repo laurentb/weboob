@@ -125,7 +125,7 @@ class TorrentPage(BasePage):
         for span in self.document.getiterator('span'):
             # sometimes there are others span, this is not so sure but the size of the children list
             # is enough to know if this is the right span
-            if (span.attrib.get('class', '') == 'folder' \
+            if (span.attrib.get('class', '') == 'folder'
                 or span.attrib.get('class', '') == 'folderopen') \
             and len(span.getchildren()) > 2:
                 size = span.getchildren()[1].tail

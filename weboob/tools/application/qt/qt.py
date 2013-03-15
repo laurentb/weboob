@@ -39,6 +39,7 @@ from ..base import BaseApplication
 
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 
+
 class QtScheduler(IScheduler):
     def __init__(self, app):
         self.app = app
@@ -80,6 +81,7 @@ class QtScheduler(IScheduler):
 
     def run(self):
         self.app.exec_()
+
 
 class QCallbacksManager(QObject):
     class Request(object):
@@ -132,6 +134,7 @@ class QCallbacksManager(QObject):
         request.event.wait()
         return request.answer
 
+
 class QtApplication(QApplication, BaseApplication):
     def __init__(self):
         QApplication.__init__(self, sys.argv)
@@ -143,9 +146,11 @@ class QtApplication(QApplication, BaseApplication):
     def create_weboob(self):
         return Weboob(scheduler=QtScheduler(self))
 
+
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
+
 
 class QtDo(QObject):
     def __init__(self, weboob, cb, eb=None):
@@ -223,6 +228,7 @@ class QtDo(QObject):
     def thread_eb(self, backend, error, backtrace):
         self.emit(SIGNAL('eb'), backend, error, backtrace)
 
+
 class HTMLDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         optionV4 = QStyleOptionViewItemV4(option)
@@ -260,6 +266,7 @@ class HTMLDelegate(QStyledItemDelegate):
 
         return QSize(doc.idealWidth(), max(doc.size().height(), optionV4.decorationSize.height()))
 
+
 class _QtValueStr(QLineEdit):
     def __init__(self, value):
         QLineEdit.__init__(self)
@@ -277,10 +284,12 @@ class _QtValueStr(QLineEdit):
         self._value.set(unicode(self.text()))
         return self._value
 
+
 class _QtValueBackendPassword(_QtValueStr):
     def get_value(self):
         self._value._domain = None
         return _QtValueStr.get_value(self)
+
 
 class _QtValueBool(QCheckBox):
     def __init__(self, value):
@@ -297,6 +306,7 @@ class _QtValueBool(QCheckBox):
         self._value.set(self.isChecked())
         return self._value
 
+
 class _QtValueInt(QSpinBox):
     def __init__(self, value):
         QSpinBox.__init__(self)
@@ -311,6 +321,7 @@ class _QtValueInt(QSpinBox):
     def get_value(self):
         self._value.set(self.getValue())
         return self._value
+
 
 class _QtValueChoices(QComboBox):
     def __init__(self, value):
@@ -331,6 +342,7 @@ class _QtValueChoices(QComboBox):
     def get_value(self):
         self._value.set(unicode(self.itemData(self.currentIndex()).toString()))
         return self._value
+
 
 def QtValue(value):
     if isinstance(value, ValueBool):

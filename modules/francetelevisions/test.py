@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
+
 class PluzzTest(BackendTest):
     BACKEND = 'francetelevisions'
 

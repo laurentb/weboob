@@ -64,6 +64,7 @@ class AuMException(UserError):
         Exception.__init__(self, self.ERRORS.get(code, code))
         self.code = code
 
+
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'

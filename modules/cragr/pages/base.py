@@ -21,6 +21,7 @@
 from weboob.tools.browser import BasePage
 from weboob.tools.browser import BrowserUnavailable
 
+
 class CragrBasePage(BasePage):
     def on_loaded(self):
         # Check for an error

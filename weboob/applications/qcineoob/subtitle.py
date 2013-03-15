@@ -25,6 +25,7 @@ from PyQt4.QtGui import QFrame, QFileDialog
 from weboob.applications.qcineoob.ui.subtitle_ui import Ui_Subtitle
 from weboob.capabilities.base import empty
 
+
 class Subtitle(QFrame):
     def __init__(self, subtitle, backend, parent=None):
         QFrame.__init__(self, parent)
@@ -77,4 +78,3 @@ class Subtitle(QFrame):
                 print >>sys.stderr, 'Unable to write subtitle file in "%s": %s' % (dest, e)
                 return 1
             return
-

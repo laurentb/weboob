@@ -38,6 +38,7 @@ class HomePage(BasePage):
         for lyr in self.browser.page.iter_lyrics():
             yield lyr
 
+
 class ArtistResultsPage(BasePage):
     def iter_lyrics(self):
         for link in self.parser.select(self.document.getroot(),'div.cont_cat table a.std'):

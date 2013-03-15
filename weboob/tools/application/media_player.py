@@ -39,7 +39,7 @@ PLAYERS = (
 
 class MediaPlayerNotFound(Exception):
     def __init__(self):
-        Exception.__init__(self, u'No media player found on this system. Please install one of them: %s.' % \
+        Exception.__init__(self, u'No media player found on this system. Please install one of them: %s.' %
             ', '.join(player[0] for player in PLAYERS))
 
 
@@ -75,7 +75,7 @@ class MediaPlayer(object):
         """
         player_names = [player[0] for player in PLAYERS]
         if not player_name:
-            self.logger.debug(u'No media player given. Using the first available from: %s.' % \
+            self.logger.debug(u'No media player given. Using the first available from: %s.' %
                 ', '.join(player_names))
             player_name = self.guess_player_name()
             if player_name is None:

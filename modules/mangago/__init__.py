@@ -21,4 +21,3 @@
 from .backend import MangagoBackend
 
 __all__ = ['MangagoBackend']
-

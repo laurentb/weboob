@@ -22,6 +22,7 @@ import datetime
 from weboob.capabilities.travel import RoadmapFilters
 from weboob.tools.test import BackendTest
 
+
 class TransilienTest(BackendTest):
     BACKEND = 'transilien'
 

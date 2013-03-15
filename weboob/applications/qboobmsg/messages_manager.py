@@ -29,6 +29,7 @@ from weboob.tools.misc import to_unicode
 
 from .ui.messages_manager_ui import Ui_MessagesManager
 
+
 class MessagesManager(QWidget):
     def __init__(self, weboob, parent=None):
         QWidget.__init__(self, parent)

@@ -36,6 +36,7 @@ class CityPage(BasePage):
             city_id = item.find('a').attrib.get("href", "").split("+")[-1]
             yield City(city_id, city_name)
 
+
 class WeatherPage(BasePage):
     def get_city(self):
         parts = self.url.split('/')[-1].split('+')
@@ -46,6 +47,7 @@ class WeatherPage(BasePage):
         text = unicode(self.document.findall('//p[@class="wx-narrative"]')[0].text_content().strip())
         temp = float(self.document.find('//p[@class="wx-temp"]').text_content().strip().split(u'°')[0])
         return Current(date, temp, text, u'F')
+
 
 class ForecastPage(BasePage):
     def iter_forecast(self):

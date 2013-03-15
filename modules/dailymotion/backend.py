@@ -45,6 +45,7 @@ class DailymotionBackend(BaseBackend, ICapVideo, ICapCollection):
             return self.browser.get_video(_id)
 
     SORTBY = ['relevance', 'rated', 'visited', None]
+
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern, self.SORTBY[sortby])

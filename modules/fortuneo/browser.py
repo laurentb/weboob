@@ -29,6 +29,7 @@ from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistor
 
 __all__ = ['Fortuneo']
 
+
 class Fortuneo(BaseBrowser):
     DOMAIN_LOGIN = 'www.fortuneo.fr'
     DOMAIN = 'www.fortuneo.fr'

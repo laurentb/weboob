@@ -36,6 +36,7 @@ class QCineoob(QtApplication):
     CONFIG = {'settings': {'backend': '',
                           }
              }
+
     def main(self, argv):
         self.load_backends([ICapCinema,ICapTorrent,ICapSubtitle])
         self.load_config()

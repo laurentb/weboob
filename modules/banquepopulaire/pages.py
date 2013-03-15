@@ -39,6 +39,7 @@ class UnavailablePage(BasePage):
         else:
             self.browser.location(a.attrib['href'])
 
+
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(name='Login')
@@ -46,12 +47,14 @@ class LoginPage(BasePage):
         self.browser['IDToken2'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
+
 class IndexPage(BasePage):
     def get_token(self):
         url = self.document.getroot().xpath('//frame[@name="portalHeader"]')[0].attrib['src']
         v = urlsplit(url)
         args = dict(parse_qsl(v.query))
         return args['token']
+
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Mes comptes d\'épargne':     Account.TYPE_SAVINGS,
@@ -100,6 +103,7 @@ class AccountsPage(BasePage):
                 yield account
 
         return
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RET DAB (?P<text>.*?) RETRAIT (DU|LE) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d+).*'),

@@ -42,6 +42,7 @@ class IpLocation(CapBaseObject):
         CapBaseObject.__init__(self, ipaddr)
         self.ipaddr = ipaddr
 
+
 class ICapGeolocIp(IBaseCap):
     """
     Access information about IP addresses database.

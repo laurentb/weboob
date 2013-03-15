@@ -28,6 +28,7 @@ from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
+
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(nr=0)
@@ -35,24 +36,31 @@ class LoginPage(BasePage):
         self.browser['_cm_pwd'] = passwd
         self.browser.submit(nologin=True)
 
+
 class LoginErrorPage(BasePage):
     pass
+
 
 class ChangePasswordPage(BasePage):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Please change your password')
 
+
 class InfoPage(BasePage):
     pass
+
 
 class EmptyPage(BasePage):
     pass
 
+
 class TransfertPage(BasePage):
     pass
 
+
 class UserSpacePage(BasePage):
     pass
+
 
 class AccountsPage(BasePage):
     def get_list(self):
@@ -102,6 +110,7 @@ class AccountsPage(BasePage):
 
         return accounts.itervalues()
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
@@ -115,6 +124,7 @@ class Transaction(FrenchTransaction):
                ]
 
     _is_coming = False
+
 
 class OperationsPage(BasePage):
     def get_history(self):
@@ -181,6 +191,7 @@ class OperationsPage(BasePage):
 
         return True
 
+
 class CardPage(OperationsPage):
     def get_history(self):
         index = 0
@@ -199,6 +210,7 @@ class CardPage(OperationsPage):
 
             tr.set_amount(tds[-1].text)
             yield tr
+
 
 class NoOperationsPage(OperationsPage):
     def get_history(self):

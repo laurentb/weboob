@@ -35,7 +35,7 @@ class GoogleTranslateBrowser(BaseBrowser):
     PAGES = {
         'https?://translate\.google\.com': TranslatePage
         }
-    
+
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 

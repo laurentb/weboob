@@ -37,6 +37,7 @@ class LoginPage(BasePage):
         self.browser['LoginPortletFormPassword1'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
+
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
@@ -88,6 +89,7 @@ class Transaction(FrenchTransaction):
                                                                 FrenchTransaction.TYPE_BANK),
                 (re.compile('(?P<text>Int .*)'),                FrenchTransaction.TYPE_BANK),
                ]
+
 
 class TransactionsPage(BasePage):
     def get_history(self):

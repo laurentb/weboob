@@ -50,8 +50,10 @@ class BackendNotGiven(Exception):
         Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
                 'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
 
+
 class BackendNotFound(Exception):
     pass
+
 
 class ConsoleApplication(BaseApplication):
     """

@@ -50,12 +50,12 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
             if 'Invalid IP or domain name' in content:
                 raise Exception('Bad parameter')
             else:
-                tab = {'City' : 'NA' ,\
-                        'Country name' : 'NA' ,\
-                        'Region' : 'NA' ,\
-                        'Latitude' : 'NA' ,\
-                        'Longitude' : 'NA' ,\
-                        'hostname' : 'NA' ,\
+                tab = {'City' : 'NA' ,
+                        'Country name' : 'NA' ,
+                        'Region' : 'NA' ,
+                        'Latitude' : 'NA' ,
+                        'Longitude' : 'NA' ,
+                        'hostname' : 'NA' ,
                         'zipcode' : 'NA'}
                 line = ''
                 for line in content.split('\n'):

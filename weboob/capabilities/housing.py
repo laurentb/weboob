@@ -45,6 +45,7 @@ class HousingPhoto(CapBaseObject):
     def __repr__(self):
         return u'<HousingPhoto "%s" data=%do>' % (self.id, len(self.data) if self.data else 0)
 
+
 class Housing(CapBaseObject):
     """
     Content of a housing.
@@ -60,6 +61,7 @@ class Housing(CapBaseObject):
     phone =         StringField('Phone number to contact')
     photos =        Field('List of photos', list)
     details =       Field('Key/values of details', dict)
+
 
 class Query(CapBaseObject):
     """
@@ -79,11 +81,13 @@ class Query(CapBaseObject):
     def __init__(self):
         CapBaseObject.__init__(self, '')
 
+
 class City(CapBaseObject):
     """
     City.
     """
     name =      StringField('Name of city')
+
 
 class ICapHousing(IBaseCap):
     """

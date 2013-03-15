@@ -20,6 +20,7 @@
 
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage
 
+
 class InrocksTvPage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):

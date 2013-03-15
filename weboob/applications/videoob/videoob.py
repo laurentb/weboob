@@ -49,6 +49,7 @@ class VideoListFormatter(PrettyFormatter):
             result += u' (%s/%s)' % (obj.rating, obj.rating_max)
         return result
 
+
 class Videoob(ReplApplication):
     APPNAME = 'videoob'
     VERSION = '0.f'

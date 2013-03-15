@@ -23,9 +23,11 @@ from weboob.tools.browser import BaseBrowser, BasePage, BrowserUnavailable
 from .pages.departures import DeparturesPage
 from .pages.roadmap import RoadmapSearchPage, RoadmapConfirmPage, RoadmapPage
 
+
 class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable('Website is currently unavailable')
+
 
 class Transilien(BaseBrowser):
     DOMAIN = 'www.transilien.com'

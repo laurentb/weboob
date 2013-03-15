@@ -23,6 +23,7 @@ from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage, t
                                         try_remove_from_selector_list, \
                                         drop_comments, NoneMainDiv
 
+
 class ArticlePage(GenericNewsPage):
     "ArticlePage object for inrocks"
     def on_loaded(self):

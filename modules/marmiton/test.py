@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class MarmitonTest(BackendTest):
     BACKEND = 'marmiton'
 
@@ -30,4 +31,3 @@ class MarmitonTest(BackendTest):
             assert full_recipe.ingredients
             assert full_recipe.title
             assert full_recipe.preparation_time
-

@@ -26,6 +26,7 @@ from weboob.core import Weboob
 
 __all__ = ['TestCase', 'BackendTest']
 
+
 class BackendTest(TestCase):
     BACKEND = None
 

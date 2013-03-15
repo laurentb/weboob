@@ -21,6 +21,7 @@
 from logging import debug
 from weboob.tools.test import BackendTest
 
+
 class FourChanTest(BackendTest):
     BACKEND = 'fourchan'
 

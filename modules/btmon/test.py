@@ -22,6 +22,7 @@ from weboob.capabilities.base import NotLoaded
 
 from random import choice
 
+
 class BtmonTest(BackendTest):
     BACKEND = 'btmon'
 

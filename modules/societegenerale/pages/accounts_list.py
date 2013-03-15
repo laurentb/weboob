@@ -87,6 +87,7 @@ class AccountsList(BasePage):
                 accounts.append(account)
         return iter(accounts)
 
+
 class CardsList(BasePage):
     def iter_cards(self):
         for tr in self.document.getiterator('tr'):
@@ -95,6 +96,7 @@ class CardsList(BasePage):
                 continue
 
             yield tr.xpath('.//a')[0].attrib['href']
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
@@ -122,6 +124,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^CARTE RETRAIT (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                ]
+
 
 class AccountHistory(BasePage):
     def get_part_url(self):

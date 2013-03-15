@@ -33,6 +33,8 @@ from .pages.wiki import WikiEditPage
 from .tools import id2url, url2id
 
 # Browser
+
+
 class DLFP(BaseBrowser):
     DOMAIN = 'linuxfr.org'
     PROTOCOL = 'https'

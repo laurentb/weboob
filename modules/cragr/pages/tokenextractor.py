@@ -17,16 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 class TokenExtractor:
     """ Extracts texts token from an HTML document """
     def __init__(self):
         self.iterated_elements = []
+
     def clear(self):
         """
         Reset any content stored within a TokenExtractor object. Useful to start
         a new parsing without creating a new instance.
         """
         self.iterated_elements = []
+
     def element_iterated_already(self, html_element):
         if html_element in self.iterated_elements:
             return True
@@ -34,6 +37,7 @@ class TokenExtractor:
             if ancestor in self.iterated_elements:
                 return True
         return False
+
     def extract_tokens(self, html_element):
         if self.element_iterated_already(html_element):
             return
@@ -44,10 +48,12 @@ class TokenExtractor:
             for token in self.split_text_into_smaller_tokens(text):
                 if self.token_looks_relevant(token):
                     yield token.strip()
+
     @staticmethod
     def split_text_into_smaller_tokens(text):
         for subtext1 in text.split('\t'):
             yield subtext1
+
     @staticmethod
     def token_looks_relevant(token):
         return len(token.strip()) > 1

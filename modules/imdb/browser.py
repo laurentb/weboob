@@ -218,6 +218,8 @@ dict_hex = {'&#xE1;': u'á',
             '&#xE2;': u'â',
             '&#xE7;': u'ç'
             }
+
+
 def latin2unicode(word):
     for key in dict_hex.keys():
         word = word.replace(key,dict_hex[key])

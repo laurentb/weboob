@@ -145,7 +145,7 @@ class Boobill(ReplApplication):
         Get the list of bills documents for subscriptions.
         If no ID given, display bills of all backends
         """
-        self.exec_method(id, 'iter_bills') 
+        self.exec_method(id, 'iter_bills')
 
     def do_download(self, line):
         """

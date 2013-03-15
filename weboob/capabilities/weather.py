@@ -71,6 +71,7 @@ class Forecast(CapBaseObject):
         self.high = Temperature(high, unit)
         self.text = text
 
+
 class Current(CapBaseObject):
     """
     Current weather.
@@ -85,6 +86,7 @@ class Current(CapBaseObject):
         self.text = text
         self.temp = Temperature(temp, unit)
 
+
 class City(CapBaseObject):
     """
     City where to find weather.
@@ -95,10 +97,12 @@ class City(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.name = name
 
+
 class CityNotFound(UserError):
     """
     Raised when a city is not found.
     """
+
 
 class ICapWeather(IBaseCap):
     """

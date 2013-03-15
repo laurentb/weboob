@@ -22,6 +22,7 @@ import urllib
 
 __all__ = ['LoginPage']
 
+
 class LoginPage(BasePage):
     def on_loaded(self):
         pass

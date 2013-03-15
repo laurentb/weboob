@@ -24,6 +24,7 @@ from PyQt4.phonon import Phonon
 
 from weboob.applications.qvideoob.ui.video_ui import Ui_Video
 
+
 class Video(QDialog):
     def __init__(self, video, parent=None):
         QDialog.__init__(self, parent)

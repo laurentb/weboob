@@ -35,7 +35,7 @@ class WordReferenceBrowser(BaseBrowser):
     PAGES = {
         'https?://www\.wordreference\.com/.*/.*': TranslatePage
         }
-    
+
     def __init__(self, *args, **kwargs):
         BaseBrowser.__init__(self, *args, **kwargs)
 

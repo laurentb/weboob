@@ -65,6 +65,7 @@ class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
 
     ID_REGEXP = r'/?\d+/[\dabcdef]+/?'
     URL_REGEXP = r'.+/g/(%s)' % ID_REGEXP
+
     def get_gallery(self, _id):
         match = re.match(r'^%s$' % self.URL_REGEXP, _id)
         if match:

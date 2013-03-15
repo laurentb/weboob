@@ -48,7 +48,7 @@ class ParolesmusiqueBackend(BaseBackend, ICapLyrics):
             sl = self.get_lyrics(songlyrics.id)
             songlyrics.content = sl.content
         return songlyrics
-   
+
     OBJECTS = {
         SongLyrics:fill_songlyrics
     }

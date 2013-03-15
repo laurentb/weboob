@@ -24,6 +24,7 @@ from weboob.capabilities.account import ICapAccount, StatusField
 from weboob.tools.application.qt import QtDo
 from weboob.tools.misc import to_unicode
 
+
 class Account(QFrame):
     def __init__(self, weboob, backend, parent=None):
         QFrame.__init__(self, parent)
@@ -102,6 +103,7 @@ class Account(QFrame):
     def updateStats_eb(self, backend, err, backtrace):
         self.body.setText(u'<b>Unable to connect:</b> %s' % to_unicode(err))
         self.title.setText(u'<font color=#ff0000>%s</font>' % unicode(self.title.text()))
+
 
 class AccountsStatus(QScrollArea):
     def __init__(self, weboob, parent=None):

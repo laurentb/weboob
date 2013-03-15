@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class INATest(BackendTest):
     BACKEND = 'ina'
 

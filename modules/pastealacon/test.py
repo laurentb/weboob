@@ -24,6 +24,7 @@ from weboob.tools.browser import BrowserUnavailable
 
 from weboob.capabilities.paste import PasteNotFound
 
+
 class PastealaconTest(BackendTest):
     BACKEND = 'pastealacon'
 

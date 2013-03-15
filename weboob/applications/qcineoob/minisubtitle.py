@@ -22,6 +22,7 @@ from PyQt4.QtGui import QFrame
 from weboob.applications.qcineoob.ui.minisubtitle_ui import Ui_MiniSubtitle
 from weboob.capabilities.base import empty
 
+
 class MiniSubtitle(QFrame):
     def __init__(self, weboob, backend, subtitle, parent=None):
         QFrame.__init__(self, parent)

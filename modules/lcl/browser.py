@@ -63,7 +63,7 @@ class LCLBrowser(BaseBrowser):
         assert self.agency.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('%s://%s/outil/UAUT/Authentication/authenticate' \
+            self.location('%s://%s/outil/UAUT/Authentication/authenticate'
                           % (self.PROTOCOL, self.DOMAIN),
                           no_login=True)
 
@@ -71,7 +71,7 @@ class LCLBrowser(BaseBrowser):
            not self.is_logged() or \
            (self.is_on_page(LoginPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
-        self.location('%s://%s/outil/UWSP/Synthese' \
+        self.location('%s://%s/outil/UWSP/Synthese'
                       % (self.PROTOCOL, self.DOMAIN),
                       no_login=True)
 

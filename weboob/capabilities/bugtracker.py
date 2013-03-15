@@ -31,6 +31,7 @@ class IssueError(UserError):
     Raised when there is an error with an issue.
     """
 
+
 class Project(CapBaseObject):
     """
     Represents a project.
@@ -101,6 +102,7 @@ class Project(CapBaseObject):
             return None
         return None
 
+
 class User(CapBaseObject):
     """
     User.
@@ -114,6 +116,7 @@ class User(CapBaseObject):
     def __repr__(self):
         return '<User %r>' % self.name
 
+
 class Version(CapBaseObject):
     """
     Version of a project.
@@ -126,6 +129,7 @@ class Version(CapBaseObject):
 
     def __repr__(self):
         return '<Version %r>' % self.name
+
 
 class Status(CapBaseObject):
     """
@@ -150,6 +154,7 @@ class Status(CapBaseObject):
     def __repr__(self):
         return '<Status %r>' % self.name
 
+
 class Attachment(CapBaseObject):
     """
     Attachment of an issue.
@@ -160,6 +165,7 @@ class Attachment(CapBaseObject):
     def __repr__(self):
         return '<Attachment %r>' % self.filename
 
+
 class Change(CapBaseObject):
     """
     A change of an update.
@@ -167,6 +173,7 @@ class Change(CapBaseObject):
     field =         StringField('What field has been changed')
     last =          StringField('Last value of field')
     new =           StringField('New value of field')
+
 
 class Update(CapBaseObject):
     """
@@ -181,6 +188,7 @@ class Update(CapBaseObject):
 
     def __repr__(self):
         return '<Update %r>' % self.id
+
 
 class Issue(CapBaseObject):
     """
@@ -199,6 +207,7 @@ class Issue(CapBaseObject):
     version =       Field('Target version of this issue', Version)
     status =        Field('Status of this issue', Status)
 
+
 class Query(CapBaseObject):
     """
     Query to find an issue.
@@ -213,6 +222,7 @@ class Query(CapBaseObject):
 
     def __init__(self):
         CapBaseObject.__init__(self, '')
+
 
 class ICapBugTracker(IBaseCap):
     """

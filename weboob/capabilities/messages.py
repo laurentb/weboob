@@ -34,9 +34,11 @@ class _Message(CapBaseObject):
     """ Base message. """
     pass
 
+
 class _Thread(CapBaseObject):
     """ Base Thread. """
     pass
+
 
 class Message(_Message):
     """
@@ -131,6 +133,7 @@ class Message(_Message):
         return '<Message id=%r title=%r date=%r from=%r>' % (
                    self.full_id, self.title, self.date, self.sender)
 
+
 class Thread(_Thread):
     """
     Thread containing messages.
@@ -199,10 +202,12 @@ class ICapMessages(IBaseCap):
         """
         raise NotImplementedError()
 
+
 class CantSendMessage(UserError):
     """
     Raised when a message can't be send.
     """
+
 
 class ICapMessagesPost(IBaseCap):
     """

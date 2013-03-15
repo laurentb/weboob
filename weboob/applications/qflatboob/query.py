@@ -24,6 +24,7 @@ from weboob.tools.application.qt import QtDo, HTMLDelegate
 
 from .ui.query_ui import Ui_QueryDialog
 
+
 class QueryDialog(QDialog):
     def __init__(self, weboob, parent=None):
         QDialog.__init__(self, parent)
@@ -43,7 +44,7 @@ class QueryDialog(QDialog):
 
         if hasattr(self.ui.cityEdit, "setPlaceholderText"):
             self.ui.cityEdit.setPlaceholderText("Press enter to search city")
-            
+
     def keyPressEvent(self, event):
         """
         Disable handler <Enter> and <Escape> to prevent closing the window.

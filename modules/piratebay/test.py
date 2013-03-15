@@ -22,6 +22,7 @@ from weboob.capabilities.torrent import MagnetOnly
 
 from random import choice
 
+
 class PiratebayTest(BackendTest):
     BACKEND = 'piratebay'
 

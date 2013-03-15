@@ -24,6 +24,7 @@ __all__ = ['FormattersLoader', 'FormatterLoadError']
 class FormatterLoadError(Exception):
     pass
 
+
 class FormattersLoader(object):
     BUILTINS = ['htmltable', 'multiline', 'simple', 'table', 'csv', 'webkit', 'json']
 

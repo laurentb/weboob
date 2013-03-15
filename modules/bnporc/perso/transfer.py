@@ -35,6 +35,7 @@ class Account(object):
         self.send_checkbox = send_checkbox
         self.receive_checkbox = receive_checkbox
 
+
 class TransferPage(BasePage):
     def on_loaded(self):
         for td in self.document.xpath('//td[@class="hdvon1"]'):

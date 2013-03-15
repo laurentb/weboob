@@ -39,8 +39,10 @@ class LoginPage(BasePage):
         except FormNotFoundError:
             raise BrowserIncorrectPassword()
 
+
 class HomePage(BasePage):
     pass
+
 
 class AccountsPage(BasePage):
     def get_list(self):
@@ -72,6 +74,7 @@ class AccountsPage(BasePage):
                     break
 
         yield account
+
 
 class TransactionsPage(BasePage):
     COL_DATE = 0

@@ -54,6 +54,7 @@ class IParser(object):
         p = re.compile(r'<.*?>')
         return p.sub(' ', data).strip()
 
+
 class RawParser(IParser):
     def parse(self, data, encoding=None):
         return data.read()

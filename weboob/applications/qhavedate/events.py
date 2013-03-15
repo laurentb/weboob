@@ -25,6 +25,7 @@ from weboob.tools.application.qt import QtDo, HTMLDelegate
 
 from .ui.events_ui import Ui_Events
 
+
 class EventsWidget(QWidget):
     def __init__(self, weboob, parent=None):
         QWidget.__init__(self, parent)

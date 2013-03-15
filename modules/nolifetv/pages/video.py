@@ -104,6 +104,7 @@ class VideoPage(BasePage):
         return video
 
     SALT = 'a53be1853770f0ebe0311d6993c7bcbe'
+
     def genkey(self):
         # This website is really useful to get info: http://www.showmycode.com/
         timestamp = str(int(time.time()))

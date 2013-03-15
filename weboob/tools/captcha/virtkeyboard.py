@@ -46,10 +46,10 @@ class VirtKeyboard(object):
 
         self.bands = img.getbands()
         if isinstance(color, int) and not isinstance(self.bands, str) and len(self.bands) != 1:
-            raise VirtKeyboardError("Color requires %i component but only 1 is provided" \
+            raise VirtKeyboardError("Color requires %i component but only 1 is provided"
                                     % len(self.bands))
         if not isinstance(color, int) and len(color) != len(self.bands):
-            raise VirtKeyboardError("Color requires %i components but %i are provided" \
+            raise VirtKeyboardError("Color requires %i components but %i are provided"
                                     % (len(self.bands), len(color)))
         self.color = color
 
@@ -123,7 +123,7 @@ class VirtKeyboard(object):
                 if dirname is None:
                     dirname = tempfile.mkdtemp(prefix='weboob_session_')
                 self.generate_MD5(dirname)
-                raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s"\
+                raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s"
                                         % (s, dirname))
 
     def generate_MD5(self, dir):

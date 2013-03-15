@@ -29,6 +29,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage']
 
+
 class LoginPage(BasePage):
     def login(self, login, pin, strong_auth):
         form_nb = 1 if strong_auth else 0
@@ -40,6 +41,7 @@ class LoginPage(BasePage):
 
         assert self.browser['identType'] == indentType
         self.browser.submit(nologin=True)
+
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
@@ -77,6 +79,7 @@ class AccountsPage(BasePage):
 
         return
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RETRAIT DAB (?P<text>.*?).*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
@@ -95,6 +98,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
 
+
 class TransactionsPage(BasePage):
     def get_next_url(self):
         # can be 'Suivant' or ' Suivant'
@@ -109,6 +113,7 @@ class TransactionsPage(BasePage):
     TR_TEXT = 2
     TR_DEBIT = 3
     TR_CREDIT = 4
+
     def get_history(self):
         for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
             tds = tr.findall('td')
@@ -128,6 +133,7 @@ class TransactionsPage(BasePage):
             t.set_amount(credit, debit)
 
             yield t
+
 
 class ComingTransactionsPage(BasePage):
     COM_TR_COMMENT = 0

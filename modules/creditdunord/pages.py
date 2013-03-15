@@ -34,6 +34,7 @@ __all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
 class LoginPage(BasePage):
     pass
 
+
 class CDNBasePage(BasePage):
     def get_from_js(self, pattern, end, is_list=False):
         """
@@ -68,6 +69,7 @@ class CDNBasePage(BasePage):
 
     def get_execution(self):
         return self.get_from_js("name: 'execution', value: '", "'")
+
 
 class AccountsPage(CDNBasePage):
     COL_HISTORY = 2
@@ -112,6 +114,7 @@ class AccountsPage(CDNBasePage):
             accounts.append(a)
 
         return iter(accounts)
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>RET DAB \w+ .*?) LE (?P<dd>\d{2})(?P<mm>\d{2})$'),

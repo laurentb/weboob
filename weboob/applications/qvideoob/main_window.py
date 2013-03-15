@@ -29,6 +29,7 @@ from weboob.applications.qvideoob.ui.main_window_ui import Ui_MainWindow
 from .video import Video
 from .minivideo import MiniVideo
 
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, parent=None):
         QtMainWindow.__init__(self, parent)

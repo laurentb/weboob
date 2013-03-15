@@ -23,6 +23,7 @@ __all__ = ['check_url', 'id2url']
 from urlparse import urlsplit
 import re
 
+
 class check_url(object):
     """
     Checks if the first argument matches the given regular expression (given as str,

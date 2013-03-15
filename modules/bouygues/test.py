@@ -20,6 +20,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class BouyguesTest(BackendTest):
     BACKEND = 'bouygues'
 

@@ -36,6 +36,7 @@ class ProAccountsList(BasePage):
     COL_ID      = 2
     COL_BALANCE = 3
     COL_COMING  = 5
+
     def get_list(self):
         for tr in self.document.xpath('//tr[@class="comptes"]'):
             cols = tr.findall('td')
@@ -56,6 +57,7 @@ class ProAccountsList(BasePage):
                 account._stp = p.get('stp', None)
 
             yield account
+
 
 class ProAccountHistory(BasePage):
     COL_DATE = 0

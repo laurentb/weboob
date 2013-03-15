@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 from datetime import datetime
 
+
 class MediawikiTest(BackendTest):
     BACKEND = 'mediawiki'
 

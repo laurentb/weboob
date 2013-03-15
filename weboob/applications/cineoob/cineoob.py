@@ -38,6 +38,7 @@ __all__ = ['Cineoob']
 ROLE_LIST = ['actor','director','writer','composer','producer']
 COUNTRY_LIST = ['us','fr','de','jp']
 
+
 class MovieInfoFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'pitch', 'note', 'roles', 'country')
 
@@ -100,6 +101,7 @@ def yearsago(years, from_date=None):
         return from_date.replace(month=2, day=28,
                                  year=from_date.year-years)
 
+
 def num_years(begin, end=None):
     if end is None:
         end = datetime.now()
@@ -108,6 +110,7 @@ def num_years(begin, end=None):
         return num_years - 1
     else:
         return num_years
+
 
 class PersonInfoFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'name', 'birth_date', 'birth_place', 'short_biography')

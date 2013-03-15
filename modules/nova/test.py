@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.radio import Radio
 
+
 class NovaTest(BackendTest):
     BACKEND = 'nova'
 

@@ -37,6 +37,7 @@ class LoginPage(BasePage):
         self.browser['j_password'] = password.encode('iso-8859-15')
         self.browser.submit(nologin=True)
 
+
 class LoggedPage(BasePage):
     def get_error(self):
         div = self.document.xpath('//div[@class="errorForm-msg"]')
@@ -45,6 +46,7 @@ class LoggedPage(BasePage):
 
         msg = u', '.join([li.text.strip() for li in div[0].xpath('.//li')])
         return re.sub('[\r\n\t\xa0]+', ' ', msg)
+
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
@@ -64,6 +66,7 @@ class AccountsPage(BasePage):
             account.currency = account.get_currency(balance)
 
             yield account
+
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<text>RETRAIT DAB) (?P<dd>\d{2})-(?P<mm>\d{2})-([\d\-]+)'),
@@ -88,8 +91,10 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
 
+
 class TransactionsPage(BasePage):
     pass
+
 
 class TransactionsJSONPage(BasePage):
     ROW_DATE =    0
@@ -103,6 +108,7 @@ class TransactionsJSONPage(BasePage):
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
             yield t
+
 
 class ComingTransactionsPage(BasePage):
     ROW_REF =     0

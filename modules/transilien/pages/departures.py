@@ -30,6 +30,7 @@ __all__ = ['StationNotFound', 'DeparturesPage']
 class StationNotFound(UserError):
     pass
 
+
 class DeparturesPage(BasePage):
     def iter_routes(self):
         try:

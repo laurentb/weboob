@@ -30,6 +30,7 @@ from .paste import PastealaconPaste
 
 __all__ = ['PastealaconBrowser']
 
+
 class PastealaconBrowser(BaseBrowser):
     DOMAIN = 'pastealacon.com'
     ENCODING = 'ISO-8859-1'

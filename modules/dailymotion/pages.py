@@ -85,6 +85,7 @@ class IndexPage(BasePage):
             self.browser.logger.warning('Unable to parse rating: %s' % div.attrib['style'])
             return 0
 
+
 class VideoPage(BasePage):
     def get_video(self, video=None):
         if video is None:

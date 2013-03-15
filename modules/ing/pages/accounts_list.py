@@ -31,6 +31,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['AccountsList']
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^retrait dab (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^carte (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), Transaction.TYPE_CARD),

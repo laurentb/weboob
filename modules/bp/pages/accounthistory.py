@@ -47,6 +47,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>REMISE DE CHEQUE) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
+
 class AccountHistory(BasePage):
     def get_next_link(self):
         for a in self.document.xpath('//a[@class="btn_crt"]'):
@@ -104,6 +105,7 @@ class AccountHistory(BasePage):
 
             operations.append(op)
         return operations
+
 
 class CardsList(BasePage):
     def get_cards(self):

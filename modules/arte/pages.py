@@ -75,6 +75,7 @@ class IndexPage(BasePage):
 
             yield video
 
+
 class VideoPage(BasePage):
     def get_video(self, video=None, lang='fr', quality='hd'):
         if not video:

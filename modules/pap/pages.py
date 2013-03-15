@@ -88,6 +88,7 @@ class SearchResultsPage(BasePage):
 
             yield housing
 
+
 class HousingPage(BasePage):
     def get_housing(self):
         div = self.parser.select(self.document.getroot(), 'div#annonce_detail', 1)

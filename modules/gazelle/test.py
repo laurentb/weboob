@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class GazelleTest(BackendTest):
     BACKEND = 'gazelle'
 

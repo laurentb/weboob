@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPass
 from weboob.tools.json import json
 
 
-__all__ = ['LoginPage', 'LoginRedirectPage', 'ForbiddenVideo', 'ForbiddenVideoPage', \
+__all__ = ['LoginPage', 'LoginRedirectPage', 'ForbiddenVideo', 'ForbiddenVideoPage',
            'VerifyAgePage', 'VerifyControversyPage', 'VideoPage']
 
 

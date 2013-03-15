@@ -70,11 +70,14 @@ __all__ = ['BrowserIncorrectPassword', 'BrowserForbidden', 'BrowserBanned', 'Bro
 class BrowserIncorrectPassword(Exception):
     pass
 
+
 class BrowserForbidden(Exception):
     pass
 
+
 class BrowserBanned(BrowserIncorrectPassword):
     pass
+
 
 class BrowserPasswordExpired(BrowserIncorrectPassword):
     pass
@@ -83,8 +86,10 @@ class BrowserPasswordExpired(BrowserIncorrectPassword):
 class BrowserUnavailable(Exception):
     pass
 
+
 class BrowserHTTPNotFound(BrowserUnavailable):
     pass
+
 
 class BrowserHTTPError(BrowserUnavailable):
     pass
@@ -113,8 +118,10 @@ class NoHistory(object):
     def close(self):
         pass
 
+
 class BrokenPageError(Exception):
     pass
+
 
 class BasePage(object):
     """
@@ -138,6 +145,7 @@ class BasePage(object):
         """
         pass
 
+
 def check_location(func):
     def inner(self, *args, **kwargs):
         if args and isinstance(args[0], basestring):
@@ -151,6 +159,7 @@ def check_location(func):
             args = (url,) + args[1:]
         return func(self, *args, **kwargs)
     return inner
+
 
 class StandardBrowser(mechanize.Browser):
     """

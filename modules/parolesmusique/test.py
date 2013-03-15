@@ -20,6 +20,7 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
+
 class ParolesmusiqueTest(BackendTest):
     BACKEND = 'parolesmusique'
 

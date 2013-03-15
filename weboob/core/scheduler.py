@@ -44,6 +44,7 @@ class IScheduler(object):
     def want_stop(self):
         raise NotImplementedError()
 
+
 class RepeatedTimer(_Timer):
     def run(self):
         while not self.finished.isSet():
@@ -54,6 +55,7 @@ class RepeatedTimer(_Timer):
                 print get_backtrace()
             self.finished.wait(self.interval)
         self.finished.set()
+
 
 class Scheduler(IScheduler):
     def __init__(self):

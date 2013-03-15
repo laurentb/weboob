@@ -22,6 +22,7 @@ from .pages.article import ArticlePage, ActuPage
 from .pages.flashactu import FlashActuPage
 from weboob.tools.browser import BaseBrowser, BasePage
 
+
 class IndexPage(BasePage):
     pass
 

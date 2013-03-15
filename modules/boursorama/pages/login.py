@@ -75,6 +75,7 @@ class VirtKeyboard(MappedVirtKeyboard):
                     s += " "
         return hashlib.md5(s).hexdigest()
 
+
 class LoginPage(BasePage):
     def on_loaded(self):
         pass
@@ -97,6 +98,7 @@ class LoginPage(BasePage):
                }
 
         self.browser.location(form.attrib['action'], urllib.urlencode(args), no_login=True)
+
 
 class UpdateInfoPage(BasePage):
     def on_loaded(self):

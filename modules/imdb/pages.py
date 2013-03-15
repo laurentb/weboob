@@ -187,6 +187,7 @@ class PersonPage(BasePage):
         person.thumbnail_url   = thumbnail_url
         return person
 
+
 class FilmographyPage(BasePage):
     ''' Page of detailed filmography of a person, sorted by type of role
     This page is easier to parse than the main person page filmography

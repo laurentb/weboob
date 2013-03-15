@@ -43,12 +43,15 @@ class CallErrors(Exception):
     def __iter__(self):
         return self.errors.__iter__()
 
+
 class IResultsCondition(object):
     def is_valid(self, obj):
         raise NotImplementedError()
 
+
 class ResultsConditionError(Exception):
     pass
+
 
 class BackendsCall(object):
     def __init__(self, backends, condition, function, *args, **kwargs):

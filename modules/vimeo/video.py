@@ -32,4 +32,3 @@ class VimeoVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
         return u'http://vimeo.com/%s' % _id
-

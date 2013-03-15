@@ -23,8 +23,10 @@ from logging import warning
 
 from weboob.tools.browser import BasePage
 
+
 class Message(object):
     TIMESTAMP_REGEXP = re.compile(r'(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})')
+
     def __init__(self, id, timestamp, login, message, is_me):
         self.id = id
         self.timestamp = timestamp
@@ -39,6 +41,7 @@ class Message(object):
                                                int(m.group(6)))
         else:
             warning('Unable to parse timestamp "%s"' % timestamp)
+
 
 class BoardIndexPage(BasePage):
     def is_logged(self):
