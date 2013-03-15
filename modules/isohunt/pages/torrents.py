@@ -53,9 +53,9 @@ class TorrentsPage(BasePage):
                     size = float(size[:-3])
                     sseed = tr.getchildren()[4].text
                     sleech = tr.getchildren()[5].text
-                    if sseed != None and sseed != "":
+                    if sseed is not None and sseed != "":
                         seed = int(sseed)
-                    if sleech != None and sleech != "":
+                    if sleech is not None and sleech != "":
                         leech = int(sleech)
                     url = u'https://isohunt.com/download/%s/mon_joli_torrent.torrent' % idt
                     torrent = Torrent(idt, title)
@@ -101,7 +101,7 @@ class TorrentPage(BasePage):
             if p.attrib.get('style', '') == 'line-height:1.2em;margin-top:1.8em':
                 count_p_found += 1
                 if count_p_found == 1:
-                    if p.getchildren()[1].tail != None:
+                    if p.getchildren()[1].tail is not None:
                         description = unicode(p.getchildren()[1].tail)
                 if count_p_found == 2:
                     if p.getchildren()[0].text == 'Directory:':

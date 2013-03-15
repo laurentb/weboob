@@ -66,7 +66,7 @@ class AccountsList(BasePage):
 
                 elif td.attrib.get('headers', '') == 'Solde':
                     balance = td.find('div').text if td.find('div') is not None else None
-                    if balance != None:
+                    if balance is not None:
                         account.currency = account.get_currency(balance)
                         balance = FrenchTransaction.clean_amount(balance)
                         account.balance = Decimal(balance)

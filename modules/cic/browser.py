@@ -153,7 +153,7 @@ class CICBrowser(BaseBrowser):
         self['IDB'] = [account[-1]]
         self['ICR'] = [to[-1]]
         self['MTTVIR'] = '%s' % str(amount).replace('.', ',')
-        if reason != None:
+        if reason is not None:
             self['LIBDBT'] = reason
             self['LIBCRT'] = reason
         self.submit()

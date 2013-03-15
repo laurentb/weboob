@@ -109,7 +109,7 @@ class MainWindow(QtMainWindow):
             f=codecs.open(history_path,'r','utf-8')
             conf_hist = f.read()
             f.close()
-            if conf_hist != None and conf_hist.strip() != '':
+            if conf_hist is not None and conf_hist.strip() != '':
                 result = conf_hist.strip().split('\n')
         return result
 
@@ -140,7 +140,7 @@ class MainWindow(QtMainWindow):
         and save it in the action history
         '''
         self.ui.currentActionLabel.setText(description)
-        if self.action_history['last_action'] != None:
+        if self.action_history['last_action'] is not None:
             self.action_history['action_list'].append(self.action_history['last_action'])
             self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
             self.ui.backButton.show()
@@ -246,7 +246,7 @@ class MainWindow(QtMainWindow):
 
     def displayMovie(self, movie, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget != None:
+        if self.current_info_widget is not None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
@@ -289,7 +289,7 @@ class MainWindow(QtMainWindow):
 
     def displayPerson(self, person, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget != None:
+        if self.current_info_widget is not None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
@@ -332,7 +332,7 @@ class MainWindow(QtMainWindow):
 
     def displayTorrent(self, torrent, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget != None:
+        if self.current_info_widget is not None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
@@ -375,7 +375,7 @@ class MainWindow(QtMainWindow):
 
     def displaySubtitle(self, subtitle, backend):
         self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget != None:
+        if self.current_info_widget is not None:
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()

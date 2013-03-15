@@ -40,7 +40,7 @@ class ArtistResultsPage(BasePage):
 
 class ArtistSongsPage(BasePage):
     def iter_lyrics(self,artist=None):
-        if artist == None:
+        if artist is None:
             artist = self.parser.select(self.document.getroot(),'head > title',1).text.replace('Paroles ','')
         for link in self.parser.select(self.document.getroot(),'div#albums a'):
             href = link.attrib.get('href','')

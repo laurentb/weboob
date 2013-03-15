@@ -123,7 +123,7 @@ class Downloadboob:
 
     def id_regexp_matched(self, video_id, id_regexp):
         if id_regexp:
-            return re.search(id_regexp, video_id) != None
+            return re.search(id_regexp, video_id) is not None
         return True
 
     def get_filename(self, video, relative=False):

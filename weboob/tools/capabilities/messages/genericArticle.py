@@ -115,7 +115,7 @@ class GenericNewsPage(BasePage):
                 self.element_title_selector,
                 1).text_content().strip()
         except AttributeError:
-            if self.main_div == None:
+            if self.main_div is None:
                 #TODO: Mettre un warning
                 return self.__article.title
             else:
@@ -132,7 +132,7 @@ class GenericNewsPage(BasePage):
         except BrokenPageError:
             raise NoBodyElement("no body on %s" % (self.browser))
         except AttributeError:
-            if self.main_div == None:
+            if self.main_div is None:
                 raise NoneMainDiv("main_div is none on %s" % (self.browser))
             else:
                 raise
@@ -143,7 +143,7 @@ class GenericNewsPage(BasePage):
         except BrokenPageError:
             raise NoAuthorElement()
         except AttributeError:
-            if self.main_div == None:
+            if self.main_div is None:
                 raise NoneMainDiv("main_div is none on %s" % (self.browser))
             else:
                 raise

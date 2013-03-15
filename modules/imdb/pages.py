@@ -37,7 +37,7 @@ class ReleasePage(BasePage):
         for a in links:
             href = a.attrib.get('href','')
             if href.strip('/').split('/')[0] == 'calendar' and\
-            (country_filter == None or href.split('region=')[-1].lower() == country_filter):
+            (country_filter is None or href.split('region=')[-1].lower() == country_filter):
                 country = a.text
                 td_date = self.parser.select(a.getparent().getparent().getparent(),'td')[1]
                 date_links = self.parser.select(td_date,'a')
@@ -73,7 +73,7 @@ class MovieCrewPage(BasePage):
     ''' Page listing all the persons related to a movie
     '''
     def iter_persons(self, role_filter=None):
-        if (role_filter == None or (role_filter != None and role_filter == 'actor')):
+        if (role_filter is None or (role_filter is not None and role_filter == 'actor')):
             tables = self.parser.select(self.document.getroot(),'table.cast')
             if len(tables) > 0:
                 table = tables[0]
@@ -97,7 +97,7 @@ class MovieCrewPage(BasePage):
 
         for gloss_link in self.parser.select(self.document.getroot(),'table[cellspacing=1] h5 a'):
             role = gloss_link.attrib.get('name','').rstrip('s')
-            if (role_filter == None or (role_filter != None and role == role_filter)):
+            if (role_filter is None or (role_filter is not None and role == role_filter)):
                 tbody = gloss_link.getparent().getparent().getparent().getparent()
                 for line in self.parser.select(tbody,'tr')[1:]:
                     for a in self.parser.select(line,'a'):
@@ -217,7 +217,7 @@ class FilmographyPage(BasePage):
     def iter_movies(self, role_filter=None):
         for role_div in self.parser.select(self.document.getroot(),'div.filmo'):
             role = self.parser.select(role_div,'h5 a',1).text.replace(':','')
-            if (role_filter == None or (role_filter != None and role.lower().strip() == role_filter))\
+            if (role_filter is None or (role_filter is not None and role.lower().strip() == role_filter))\
             and role != 'In Development':
                 for a in self.parser.select(role_div,'ol > li > a'):
                     id = a.attrib.get('href','').strip('/').split('/')[-1]

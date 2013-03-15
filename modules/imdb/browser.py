@@ -89,7 +89,7 @@ class ImdbBrowser(BaseBrowser):
 
     def get_movie(self, id):
         res = self.readurl('http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id )
-        if res != None:
+        if res is not None:
             jres = json.loads(res)
         else:
             return None

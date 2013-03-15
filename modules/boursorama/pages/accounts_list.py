@@ -60,7 +60,7 @@ class AccountsList(BasePage):
 
                         elif td.attrib.get('class', '') == 'account-total':
                             span = td.find('span')
-                            if span == None:
+                            if span is None:
                                 balance = td.text
                             else:
                                 balance = span.text

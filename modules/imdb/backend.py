@@ -74,7 +74,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
         or 'death_date' in fields or 'nationality' in fields\
         or 'short_biography' in fields or 'roles' in fields\
         or 'birth_date' in fields or 'thumbnail_url' in fields\
-        or 'gender' in fields or fields == None:
+        or 'gender' in fields or fields is None:
             per = self.get_person(person.id)
             person.real_name       = per.real_name
             person.birth_date      = per.birth_date
