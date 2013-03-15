@@ -22,7 +22,7 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.recipe import ICapRecipe
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable, NotLoaded, empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
@@ -37,16 +37,16 @@ class RecipeInfoFormatter(IFormatter):
         result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
         result += 'ID: %s\n' % obj.fullid
         result += 'Preparation time: %smin\n' % obj.preparation_time
-        if obj.cooking_time != NotAvailable:
+        if not empty(obj.cooking_time):
             result += 'Cooking time: %smin\n' % obj.cooking_time
-        if obj.nb_person != NotAvailable:
+        if not empty(obj.nb_person):
             result += 'Amount of people: %s\n' % obj.nb_person
         result += '\n%sIngredients%s\n' % (self.BOLD, self.NC)
         for i in obj.ingredients:
             result += '  * %s\n'%i
         result += '\n%sInstructions%s\n' % (self.BOLD, self.NC)
         result += '%s\n'%obj.instructions
-        if obj.comments != NotAvailable:
+        if not empty(obj.comments):
             result += '\n%sComments%s\n' % (self.BOLD, self.NC)
             for c in obj.comments:
                 result += '  * %s\n'%c
@@ -61,9 +61,9 @@ class RecipeListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         result = u''
-        if obj.preparation_time != NotAvailable and obj.preparation_time != NotLoaded:
+        if not empty(obj.preparation_time):
             result += 'prep time: %smin'%obj.preparation_time
-        if obj.short_description != NotAvailable:
+        if not empty(obj.short_description):
             result += 'description: %s\n'%obj.short_description
         return result
 
