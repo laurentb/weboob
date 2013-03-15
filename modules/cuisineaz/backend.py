@@ -22,8 +22,6 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import CuisineazBrowser
 
-from urllib import quote_plus
-
 __all__ = ['CuisineazBackend']
 
 

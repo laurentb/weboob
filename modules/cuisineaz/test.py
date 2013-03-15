@@ -29,5 +29,4 @@ class CuisineazTest(BackendTest):
             assert full_recipe.instructions
             assert full_recipe.ingredients
             assert full_recipe.title
-            assert full_recipe.preparation_time
 

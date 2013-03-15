@@ -81,49 +81,40 @@ class RecipePage(BasePage):
         instructions = NotAvailable
         comments = []
 
-        title = unicode(self.parser.select(self.document.getroot(),'head > title',1).text.split(' - ')[1])
-        main = self.parser.select(self.document.getroot(),'div.recette_description',1)
+        title = unicode(self.parser.select(self.document.getroot(),'div#ficheRecette h1.fn.recetteH1',1).text)
+        main = self.parser.select(self.document.getroot(),'div#ficheRecette',1)
+        imgillu = self.parser.select(main,'div#recetteLeft img.photo')
+        if len(imgillu) > 0:
+            picture_url = unicode(imgillu[0].attrib.get('src',''))
 
-        rec_infos = self.parser.select(self.document.getroot(),'div.recette_infos div.infos_column strong')
-        for info_title in rec_infos:
-            if u'Temps de préparation' in unicode(info_title.text):
-                if info_title.tail.strip() != '':
-                    preparation_time = int(info_title.tail.split()[0])
-                    if 'h' in info_title.tail:
-                        preparation_time = 60*preparation_time
-            if 'Temps de cuisson' in info_title.text:
-                if info_title.tail.strip() != '':
-                    cooking_time = int(info_title.tail.split()[0])
-                    if 'h' in info_title.tail:
-                        cooking_time = 60*cooking_time
-            if 'Nombre de personnes' in info_title.text:
-                if info_title.tail.strip() != '':
-                    nb_person = int(info_title.tail)
+        l_spanprep = self.parser.select(main,'span.preptime')
+        if len(l_spanprep) > 0:
+            preparation_time = int(l_spanprep[0].text.split()[0])
+        l_cooktime = self.parser.select(main,'span.cooktime')
+        if len(l_cooktime) > 0:
+            cooking_time = int(l_cooktime[0].text.split()[0])
+        l_nbpers = self.parser.select(main,'td#recipeQuantity span')
+        if len(l_nbpers) > 0:
+            nb_person = int(l_nbpers[0].text.split()[0])
 
         ingredients = []
-        p_ing = self.parser.select(main,'div.data.top.left > div.content p')
-        for ing in p_ing:
+        l_ing = self.parser.select(main,'div#ingredients li.ingredient')
+        for ing in l_ing:
             ingtxt = unicode(ing.text_content().strip())
             if ingtxt != '':
                 ingredients.append(ingtxt)
 
-        lines_instr = self.parser.select(main,'div.data.top.right div.content li')
-        if len(lines_instr) > 0:
-            instructions = u''
-            for line in lines_instr:
-                inst = ' '.join(line.text_content().strip().split())
-                instructions += '%s\n'% inst
-            instructions = instructions.strip('\n')
+        instructions = u''
+        l_divinst = self.parser.select(main,'div#preparation span.instructions div')
+        for inst in l_divinst:
+            instructions += '%s: '%inst.text
+            instructions += '%s\n'%inst.getnext().text
 
-        imgillu = self.parser.select(self.document.getroot(),'div.resume_recette_illustree img.photo')
-        if len(imgillu) > 0:
-            picture_url = unicode(imgillu[0].attrib.get('src',''))
-
-        for divcom in self.parser.select(self.document.getroot(),'div.comment-outer'):
-            comtxt = unicode(' '.join(divcom.text_content().strip().split()))
-            if u'| Répondre' in comtxt:
-                comtxt = comtxt.strip('0123456789').replace(u' | Répondre','')
-            comments.append(comtxt)
+        for divcom in self.parser.select(self.document.getroot(),'div.comment'):
+            author = unicode(self.parser.select(divcom,'div.commentAuthor span',1).text)
+            date = unicode(self.parser.select(divcom,'div.commentDate',1).text)
+            comtxt = unicode(self.parser.select(divcom,'p',1).text_content().strip())
+            comments.append('author: %s, date: %s, text: %s'%(author, date, comtxt))
 
         recipe = Recipe(id,title)
         recipe.preparation_time = preparation_time
