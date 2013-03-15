@@ -74,8 +74,10 @@ class AccountHistory(BasePage):
                 text = tds[1].text or u''
                 text = text.replace(u'\xa0', u'')
                 for child in tds[1].getchildren():
-                    if child.text: text += child.text
-                    if child.tail: text += child.tail
+                    if child.text:
+                        text += child.text
+                    if child.tail:
+                        text += child.tail
 
                 i += 1
                 operation = Transaction(i)

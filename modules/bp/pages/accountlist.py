@@ -48,7 +48,7 @@ class AccountList(BasePage):
             return
 
         lines = tables[0].xpath(".//tbody/tr")
-        for line  in lines:
+        for line in lines:
             account = Account()
             tmp = line.xpath("./td//a")[0]
             account.label = to_unicode(tmp.text)

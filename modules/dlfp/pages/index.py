@@ -35,7 +35,7 @@ class IndexPage(DLFPPage):
         form = self.parser.select(self.document.getroot(), 'form#new_account_sidebar', 1)
         for i in form.find('div').getiterator('input'):
             if i.attrib['name'] == 'authenticity_token':
-                return  i.attrib['value']
+                return i.attrib['value']
 
 
 class LoginPage(DLFPPage):

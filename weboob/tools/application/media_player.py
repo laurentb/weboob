@@ -112,7 +112,7 @@ class MediaPlayer(object):
         media_url = media.url
         try:
             player_url = media.swf_player
-            if  media.swf_player:
+            if media.swf_player:
                 rtmp = 'rtmpdump -r %s --swfVfy %s' % (media_url, player_url)
             else:
                 rtmp = 'rtmpdump -r %s' % media_url
@@ -123,7 +123,7 @@ class MediaPlayer(object):
 
         rtmp += ' --quiet'
 
-        if args is None :
+        if args is None:
             for (binary, stdin_args) in PLAYERS:
                 if binary == player_name:
                     args = stdin_args
@@ -139,7 +139,7 @@ class MediaPlayer(object):
         p1 = Popen(rtmp.split(), stdout=PIPE)
         Popen(player_name + args, stdin=p1.stdout, stderr=PIPE)
 
-    def _find_in_path(self,path, filename):
+    def _find_in_path(self, path, filename):
         for i in path.split(':'):
             if os.path.exists('/'.join([i, filename])):
                 return True

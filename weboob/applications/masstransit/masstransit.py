@@ -60,7 +60,7 @@ class MasstransitHildon():
         status = event.get_status()
         if status == conic.STATUS_CONNECTED:
             self.connected = True
-            if self.touch_selector_entry_filled == False:
+            if not self.touch_selector_entry_filled:
                 debug("connected, now fill")
                 self.fill_touch_selector_entry()
             if self.refresh_in_progress:

@@ -58,7 +58,7 @@ class AloesBrowser(BaseBrowser):
             self.location('%s://%s/index.aspx'
                           % (self.PROTOCOL, self.BASEURL),
                           no_login=True)
-        if  not self.page.login(self.username, self.password) or \
+        if not self.page.login(self.username, self.password) or \
             not self.is_logged() or \
                 (self.is_on_page(LoginPage) and self.page.is_error()):
                 raise BrowserIncorrectPassword()

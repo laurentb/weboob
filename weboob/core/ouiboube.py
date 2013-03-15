@@ -325,7 +325,7 @@ class Weboob(object):
                 if len(_backends) > 0:
                     try:
                         backends = [self.backend_instances[_backends]]
-                    except (ValueError,KeyError):
+                    except (ValueError, KeyError):
                         backends = []
             elif isinstance(_backends, (list, tuple, set)):
                 backends = []
@@ -333,7 +333,7 @@ class Weboob(object):
                     if isinstance(backend, basestring):
                         try:
                             backends.append(self.backend_instances[backend])
-                        except (ValueError,KeyError):
+                        except (ValueError, KeyError):
                             pass
                     else:
                         backends.append(backend)

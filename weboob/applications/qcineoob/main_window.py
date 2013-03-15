@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import os,codecs
+import os
+import codecs
 
 from PyQt4.QtCore import SIGNAL, Qt, QStringList
 from PyQt4.QtGui import QApplication, QCompleter

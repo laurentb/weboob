@@ -27,7 +27,8 @@ except ImportError:
     raise ImportError('Please install python-imaging')
 
 
-class CaptchaError(Exception): pass
+class CaptchaError(Exception):
+    pass
 
 
 class Tile(object):
