@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BasePage,BrokenPageError
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 
 
 __all__ = ['TorrentsPage']
@@ -68,15 +68,16 @@ class TorrentsPage(BasePage):
                 torrent.size = self.unit(float(size), u)
                 torrent.seeders = int(seed)
                 torrent.leechers = int(leech)
-                torrent.description = NotAvailable
-                torrent.files = NotAvailable
+                torrent.description = NotLoaded
+                torrent.files = NotLoaded
+                torrent.magnet = NotLoaded
                 yield torrent
 
 
 class TorrentPage(BasePage):
     def get_torrent(self, id):
-        url = None
-        magnet = None
+        url = NotAvailable
+        magnet = NotAvailable
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'title':
                 title = unicode(div.text.strip())
@@ -107,7 +108,7 @@ class TorrentPage(BasePage):
                         leech = ch.text
                     prev_child_txt = ch.text
             elif div.attrib.get('class', '') == 'nfo':
-                description = unicode(div.getchildren()[0].text.strip())
+                description = unicode(div.getchildren()[0].text_content().strip())
         torrent = Torrent(id, title)
         torrent.url = url or NotAvailable
         torrent.magnet = magnet
@@ -115,6 +116,6 @@ class TorrentPage(BasePage):
         torrent.seeders = int(seed)
         torrent.leechers = int(leech)
         torrent.description = description
-        torrent.files = ['NYI']
+        torrent.files = NotAvailable
 
         return torrent

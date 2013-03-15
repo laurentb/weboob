@@ -47,10 +47,8 @@ class Subtitle(QFrame):
         else:
             self.ui.langLabel.parent().hide()
         if not empty(subtitle.description):
-            print 'plop'
             self.ui.descriptionPlain.setPlainText(u'%s'%subtitle.description)
         else:
-            print 'ploppppp'
             self.ui.descriptionPlain.parent().hide()
         if not empty(subtitle.url):
             self.ui.urlEdit.setText(u'%s'%subtitle.url)

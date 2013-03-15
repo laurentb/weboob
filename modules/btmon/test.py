@@ -29,11 +29,10 @@ class BtmonTest(BackendTest):
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('spiderman'))
         for torrent in torrents:
-            path, qs = urllib.splitquery(torrent.url)
-            assert path.endswith('.torrent')
             assert torrent.id
             assert torrent.name
             assert torrent.description is NotLoaded
+            assert torrent.files is NotLoaded
 
         # get the file of a random torrent
         # from the list (getting them all would be too long)

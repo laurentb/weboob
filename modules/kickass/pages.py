@@ -44,7 +44,9 @@ class TorrentsPage(BasePage):
                     continue
                 title = tr.getchildren()[0].getchildren()[1].getchildren()[1].text
                 if not title:
-                    title = ''
+                    title = u''
+                else:
+                    title = unicode(title)
                 for red in tr.getchildren()[0].getchildren()[1].getchildren()[1].getchildren():
                     title += red.text_content()
                 idt = tr.getchildren()[0].getchildren()[1].getchildren()[1].attrib.get('href', '').replace('/', '') \
@@ -54,11 +56,11 @@ class TorrentsPage(BasePage):
                 for a in self.parser.select(tr,'div.iaconbox a'):
                     href = a.attrib.get('href', '')
                     if href.startswith('magnet'):
-                        magnet = href
+                        magnet = unicode(href)
                     elif href.startswith('http'):
-                        url = href
+                        url = unicode(href)
                     elif href.startswith('//'):
-                        url = 'http:%s'%href
+                        url = u'http:%s'%href
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
@@ -72,7 +74,7 @@ class TorrentsPage(BasePage):
                 torrent.magnet = magnet
                 torrent.description = NotLoaded
                 torrent.files = NotLoaded
-                torrent.filename = parse_qs(urlsplit(url).query).get('title', [None])[0]
+                torrent.filename = unicode(parse_qs(urlsplit(url).query).get('title', [None])[0])
                 torrent.size = get_bytes_size(size, u)
                 torrent.seeders = int(seed)
                 torrent.leechers = int(leech)
@@ -90,7 +92,7 @@ class TorrentPage(BasePage):
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'desc':
                 try:
-                    description = div.text_content().strip()
+                    description = unicode(div.text_content().strip())
                 except UnicodeDecodeError:
                     description = 'Description with invalid UTF-8.'
             elif div.attrib.get('class', '') == 'seedBlock':
@@ -106,17 +108,17 @@ class TorrentPage(BasePage):
 
         title = self.parser.select(self.document.getroot(),
                 'h1.torrentName span', 1)
-        title = title.text
+        title = unicode(title.text)
 
         for a in self.parser.select(self.document.getroot(),
                 'div.downloadButtonGroup a'):
             href = a.attrib.get('href', '')
             if href.startswith('magnet'):
-                magnet = href
+                magnet = unicode(href)
             elif href.startswith('//'):
-                url = 'http:%s'%href
+                url = u'http:%s'%href
             elif href.startswith('http'):
-                url = href
+                url = unicode(href)
 
         size = 0
         u = ''

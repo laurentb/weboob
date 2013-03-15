@@ -63,8 +63,13 @@ class KickassBackend(BaseBackend, ICapTorrent):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
 
     def fill_torrent(self, torrent, fields):
-        if 'description' in fields or fields == None:
-            return self.get_torrent(torrent.id)
+        if 'description' in fields or 'files' in fields:
+            tor = self.get_torrent(torrent.id)
+            torrent.description = tor.description
+            torrent.magnet = tor.magnet
+            torrent.files = tor.files
+            torrent.url = tor.url
+        return torrent
 
     OBJECTS = {
         Torrent:fill_torrent

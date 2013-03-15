@@ -19,10 +19,16 @@
 
 from weboob.tools.test import BackendTest
 
+from random import choice
+
 class IsohuntTest(BackendTest):
     BACKEND = 'isohunt'
 
     def test_torrent(self):
         l = list(self.backend.iter_torrents('debian'))
-        if len(l) > 0:
-            self.backend.get_torrent_file(l[0].id)
+        if len(l):
+            torrent = choice(l)
+            full_torrent = self.backend.get_torrent(torrent.id)
+            assert torrent.name
+            assert full_torrent.name
+            assert self.backend.get_torrent_file(torrent.id)
