@@ -82,6 +82,7 @@ class RecipePage(BasePage):
         instructions = u''
         for line in rinstructions.split('\n'):
             instructions += '%s\n'%line.strip()
+        instructions = instructions.strip('\n')
         imgillu = self.parser.select(self.document.getroot(),'a.m_content_recette_illu img')
         if len(imgillu) > 0:
             picture_url = unicode(imgillu[0].attrib.get('src',''))

@@ -31,22 +31,25 @@ __all__ = ['Cookboob']
 
 
 class RecipeInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'title', 'preparation_time', 'cooking_time', 'ingredients', 'instructions', 'nb_person', 'comments')
+    MANDATORY_FIELDS = ('id', 'title', 'preparation_time', 'ingredients', 'instructions')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
         result += 'ID: %s\n' % obj.fullid
-        result += 'Preparation time: %s\n' % obj.preparation_time
-        result += 'Cooking time: %s\n' % obj.cooking_time
-        result += 'Amount of people: %s\n' % obj.nb_person
+        result += 'Preparation time: %smin\n' % obj.preparation_time
+        if obj.cooking_time != NotAvailable:
+            result += 'Cooking time: %smin\n' % obj.cooking_time
+        if obj.nb_person != NotAvailable:
+            result += 'Amount of people: %s\n' % obj.nb_person
         result += '\n%sIngredients%s\n' % (self.BOLD, self.NC)
         for i in obj.ingredients:
             result += '  * %s\n'%i
         result += '\n%sInstructions%s\n' % (self.BOLD, self.NC)
         result += '%s\n'%obj.instructions
-        result += '\n%sComments%s\n' % (self.BOLD, self.NC)
-        for c in obj.comments:
-            result += '  * %s\n'%c
+        if obj.comments != NotAvailable:
+            result += '\n%sComments%s\n' % (self.BOLD, self.NC)
+            for c in obj.comments:
+                result += '  * %s\n'%c
         return result
 
 
