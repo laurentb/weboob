@@ -23,7 +23,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 from weboob.applications.cineoob.cineoob import ROLE_LIST
 
 class Person(QFrame):
@@ -42,19 +42,19 @@ class Person(QFrame):
         self.ui.nameLabel.setText(person.name)
 
         self.ui.idEdit.setText(u'%s@%s'%(person.id,backend.name))
-        if person.real_name != NotAvailable:
+        if not empty(person.real_name):
             self.ui.realNameLabel.setText('%s'%person.real_name)
         else:
             self.ui.realNameLabel.parent().hide()
-        if person.birth_place != NotAvailable:
+        if not empty(person.birth_place):
             self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
         else:
             self.ui.birthPlaceLabel.parent().hide()
-        if person.birth_date != NotAvailable:
+        if not empty(person.birth_date):
             self.ui.birthDateLabel.setText(person.birth_date.strftime('%Y-%m-%d'))
         else:
             self.ui.birthDateLabel.parent().hide()
-        if person.death_date != NotAvailable:
+        if not empty(person.death_date):
             self.ui.deathDateLabel.setText(person.death_date.strftime('%Y-%m-%d'))
         else:
             self.ui.deathDateLabel.parent().hide()
@@ -64,7 +64,7 @@ class Person(QFrame):
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
     def gotThumbnail(self):
-        if self.person.thumbnail_url != NotAvailable:
+        if not empty(self.person.thumbnail_url):
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))

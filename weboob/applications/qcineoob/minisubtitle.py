@@ -20,7 +20,7 @@
 from PyQt4.QtGui import QFrame
 
 from weboob.applications.qcineoob.ui.minisubtitle_ui import Ui_MiniSubtitle
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 
 class MiniSubtitle(QFrame):
     def __init__(self, weboob, backend, subtitle, parent=None):
@@ -33,7 +33,7 @@ class MiniSubtitle(QFrame):
         self.backend = backend
         self.subtitle = subtitle
         self.ui.nameLabel.setText(subtitle.name)
-        if subtitle.nb_cd != NotAvailable:
+        if not empty(subtitle.nb_cd):
             self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
         self.ui.backendLabel.setText(backend.name)
 

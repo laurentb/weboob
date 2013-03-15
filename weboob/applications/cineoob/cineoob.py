@@ -27,7 +27,7 @@ from weboob.applications.suboob.suboob import SubtitleInfoFormatter, SubtitleLis
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.subtitle import ICapSubtitle
-from weboob.capabilities.base import NotAvailable,NotLoaded,empty
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
@@ -419,7 +419,7 @@ class Cineoob(ReplApplication):
 
         # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
         for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema):
-            if release != NotAvailable:
+            if not empty(release):
                 movie.all_release_dates = u'%s' % (release)
             else:
                 print >>sys.stderr, 'Movie releases not found: %s' % id

@@ -65,7 +65,7 @@ class SubtitlesPage(BasePage):
         subtitle.url = url
         subtitle.language = unicode('fr')
         subtitle.nb_cd = nb_cd
-        subtitle.description = NotAvailable.__unicode__()
+        subtitle.description = NotAvailable
         return subtitle
 
     def iter_subtitles(self,language, pattern):
@@ -108,5 +108,5 @@ class SubtitlesPage(BasePage):
                 subtitle.url = url
                 subtitle.language = unicode('fr')
                 subtitle.nb_cd = nb_cd
-                subtitle.description = NotAvailable.__unicode__()
+                subtitle.description = NotAvailable
                 yield subtitle

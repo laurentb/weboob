@@ -22,6 +22,7 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.subtitle import ICapSubtitle
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
@@ -62,8 +63,10 @@ class SubtitleInfoFormatter(IFormatter):
         result = u'%s%s%s\n' % (self.BOLD, obj.name, self.NC)
         result += 'ID: %s\n' % obj.fullid
         result += 'URL: %s\n' % obj.url
-        result += 'LANG: %s\n' % obj.language
-        result += 'NB CD: %s\n' % obj.nb_cd
+        if not empty(obj.language):
+            result += 'LANG: %s\n' % obj.language
+        if not empty(obj.nb_cd):
+            result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
         result += '%s'%obj.description
         return result

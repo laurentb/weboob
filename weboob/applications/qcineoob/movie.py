@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.cineoob.cineoob import ROLE_LIST
 
@@ -50,27 +50,27 @@ class Movie(QFrame):
         self.putReleases()
 
         self.ui.idEdit.setText(u'%s@%s'%(movie.id,backend.name))
-        if movie.other_titles != NotAvailable:
+        if not empty(movie.other_titles):
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
         else:
             self.ui.otherTitlesPlain.parent().hide()
-        if movie.release_date != NotAvailable:
+        if not empty(movie.release_date):
             self.ui.releaseDateLabel.setText(movie.release_date.strftime('%Y-%m-%d'))
         else:
             self.ui.releaseDateLabel.parent().hide()
-        if movie.duration != NotAvailable:
+        if not empty(movie.duration):
             self.ui.durationLabel.setText('%s min'%movie.duration)
         else:
             self.ui.durationLabel.parent().hide()
-        if movie.pitch != NotAvailable:
+        if not empty(movie.pitch):
             self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
         else:
             self.ui.pitchPlain.parent().hide()
-        if movie.country != NotAvailable:
+        if not empty(movie.country):
             self.ui.countryLabel.setText('%s'%movie.country)
         else:
             self.ui.countryLabel.parent().hide()
-        if movie.note != NotAvailable:
+        if not empty(movie.note):
             self.ui.noteLabel.setText('%s'%movie.note)
         else:
             self.ui.noteLabel.parent().hide()
@@ -82,13 +82,13 @@ class Movie(QFrame):
 
     def putReleases(self):
         rel = self.backend.get_movie_releases(self.movie.id)
-        if rel != NotAvailable:
+        if not empty(rel):
             self.ui.allReleasesPlain.setPlainText(rel)
         else:
             self.ui.allReleasesPlain.parent().hide()
 
     def gotThumbnail(self):
-        if self.movie.thumbnail_url != NotAvailable:
+        if not empty(self.movie.thumbnail_url):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
@@ -101,7 +101,7 @@ class Movie(QFrame):
 
     def searchTorrent(self):
         tosearch = self.movie.original_title
-        if self.movie.release_date != NotAvailable:
+        if not empty(self.movie.release_date):
             tosearch += ' %s'%self.movie.release_date.year
         desc = 'Search torrents for "%s"'%tosearch
         self.parent.doAction(desc, self.parent.searchTorrentAction,[tosearch])

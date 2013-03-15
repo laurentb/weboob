@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt,SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.subtitle_ui import Ui_Subtitle
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 
 class Subtitle(QFrame):
     def __init__(self, subtitle, backend, parent=None):
@@ -38,19 +38,21 @@ class Subtitle(QFrame):
         self.subtitle = subtitle
         self.ui.idEdit.setText(u'%s@%s'%(subtitle.id,backend.name))
         self.ui.nameLabel.setText(u'%s'%subtitle.name)
-        if subtitle.nb_cd != NotAvailable:
+        if not empty(subtitle.nb_cd):
             self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
         else:
             self.ui.nbcdLabel.parent().hide()
-        if subtitle.language != NotAvailable:
+        if not empty(subtitle.language):
             self.ui.langLabel.setText(u'%s'%subtitle.language)
         else:
             self.ui.langLabel.parent().hide()
-        if subtitle.description != NotAvailable:
+        if not empty(subtitle.description):
+            print 'plop'
             self.ui.descriptionPlain.setPlainText(u'%s'%subtitle.description)
         else:
+            print 'ploppppp'
             self.ui.descriptionPlain.parent().hide()
-        if subtitle.url != NotAvailable:
+        if not empty(subtitle.url):
             self.ui.urlEdit.setText(u'%s'%subtitle.url)
         else:
             self.ui.downloadButton.setDisabled(True)

@@ -22,8 +22,8 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.lyrics import ICapLyrics
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
-from weboob.capabilities.base import NotAvailable,NotLoaded
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -51,7 +51,7 @@ class LyricsListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         artist = u''
-        if obj.artist != NotAvailable and obj.artist != NotLoaded:
+        if not empty(obj.artist):
             artist = obj.artist
         return '%s' % artist
 

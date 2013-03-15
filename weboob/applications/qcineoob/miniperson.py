@@ -23,7 +23,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 from PyQt4.QtCore import Qt
 
 from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 
 class MiniPerson(QFrame):
     def __init__(self, weboob, backend, person, parent=None):
@@ -36,7 +36,7 @@ class MiniPerson(QFrame):
         self.backend = backend
         self.person = person
         self.ui.nameLabel.setText('%s'%person.name)
-        if person.short_description != NotAvailable:
+        if not empty(person.short_description):
             if unicode(self.parent.ui.currentActionLabel.text()).startswith('Casting'):
                 self.ui.shortDescTitleLabel.setText(u'Role')
             self.ui.shortDescLabel.setText('%s'%person.short_description)
@@ -47,7 +47,7 @@ class MiniPerson(QFrame):
 
     def gotThumbnail(self):
         self.backend.fill_person(self.person,('thumbnail_url'))
-        if self.person.thumbnail_url != NotAvailable:
+        if not empty(self.person.thumbnail_url):
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))

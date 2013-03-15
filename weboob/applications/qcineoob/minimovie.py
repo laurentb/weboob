@@ -23,7 +23,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 from PyQt4.QtCore import Qt
 
 from weboob.applications.qcineoob.ui.minimovie_ui import Ui_MiniMovie
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import empty
 
 class MiniMovie(QFrame):
     def __init__(self, weboob, backend, movie, parent=None):
@@ -41,7 +41,7 @@ class MiniMovie(QFrame):
 
     def gotThumbnail(self):
         self.backend.fill_movie(self.movie,('thumbnail_url'))
-        if self.movie.thumbnail_url != NotAvailable:
+        if not empty(self.movie.thumbnail_url):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))

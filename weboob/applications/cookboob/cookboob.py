@@ -22,7 +22,7 @@ from __future__ import with_statement
 import sys
 
 from weboob.capabilities.recipe import ICapRecipe
-from weboob.capabilities.base import NotAvailable, NotLoaded, empty
+from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
