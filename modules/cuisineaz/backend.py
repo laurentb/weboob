@@ -20,21 +20,21 @@
 from weboob.capabilities.recipe import ICapRecipe,Recipe
 from weboob.tools.backend import BaseBackend
 
-from .browser import SevenFiftyGramsBrowser
+from .browser import CuisineazBrowser
 
 from urllib import quote_plus
 
-__all__ = ['SevenFiftyGramsBackend']
+__all__ = ['CuisineazBackend']
 
 
-class SevenFiftyGramsBackend(BaseBackend, ICapRecipe):
-    NAME = '750g'
+class CuisineazBackend(BaseBackend, ICapRecipe):
+    NAME = 'cuisineaz'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.f'
-    DESCRIPTION = '750g recipe website'
+    DESCRIPTION = 'Cuisine AZ recipe website'
     LICENSE = 'AGPLv3+'
-    BROWSER = SevenFiftyGramsBrowser
+    BROWSER = CuisineazBrowser
 
     def create_default_browser(self):
         return self.create_browser()

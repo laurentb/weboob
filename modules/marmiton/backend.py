@@ -46,7 +46,7 @@ class MarmitonBackend(BaseBackend, ICapRecipe):
         return self.browser.iter_recipes(quote_plus(pattern.encode('utf-8')))
 
     def fill_recipe(self, recipe, fields):
-        if 'thumbnail_url' in fields or 'instructions' in fields:
+        if 'nb_person' in fields or 'instructions' in fields:
             rec = self.get_recipe(recipe.id)
             recipe.picture_url      = rec.picture_url
             recipe.instructions     = rec.instructions

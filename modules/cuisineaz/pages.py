@@ -1,0 +1,137 @@
+# -*- coding: utf-8 -*-
+
+# Copyright(C) 2013 Julien Veyssier
+#
+# This file is part of weboob.
+#
+# weboob is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# weboob is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
+from weboob.capabilities.recipe import Recipe
+from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.tools.browser import BasePage
+
+
+__all__ = ['RecipePage', 'ResultsPage']
+
+
+class ResultsPage(BasePage):
+    """ Page which contains results as a list of recipies
+    """
+    def iter_recipes(self):
+        for div in self.parser.select(self.document.getroot(),'div.rechRecette'):
+            thumbnail_url = NotAvailable
+            short_description = NotAvailable
+            imgs = self.parser.select(div,'img.photo')
+            if len(imgs) > 0:
+                thumbnail_url = unicode(imgs[0].attrib.get('src',''))
+
+            link = self.parser.select(div,'a.rechRecetTitle',1)
+            title = unicode(link.text)
+            id = unicode(link.attrib.get('href','').split('/')[-1].replace('.aspx',''))
+
+
+            short_description = u''
+            ldivprix = self.parser.select(div,'div.prix')
+            if len(ldivprix) > 0:
+                divprix = ldivprix[0]
+                nbprixneg = 0
+                spanprix = self.parser.select(divprix,'span')
+                if len(spanprix) > 0:
+                    nbprixneg = unicode(spanprix[0].text).count(u'€')
+                nbprixtot = unicode(divprix.text_content()).count(u'€')
+                short_description += u'Cost: %s/%s ; '%(nbprixtot - nbprixneg, nbprixtot)
+
+            short_description +=  unicode(' '.join(self.parser.select(div,'div.rechResume',1).text_content().split()).strip()).replace(u'€','')
+            short_description += u' '
+            short_description +=  unicode(' '.join(self.parser.select(div,'div.rechIngredients',1).text_content().split()).strip())
+
+            recipe = Recipe(id,title)
+            recipe.thumbnail_url = thumbnail_url
+            recipe.short_description= short_description
+            recipe.instructions     = NotLoaded
+            recipe.ingredients      = NotLoaded
+            recipe.nb_person        = NotLoaded
+            recipe.cooking_time     = NotLoaded
+            recipe.preparation_time = NotLoaded
+            yield recipe
+                    
+
+class RecipePage(BasePage):
+    """ Page which contains a recipe
+    """
+    def get_recipe(self, id):
+        title = NotAvailable
+        preparation_time = NotAvailable
+        cooking_time = NotAvailable
+        nb_person = NotAvailable
+        ingredients = NotAvailable
+        picture_url = NotAvailable
+        instructions = NotAvailable
+        comments = []
+
+        title = unicode(self.parser.select(self.document.getroot(),'head > title',1).text.split(' - ')[1])
+        main = self.parser.select(self.document.getroot(),'div.recette_description',1)
+
+        rec_infos = self.parser.select(self.document.getroot(),'div.recette_infos div.infos_column strong')
+        for info_title in rec_infos:
+            if u'Temps de préparation' in unicode(info_title.text):
+                if info_title.tail.strip() != '':
+                    preparation_time = int(info_title.tail.split()[0])
+                    if 'h' in info_title.tail:
+                        preparation_time = 60*preparation_time
+            if 'Temps de cuisson' in info_title.text:
+                if info_title.tail.strip() != '':
+                    cooking_time = int(info_title.tail.split()[0])
+                    if 'h' in info_title.tail:
+                        cooking_time = 60*cooking_time
+            if 'Nombre de personnes' in info_title.text:
+                if info_title.tail.strip() != '':
+                    nb_person = int(info_title.tail)
+
+        ingredients = []
+        p_ing = self.parser.select(main,'div.data.top.left > div.content p')
+        for ing in p_ing:
+            ingtxt = unicode(ing.text_content().strip())
+            if ingtxt != '':
+                ingredients.append(ingtxt)
+
+        lines_instr = self.parser.select(main,'div.data.top.right div.content li')
+        if len(lines_instr) > 0:
+            instructions = u''
+            for line in lines_instr:
+                inst = ' '.join(line.text_content().strip().split())
+                instructions += '%s\n'% inst
+            instructions = instructions.strip('\n')
+
+        imgillu = self.parser.select(self.document.getroot(),'div.resume_recette_illustree img.photo')
+        if len(imgillu) > 0:
+            picture_url = unicode(imgillu[0].attrib.get('src',''))
+
+        for divcom in self.parser.select(self.document.getroot(),'div.comment-outer'):
+            comtxt = unicode(' '.join(divcom.text_content().strip().split()))
+            if u'| Répondre' in comtxt:
+                comtxt = comtxt.strip('0123456789').replace(u' | Répondre','')
+            comments.append(comtxt)
+
+        recipe = Recipe(id,title)
+        recipe.preparation_time = preparation_time
+        recipe.cooking_time = cooking_time
+        recipe.nb_person = nb_person
+        recipe.ingredients = ingredients
+        recipe.instructions = instructions
+        recipe.picture_url = picture_url
+        recipe.comments = comments
+        recipe.thumbnail_url = NotLoaded
+        return recipe
