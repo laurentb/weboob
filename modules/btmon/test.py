@@ -20,7 +20,6 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
-import urllib
 from random import choice
 
 class BtmonTest(BackendTest):
