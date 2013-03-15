@@ -25,6 +25,7 @@ from .pages import RecipePage, ResultsPage
 
 __all__ = ['CuisineazBrowser']
 
+
 class CuisineazBrowser(BaseBrowser):
     DOMAIN = 'www.cuisineaz.com'
     PROTOCOL = 'http'
@@ -33,10 +34,11 @@ class CuisineazBrowser(BaseBrowser):
     PAGES = {
         'http://www.cuisineaz.com/recettes/recherche_v2.aspx\?recherche=.*': ResultsPage,
         'http://www.cuisineaz.com/recettes/.*[0-9]*.aspx': RecipePage,
-        }
+    }
 
     def iter_recipes(self, pattern):
-        self.location('http://www.cuisineaz.com/recettes/recherche_v2.aspx?recherche=%s' % (pattern.replace(' ','-')))
+        self.location('http://www.cuisineaz.com/recettes/recherche_v2.aspx?recherche=%s' % (
+            pattern.replace(' ', '-')))
         assert self.is_on_page(ResultsPage)
         return self.page.iter_recipes()
 

@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class CuisineazTest(BackendTest):
     BACKEND = 'cuisineaz'
 
@@ -29,4 +30,3 @@ class CuisineazTest(BackendTest):
             assert full_recipe.instructions
             assert full_recipe.ingredients
             assert full_recipe.title
-

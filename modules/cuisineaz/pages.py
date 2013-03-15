@@ -30,43 +30,46 @@ class ResultsPage(BasePage):
     """ Page which contains results as a list of recipies
     """
     def iter_recipes(self):
-        for div in self.parser.select(self.document.getroot(),'div.rechRecette'):
+        for div in self.parser.select(self.document.getroot(), 'div.rechRecette'):
             thumbnail_url = NotAvailable
             short_description = NotAvailable
-            imgs = self.parser.select(div,'img.photo')
+            imgs = self.parser.select(div, 'img.photo')
             if len(imgs) > 0:
-                thumbnail_url = unicode(imgs[0].attrib.get('src',''))
+                thumbnail_url = unicode(imgs[0].attrib.get('src', ''))
 
-            link = self.parser.select(div,'a.rechRecetTitle',1)
+            link = self.parser.select(div, 'a.rechRecetTitle', 1)
             title = unicode(link.text)
-            id = unicode(link.attrib.get('href','').split('/')[-1].replace('.aspx',''))
-
+            id = unicode(link.attrib.get('href', '').split(
+                '/')[-1].replace('.aspx', ''))
 
             short_description = u''
-            ldivprix = self.parser.select(div,'div.prix')
+            ldivprix = self.parser.select(div, 'div.prix')
             if len(ldivprix) > 0:
                 divprix = ldivprix[0]
                 nbprixneg = 0
-                spanprix = self.parser.select(divprix,'span')
+                spanprix = self.parser.select(divprix, 'span')
                 if len(spanprix) > 0:
                     nbprixneg = unicode(spanprix[0].text).count(u'€')
                 nbprixtot = unicode(divprix.text_content()).count(u'€')
-                short_description += u'Cost: %s/%s ; '%(nbprixtot - nbprixneg, nbprixtot)
+                short_description += u'Cost: %s/%s ; ' % (
+                    nbprixtot - nbprixneg, nbprixtot)
 
-            short_description +=  unicode(' '.join(self.parser.select(div,'div.rechResume',1).text_content().split()).strip()).replace(u'€','')
+            short_description += unicode(' '.join(self.parser.select(
+                div, 'div.rechResume', 1).text_content().split()).strip()).replace(u'€', '')
             short_description += u' '
-            short_description +=  unicode(' '.join(self.parser.select(div,'div.rechIngredients',1).text_content().split()).strip())
+            short_description += unicode(' '.join(self.parser.select(
+                div, 'div.rechIngredients', 1).text_content().split()).strip())
 
-            recipe = Recipe(id,title)
+            recipe = Recipe(id, title)
             recipe.thumbnail_url = thumbnail_url
-            recipe.short_description= short_description
-            recipe.instructions     = NotLoaded
-            recipe.ingredients      = NotLoaded
-            recipe.nb_person        = NotLoaded
-            recipe.cooking_time     = NotLoaded
+            recipe.short_description = short_description
+            recipe.instructions = NotLoaded
+            recipe.ingredients = NotLoaded
+            recipe.nb_person = NotLoaded
+            recipe.cooking_time = NotLoaded
             recipe.preparation_time = NotLoaded
             yield recipe
-                    
+
 
 class RecipePage(BasePage):
     """ Page which contains a recipe
@@ -81,42 +84,49 @@ class RecipePage(BasePage):
         instructions = NotAvailable
         comments = []
 
-        title = unicode(self.parser.select(self.document.getroot(),'div#ficheRecette h1.fn.recetteH1',1).text)
-        main = self.parser.select(self.document.getroot(),'div#ficheRecette',1)
-        imgillu = self.parser.select(main,'div#recetteLeft img.photo')
+        title = unicode(self.parser.select(
+            self.document.getroot(), 'div#ficheRecette h1.fn.recetteH1', 1).text)
+        main = self.parser.select(
+            self.document.getroot(), 'div#ficheRecette', 1)
+        imgillu = self.parser.select(main, 'div#recetteLeft img.photo')
         if len(imgillu) > 0:
-            picture_url = unicode(imgillu[0].attrib.get('src',''))
+            picture_url = unicode(imgillu[0].attrib.get('src', ''))
 
-        l_spanprep = self.parser.select(main,'span.preptime')
+        l_spanprep = self.parser.select(main, 'span.preptime')
         if len(l_spanprep) > 0:
             preparation_time = int(l_spanprep[0].text.split()[0])
-        l_cooktime = self.parser.select(main,'span.cooktime')
+        l_cooktime = self.parser.select(main, 'span.cooktime')
         if len(l_cooktime) > 0:
             cooking_time = int(l_cooktime[0].text.split()[0])
-        l_nbpers = self.parser.select(main,'td#recipeQuantity span')
+        l_nbpers = self.parser.select(main, 'td#recipeQuantity span')
         if len(l_nbpers) > 0:
             nb_person = int(l_nbpers[0].text.split()[0])
 
         ingredients = []
-        l_ing = self.parser.select(main,'div#ingredients li.ingredient')
+        l_ing = self.parser.select(main, 'div#ingredients li.ingredient')
         for ing in l_ing:
             ingtxt = unicode(ing.text_content().strip())
             if ingtxt != '':
                 ingredients.append(ingtxt)
 
         instructions = u''
-        l_divinst = self.parser.select(main,'div#preparation span.instructions div')
+        l_divinst = self.parser.select(
+            main, 'div#preparation span.instructions div')
         for inst in l_divinst:
-            instructions += '%s: '%inst.text
-            instructions += '%s\n'%inst.getnext().text
+            instructions += '%s: ' % inst.text
+            instructions += '%s\n' % inst.getnext().text
 
-        for divcom in self.parser.select(self.document.getroot(),'div.comment'):
-            author = unicode(self.parser.select(divcom,'div.commentAuthor span',1).text)
-            date = unicode(self.parser.select(divcom,'div.commentDate',1).text)
-            comtxt = unicode(self.parser.select(divcom,'p',1).text_content().strip())
-            comments.append('author: %s, date: %s, text: %s'%(author, date, comtxt))
+        for divcom in self.parser.select(self.document.getroot(), 'div.comment'):
+            author = unicode(self.parser.select(
+                divcom, 'div.commentAuthor span', 1).text)
+            date = unicode(self.parser.select(
+                divcom, 'div.commentDate', 1).text)
+            comtxt = unicode(self.parser.select(
+                divcom, 'p', 1).text_content().strip())
+            comments.append('author: %s, date: %s, text: %s' % (
+                author, date, comtxt))
 
-        recipe = Recipe(id,title)
+        recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time
         recipe.cooking_time = cooking_time
         recipe.nb_person = nb_person
