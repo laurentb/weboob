@@ -61,7 +61,6 @@ class ResultsPage(BasePage):
                 recipe.cooking_time     = NotLoaded
                 recipe.preparation_time = NotLoaded
                 yield recipe
-                    
 
 
 class RecipePage(BasePage):

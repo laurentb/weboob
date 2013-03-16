@@ -25,6 +25,7 @@ from .pages import RecipePage, ResultsPage
 
 __all__ = ['SevenFiftyGramsBrowser']
 
+
 class SevenFiftyGramsBrowser(BaseBrowser):
     DOMAIN = 'www.750g.com'
     PROTOCOL = 'http'

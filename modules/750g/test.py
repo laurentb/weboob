@@ -19,6 +19,7 @@
 
 from weboob.tools.test import BackendTest
 
+
 class SevenFiftyGramsTest(BackendTest):
     BACKEND = '750g'
 
@@ -30,4 +31,3 @@ class SevenFiftyGramsTest(BackendTest):
             assert full_recipe.ingredients
             assert full_recipe.title
             assert full_recipe.preparation_time
-
