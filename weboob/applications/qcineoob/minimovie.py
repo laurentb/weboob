@@ -41,7 +41,7 @@ class MiniMovie(QFrame):
         self.ui.backendLabel.setText(backend.name)
 
     def gotThumbnail(self):
-        self.backend.fill_movie(self.movie,('thumbnail_url'))
+        self.backend.fill_movie(self.movie, ('thumbnail_url'))
         if not empty(self.movie.thumbnail_url):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
@@ -61,7 +61,8 @@ class MiniMovie(QFrame):
         if event.button() == 2:
             self.gotThumbnail()
         else:
-            QApplication.setOverrideCursor( Qt.WaitCursor )
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             movie = self.backend.get_movie(self.movie.id)
             if movie:
-                self.parent.doAction('Details of movie "%s"'%movie.original_title,self.parent.displayMovie,[movie,self.backend])
+                self.parent.doAction('Details of movie "%s"' %
+                                     movie.original_title, self.parent.displayMovie, [movie, self.backend])

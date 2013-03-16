@@ -42,13 +42,13 @@ class Person(QFrame):
         self.gotThumbnail()
         self.ui.nameLabel.setText(person.name)
 
-        self.ui.idEdit.setText(u'%s@%s'%(person.id,backend.name))
+        self.ui.idEdit.setText(u'%s@%s' % (person.id, backend.name))
         if not empty(person.real_name):
-            self.ui.realNameLabel.setText('%s'%person.real_name)
+            self.ui.realNameLabel.setText('%s' % person.real_name)
         else:
             self.ui.realNameLabel.parent().hide()
         if not empty(person.birth_place):
-            self.ui.birthPlaceLabel.setText('%s'%person.birth_place)
+            self.ui.birthPlaceLabel.setText('%s' % person.birth_place)
         else:
             self.ui.birthPlaceLabel.parent().hide()
         if not empty(person.birth_date):
@@ -59,7 +59,7 @@ class Person(QFrame):
             self.ui.deathDateLabel.setText(person.death_date.strftime('%Y-%m-%d'))
         else:
             self.ui.deathDateLabel.parent().hide()
-        self.ui.shortBioPlain.setPlainText('%s'%person.short_biography)
+        self.ui.shortBioPlain.setPlainText('%s' % person.short_biography)
         for role in ROLE_LIST:
             self.ui.filmographyCombo.addItem(role)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
@@ -76,9 +76,9 @@ class Person(QFrame):
         role_desc = ''
         if tosearch != 'all':
             role = tosearch
-            role_desc = ' as %s'%role
-        self.parent.doAction('Filmography of "%s"%s'%(self.person.name,role_desc),
-                self.parent.filmographyAction,[self.person.id,role])
+            role_desc = ' as %s' % role
+        self.parent.doAction('Filmography of "%s"%s' % (self.person.name, role_desc),
+                             self.parent.filmographyAction, [self.person.id, role])
 
     def biography(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)

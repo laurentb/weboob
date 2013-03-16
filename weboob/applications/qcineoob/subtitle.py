@@ -19,7 +19,7 @@
 
 import sys
 
-from PyQt4.QtCore import Qt,SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.subtitle_ui import Ui_Subtitle
@@ -37,22 +37,22 @@ class Subtitle(QFrame):
         self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
 
         self.subtitle = subtitle
-        self.ui.idEdit.setText(u'%s@%s'%(subtitle.id,backend.name))
-        self.ui.nameLabel.setText(u'%s'%subtitle.name)
+        self.ui.idEdit.setText(u'%s@%s' % (subtitle.id, backend.name))
+        self.ui.nameLabel.setText(u'%s' % subtitle.name)
         if not empty(subtitle.nb_cd):
-            self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
+            self.ui.nbcdLabel.setText(u'%s' % subtitle.nb_cd)
         else:
             self.ui.nbcdLabel.parent().hide()
         if not empty(subtitle.language):
-            self.ui.langLabel.setText(u'%s'%subtitle.language)
+            self.ui.langLabel.setText(u'%s' % subtitle.language)
         else:
             self.ui.langLabel.parent().hide()
         if not empty(subtitle.description):
-            self.ui.descriptionPlain.setPlainText(u'%s'%subtitle.description)
+            self.ui.descriptionPlain.setPlainText(u'%s' % subtitle.description)
         else:
             self.ui.descriptionPlain.parent().hide()
         if not empty(subtitle.url):
-            self.ui.urlEdit.setText(u'%s'%subtitle.url)
+            self.ui.urlEdit.setText(u'%s' % subtitle.url)
         else:
             self.ui.downloadButton.setDisabled(True)
             self.ui.downloadButton.setText('Impossible to download this subtitle')
@@ -60,10 +60,11 @@ class Subtitle(QFrame):
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
     def download(self):
-        fileDial = QFileDialog(self,'Save "%s" subtitle file'%self.subtitle.name,'%s'%self.subtitle.name,'all files (*)')
+        fileDial = QFileDialog(self, 'Save "%s" subtitle file' %
+                               self.subtitle.name, '%s' % self.subtitle.name, 'all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
-        fileDial.setLabelText(QFileDialog.Accept,'Save subtitle file')
-        fileDial.setLabelText(QFileDialog.FileName,'Subtitle file name')
+        fileDial.setLabelText(QFileDialog.Accept, 'Save subtitle file')
+        fileDial.setLabelText(QFileDialog.FileName, 'Subtitle file name')
         ok = (fileDial.exec_() == 1)
         if not ok:
             return

@@ -59,7 +59,7 @@ class MainWindow(QtMainWindow):
 
         # action history is composed by the last action and the action list
         # An action is a function, a list of arguments and a description string
-        self.action_history = {'last_action':None,'action_list':[]}
+        self.action_history = {'last_action': None, 'action_list': []}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
         self.ui.backButton.hide()
 
@@ -83,7 +83,7 @@ class MainWindow(QtMainWindow):
         self.ui.langLabel.hide()
 
     def backendsConfig(self):
-        bckndcfg = BackendCfg(self.weboob, (ICapCinema,ICapTorrent,ICapSubtitle,), self)
+        bckndcfg = BackendCfg(self.weboob, (ICapCinema, ICapTorrent, ICapSubtitle,), self)
         if bckndcfg.run():
             self.loadBackendsList()
 
@@ -107,7 +107,7 @@ class MainWindow(QtMainWindow):
         result = []
         history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
         if os.path.exists(history_path):
-            f=codecs.open(history_path,'r','utf-8')
+            f = codecs.open(history_path, 'r', 'utf-8')
             conf_hist = f.read()
             f.close()
             if conf_hist is not None and conf_hist.strip() != '':
@@ -119,16 +119,16 @@ class MainWindow(QtMainWindow):
         '''
         if len(self.search_history) > 0:
             history_path = os.path.join(self.weboob.workdir, 'qcineoob_history')
-            f=codecs.open(history_path,'w','utf-8')
+            f = codecs.open(history_path, 'w', 'utf-8')
             f.write('\n'.join(self.search_history))
             f.close()
 
     def updateCompletion(self):
-        qc = QCompleter(QStringList(self.search_history),self)
+        qc = QCompleter(QStringList(self.search_history), self)
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
 
-    def typeComboChanged(self,value):
+    def typeComboChanged(self, value):
         if unicode(value) == 'subtitle':
             self.ui.langCombo.show()
             self.ui.langLabel.show()
@@ -145,7 +145,7 @@ class MainWindow(QtMainWindow):
             self.action_history['action_list'].append(self.action_history['last_action'])
             self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
             self.ui.backButton.show()
-        self.action_history['last_action'] = {'function':fun,'args':args,'description':description}
+        self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
         return fun(*args)
 
     def doBack(self):
@@ -171,7 +171,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -187,7 +187,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -217,9 +217,9 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search movie "%s"'%pattern,self.searchMovieAction,[pattern])
+        self.doAction(u'Search movie "%s"' % pattern, self.searchMovieAction, [pattern])
 
-    def searchMovieAction(self,pattern):
+    def searchMovieAction(self, pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
             self.ui.list_content.layout().removeWidget(mini)
@@ -228,7 +228,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -251,7 +251,7 @@ class MainWindow(QtMainWindow):
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
-        wmovie = Movie(movie,backend,self)
+        wmovie = Movie(movie, backend, self)
         self.ui.info_content.layout().addWidget(wmovie)
         self.current_info_widget = wmovie
         QApplication.restoreOverrideCursor()
@@ -260,9 +260,9 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search person "%s"'%pattern,self.searchPersonAction,[pattern])
+        self.doAction(u'Search person "%s"' % pattern, self.searchPersonAction, [pattern])
 
-    def searchPersonAction(self,pattern):
+    def searchPersonAction(self, pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
             self.ui.list_content.layout().removeWidget(mini)
@@ -271,7 +271,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -294,7 +294,7 @@ class MainWindow(QtMainWindow):
             self.ui.info_content.layout().removeWidget(self.current_info_widget)
             self.current_info_widget.hide()
             self.current_info_widget.deleteLater()
-        wperson = Person(person,backend,self)
+        wperson = Person(person, backend, self)
         self.ui.info_content.layout().addWidget(wperson)
         self.current_info_widget = wperson
         QApplication.restoreOverrideCursor()
@@ -303,9 +303,9 @@ class MainWindow(QtMainWindow):
         pattern = unicode(self.ui.searchEdit.text())
         if not pattern:
             return
-        self.doAction(u'Search torrent "%s"'%pattern,self.searchTorrentAction,[pattern])
+        self.doAction(u'Search torrent "%s"' % pattern, self.searchTorrentAction, [pattern])
 
-    def searchTorrentAction(self,pattern):
+    def searchTorrentAction(self, pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
             self.ui.list_content.layout().removeWidget(mini)
@@ -314,7 +314,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -346,7 +346,7 @@ class MainWindow(QtMainWindow):
         lang = unicode(self.ui.langCombo.currentText())
         if not pattern:
             return
-        self.doAction(u'Search subtitle "%s" (lang:%s)'%(pattern,lang),self.searchSubtitleAction,[lang,pattern])
+        self.doAction(u'Search subtitle "%s" (lang:%s)' % (pattern, lang), self.searchSubtitleAction, [lang, pattern])
 
     def searchSubtitleAction(self, lang, pattern):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
@@ -357,7 +357,7 @@ class MainWindow(QtMainWindow):
 
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor( Qt.WaitCursor )
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
@@ -385,7 +385,8 @@ class MainWindow(QtMainWindow):
         self.current_info_widget = wsubtitle
 
     def closeEvent(self, ev):
-        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString()))
+        self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(
+            self.ui.backendEdit.currentIndex()).toString()))
         self.saveSearchHistory()
 
         self.config.save()

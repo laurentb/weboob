@@ -27,7 +27,7 @@ from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
-__all__ = ['Booblyrics','LyricsGetFormatter','LyricsListFormatter']
+__all__ = ['Booblyrics', 'LyricsGetFormatter', 'LyricsListFormatter']
 
 
 class LyricsGetFormatter(IFormatter):
@@ -39,7 +39,7 @@ class LyricsGetFormatter(IFormatter):
         result += 'Title: %s\n' % obj.title
         result += 'Artist: %s\n' % obj.artist
         result += '\n%sContent%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.content
+        result += '%s' % obj.content
         return result
 
 
@@ -65,11 +65,11 @@ class Booblyrics(ReplApplication):
     CAPS = ICapLyrics
     EXTRA_FORMATTERS = {'lyrics_list': LyricsListFormatter,
                         'lyrics_get': LyricsGetFormatter,
-                       }
+                        }
     COMMANDS_FORMATTERS = {'search':    'lyrics_list',
                            'get':      'lyrics_get',
-                          }
-    SEARCH_CRITERIAS = ['artist','song']
+                           }
+    SEARCH_CRITERIAS = ['artist', 'song']
 
     def complete_get(self, text, line, *ignored):
         args = line.split(' ')

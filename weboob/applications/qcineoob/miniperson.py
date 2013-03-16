@@ -36,18 +36,18 @@ class MiniPerson(QFrame):
         self.weboob = weboob
         self.backend = backend
         self.person = person
-        self.ui.nameLabel.setText('%s'%person.name)
+        self.ui.nameLabel.setText('%s' % person.name)
         if not empty(person.short_description):
             if unicode(self.parent.ui.currentActionLabel.text()).startswith('Casting'):
                 self.ui.shortDescTitleLabel.setText(u'Role')
-            self.ui.shortDescLabel.setText('%s'%person.short_description)
+            self.ui.shortDescLabel.setText('%s' % person.short_description)
         else:
             self.ui.shortDescTitleLabel.hide()
             self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
     def gotThumbnail(self):
-        self.backend.fill_person(self.person,('thumbnail_url'))
+        self.backend.fill_person(self.person, ('thumbnail_url'))
         if not empty(self.person.thumbnail_url):
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
@@ -67,7 +67,8 @@ class MiniPerson(QFrame):
         if event.button() == 2:
             self.gotThumbnail()
         else:
-            QApplication.setOverrideCursor( Qt.WaitCursor )
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             person = self.backend.get_person(self.person.id)
             if person:
-                self.parent.doAction(u'Details of person "%s"'%person.name,self.parent.displayPerson,[person,self.backend])
+                self.parent.doAction(u'Details of person "%s"' %
+                                     person.name, self.parent.displayPerson, [person, self.backend])

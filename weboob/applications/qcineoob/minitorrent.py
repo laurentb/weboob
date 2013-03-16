@@ -36,9 +36,9 @@ class MiniTorrent(QFrame):
         self.torrent = torrent
         self.ui.nameLabel.setText(torrent.name)
         if not empty(torrent.seeders) and not empty(torrent.leechers):
-            self.ui.seedLeechLabel.setText('%s/%s'%(torrent.seeders,torrent.leechers))
+            self.ui.seedLeechLabel.setText('%s/%s' % (torrent.seeders, torrent.leechers))
         if not empty(torrent.size):
-            self.ui.sizeLabel.setText(u'%s'%sizeof_fmt(torrent.size))
+            self.ui.sizeLabel.setText(u'%s' % sizeof_fmt(torrent.size))
         self.ui.backendLabel.setText(backend.name)
 
     def enterEvent(self, event):
@@ -54,4 +54,5 @@ class MiniTorrent(QFrame):
 
         torrent = self.backend.get_torrent(self.torrent.id)
         if torrent:
-            self.parent.doAction('Details of torrent "%s"'%torrent.name,self.parent.displayTorrent,[torrent,self.backend])
+            self.parent.doAction('Details of torrent "%s"' %
+                                 torrent.name, self.parent.displayTorrent, [torrent, self.backend])

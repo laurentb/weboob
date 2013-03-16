@@ -43,13 +43,13 @@ class RecipeInfoFormatter(IFormatter):
             result += 'Amount of people: %s\n' % obj.nb_person
         result += '\n%sIngredients%s\n' % (self.BOLD, self.NC)
         for i in obj.ingredients:
-            result += '  * %s\n'%i
+            result += '  * %s\n' % i
         result += '\n%sInstructions%s\n' % (self.BOLD, self.NC)
-        result += '%s\n'%obj.instructions
+        result += '%s\n' % obj.instructions
         if not empty(obj.comments):
             result += '\n%sComments%s\n' % (self.BOLD, self.NC)
             for c in obj.comments:
-                result += '  * %s\n'%c
+                result += '  * %s\n' % c
         return result
 
 
@@ -62,9 +62,9 @@ class RecipeListFormatter(PrettyFormatter):
     def get_description(self, obj):
         result = u''
         if not empty(obj.preparation_time):
-            result += 'prep time: %smin'%obj.preparation_time
+            result += 'prep time: %smin' % obj.preparation_time
         if not empty(obj.short_description):
-            result += 'description: %s\n'%obj.short_description
+            result += 'description: %s\n' % obj.short_description
         return result
 
 
@@ -77,10 +77,10 @@ class Cookboob(ReplApplication):
     CAPS = ICapRecipe
     EXTRA_FORMATTERS = {'recipe_list': RecipeListFormatter,
                         'recipe_info': RecipeInfoFormatter
-                       }
+                        }
     COMMANDS_FORMATTERS = {'search':    'recipe_list',
                            'info':      'recipe_info'
-                          }
+                           }
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')

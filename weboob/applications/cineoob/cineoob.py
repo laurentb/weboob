@@ -35,12 +35,13 @@ from weboob.core import CallErrors
 
 __all__ = ['Cineoob']
 
-ROLE_LIST = ['actor','director','writer','composer','producer']
-COUNTRY_LIST = ['us','fr','de','jp']
+ROLE_LIST = ['actor', 'director', 'writer', 'composer', 'producer']
+COUNTRY_LIST = ['us', 'fr', 'de', 'jp']
 
 
 class MovieInfoFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'original_title', 'release_date', 'other_titles', 'duration', 'pitch', 'note', 'roles', 'country')
+    MANDATORY_FIELDS = ('id', 'original_title', 'release_date',
+                        'other_titles', 'duration', 'pitch', 'note', 'roles', 'country')
 
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.original_title, self.NC)
@@ -53,7 +54,7 @@ class MovieInfoFormatter(IFormatter):
         result += 'Note: %s\n' % obj.note
         if not empty(obj.roles):
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
-            for role,lpersons in obj.roles.items():
+            for role, lpersons in obj.roles.items():
                 result += ' -- %s\n' % role
                 for name in lpersons:
                     result += '   * %s\n' % name
@@ -63,7 +64,7 @@ class MovieInfoFormatter(IFormatter):
                 result += ' * %s\n' % t
         if not empty(obj.pitch):
             result += '\n%sStory%s\n' % (self.BOLD, self.NC)
-            result += '%s'%obj.pitch
+            result += '%s' % obj.pitch
         return result
 
 
@@ -84,10 +85,10 @@ class MovieReleasesFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'original_title', 'all_release_dates')
 
     def get_title(self, obj):
-        return u'Releases of %s'%obj.original_title
+        return u'Releases of %s' % obj.original_title
 
     def get_description(self, obj):
-        return u'\n%s'%obj.all_release_dates
+        return u'\n%s' % obj.all_release_dates
 
 
 def yearsago(years, from_date=None):
@@ -125,8 +126,8 @@ class PersonInfoFormatter(IFormatter):
         if not empty(obj.birth_date):
             result += 'Birth date: %s\n' % obj.birth_date.strftime('%Y-%m-%d')
             if not empty(obj.death_date):
-                age = num_years(obj.birth_date,obj.death_date)
-                result += 'Death date: %s at %s years old\n' % (obj.death_date.strftime('%Y-%m-%d'),age)
+                age = num_years(obj.birth_date, obj.death_date)
+                result += 'Death date: %s at %s years old\n' % (obj.death_date.strftime('%Y-%m-%d'), age)
             else:
                 age = num_years(obj.birth_date)
                 result += 'Age: %s\n' % age
@@ -136,13 +137,13 @@ class PersonInfoFormatter(IFormatter):
             result += 'Nationality: %s\n' % obj.nationality
         if not empty(obj.roles):
             result += '\n%sRelated movies%s\n' % (self.BOLD, self.NC)
-            for role,lmovies in obj.roles.items():
+            for role, lmovies in obj.roles.items():
                 result += ' -- %s\n' % role
                 for movie in lmovies:
                     result += '   * %s\n' % movie
         if not empty(obj.short_biography):
             result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
-            result += '%s'%obj.short_biography
+            result += '%s' % obj.short_biography
         return result
 
 
@@ -163,10 +164,10 @@ class PersonBiographyFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'name', 'biography')
 
     def get_title(self, obj):
-        return u'Biography of %s'%obj.name
+        return u'Biography of %s' % obj.name
 
     def get_description(self, obj):
-        result = u'\n%s'%obj.biography
+        result = u'\n%s' % obj.biography
         return result
 
 
@@ -178,7 +179,7 @@ class Cineoob(ReplApplication):
                   ", list persons related to a movie, list movies related to a person and list common movies " \
                   "of two persons."
     SHORT_DESCRIPTION = "search movies and persons around cinema"
-    CAPS = (ICapCinema,ICapTorrent,ICapSubtitle)
+    CAPS = (ICapCinema, ICapTorrent, ICapSubtitle)
     EXTRA_FORMATTERS = {'movie_list': MovieListFormatter,
                         'movie_info': MovieInfoFormatter,
                         'movie_releases': MovieReleasesFormatter,
@@ -189,7 +190,7 @@ class Cineoob(ReplApplication):
                         'torrent_info': TorrentInfoFormatter,
                         'subtitle_list': SubtitleListFormatter,
                         'subtitle_info': SubtitleInfoFormatter
-                       }
+                        }
     COMMANDS_FORMATTERS = {'search_movie':    'movie_list',
                            'info_movie':      'movie_info',
                            'search_person':   'person_list',
@@ -198,15 +199,15 @@ class Cineoob(ReplApplication):
                            'filmography':     'movie_list',
                            'biography':     'person_bio',
                            'releases':     'movie_releases',
-                           'movies_in_common':'movie_list',
-                           'persons_in_common':'person_list',
+                           'movies_in_common': 'movie_list',
+                           'persons_in_common': 'person_list',
                            'search_torrent':    'torrent_list',
                            'search_movie_torrent':    'torrent_list',
                            'info_torrent':      'torrent_info',
                            'search_subtitle':    'subtitle_list',
                            'search_movie_subtitle':    'subtitle_list',
                            'info_subtitle':      'subtitle_info'
-                          }
+                           }
 
     def complete_filmography(self, text, line, *ignored):
         args = line.split(' ')
@@ -214,7 +215,7 @@ class Cineoob(ReplApplication):
             return ROLE_LIST
 
     def complete_casting(self, text, line, *ignored):
-        return self.complete_filmography(text,line,ignored)
+        return self.complete_filmography(text, line, ignored)
 
     def do_movies_in_common(self, line):
         """
@@ -392,7 +393,7 @@ class Cineoob(ReplApplication):
 
         Show the complete biography of a person.
         """
-        person = self.get_object(person_id,'get_person',('name','biography'))
+        person = self.get_object(person_id, 'get_person', ('name', 'biography'))
         if not person:
             print >>sys.stderr, 'Person not found: %s' % person_id
             return 3
@@ -415,7 +416,7 @@ class Cineoob(ReplApplication):
         """
         id, country = self.parse_command_args(line, 2, 1)
 
-        movie = self.get_object(id,'get_movie',('original_title'))
+        movie = self.get_object(id, 'get_movie', ('original_title'))
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -604,7 +605,7 @@ class Cineoob(ReplApplication):
         print >>sys.stderr, 'Subtitle "%s" not found' % id
         return 3
 
-    def do_search_subtitle(self,line):
+    def do_search_subtitle(self, line):
         """
         search_subtitle language [PATTERN]
 
@@ -620,7 +621,7 @@ class Cineoob(ReplApplication):
             self.cached_format(subtitle)
         self.flush()
 
-    def do_search_movie_subtitle(self,line):
+    def do_search_movie_subtitle(self, line):
         """
         search_movie_subtitle language movie_ID
 

@@ -19,7 +19,7 @@
 
 import urllib
 
-from PyQt4.QtCore import Qt,SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
@@ -50,7 +50,7 @@ class Movie(QFrame):
         self.gotThumbnail()
         self.putReleases()
 
-        self.ui.idEdit.setText(u'%s@%s'%(movie.id,backend.name))
+        self.ui.idEdit.setText(u'%s@%s' % (movie.id, backend.name))
         if not empty(movie.other_titles):
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
         else:
@@ -60,23 +60,23 @@ class Movie(QFrame):
         else:
             self.ui.releaseDateLabel.parent().hide()
         if not empty(movie.duration):
-            self.ui.durationLabel.setText('%s min'%movie.duration)
+            self.ui.durationLabel.setText('%s min' % movie.duration)
         else:
             self.ui.durationLabel.parent().hide()
         if not empty(movie.pitch):
-            self.ui.pitchPlain.setPlainText('%s'%movie.pitch)
+            self.ui.pitchPlain.setPlainText('%s' % movie.pitch)
         else:
             self.ui.pitchPlain.parent().hide()
         if not empty(movie.country):
-            self.ui.countryLabel.setText('%s'%movie.country)
+            self.ui.countryLabel.setText('%s' % movie.country)
         else:
             self.ui.countryLabel.parent().hide()
         if not empty(movie.note):
-            self.ui.noteLabel.setText('%s'%movie.note)
+            self.ui.noteLabel.setText('%s' % movie.note)
         else:
             self.ui.noteLabel.parent().hide()
         for role in ROLE_LIST:
-            self.ui.castingCombo.addItem('%ss'%role)
+            self.ui.castingCombo.addItem('%ss' % role)
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
@@ -97,15 +97,15 @@ class Movie(QFrame):
     def searchSubtitle(self):
         tosearch = unicode(self.movie.original_title)
         lang = unicode(self.ui.langCombo.currentText())
-        desc = 'Search subtitles for "%s" (lang:%s)'%(tosearch,lang)
-        self.parent.doAction(desc, self.parent.searchSubtitleAction,[lang,tosearch])
+        desc = 'Search subtitles for "%s" (lang:%s)' % (tosearch, lang)
+        self.parent.doAction(desc, self.parent.searchSubtitleAction, [lang, tosearch])
 
     def searchTorrent(self):
         tosearch = self.movie.original_title
         if not empty(self.movie.release_date):
-            tosearch += ' %s'%self.movie.release_date.year
-        desc = 'Search torrents for "%s"'%tosearch
-        self.parent.doAction(desc, self.parent.searchTorrentAction,[tosearch])
+            tosearch += ' %s' % self.movie.release_date.year
+        desc = 'Search torrents for "%s"' % tosearch
+        self.parent.doAction(desc, self.parent.searchTorrentAction, [tosearch])
 
     def casting(self):
         role = None
@@ -113,6 +113,6 @@ class Movie(QFrame):
         role_desc = ''
         if tosearch != 'all':
             role = tosearch[:-1]
-            role_desc = ' as %s'%role
-        self.parent.doAction('Casting%s of movie "%s"'%(role_desc,self.movie.original_title),
-                self.parent.castingAction,[self.movie.id,role])
+            role_desc = ' as %s' % role
+        self.parent.doAction('Casting%s of movie "%s"' % (role_desc, self.movie.original_title),
+                             self.parent.castingAction, [self.movie.id, role])

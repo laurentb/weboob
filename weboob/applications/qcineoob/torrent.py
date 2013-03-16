@@ -19,7 +19,7 @@
 
 import sys
 
-from PyQt4.QtCore import Qt,SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QFileDialog
 
 from weboob.applications.qcineoob.ui.torrent_ui import Ui_Torrent
@@ -38,10 +38,10 @@ class Torrent(QFrame):
         self.connect(self.ui.downloadButton, SIGNAL("clicked()"), self.download)
 
         self.torrent = torrent
-        self.ui.idEdit.setText(u'%s@%s'%(torrent.id,backend.name))
-        self.ui.nameLabel.setText(u'%s'%torrent.name)
+        self.ui.idEdit.setText(u'%s@%s' % (torrent.id, backend.name))
+        self.ui.nameLabel.setText(u'%s' % torrent.name)
         if not empty(torrent.url):
-            self.ui.urlEdit.setText(u'%s'%torrent.url)
+            self.ui.urlEdit.setText(u'%s' % torrent.url)
         else:
             self.ui.urlFrame.hide()
             self.ui.downloadButton.setDisabled(True)
@@ -49,21 +49,22 @@ class Torrent(QFrame):
                 self.ui.downloadButton.setText(u'Download not available\nbut magnet link provided')
                 self.ui.downloadButton.setToolTip(u'Use the magnet link')
         if not empty(torrent.magnet):
-            self.ui.magnetEdit.setText(u'%s'%torrent.magnet)
+            self.ui.magnetEdit.setText(u'%s' % torrent.magnet)
         else:
             self.ui.magnetFrame.hide()
         if not empty(torrent.seeders) and not empty(torrent.leechers):
-            self.ui.seedLeechLabel.setText(u'%s/%s'%(torrent.seeders,torrent.leechers))
+            self.ui.seedLeechLabel.setText(u'%s/%s' % (torrent.seeders, torrent.leechers))
         if not empty(torrent.size):
-            self.ui.sizeLabel.setText(u'%s'%sizeof_fmt(torrent.size))
+            self.ui.sizeLabel.setText(u'%s' % sizeof_fmt(torrent.size))
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
     def download(self):
-        fileDial = QFileDialog(self,'Save "%s" torrent file'%self.torrent.name,'%s.torrent'%self.torrent.name,'Torrent file (*.torrent);;all files (*)')
+        fileDial = QFileDialog(self, 'Save "%s" torrent file' % self.torrent.name, '%s.torrent' %
+                               self.torrent.name, 'Torrent file (*.torrent);;all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
-        fileDial.setLabelText(QFileDialog.Accept,'Save torrent file')
-        fileDial.setLabelText(QFileDialog.FileName,'Torrent file name')
+        fileDial.setLabelText(QFileDialog.Accept, 'Save torrent file')
+        fileDial.setLabelText(QFileDialog.FileName, 'Torrent file name')
         ok = (fileDial.exec_() == 1)
         if not ok:
             return

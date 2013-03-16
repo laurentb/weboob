@@ -32,13 +32,13 @@ class QCineoob(QtApplication):
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search movies, people, torrent and subtitles."
     SHORT_DESCRIPTION = "search movies, people, torrent and subtitles"
-    CAPS = ICapCinema,ICapTorrent,ICapSubtitle
+    CAPS = ICapCinema, ICapTorrent, ICapSubtitle
     CONFIG = {'settings': {'backend': '',
-                          }
-             }
+                           }
+              }
 
     def main(self, argv):
-        self.load_backends([ICapCinema,ICapTorrent,ICapSubtitle])
+        self.load_backends([ICapCinema, ICapTorrent, ICapSubtitle])
         self.load_config()
 
         self.main_window = MainWindow(self.config, self.weboob)

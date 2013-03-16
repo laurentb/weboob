@@ -35,7 +35,7 @@ class MiniSubtitle(QFrame):
         self.subtitle = subtitle
         self.ui.nameLabel.setText(subtitle.name)
         if not empty(subtitle.nb_cd):
-            self.ui.nbcdLabel.setText(u'%s'%subtitle.nb_cd)
+            self.ui.nbcdLabel.setText(u'%s' % subtitle.nb_cd)
         self.ui.backendLabel.setText(backend.name)
 
     def enterEvent(self, event):
@@ -51,4 +51,5 @@ class MiniSubtitle(QFrame):
 
         subtitle = self.backend.get_subtitle(self.subtitle.id)
         if subtitle:
-            self.parent.doAction('Details of subtitle "%s"'%subtitle.name,self.parent.displaySubtitle,[subtitle,self.backend])
+            self.parent.doAction('Details of subtitle "%s"' %
+                                 subtitle.name, self.parent.displaySubtitle, [subtitle, self.backend])

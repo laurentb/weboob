@@ -31,22 +31,22 @@ from weboob.core import CallErrors
 __all__ = ['Suboob']
 
 LANGUAGE_CONV = {
-'ar':'ara', 'eo':'epo',  'ga':'',    'ru':'rus',
-'af':''   , 'et':'est',  'it':'ita', 'sr':'scc',
-'sq':'alb', 'tl':''   ,  'ja':'jpn', 'sk':'slo',
-'hy':'arm', 'fi':'fin',  'kn':'',    'sl':'slv',
-'az':''   , 'fr':'fre',  'ko':'kor', 'es':'spa',
-'eu':'baq', 'gl':'glg',  'la':'',    'sw':'swa',
-'be':''   , 'ka':'geo',  'lv':'lav', 'sv':'swe',
-'bn':'ben', 'de':'ger',  'lt':'lit', 'ta':'',
-'bg':'bul', 'gr':'ell',  'mk':'mac', 'te':'tel',
-'ca':'cat', 'gu':''   ,  'ms':'may', 'th':'tha',
-'zh':'chi', 'ht':''   ,  'mt':'',    'tr':'tur',
-'hr':'hrv', 'iw':'heb',  'no':'nor', 'uk':'ukr',
-'cz':'cze', 'hi':'hin',  'fa':'per', 'ur':'urd',
-'da':'dan', 'hu':'hun',  'pl':'pol', 'vi':'vie',
-'nl':'dut', 'is':'ice',  'pt':'por', 'cy':'',
-'en':'eng', 'id':'ind',  'ro':'rum', 'yi':''}
+    'ar': 'ara', 'eo': 'epo',  'ga': '',    'ru': 'rus',
+    'af': '', 'et': 'est',  'it': 'ita', 'sr': 'scc',
+    'sq': 'alb', 'tl': '',  'ja': 'jpn', 'sk': 'slo',
+    'hy': 'arm', 'fi': 'fin',  'kn': '',    'sl': 'slv',
+    'az': '', 'fr': 'fre',  'ko': 'kor', 'es': 'spa',
+    'eu': 'baq', 'gl': 'glg',  'la': '',    'sw': 'swa',
+    'be': '', 'ka': 'geo',  'lv': 'lav', 'sv': 'swe',
+    'bn': 'ben', 'de': 'ger',  'lt': 'lit', 'ta': '',
+    'bg': 'bul', 'gr': 'ell',  'mk': 'mac', 'te': 'tel',
+    'ca': 'cat', 'gu': '',  'ms': 'may', 'th': 'tha',
+    'zh': 'chi', 'ht': '',  'mt': '',    'tr': 'tur',
+    'hr': 'hrv', 'iw': 'heb',  'no': 'nor', 'uk': 'ukr',
+    'cz': 'cze', 'hi': 'hin',  'fa': 'per', 'ur': 'urd',
+    'da': 'dan', 'hu': 'hun',  'pl': 'pol', 'vi': 'vie',
+    'nl': 'dut', 'is': 'ice',  'pt': 'por', 'cy': '',
+    'en': 'eng', 'id': 'ind',  'ro': 'rum', 'yi': ''}
 
 
 def sizeof_fmt(num):
@@ -68,7 +68,7 @@ class SubtitleInfoFormatter(IFormatter):
         if not empty(obj.nb_cd):
             result += 'NB CD: %s\n' % obj.nb_cd
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.description
+        result += '%s' % obj.description
         return result
 
 
@@ -79,7 +79,7 @@ class SubtitleListFormatter(PrettyFormatter):
         return obj.name
 
     def get_description(self, obj):
-        return 'lang : %s ; %s CD ; url : %s' % (obj.language,obj.nb_cd,obj.url)
+        return 'lang : %s ; %s CD ; url : %s' % (obj.language, obj.nb_cd, obj.url)
 
 
 class Suboob(ReplApplication):
@@ -92,10 +92,10 @@ class Suboob(ReplApplication):
     CAPS = ICapSubtitle
     EXTRA_FORMATTERS = {'subtitle_list': SubtitleListFormatter,
                         'subtitle_info': SubtitleInfoFormatter
-                       }
+                        }
     COMMANDS_FORMATTERS = {'search':    'subtitle_list',
                            'info':      'subtitle_info'
-                          }
+                           }
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -160,7 +160,7 @@ class Suboob(ReplApplication):
         print >>sys.stderr, 'Subtitle "%s" not found' % id
         return 3
 
-    def do_search(self,line):
+    def do_search(self, line):
         """
         search language [PATTERN]
 
