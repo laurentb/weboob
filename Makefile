@@ -1,5 +1,5 @@
 core := weboob/tools/application/qt
-applications := qboobmsg qhavedate qwebcontentedit qflatboob qcineoob
+applications := qboobmsg qhavedate qwebcontentedit qflatboob qcineoob qcookboob
 ifeq ($(WIN32),)
 	applications += qvideoob
 endif
