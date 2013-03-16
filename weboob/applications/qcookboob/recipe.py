@@ -19,7 +19,7 @@
 
 import urllib
 
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QImage, QPixmap
 
 from weboob.applications.qcookboob.ui.recipe_ui import Ui_Recipe
