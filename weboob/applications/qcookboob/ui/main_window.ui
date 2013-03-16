@@ -44,45 +44,6 @@
         <widget class="QLineEdit" name="searchEdit"/>
        </item>
        <item>
-        <widget class="QComboBox" name="typeCombo">
-         <item>
-          <property name="text">
-           <string>movie</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>person</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>torrent</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>subtitle</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="langLabel">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>language</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="langCombo"/>
-       </item>
-       <item>
         <widget class="QComboBox" name="backendEdit"/>
        </item>
       </layout>
@@ -200,8 +161,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>63</width>
-             <height>18</height>
+             <width>96</width>
+             <height>26</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8"/>

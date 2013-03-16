@@ -63,4 +63,4 @@ class MiniRecipe(QFrame):
         recipe = self.backend.get_recipe(self.recipe.id)
         if recipe:
             self.parent.doAction('Details of recipe "%s"' %
-                                 recipe.title, self.parent.displayMovie, [recipe, self.backend])
+                                 recipe.title, self.parent.displayRecipe, [recipe, self.backend])
