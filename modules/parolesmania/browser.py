@@ -36,13 +36,13 @@ class ParolesmaniaBrowser(BaseBrowser):
         'http://www.parolesmania.com/recherche.php\?c=artist.*': ArtistResultsPage,
         'http://www.parolesmania.com/paroles.*[0-9]*/paroles.*': SonglyricsPage,
         'http://www.parolesmania.com/paroles[^/]*.html': ArtistSongsPage,
-        }
+    }
 
     def iter_lyrics(self, criteria, pattern):
         crit = 'artist'
         if criteria != 'artist':
             crit = 'title'
-        self.location('http://www.parolesmania.com/recherche.php?c=%s&k=%s'%(crit,pattern))
+        self.location('http://www.parolesmania.com/recherche.php?c=%s&k=%s' % (crit, pattern))
         assert self.is_on_page(SongResultsPage) or self.is_on_page(ArtistResultsPage)\
             or self.is_on_page(ArtistSongsPage)
         for lyr in self.page.iter_lyrics():
@@ -50,6 +50,6 @@ class ParolesmaniaBrowser(BaseBrowser):
 
     def get_lyrics(self, id):
         ids = id.split('|')
-        self.location('http://www.parolesmania.com/paroles_%s/paroles_%s.html' % (ids[0],ids[1]))
+        self.location('http://www.parolesmania.com/paroles_%s/paroles_%s.html' % (ids[0], ids[1]))
         assert self.is_on_page(SonglyricsPage)
         return self.page.get_lyrics(id)

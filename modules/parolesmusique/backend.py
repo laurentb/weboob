@@ -41,7 +41,7 @@ class ParolesmusiqueBackend(BaseBackend, ICapLyrics):
         return self.browser.get_lyrics(id)
 
     def iter_lyrics(self, criteria, pattern):
-        return self.browser.iter_lyrics(criteria,pattern.encode('utf-8'))
+        return self.browser.iter_lyrics(criteria, pattern.encode('utf-8'))
 
     def fill_songlyrics(self, songlyrics, fields):
         if 'content' in fields:
@@ -50,5 +50,5 @@ class ParolesmusiqueBackend(BaseBackend, ICapLyrics):
         return songlyrics
 
     OBJECTS = {
-        SongLyrics:fill_songlyrics
+        SongLyrics: fill_songlyrics
     }

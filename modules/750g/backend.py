@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.recipe import ICapRecipe,Recipe
+from weboob.capabilities.recipe import ICapRecipe, Recipe
 from weboob.tools.backend import BaseBackend
 
 from .browser import SevenFiftyGramsBrowser
@@ -46,16 +46,16 @@ class SevenFiftyGramsBackend(BaseBackend, ICapRecipe):
     def fill_recipe(self, recipe, fields):
         if 'nb_person' in fields or 'instructions' in fields:
             rec = self.get_recipe(recipe.id)
-            recipe.picture_url      = rec.picture_url
-            recipe.instructions     = rec.instructions
-            recipe.ingredients      = rec.ingredients
-            recipe.comments      = rec.comments
-            recipe.nb_person        = rec.nb_person
-            recipe.cooking_time     = rec.cooking_time
+            recipe.picture_url = rec.picture_url
+            recipe.instructions = rec.instructions
+            recipe.ingredients = rec.ingredients
+            recipe.comments = rec.comments
+            recipe.nb_person = rec.nb_person
+            recipe.cooking_time = rec.cooking_time
             recipe.preparation_time = rec.preparation_time
 
         return recipe
 
     OBJECTS = {
-            Recipe:fill_recipe,
-            }
+        Recipe: fill_recipe,
+    }

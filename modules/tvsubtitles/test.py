@@ -26,7 +26,7 @@ class TvsubtitlesTest(BackendTest):
     BACKEND = 'tvsubtitles'
 
     def test_subtitle(self):
-        subtitles = list(self.backend.iter_subtitles('fr','sopranos'))
+        subtitles = list(self.backend.iter_subtitles('fr', 'sopranos'))
         assert (len(subtitles) > 0)
         for subtitle in subtitles:
             assert subtitle.url.startswith('http')

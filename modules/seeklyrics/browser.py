@@ -36,14 +36,14 @@ class SeeklyricsBrowser(BaseBrowser):
         'http://www.seeklyrics.com/search.php.*t=2': ArtistResultsPage,
         'http://www.seeklyrics.com/lyrics/.*html': SonglyricsPage,
         'http://www.seeklyrics.com/lyrics/.*/': ArtistSongsPage,
-        }
+    }
 
     def iter_lyrics(self, criteria, pattern):
         if criteria == 'artist':
             type = 2
         else:
             type = 1
-        self.location('http://www.seeklyrics.com/search.php?q=%s&t=%s' % (pattern,type))
+        self.location('http://www.seeklyrics.com/search.php?q=%s&t=%s' % (pattern, type))
         assert self.is_on_page(ArtistResultsPage) or self.is_on_page(SongResultsPage)
         return self.page.iter_lyrics()
 

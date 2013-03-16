@@ -43,7 +43,7 @@ class SeeklyricsBackend(BaseBackend, ICapLyrics):
         return self.browser.get_lyrics(id)
 
     def iter_lyrics(self, criteria, pattern):
-        return self.browser.iter_lyrics(criteria,quote_plus(pattern.encode('iso-8859-1')))
+        return self.browser.iter_lyrics(criteria, quote_plus(pattern.encode('iso-8859-1')))
 
     def fill_songlyrics(self, songlyrics, fields):
         if 'content' in fields:
@@ -52,5 +52,5 @@ class SeeklyricsBackend(BaseBackend, ICapLyrics):
         return songlyrics
 
     OBJECTS = {
-        SongLyrics:fill_songlyrics
+        SongLyrics: fill_songlyrics
     }

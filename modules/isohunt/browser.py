@@ -32,9 +32,9 @@ class IsohuntBrowser(BaseBrowser):
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
     PAGES = {
-        'https://isohunt.com/torrents/.*iht=-1&ihp=1&ihs1=1&iho1=d' : TorrentsPage,
-        'https://isohunt.com/torrent_details.*tab=summary' : TorrentPage,
-        }
+        'https://isohunt.com/torrents/.*iht=-1&ihp=1&ihs1=1&iho1=d': TorrentsPage,
+        'https://isohunt.com/torrent_details.*tab=summary': TorrentPage,
+    }
 
     def home(self):
         return self.location('https://isohunt.com')

@@ -25,7 +25,7 @@ class SeeklyricsTest(BackendTest):
     BACKEND = 'seeklyrics'
 
     def test_search_song_n_get(self):
-        l_lyrics = list(self.backend.iter_lyrics('song','Complainte'))
+        l_lyrics = list(self.backend.iter_lyrics('song', 'Complainte'))
         for songlyrics in l_lyrics:
             assert songlyrics.id
             assert songlyrics.title
@@ -38,7 +38,7 @@ class SeeklyricsTest(BackendTest):
             assert full_lyr.content is not NotLoaded
 
     def test_search_artist(self):
-        l_lyrics = list(self.backend.iter_lyrics('artist','boris vian'))
+        l_lyrics = list(self.backend.iter_lyrics('artist', 'boris vian'))
         for songlyrics in l_lyrics:
             assert songlyrics.id
             assert songlyrics.title

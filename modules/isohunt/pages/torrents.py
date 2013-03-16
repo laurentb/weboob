@@ -73,7 +73,8 @@ class TorrentPage(BasePage):
         title = NotAvailable
         size = NotAvailable
         url = 'https://isohunt.com/download/%s/%s.torrent' % (id, id)
-        title = unicode(self.parser.select(self.document.getroot(),'head > meta[name=title]',1).attrib.get('content',''))
+        title = unicode(self.parser.select(
+            self.document.getroot(), 'head > meta[name=title]', 1).attrib.get('content', ''))
         seed = NotAvailable
         leech = NotAvailable
         tip_id = "none"

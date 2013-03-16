@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.subtitle import ICapSubtitle,LanguageNotSupported,Subtitle
+from weboob.capabilities.subtitle import ICapSubtitle, LanguageNotSupported, Subtitle
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.tools.backend import BaseBackend
 
@@ -53,15 +53,15 @@ class OpensubtitlesBackend(BaseBackend, ICapSubtitle):
     def iter_subtitles(self, language, pattern):
         if language not in LANGUAGE_CONV.keys():
             raise LanguageNotSupported()
-        return self.browser.iter_subtitles(language,quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_subtitles(language, quote_plus(pattern.encode('utf-8')))
 
     def fill_subtitle(self, subtitle, fields):
         if 'description' in fields:
             sub = self.get_subtitle(subtitle.id)
-            subtitle.description    = sub.description
+            subtitle.description = sub.description
 
         return subtitle
 
     OBJECTS = {
-            Subtitle:fill_subtitle,
-            }
+        Subtitle: fill_subtitle,
+    }

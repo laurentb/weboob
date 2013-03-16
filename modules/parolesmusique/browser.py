@@ -37,12 +37,12 @@ class ParolesmusiqueBrowser(BaseBrowser):
         'http://www.paroles-musique.com/lyrics-paroles-.*-0,0.php': ArtistResultsPage,
         'http://www.paroles-musique.com/paroles-.*p[0-9]*': SonglyricsPage,
         'http://www.paroles-musique.com/paroles-.*-lyrics,a[0-9]*': ArtistSongsPage,
-        }
+    }
 
     def iter_lyrics(self, criteria, pattern):
         self.location('http://www.paroles-musique.com')
         assert self.is_on_page(HomePage)
-        return self.page.iter_lyrics(criteria,pattern)
+        return self.page.iter_lyrics(criteria, pattern)
 
     def get_lyrics(self, id):
         self.location('http://www.paroles-musique.com/paroles-%s' % id)

@@ -27,7 +27,7 @@ class OpensubtitlesTest(BackendTest):
 
     def test_subtitle(self):
         lsub = []
-        subtitles = self.backend.iter_subtitles('fr','spiderman')
+        subtitles = self.backend.iter_subtitles('fr', 'spiderman')
         for i in range(5):
             subtitle = subtitles.next()
             lsub.append(subtitle)

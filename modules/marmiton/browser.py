@@ -34,7 +34,7 @@ class MarmitonBrowser(BaseBrowser):
     PAGES = {
         'http://www.marmiton.org/recettes/recherche.aspx.*': ResultsPage,
         'http://www.marmiton.org/recettes/recette_.*': RecipePage,
-        }
+    }
 
     def iter_recipes(self, pattern):
         self.location('http://www.marmiton.org/recettes/recherche.aspx?st=5&cli=1&aqt=%s' % (pattern))

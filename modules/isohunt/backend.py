@@ -49,7 +49,7 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
         return self.browser.openurl(torrent.url.encode('utf-8')).read()
 
     def iter_torrents(self, pattern):
-        return self.browser.iter_torrents(pattern.replace(' ','+'))
+        return self.browser.iter_torrents(pattern.replace(' ', '+'))
 
     def fill_torrent(self, torrent, fields):
         if 'description' in fields or 'files' in fields:
@@ -61,5 +61,5 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
         return torrent
 
     OBJECTS = {
-            Torrent:fill_torrent
+        Torrent: fill_torrent
     }

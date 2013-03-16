@@ -23,32 +23,32 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['SongResultsPage','SonglyricsPage', 'ArtistResultsPage', 'ArtistSongsPage']
+__all__ = ['SongResultsPage', 'SonglyricsPage', 'ArtistResultsPage', 'ArtistSongsPage']
 
 
 class ArtistResultsPage(BasePage):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(),'div#albums > h1 a'):
+        for link in self.parser.select(self.document.getroot(), 'div#albums > h1 a'):
             artist = unicode(link.text_content())
-            href = link.attrib.get('href','')
+            href = link.attrib.get('href', '')
             if href.startswith('/paroles'):
-                self.browser.location('http://www.parolesmania.com%s'%href)
+                self.browser.location('http://www.parolesmania.com%s' % href)
                 assert self.browser.is_on_page(ArtistSongsPage)
                 for lyr in self.browser.page.iter_lyrics(artist):
                     yield lyr
 
 
 class ArtistSongsPage(BasePage):
-    def iter_lyrics(self,artist=None):
+    def iter_lyrics(self, artist=None):
         if artist is None:
-            artist = self.parser.select(self.document.getroot(),'head > title',1).text.replace('Paroles ','')
-        for link in self.parser.select(self.document.getroot(),'div#albums a'):
-            href = link.attrib.get('href','')
-            titleattrib = link.attrib.get('title','')
+            artist = self.parser.select(self.document.getroot(), 'head > title', 1).text.replace('Paroles ', '')
+        for link in self.parser.select(self.document.getroot(), 'div#albums a'):
+            href = link.attrib.get('href', '')
+            titleattrib = link.attrib.get('title', '')
             if href.startswith('/paroles') and not href.endswith('alpha.html') and titleattrib.startswith('Paroles '):
                 title = unicode(link.text)
-                ids = href.replace('/','').replace('.html','').split('paroles_')
-                id = '%s|%s'%(ids[1],ids[2])
+                ids = href.replace('/', '').replace('.html', '').split('paroles_')
+                id = '%s|%s' % (ids[1], ids[2])
                 songlyrics = SongLyrics(id, title)
                 songlyrics.artist = artist
                 songlyrics.content = NotLoaded
@@ -57,13 +57,13 @@ class ArtistSongsPage(BasePage):
 
 class SongResultsPage(BasePage):
     def iter_lyrics(self):
-        for link in self.parser.select(self.document.getroot(),'div#albums a'):
+        for link in self.parser.select(self.document.getroot(), 'div#albums a'):
             artist = NotAvailable
             title = unicode(link.text.split(' - ')[0])
-            href = link.attrib.get('href','')
+            href = link.attrib.get('href', '')
             if href.startswith('/paroles') and not href.endswith('alpha.html'):
-                ids = href.replace('/','').replace('.html','').split('paroles_')
-                id = '%s|%s'%(ids[1],ids[2])
+                ids = href.replace('/', '').replace('.html', '').split('paroles_')
+                id = '%s|%s' % (ids[1], ids[2])
                 artist = unicode(link.text.split(' - ')[1])
                 songlyrics = SongLyrics(id, title)
                 songlyrics.artist = artist
@@ -76,12 +76,12 @@ class SonglyricsPage(BasePage):
         content = NotAvailable
         artist = NotAvailable
         title = NotAvailable
-        lyrdiv = self.parser.select(self.document.getroot(),'div#songlyrics_h')
+        lyrdiv = self.parser.select(self.document.getroot(), 'div#songlyrics_h')
         if len(lyrdiv) > 0:
             content = unicode(lyrdiv[0].text_content().strip())
-        infos = self.parser.select(self.document.getroot(),'head > title',1).text
+        infos = self.parser.select(self.document.getroot(), 'head > title', 1).text
         artist = unicode(infos.split(' - ')[1])
-        title = unicode(infos.split(' - ')[0].replace('Paroles ',''))
+        title = unicode(infos.split(' - ')[0].replace('Paroles ', ''))
         songlyrics = SongLyrics(id, title)
         songlyrics.artist = artist
         songlyrics.content = content

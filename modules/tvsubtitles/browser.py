@@ -20,14 +20,14 @@
 
 from weboob.tools.browser import BaseBrowser
 
-from .pages import SeriePage, SearchPage, SeasonPage,HomePage
+from .pages import SeriePage, SearchPage, SeasonPage, HomePage
 
 
 __all__ = ['TvsubtitlesBrowser']
 
-LANGUAGE_LIST = ['en','es','fr','de','br','ru','ua','it','gr',
-                 'ar','hu','pl','tr','nl','pt','sv','da','fi',
-                 'ko','cn','jp','bg','cz','ro']
+LANGUAGE_LIST = ['en', 'es', 'fr', 'de', 'br', 'ru', 'ua', 'it', 'gr',
+                 'ar', 'hu', 'pl', 'tr', 'nl', 'pt', 'sv', 'da', 'fi',
+                 'ko', 'cn', 'jp', 'bg', 'cz', 'ro']
 
 
 class TvsubtitlesBrowser(BaseBrowser):
@@ -39,13 +39,13 @@ class TvsubtitlesBrowser(BaseBrowser):
         'http://www.tvsubtitles.net': HomePage,
         'http://www.tvsubtitles.net/search.php': SearchPage,
         'http://www.tvsubtitles.net/tvshow-.*.html': SeriePage,
-        'http://www.tvsubtitles.net/subtitle-[0-9]*-[0-9]*-.*.html' : SeasonPage
-        }
+        'http://www.tvsubtitles.net/subtitle-[0-9]*-[0-9]*-.*.html': SeasonPage
+    }
 
     def iter_subtitles(self, language, pattern):
         self.location('http://www.tvsubtitles.net')
         assert self.is_on_page(HomePage)
-        return self.page.iter_subtitles(language,pattern)
+        return self.page.iter_subtitles(language, pattern)
 
     def get_subtitle(self, id):
         self.location('http://www.tvsubtitles.net/subtitle-%s.html' % id)

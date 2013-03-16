@@ -35,13 +35,14 @@ class OpensubtitlesBrowser(BaseBrowser):
     PAGES = {
         'http://www.opensubtitles.org.*search2/sublanguageid.*moviename.*': SearchPage,
         'http://www.opensubtitles.org.*search/sublanguageid.*idmovie.*': SubtitlesPage,
-        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*' : SubtitlesPage,
-        'http://www.opensubtitles.org.*subtitles/[0-9]*/.*' : SubtitlePage
-        }
+        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*': SubtitlesPage,
+        'http://www.opensubtitles.org.*subtitles/[0-9]*/.*': SubtitlePage
+    }
 
     def iter_subtitles(self, language, pattern):
         lang = LANGUAGE_CONV[language]
-        self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (lang,pattern.encode('utf-8')))
+        self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (
+            lang, pattern.encode('utf-8')))
         assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
         return self.page.iter_subtitles()
 

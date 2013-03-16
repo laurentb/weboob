@@ -34,7 +34,7 @@ class KickassBrowser(BaseBrowser):
     PAGES = {
         'http://kat.ph/usearch/.*field=seeders&sorder=desc': TorrentsPage,
         'http://kat.ph/.*.html': TorrentPage,
-        }
+    }
 
     def home(self):
         return self.location('http://kat.ph')

@@ -23,16 +23,16 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 
 
-__all__ = ['SubtitlesPage','SearchPage']
+__all__ = ['SubtitlesPage', 'SearchPage']
 
 
 class SearchPage(BasePage):
     def iter_subtitles(self, language, pattern):
-        fontresult = self.parser.select(self.document.getroot(),'div.search-results font.search-results')
+        fontresult = self.parser.select(self.document.getroot(), 'div.search-results font.search-results')
         # for each result in freefind, explore the subtitle list page to iter subtitles
         for res in fontresult:
-            a = self.parser.select(res,'a',1)
-            url = a.attrib.get('href','')
+            a = self.parser.select(res, 'a', 1)
+            url = a.attrib.get('href', '')
             self.browser.location(url)
             assert self.browser.is_on_page(SubtitlesPage)
             # subtitles page does the job
@@ -41,15 +41,15 @@ class SearchPage(BasePage):
 
 
 class SubtitlesPage(BasePage):
-    def get_subtitle(self,id):
+    def get_subtitle(self, id):
         href = id.split('|')[1]
         # we have to find the 'tr' which contains the link to this address
-        a = self.parser.select(self.document.getroot(),'a[href="%s"]'%href,1)
+        a = self.parser.select(self.document.getroot(), 'a[href="%s"]' % href, 1)
         line = a.getparent().getparent().getparent().getparent().getparent()
-        cols = self.parser.select(line,'td')
-        traduced_title = self.parser.select(cols[0],'font',1).text.lower()
-        original_title = self.parser.select(cols[1],'font',1).text.lower()
-        nb_cd = self.parser.select(cols[2],'font',1).text.strip()
+        cols = self.parser.select(line, 'td')
+        traduced_title = self.parser.select(cols[0], 'font', 1).text.lower()
+        original_title = self.parser.select(cols[1], 'font', 1).text.lower()
+        nb_cd = self.parser.select(cols[2], 'font', 1).text.strip()
         nb_cd = int(nb_cd.split()[0])
 
         traduced_title_words = traduced_title.split()
@@ -59,30 +59,30 @@ class SubtitlesPage(BasePage):
         traduced_title = " ".join(traduced_title_words)
         original_title = " ".join(original_title_words)
 
-        name = unicode('%s (%s)'%(original_title,traduced_title))
-        url = unicode('http://davidbillemont3.free.fr/%s'%href)
-        subtitle = Subtitle(id,name)
+        name = unicode('%s (%s)' % (original_title, traduced_title))
+        url = unicode('http://davidbillemont3.free.fr/%s' % href)
+        subtitle = Subtitle(id, name)
         subtitle.url = url
         subtitle.language = unicode('fr')
         subtitle.nb_cd = nb_cd
         subtitle.description = NotAvailable
         return subtitle
 
-    def iter_subtitles(self,language, pattern):
-        pattern = pattern.strip().replace('+',' ').lower()
+    def iter_subtitles(self, language, pattern):
+        pattern = pattern.strip().replace('+', ' ').lower()
         pattern_words = pattern.split()
-        tab = self.parser.select(self.document.getroot(),'table[bordercolor="#B8C0B2"]')
+        tab = self.parser.select(self.document.getroot(), 'table[bordercolor="#B8C0B2"]')
         if len(tab) == 0:
-            tab = self.parser.select(self.document.getroot(),'table[bordercolordark="#B8C0B2"]')
+            tab = self.parser.select(self.document.getroot(), 'table[bordercolordark="#B8C0B2"]')
             if len(tab) == 0:
                 return
         # some results of freefind point on useless pages
-        if tab[0].attrib.get('width','') != '100%':
+        if tab[0].attrib.get('width', '') != '100%':
             return
         for line in tab[0].getiterator('tr'):
-            cols = self.parser.select(line,'td')
-            traduced_title = self.parser.select(cols[0],'font',1).text.lower()
-            original_title = self.parser.select(cols[1],'font',1).text.lower()
+            cols = self.parser.select(line, 'td')
+            traduced_title = self.parser.select(cols[0], 'font', 1).text.lower()
+            original_title = self.parser.select(cols[1], 'font', 1).text.lower()
 
             traduced_title_words = traduced_title.split()
             original_title_words = original_title.split()
@@ -98,13 +98,13 @@ class SubtitlesPage(BasePage):
                 traduced_title = " ".join(traduced_title_words)
                 original_title = " ".join(original_title_words)
 
-                nb_cd = self.parser.select(cols[2],'font',1).text.strip()
+                nb_cd = self.parser.select(cols[2], 'font', 1).text.strip()
                 nb_cd = int(nb_cd.strip(' CD'))
-                name = unicode('%s (%s)'%(original_title,traduced_title))
-                href = self.parser.select(cols[3],'a',1).attrib.get('href','')
-                url = unicode('http://davidbillemont3.free.fr/%s'%href)
-                id = unicode('%s|%s'%(self.browser.geturl().split('/')[-1],href))
-                subtitle = Subtitle(id,name)
+                name = unicode('%s (%s)' % (original_title, traduced_title))
+                href = self.parser.select(cols[3], 'a', 1).attrib.get('href', '')
+                url = unicode('http://davidbillemont3.free.fr/%s' % href)
+                id = unicode('%s|%s' % (self.browser.geturl().split('/')[-1], href))
+                subtitle = Subtitle(id, name)
                 subtitle.url = url
                 subtitle.language = unicode('fr')
                 subtitle.nb_cd = nb_cd

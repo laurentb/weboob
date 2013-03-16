@@ -34,10 +34,10 @@ class SevenFiftyGramsBrowser(BaseBrowser):
     PAGES = {
         'http://www.750g.com/recettes_.*.htm': ResultsPage,
         'http://www.750g.com/fiche_de_cuisine_complete.htm\?recettes_id=[0-9]*': RecipePage,
-        }
+    }
 
     def iter_recipes(self, pattern):
-        self.location('http://www.750g.com/recettes_%s.htm' % (pattern.replace(' ','_')))
+        self.location('http://www.750g.com/recettes_%s.htm' % (pattern.replace(' ', '_')))
         assert self.is_on_page(ResultsPage)
         return self.page.iter_recipes()
 

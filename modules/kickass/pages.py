@@ -31,7 +31,7 @@ from weboob.tools.browser import BasePage
 from weboob.tools.misc import get_bytes_size
 
 
-__all__ = ['TorrentsPage','TorrentPage']
+__all__ = ['TorrentsPage', 'TorrentPage']
 
 
 class TorrentsPage(BasePage):
@@ -53,14 +53,14 @@ class TorrentsPage(BasePage):
                     .replace('.html', '')
 
                 # look for url
-                for a in self.parser.select(tr,'div.iaconbox a'):
+                for a in self.parser.select(tr, 'div.iaconbox a'):
                     href = a.attrib.get('href', '')
                     if href.startswith('magnet'):
                         magnet = unicode(href)
                     elif href.startswith('http'):
                         url = unicode(href)
                     elif href.startswith('//'):
-                        url = u'http:%s'%href
+                        url = u'http:%s' % href
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
@@ -107,16 +107,16 @@ class TorrentPage(BasePage):
                     leech = 0
 
         title = self.parser.select(self.document.getroot(),
-                'h1.torrentName span', 1)
+                                   'h1.torrentName span', 1)
         title = unicode(title.text)
 
         for a in self.parser.select(self.document.getroot(),
-                'div.downloadButtonGroup a'):
+                                    'div.downloadButtonGroup a'):
             href = a.attrib.get('href', '')
             if href.startswith('magnet'):
                 magnet = unicode(href)
             elif href.startswith('//'):
-                url = u'http:%s'%href
+                url = u'http:%s' % href
             elif href.startswith('http'):
                 url = unicode(href)
 
@@ -127,7 +127,7 @@ class TorrentPage(BasePage):
             # is enough to know if this is the right span
             if (span.attrib.get('class', '') == 'folder'
                 or span.attrib.get('class', '') == 'folderopen') \
-            and len(span.getchildren()) > 2:
+                    and len(span.getchildren()) > 2:
                 size = span.getchildren()[1].tail
                 u = span.getchildren()[2].text
                 size = float(size.split(': ')[1].replace(',', '.'))

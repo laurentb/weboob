@@ -42,53 +42,55 @@ class ImdbBrowser(BaseBrowser):
         'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
         'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
         'http://www.imdb.com/name/nm[0-9]*/filmo.*': FilmographyPage,
-        }
+    }
 
     def iter_movies(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
-        for cat in ['title_popular','title_exact','title_approx']:
+        for cat in ['title_popular', 'title_exact', 'title_approx']:
             if cat in jres:
                 for m in jres[cat]:
                     tdesc = unicode(m['title_description'])
                     if '<a' in tdesc and '>' in tdesc:
-                        short_description = u'%s %s'%(tdesc.split('<')[0].strip(', '), tdesc.split('>')[1].split('<')[0])
+                        short_description = u'%s %s' % (tdesc.split('<')[
+                                                        0].strip(', '), tdesc.split('>')[1].split('<')[0])
                     else:
                         short_description = tdesc.strip(', ')
-                    movie = Movie(m['id'],latin2unicode(m['title']))
-                    movie.other_titles    = NotLoaded
-                    movie.release_date    = NotLoaded
-                    movie.duration        = NotLoaded
+                    movie = Movie(m['id'], latin2unicode(m['title']))
+                    movie.other_titles = NotLoaded
+                    movie.release_date = NotLoaded
+                    movie.duration = NotLoaded
                     movie.short_description = latin2unicode(short_description)
-                    movie.pitch           = NotLoaded
-                    movie.country         = NotLoaded
-                    movie.note            = NotLoaded
-                    movie.roles           = NotLoaded
-                    movie.all_release_dates= NotLoaded
-                    movie.thumbnail_url  = NotLoaded
+                    movie.pitch = NotLoaded
+                    movie.country = NotLoaded
+                    movie.note = NotLoaded
+                    movie.roles = NotLoaded
+                    movie.all_release_dates = NotLoaded
+                    movie.thumbnail_url = NotLoaded
                     yield movie
 
     def iter_persons(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
-        for cat in ['name_popular','name_exact','name_approx']:
+        for cat in ['name_popular', 'name_exact', 'name_approx']:
             if cat in jres:
                 for p in jres[cat]:
-                    person = Person(p['id'],latin2unicode(p['name']))
-                    person.real_name      = NotLoaded
-                    person.birth_place    = NotLoaded
-                    person.birth_date     = NotLoaded
-                    person.death_date     = NotLoaded
-                    person.gender         = NotLoaded
-                    person.nationality    = NotLoaded
-                    person.short_biography= NotLoaded
-                    person.short_description= latin2unicode(p['description'])
-                    person.roles          = NotLoaded
-                    person.thumbnail_url  = NotLoaded
+                    person = Person(p['id'], latin2unicode(p['name']))
+                    person.real_name = NotLoaded
+                    person.birth_place = NotLoaded
+                    person.birth_date = NotLoaded
+                    person.death_date = NotLoaded
+                    person.gender = NotLoaded
+                    person.nationality = NotLoaded
+                    person.short_biography = NotLoaded
+                    person.short_description = latin2unicode(p['description'])
+                    person.roles = NotLoaded
+                    person.thumbnail_url = NotLoaded
                     yield person
 
     def get_movie(self, id):
-        res = self.readurl('http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id )
+        res = self.readurl(
+            'http://imdbapi.org/?id=%s&type=json&plot=simple&episode=1&lang=en-US&aka=full&release=simple&business=0&tech=0' % id)
         if res is not None:
             jres = json.loads(res)
         else:
@@ -122,7 +124,7 @@ class ImdbBrowser(BaseBrowser):
         if 'also_known_as' in jres:
             for other_t in jres['also_known_as']:
                 if 'country' in other_t and 'title' in other_t:
-                    other_titles.append('%s : %s' % (other_t['country'],htmlparser.unescape(other_t['title'])))
+                    other_titles.append('%s : %s' % (other_t['country'], htmlparser.unescape(other_t['title'])))
         if 'release_date' in jres:
             dstr = str(jres['release_date'])
             year = int(dstr[:4])
@@ -134,31 +136,31 @@ class ImdbBrowser(BaseBrowser):
             day = int(dstr[-2:])
             if day == 0:
                 day = 1
-            release_date = datetime(year,month,day)
+            release_date = datetime(year, month, day)
         if 'country' in jres:
             country = u''
             for c in jres['country']:
-                country += '%s, '%c
+                country += '%s, ' % c
             country = country[:-2]
         if 'plot_simple' in jres:
             pitch = unicode(jres['plot_simple'])
         if 'rating' in jres and 'rating_count' in jres:
-            note = u'%s/10 (%s votes)'%(jres['rating'],jres['rating_count'])
-        for r in ['actor','director','writer']:
-            if '%ss'%r in jres:
-                roles['%s'%r] = list(jres['%ss'%r])
+            note = u'%s/10 (%s votes)' % (jres['rating'], jres['rating_count'])
+        for r in ['actor', 'director', 'writer']:
+            if '%ss' % r in jres:
+                roles['%s' % r] = list(jres['%ss' % r])
 
-        movie = Movie(id,title)
-        movie.other_titles    = other_titles
-        movie.release_date    = release_date
-        movie.duration        = duration
-        movie.pitch           = pitch
-        movie.country         = country
-        movie.note            = note
-        movie.roles           = roles
-        movie.short_description= short_description
-        movie.all_release_dates= NotLoaded
-        movie.thumbnail_url   = thumbnail_url
+        movie = Movie(id, title)
+        movie.other_titles = other_titles
+        movie.release_date = release_date
+        movie.duration = duration
+        movie.pitch = pitch
+        movie.country = country
+        movie.note = note
+        movie.roles = roles
+        movie.short_description = short_description
+        movie.all_release_dates = NotLoaded
+        movie.thumbnail_url = thumbnail_url
         return movie
 
     def get_person(self, id):
@@ -175,7 +177,7 @@ class ImdbBrowser(BaseBrowser):
         return self.page.get_biography()
 
     def iter_movie_persons(self, movie_id, role):
-        self.location('http://www.imdb.com/title/%s/fullcredits'%movie_id)
+        self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
         assert self.is_on_page(MovieCrewPage)
         for p in self.page.iter_persons(role):
             yield p
@@ -192,13 +194,13 @@ class ImdbBrowser(BaseBrowser):
             yield movie
 
     def iter_movie_persons_ids(self, movie_id):
-        self.location('http://www.imdb.com/title/%s/fullcredits'%movie_id)
+        self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
         assert self.is_on_page(MovieCrewPage)
         for person in self.page.iter_persons_ids():
             yield person
 
-    def get_movie_releases(self,id, country):
-        self.location('http://www.imdb.com/title/%s/releaseinfo'%id)
+    def get_movie_releases(self, id, country):
+        self.location('http://www.imdb.com/title/%s/releaseinfo' % id)
         assert self.is_on_page(ReleasePage)
         return self.page.get_movie_releases(country)
 
@@ -222,5 +224,5 @@ dict_hex = {'&#xE1;': u'á',
 
 def latin2unicode(word):
     for key in dict_hex.keys():
-        word = word.replace(key,dict_hex[key])
+        word = word.replace(key, dict_hex[key])
     return unicode(word)

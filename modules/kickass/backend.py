@@ -72,5 +72,5 @@ class KickassBackend(BaseBackend, ICapTorrent):
         return torrent
 
     OBJECTS = {
-        Torrent:fill_torrent
+        Torrent: fill_torrent
     }
