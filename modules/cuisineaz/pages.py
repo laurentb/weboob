@@ -33,9 +33,11 @@ class ResultsPage(BasePage):
         for div in self.parser.select(self.document.getroot(), 'div.rechRecette'):
             thumbnail_url = NotAvailable
             short_description = NotAvailable
-            imgs = self.parser.select(div, 'img.photo')
+            imgs = self.parser.select(div, 'img')
             if len(imgs) > 0:
-                thumbnail_url = unicode(imgs[0].attrib.get('src', ''))
+                url = unicode(imgs[0].attrib.get('src', ''))
+                if url.startswith('http://'):
+                    thumbnail_url = url
 
             link = self.parser.select(div, 'a.rechRecetTitle', 1)
             title = unicode(link.text)
