@@ -52,7 +52,7 @@ class CanalplusBrowser(BaseBrowser):
         r'http://service.canal-plus.com/video/rest/getMEAs/cplus/.*': VideoPage,
         }
 
-    #We need lxml.etree.XMLParser for read CDATA
+    #We need lxml.etree.XMLParser to read CDATA
     PARSER = XMLParser()
     FORMATS = {
         'sd': 'BAS_DEBIT',
