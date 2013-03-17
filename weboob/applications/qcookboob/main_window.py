@@ -55,6 +55,7 @@ class MainWindow(QtMainWindow):
         self.ui.backButton.hide()
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
+        self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
@@ -188,6 +189,24 @@ class MainWindow(QtMainWindow):
         wrecipe = Recipe(recipe, backend, self)
         self.ui.info_content.layout().addWidget(wrecipe)
         self.current_info_widget = wrecipe
+        QApplication.restoreOverrideCursor()
+
+    def searchId(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        id = unicode(self.ui.idEdit.text())
+        if '@' in id:
+            backend_name = id.split('@')[1]
+            id = id.split('@')[0]
+        else:
+            backend_name = None
+        fail = True
+        for backend in self.weboob.iter_backends():
+            if (backend_name != None and backend.name == backend_name) or backend_name == None:
+                recipe = backend.get_recipe(id)
+                if recipe:
+                    fail = False
+                    self.doAction('Details of recipe "%s"' %
+                                         recipe.title, self.displayRecipe, [recipe, backend])
         QApplication.restoreOverrideCursor()
 
     def closeEvent(self, ev):

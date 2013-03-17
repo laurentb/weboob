@@ -140,7 +140,7 @@
              <x>0</x>
              <y>0</y>
              <width>708</width>
-             <height>292</height>
+             <height>261</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -161,8 +161,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>96</width>
-             <height>26</height>
+             <width>63</width>
+             <height>18</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8"/>
@@ -172,6 +172,20 @@
        </layout>
       </widget>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>search by ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="idEdit"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
