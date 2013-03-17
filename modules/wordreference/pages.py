@@ -41,7 +41,11 @@ class TranslatePage(BasePage):
         # if only one signification is found
         for div in self.document.getiterator('div'):
             if div.attrib.get('class','') == "trans clickable":
-                names = u''+" ".join(div.text_content().split(']')[1].split()[1:]).split(';')[0]
+                if ']' in div.text_content():
+                    tnames = div.text_content().split(']')[1].split()[1:]
+                else:
+                    tnames = div.text_content().split()[1:]
+                names = u''+" ".join(tnames).split(';')[0]
                 names = LAST_THING_IN_PARENTHESIS.sub("",names)
                 return names.strip()
         # another numerotation possibility...
