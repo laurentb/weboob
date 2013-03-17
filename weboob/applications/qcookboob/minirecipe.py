@@ -49,7 +49,7 @@ class MiniRecipe(QFrame):
         if not empty(self.recipe.thumbnail_url):
             data = urllib.urlopen(self.recipe.thumbnail_url).read()
             img = QImage.fromData(data)
-            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100))
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 
     def enterEvent(self, event):
         self.setFrameShadow(self.Sunken)

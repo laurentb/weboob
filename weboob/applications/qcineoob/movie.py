@@ -92,7 +92,7 @@ class Movie(QFrame):
         if not empty(self.movie.thumbnail_url):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)
-            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(220,Qt.SmoothTransformation))
 
     def searchSubtitle(self):
         tosearch = unicode(self.movie.original_title)
