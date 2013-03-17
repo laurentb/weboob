@@ -50,3 +50,7 @@ class Video(QDialog):
     def closeEvent(self, event):
         self.ui.videoPlayer.stop()
         event.accept()
+
+    def hideEvent(self, event):
+        self.ui.videoPlayer.stop()
+        event.accept()
