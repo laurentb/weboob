@@ -81,7 +81,7 @@ class GDCVaultBrowser(BaseBrowser):
     def get_video(self, url, video=None):
         self.location(url)
         # redirects to /login means the video is not public
-        if not isinstance(self.page, VideoPage):
+        if not self.is_on_page(VideoPage):
             raise BrowserUnavailable('Requires account')
         return self.page.get_video(video)
 
