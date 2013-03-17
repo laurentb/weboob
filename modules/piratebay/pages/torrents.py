@@ -22,6 +22,8 @@ from weboob.tools.browser import BasePage,BrokenPageError
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotAvailable, NotLoaded
 
+from html2text import unescape
+
 
 __all__ = ['TorrentsPage']
 
@@ -50,7 +52,7 @@ class TorrentsPage(BasePage):
                 td = tr.getchildren()[1]
                 div = td.getchildren()[0]
                 link = div.find('a').attrib['href']
-                title = unicode(div.find('a').text)
+                title = unicode(unescape(div.find('a').text))
                 idt = link.split('/')[2]
 
                 a = td.getchildren()[1]
@@ -80,7 +82,7 @@ class TorrentPage(BasePage):
         magnet = NotAvailable
         for div in self.document.getiterator('div'):
             if div.attrib.get('id', '') == 'title':
-                title = unicode(div.text.strip())
+                title = unicode(unescape(div.text.strip()))
             elif div.attrib.get('class', '') == 'download':
                 for link in self.parser.select(div, 'a'):
                     href = link.attrib.get('href', '')
