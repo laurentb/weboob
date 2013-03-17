@@ -43,5 +43,5 @@ class SevenFiftyGramsBrowser(BaseBrowser):
 
     def get_recipe(self, id):
         self.location('http://www.750g.com/fiche_de_cuisine_complete.htm?recettes_id=%s' % id)
-        assert self.is_on_page(RecipePage)
-        return self.page.get_recipe(id)
+        if self.is_on_page(RecipePage):
+            return self.page.get_recipe(id)

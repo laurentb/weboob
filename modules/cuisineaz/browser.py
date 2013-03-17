@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages import RecipePage, ResultsPage
 
@@ -43,6 +43,11 @@ class CuisineazBrowser(BaseBrowser):
         return self.page.iter_recipes()
 
     def get_recipe(self, id):
-        self.location('http://www.cuisineaz.com/recettes/%s.aspx' % id)
-        assert self.is_on_page(RecipePage)
-        return self.page.get_recipe(id)
+        try:
+            self.location('http://www.cuisineaz.com/recettes/%s.aspx' % id)
+        except BrowserHTTPNotFound:
+            return
+        if self.is_on_page(RecipePage):
+            return self.page.get_recipe(id)
+        else:
+            return
