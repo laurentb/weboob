@@ -35,8 +35,18 @@ from .video import GDCVaultVideo
 #import lxml.etree
 
 
-__all__ = ['VideoPage']
+__all__ = ['IndexPage', 'VideoPage']
 
+
+class IndexPage(BasePage):
+    def iter_videos(self):
+        for a in self.parser.select(self.document.getroot(), 'section.conference ul.media_items li.featured a.session_item'):
+            print a
+            #m = re.match('id-(\d+)', a.attrib.get('class', ''))
+            #if not m:
+            #    continue
+            # FIXME
+            yield None
 
 class VideoPage(BasePage):
     def get_video(self, video=None):

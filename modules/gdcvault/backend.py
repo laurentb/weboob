@@ -22,8 +22,9 @@
 from __future__ import with_statement
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import GDCVaultBrowser
 from .video import GDCVaultVideo
@@ -40,6 +41,24 @@ class GDCVaultBackend(BaseBackend, ICapVideo, ICapCollection):
     DESCRIPTION = 'Game Developers Conferences Vault video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = GDCVaultBrowser
+    CONFIG = BackendConfig(Value('username',                  label='Username', default=''),
+                           ValueBackendPassword('password',   label='Password', default=''))
+
+    def create_default_browser(self):
+        username = self.config['username'].get()
+        if len(username) > 0:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(username, password)
+
+    def deinit(self):
+        # don't need to logout if the browser hasn't been used.
+        if not self._browser:
+            return
+
+        with self.browser:
+            self.browser.close_session()
 
     def get_video(self, _id):
         with self.browser:
