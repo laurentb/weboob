@@ -37,7 +37,10 @@ class MiniRecipe(QFrame):
         self.backend = backend
         self.recipe = recipe
         self.ui.titleLabel.setText(recipe.title)
-        self.ui.shortDescLabel.setText(recipe.short_description)
+        if len(recipe.short_description) > 300:
+            self.ui.shortDescLabel.setText('%s [...]'%recipe.short_description[:300])
+        else:
+            self.ui.shortDescLabel.setText(recipe.short_description)
         self.ui.backendLabel.setText(backend.name)
 
         self.gotThumbnail()
@@ -46,7 +49,7 @@ class MiniRecipe(QFrame):
         if not empty(self.recipe.thumbnail_url):
             data = urllib.urlopen(self.recipe.thumbnail_url).read()
             img = QImage.fromData(data)
-            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img))
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100))
 
     def enterEvent(self, event):
         self.setFrameShadow(self.Sunken)

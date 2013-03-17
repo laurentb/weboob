@@ -18,8 +18,8 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>2000</width>
-    <height>600</height>
+    <width>8000</width>
+    <height>5000</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>600</height>
+       <height>4000</height>
       </size>
      </property>
      <property name="frameShape">
@@ -243,10 +243,16 @@
       </item>
       <item>
        <widget class="QFrame" name="frame_5">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>200</height>
+          <height>1000</height>
          </size>
         </property>
         <property name="frameShape">
@@ -265,6 +271,12 @@
          </item>
          <item>
           <widget class="QTextEdit" name="ingredientsPlain">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>200</height>
+            </size>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -276,7 +288,7 @@
       <item>
        <widget class="QFrame" name="frame_8">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -284,7 +296,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>200</height>
+          <height>1000</height>
          </size>
         </property>
         <property name="frameShape">
@@ -309,6 +321,12 @@
          </item>
          <item>
           <widget class="QPlainTextEdit" name="instructionsPlain">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>200</height>
+            </size>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
@@ -319,10 +337,16 @@
       </item>
       <item>
        <widget class="QFrame" name="frame_13">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>200</height>
+          <height>1000</height>
          </size>
         </property>
         <property name="frameShape">
@@ -341,6 +365,12 @@
          </item>
          <item>
           <widget class="QTextEdit" name="commentsPlain">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
            <property name="textInteractionFlags">
             <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
            </property>
