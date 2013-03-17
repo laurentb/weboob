@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages import TorrentsPage, TorrentPage
 
@@ -42,6 +42,9 @@ class BtmonBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('http://www.btmon.com/%s.html' % id)
+        try:
+            self.location('http://www.btmon.com/%s.html' % id)
+        except BrowserHTTPNotFound:
+            return
         if self.is_on_page(TorrentPage):
             return self.page.get_torrent()

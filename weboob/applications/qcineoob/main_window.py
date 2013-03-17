@@ -28,7 +28,6 @@ from weboob.capabilities.torrent import ICapTorrent
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.tools.browser import BrowserHTTPNotFound, BrokenPageError
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
@@ -406,10 +405,7 @@ class MainWindow(QtMainWindow):
             backend_name = None
         for backend in self.weboob.iter_backends():
             if backend.has_caps(cap) and ((backend_name and backend.name == backend_name) or not backend_name):
-                try:
-                    exec('object = backend.get_%s(id)' % (stype))
-                except (BrowserHTTPNotFound, BrokenPageError):
-                    object = None
+                exec('object = backend.get_%s(id)' % (stype))
                 if object:
                     func_display = 'self.display' + stype[0].upper() + stype[1:]
                     exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" % 

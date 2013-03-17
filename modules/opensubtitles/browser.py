@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 from .pages import SubtitlesPage, SearchPage, SubtitlePage
@@ -47,6 +47,9 @@ class OpensubtitlesBrowser(BaseBrowser):
         return self.page.iter_subtitles()
 
     def get_subtitle(self, id):
-        self.location('http://www.opensubtitles.org/subtitles/%s' % id)
-        assert self.is_on_page(SubtitlePage)
-        return self.page.get_subtitle()
+        try:
+            self.location('http://www.opensubtitles.org/subtitles/%s' % id)
+        except BrowserHTTPNotFound:
+            return
+        if self.is_on_page(SubtitlePage):
+            return self.page.get_subtitle()

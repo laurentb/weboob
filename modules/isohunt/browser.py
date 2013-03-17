@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages.torrents import TorrentsPage, TorrentPage
 
@@ -45,6 +45,9 @@ class IsohuntBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('https://isohunt.com/torrent_details/%s/?tab=summary' % id)
+        try:
+            self.location('https://isohunt.com/torrent_details/%s/?tab=summary' % id)
+        except BrowserHTTPNotFound:
+            return
         if self.is_on_page(TorrentPage):
             return self.page.get_torrent(id)

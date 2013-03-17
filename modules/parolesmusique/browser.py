@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages import SongResultsPage, SonglyricsPage, ArtistResultsPage, ArtistSongsPage, HomePage
 
@@ -45,6 +45,9 @@ class ParolesmusiqueBrowser(BaseBrowser):
         return self.page.iter_lyrics(criteria, pattern)
 
     def get_lyrics(self, id):
-        self.location('http://www.paroles-musique.com/paroles-%s' % id)
-        assert self.is_on_page(SonglyricsPage)
-        return self.page.get_lyrics(id)
+        try:
+            self.location('http://www.paroles-musique.com/paroles-%s' % id)
+        except BrowserHTTPNotFound:
+            return
+        if self.is_on_page(SonglyricsPage):
+            return self.page.get_lyrics(id)

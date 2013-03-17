@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages import SeriePage, SearchPage, SeasonPage, HomePage
 
@@ -48,6 +48,9 @@ class TvsubtitlesBrowser(BaseBrowser):
         return self.page.iter_subtitles(language, pattern)
 
     def get_subtitle(self, id):
-        self.location('http://www.tvsubtitles.net/subtitle-%s.html' % id)
-        assert self.is_on_page(SeasonPage)
-        return self.page.get_subtitle()
+        try:
+            self.location('http://www.tvsubtitles.net/subtitle-%s.html' % id)
+        except BrowserHTTPNotFound:
+            return
+        if self.is_on_page(SeasonPage):
+            return self.page.get_subtitle()

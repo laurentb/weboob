@@ -48,5 +48,5 @@ class AttilasubBrowser(BaseBrowser):
             self.location('http://davidbillemont3.free.fr/%s' % url_end)
         except BrowserHTTPNotFound:
             return
-        assert self.is_on_page(SubtitlesPage)
-        return self.page.get_subtitle(id)
+        if self.is_on_page(SubtitlesPage):
+            return self.page.get_subtitle(id)

@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 
 from .pages.index import IndexPage
 from .pages.torrents import TorrentsPage, TorrentPage
@@ -49,6 +49,9 @@ class PiratebayBrowser(BaseBrowser):
         return self.page.iter_torrents()
 
     def get_torrent(self, id):
-        self.location('https://thepiratebay.se/torrent/%s/' % id)
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent(id)
+        try:
+            self.location('https://thepiratebay.se/torrent/%s/' % id)
+        except BrowserHTTPNotFound:
+            return
+        if self.is_on_page(TorrentPage):
+            return self.page.get_torrent(id)
