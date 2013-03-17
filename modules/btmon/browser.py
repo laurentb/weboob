@@ -43,5 +43,5 @@ class BtmonBrowser(BaseBrowser):
 
     def get_torrent(self, id):
         self.location('http://www.btmon.com/%s.html' % id)
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent()
+        if self.is_on_page(TorrentPage):
+            return self.page.get_torrent()

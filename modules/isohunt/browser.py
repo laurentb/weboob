@@ -46,5 +46,5 @@ class IsohuntBrowser(BaseBrowser):
 
     def get_torrent(self, id):
         self.location('https://isohunt.com/torrent_details/%s/?tab=summary' % id)
-        assert self.is_on_page(TorrentPage)
-        return self.page.get_torrent(id)
+        if self.is_on_page(TorrentPage):
+            return self.page.get_torrent(id)

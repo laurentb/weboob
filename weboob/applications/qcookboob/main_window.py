@@ -26,6 +26,7 @@ from PyQt4.QtGui import QApplication, QCompleter
 from weboob.capabilities.recipe import ICapRecipe
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.browser import BrowserHTTPNotFound, BrokenPageError
 
 from weboob.applications.qcookboob.ui.main_window_ui import Ui_MainWindow
 
@@ -199,14 +200,14 @@ class MainWindow(QtMainWindow):
             id = id.split('@')[0]
         else:
             backend_name = None
-        fail = True
         for backend in self.weboob.iter_backends():
-            if (backend_name != None and backend.name == backend_name) or backend_name == None:
-                recipe = backend.get_recipe(id)
+            if (backend_name and backend.name == backend_name) or not backend_name:
+                try:
+                    recipe = backend.get_recipe(id)
+                except (BrowserHTTPNotFound, BrokenPageError):
+                    recipe = None
                 if recipe:
-                    fail = False
-                    self.doAction('Details of recipe "%s"' %
-                                         recipe.title, self.displayRecipe, [recipe, backend])
+                    self.doAction('Details of recipe "%s"' % recipe.title, self.displayRecipe, [recipe, backend])
         QApplication.restoreOverrideCursor()
 
     def closeEvent(self, ev):

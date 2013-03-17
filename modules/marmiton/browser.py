@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import BaseBrowser
 
 from .pages import RecipePage, ResultsPage
 
@@ -42,11 +42,6 @@ class MarmitonBrowser(BaseBrowser):
         return self.page.iter_recipes()
 
     def get_recipe(self, id):
-        try:
-            self.location('http://www.marmiton.org/recettes/recette_%s.aspx' % id)
-        except BrowserHTTPNotFound:
-            return
+        self.location('http://www.marmiton.org/recettes/recette_%s.aspx' % id)
         if self.is_on_page(RecipePage):
             return self.page.get_recipe(id)
-        else:
-            return

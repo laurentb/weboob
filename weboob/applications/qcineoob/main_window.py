@@ -28,6 +28,7 @@ from weboob.capabilities.torrent import ICapTorrent
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
+from weboob.tools.browser import BrowserHTTPNotFound, BrokenPageError
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
@@ -64,7 +65,7 @@ class MainWindow(QtMainWindow):
         self.ui.backButton.hide()
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
-        self.connect(self.ui.typeCombo, SIGNAL("returnPressed()"), self.search)
+        self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
         self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
@@ -383,6 +384,37 @@ class MainWindow(QtMainWindow):
         wsubtitle = Subtitle(subtitle, backend, self)
         self.ui.info_content.layout().addWidget(wsubtitle)
         self.current_info_widget = wsubtitle
+
+    def searchId(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        stype = unicode(self.ui.idTypeCombo.currentText())
+        title_field = 'name'
+        if stype == 'movie':
+            cap = ICapCinema
+            title_field = 'original_title'
+        elif stype == 'person':
+            cap = ICapCinema
+        elif stype == 'torrent':
+            cap = ICapTorrent
+        elif stype == 'subtitle':
+            cap = ICapSubtitle
+        id = unicode(self.ui.idEdit.text())
+        if '@' in id:
+            backend_name = id.split('@')[1]
+            id = id.split('@')[0]
+        else:
+            backend_name = None
+        for backend in self.weboob.iter_backends():
+            if backend.has_caps(cap) and ((backend_name and backend.name == backend_name) or not backend_name):
+                try:
+                    exec('object = backend.get_%s(id)' % (stype))
+                except (BrowserHTTPNotFound, BrokenPageError):
+                    object = None
+                if object:
+                    func_display = 'self.display' + stype[0].upper() + stype[1:]
+                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" % 
+                            (stype, title_field, func_display))
+        QApplication.restoreOverrideCursor()
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(

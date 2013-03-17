@@ -75,7 +75,7 @@ class ImdbBrowser(BaseBrowser):
         for cat in ['name_popular', 'name_exact', 'name_approx']:
             if cat in jres:
                 for p in jres[cat]:
-                    person = Person(p['id'], latin2unicode(p['name']))
+                    person = Person(p['id'], latin2unicode(unicode(p['name'])))
                     person.real_name = NotLoaded
                     person.birth_place = NotLoaded
                     person.birth_date = NotLoaded
@@ -218,6 +218,7 @@ dict_hex = {'&#xE1;': u'á',
             '&#xE0;': u'à',
             '&#xC0;': u'À',
             '&#xE2;': u'â',
+            '&#xC9;': u'É',
             '&#xE7;': u'ç'
             }
 
