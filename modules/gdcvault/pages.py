@@ -50,10 +50,18 @@ class IndexPage(BasePage):
 
 class VideoPage(BasePage):
     def get_video(self, video=None):
+        # check for slides id variant
+        want_slides = False
+        m = re.match('.*#slides', self.url)
+        if m:
+            want_slides = True
+            # not sure it's safe
+            self.group_dict['id'] += '#slides'
+
         if video is None:
             video = GDCVaultVideo(self.group_dict['id'])
 
-        # the config file has it too, but in CDATA
+        # the config file has it too, but in CDATA and only for type 4
         obj = self.parser.select(self.document.getroot(), 'title')
         if len(obj) > 0:
             title = obj[0].text.strip()
@@ -62,14 +70,45 @@ class VideoPage(BasePage):
                 title = m.group(1)
         video.title = unicode(title)
 
-        # get the config file for the rest
-        obj = self.parser.select(self.document.getroot(), 'iframe', 1)
+        #TODO: POST back the title to /search.php and filter == id to get
+        # cleaner (JSON) data... (though it'd be much slower)
+
+        # try to find an iframe (type 3 and 4)
+        obj = self.parser.select(self.document.getroot(), 'iframe')
+        if len(obj) == 0:
+            # type 1 or 2 (swf+js)
+            # find which script element contains the swf args
+            for script in self.parser.select(self.document.getroot(), 'script'):
+                m = re.match(".*new SWFObject.*addVariable\('type', '(.*)'\).*", unicode(script.text), re.DOTALL)
+                if m:
+                    video.ext = m.group(1)
+
+                m = re.match(".*new SWFObject.*addVariable\(\"file\", encodeURIComponent\(\"(.*)\"\)\).*", unicode(script.text), re.DOTALL)
+                if m:
+                    video.url = "http://gdcvault.com%s" % (m.group(1))
+                    video.set_empty_fields(NotAvailable)
+                    return video
+            #XXX: raise error?
+            return None
+
+        obj = obj[0]
         if obj is None:
             return None
+        # type 3 or 4 (iframe)
+        # get the config file for the rest
         iframe_url = obj.attrib['src']
-        m = re.match('(http:.*)player.html\?.*xmlURL=([^&]+)\&token=([^&]+)', iframe_url)
+        m = re.match('(http:.*)player\.html\?.*xmlURL=([^&]+)\&token=([^&]+)', iframe_url)
         if not m:
-            return None
+            m = re.match('/play/mediaProxy\.php\?sid=(\d+)', iframe_url)
+            if m is None:
+                return None
+            # type 3 (pdf slides)
+            video.ext = u'pdf'
+            video.url = "http://gdcvault.com%s" % (unicode(iframe_url))
+            video.set_empty_fields(NotAvailable)
+            return video
+
+        # type 4 (dual screen video)
         config_url = m.group(1) + m.group(2)
 
         #config = self.browser.openurl(config_url).read()
@@ -103,11 +142,10 @@ class VideoPage(BasePage):
         obj = self.parser.select(config.getroot(), 'speaker', 1)
         #print obj.text_content()
 
-        #TODO: speaker as CDATA
-        #video.author = u'European Parliament'
-
         #XXX
         video.url = unicode(videos['speaker'])
+        if want_slides:
+            video.url = unicode(videos['slides'])
         #self.set_details(video)
 
         video.set_empty_fields(NotAvailable)
