@@ -60,8 +60,15 @@ class Subtitle(QFrame):
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
 
     def download(self):
+        if not empty(self.subtitle.url):
+            if self.subtitle.url.endswith('.rar'):
+                ext = '.rar'
+            elif self.subtitle.url.endswith('.srt'):
+                ext = '.srt'
+            else:
+                ext = '.zip'
         fileDial = QFileDialog(self, 'Save "%s" subtitle file' %
-                               self.subtitle.name, '%s' % self.subtitle.name, 'all files (*)')
+                               self.subtitle.name, '%s%s' % (self.subtitle.name, ext), 'all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
         fileDial.setLabelText(QFileDialog.Accept, 'Save subtitle file')
         fileDial.setLabelText(QFileDialog.FileName, 'Subtitle file name')
