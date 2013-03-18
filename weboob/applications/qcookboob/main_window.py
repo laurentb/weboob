@@ -54,6 +54,8 @@ class MainWindow(QtMainWindow):
         self.action_history = {'last_action': None, 'action_list': []}
         self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
         self.ui.backButton.hide()
+        self.connect(self.ui.stopButton, SIGNAL("clicked()"), self.stopProcess)
+        self.ui.stopButton.hide()
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
@@ -122,6 +124,9 @@ class MainWindow(QtMainWindow):
         else:
             return num
 
+    def stopProcess(self):
+        self.process.process.finish_event.set()
+
     def doAction(self, description, fun, args):
         ''' Call fun with args as arguments
         and save it in the action history
@@ -180,12 +185,14 @@ class MainWindow(QtMainWindow):
 
         self.process = QtDo(self.weboob, self.addRecipe)
         self.process.do(self.app._do_complete, self.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=ICapRecipe)
+        self.ui.stopButton.show()
 
     def addRecipe(self, backend, recipe):
         if not backend:
             self.ui.searchEdit.setEnabled(True)
             QApplication.restoreOverrideCursor()
             self.process = None
+            self.ui.stopButton.hide()
             return
         minirecipe = MiniRecipe(self.weboob, backend, recipe, self)
         self.ui.list_content.layout().addWidget(minirecipe)
