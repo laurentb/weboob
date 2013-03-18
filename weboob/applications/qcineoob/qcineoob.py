@@ -34,6 +34,7 @@ class QCineoob(QtApplication):
     SHORT_DESCRIPTION = "search movies, people, torrent and subtitles"
     CAPS = ICapCinema, ICapTorrent, ICapSubtitle
     CONFIG = {'settings': {'backend': '',
+                           'maxresultsnumber': '10'
                            }
               }
 

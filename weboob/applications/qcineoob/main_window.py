@@ -67,7 +67,9 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
         self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
-        self.ui.countSpin.setValue(10)
+
+        count = self.config.get('settings', 'maxresultsnumber')
+        self.ui.countSpin.setValue(int(count))
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
@@ -429,6 +431,7 @@ class MainWindow(QtMainWindow):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(
             self.ui.backendEdit.currentIndex()).toString()))
         self.saveSearchHistory()
+        self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
 
         self.config.save()
         ev.accept()
