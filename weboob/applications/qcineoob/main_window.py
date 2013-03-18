@@ -43,13 +43,14 @@ from .subtitle import Subtitle
 
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, weboob, parent=None):
+    def __init__(self, config, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         self.config = config
         self.weboob = weboob
+        self.app = app
         self.minis = []
         self.current_info_widget = None
 
@@ -66,6 +67,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
         self.connect(self.ui.typeCombo, SIGNAL("currentIndexChanged(QString)"), self.typeComboChanged)
+        self.ui.countSpin.setValue(10)
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
@@ -135,6 +137,13 @@ class MainWindow(QtMainWindow):
         else:
             self.ui.langCombo.hide()
             self.ui.langLabel.hide()
+
+    def getCount(self):
+        num = self.ui.countSpin.value()
+        if num == 0:
+            return None
+        else:
+            return num
 
     def doAction(self, description, fun, args):
         ''' Call fun with args as arguments
@@ -233,7 +242,8 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addMovie)
-        self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
+        #self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
+        self.process.do(self.app._do_complete, self.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=ICapCinema)
 
     def addMovie(self, backend, movie):
         if not backend:
@@ -276,7 +286,8 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addPerson)
-        self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
+        #self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
+        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=ICapCinema)
 
     def addPerson(self, backend, person):
         if not backend:
@@ -319,7 +330,8 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addTorrent)
-        self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+        #self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
 
     def addTorrent(self, backend, torrent):
         if not backend:
@@ -362,7 +374,8 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addSubtitle)
-        self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+        #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
 
     def addSubtitle(self, backend, subtitle):
         if not backend:
