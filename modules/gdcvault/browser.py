@@ -20,7 +20,8 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserUnavailable,\
+        BrowserBanned
 from weboob.tools.browser.decorators import id2url
 
 #from .pages.index import IndexPage
