@@ -23,7 +23,8 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import Cragr
+from .web.browser import Cragr
+from .mobile.browser import CragrMobile
 
 
 __all__ = ['CragrBackend']
@@ -79,9 +80,16 @@ class CragrBackend(BaseBackend, ICapBank):
     BROWSER = Cragr
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
+        try:
+            return self.create_browser(self.config['website'].get(),
+                                       self.config['login'].get(),
+                                       self.config['password'].get())
+        except Cragr.WebsiteNotSupported:
+            self.logger.debug('falling-back on mobile version')
+            self.BROWSER = CragrMobile
+            return self.create_browser(self.config['website'].get(),
+                                       self.config['login'].get(),
+                                       self.config['password'].get())
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()

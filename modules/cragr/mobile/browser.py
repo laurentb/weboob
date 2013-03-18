@@ -27,7 +27,10 @@ from datetime import datetime
 import re
 
 
-class Cragr(BaseBrowser):
+__all__ = ['CragrMobile']
+
+
+class CragrMobile(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
