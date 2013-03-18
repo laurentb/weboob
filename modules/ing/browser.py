@@ -34,7 +34,7 @@ class Ing(BaseBrowser):
     PROTOCOL = 'https'
     DEBUG_HTTP = False
     #DEBUG_HTTP = True
-    ENCODING = "utf-8"
+    ENCODING = None
     PAGES = {'.*pages/index.jsf.*':            AccountsList,
              '.*displayLogin.jsf.*':           LoginPage,
              '.*transferManagement.jsf':       TransferPage,
@@ -51,6 +51,7 @@ class Ing(BaseBrowser):
     transferpage = '/protected/pages/cc/transfer/transferManagement.jsf'
     dotransferpage = '/general?command=DisplayDoTransferCommand'
     valtransferpage = '/protected/pages/cc/transfer/create/transferCreateValidation.jsf'
+    billpage = '/protected/pages/common/estatement/eStatement.jsf'
     where = None
 
     def __init__(self, *args, **kwargs):
@@ -189,8 +190,15 @@ class Ing(BaseBrowser):
 
     def get_bills(self, subscription):
         if not self.is_on_page(BillsPage):
-            self.location('/protected/pages/common/estatement/eStatement.jsf')
-        self.page.selectyear(subscription._localid)
+            self.location(self.billpage)
+        data = {"AJAXREQUEST": "_viewRoot",
+                "accountsel_form": "accountsel_form",
+                subscription._formid: subscription._formid,
+                "autoScroll": "",
+                "javax.faces.ViewState": subscription._javax,
+                "transfer_issuer_radio": subscription.id
+               }
+        self.location(self.billpage, urllib.urlencode(data))
         while 1:
             for bill in self.page.iter_bills(subscription.id):
                 yield bill

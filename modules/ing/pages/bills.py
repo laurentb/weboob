@@ -30,23 +30,23 @@ class BillsPage(BasePage):
         pass
 
     def iter_account(self):
-        ul = self.document.xpath('//ul[@id="accountsel_form:accountsel"]')
+        ul = self.document.xpath('//ul[@class="unstyled striped"]')
+        javax = self.document.xpath("//form[@id='accountsel_form']/input[@name='javax.faces.ViewState']")
+        javax = javax[0].attrib['value']
         #subscriber = unicode(self.document.find('//h5').text)
-        for li in ul[0].xpath('li/a'):
-            label = li.text
-            id = label.split(' ')[-1]
+        for li in ul[0].xpath('li'):
+            inputs = li.xpath('input')[0]
+            label = li.xpath('label')[0]
+            label = unicode(label.text)
+            formid = inputs.attrib['onclick']
+            formid = formid.split("parameters")[1]
+            formid = formid.split("'")[2]
+            id = inputs.attrib['value']
             subscription = Subscription(id)
             subscription.label = label
-#            subscription.subscriber = subscriber
-            subscription._localid = li.attrib['id']
+            subscription._formid = formid
+            subscription._javax = javax
             yield subscription
-
-    def selectyear(self, id):
-        self.browser.select_form("accountsel_form")
-        self.browser.set_all_readonly(False)
-        self.browser.controls.append(ClientForm.TextControl('text', 'AJAXREQUEST', {'value': 'accountsel_form:accountsel_region'}))
-        self.browser.controls.append(ClientForm.TextControl('text', id, {'value': id}))
-        self.browser.submit(nologin=True)
 
     def postpredown(self, id):
         self.browser.select_form("statements_form")
