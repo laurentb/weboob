@@ -25,7 +25,7 @@ from logging import warning, debug
 try:
     from urlparse import parse_qs
 except ImportError:
-    from cgi import parse_qs  # NOQA
+    from cgi import parse_qs
 
 from weboob.tools.misc import html2text, get_bytes_size
 from weboob.capabilities.torrent import Torrent

@@ -22,7 +22,7 @@ from html5lib import treebuilders, HTMLParser
 try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
-    from xml.etree import ElementTree  # NOQA
+    from xml.etree import ElementTree
 
 from .iparser import IParser
 

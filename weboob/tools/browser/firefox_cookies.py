@@ -21,7 +21,7 @@
 try:
     import sqlite3 as sqlite
 except ImportError, e:
-    from pysqlite2 import dbapi2 as sqlite  # NOQA
+    from pysqlite2 import dbapi2 as sqlite
 
 from mechanize import CookieJar, Cookie
 

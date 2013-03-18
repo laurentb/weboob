@@ -43,7 +43,7 @@ try:
     import conic
 except ImportError:
     warning("conic is not found")
-    conic = FakeConic()  # NOQA
+    conic = FakeConic()
 
 
 from logging import debug

@@ -27,4 +27,4 @@ try:
     import simplejson as json
 except ImportError:
     # Python 2.6+ has a module similar to simplejson
-    import json  # NOQA
+    import json

@@ -32,7 +32,7 @@ try:
 except ImportError:
     PROMPT = '--Press return to continue--'
 
-    def readch():  # NOQA
+    def readch():
         return sys.stdin.readline()
 else:
     PROMPT = '--Press a key to continue--'
