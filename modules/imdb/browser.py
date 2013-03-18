@@ -106,6 +106,7 @@ class ImdbBrowser(BaseBrowser):
         short_description = NotAvailable
         thumbnail_url = NotAvailable
         other_titles = []
+        genres = []
         roles = {}
 
         if 'title' not in jres:
@@ -115,6 +116,9 @@ class ImdbBrowser(BaseBrowser):
             thumbnail_url = unicode(jres['poster'])
         if 'directors' in jres:
             short_description = unicode(', '.join(jres['directors']))
+        if 'genres' in jres:
+            for g in jres['genres']:
+                genres.append(g)
         if 'runtime' in jres:
             dur_str = jres['runtime'][0].split(':')
             if len(dur_str) == 1:
@@ -154,6 +158,7 @@ class ImdbBrowser(BaseBrowser):
         movie.other_titles = other_titles
         movie.release_date = release_date
         movie.duration = duration
+        movie.genres = genres
         movie.pitch = pitch
         movie.country = country
         movie.note = note

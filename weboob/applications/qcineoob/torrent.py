@@ -48,6 +48,17 @@ class Torrent(QFrame):
             if not empty(torrent.magnet):
                 self.ui.downloadButton.setText(u'Download not available\nbut magnet link provided')
                 self.ui.downloadButton.setToolTip(u'Use the magnet link')
+        if not empty(torrent.description):
+            self.ui.descriptionPlain.setText(u'%s' % torrent.description)
+        else:
+            self.ui.descriptionPlain.parent().hide()
+        if not empty(torrent.files):
+            files = u''
+            for f in torrent.files:
+                files += '%s\n' % f
+            self.ui.filesPlain.setText(u'%s' % files)
+        else:
+            self.ui.filesPlain.parent().hide()
         if not empty(torrent.magnet):
             self.ui.magnetEdit.setText(u'%s' % torrent.magnet)
         else:

@@ -52,6 +52,10 @@ class MovieInfoFormatter(IFormatter):
         if not empty(obj.duration):
             result += 'Duration: %smin\n' % obj.duration
         result += 'Note: %s\n' % obj.note
+        if not empty(obj.genres):
+            result += '\n%sGenres%s\n' % (self.BOLD, self.NC)
+            for g in obj.genres:
+                result += ' * %s\n' % g
         if not empty(obj.roles):
             result += '\n%sRelated persons%s\n' % (self.BOLD, self.NC)
             for role, lpersons in obj.roles.items():

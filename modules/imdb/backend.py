@@ -105,6 +105,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
             movie.country = mov.country
             movie.note = mov.note
             movie.roles = mov.roles
+            movie.genres = mov.genres
             movie.short_description = mov.short_description
             movie.thumbnail_url = mov.thumbnail_url
 

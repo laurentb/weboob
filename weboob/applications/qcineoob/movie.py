@@ -55,6 +55,14 @@ class Movie(QFrame):
             self.ui.otherTitlesPlain.setPlainText('\n'.join(movie.other_titles))
         else:
             self.ui.otherTitlesPlain.parent().hide()
+        if not empty(movie.genres):
+            genres = u''
+            for g in movie.genres:
+                genres += '%s, ' % g
+            genres = genres[:-2]
+            self.ui.genresLabel.setText(genres)
+        else:
+            self.ui.genresLabel.parent().hide()
         if not empty(movie.release_date):
             self.ui.releaseDateLabel.setText(movie.release_date.strftime('%Y-%m-%d'))
         else:
