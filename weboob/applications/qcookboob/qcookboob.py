@@ -32,6 +32,7 @@ class QCookboob(QtApplication):
     SHORT_DESCRIPTION = "search recipes"
     CAPS = ICapRecipe
     CONFIG = {'settings': {'backend': '',
+                           'maxresultsnumber': '10'
                            }
               }
 
@@ -39,6 +40,6 @@ class QCookboob(QtApplication):
         self.load_backends([ICapRecipe])
         self.load_config()
 
-        self.main_window = MainWindow(self.config, self.weboob)
+        self.main_window = MainWindow(self.config, self.weboob, self)
         self.main_window.show()
         return self.weboob.loop()

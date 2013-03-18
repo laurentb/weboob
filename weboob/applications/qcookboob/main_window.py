@@ -34,13 +34,14 @@ from .recipe import Recipe
 
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, weboob, parent=None):
+    def __init__(self, config, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         self.config = config
         self.weboob = weboob
+        self.app = app
         self.minis = []
         self.current_info_widget = None
 
@@ -56,6 +57,9 @@ class MainWindow(QtMainWindow):
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
+
+        count = self.config.get('settings', 'maxresultsnumber')
+        self.ui.countSpin.setValue(int(count))
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
@@ -110,6 +114,13 @@ class MainWindow(QtMainWindow):
         qc = QCompleter(QStringList(self.search_history), self)
         qc.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.searchEdit.setCompleter(qc)
+
+    def getCount(self):
+        num = self.ui.countSpin.value()
+        if num == 0:
+            return None
+        else:
+            return num
 
     def doAction(self, description, fun, args):
         ''' Call fun with args as arguments
@@ -168,7 +179,7 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addRecipe)
-        self.process.do('iter_recipes', pattern, backends=backend_name, caps=ICapRecipe)
+        self.process.do(self.app._do_complete, self.getCount(), ('title'), 'iter_recipes', pattern, backends=backend_name, caps=ICapRecipe)
 
     def addRecipe(self, backend, recipe):
         if not backend:
@@ -210,6 +221,7 @@ class MainWindow(QtMainWindow):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(
             self.ui.backendEdit.currentIndex()).toString()))
         self.saveSearchHistory()
+        self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
 
         self.config.save()
         ev.accept()
