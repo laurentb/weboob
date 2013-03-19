@@ -11,8 +11,8 @@ Laurent Bachelier <laurent@bachelier.name>
 
 Florent Fourcot <weboob@flo.fourcot.fr>
         * Release manager;
-        * Champslibres, Freemobile, ING, LeclercMobile, Presseurop, Sachsen
-          and Taz modules maintainer;
+        * Champslibres, Freemobile, ING, LeclercMobile, Presseurop, Sachsen,
+          Nettokom, dresdenwetter and Taz modules maintainer;
         * BNPorc patches.
 
 Julien Hebert <juke@free.fr>
@@ -44,6 +44,7 @@ Clément Schreiner <clemux@clemux.info>
 
 François Revol <revol@free.fr>
         * Europarl, GDCVault and Vimeo modules maintainer.
+        * Canaplus and qvideoob fixes
 
 Pierre Mazière <pierre.maziere@gmx.com>
         * LCL module maintainer;
