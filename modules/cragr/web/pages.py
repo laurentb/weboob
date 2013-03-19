@@ -156,17 +156,17 @@ class TransactionsPage(BasePage):
             # Sometimes, the category contains the label, even if there is another line with it again.
             t.category = re.sub('(.*)  .*', r'\1', t.category).strip()
 
+            t.type = self.TYPES.get(t.category, t.TYPE_UNKNOWN)
+
             # Parse operation date in label (for card transactions for example)
             m = re.match('(.*) (\d{2})/(\d{2})$', t.label)
             if m:
-                t.rdate = date_guesser.guess_date(int(m.group(2)), int(m.group(3)), change_current_date=False)
+                if t.type == t.TYPE_CARD:
+                    t.rdate = date_guesser.guess_date(int(m.group(2)), int(m.group(3)), change_current_date=False)
                 t.label = m.group(1).strip()
 
             # Strip city or other useless information from label.
             t.label = re.sub('(.*)  .*', r'\1', t.label).strip()
-
-            t.type = self.TYPES.get(t.category, t.TYPE_UNKNOWN)
-
             t.set_amount(value)
             yield t
 
