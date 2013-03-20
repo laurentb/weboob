@@ -29,6 +29,7 @@ from weboob.core.backendscfg import BackendsConfig
 from weboob.core.repositories import Repositories, IProgress
 from weboob.core.scheduler import Scheduler
 from weboob.tools.backend import BaseBackend
+from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import getLogger
 
 
@@ -94,7 +95,6 @@ class Weboob(object):
 
         # Repositories management
         self.repositories = Repositories(workdir, datadir, self.VERSION)
-
         # Backends loader
         self.modules_loader = ModulesLoader(self.repositories)
 
@@ -193,6 +193,10 @@ class Weboob(object):
         loaded = {}
         if storage is None:
             storage = self.storage
+
+        if not self.repositories.check_repositories():
+            self.logger.error(u'Repositories are not consistent with the sources.list')
+            raise ConfigError(u'Versions mismatch, please run "weboob-config update"')
 
         for instance_name, module_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \

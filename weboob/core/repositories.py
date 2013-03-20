@@ -535,6 +535,16 @@ class Repositories(object):
             with open(dest_path, 'wb') as fp:
                 fp.write(icon.read())
 
+    def _parse_source_list(self):
+        l = []
+        with open(self.sources_list, 'r') as f:
+            for line in f.xreadlines():
+                line = line.strip() % {'version': self.version}
+                m = re.match('(file|https?)://.*', line)
+                if m:
+                    l.append(line)
+        return l
+
     def update_repositories(self, progress=IProgress()):
         """
         Update list of repositories by downloading them
@@ -548,28 +558,39 @@ class Repositories(object):
             os.remove(os.path.join(self.repos_dir, name))
 
         gpgv = Keyring.find_gpgv()
-        with open(self.sources_list, 'r') as f:
-            for line in f.xreadlines():
-                line = line.strip() % {'version': self.version}
-                m = re.match('(file|https?)://.*', line)
-                if m:
-                    progress.progress(0.0, 'Getting %s' % line)
-                    repository = Repository(line)
-                    filename = self.url2filename(repository.url)
-                    prio_filename = '%02d-%s' % (len(self.repositories), filename)
-                    repo_path = os.path.join(self.repos_dir, prio_filename)
-                    keyring_path = os.path.join(self.keyrings_dir, filename)
-                    try:
-                        repository.retrieve_index(repo_path)
-                        if gpgv:
-                            repository.retrieve_keyring(keyring_path)
-                        else:
-                            progress.error('Cannot find gpgv to check for repository authenticity.\n'
-                                           'You should install GPG for better security.')
-                    except RepositoryUnavailable, e:
-                        progress.error('Unable to load repository: %s' % e)
-                    else:
-                        self.repositories.append(repository)
+        for line in self._parse_source_list():
+            progress.progress(0.0, 'Getting %s' % line)
+            repository = Repository(line)
+            filename = self.url2filename(repository.url)
+            prio_filename = '%02d-%s' % (len(self.repositories), filename)
+            repo_path = os.path.join(self.repos_dir, prio_filename)
+            keyring_path = os.path.join(self.keyrings_dir, filename)
+            try:
+                repository.retrieve_index(repo_path)
+                if gpgv:
+                    repository.retrieve_keyring(keyring_path)
+                else:
+                    progress.error('Cannot find gpgv to check for repository authenticity.\n'
+                                    'You should install GPG for better security.')
+            except RepositoryUnavailable, e:
+                progress.error('Unable to load repository: %s' % e)
+            else:
+                self.repositories.append(repository)
+
+    def check_repositories(self):
+        """
+        Check if sources.list is consistent with repositories
+        """
+        l = []
+        for line in self._parse_source_list():
+            repository = Repository(line)
+            filename = self.url2filename(repository.url)
+            prio_filename = '%02d-%s' % (len(l), filename)
+            repo_path = os.path.join(self.repos_dir, prio_filename)
+            if not os.path.isfile(repo_path):
+                return False
+            l.append(repository)
+        return True
 
     def update(self, progress=IProgress()):
         """
