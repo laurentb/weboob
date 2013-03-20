@@ -497,7 +497,7 @@ class Repositories(object):
 
     def load(self):
         """
-        Load repositories from ~/.weboob/repositories/.
+        Load repositories from ~/.local/share/weboob/repositories/.
         """
         self.repositories = []
         for name in sorted(os.listdir(self.repos_dir)):
