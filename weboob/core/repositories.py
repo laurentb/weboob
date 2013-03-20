@@ -509,7 +509,7 @@ class Repositories(object):
 
     def retrieve_icon(self, module):
         """
-        Retrieve the icon of a module and save it in ~/.weboob/icons/.
+        Retrieve the icon of a module and save it in ~/.local/share/weboob/icons/.
         """
         if not isinstance(module, ModuleInfo):
             module = self.get_module_info(module)
@@ -538,7 +538,7 @@ class Repositories(object):
     def update_repositories(self, progress=IProgress()):
         """
         Update list of repositories by downloading them
-        and put them in ~/.weboob/repositories/.
+        and put them in ~/.local/share/weboob/repositories/.
 
         :param progress: observer object.
         :type progress: :class:`IProgress`
