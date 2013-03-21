@@ -32,7 +32,7 @@ class HomePage(BasePage):
     def get_post_url(self):
         for script in self.document.xpath('//script'):
             text = script.text
-            if text is None:
+            if text is None or not 'CCPTE' in text:
                 continue
 
             m = re.search(r'var chemin = "([^"]+)"', text, re.MULTILINE)
