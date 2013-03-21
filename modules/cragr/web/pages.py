@@ -110,7 +110,8 @@ class TransactionsPage(BasePage):
 
     COL_DATE  = 0
     COL_TEXT  = 1
-    COL_VALUE = -1
+    COL_DEBIT = None
+    COL_CREDIT = -1
 
     TYPES = {'Paiement Par Carte':          Transaction.TYPE_CARD,
              'Retrait Au Distributeur':     Transaction.TYPE_WITHDRAWAL,
@@ -125,20 +126,36 @@ class TransactionsPage(BasePage):
 
     def get_history(self, date_guesser):
         i = 0
-        for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
+        for tr in self.document.xpath('//table[@class="ca-table"]//tr'):
+            if tr.attrib.get('class', '') == 'tr-thead':
+                for i, head in enumerate(tr.findall('th')):
+                    key = self.parser.tocleanstring(head)
+                    print '%r = %s' % (key, i)
+                    if key == u'Débit':
+                        self.COL_DEBIT = i
+                    if key == u'Crédit':
+                        self.COL_CREDIT = i
+                    if key == u'Libellé':
+                        self.COL_TEXT = i
+
             if not tr.attrib.get('class', '').startswith('ligne-'):
                 continue
 
+            cols = tr.findall('td')
+
             # On loan accounts, there is a ca-table with a summary. Skip it.
-            if tr.find('th') is not None:
+            if tr.find('th') is not None or len(cols) < 3:
                 continue
 
             t = Transaction(i)
 
-            cols = tr.findall('td')
             date = self.parser.tocleanstring(cols[self.COL_DATE])
             raw = self.parser.tocleanstring(cols[self.COL_TEXT])
-            value = self.parser.tocleanstring(cols[self.COL_VALUE])
+            credit = self.parser.tocleanstring(cols[self.COL_CREDIT])
+            if self.COL_DEBIT is not None:
+                debit =  self.parser.tocleanstring(cols[self.COL_DEBIT])
+            else:
+                debit = ''
 
             day, month = map(int, date.split('/', 1))
             t.date = date_guesser.guess_date(day, month)
@@ -171,7 +188,7 @@ class TransactionsPage(BasePage):
 
             # Strip city or other useless information from label.
             t.label = re.sub('(.*)  .*', r'\1', t.label).strip()
-            t.set_amount(value)
+            t.set_amount(credit, debit)
             yield t
 
             i += 1
