@@ -138,12 +138,13 @@ class TransactionsPage(BasePage):
                 continue
 
             if tr.attrib.get('class', '') == 'tr-thead':
-                for i, head in enumerate(tr.findall('th')):
+                heads = tr.findall('th')
+                for i, head in enumerate(heads):
                     key = self.parser.tocleanstring(head)
                     if key == u'Débit':
-                        self.COL_DEBIT = i
+                        self.COL_DEBIT = i - len(heads)
                     if key == u'Crédit':
-                        self.COL_CREDIT = i
+                        self.COL_CREDIT = i - len(heads)
                     if key == u'Libellé':
                         self.COL_TEXT = i
 
