@@ -24,7 +24,7 @@ import re
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, TransactionsPage
+from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, SavingsPage, TransactionsPage
 
 
 __all__ = ['Cragr']
@@ -37,6 +37,7 @@ class Cragr(BaseBrowser):
     PAGES = {'https?://[^/]+/':                                     HomePage,
              'https?://[^/]+/stb/entreeBam':                        LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':    AccountsPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':   SavingsPage,
              'https?://[^/]+/stb/collecteNI\?.*act=Releves.*':      TransactionsPage,
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*': TransactionsPage,
              'https?://[^/]+/stb/.*/erreur/.*':                     LoginErrorPage,
@@ -111,10 +112,22 @@ class Cragr(BaseBrowser):
         # Store the current url to go back when requesting accounts list.
         self.accounts_url = self.page.url
 
+        # we can deduce the URL to "savings" accounts from the regular accounts one
+        self.savings_url  = re.sub('act=([^&=]+)', 'act=Synthepargnes', self.accounts_url, 1)
+
     def get_accounts_list(self):
+        accounts_list = []
+        # regular accounts
         if not self.is_on_page(AccountsPage):
             self.location(self.accounts_url)
-        return self.page.get_list()
+        accounts_list.extend(self.page.get_list())
+        # savings accounts
+        self.location(self.savings_url)
+        if self.is_on_page(SavingsPage):
+            for account in self.page.get_list():
+                if account not in accounts_list:
+                    accounts_list.append(account)
+        return accounts_list
 
     def get_account(self, id):
         assert isinstance(id, basestring)

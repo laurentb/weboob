@@ -77,6 +77,8 @@ class AccountsPage(BasePage):
                 continue
 
             cols = tr.findall('td')
+            if not cols:
+                continue
 
             account = Account()
             account.id = self.parser.tocleanstring(cols[self.COL_ID])
@@ -91,6 +93,8 @@ class AccountsPage(BasePage):
 
             yield account
 
+class SavingsPage(AccountsPage):
+    COL_ID       = 1
 
 class TransactionsPage(BasePage):
     def get_next_url(self):
