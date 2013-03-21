@@ -130,10 +130,16 @@ class TransactionsPage(BasePage):
     def get_history(self, date_guesser):
         i = 0
         for tr in self.document.xpath('//table[@class="ca-table"]//tr'):
+            parent = tr.getparent()
+            while parent is not None and parent.tag != 'table':
+                parent = parent.getparent()
+
+            if parent.attrib.get('class', '') != 'ca-table':
+                continue
+
             if tr.attrib.get('class', '') == 'tr-thead':
                 for i, head in enumerate(tr.findall('th')):
                     key = self.parser.tocleanstring(head)
-                    print '%r = %s' % (key, i)
                     if key == u'Débit':
                         self.COL_DEBIT = i
                     if key == u'Crédit':
