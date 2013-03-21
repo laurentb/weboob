@@ -65,7 +65,7 @@ class LoginPage(BasePage):
 class LoginErrorPage(BasePage):
     pass
 
-class AccountsPage(BasePage):
+class _AccountsPage(BasePage):
     COL_LABEL    = 0
     COL_ID       = 2
     COL_VALUE    = 4
@@ -93,7 +93,10 @@ class AccountsPage(BasePage):
 
             yield account
 
-class SavingsPage(AccountsPage):
+class AccountsPage(_AccountsPage):
+    pass
+
+class SavingsPage(_AccountsPage):
     COL_ID       = 1
 
 class TransactionsPage(BasePage):
