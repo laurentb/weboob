@@ -102,6 +102,9 @@ class Cragr(BaseBrowser):
         # The result of POST is the destination URL.
         url = self.page.get_result_url()
 
+        if not url.startswith('http'):
+            raise BrowserIncorrectPassword(url)
+
         self.location(url)
 
         if self.is_on_page(LoginErrorPage) or not self.is_logged():
