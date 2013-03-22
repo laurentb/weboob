@@ -126,8 +126,8 @@ class Ing(BaseBrowser):
             return
 
         index = 0 # index, we get always the same page, but with more informations
+        hashlist = []
         while 1:
-            hashlist = []
             i = index
             for transaction in self.page.get_transactions(index):
                 while transaction.id in hashlist:
