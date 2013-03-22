@@ -66,9 +66,9 @@ class GDCVaultBackend(BaseBackend, ICapVideo, ICapCollection):
 
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
-    # def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
-    #     with self.browser:
-    #         return self.browser.search_videos(pattern, self.SORTBY[sortby])
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+        with self.browser:
+            return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:

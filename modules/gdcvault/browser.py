@@ -25,7 +25,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserU
 from weboob.tools.browser.decorators import id2url
 
 #from .pages.index import IndexPage
-from .pages import VideoPage, IndexPage
+from .pages import VideoPage, IndexPage, SearchPage
 from .video import GDCVaultVideo
 
 
@@ -36,7 +36,8 @@ class GDCVaultBrowser(BaseBrowser):
     DOMAIN = 'gdcvault.com'
     ENCODING = 'utf-8'
     PAGES = {r'http://[w\.]*gdcvault.com/play/(?P<id>[\d]+)/?.*': VideoPage,
-             r'http://[w\.]*gdcvault.com/': IndexPage,
+             r'http://[w\.]*gdcvault.com/search\.php.*': (SearchPage, "json"),
+             r'http://[w\.]*gdcvault.com/.*': IndexPage,
             }
 
     def is_logged(self):
@@ -63,9 +64,9 @@ class GDCVaultBrowser(BaseBrowser):
 
         data = self.readurl('http://gdcvault.com/api/login.php',
                             urllib.urlencode(params))
-        # data is returned as JSON, not sure yet if it's useful
+        # some data returned as JSON, not sure yet if it's useful
+        #print data
 
-        print data
         if data is None:
             raise BrowserBanned('Too many open sessions?')
 
@@ -75,7 +76,7 @@ class GDCVaultBrowser(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def close_session(self):
-        print "logging out..."
+        # XXX: only if is_logged? or was used?
         self.openurl('/logout', '')
 
     @id2url(GDCVaultVideo.id2url)
@@ -86,13 +87,27 @@ class GDCVaultBrowser(BaseBrowser):
             raise BrowserUnavailable('Requires account')
         return self.page.get_video(video)
 
-    # def search_videos(self, pattern, sortby):
-    #     return None
-    #     self.location(self.buildurl('http://gdcvault.com/en/search%s' % sortby, query=pattern.encode('utf-8')))
-    #     assert self.is_on_page(IndexPage)
-    #     return self.page.iter_videos()
+    def search_videos(self, pattern, sortby):
+        post_data = {"firstfocus" : "",
+                     "category" : "free",
+                     "keyword" : pattern.encode('utf-8'),
+                     "conference_id" : "", }
+        post_data = urllib.urlencode(post_data)
+        # probably not required
+        self.addheaders = [('Referer', 'http://gdcvault.com/'),
+                           ("Content-Type" , 'application/x-www-form-urlencoded') ]
 
-    # def latest_videos(self):
-    #     self.home()
-    #     assert self.is_on_page(IndexPage)
-    #     return self.page.iter_videos()
+        #print post_data
+        # is_logged assumes html page
+        self.location('http://gdcvault.com/search.php',
+                      data=post_data, no_login=True)
+
+        assert self.is_on_page(SearchPage)
+        return self.page.iter_videos()
+
+    def latest_videos(self):
+        print "browser:latest_videos()"
+        #self.home()
+        self.location('/free')
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()

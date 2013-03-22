@@ -19,8 +19,11 @@
 
 
 from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.thumbnail import Thumbnail
 
 import re
+from dateutil.parser import parse as parse_dt
 
 __all__ = ['GDCVaultVideo']
 
@@ -41,3 +44,49 @@ class GDCVaultVideo(BaseVideo):
         if m:
             return u'http://www.gdcvault.com/play/%s#slides' % _id
         return u'http://www.gdcvault.com/play/%s' % _id
+
+    @classmethod
+    def get_video_from_json(self, data):
+        # session_id is unique per talk
+        # vault_media_id is unique per page
+        # (but can refer to 2 video files for dual screen)
+        # solr_id is "${vault_media_id}.${conference_id}.${session_id}.$vault_media_type_id{}"
+
+        # XXX: do we filter them or let people know about them?
+        #if 'anchor' in data:
+        #    if data['anchor']['href'] == '#':
+        #        # file will not be accessible (not free and not logged in)
+        #        return None
+
+        if not 'vault_media_id' in data:
+            return None
+        media_id = int(data['vault_media_id'])
+        video = GDCVaultVideo(media_id)
+
+        # 1013679 has \n in title...
+        video.title = unicode(data.get('session_name', '').replace('\n', ''))
+
+        # TODO: strip out <p>, <br> and other html...
+        # XXX: 1013422 has all 3 and !=
+        if 'overview' in data:
+            video.description = unicode(data['overview'])
+        elif 'spell' in data:
+            video.description = unicode(data['spell'])
+        else:
+            video.description = unicode(data.get('description', ''))
+
+        if 'image' in data:
+            video.thumbnail = Thumbnail(unicode(data['image']))
+
+        if 'speakers_name' in data:
+            video.author = unicode(", ".join(data['speakers_name']))
+
+        if 'start_date' in data:
+            video.date = parse_dt(data['start_date'])
+
+        if 'score' in data:
+            video.rating = data['score']
+
+        video.set_empty_fields(NotAvailable)
+
+        return video

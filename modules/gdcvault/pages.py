@@ -28,25 +28,69 @@ import datetime
 from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.browser import BrokenPageError
+
+#HACK
+from urllib2 import HTTPError
 
 from .video import GDCVaultVideo
 
 #import lxml.etree
 
 
-__all__ = ['IndexPage', 'VideoPage']
+__all__ = ['IndexPage', 'SearchPage', 'VideoPage']
 
 
 class IndexPage(BasePage):
     def iter_videos(self):
         for a in self.parser.select(self.document.getroot(), 'section.conference ul.media_items li.featured a.session_item'):
-            print a
+            href = a.attrib.get('href', '')
+            print href
+            m = re.match('/play/(\d+)/.*', href)
+            if not m:
+                continue
+            print m.group(1)
+            video = GDCVaultVideo(m.group(1))
+
+            # get title
+            try:
+                video.title = unicode(self.parser.select(a, 'div.conference_info p strong', 1).text)
+            except IndexError:
+                video.title = NotAvailable
+
+            # get description
+            try:
+                video.description = unicode(self.parser.select(a, 'div.conference_info p', 1).text)
+            except IndexError:
+                video.description = NotAvailable
+
+            # get thumbnail
+            img = self.parser.select(a, 'div.featured_image img', 1)
+            if img is not None:
+                video.thumbnail = Thumbnail(unicode(img.attrib['src']))
+            else:
+                video.thumbnail = NotAvailable
+
+
             #m = re.match('id-(\d+)', a.attrib.get('class', ''))
             #if not m:
             #    continue
             # FIXME
-            yield None
+            yield video
+
+# the search page class uses a JSON parser,
+# since it's what search.php returns when POSTed (from Ajax)
+class SearchPage(BasePage):
+    def iter_videos(self):
+        if self.document is None or self.document['data'] is None:
+            raise BrokenPageError('Unable to find JSON data')
+        for data in self.document['data']:
+            video = GDCVaultVideo.get_video_from_json(data)
+            # TODO: split type 4 videos into id and id#slides
+            if video is None:
+                continue
+            yield video
 
 class VideoPage(BasePage):
     def get_video(self, video=None):
@@ -86,8 +130,34 @@ class VideoPage(BasePage):
                 m = re.match(".*new SWFObject.*addVariable\(\"file\", encodeURIComponent\(\"(.*)\"\)\).*", unicode(script.text), re.DOTALL)
                 if m:
                     video.url = "http://gdcvault.com%s" % (m.group(1))
+                    # TODO: for non-free (like 769),
+                    # must be logged to use /mediaProxy.php
+
+                    # FIXME: doesn't seem to work yet, we get 2 bytes as html
+                    # 769 should give:
+                    # http://twvideo01.ubm-us.net/o1/gdcradio-net/2007/gdc/GDC07-4889.mp3
+                    # HACK: we use mechanize directly here for now... FIXME
+                    #print "asking for redirect on '%s'" % (video.url)
+                    #self.browser.addheaders += [['Referer', 'http://gdcvault.com/play/%s' % self.group_dict['id']]]
+                    #print self.browser.addheaders
+                    self.browser.set_handle_redirect(False)
+                    try:
+                        req = self.browser.open_novisit(video.url)
+                        headers = req.info()
+                        if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
+                            print 'BUG'
+                        
+                        print req.code
+                    except HTTPError, e:
+                        #print e.getcode()
+                        if e.getcode() == 302 and hasattr(e, 'hdrs'):
+                            #print e.hdrs['Location']
+                            video.url = unicode(e.hdrs['Location'])
+                    self.browser.set_handle_redirect(True)
+
                     video.set_empty_fields(NotAvailable)
                     return video
+
             #XXX: raise error?
             return None
 
@@ -97,19 +167,33 @@ class VideoPage(BasePage):
         # type 3 or 4 (iframe)
         # get the config file for the rest
         iframe_url = obj.attrib['src']
-        m = re.match('(http:.*)player\.html\?.*xmlURL=([^&]+)\&token=([^&]+)', iframe_url)
+        m = re.match('(http:.*/)[^/]*player\.html\?.*xmlURL=([^&]+).*\&token=([^&]+)', iframe_url)
         if not m:
             m = re.match('/play/mediaProxy\.php\?sid=(\d+)', iframe_url)
             if m is None:
                 return None
+            # TODO: must be logged to use /mediaProxy.php
             # type 3 (pdf slides)
             video.ext = u'pdf'
             video.url = "http://gdcvault.com%s" % (unicode(iframe_url))
+
+            # HACK: we use mechanize directly here for now... FIXME
+            print "asking for redirect on '%s'" % (video.url)
+            self.browser.set_handle_redirect(False)
+            try:
+                req = self.browser.open_novisit(video.url)
+            except HTTPError, e:
+                if e.getcode() == 302 and hasattr(e, 'hdrs'):
+                    video.url = unicode(e.hdrs['Location'])
+            self.browser.set_handle_redirect(True)
+
             video.set_empty_fields(NotAvailable)
             return video
 
         # type 4 (dual screen video)
-        config_url = m.group(1) + m.group(2)
+
+        # token doesn't actually seem required
+        config_url = m.group(1) + m.group(2) + '?token=' + m.group(3)
 
         #config = self.browser.openurl(config_url).read()
         config = self.browser.get_document(self.browser.openurl(config_url))
@@ -118,6 +202,12 @@ class VideoPage(BasePage):
         host = obj.text
         if host is None:
             raise BrokenPageError('Missing tag in xml config file')
+
+        # for id 1373 host is missing '/ondemand'
+        # only add it when only a domain is specified without path
+        m = re.match('^[^\/]+$', host)
+        if m:
+            host += "/ondemand"
 
         videos = {}
 
