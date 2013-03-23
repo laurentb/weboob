@@ -19,6 +19,7 @@
 
 
 from .base import IBaseCap, CapBaseObject, StringField, IntField, Field
+import xml.etree.ElementTree as ET
 
 
 __all__ = ['Recipe', 'ICapRecipe']
@@ -42,6 +43,36 @@ class Recipe(CapBaseObject):
     def __init__(self, id, title):
         CapBaseObject.__init__(self, id)
         self.title = title
+
+    def toMasterCookXml(self, author=None):
+        """
+        Export recipe to mastercook pretty XML string
+        """
+        if author == None:
+            author = 'Cookboob'
+        header = '''\
+<?xml version="1.0" standalone="yes" encoding="UTF-8"?>
+<!DOCTYPE mx2 SYSTEM "mx2.dtd">
+'''
+        initial_xml = '''\
+<mx2 source="cookboob">
+</mx2>'''
+        doc = ET.fromstring(initial_xml)
+        summ = ET.SubElement(doc,'Summ')
+        nam = ET.SubElement(summ,'Nam')
+        nam.text = self.title
+
+        rcpe = ET.SubElement(doc, 'RcpE', {'author': author, 'name': self.title})
+        ET.SubElement(rcpe, 'Serv', {'qty': '0'})
+        ET.SubElement(rcpe, 'PrpT', {'elapsed': '%s:%s' % (self.preparation_time / 60, self.preparation_time % 60)})
+        ET.SubElement(rcpe, 'CatS')
+        for i in self.ingredients:
+            ing = ET.SubElement(rcpe, 'IngR', {'units': '', 'name': i, 'qty': ''})
+        instr = ET.SubElement(rcpe, 'DirS')
+        sinstr = ET.SubElement(instr, 'DirT')
+        sinstr.text = self.instructions
+        ET.SubElement(rcpe, 'Yield', {'unit': 'persons', 'qty': '%s'%self.nb_person})
+        return header + ET.tostring(doc)
 
 
 class ICapRecipe(IBaseCap):

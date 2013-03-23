@@ -20,6 +20,7 @@
 from __future__ import with_statement
 
 import sys
+import codecs
 
 from weboob.capabilities.recipe import ICapRecipe
 from weboob.capabilities.base import empty
@@ -93,7 +94,6 @@ class Cookboob(ReplApplication):
 
         Get information about a recipe.
         """
-
         recipe = self.get_object(id, 'get_recipe')
         if not recipe:
             print >>sys.stderr, 'Recipe not found: %s' % id
@@ -102,6 +102,45 @@ class Cookboob(ReplApplication):
         self.start_format()
         self.format(recipe)
         self.flush()
+
+    def complete_export(self, text, line, *ignored):
+        args = line.split(' ', 2)
+        if len(args) == 2:
+            return self._complete_object()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+    def do_export(self, line):
+        """
+        export ID [FILENAME]
+
+        Export the recipe to a mastercook XML file
+        FILENAME is where to write the file. If FILENAME is '-',
+        the file is written to stdout.
+        """
+        id, dest = self.parse_command_args(line, 2, 1)
+
+        _id, backend_name = self.parse_id(id)
+
+        if dest is None:
+            dest = '%s.mx2' % _id
+
+        recipe = self.get_object(id, 'get_recipe')
+
+        if recipe:
+            xmlstring = recipe.toMasterCookXml(backend_name or None)
+            if dest == '-':
+                print xmlstring
+            else:
+                try:
+                    with codecs.open(dest, 'w', 'utf-8') as f:
+                        f.write(xmlstring)
+                except IOError, e:
+                    print >>sys.stderr, 'Unable to write .mx2 in "%s": %s' % (dest, e)
+                    return 1
+            return
+        print >>sys.stderr, 'Recipe "%s" not found' % id
+        return 3
 
     def do_search(self, pattern):
         """
