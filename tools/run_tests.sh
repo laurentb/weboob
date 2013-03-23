@@ -29,11 +29,13 @@ fi
 if [ -z "${PYTHON}" ]; then
     which python >/dev/null 2>&1 && PYTHON=$(which python)
     which python2 >/dev/null 2>&1 && PYTHON=$(which python2)
+    which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
 fi
 
 if [ -z "${NOSE}" ]; then
     which nosetests >/dev/null 2>&1 && NOSE=$(which nosetests)
     which nosetests2 >/dev/null 2>&1 && NOSE=$(which nosetests2)
+    which nosetests-python2.7 >/dev/null 2>&1 && NOSE=$(which nosetests-python2.7)
 fi
 
 if [ -z "${PYTHON}" ]; then
