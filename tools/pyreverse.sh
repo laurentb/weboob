@@ -12,4 +12,4 @@ function usage() {
 
 [ -z "$1" ] && usage
 
-pyreverse -p "$1" -a1 -s1 -o pdf "$1"
+PYTHONPATH="$(dirname $0)/../modules/$1" pyreverse -p "$1" -o pdf -a1 -s1 "."
