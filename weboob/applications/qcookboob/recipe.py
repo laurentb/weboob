@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+import urllib, sys, codecs
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QFrame, QImage, QPixmap
+from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import QFrame, QImage, QPixmap, QFileDialog
 
 from weboob.applications.qcookboob.ui.recipe_ui import Ui_Recipe
 from weboob.capabilities.base import empty
@@ -32,6 +32,8 @@ class Recipe(QFrame):
         self.parent = parent
         self.ui = Ui_Recipe()
         self.ui.setupUi(self)
+
+        self.connect(self.ui.exportButton, SIGNAL("clicked()"), self.export)
 
         self.recipe = recipe
         self.backend = backend
@@ -79,3 +81,26 @@ class Recipe(QFrame):
             data = urllib.urlopen(self.recipe.picture_url).read()
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250,Qt.SmoothTransformation))
+
+    def export(self):
+        fileDial = QFileDialog(self, 'Export "%s" recipe' %
+                               self.recipe.title, '%s.kreml' % self.recipe.title.replace('/',','), 'Krecipe file (*.kreml);;all files (*)')
+        fileDial.setAcceptMode(QFileDialog.AcceptSave)
+        fileDial.setLabelText(QFileDialog.Accept, 'Export recipe')
+        fileDial.setLabelText(QFileDialog.FileName, 'Recipe file name')
+        ok = (fileDial.exec_() == 1)
+        if not ok:
+            return
+        result = fileDial.selectedFiles()
+        if len(result) > 0:
+            dest = unicode(result[0])
+            if not dest.endswith('.kreml'):
+                dest += '.kreml'
+            data = self.recipe.toKrecipesXml(author=self.backend.name)
+            try:
+                with codecs.open(dest, 'w', 'utf-8') as f:
+                    f.write(data)
+            except IOError, e:
+                print >>sys.stderr, 'Unable to write Krecipe file in "%s": %s' % (dest, e)
+                return 1
+            return

@@ -73,6 +73,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <widget class="QPushButton" name="exportButton">
+        <property name="text">
+         <string>Export to KRecipesML file</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QFrame" name="idFrame">
         <property name="maximumSize">
          <size>
