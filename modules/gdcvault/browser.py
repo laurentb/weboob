@@ -27,6 +27,10 @@ from weboob.tools.browser.decorators import id2url
 #from .pages.index import IndexPage
 from .pages import VideoPage, IndexPage, SearchPage
 from .video import GDCVaultVideo
+#HACK
+from urllib2 import HTTPError
+import re
+from weboob.capabilities.base import NotAvailable
 
 
 __all__ = ['GDCVaultBrowser']
@@ -68,6 +72,7 @@ class GDCVaultBrowser(BaseBrowser):
         #print data
 
         if data is None:
+            self.openurl('/logout', '')
             raise BrowserBanned('Too many open sessions?')
 
         self.location('/', no_login=True)
@@ -81,6 +86,42 @@ class GDCVaultBrowser(BaseBrowser):
 
     @id2url(GDCVaultVideo.id2url)
     def get_video(self, url, video=None):
+        requires_account = False
+        redir_url = None
+
+        # FIXME: this is quite ugly
+        # but is required to handle cases like 1013422@gdcvault
+        self.set_handle_redirect(False)
+        try:
+            req = self.open_novisit(url)
+            #headers = req.info()
+        except HTTPError, e:
+            # print e.getcode()
+            if e.getcode() == 302 and hasattr(e, 'hdrs'):
+                #print e.hdrs['Location']
+                if e.hdrs['Location'] in ['/', '/login']:
+                    requires_account = True
+                else:
+                    # 1015865 redirects to a file with an eacute in the name
+                    redir_url = unicode(e.hdrs['Location'], encoding='utf-8')
+        self.set_handle_redirect(True)
+
+        if (requires_account):
+            raise BrowserUnavailable('Requires account')
+
+        if (redir_url):
+            if video is None:
+                m = re.match('http://[w\.]*gdcvault.com/play/(?P<id>[\d]+)/?.*', url)
+                if m:
+                    # print m.group(1)
+                    video = GDCVaultVideo(int(m.group(1)))
+                else:
+                    raise BrowserUnavailable('Cannot find ID on page with redirection')
+            video.url = redir_url
+            video.set_empty_fields(NotAvailable)
+            # best effort for now
+            return video
+
         self.location(url)
         # redirects to /login means the video is not public
         if not self.is_on_page(VideoPage):
