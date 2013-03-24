@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import IBaseCap, CapBaseObject, StringField, IntField, Field
+from .base import IBaseCap, CapBaseObject, StringField, IntField, Field, empty
 import xml.etree.ElementTree as ET
 
 
@@ -44,35 +44,50 @@ class Recipe(CapBaseObject):
         CapBaseObject.__init__(self, id)
         self.title = title
 
-    def toMasterCookXml(self, author=None):
+    def toKrecipesXml(self, author=None):
         """
-        Export recipe to mastercook pretty XML string
+        Export recipe to KRecipes XML string
         """
         if author == None:
             author = 'Cookboob'
-        header = '''\
-<?xml version="1.0" standalone="yes" encoding="UTF-8"?>
-<!DOCTYPE mx2 SYSTEM "mx2.dtd">
-'''
         initial_xml = '''\
-<mx2 source="cookboob">
-</mx2>'''
+<krecipes version='2.0-beta2' lang='fr' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='krecipes.xsd'>
+<krecipes-recipe id='1'>
+</krecipes-recipe>
+</krecipes>'''
         doc = ET.fromstring(initial_xml)
-        summ = ET.SubElement(doc,'Summ')
-        nam = ET.SubElement(summ,'Nam')
-        nam.text = self.title
+        recipe = doc.find('krecipes-recipe')
+        desc = ET.SubElement(recipe, 'krecipes-description')
+        title = ET.SubElement(desc, 'title')
+        title.text = self.title
+        authors = ET.SubElement(desc, 'author')
+        authors.text = author
+        eyield = ET.SubElement(desc, 'yield')
+        if not empty(self.nb_person):
+            amount = ET.SubElement(eyield, 'amount')
+            amount.text = '%s' % self.nb_person
+            etype = ET.SubElement(eyield, 'type')
+            etype.text = 'persons'
+        if not empty(self.preparation_time):
+            preptime = ET.SubElement(desc, 'preparation-time')
+            preptime.text = '%02d:%02d' % (self.preparation_time / 60, self.preparation_time % 60)
 
-        rcpe = ET.SubElement(doc, 'RcpE', {'author': author, 'name': self.title})
-        ET.SubElement(rcpe, 'Serv', {'qty': '0'})
-        ET.SubElement(rcpe, 'PrpT', {'elapsed': '%s:%s' % (self.preparation_time / 60, self.preparation_time % 60)})
-        ET.SubElement(rcpe, 'CatS')
-        for i in self.ingredients:
-            ing = ET.SubElement(rcpe, 'IngR', {'units': '', 'name': i, 'qty': ''})
-        instr = ET.SubElement(rcpe, 'DirS')
-        sinstr = ET.SubElement(instr, 'DirT')
-        sinstr.text = self.instructions
-        ET.SubElement(rcpe, 'Yield', {'unit': 'persons', 'qty': '%s'%self.nb_person})
-        return header + ET.tostring(doc)
+        if not empty(self.ingredients):
+            ings = ET.SubElement(recipe, 'krecipes-ingredients')
+            for i in self.ingredients:
+                ing = ET.SubElement(ings, 'ingredient')
+                am = ET.SubElement(ing, 'amount')
+                am.text = ''
+                unit = ET.SubElement(ing, 'unit')
+                unit.text = ''
+                name = ET.SubElement(ing, 'name')
+                name.text = '%s' % i
+
+        if not empty(self.instructions):
+            instructions = ET.SubElement(recipe, 'krecipes-instructions')
+            instructions.text = self.instructions
+
+        return ET.tostring(doc, encoding='UTF-8').decode('utf-8')
 
 
 class ICapRecipe(IBaseCap):

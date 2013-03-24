@@ -114,7 +114,7 @@ class Cookboob(ReplApplication):
         """
         export ID [FILENAME]
 
-        Export the recipe to a mastercook XML file
+        Export the recipe to a KRecipes XML file
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
         """
@@ -123,20 +123,22 @@ class Cookboob(ReplApplication):
         _id, backend_name = self.parse_id(id)
 
         if dest is None:
-            dest = '%s.mx2' % _id
+            dest = '%s.kreml' % _id
 
         recipe = self.get_object(id, 'get_recipe')
 
         if recipe:
-            xmlstring = recipe.toMasterCookXml(backend_name or None)
+            xmlstring = recipe.toKrecipesXml(backend_name or None)
             if dest == '-':
                 print xmlstring
             else:
+                if not dest.endswith('.kreml'):
+                    dest += '.kreml'
                 try:
                     with codecs.open(dest, 'w', 'utf-8') as f:
                         f.write(xmlstring)
                 except IOError, e:
-                    print >>sys.stderr, 'Unable to write .mx2 in "%s": %s' % (dest, e)
+                    print >>sys.stderr, 'Unable to write .kreml in "%s": %s' % (dest, e)
                     return 1
             return
         print >>sys.stderr, 'Recipe "%s" not found' % id
