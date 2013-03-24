@@ -165,8 +165,8 @@ class VideoPage(BasePage):
                     #print self.browser.addheaders
                     self.browser.set_handle_redirect(False)
                     try:
-                        req = self.browser.open_novisit(video.url)
-                        headers = req.info()
+                        self.browser.open_novisit(video.url)
+                        # headers = req.info()
                         # if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
                         # print 'BUG'
                             
@@ -217,7 +217,7 @@ class VideoPage(BasePage):
             # print "asking for redirect on '%s'" % (video.url)
             self.browser.set_handle_redirect(False)
             try:
-                req = self.browser.open_novisit(video.url)
+                self.browser.open_novisit(video.url)
             except HTTPError, e:
                 if e.getcode() == 302 and hasattr(e, 'hdrs'):
                     video.url = unicode(e.hdrs['Location'])

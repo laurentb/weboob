@@ -93,7 +93,7 @@ class GDCVaultBrowser(BaseBrowser):
         # but is required to handle cases like 1013422@gdcvault
         self.set_handle_redirect(False)
         try:
-            req = self.open_novisit(url)
+            self.open_novisit(url)
             #headers = req.info()
         except HTTPError, e:
             # print e.getcode()
