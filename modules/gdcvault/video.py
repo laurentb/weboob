@@ -31,7 +31,8 @@ __all__ = ['GDCVaultVideo']
 class GDCVaultVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
         BaseVideo.__init__(self, *args, **kwargs)
-        self.ext = u'flv'
+        # not always flv...
+        self.ext = NotAvailable
 
     @classmethod
     def id2url(cls, _id):
