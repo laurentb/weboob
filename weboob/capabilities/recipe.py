@@ -19,7 +19,9 @@
 
 
 from .base import IBaseCap, CapBaseObject, StringField, IntField, Field, empty
-import xml.etree.ElementTree as ET
+import lxml.etree as ET
+import base64
+import urllib
 
 
 __all__ = ['Recipe', 'ICapRecipe']
@@ -50,6 +52,7 @@ class Recipe(CapBaseObject):
         """
         if author == None:
             author = 'Cookboob'
+        header = u'<?xml version="1.0" encoding="UTF-8" ?>\n'
         initial_xml = '''\
 <krecipes version='2.0-beta2' lang='fr' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='krecipes.xsd'>
 <krecipes-recipe id='1'>
@@ -71,6 +74,13 @@ class Recipe(CapBaseObject):
         if not empty(self.preparation_time):
             preptime = ET.SubElement(desc, 'preparation-time')
             preptime.text = '%02d:%02d' % (self.preparation_time / 60, self.preparation_time % 60)
+        if not empty(self.picture_url):
+            data = urllib.urlopen(self.picture_url).read()
+            datab64 = base64.encodestring(data)[:-1]
+
+            pictures = ET.SubElement(desc, 'pictures')
+            pic = ET.SubElement(pictures, 'pic', {'format' : 'JPEG', 'id' : '1'})
+            pic.text = ET.CDATA(datab64)
 
         if not empty(self.ingredients):
             ings = ET.SubElement(recipe, 'krecipes-ingredients')
@@ -87,7 +97,7 @@ class Recipe(CapBaseObject):
             instructions = ET.SubElement(recipe, 'krecipes-instructions')
             instructions.text = self.instructions
 
-        return ET.tostring(doc, encoding='UTF-8').decode('utf-8')
+        return header + ET.tostring(doc, encoding='UTF-8', pretty_print=True).decode('utf-8')
 
 
 class ICapRecipe(IBaseCap):
