@@ -23,6 +23,7 @@ ControlNotFoundError = ClientForm.ControlNotFoundError
 
 from weboob.tools.browser import BasePage
 
+import urllib
 import re
 import datetime
 from dateutil.parser import parse as parse_dt
@@ -38,6 +39,7 @@ from .video import GDCVaultVideo
 
 #import lxml.etree
 
+# TODO: check title on 1439
 
 __all__ = ['IndexPage', 'SearchPage', 'VideoPage']
 
@@ -46,11 +48,11 @@ class IndexPage(BasePage):
     def iter_videos(self):
         for a in self.parser.select(self.document.getroot(), 'section.conference ul.media_items li.featured a.session_item'):
             href = a.attrib.get('href', '')
-            print href
+            # print href
             m = re.match('/play/(\d+)/.*', href)
             if not m:
                 continue
-            print m.group(1)
+            # print m.group(1)
             video = GDCVaultVideo(m.group(1))
 
             # get title
@@ -107,12 +109,33 @@ class VideoPage(BasePage):
 
         # the config file has it too, but in CDATA and only for type 4
         obj = self.parser.select(self.document.getroot(), 'title')
+        title = None
         if len(obj) > 0:
-            title = obj[0].text.strip()
+            try:
+                title = unicode(obj[0].text)
+            except UnicodeDecodeError, e:
+                title = None
+
+
+        if title is None:
+            obj = self.parser.select(self.document.getroot(), 'meta[name=title]')
+            if len(obj) > 0:
+                if 'content' in obj[0].attrib:
+                    try:
+                        # FIXME: 1013483 has buggus title (latin1)
+                        # for now we just pass it as-is
+                        title = obj[0].attrib['content']
+                    except UnicodeDecodeError, e:
+                        # XXX: this doesn't even works!?
+                        title = obj[0].attrib['content'].decode('iso-5589-15')
+
+
+        if title is not None:
+            title = title.strip()
             m = re.match('GDC Vault\s+-\s+(.*)', title)
             if m:
                 title = m.group(1)
-        video.title = unicode(title)
+            video.title = title
 
         #TODO: POST back the title to /search.php and filter == id to get
         # cleaner (JSON) data... (though it'd be much slower)
@@ -144,10 +167,11 @@ class VideoPage(BasePage):
                     try:
                         req = self.browser.open_novisit(video.url)
                         headers = req.info()
-                        if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
-                            print 'BUG'
+                        # if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
+                        # print 'BUG'
+                            
                         
-                        print req.code
+                        #print req.code
                     except HTTPError, e:
                         #print e.getcode()
                         if e.getcode() == 302 and hasattr(e, 'hdrs'):
@@ -167,7 +191,19 @@ class VideoPage(BasePage):
         # type 3 or 4 (iframe)
         # get the config file for the rest
         iframe_url = obj.attrib['src']
-        m = re.match('(http:.*/)[^/]*player\.html\?.*xmlURL=([^&]+).*\&token=([^&]+)', iframe_url)
+
+        # 1015020 has a boggus url
+        m = re.match('http:/event(.+)', iframe_url)
+        if m:
+            iframe_url = 'http://event' + m.group(1)
+
+        # print iframe_url
+        # 1013798 has player169.html
+        # 1012186 has player16x9.html
+        # some other have /somethingplayer.html...
+        # 1441 has a space in the xml filename, which we must not strip
+        m = re.match('(http:.*/)[^/]*player[0-9a-z]*\.html\?.*xmlURL=([^&]+\.xml).*\&token=([^& ]+)', iframe_url)
+
         if not m:
             m = re.match('/play/mediaProxy\.php\?sid=(\d+)', iframe_url)
             if m is None:
@@ -178,7 +214,7 @@ class VideoPage(BasePage):
             video.url = "http://gdcvault.com%s" % (unicode(iframe_url))
 
             # HACK: we use mechanize directly here for now... FIXME
-            print "asking for redirect on '%s'" % (video.url)
+            # print "asking for redirect on '%s'" % (video.url)
             self.browser.set_handle_redirect(False)
             try:
                 req = self.browser.open_novisit(video.url)
@@ -193,8 +229,13 @@ class VideoPage(BasePage):
         # type 4 (dual screen video)
 
         # token doesn't actually seem required
-        config_url = m.group(1) + m.group(2) + '?token=' + m.group(3)
+        # 1441 has a space in the xml filename
+        xml_filename = urllib.quote(m.group(2))
+        config_url = m.group(1) + xml_filename + '?token=' + m.group(3)
 
+        # self.browser.addheaders += [['Referer', 'http://gdcvault.com/play/%s' % self.group_dict['id']]]
+        # print self.browser.addheaders
+        # TODO: fix for 1015021 & others (forbidden)
         #config = self.browser.openurl(config_url).read()
         config = self.browser.get_document(self.browser.openurl(config_url))
 
@@ -203,24 +244,62 @@ class VideoPage(BasePage):
         if host is None:
             raise BrokenPageError('Missing tag in xml config file')
 
-        # for id 1373 host is missing '/ondemand'
-        # only add it when only a domain is specified without path
-        m = re.match('^[^\/]+$', host)
-        if m:
-            host += "/ondemand"
+        if host == "smil":
+            # the rtmp URL is described in a smil file,
+            # with several available bitrates
+            obj = self.parser.select(config.getroot(), 'speakervideo', 1)
+            smil = self.browser.get_document(self.browser.openurl(obj.text))
+            obj = self.parser.select(smil.getroot(), 'meta', 1)
+            # TODO: error checking
+            base = obj.attrib.get('base', '')
+            best_bitrate = 0
+            path = None
+            obj = self.parser.select(smil.getroot(), 'video')
+            # choose the best bitrate
+            for o in obj:
+                rate = int(o.attrib.get('system-bitrate', 0))
+                if rate > best_bitrate:
+                    path = o.attrib.get('src', '')
+            video.url = unicode(base + '/' + path)
 
-        videos = {}
+        else:
+            # not smil, the rtmp url is directly here as host + path
+            # for id 1373 host is missing '/ondemand'
+            # only add it when only a domain is specified without path
+            m = re.match('^[^\/]+$', host)
+            if m:
+                host += "/ondemand"
 
-        obj = self.parser.select(config.getroot(), 'speakervideo', 1)
-        videos['speaker'] = 'rtmp://' + host + '/' + obj.text
+            videos = {}
 
-        obj = self.parser.select(config.getroot(), 'slidevideo', 1)
-        videos['slides'] = 'rtmp://' + host + '/' + obj.text
+            obj = self.parser.select(config.getroot(), 'speakervideo', 1)
+            if obj.text is not None:
+                videos['speaker'] = 'rtmp://' + host + '/' + urllib.quote(obj.text)
 
-        #print videos
+            obj = self.parser.select(config.getroot(), 'slidevideo', 1)
+            if obj.text is not None:
+                videos['slides'] = 'rtmp://' + host + '/' + urllib.quote(obj.text)
+
+            # print videos
+            # XXX
+            if 'speaker' in videos:
+                video.url = unicode(videos['speaker'])
+            elif 'slides' in videos:
+                # 1016627 only has slides, so fallback to them
+                video.url = unicode(videos['slides'])
+
+            if want_slides:
+                if 'slides' in videos:
+                    video.url = unicode(videos['slides'])
+            # if video.url is none: raise ? XXX
 
         obj = self.parser.select(config.getroot(), 'date', 1)
-        video.date = parse_dt(obj.text)
+        if obj.text is not None:
+            # 1016634 has "Invalid Date"
+            try:
+                video.date = parse_dt(obj.text)
+            except ValueError, e:
+                video.date = NotAvailable
 
         obj = self.parser.select(config.getroot(), 'duration', 1)
         m = re.match('(\d\d):(\d\d):(\d\d)', obj.text)
@@ -232,10 +311,6 @@ class VideoPage(BasePage):
         obj = self.parser.select(config.getroot(), 'speaker', 1)
         #print obj.text_content()
 
-        #XXX
-        video.url = unicode(videos['speaker'])
-        if want_slides:
-            video.url = unicode(videos['slides'])
         #self.set_details(video)
 
         video.set_empty_fields(NotAvailable)
