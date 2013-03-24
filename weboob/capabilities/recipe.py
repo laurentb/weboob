@@ -20,8 +20,7 @@
 
 from .base import IBaseCap, CapBaseObject, StringField, IntField, Field, empty
 import lxml.etree as ET
-import base64
-import urllib
+import base64, re, urllib
 
 
 __all__ = ['Recipe', 'ICapRecipe']
@@ -84,14 +83,23 @@ class Recipe(CapBaseObject):
 
         if not empty(self.ingredients):
             ings = ET.SubElement(recipe, 'krecipes-ingredients')
+            pat = re.compile('^[0-9]*')
             for i in self.ingredients:
+                sname = u'%s' % i
+                samount = ''
+                sunit = ''
+                first_nums = pat.match(i).group()
+                if first_nums != '':
+                    samount = first_nums
+                    sname = i.lstrip('0123456789 ')
+
                 ing = ET.SubElement(ings, 'ingredient')
                 am = ET.SubElement(ing, 'amount')
-                am.text = ''
+                am.text = samount
                 unit = ET.SubElement(ing, 'unit')
-                unit.text = ''
+                unit.text = sunit
                 name = ET.SubElement(ing, 'name')
-                name.text = '%s' % i
+                name.text = sname
 
         if not empty(self.instructions):
             instructions = ET.SubElement(recipe, 'krecipes-instructions')
