@@ -25,7 +25,7 @@ User installation
 -----------------
 
 There is a way to install weboob locally without messing with your system.
-Run ./tools/local_install.sh as your local user. ::
+Run ``./tools/local_install.sh`` as your local user. ::
 
     $ ./tools/local_install.sh ~/bin
 
@@ -35,8 +35,8 @@ System insallation (discouraged)
 --------------------------------
 
 The install mode copies files to the Python system-wide packages directory
-(for example /usr/lib/python2.5/site-packages for Python 2.5,
-or /usr/local/lib/python2.6/dist-packages for Python 2.6). ::
+(for example ``/usr/lib/python2.5/site-packages`` for Python 2.5,
+or ``/usr/local/lib/python2.6/dist-packages`` for Python 2.6). ::
 
     # ./setup.py install
 
