@@ -61,6 +61,10 @@ class Recipe(QFrame):
             self.ui.ingredientsPlain.setPlainText('%s' % txt)
         else:
             self.ui.ingredientsPlain.parent().hide()
+        if not empty(recipe.author):
+            self.ui.authorLabel.setText('%s' % recipe.author)
+        else:
+            self.ui.authorLabel.parent().hide()
         if not empty(recipe.instructions):
             self.ui.instructionsPlain.setPlainText('%s' % recipe.instructions)
         else:
