@@ -210,6 +210,12 @@ class AllocineBrowser(BaseBrowser):
             nationality = nationality.strip(', ')
         if 'biography' in jres:
             biography = unicode(jres['biography'])
+        if 'participation' in jres:
+            for m in jres['participation']:
+                if m['activity']['$'] not in roles:
+                    roles[m['activity']['$']] = []
+                roles[m['activity']['$']].append(u'(%s) %s' % (m['movie']['productionYear'], m['movie']['originalTitle']))
+
 
         person = Person(id, name)
         person.real_name = real_name

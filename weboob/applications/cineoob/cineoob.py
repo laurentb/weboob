@@ -146,7 +146,7 @@ class PersonInfoFormatter(IFormatter):
                 for movie in lmovies:
                     result += '   * %s\n' % movie
         if not empty(obj.short_biography):
-            result += '\n%sBiography%s\n' % (self.BOLD, self.NC)
+            result += '\n%sShort biography%s\n' % (self.BOLD, self.NC)
             result += '%s' % obj.short_biography
         return result
 

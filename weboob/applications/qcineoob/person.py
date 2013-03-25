@@ -84,7 +84,6 @@ class Person(QFrame):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.backend.fill_person(self.person, 'biography')
         bio = self.person.biography
-        #bio = self.backend.get_person_biography(self.person.id)
         self.ui.shortBioPlain.setPlainText(bio)
         self.ui.biographyLabel.setText('Full biography:')
         self.ui.biographyButton.hide()
