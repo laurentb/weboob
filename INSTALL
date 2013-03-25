@@ -1,47 +1,56 @@
 Weboob installation
 ===================
 
-Like any Python package using setuptools, Weboob can be installed in install
-mode or in development mode.
-
-
-Install mode
-------------
-
-The install mode copies files to the Python system-wide packages directory
-(for example /usr/lib/python2.5/site-packages for Python 2.5,
-or /usr/local/lib/python2.6/dist-packages for Python 2.6)
-
-# python setup.py install
-
-Scripts are copied to /usr/bin.
+Using the packages provided by your distribution is recommended.
+See http://weboob.org/install for a list of available packages.
 
 Since there are many dependencies, when you install from sources,
 you have to handle them by hand, according to your distribution.
-If you still want to download them, you can uncomment the dependencies
-in setup.py
 
-To uninstall, remove the egg-info from the Python system-wide packages directory
-and remove the weboob_dev line in easy-install.pth.
+The requirements are provided in ``setup.py``, except for:
 
+* gpgv (for secure updates). If not packaged alone, it should be in ``gnupg`` or ``gpg``.
+* PyQt4 (python-qt4) for graphical applications.
+* For more performance, ensure you have ``libyaml`` and ``simplejson`` installed.
+
+Some modules may have more dependencies.
+
+All installation procedures allow you to chose wether you want graphical applications.
+Add ``--no-qt --no-xdg`` to disable them; ``--qt --xdg`` to enable them.
+
+After a package or system installation,
+you should run ``weboob-config update`` as your login user.
+
+User installation
+-----------------
+
+There is a way to install weboob locally without messing with your system.
+Run ./tools/local_install.sh as your local user. ::
+
+    $ ./tools/local_install.sh ~/bin
+
+The scripts are copied to ``~/bin``.
+
+System insallation (discouraged)
+--------------------------------
+
+The install mode copies files to the Python system-wide packages directory
+(for example /usr/lib/python2.5/site-packages for Python 2.5,
+or /usr/local/lib/python2.6/dist-packages for Python 2.6). ::
+
+    # ./setup.py install
+
+Scripts are copied to ``/usr/bin``.
 
 Development mode
 ----------------
 
-The development mode doesn't copy files, but creates an egg-link
-in the Python system-wide packages directory which points to the development
-directory. It is useful for development when files often change.
+This does not actually install anything, but lets you run Weboob from the source code,
+while also using the modules from that source. This is only recommended if using
+the git source and not a release. ::
 
-# python setup.py develop
+    $ ./tools/local_run.sh APPLICATION COMMANDS
 
-Scripts are copied to /usr/bin too.
+For example, instead of running ``videoob -b youtube search plop``, you would run::
 
-To uninstall, remove the egg-link from the Python system-wide packages directory
-and remove the weboob_dev line in easy-install.pth.
-
-It is possible to install in a specific directory, and it does not need root privileges. For instance:
-
-$ mkdir ~/mydir
-$ PYTHONPATH=~/mydir python setup.py develop --install-dir ~/mydir
-
-That way, the only altered directory is the one you chose earlier.
+    $ ./tools/local_run.sh videoob -b youtube search plop
