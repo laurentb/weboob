@@ -74,6 +74,7 @@ class AllocineBackend(BaseBackend, ICapCinema):
             or 'death_date' in fields or 'nationality' in fields\
             or 'short_biography' in fields or 'roles' in fields\
             or 'birth_date' in fields or 'thumbnail_url' in fields\
+            or 'biography' in fields\
                 or 'gender' in fields or fields is None:
             per = self.get_person(person.id)
             person.real_name = per.real_name
@@ -85,10 +86,8 @@ class AllocineBackend(BaseBackend, ICapCinema):
             person.short_biography = per.short_biography
             person.short_description = per.short_description
             person.roles = per.roles
+            person.biography = per.biography
             person.thumbnail_url = per.thumbnail_url
-
-        if 'biography' in fields:
-            person.biography = self.get_person_biography(person.id)
 
         return person
 

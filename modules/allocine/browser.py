@@ -55,6 +55,8 @@ class AllocineBrowser(BaseBrowser):
                 tdesc += ' ; %s' % m['productionYear']
             elif 'release' in m:
                 tdesc += ' ; %s' % m['release']['releaseDate']
+            if 'castingShort' in m and 'actors' in m['castingShort']:
+                tdesc += ' ; %s' % m['castingShort']['actors']
             short_description = tdesc.strip('; ')
             movie = Movie(m['code'], unicode(m['originalTitle']))
             movie.other_titles = NotLoaded
@@ -125,10 +127,6 @@ class AllocineBrowser(BaseBrowser):
         if 'runtime' in jres:
             nbsecs = jres['runtime']
             duration = nbsecs / 60
-        #if 'also_known_as' in jres:
-        #    for other_t in jres['also_known_as']:
-        #        if 'country' in other_t and 'title' in other_t:
-        #            other_titles.append('%s : %s' % (other_t['country'], htmlparser.unescape(other_t['title'])))
         if 'release' in jres:
             dstr = str(jres['release']['releaseDate'])
             tdate = dstr.split('-')
@@ -170,17 +168,72 @@ class AllocineBrowser(BaseBrowser):
         return movie
 
     def get_person(self, id):
-        try:
-            self.location('http://www.imdb.com/name/%s' % id)
-        except BrowserHTTPNotFound:
-            return
-        assert self.is_on_page(PersonPage)
-        return self.page.get_person(id)
+        res = self.readurl(
+                'http://api.allocine.fr/rest/v3/person?partner=YW5kcm9pZC12M3M&profile=large&code=%s&mediafmt=mp4-lc&filter=movie&format=json&striptags=biography' % id)
+        if res is not None:
+            jres = json.loads(res)['person']
+        else:
+            return None
+        name = NotAvailable
+        short_biography = NotAvailable
+        biography = NotAvailable
+        short_description = NotAvailable
+        birth_place = NotAvailable
+        birth_date = NotAvailable
+        death_date = NotAvailable
+        real_name = NotAvailable
+        gender = NotAvailable
+        thumbnail_url = NotAvailable
+        roles = {}
+        nationality = NotAvailable
 
-    def get_person_biography(self, id):
-        self.location('http://www.imdb.com/name/%s/bio' % id)
-        assert self.is_on_page(BiographyPage)
-        return self.page.get_biography()
+        if 'name' in jres:
+            name = u''
+            if 'given' in jres['name']:
+                name += jres['name']['given']
+            if 'family' in jres['name']:
+                name += ' %s' % jres['name']['family']
+        if 'biographyShort' in jres:
+            short_biography = unicode(jres['biographyShort'])
+        if 'birthPlace' in jres:
+            birth_place = unicode(jres['birthPlace'])
+        if 'birthDate' in jres:
+            df = jres['birthDate'].split('-')
+            birth_date = datetime(int(df[0]), int(df[1]), int(df[2]))
+        if 'deathDate' in jres:
+            df = jres['deathDate'].split('-')
+            death_date = datetime(int(df[0]), int(df[1]), int(df[2]))
+        if 'realName' in jres:
+            real_name = unicode(jres['realName'])
+        if 'gender' in jres:
+            gcode = jres['gender']
+            if gcode == 1:
+                gender = u'Male'
+            else:
+                gender = u'Female'
+        if 'picture' in jres:
+            thumbnail_url = unicode(jres['picture']['href'])
+        if 'nationality' in jres:
+            nationality = u''
+            for n in jres['nationality']:
+                nationality += '%s, ' % n['$']
+            nationality = nationality.strip(', ')
+        if 'biography' in jres:
+            biography = unicode(jres['biography'])
+
+        person = Person(id, name)
+        person.real_name = real_name
+        person.birth_date = birth_date
+        person.death_date = death_date
+        person.birth_place = birth_place
+        person.gender = gender
+        person.nationality = nationality
+        person.short_biography = short_biography
+        person.biography = biography
+        person.short_description = short_description
+        person.roles = roles
+        person.thumbnail_url = thumbnail_url
+        return person
 
     def iter_movie_persons(self, movie_id, role):
         self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
@@ -188,10 +241,33 @@ class AllocineBrowser(BaseBrowser):
         for p in self.page.iter_persons(role):
             yield p
 
-    def iter_person_movies(self, person_id, role):
-        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
-        assert self.is_on_page(FilmographyPage)
-        return self.page.iter_movies(role)
+    def iter_person_movies(self, person_id, role_filter):
+        res = self.readurl(
+                'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
+        if res is not None:
+            jres = json.loads(res)['person']
+        else:
+            return
+        for m in jres['participation']:
+            if (role_filter is None or (role_filter is not None and m['activity']['$'].lower().strip() == role_filter)):
+                prod_year = '????'
+                if 'productionYear' in m['movie']:
+                    prod_year = m['movie']['productionYear']
+                short_description = u'(%s) %s' % (prod_year, m['activity']['$'])
+                if 'role' in m:
+                    short_description += ', %s' % m['role']
+                movie = Movie(m['movie']['code'], unicode(m['movie']['originalTitle']))
+                movie.other_titles = NotLoaded
+                movie.release_date = NotLoaded
+                movie.duration = NotLoaded
+                movie.short_description = short_description
+                movie.pitch = NotLoaded
+                movie.country = NotLoaded
+                movie.note = NotLoaded
+                movie.roles = NotLoaded
+                movie.all_release_dates = NotLoaded
+                movie.thumbnail_url = NotLoaded
+                yield movie
 
     def iter_person_movies_ids(self, person_id):
         self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
