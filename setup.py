@@ -146,6 +146,24 @@ if options.xdg:
         ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
     ])
 
+
+# Do not put PyQt, it does not work properly.
+requirements = [
+    'lxml',
+    'feedparser',
+    'mechanize',
+    'PIL',
+    'gdata',
+    'python-dateutil',
+    'PyYAML',
+]
+
+if sys.version_info[0] > 2:
+    print >>sys.stderr, 'Python 3 is not supported.'
+    sys.exit(1)
+if sys.version_info[1] < 6:  # older than 2.6
+    requirements.append('simplejson')
+
 setup(
     name='weboob',
     version='0.f',
@@ -173,21 +191,5 @@ setup(
     scripts=[os.path.join('scripts', script) for script in scripts],
     data_files=data_files,
 
-    install_requires=[
-        # 'ClientForm', # python-clientform
-        # 'elementtidy', # python-elementtidy
-        # 'FeedParser', # python-feedparser
-        # 'gdata', # python-gdata
-        # 'html5lib', # python-html5lib
-        # 'lxml', # python-lxml
-        # 'Mako', # python-mako
-        # 'mechanize', # python-mechanize
-        # 'PIL', # python-imaging
-        # 'PyQt', # python-qt4
-        # 'python-dateutil', # python-dateutil
-        # 'PyYAML', # python-yaml
-        # 'Routes', # python-routes
-        # 'simplejson', # python-simplejson
-        # 'WebOb', # python-webob
-    ],
+    install_requires=requirements,
 )
