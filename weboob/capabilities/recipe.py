@@ -113,6 +113,22 @@ class Recipe(CapBaseObject):
             instructions = ET.SubElement(recipe, 'krecipes-instructions')
             instructions.text = self.instructions
 
+        if not empty(self.comments):
+            ratings = ET.SubElement(recipe, 'krecipes-ratings')
+            for c in self.comments:
+                rating = ET.SubElement(ratings, 'rating')
+                com = ET.SubElement(rating, 'comment')
+                com.text = c
+                crits = ET.SubElement(rating, 'criterion')
+                crit = ET.SubElement(crits, 'criteria')
+                critname = ET.SubElement(crit, 'name')
+                critname.text = ''
+                critstars = ET.SubElement(crit, 'stars')
+                critstars.text = ''
+
+                rater = ET.SubElement(rating, 'rater')
+                rater.text = ''
+
         return header + ET.tostring(doc, encoding='UTF-8', pretty_print=True).decode('utf-8')
 
 
