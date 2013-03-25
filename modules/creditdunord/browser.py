@@ -23,7 +23,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, ProTransactionsPage
 
 
 __all__ = ['CreditDuNordBrowser']
@@ -35,8 +35,11 @@ class CreditDuNordBrowser(BaseBrowser):
     PAGES = {'https://[^/]+/?':                                         LoginPage,
              'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion':    LoginPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
-             'https://[^/]+/vos-comptes/.*/transac/.*':                 TransactionsPage,
+             'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
+             'https://[^/]+/vos-comptes/professionnels.*':              ProAccountsPage,
+             'https://[^/]+/vos-comptes/.*/transac/professionnels.*':   ProTransactionsPage,
             }
+    account_type = 'particuliers'
 
     def __init__(self, website, *args, **kwargs):
         self.DOMAIN = website
@@ -47,11 +50,9 @@ class CreditDuNordBrowser(BaseBrowser):
 
     def home(self):
         if self.is_logged():
-            self.location(self.buildurl('/vos-comptes/particuliers'))
+            self.location(self.buildurl('/vos-comptes/%s' % self.account_type))
         else:
             self.login()
-        return
-        return self.location(self.buildurl('/vos-comptes/particuliers'))
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -79,9 +80,13 @@ class CreditDuNordBrowser(BaseBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
+        m = re.match('https://[^/]+/vos-comptes/(\w+).*', self.page.url)
+        if m:
+            self.account_type = m.group(1)
+
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location(self.buildurl('/vos-comptes/particuliers'))
+            self.location(self.buildurl('/vos-comptes/%s' % self.account_type))
         return self.page.get_list()
 
     def get_account(self, id):
@@ -94,20 +99,12 @@ class CreditDuNordBrowser(BaseBrowser):
 
         return None
 
-    def iter_transactions(self, link, link_id, execution, is_coming=None):
-        if link_id is None:
+    def iter_transactions(self, link, args, is_coming=None):
+        if args is None:
             return
 
-        event = 'clicDetailCompte'
-        while 1:
-            data = {'_eventId':         event,
-                    '_ipc_eventValue':  '',
-                    '_ipc_fireEvent':   '',
-                    'deviseAffichee':   'DEVISE',
-                    'execution':        execution,
-                    'idCompteClique':   link_id,
-                   }
-            self.location(link, urllib.urlencode(data))
+        while args is not None:
+            self.location(link, urllib.urlencode(args))
 
             assert self.is_on_page(TransactionsPage)
 
@@ -116,22 +113,17 @@ class CreditDuNordBrowser(BaseBrowser):
             for tr in self.page.get_history():
                 yield tr
 
-            is_last = self.page.is_last()
-            if is_last:
-                return
-
-            event = 'clicChangerPageSuivant'
-            execution = self.page.get_execution()
             is_coming = self.page.is_coming
+            args = self.page.get_next_args(args)
 
     def get_history(self, account):
-        for tr in self.iter_transactions(account._link, account._link_id, account._execution):
+        for tr in self.iter_transactions(account._link, account._args):
             yield tr
 
         for tr in self.get_card_operations(account):
             yield tr
 
     def get_card_operations(self, account):
-        for link_id in account._card_ids:
-            for tr in self.iter_transactions(account._link, link_id, account._execution, True):
+        for link_args in account._card_ids:
+            for tr in self.iter_transactions(account._link, link_args, True):
                 yield tr

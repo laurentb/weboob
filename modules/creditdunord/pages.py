@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urllib import quote
 from decimal import Decimal
 import re
 from cStringIO import StringIO
@@ -97,14 +98,19 @@ class AccountsPage(CDNBasePage):
             a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a._link = self.get_history_link()
-            a._execution = self.get_execution()
             if line[self.COL_HISTORY] == 'true':
-                a._link_id = line[self.COL_ID]
+                a._args = {'_eventId':         'clicDetailCompte',
+                           '_ipc_eventValue':  '',
+                           '_ipc_fireEvent':   '',
+                           'deviseAffichee':   'DEVISE',
+                           'execution':        self.get_execution(),
+                           'idCompteClique':   line[self.COL_ID],
+                          }
             else:
-                a._link_id = None
+                a._args = None
 
             if a.id.find('_CarteVisa') >= 0:
-                accounts[0]._card_ids.append(a._link_id)
+                accounts[0]._card_ids.append(a._args)
                 if not accounts[0].coming:
                     accounts[0].coming = Decimal('0.0')
                 accounts[0].coming += a.balance
@@ -114,6 +120,45 @@ class AccountsPage(CDNBasePage):
             accounts.append(a)
 
         return iter(accounts)
+
+
+class ProAccountsPage(AccountsPage):
+    COL_ID = 0
+    COL_BALANCE = 1
+
+    ARGS = ['Banque', 'Agence', 'classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
+    def params_from_js(self, text):
+        l = []
+        for sub in re.findall("'([^']*)'", text):
+            l.append(sub)
+
+        url = '/vos-comptes/IPT/appmanager/transac/professionnels?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
+        args = {}
+
+        for i, key in enumerate(self.ARGS):
+            args[key] = l[self.ARGS.index(key)]
+
+        return url, args
+
+
+    def get_list(self):
+        for tr in self.document.xpath('//table[@class="datas"]//tr'):
+            if tr.attrib.get('class', '') == 'entete':
+                continue
+
+            cols = tr.findall('td')
+
+            a = Account()
+            a.id = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.strip()
+            a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"]')[0].text.strip())
+            balance = self.parser.tocleanstring(cols[self.COL_BALANCE])
+            a.balance = Decimal(FrenchTransaction.clean_amount(balance))
+            a.currency = a.get_currency(balance)
+            a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
+
+            a._card_ids = []
+
+            yield a
 
 
 class Transaction(FrenchTransaction):
@@ -143,6 +188,15 @@ class TransactionsPage(CDNBasePage):
 
     is_coming = None
 
+    def get_next_args(self, args):
+        if self.is_last():
+            return None
+
+        args['_eventId'] = 'clicChangerPageSuivant'
+        args['execution'] = self.get_execution()
+        args.pop('idCompteClique', None)
+        return args
+
     def is_last(self):
         for script in self.document.xpath('//script'):
             txt = script.text
@@ -154,11 +208,28 @@ class TransactionsPage(CDNBasePage):
 
         return True
 
+    def set_coming(self, t):
+        if self.is_coming is not None and t.raw.startswith('TOTAL DES') and t.amount > 0:
+            # ignore card credit and next transactions are already debited
+            self.is_coming = False
+            return True
+        if self.is_coming is None and t.raw.startswith('ACHATS CARTE'):
+            # Ignore card debit
+            return True
+
+        t._is_coming = bool(self.is_coming)
+        return False
+
     def get_history(self):
         txt = self.get_from_js('ListeMvts_data = new Array(', ');')
 
         if txt is None:
-            raise BrokenPageError('Unable to find transactions list in scripts')
+            no_trans = self.get_from_js('js_noMvts = new Ext.Panel(', ')')
+            if no_trans is not None:
+                # there is no transactions for this account, this is normal.
+                return
+            else:
+                raise BrokenPageError('Unable to find transactions list in scripts')
 
         data = json.loads('[%s]' % txt.replace('"', '\\"').replace("'", '"'))
 
@@ -175,13 +246,49 @@ class TransactionsPage(CDNBasePage):
             t.parse(date, raw)
             t.set_amount(line[self.COL_VALUE])
 
-            if self.is_coming is not None and raw.startswith('TOTAL DES') and t.amount > 0:
-                # ignore card credit and next transactions are already debited
-                self.is_coming = False
-                continue
-            if self.is_coming is None and raw.startswith('ACHATS CARTE'):
-                # Ignore card debit
+            if self.set_coming(t):
                 continue
 
-            t._is_coming = bool(self.is_coming)
+            yield t
+
+class ProTransactionsPage(TransactionsPage):
+    def get_next_args(self, args):
+        txt = self.get_from_js('myPage.setPiedPage(oNavSuivantPrec_1(', ')')
+
+        if txt is None:
+            return None
+
+        l = txt.split(',')
+        if int(l[4]) <= 40:
+            return None
+
+        args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
+        return args
+
+    def parse_transactions(self):
+        transactions = {}
+        for script in self.document.xpath('//script'):
+            txt = script.text
+            if txt is None:
+                continue
+
+            for i, key, value in re.findall('listeopecv\[(\d+)\]\[\'(\w+)\'\]="(.*)";', txt):
+                i = int(i)
+                if not i in transactions:
+                    transactions[i] = {}
+                transactions[i][key] = value
+
+        return transactions.iteritems()
+
+    def get_history(self):
+        for i, tr in self.parse_transactions():
+            t = Transaction(i)
+            date = tr['date']
+            raw = self.parser.strip('<p>%s</p>' % (' '.join([tr['typeope'], tr['LibComp']])))
+            t.parse(date, raw)
+            t.set_amount(tr['mont'])
+
+            if self.set_coming(t):
+                continue
+
             yield t
