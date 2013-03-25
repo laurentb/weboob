@@ -15,7 +15,7 @@ else:
 project = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 wd = os.path.join(project, 'localconfig')
 if not os.path.isdir(wd):
-    os.path.makedirs(wd)
+    os.makedirs(wd)
 
 env = os.environ.copy()
 env['PYTHONPATH'] = project
@@ -24,6 +24,7 @@ env['WEBOOB_WORKDIR'] = wd
 shutil.copyfile(
     os.path.expanduser('~/.config/weboob/backends'),
     os.path.join(project, wd, 'backends'))
+os.chmod(os.path.join(project, wd, 'backends'), 0600)
 
 with open(os.path.join(wd, 'sources.list'), 'w') as f:
     f.write("file://%s\n" % os.path.join(project, 'modules'))
