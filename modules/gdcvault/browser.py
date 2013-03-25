@@ -106,10 +106,10 @@ class GDCVaultBrowser(BaseBrowser):
                     redir_url = unicode(e.hdrs['Location'], encoding='utf-8')
         self.set_handle_redirect(True)
 
-        if (requires_account):
+        if requires_account:
             raise BrowserUnavailable('Requires account')
 
-        if (redir_url):
+        if redir_url:
             if video is None:
                 m = re.match('http://[w\.]*gdcvault.com/play/(?P<id>[\d]+)/?.*', url)
                 if m:
