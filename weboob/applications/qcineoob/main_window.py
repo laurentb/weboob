@@ -175,7 +175,7 @@ class MainWindow(QtMainWindow):
                 self.ui.backButton.setToolTip(self.action_history['action_list'][-1]['description'])
             return todo['function'](*todo['args'])
 
-    def castingAction(self, id, role):
+    def castingAction(self, backend_name, id, role):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
             self.ui.list_content.layout().removeWidget(mini)
@@ -185,14 +185,12 @@ class MainWindow(QtMainWindow):
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addPerson)
         self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=ICapCinema)
         self.ui.stopButton.show()
 
-    def filmographyAction(self, id, role):
+    def filmographyAction(self, backend_name, id, role):
         self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
         for mini in self.minis:
             self.ui.list_content.layout().removeWidget(mini)
@@ -202,8 +200,6 @@ class MainWindow(QtMainWindow):
         self.minis = []
         self.ui.searchEdit.setEnabled(False)
         QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addMovie)
         self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)

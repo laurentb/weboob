@@ -24,7 +24,6 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 
 from weboob.applications.qcineoob.ui.person_ui import Ui_Person
 from weboob.capabilities.base import empty
-from weboob.applications.cineoob.cineoob import ROLE_LIST
 
 
 class Person(QFrame):
@@ -60,7 +59,7 @@ class Person(QFrame):
         else:
             self.ui.deathDateLabel.parent().hide()
         self.ui.shortBioPlain.setPlainText('%s' % person.short_biography)
-        for role in ROLE_LIST:
+        for role in person.roles.keys():
             self.ui.filmographyCombo.addItem(role)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
@@ -78,13 +77,13 @@ class Person(QFrame):
             role = tosearch
             role_desc = ' as %s' % role
         self.parent.doAction('Filmography of "%s"%s' % (self.person.name, role_desc),
-                             self.parent.filmographyAction, [self.person.id, role])
+                             self.parent.filmographyAction, [self.backend.name, self.person.id, role])
 
     def biography(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.backend.fill_person(self.person, 'biography')
         bio = self.person.biography
-        self.ui.shortBioPlain.setPlainText(bio)
+        self.ui.shortBioPlain.setPlainText(u'%s' % bio)
         self.ui.biographyLabel.setText('Full biography:')
         self.ui.biographyButton.hide()
         QApplication.restoreOverrideCursor()

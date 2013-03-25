@@ -25,7 +25,6 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap
 from weboob.applications.qcineoob.ui.movie_ui import Ui_Movie
 from weboob.capabilities.base import empty
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
-from weboob.applications.cineoob.cineoob import ROLE_LIST
 
 
 class Movie(QFrame):
@@ -83,8 +82,8 @@ class Movie(QFrame):
             self.ui.noteLabel.setText('%s' % movie.note)
         else:
             self.ui.noteLabel.parent().hide()
-        for role in ROLE_LIST:
-            self.ui.castingCombo.addItem('%ss' % role)
+        for role in movie.roles.keys():
+            self.ui.castingCombo.addItem('%s' % role)
 
         self.ui.verticalLayout.setAlignment(Qt.AlignTop)
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
@@ -117,10 +116,10 @@ class Movie(QFrame):
 
     def casting(self):
         role = None
-        tosearch = self.ui.castingCombo.currentText()
+        tosearch = unicode(self.ui.castingCombo.currentText())
         role_desc = ''
         if tosearch != 'all':
-            role = tosearch[:-1]
+            role = tosearch
             role_desc = ' as %s' % role
         self.parent.doAction('Casting%s of movie "%s"' % (role_desc, self.movie.original_title),
-                             self.parent.castingAction, [self.movie.id, role])
+                             self.parent.castingAction, [self.backend.name, self.movie.id, role])

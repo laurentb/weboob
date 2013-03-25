@@ -231,7 +231,7 @@ class AllocineBrowser(BaseBrowser):
         person.thumbnail_url = thumbnail_url
         return person
 
-    def iter_movie_persons(self, movie_id, role):
+    def iter_movie_persons(self, movie_id, role_filter):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
         if res is not None:
@@ -240,26 +240,27 @@ class AllocineBrowser(BaseBrowser):
             return
         if 'castMember' in jres:
             for cast in jres['castMember']:
-                id = cast['person']['code']
-                name = unicode(cast['person']['name'])
-                short_description = unicode(cast['activity']['$'])
-                if 'role' in cast:
-                    short_description += ', %s' % cast['role']
-                thumbnail_url = NotAvailable
-                if 'picture' in cast:
-                    thumbnail_url = unicode(cast['picture']['href'])
-                person = Person(id, name)
-                person.short_description = short_description
-                person.real_name = NotLoaded
-                person.birth_place = NotLoaded
-                person.birth_date = NotLoaded
-                person.death_date = NotLoaded
-                person.gender = NotLoaded
-                person.nationality = NotLoaded
-                person.short_biography = NotLoaded
-                person.roles = NotLoaded
-                person.thumbnail_url = thumbnail_url
-                yield person
+                if (role_filter is None or (role_filter is not None and cast['activity']['$'].lower().strip() == role_filter.lower().strip())):
+                    id = cast['person']['code']
+                    name = unicode(cast['person']['name'])
+                    short_description = unicode(cast['activity']['$'])
+                    if 'role' in cast:
+                        short_description += ', %s' % cast['role']
+                    thumbnail_url = NotAvailable
+                    if 'picture' in cast:
+                        thumbnail_url = unicode(cast['picture']['href'])
+                    person = Person(id, name)
+                    person.short_description = short_description
+                    person.real_name = NotLoaded
+                    person.birth_place = NotLoaded
+                    person.birth_date = NotLoaded
+                    person.death_date = NotLoaded
+                    person.gender = NotLoaded
+                    person.nationality = NotLoaded
+                    person.short_biography = NotLoaded
+                    person.roles = NotLoaded
+                    person.thumbnail_url = thumbnail_url
+                    yield person
 
     def iter_person_movies(self, person_id, role_filter):
         res = self.readurl(
@@ -269,7 +270,7 @@ class AllocineBrowser(BaseBrowser):
         else:
             return
         for m in jres['participation']:
-            if (role_filter is None or (role_filter is not None and m['activity']['$'].lower().strip() == role_filter)):
+            if (role_filter is None or (role_filter is not None and m['activity']['$'].lower().strip() == role_filter.lower().strip())):
                 prod_year = '????'
                 if 'productionYear' in m['movie']:
                     prod_year = m['movie']['productionYear']
