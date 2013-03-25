@@ -18,13 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import HTMLParser
-from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
+from weboob.tools.browser import BaseBrowser
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
 from weboob.tools.json import json
-
-from .pages import PersonPage, MovieCrewPage, BiographyPage, FilmographyPage, ReleasePage
 
 from datetime import datetime
 
@@ -36,13 +33,6 @@ class AllocineBrowser(BaseBrowser):
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    #PAGES = {
-    #    'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
-    #    'http://www.imdb.com/title/tt[0-9]*/releaseinfo.*': ReleasePage,
-    #    'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
-    #    'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
-    #    'http://www.imdb.com/name/nm[0-9]*/filmo.*': FilmographyPage,
-    #}
 
     def iter_movies(self, pattern):
         res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=movie&q=%s&format=json' % pattern.encode('utf-8'))
@@ -236,10 +226,34 @@ class AllocineBrowser(BaseBrowser):
         return person
 
     def iter_movie_persons(self, movie_id, role):
-        self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
-        assert self.is_on_page(MovieCrewPage)
-        for p in self.page.iter_persons(role):
-            yield p
+        res = self.readurl(
+                'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
+        if res is not None:
+            jres = json.loads(res)['movie']
+        else:
+            return
+        if 'castMember' in jres:
+            for cast in jres['castMember']:
+                id = cast['person']['code']
+                name = unicode(cast['person']['name'])
+                short_description = unicode(cast['activity']['$'])
+                if 'role' in cast:
+                    short_description += ', %s' % cast['role']
+                thumbnail_url = NotAvailable
+                if 'picture' in cast:
+                    thumbnail_url = unicode(cast['picture']['href'])
+                person = Person(id, name)
+                person.short_description = short_description
+                person.real_name = NotLoaded
+                person.birth_place = NotLoaded
+                person.birth_date = NotLoaded
+                person.death_date = NotLoaded
+                person.gender = NotLoaded
+                person.nationality = NotLoaded
+                person.short_biography = NotLoaded
+                person.roles = NotLoaded
+                person.thumbnail_url = thumbnail_url
+                yield person
 
     def iter_person_movies(self, person_id, role_filter):
         res = self.readurl(
@@ -270,45 +284,25 @@ class AllocineBrowser(BaseBrowser):
                 yield movie
 
     def iter_person_movies_ids(self, person_id):
-        self.location('http://www.imdb.com/name/%s/filmotype' % person_id)
-        assert self.is_on_page(FilmographyPage)
-        for movie in self.page.iter_movies_ids():
-            yield movie
+        res = self.readurl(
+                'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
+        if res is not None:
+            jres = json.loads(res)['person']
+        else:
+            return
+        for m in jres['participation']:
+            yield unicode(m['movie']['code'])
 
     def iter_movie_persons_ids(self, movie_id):
-        self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
-        assert self.is_on_page(MovieCrewPage)
-        for person in self.page.iter_persons_ids():
-            yield person
+        res = self.readurl(
+                'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
+        if res is not None:
+            jres = json.loads(res)['movie']
+        else:
+            return
+        if 'castMember' in jres:
+            for cast in jres['castMember']:
+                yield unicode(cast['person']['code'])
 
     def get_movie_releases(self, id, country):
         return
-        self.location('http://www.imdb.com/title/%s/releaseinfo' % id)
-        assert self.is_on_page(ReleasePage)
-        return self.page.get_movie_releases(country)
-
-
-dict_hex = {'&#xE1;': u'á',
-            '&#xE9;': u'é',
-            '&#xE8;': u'è',
-            '&#xED;': u'í',
-            '&#xF1;': u'ñ',
-            '&#xF3;': u'ó',
-            '&#xFA;': u'ú',
-            '&#xFC;': u'ü',
-            '&#x26;': u'&',
-            '&#x27;': u"'",
-            '&#xE0;': u'à',
-            '&#xC0;': u'À',
-            '&#xE2;': u'â',
-            '&#xC9;': u'É',
-            '&#xEB;': u'ë',
-            '&#xF4;': u'ô',
-            '&#xE7;': u'ç'
-            }
-
-
-def latin2unicode(word):
-    for key in dict_hex.keys():
-        word = word.replace(key, dict_hex[key])
-    return unicode(word)

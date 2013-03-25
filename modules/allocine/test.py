@@ -20,8 +20,8 @@
 from weboob.tools.test import BackendTest
 
 
-class ImdbTest(BackendTest):
-    BACKEND = 'imdb'
+class AllocineTest(BackendTest):
+    BACKEND = 'allocine'
 
     def test_search_movie(self):
         movies = list(self.backend.iter_movies('spiderman'))
@@ -29,7 +29,7 @@ class ImdbTest(BackendTest):
             assert movie.id
 
     def test_get_movie(self):
-        movie = self.backend.get_movie('tt0079980')
+        movie = self.backend.get_movie('5032')
         assert movie.id
         assert movie.original_title
 
@@ -39,29 +39,19 @@ class ImdbTest(BackendTest):
             assert person.id
 
     def test_get_person(self):
-        person = self.backend.get_person('nm0223033')
+        person = self.backend.get_person('1116')
         assert person.id
         assert person.name
         assert person.birth_date
 
     def test_movie_persons(self):
-        persons = list(self.backend.iter_movie_persons('tt0079980'))
+        persons = list(self.backend.iter_movie_persons('5032'))
         for person in persons:
             assert person.id
             assert person.name
 
     def test_person_movies(self):
-        movies = list(self.backend.iter_person_movies('nm0223033'))
+        movies = list(self.backend.iter_person_movies('1115'))
         for movie in movies:
             assert movie.id
             assert movie.original_title
-
-    def test_get_person_biography(self):
-        bio = self.backend.get_person_biography('nm0223033')
-        assert bio != ''
-        assert bio is not None
-
-    def test_get_movie_releases(self):
-        rel = self.backend.get_movie_releases('tt0079980')
-        assert rel != ''
-        assert rel is not None
