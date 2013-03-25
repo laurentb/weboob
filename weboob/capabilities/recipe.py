@@ -31,6 +31,7 @@ class Recipe(CapBaseObject):
     Recipe object.
     """
     title =             StringField('Title of the recipe')
+    author =            StringField('Author name of the recipe')
     thumbnail_url =     StringField('Direct url to recipe thumbnail')
     picture_url =       StringField('Direct url to recipe picture')
     short_description = StringField('Short description of a recipe')
@@ -49,8 +50,15 @@ class Recipe(CapBaseObject):
         """
         Export recipe to KRecipes XML string
         """
+        sauthor = u''
+        if not empty(self.author):
+            sauthor += '%s@' % self.author
+
         if author == None:
-            author = 'Cookboob'
+            sauthor += 'Cookboob'
+        else:
+            sauthor += author
+
         header = u'<?xml version="1.0" encoding="UTF-8" ?>\n'
         initial_xml = '''\
 <krecipes version='2.0-beta2' lang='fr' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='krecipes.xsd'>
@@ -63,7 +71,7 @@ class Recipe(CapBaseObject):
         title = ET.SubElement(desc, 'title')
         title.text = self.title
         authors = ET.SubElement(desc, 'author')
-        authors.text = author
+        authors.text = sauthor
         eyield = ET.SubElement(desc, 'yield')
         if not empty(self.nb_person):
             amount = ET.SubElement(eyield, 'amount')

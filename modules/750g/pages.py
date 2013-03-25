@@ -61,6 +61,7 @@ class ResultsPage(BasePage):
                 recipe.nb_person = NotLoaded
                 recipe.cooking_time = NotLoaded
                 recipe.preparation_time = NotLoaded
+                recipe.author = NotLoaded
                 yield recipe
 
 
@@ -75,6 +76,7 @@ class RecipePage(BasePage):
         ingredients = NotAvailable
         picture_url = NotAvailable
         instructions = NotAvailable
+        author = NotAvailable
         comments = []
 
         title = unicode(self.parser.select(self.document.getroot(), 'head > title', 1).text.split(' - ')[1])
@@ -120,6 +122,11 @@ class RecipePage(BasePage):
             if u'| Répondre' in comtxt:
                 comtxt = comtxt.strip('0123456789').replace(u' | Répondre', '')
             comments.append(comtxt)
+            
+        links_author = self.parser.select(self.document.getroot(), 'p.auteur a.couleur_membre')
+        print links_author[0].text.strip()
+        if len(links_author) > 0:
+            author = unicode(links_author[0].text.strip())
 
         recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time
@@ -129,5 +136,6 @@ class RecipePage(BasePage):
         recipe.instructions = instructions
         recipe.picture_url = picture_url
         recipe.comments = comments
+        recipe.author = author
         recipe.thumbnail_url = NotLoaded
         return recipe

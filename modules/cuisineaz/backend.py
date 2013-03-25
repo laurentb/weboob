@@ -57,6 +57,7 @@ class CuisineazBackend(BaseBackend, ICapRecipe):
             recipe.instructions = rec.instructions
             recipe.ingredients = rec.ingredients
             recipe.comments = rec.comments
+            recipe.author = rec.author
             recipe.nb_person = rec.nb_person
             recipe.cooking_time = rec.cooking_time
             recipe.preparation_time = rec.preparation_time

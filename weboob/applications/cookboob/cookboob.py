@@ -37,6 +37,8 @@ class RecipeInfoFormatter(IFormatter):
     def format_obj(self, obj, alias):
         result = u'%s%s%s\n' % (self.BOLD, obj.title, self.NC)
         result += 'ID: %s\n' % obj.fullid
+        if not empty(obj.author):
+            result += 'Author: %s\n' % obj.author
         result += 'Preparation time: %smin\n' % obj.preparation_time
         if not empty(obj.cooking_time):
             result += 'Cooking time: %smin\n' % obj.cooking_time

@@ -49,6 +49,7 @@ class ResultsPage(BasePage):
                 recipe.thumbnail_url = thumbnail_url
                 recipe.short_description = short_description
                 recipe.instructions = NotLoaded
+                recipe.author = NotLoaded
                 recipe.ingredients = NotLoaded
                 recipe.nb_person = NotLoaded
                 recipe.cooking_time = NotLoaded
@@ -101,4 +102,5 @@ class RecipePage(BasePage):
         recipe.picture_url = picture_url
         recipe.comments = comments
         recipe.thumbnail_url = NotLoaded
+        recipe.author = NotAvailable
         return recipe

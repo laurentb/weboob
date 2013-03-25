@@ -70,6 +70,7 @@ class ResultsPage(BasePage):
             recipe.nb_person = NotLoaded
             recipe.cooking_time = NotLoaded
             recipe.preparation_time = NotLoaded
+            recipe.author = NotLoaded
             yield recipe
 
 
@@ -80,6 +81,7 @@ class RecipePage(BasePage):
         title = NotAvailable
         preparation_time = NotAvailable
         cooking_time = NotAvailable
+        author = NotAvailable
         nb_person = NotAvailable
         ingredients = NotAvailable
         picture_url = NotAvailable
@@ -128,6 +130,10 @@ class RecipePage(BasePage):
             comments.append('author: %s, date: %s, text: %s' % (
                 author, date, comtxt))
 
+        spans_author = self.parser.select(self.document.getroot(), 'span.author')
+        if len(spans_author) > 0:
+            author = unicode(spans_author[0].text_content().strip())
+
         recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time
         recipe.cooking_time = cooking_time
@@ -136,5 +142,6 @@ class RecipePage(BasePage):
         recipe.instructions = instructions
         recipe.picture_url = picture_url
         recipe.comments = comments
+        recipe.author = author
         recipe.thumbnail_url = NotLoaded
         return recipe
