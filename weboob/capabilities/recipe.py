@@ -26,6 +26,22 @@ import base64, re, urllib
 __all__ = ['Recipe', 'ICapRecipe']
 
 
+class Comment():
+    def __init__(self, author=None, rate=None, text=None):
+        self.author = author
+        self.rate = rate
+        self.text = text
+
+    def __str__(self):
+        result = u''
+        if self.author:
+            result += 'author: %s, ' % self.author
+        if self.rate:
+            result += 'note: %s, ' % self.rate
+        if self.text:
+            result += 'comment: %s' % self.text
+        return result
+
 class Recipe(CapBaseObject):
     """
     Recipe object.
@@ -117,17 +133,19 @@ class Recipe(CapBaseObject):
             ratings = ET.SubElement(recipe, 'krecipes-ratings')
             for c in self.comments:
                 rating = ET.SubElement(ratings, 'rating')
-                com = ET.SubElement(rating, 'comment')
-                com.text = c
+                if c.author:
+                    rater = ET.SubElement(rating, 'rater')
+                    rater.text = c.author
+                if c.text:
+                    com = ET.SubElement(rating, 'comment')
+                    com.text = c.text
                 crits = ET.SubElement(rating, 'criterion')
-                crit = ET.SubElement(crits, 'criteria')
-                critname = ET.SubElement(crit, 'name')
-                critname.text = ''
-                critstars = ET.SubElement(crit, 'stars')
-                critstars.text = ''
-
-                rater = ET.SubElement(rating, 'rater')
-                rater.text = ''
+                if c.rate:
+                    crit = ET.SubElement(crits, 'criteria')
+                    critname = ET.SubElement(crit, 'name')
+                    critname.text = 'Overall'
+                    critstars = ET.SubElement(crit, 'stars')
+                    critstars.text = c.rate.split('/')[0]
 
         return header + ET.tostring(doc, encoding='UTF-8', pretty_print=True).decode('utf-8')
 

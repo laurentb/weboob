@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.recipe import Recipe
+from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
@@ -123,12 +123,9 @@ class RecipePage(BasePage):
         for divcom in self.parser.select(self.document.getroot(), 'div.comment'):
             author = unicode(self.parser.select(
                 divcom, 'div.commentAuthor span', 1).text)
-            date = unicode(self.parser.select(
-                divcom, 'div.commentDate', 1).text)
             comtxt = unicode(self.parser.select(
                 divcom, 'p', 1).text_content().strip())
-            comments.append('author: %s, date: %s, text: %s' % (
-                author, date, comtxt))
+            comments.append(Comment(author=author, text=comtxt))
 
         spans_author = self.parser.select(self.document.getroot(), 'span.author')
         if len(spans_author) > 0:

@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.recipe import Recipe
+from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
@@ -121,10 +121,13 @@ class RecipePage(BasePage):
             comtxt = unicode(' '.join(divcom.text_content().strip().split()))
             if u'| Répondre' in comtxt:
                 comtxt = comtxt.strip('0123456789').replace(u' | Répondre', '')
-            comments.append(comtxt)
+                author = None
+                if 'par ' in comtxt:
+                    author = comtxt.split('par ')[-1].split('|')[0]
+                    comtxt = comtxt.replace('par %s' % author, '')
+            comments.append(Comment(text=comtxt, author=author))
             
         links_author = self.parser.select(self.document.getroot(), 'p.auteur a.couleur_membre')
-        print links_author[0].text.strip()
         if len(links_author) > 0:
             author = unicode(links_author[0].text.strip())
 

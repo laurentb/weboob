@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.recipe import Recipe
+from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
@@ -91,7 +91,7 @@ class RecipePage(BasePage):
             note = self.parser.select(divcom, 'div.m_commentaire_note span', 1).text.strip()
             user = self.parser.select(divcom, 'div.m_commentaire_content span', 1).text.strip()
             content = self.parser.select(divcom, 'div.m_commentaire_content p', 1).text.strip()
-            comments.append(u'user: %s, note: %s, comment: %s' % (user, note, content))
+            comments.append(Comment(author=user, rate=note, text=content))
 
         recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time
