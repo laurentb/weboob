@@ -72,6 +72,9 @@ class MainWindow(QtMainWindow):
 
         count = self.config.get('settings', 'maxresultsnumber')
         self.ui.countSpin.setValue(int(count))
+        showT = self.config.get('settings', 'showthumbnails')
+        print showT
+        self.ui.showTCheck.setChecked(showT == '1')
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
@@ -443,6 +446,7 @@ class MainWindow(QtMainWindow):
             self.ui.backendEdit.currentIndex()).toString()))
         self.saveSearchHistory()
         self.config.set('settings', 'maxresultsnumber', self.ui.countSpin.value())
+        self.config.set('settings', 'showthumbnails', '1' if self.ui.showTCheck.isChecked() else '0')
 
         self.config.save()
         ev.accept()
