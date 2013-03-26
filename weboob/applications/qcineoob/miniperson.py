@@ -46,6 +46,9 @@ class MiniPerson(QFrame):
             self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
+        if self.parent.ui.showTCheck.isChecked():
+            self.gotThumbnail()
+
     def gotThumbnail(self):
         self.backend.fill_person(self.person, ('thumbnail_url'))
         if not empty(self.person.thumbnail_url):

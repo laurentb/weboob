@@ -143,6 +143,16 @@
         <number>0</number>
        </property>
        <item>
+        <widget class="QCheckBox" name="showTCheck">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;may slow search process&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Show thumbnails</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -218,7 +228,7 @@
              <x>0</x>
              <y>0</y>
              <width>708</width>
-             <height>261</height>
+             <height>260</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -239,8 +249,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>78</width>
-             <height>18</height>
+             <width>96</width>
+             <height>26</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8"/>

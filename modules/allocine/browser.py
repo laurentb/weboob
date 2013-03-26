@@ -229,7 +229,10 @@ class AllocineBrowser(BaseBrowser):
             for m in jres['participation']:
                 if m['activity']['$'] not in roles:
                     roles[m['activity']['$']] = []
-                roles[m['activity']['$']].append(u'(%s) %s' % (m['movie']['productionYear'], m['movie']['originalTitle']))
+                pyear = '????'
+                if 'productionYear' in m['movie']:
+                    pyear = m['movie']['productionYear']
+                roles[m['activity']['$']].append(u'(%s) %s' % (pyear, m['movie']['originalTitle']))
 
 
         person = Person(id, name)

@@ -40,6 +40,9 @@ class MiniMovie(QFrame):
         self.ui.shortDescLabel.setText(movie.short_description)
         self.ui.backendLabel.setText(backend.name)
 
+        if self.parent.ui.showTCheck.isChecked():
+            self.gotThumbnail()
+
     def gotThumbnail(self):
         if empty(self.movie.thumbnail_url):
             self.backend.fill_movie(self.movie, ('thumbnail_url'))
