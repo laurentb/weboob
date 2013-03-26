@@ -22,20 +22,23 @@ import logging
 import re
 from threading import Event
 from copy import copy
-from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant, QMutex
+from PyQt4.QtCore import QTimer, SIGNAL, QObject, QString, QSize, QVariant, QMutex, Qt
 from PyQt4.QtGui import QMainWindow, QApplication, QStyledItemDelegate, \
                         QStyleOptionViewItemV4, QTextDocument, QStyle, \
                         QAbstractTextDocumentLayout, QPalette, QMessageBox, \
                         QSpinBox, QLineEdit, QComboBox, QCheckBox, QInputDialog
 
-from weboob.core.ouiboube import Weboob
+from weboob.core.ouiboube import Weboob, VersionsMismatchError
 from weboob.core.scheduler import IScheduler
+from weboob.core.repositories import ModuleInstallError
+from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden
 from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.capabilities import UserError
 
 from ..base import BaseApplication
+
 
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
 
@@ -146,6 +149,32 @@ class QtApplication(QApplication, BaseApplication):
     def create_weboob(self):
         return Weboob(scheduler=QtScheduler(self))
 
+    def load_backends(self, *args, **kwargs):
+        while 1:
+            try:
+                return BaseApplication.load_backends(self, *args, **kwargs)
+            except VersionsMismatchError, e:
+                msg = 'Versions of modules mismatch with version of weboob.'
+            except ConfigError, e:
+                msg = unicode(e)
+
+            res = QMessageBox.question(None, 'Configuration error', u'%s\n\nDo you want to update repositories?' % msg, QMessageBox.Yes|QMessageBox.No)
+            if res == QMessageBox.No:
+                raise e
+
+            # Do not import it globally, it causes circular imports
+            from .backendcfg import ProgressDialog
+            pd = ProgressDialog('Update of repositories', "Cancel", 0, 100)
+            pd.setWindowModality(Qt.WindowModal)
+            try:
+                self.weboob.update(pd)
+            except ModuleInstallError, err:
+                QMessageBox.critical(None, self.tr('Update error'),
+                                     unicode(self.tr('Unable to update repositories: %s' % err)),
+                                     QMessageBox.Ok)
+            pd.setValue(100)
+            QMessageBox.information(None, self.tr('Update of repositories'),
+                                    self.tr('Repositories updated!'), QMessageBox.Ok)
 
 class QtMainWindow(QMainWindow):
     def __init__(self, parent=None):

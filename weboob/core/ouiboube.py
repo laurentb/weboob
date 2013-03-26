@@ -36,6 +36,9 @@ from weboob.tools.log import getLogger
 __all__ = ['Weboob']
 
 
+class VersionsMismatchError(ConfigError):
+    pass
+
 class Weboob(object):
     """
     The main class of Weboob, used to manage backends and call methods.
@@ -196,7 +199,7 @@ class Weboob(object):
 
         if not self.repositories.check_repositories():
             self.logger.error(u'Repositories are not consistent with the sources.list')
-            raise ConfigError(u'Versions mismatch, please run "weboob-config update"')
+            raise VersionsMismatchError(u'Versions mismatch, please run "weboob-config update"')
 
         for instance_name, module_name, params in self.backends_config.iter_backends():
             if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
