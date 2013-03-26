@@ -40,6 +40,7 @@ class CreditDuNordBackend(BaseBackend, ICapBank):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.credit-du-nord.fr':    u'Crédit du Nord',
         'www.banque-courtois.fr':   u'Banque Courtois',
+        'www.banque-kolb.fr':       u'Banque Kolb',
         'www.tarneaud.fr':          u'Tarneaud',
         }.iteritems(), key=lambda (k, v): (v, k))])
     CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='www.credit-du-nord.fr'),
