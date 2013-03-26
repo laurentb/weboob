@@ -1,3 +1,276 @@
+Weboob 0.f (2013-03-26)
+
+	General
+	* New application: booblyrics
+	* New application: cineoob
+	* New application: cookboob
+	* New application: suboob
+	* New application: qcineoob
+	* New application: qcookboob
+	* New capabilitie: CapSubtitles
+	* New capabilitie: CapCinema
+	* New capabilitie: CapLyrics
+	* New capabilitie: CapRecipe
+	* New module: American Express (CapBank)
+	* New module: Paypal (CapBank)
+	* New module: Crédit du Nord (CapBank)
+	* New module: Allocine (CapCinema)
+	* New module: IMBD (CapCinema)
+	* New module: Parole De Musique (CapLyrics)
+	* New module: Parolesmania (CapLyrics)
+	* New module: Seeklyrics (CapLyrics)
+	* New module: 750g (CapRecipe)
+	* New module: Cuisineaz (CapRecipe)
+	* New module: Marmiton (CapRecipe)
+	* New module: Attilasub (CapSubtitle)
+	* New module: OpenSubtitles (CapSubtitle)
+	* New module: tvsubtitles (CapSubtitle)
+	* New module: Btmon (CapTorrent)
+	* New module: DresdenWetter (CapWeather)
+	* New script: Generic Munin Plugin
+
+	Core
+	* Do not cry if an object is not support to be filled by a backend
+	* Add a CSV parser
+	* Remove two old and useless debug messages (bcall)
+	* Force updating modules after upgrade (#1066)
+
+	Core: application
+	* Fix crash when there is no selected fields
+	* Allow infinite search with 0
+	* Add a JSON encoder
+	* move to_dict to base.py (#1060, #1061)
+
+	Core: browser
+	* Ability to set a ENCODING constant to BasePage which overrides the
+	Browser's one
+	* Use recent firefox user agent (Firefox ESR)
+	* Fall back on SSLv3 if TLSv1 fails
+	* Cache the sucessful SSL protocol
+
+	Core: tools
+	* Create DateGuesser extracted from cragr
+
+	Application: boobill
+	* Improve documentation of download command
+
+	Application: havedate
+	* Display contact IDs in 'events' command output
+
+	Application: pastoob
+	* Add command-line parameters (#920)
+	* Support "no expiration"
+
+	Application: videoob
+	* Add resume option for video downloading
+	* Stop the video when closing with ESC
+
+	Application: webcontentedit
+	* Add non tty stdin support to edit command
+	* Add "get" command to webcontentedit
+
+	Application: Wetboobs
+	* Add a default error message on SensorNotFound
+
+	Module: aum
+	* Handle GONE exception
+	* Mimic mobile application (#1041)
+	* Fix: date used may be UTC
+	* Fix: display of summary
+	* Support new 'favorite_food' field
+	* Go on website to get stats and geographical position
+	* Read field ratio
+	* Don't stop on threads with a contact who left the website
+	* Fix: send email when taken in a basket
+
+	Module: axabanque
+	* Remove mkdtemp in module
+	* Fix: crash on a new tab
+
+	Module: banquepopulaire
+	* Fix: parsing of some card transactions
+	* Update regexps
+
+	Module: barclays
+	* Update regexps
+	* Support market page (but do not display any history)
+	* Support when accounts are in javascript...
+
+	Module: bnporc
+	* Remove mkdtemp in modul
+	* Support pro accounts
+
+	Module: boursoram
+	* Take id of the website for transactions
+	* On page to update user information, raise BrowserIncorrectPassword
+	* Get maximum history
+	* Do not crash for special accounts
+	* Remove mkdtemp in module
+
+	Module: bp
+	* Fix: New SSL certificat
+
+	Module: bred
+	* Fix: deferred debit cards parsing
+
+	Module: caissedepargne
+	* Update regexps
+	* New SSL certificat
+	* Support more history
+
+	Module: cic
+	* support pagination
+	* support wher forced to go on change_password page
+	* Fix: crash on pagination
+
+	Module: cmso
+	* Update regexps
+
+	Module: cragr
+	* Use LinearDateGuesser
+	* New maintener
+	* Support new website
+
+	Module: creditmutuel
+	* Transfer now accepts long and short IDs
+	* Support pagination
+	* Support wher forced to go on change_password page
+	* Fix: transfer problem
+	* Fix: crash on pagination
+
+	Module: dailymotion
+	* Fix search
+	* Avoid redirects
+	* Fix: extraction of video url
+
+	Module: dlfp
+	* Do not crash when revision is provided(#1067)
+
+	Module: fortuneo
+	* Update regexps
+	* Support when website asks to renew password
+	* Fix: card transaction pattern
+	* Fix: accounts list on new version of website
+	* Get more history
+	* Support PRLV pattern
+
+	Module: francetelevisions
+	* Fix: search
+
+	Module: freemobile
+	* Add an id for calls
+	* Fix get_bill
+	* Add multi-account support for bills command
+
+	Module: gdcvault
+	* Retrieve now video, audio, slides and Dual Screen Video
+	* Implement searching
+	* Implement login
+	* Handle pages with redirects to files
+	* Fix a lot of bugs on some pages
+
+	Module: hsbc
+	* Support deferred cards
+	* Do not support other kind of account histories than CPT
+
+	Module: ing
+	* Detect when website is unavailable
+	* Fix: new website
+	* Fix: generation of IDs
+	* Merge LoginPage and Login2Page to prevent problems when the website
+	fails with 500
+	* Prevent useless debug folders
+
+	Module: isohunt
+	* Fix: bug if leech or seed is empty corrected
+	* Fillobj integration
+
+	Module: kickass
+	* Fix: downloading gziped torrents
+	* Fix: download URL and support magnets
+	* Return NotAvailable if needed
+	* Fix: url correction
+	* Fix: download URL and magnet support in all iter_torrents
+
+	Module: mediawiki
+	* Add support for the revision argument
+
+	Module: lcl
+	* Support when there is an error
+	* Remove mkdtemp in modules
+
+	Module: leclercmobile
+	* Add an id for balance objects
+
+	Module: nettokom
+	* Fix: crash when no data available
+	* Display validity date of subscriptions
+
+	Module: piratebay
+	* Fix: bug on empty result page corrected
+	* fillobj integration
+	* get_torrent return None if 404
+	* Unescape title
+
+	Module: presseurop
+	* Better id management
+	* Increase RSS size
+
+	Module: redmine
+	* Add support for the revision argument (#1067)
+
+	Module: sachsen
+	* Fix: as0.gif keyerror
+	* Better image analyse
+
+	Module: societegenerale
+	* Fix: login
+	* Fix: Do not crash when an account is unavailable
+	* Fix: Transfer regexp
+	* Recipient of a transfer can be a name
+
+	Module: trictractv
+	* Add an icon
+
+	Module: vimeo
+	* Fix for no-embed videos
+
+	Module: wordreference
+	* Fix: Take the first word
+	* Make result cleaner
+	* Add favicon
+
+	Module: youtube
+	* Fix: detection of media url on youtube
+
+	Capabilitie: CapBank
+	* More robust currency guessing
+	* Fix repr() on transactions with unicode labels
+	* support empty dates for transactions
+
+	Documentation
+	* New git URL
+	* Add missing "whatis entry" to man pages (#618)
+
+	Contrib
+	* Add a "id_regexp" parameter to filter results on video id
+	* Exclude on case sensitive pattern
+	* Add utf-8 support on title_exclude
+
+	Tools
+	* Add basic boilerplate script (replace gen_comic_reader.sh)
+	* Remove storage_convert.py
+	* Ignore Qt generated UI files (pyflakes)
+
+	Packaging
+	* Update setup.py for latest Gentoo installs
+	* Use a central Makefile
+	* Fast and silent building
+	* Ensure proper building of man pages
+	* Tell groff manpages are utf-8
+	* Update INSTALL	 
+
+
 Weboob 0.e (2013-01-25)
 
 	General
