@@ -71,7 +71,7 @@ class Person(QFrame):
 
     def filmography(self):
         role = None
-        tosearch = self.ui.filmographyCombo.currentText()
+        tosearch = unicode(self.ui.filmographyCombo.currentText())
         role_desc = ''
         if tosearch != 'all':
             role = tosearch

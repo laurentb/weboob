@@ -37,6 +37,8 @@ class AllocineBrowser(BaseBrowser):
     def iter_movies(self, pattern):
         res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=movie&q=%s&format=json' % pattern.encode('utf-8'))
         jres = json.loads(res)
+        if 'movie' not in jres['feed']:
+            return
         for m in jres['feed']['movie']:
             tdesc = u''
             if 'title' in m:
@@ -67,6 +69,8 @@ class AllocineBrowser(BaseBrowser):
     def iter_persons(self, pattern):
         res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=person&q=%s&format=json' % pattern.encode('utf-8'))
         jres = json.loads(res)
+        if 'person' not in jres['feed']:
+            return
         for p in jres['feed']['person']:
             thumbnail_url = NotAvailable
             if 'picture' in p:
@@ -94,7 +98,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % id)
         if res is not None:
-            jres = json.loads(res)['movie']
+            jres = json.loads(res)
+            if 'movie' in jres:
+                jres = jres['movie']
+            else:
+                return None
         else:
             return None
         title = NotAvailable
@@ -164,7 +172,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/person?partner=YW5kcm9pZC12M3M&profile=large&code=%s&mediafmt=mp4-lc&filter=movie&format=json&striptags=biography' % id)
         if res is not None:
-            jres = json.loads(res)['person']
+            jres = json.loads(res)
+            if 'person' in jres:
+                jres = jres['person']
+            else:
+                return None
         else:
             return None
         name = NotAvailable
@@ -238,7 +250,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
         if res is not None:
-            jres = json.loads(res)['movie']
+            jres = json.loads(res)
+            if 'movie' in jres:
+                jres = jres['movie']
+            else:
+                return
         else:
             return
         if 'castMember' in jres:
@@ -269,7 +285,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
         if res is not None:
-            jres = json.loads(res)['person']
+            jres = json.loads(res)
+            if 'person' in jres:
+                jres = jres['person']
+            else:
+                return
         else:
             return
         for m in jres['participation']:
@@ -297,7 +317,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
         if res is not None:
-            jres = json.loads(res)['person']
+            jres = json.loads(res)
+            if 'person' in jres:
+                jres = jres['person']
+            else:
+                return
         else:
             return
         for m in jres['participation']:
@@ -307,7 +331,11 @@ class AllocineBrowser(BaseBrowser):
         res = self.readurl(
                 'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
         if res is not None:
-            jres = json.loads(res)['movie']
+            jres = json.loads(res)
+            if 'movie' in jres:
+                jres = jres['movie']
+            else:
+                return
         else:
             return
         if 'castMember' in jres:
