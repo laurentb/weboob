@@ -41,7 +41,8 @@ class MiniMovie(QFrame):
         self.ui.backendLabel.setText(backend.name)
 
     def gotThumbnail(self):
-        self.backend.fill_movie(self.movie, ('thumbnail_url'))
+        if empty(self.movie.thumbnail_url):
+            self.backend.fill_movie(self.movie, ('thumbnail_url'))
         if not empty(self.movie.thumbnail_url):
             data = urllib.urlopen(self.movie.thumbnail_url).read()
             img = QImage.fromData(data)

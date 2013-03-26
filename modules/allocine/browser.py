@@ -48,6 +48,9 @@ class AllocineBrowser(BaseBrowser):
             if 'castingShort' in m and 'actors' in m['castingShort']:
                 tdesc += ' ; %s' % m['castingShort']['actors']
             short_description = tdesc.strip('; ')
+            thumbnail_url = NotAvailable
+            if 'poster' in m:
+                thumbnail_url = unicode(m['poster']['href'])
             movie = Movie(m['code'], unicode(m['originalTitle']))
             movie.other_titles = NotLoaded
             movie.release_date = NotLoaded
@@ -58,7 +61,7 @@ class AllocineBrowser(BaseBrowser):
             movie.note = NotLoaded
             movie.roles = NotLoaded
             movie.all_release_dates = NotLoaded
-            movie.thumbnail_url = NotLoaded
+            movie.thumbnail_url = thumbnail_url
             yield movie
 
     def iter_persons(self, pattern):
@@ -109,8 +112,8 @@ class AllocineBrowser(BaseBrowser):
         if 'originalTitle' not in jres:
             return
         title = unicode(jres['originalTitle'].strip())
-        if 'picture' in jres:
-            thumbnail_url = unicode(jres['picture']['href'])
+        if 'poster' in jres:
+            thumbnail_url = unicode(jres['poster']['href'])
         if 'genre' in jres:
             for g in jres['genre']:
                 genres.append(g['$'])
