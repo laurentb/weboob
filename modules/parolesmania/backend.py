@@ -32,7 +32,7 @@ class ParolesmaniaBackend(BaseBackend, ICapLyrics):
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.g'
-    DESCRIPTION = 'parolesmania lyrics website'
+    DESCRIPTION = 'Paroles Mania lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = ParolesmaniaBrowser
 

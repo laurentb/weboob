@@ -34,7 +34,7 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
     VERSION = '0.g'
-    DESCRIPTION = u'Credit Cooperatif French bank website'
+    DESCRIPTION = u'Crédit Coopératif French bank website'
     LICENSE = 'AGPLv3+'
     auth_type = {'particular': "Interface Particuliers",
                  'weak' : "Code confidentiel (pro)",
