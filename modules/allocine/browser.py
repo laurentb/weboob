@@ -32,7 +32,7 @@ class AllocineBrowser(BaseBrowser):
     DOMAIN = 'api.allocine.fr'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
+    USER_AGENT = BaseBrowser.USER_AGENTS['android']
 
     def iter_movies(self, pattern):
         res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=movie&q=%s&format=json' % pattern.encode('utf-8'))
