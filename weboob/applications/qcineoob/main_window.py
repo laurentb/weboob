@@ -73,7 +73,6 @@ class MainWindow(QtMainWindow):
         count = self.config.get('settings', 'maxresultsnumber')
         self.ui.countSpin.setValue(int(count))
         showT = self.config.get('settings', 'showthumbnails')
-        print showT
         self.ui.showTCheck.setChecked(showT == '1')
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
