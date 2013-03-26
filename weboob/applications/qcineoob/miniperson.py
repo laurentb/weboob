@@ -23,7 +23,7 @@ from PyQt4.QtGui import QFrame, QImage, QPixmap, QApplication
 from PyQt4.QtCore import Qt
 
 from weboob.applications.qcineoob.ui.miniperson_ui import Ui_MiniPerson
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, NotAvailable
 
 
 class MiniPerson(QFrame):
@@ -50,7 +50,8 @@ class MiniPerson(QFrame):
             self.gotThumbnail()
 
     def gotThumbnail(self):
-        self.backend.fill_person(self.person, ('thumbnail_url'))
+        if empty(self.person.thumbnail_url) and self.person.thumbnail_url != NotAvailable:
+            self.backend.fill_person(self.person, ('thumbnail_url'))
         if not empty(self.person.thumbnail_url):
             data = urllib.urlopen(self.person.thumbnail_url).read()
             img = QImage.fromData(data)
