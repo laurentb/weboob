@@ -48,7 +48,7 @@ class RadioListFormatter(PrettyFormatter):
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
-    VERSION = '0.f'
+    VERSION = '0.g'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
                   "like the current song."

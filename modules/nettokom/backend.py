@@ -33,7 +33,7 @@ class NettoKomBackend(BaseBackend, ICapBill):
     NAME = 'nettokom'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.f'
+    VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Nettokom website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

@@ -166,7 +166,7 @@ if sys.version_info[1] < 6:  # older than 2.6
 
 setup(
     name='weboob',
-    version='0.f',
+    version='0.g',
     description='Weboob, Web Outside Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',

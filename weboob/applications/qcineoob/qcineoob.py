@@ -28,7 +28,7 @@ from .main_window import MainWindow
 
 class QCineoob(QtApplication):
     APPNAME = 'qcineoob'
-    VERSION = '0.f'
+    VERSION = '0.g'
     COPYRIGHT = 'Copyright(C) 2013 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search movies, people, torrent and subtitles."
     SHORT_DESCRIPTION = "search movies, people, torrent and subtitles"

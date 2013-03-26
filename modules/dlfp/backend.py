@@ -41,7 +41,7 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
     NAME = 'dlfp'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.f'
+    VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = "Da Linux French Page news website"
     CONFIG = BackendConfig(Value('username',                label='Username', default=''),

@@ -33,7 +33,7 @@ class HDSBackend(BaseBackend, ICapMessages):
     NAME = 'hds'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.f'
+    VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Histoires de Sexe French erotic novels"
     STORAGE = {'seen': []}

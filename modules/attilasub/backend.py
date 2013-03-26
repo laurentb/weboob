@@ -31,7 +31,7 @@ class AttilasubBackend(BaseBackend, ICapSubtitle):
     NAME = 'attilasub'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = '"Attila'' s Website 2.0" french subtitles'
     LICENSE = 'AGPLv3+'
     LANGUAGE_LIST = ['fr']

@@ -47,7 +47,7 @@ class XmlTranslationFormatter(IFormatter):
 
 class Translaboob(ReplApplication):
     APPNAME = 'translaboob'
-    VERSION = '0.f'
+    VERSION = '0.g'
     COPYRIGHT = 'Copyright(C) 2012 Lucien Loiseau'
     DESCRIPTION = "Console application to translate text from one language to another"
     SHORT_DESCRIPTION = "translate text from one language to another"

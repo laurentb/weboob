@@ -31,7 +31,7 @@ __all__ = ['WordReferenceBackend']
 class WordReferenceBackend(BaseBackend, ICapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
-    VERSION = '0.f'
+    VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     NAME = 'wordreference'
     DESCRIPTION = u'Free online translator'

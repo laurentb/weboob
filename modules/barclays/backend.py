@@ -32,7 +32,7 @@ class BarclaysBackend(BaseBackend, ICapBank):
     NAME = 'barclays'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = u'Barclays French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),

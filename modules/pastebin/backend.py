@@ -36,7 +36,7 @@ class PastebinBackend(BaseBackend, BasePasteBackend):
     NAME = 'pastebin'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = 'Pastebin text sharing service'
     LICENSE = 'AGPLv3+'
     BROWSER = PastebinBrowser

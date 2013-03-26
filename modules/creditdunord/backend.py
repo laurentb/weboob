@@ -34,7 +34,7 @@ class CreditDuNordBackend(BaseBackend, ICapBank):
     NAME = 'creditdunord'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = u'Crédit du Nord French bank website'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({

@@ -32,7 +32,7 @@ class CarrefourBanqueBackend(BaseBackend, ICapBank):
     NAME = 'carrefourbanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = u'Carrefour Banque French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='\d+', masked=False),

@@ -31,7 +31,7 @@ class ImdbBackend(BaseBackend, ICapCinema):
     NAME = 'imdb'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.f'
+    VERSION = '0.g'
     DESCRIPTION = 'Internet Movie Database service'
     LICENSE = 'AGPLv3+'
     BROWSER = ImdbBrowser
