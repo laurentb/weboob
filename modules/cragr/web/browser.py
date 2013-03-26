@@ -38,7 +38,7 @@ class Cragr(BaseBrowser):
              'https?://[^/]+/stb/entreeBam':                        LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':    AccountsPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':   SavingsPage,
-             'https?://[^/]+/stb/collecteNI\?.*act=Releves.*':      TransactionsPage,
+             'https?://[^/]+/stb/.*act=Releves.*':                  TransactionsPage,
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*': TransactionsPage,
              'https?://[^/]+/stb/.*/erreur/.*':                     LoginErrorPage,
             }
@@ -110,7 +110,8 @@ class Cragr(BaseBrowser):
         if self.is_on_page(LoginErrorPage) or not self.is_logged():
             raise BrowserIncorrectPassword()
 
-        assert self.is_on_page(AccountsPage)
+        if not self.is_on_page(AccountsPage):
+            raise self.WebsiteNotSupported()
 
         # Store the current url to go back when requesting accounts list.
         self.accounts_url = self.page.url
