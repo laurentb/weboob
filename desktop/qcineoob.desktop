@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QCineoob
+Comment=Search for movies, persons, torrents and subtitles on many websites, and get info about them
+Exec=qcineoob
+Icon=qcineoob
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;

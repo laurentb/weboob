@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QCookboob
+Comment=Search for recipes on many websites, and get info about them
+Exec=qcookboob
+Icon=qcookboob
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;
