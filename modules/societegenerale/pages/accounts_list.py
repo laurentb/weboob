@@ -25,6 +25,7 @@ from cStringIO import StringIO
 from decimal import Decimal
 import re
 
+from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.browser import BrokenPageError
@@ -65,15 +66,17 @@ class AccountsList(BasePage):
                     pass
 
                 elif td.attrib.get('headers', '') == 'Solde':
-                    balance = td.find('div').text if td.find('div') is not None else None
-                    if balance is not None:
+                    balance = self.parser.tocleanstring(td)
+                    if balance is not None and len(balance) > 0 and balance != 'ANNULEE':
                         account.currency = account.get_currency(balance)
                         balance = FrenchTransaction.clean_amount(balance)
                         account.balance = Decimal(balance)
                     else:
-                        account.balance = Decimal(0)
+                        account.balance = NotAvailable
 
-            if not account.label:
+            print account.label
+
+            if not account.label or empty(account.balance):
                 continue
 
             if 'CARTE_' in account._link_id:
