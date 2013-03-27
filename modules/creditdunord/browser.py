@@ -117,6 +117,7 @@ class CreditDuNordBrowser(BaseBrowser):
             args = self.page.get_next_args(args)
 
     def get_history(self, account):
+        account = self.get_account(account.id)
         for tr in self.iter_transactions(account._link, account._args):
             yield tr
 
