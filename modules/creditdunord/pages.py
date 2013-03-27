@@ -110,10 +110,10 @@ class AccountsPage(CDNBasePage):
                 a._args = None
 
             if a.id.find('_CarteVisa') >= 0:
-                accounts[0]._card_ids.append(a._args)
-                if not accounts[0].coming:
-                    accounts[0].coming = Decimal('0.0')
-                accounts[0].coming += a.balance
+                accounts[-1]._card_ids.append(a._args)
+                if not accounts[-1].coming:
+                    accounts[-1].coming = Decimal('0.0')
+                accounts[-1].coming += a.balance
                 continue
 
             a._card_ids = []
