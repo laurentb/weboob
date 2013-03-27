@@ -66,15 +66,15 @@ class AccountsList(BasePage):
                     pass
 
                 elif td.attrib.get('headers', '') == 'Solde':
-                    balance = self.parser.tocleanstring(td)
-                    if balance is not None and len(balance) > 0 and balance != 'ANNULEE':
-                        account.currency = account.get_currency(balance)
-                        balance = FrenchTransaction.clean_amount(balance)
-                        account.balance = Decimal(balance)
-                    else:
-                        account.balance = NotAvailable
-
-            print account.label
+                    div = td.xpath('./div[@class="Solde"]')
+                    if len(div) > 0:
+                        balance = self.parser.tocleanstring(div[0])
+                        if len(balance) > 0 and balance != 'ANNULEE':
+                            account.currency = account.get_currency(balance)
+                            balance = FrenchTransaction.clean_amount(balance)
+                            account.balance = Decimal(balance)
+                        else:
+                            account.balance = NotAvailable
 
             if not account.label or empty(account.balance):
                 continue
