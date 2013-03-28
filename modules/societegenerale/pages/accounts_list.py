@@ -71,7 +71,7 @@ class AccountsList(BasePage):
                         balance = self.parser.tocleanstring(div[0])
                         if len(balance) > 0 and balance not in ('ANNULEE', 'OPPOSITION'):
                             try:
-                                acccount.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
                             except InvalidOperation:
                                 raise BrokenPageError('Unable to parse balance %r' % balance)
                             account.currency = account.get_currency(balance)
