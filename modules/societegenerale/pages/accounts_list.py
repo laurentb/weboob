@@ -22,7 +22,7 @@ import datetime
 from urlparse import parse_qs, urlparse
 from lxml.etree import XML
 from cStringIO import StringIO
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 
 from weboob.capabilities.base import empty, NotAvailable
@@ -69,10 +69,12 @@ class AccountsList(BasePage):
                     div = td.xpath('./div[@class="Solde"]')
                     if len(div) > 0:
                         balance = self.parser.tocleanstring(div[0])
-                        if len(balance) > 0 and balance != 'ANNULEE':
+                        if len(balance) > 0 and balance not in ('ANNULEE', 'OPPOSITION'):
+                            try:
+                                acccount.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                            except InvalidOperation:
+                                raise BrokenPageError('Unable to parse balance %r' % balance)
                             account.currency = account.get_currency(balance)
-                            balance = FrenchTransaction.clean_amount(balance)
-                            account.balance = Decimal(balance)
                         else:
                             account.balance = NotAvailable
 
