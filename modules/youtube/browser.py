@@ -30,7 +30,7 @@ __all__ = ['YoutubeBrowser']
 
 class YoutubeBrowser(BaseBrowser):
     DOMAIN = u'youtube.com'
-    ENCODING = None
+    ENCODING = 'utf-8'
     PAGES = {r'https?://.*youtube\.com/': BaseYoutubePage,
              r'https?://.*youtube\.com/watch\?v=(?P<id>.+)': VideoPage,
              r'https?://.*youtube\.com/index\?ytsession=.+': ForbiddenVideoPage,
