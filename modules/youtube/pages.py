@@ -125,4 +125,9 @@ class VideoPage(BaseYoutubePage):
                 ext = self.FORMAT_EXTENSIONS.get(format, 'flv')
                 return url, ext
 
+        # check errors only here, in case the video url is available though
+        error = self.document.xpath('//h1[@id="unavailable-message"]')
+        if len(error) > 0:
+            raise ForbiddenVideo(unicode(error[0].text).strip())
+
         raise BrokenPageError('Unable to find file URL')
