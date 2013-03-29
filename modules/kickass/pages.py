@@ -60,7 +60,7 @@ class TorrentsPage(BasePage):
                     elif href.startswith('http'):
                         url = unicode(href)
                     elif href.startswith('//'):
-                        url = u'http:%s' % href
+                        url = u'https:%s' % href
 
                 size = tr.getchildren()[1].text
                 u = tr.getchildren()[1].getchildren()[0].text
@@ -116,7 +116,7 @@ class TorrentPage(BasePage):
             if href.startswith('magnet'):
                 magnet = unicode(href)
             elif href.startswith('//'):
-                url = u'http:%s' % href
+                url = u'https:%s' % href
             elif href.startswith('http'):
                 url = unicode(href)
 
