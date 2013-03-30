@@ -43,7 +43,7 @@ class RecipeInfoFormatter(IFormatter):
         if not empty(obj.cooking_time):
             result += 'Cooking time: %smin\n' % obj.cooking_time
         if not empty(obj.nb_person):
-            nbstr = obj.nb_person[0]
+            nbstr = '%s' % obj.nb_person[0]
             if len(obj.nb_person) > 1:
                 nbstr += '/%s' % obj.nb_person[1]
             result += 'Amount of people: %s\n' % nbstr
