@@ -107,9 +107,9 @@ class RecipePage(BasePage):
             rawnb = l_nbpers[0].text.split()[0]
             if '/' in rawnb:
                 nbs = rawnb.split('/')
-                nb_person = (int(nbs[0]) + int(nbs[1])) / 2
+                nb_person = [int(nbs[0]), int(nbs[1])]
             else:
-                nb_person = int(rawnb)
+                nb_person = [int(rawnb)]
 
         ingredients = []
         l_ing = self.parser.select(main, 'div#ingredients li.ingredient')

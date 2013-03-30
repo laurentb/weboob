@@ -76,7 +76,7 @@ class RecipePage(BasePage):
         cooking_time = int(self.parser.select(main, 'p.m_content_recette_info span.cooktime', 1).text_content())
         ing_header_line = self.parser.select(main, 'p.m_content_recette_ingredients span', 1).text_content()
         if '(pour' in ing_header_line and ')' in ing_header_line:
-            nb_person = int(ing_header_line.split('pour ')[-1].split('personnes)')[0].split()[0])
+            nb_person = [int(ing_header_line.split('pour ')[-1].split('personnes)')[0].split()[0])]
         ingredients = self.parser.select(main, 'p.m_content_recette_ingredients', 1).text_content().strip().split('- ')
         ingredients = ingredients[1:]
         rinstructions = self.parser.select(main, 'div.m_content_recette_todo', 1).text_content().strip()

@@ -96,7 +96,7 @@ class RecipePage(BasePage):
                         cooking_time = 60*cooking_time
             if 'Nombre de personnes' in info_title.text:
                 if info_title.tail.strip() != '':
-                    nb_person = int(info_title.tail)
+                    nb_person = [int(info_title.tail)]
 
         ingredients = []
         p_ing = self.parser.select(main, 'div.data.top.left > div.content p')

@@ -112,7 +112,7 @@ class RecipePage(BasePage):
             cooking_time = cookmin
         l_nbpers = self.parser.select(self.document.getroot(), 'span#lblYield[itemprop=recipeYield]')
         if len(l_nbpers) > 0:
-            nb_person = int(l_nbpers[0].text.split()[0])
+            nb_person = [int(l_nbpers[0].text.split()[0])]
 
         recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time
