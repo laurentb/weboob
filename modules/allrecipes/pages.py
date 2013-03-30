@@ -71,7 +71,7 @@ class RecipePage(BasePage):
         ingredients = NotAvailable
         picture_url = NotAvailable
         instructions = NotAvailable
-        comments = []
+        comments = NotAvailable
 
         title = unicode(self.parser.select(self.document.getroot(), 'h1#itemTitle', 1).text)
         imgillu = self.parser.select(self.document.getroot(), 'img#imgPhoto')
@@ -111,7 +111,7 @@ class RecipePage(BasePage):
         if cookmin != 0:
             cooking_time = cookmin
         l_nbpers = self.parser.select(self.document.getroot(), 'span#lblYield[itemprop=recipeYield]')
-        if len(l_nbpers) > 0:
+        if len(l_nbpers) > 0 and 'servings' in l_nbpers[0].text:
             nb_person = [int(l_nbpers[0].text.split()[0])]
 
         recipe = Recipe(id, title)
