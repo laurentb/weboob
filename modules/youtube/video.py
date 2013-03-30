@@ -27,9 +27,9 @@ __all__ = ['YoutubeVideo']
 class YoutubeVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
-        return 'http://www.youtube.com/watch?v=%s' % _id
+        return 'https://www.youtube.com/watch?v=%s' % _id
 
     def _get_shorturl(self):
-        return 'http://youtu.be/%s' % self.id
+        return 'https://youtu.be/%s' % self.id
 
     shorturl = property(_get_shorturl)
