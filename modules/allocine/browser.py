@@ -212,7 +212,7 @@ class AllocineBrowser(BaseBrowser):
             real_name = unicode(jres['realName'])
         if 'gender' in jres:
             gcode = jres['gender']
-            if gcode == 1:
+            if gcode == '1':
                 gender = u'Male'
             else:
                 gender = u'Female'
