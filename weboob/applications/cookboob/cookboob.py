@@ -39,7 +39,8 @@ class RecipeInfoFormatter(IFormatter):
         result += 'ID: %s\n' % obj.fullid
         if not empty(obj.author):
             result += 'Author: %s\n' % obj.author
-        result += 'Preparation time: %smin\n' % obj.preparation_time
+        if not empty(obj.preparation_time):
+            result += 'Preparation time: %smin\n' % obj.preparation_time
         if not empty(obj.cooking_time):
             result += 'Cooking time: %smin\n' % obj.cooking_time
         if not empty(obj.nb_person):
