@@ -369,7 +369,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
 
-        for backend, person in self.do('iter_movie_persons', movie.id, role, caps=ICapCinema):
+        for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=ICapCinema):
             self.cached_format(person)
         self.flush()
 
@@ -387,7 +387,7 @@ class Cineoob(ReplApplication):
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
 
-        for backend, movie in self.do('iter_person_movies', person.id, role, caps=ICapCinema):
+        for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=ICapCinema):
             self.cached_format(movie)
         self.flush()
 
