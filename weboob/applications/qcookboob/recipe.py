@@ -43,9 +43,7 @@ class Recipe(QFrame):
         if not empty(recipe.title):
             self.ui.titleLabel.setText(recipe.title)
         if not empty(recipe.nb_person):
-            nbstr = '%s' % recipe.nb_person[0]
-            if len(recipe.nb_person) > 1:
-                nbstr += '/%s' % recipe.nb_person[1]
+            nbstr = '-'.join(str(num) for num in recipe.nb_person)
             self.ui.nbPersonLabel.setText(nbstr)
         else:
             self.ui.nbPersonLabel.parent().hide()
