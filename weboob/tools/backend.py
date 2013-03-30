@@ -354,6 +354,8 @@ class BaseBackend(object):
         :param fields: what fields to fill; if None, all fields are filled
         :type fields: :class:`list`
         """
+        if obj is None:
+            return obj
 
         def not_loaded(v):
             return (v is NotLoaded or isinstance(v, CapBaseObject) and not v.__iscomplete__())
