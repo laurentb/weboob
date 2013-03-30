@@ -84,7 +84,7 @@ class Torrent(QFrame):
             dest = result[0]
             data = self.backend.get_torrent_file(self.torrent.id)
             try:
-                with open(dest, 'w') as f:
+                with open(unicode(dest), 'w') as f:
                     f.write(data)
             except IOError, e:
                 print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
