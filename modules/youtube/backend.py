@@ -102,6 +102,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
             _id = m.group(1)
 
         yt_service = gdata.youtube.service.YouTubeService()
+        yt_service.ssl = True
         try:
             entry = yt_service.GetYouTubeVideoEntry(video_id=_id)
         except gdata.service.Error, e:
@@ -119,6 +120,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()
+        yt_service.ssl = True
 
         start_index = 1
         nb_yielded = 0
