@@ -51,12 +51,12 @@ class Recipe(CapBaseObject):
     thumbnail_url =     StringField('Direct url to recipe thumbnail')
     picture_url =       StringField('Direct url to recipe picture')
     short_description = StringField('Short description of a recipe')
-    nb_person =         IntField('The recipe was made for this amount of persons')
+    nb_person =         Field('The recipe was made for this amount of persons', list)
     preparation_time =  IntField('Preparation time of the recipe in minutes')
     cooking_time =      IntField('Cooking time of the recipe in minutes')
-    ingredients =       Field('Ingredient list necessary for the recipe',list)
+    ingredients =       Field('Ingredient list necessary for the recipe', list)
     instructions =      StringField('Instruction step list of the recipe')
-    comments =          Field('User comments about the recipe',list)
+    comments =          Field('User comments about the recipe', list)
 
     def __init__(self, id, title):
         CapBaseObject.__init__(self, id)
@@ -91,7 +91,9 @@ class Recipe(CapBaseObject):
         eyield = ET.SubElement(desc, 'yield')
         if not empty(self.nb_person):
             amount = ET.SubElement(eyield, 'amount')
-            amount.text = '%s' % self.nb_person
+            amount.text = '%s' % self.nb_person[0]
+            if len(self.nb_person) > 1:
+                amount.text += '/%s' % self.nb_person[1]
             etype = ET.SubElement(eyield, 'type')
             etype.text = 'persons'
         if not empty(self.preparation_time):
