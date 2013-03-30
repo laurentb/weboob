@@ -104,7 +104,12 @@ class RecipePage(BasePage):
             cooking_time = int(l_cooktime[0].text.split()[0])
         l_nbpers = self.parser.select(main, 'td#recipeQuantity span')
         if len(l_nbpers) > 0:
-            nb_person = int(l_nbpers[0].text.split()[0])
+            rawnb = l_nbpers[0].text.split()[0]
+            if '/' in rawnb:
+                nbs = rawnb.split('/')
+                nb_person = (int(nbs[0]) + int(nbs[1])) / 2
+            else:
+                nb_person = int(rawnb)
 
         ingredients = []
         l_ing = self.parser.select(main, 'div#ingredients li.ingredient')
