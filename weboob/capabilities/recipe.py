@@ -91,9 +91,13 @@ class Recipe(CapBaseObject):
         eyield = ET.SubElement(desc, 'yield')
         if not empty(self.nb_person):
             amount = ET.SubElement(eyield, 'amount')
-            amount.text = '%s' % self.nb_person[0]
-            if len(self.nb_person) > 1:
-                amount.text += '/%s' % self.nb_person[1]
+            if len(self.nb_person) == 1:
+                amount.text = '%s' % self.nb_person[0]
+            else:
+                mini = ET.SubElement(amount, 'min')
+                mini.text = u'%s' % self.nb_person[0]
+                maxi = ET.SubElement(amount, 'max')
+                maxi.text = u'%s' % self.nb_person[1]
             etype = ET.SubElement(eyield, 'type')
             etype.text = 'persons'
         if not empty(self.preparation_time):
