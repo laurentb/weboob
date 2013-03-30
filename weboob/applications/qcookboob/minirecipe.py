@@ -37,10 +37,13 @@ class MiniRecipe(QFrame):
         self.backend = backend
         self.recipe = recipe
         self.ui.titleLabel.setText(recipe.title)
-        if len(recipe.short_description) > 300:
-            self.ui.shortDescLabel.setText('%s [...]'%recipe.short_description[:300])
+        if not empty(recipe.short_description):
+            if len(recipe.short_description) > 300:
+                self.ui.shortDescLabel.setText('%s [...]'%recipe.short_description[:300])
+            else:
+                self.ui.shortDescLabel.setText(recipe.short_description)
         else:
-            self.ui.shortDescLabel.setText(recipe.short_description)
+            self.ui.shortDescLabel.setText('')
         self.ui.backendLabel.setText(backend.name)
 
         self.gotThumbnail()
