@@ -89,6 +89,7 @@ class VideoPage(BasePage):
             v.title = unicode(data['video']['title'])
         if v.thumbnail is None:
             v.thumbnail = Thumbnail(unicode(data['video']['thumbnail']))
+        v.author = data['video']['owner']['name']
         v.duration = datetime.timedelta(seconds=int(data['video']['duration']))
 
         # determine available codec and quality
@@ -107,7 +108,7 @@ class VideoPage(BasePage):
         if 'hd' in data['video']['files'][codec]:
             quality = 'hd'
 
-        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=%s&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, codec, int(v.id), data['request']['timestamp'] , data['request']['signature']))
+        v.url = unicode("http://player.vimeo.com/play_redirect?quality=%s&codecs=%s&clip_id=%d&time=%s&sig=%s&type=html5_desktop_local" % (quality, codec, int(v.id), data['request']['timestamp'], data['request']['signature']))
 
         # attempt to determine the redirected URL to pass it instead
         # since the target server doesn't check for User-Agent, unlike
