@@ -15,11 +15,12 @@ The requirements are provided in ``setup.py``, except for:
 
 Some modules may have more dependencies.
 
-All installation procedures allow you to chose wether you want graphical applications.
-Add ``--no-qt --no-xdg`` to disable them; ``--qt --xdg`` to enable them.
+All installation procedures allow you to chose whether you want graphical
+applications.  Add ``--no-qt --no-xdg`` to disable them; ``--qt --xdg`` to
+enable them.
 
-After a package or system installation,
-you should run ``weboob-config update`` as your login user.
+After a package or system installation, you should run ``weboob-config update``
+as your login user.
 
 User installation
 -----------------
@@ -31,12 +32,12 @@ Run ``./tools/local_install.sh`` as your local user. ::
 
 The scripts are copied to ``~/bin``.
 
-System insallation (discouraged)
---------------------------------
+System installation (discouraged)
+---------------------------------
 
-The install mode copies files to the Python system-wide packages directory
-(for example ``/usr/lib/python2.5/site-packages`` for Python 2.5,
-or ``/usr/local/lib/python2.6/dist-packages`` for Python 2.6). ::
+The install mode copies files to the Python system-wide packages directory (for
+example ``/usr/lib/python2.5/site-packages`` for Python 2.5, or
+``/usr/local/lib/python2.6/dist-packages`` for Python 2.6). ::
 
     # ./setup.py install
 
@@ -45,12 +46,13 @@ Scripts are copied to ``/usr/bin``.
 Development mode
 ----------------
 
-This does not actually install anything, but lets you run Weboob from the source code,
-while also using the modules from that source. This is only recommended if using
-the git source and not a release. ::
+This does not actually install anything, but lets you run Weboob from the
+source code, while also using the modules from that source. This is only
+recommended if using the git source and not a release. ::
 
     $ ./tools/local_run.sh APPLICATION COMMANDS
 
-For example, instead of running ``videoob -b youtube search plop``, you would run::
+For example, instead of running ``videoob -b youtube search plop``, you would
+run::
 
     $ ./tools/local_run.sh videoob -b youtube search plop
