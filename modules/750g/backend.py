@@ -22,6 +22,11 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import SevenFiftyGramsBrowser
 
+import unicodedata
+
+def strip_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
 __all__ = ['SevenFiftyGramsBackend']
 
 
@@ -41,7 +46,7 @@ class SevenFiftyGramsBackend(BaseBackend, ICapRecipe):
         return self.browser.get_recipe(id)
 
     def iter_recipes(self, pattern):
-        return self.browser.iter_recipes(pattern.encode('utf-8'))
+        return self.browser.iter_recipes(strip_accents(pattern).encode('utf-8'))
 
     def fill_recipe(self, recipe, fields):
         if 'nb_person' in fields or 'instructions' in fields:
