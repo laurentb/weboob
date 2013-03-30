@@ -22,6 +22,8 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import AllrecipesBrowser
 
+from urllib import quote_plus
+
 __all__ = ['AllrecipesBackend']
 
 
@@ -41,7 +43,7 @@ class AllrecipesBackend(BaseBackend, ICapRecipe):
         return self.browser.get_recipe(id)
 
     def iter_recipes(self, pattern):
-        return self.browser.iter_recipes(pattern.encode('utf-8'))
+        return self.browser.iter_recipes(quote_plus(pattern.encode('utf-8')))
 
     def fill_recipe(self, recipe, fields):
         if 'nb_person' in fields or 'instructions' in fields:

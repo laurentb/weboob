@@ -92,12 +92,24 @@ class RecipePage(BasePage):
             instructions += '%s: %s\n' % (num_instr, inst.text_content())
 	    num_instr += 1
 
+        prepmin = 0
+        emprep = self.parser.select(self.document.getroot(), 'span#prepHoursSpan em')
+        if len(emprep) > 0:
+            prepmin += int(emprep[0].text) * 60
         emprep = self.parser.select(self.document.getroot(), 'span#prepMinsSpan em')
         if len(emprep) > 0:
-            preparation_time = int(emprep[0].text)
+            prepmin += int(emprep[0].text)
+        if prepmin != 0:
+            preparation_time = prepmin
+        cookmin = 0
+        emcooktime = self.parser.select(self.document.getroot(), 'span#cookHoursSpan em')
+        if len(emcooktime) > 0:
+            cookmin += int(emcooktime[0].text) * 60
         emcooktime = self.parser.select(self.document.getroot(), 'span#cookMinsSpan em')
         if len(emcooktime) > 0:
-            cooking_time = int(emcooktime[0].text)
+            cookmin += int(emcooktime[0].text)
+        if cookmin != 0:
+            cooking_time = cookmin
         l_nbpers = self.parser.select(self.document.getroot(), 'span#lblYield[itemprop=recipeYield]')
         if len(l_nbpers) > 0:
             nb_person = int(l_nbpers[0].text.split()[0])
