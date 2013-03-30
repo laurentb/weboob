@@ -24,6 +24,7 @@ from decimal import Decimal
 from copy import deepcopy, copy
 
 from weboob.tools.misc import to_unicode
+from weboob.tools.date import new_date, new_datetime
 from weboob.tools.ordereddict import OrderedDict
 
 
@@ -227,6 +228,16 @@ class DateField(Field):
     """
     def __init__(self, doc, **kwargs):
         Field.__init__(self, doc, datetime.date, datetime.datetime, **kwargs)
+
+    def __setattr__(self, name, value):
+        if name == 'value':
+            # Force use of our date and datetime types, to fix bugs in python2
+            # with strftime on year<1900.
+            if type(value) is datetime.datetime:
+                value = new_datetime(value)
+            if type(value) is datetime.date:
+                value = new_date(value)
+        return object.__setattr__(self, name, value)
 
 
 class TimeField(Field):
