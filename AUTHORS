@@ -86,6 +86,9 @@ Johann Broudin <johann.broudin@6-8.fr>
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance module maintainer.
 
+Gabriel Serme <gabriel@serme.net>
+        * Support of two-factor authentication for Boursorama.
+
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
 
