@@ -54,7 +54,7 @@ class LoginPage(BasePage):
 
     def login3(self, passwd):
         self.browser.select_form(name='Main')
-        self.browser['codconf'] = passwd
+        self.browser['codconf'] = passwd.encode('utf-8')
         a = self.document.xpath('//a[@title="Valider"]')[0]
         m = re.match("javascript:RedirectToDeiPart\('([^']+)'\);", a.attrib['href'])
         if not m:

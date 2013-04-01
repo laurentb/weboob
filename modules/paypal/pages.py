@@ -56,8 +56,8 @@ def clean_amount(text):
 class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(name='login_form')
-        self.browser['login_email'] = login
-        self.browser['login_password'] = password
+        self.browser['login_email'] = login.encode(self.browser.ENCODING)
+        self.browser['login_password'] = password.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
 

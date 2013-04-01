@@ -36,8 +36,8 @@ class LoginPage(BasePage):
             raise BrowserUnavailable(msg)
 
         self.browser.select_form(nr=3)
-        self.browser['login'] = login
-        self.browser['passwd'] = passwd
+        self.browser['login'] = login.encode('utf-8')
+        self.browser['passwd'] = passwd.encode('utf-8')
         self.browser.submit(nologin=True)
 
 

@@ -32,8 +32,8 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(nr=0)
-        self.browser['_cm_user'] = login
-        self.browser['_cm_pwd'] = passwd
+        self.browser['_cm_user'] = login.encode(self.browser.ENCODING)
+        self.browser['_cm_pwd'] = passwd.encode(self.browser.ENCODING)
         self.browser.submit(nologin=True)
 
 
