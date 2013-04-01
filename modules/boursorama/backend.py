@@ -42,8 +42,9 @@ class BoursoramaBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'Boursorama French bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password'),
-                           ValueBool('enable_twofactors',            label='Send validation sms', default=False),
-                           Value('device',                label='Device name', regexp='\w*'),)
+                           ValueBool('enable_twofactors',     label='Send validation sms', default=False),
+                           Value('device',                    label='Device name', regexp='\w*', default=''),
+                          )
     BROWSER = Boursorama
 
     def create_default_browser(self):

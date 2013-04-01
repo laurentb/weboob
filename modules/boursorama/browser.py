@@ -61,9 +61,10 @@ class Boursorama(BaseBrowser):
             if self.enable_twofactors:
                 self.page.authenticate(self.device)
             else:
-                print \
-                """Boursorama - activate the two factor authentication in boursorama config."""\
-                """ You will receive SMS code but are limited in request per day (around 15)"""
+                raise BrowserIncorrectAuthenticationCode(
+                        """Boursorama - activate the two factor authentication in boursorama config."""\
+                        """ You will receive SMS code but are limited in request per day (around 15)"""
+                    )
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -71,9 +72,6 @@ class Boursorama(BaseBrowser):
         assert isinstance(self.device, basestring)
         assert isinstance(self.enable_twofactors, bool)
         assert self.password.isdigit()
-
-        #for debug, save requested pages to tmp dir
-        #self.SAVE_RESPONSES = True
 
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN + '/connexion.phtml')
@@ -93,11 +91,7 @@ class Boursorama(BaseBrowser):
         #if the login was correct but authentication code failed,
         #we need to verify if bourso redirect us to login page or authentication page
         if self.is_on_page(LoginPage):
-            #print "not correct after handling authentication"
             raise BrowserIncorrectAuthenticationCode()
-
-        #print "login over"
-
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsList):

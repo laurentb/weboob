@@ -22,20 +22,15 @@ from weboob.tools.browser import BasePage, BrowserIncorrectPassword
 import urllib2
 import re
 
+
 __all__ = ['AuthenticationPage']
 
 
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
     pass
 
-def write_debug(string, fi):
-    f = open(fi, "w")
-    f.write(string)
-
 
 class AuthenticationPage(BasePage):
-
-
     MAX_LIMIT = "vous avez atteint le nombre maximum "\
         "d'utilisation de l'authentification forte."
 
@@ -81,12 +76,10 @@ class AuthenticationPage(BasePage):
         #extrat authentication token from response (in form)
         info = response.read()
 
-        #write_debug(info, "step1.html")
-
         regex = re.compile(r"vous avez atteint le nombre maximum d'utilisation de l'authentification forte.")
         r = regex.search(info)
         if r:
-            print "Boursorama - Vous avez atteint le nombre maximum d'utilisation de l'authentification forte"
+            self.logger.info("Boursorama - Vous avez atteint le nombre maximum d'utilisation de l'authentification forte")
             raise BrowserAuthenticationCodeMaxLimit()
 
         #print "Response from initial request,", len(info), response.info()
@@ -105,7 +98,6 @@ class AuthenticationPage(BasePage):
         #info = response.read()
         #print "after asking to send token authentification" \
         #   ,len(info), response.info()
-        #write_debug(info, "step2.html")
 
         #self.print_cookies()
 
@@ -117,7 +109,6 @@ class AuthenticationPage(BasePage):
         response = self.browser.open(req)
         #info = response.read()
         #print "after pin authentification", len(info), response.info()
-        #write_debug(info, "step3.html")
 
         #self.print_cookies()
 
@@ -128,7 +119,6 @@ class AuthenticationPage(BasePage):
 
         #result =        response.read()
         #print response, "\n", response.info()
-        #write_debug(result, "step4.html")
 
         #self.print_cookies()
 
