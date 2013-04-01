@@ -24,6 +24,7 @@ import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.capabilities.bank import Account
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 
@@ -50,8 +51,11 @@ class AccountsPage(BasePage):
             a.label = self.parser.tocleanstring(box.xpath('.//span[@class="cardTitle"]')[0])
             a.balance = Decimal('0.0')
             coming = self.parser.tocleanstring(self.parser.select(box, 'td#colOSBalance div.summaryValues', 1))
-            a.coming = Decimal(Transaction.clean_amount(coming))
-            a.currency = a.get_currency(coming)
+            if coming in (u'Indisponible', ''):
+                a.coming = NotAvailable
+            else:
+                a.coming = - abs(Decimal(Transaction.clean_amount(coming)))
+                a.currency = a.get_currency(coming)
             a._link = self.parser.select(box, 'div.summaryTitles a.summaryLink', 1).attrib['href']
 
             yield a
