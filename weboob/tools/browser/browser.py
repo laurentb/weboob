@@ -44,6 +44,7 @@ from urlparse import urlsplit
 import mimetypes
 from contextlib import closing
 from gzip import GzipFile
+import warnings
 
 from weboob.tools.decorators import retry
 from weboob.tools.log import getLogger
@@ -121,6 +122,11 @@ class NoHistory(object):
 
 class BrokenPageError(Exception):
     pass
+
+class FormFieldConversionWarning(UserWarning):
+    """
+    A value has been set to a form's field and has been implicitly converted.
+    """
 
 
 class BasePage(object):
@@ -440,6 +446,16 @@ class StandardBrowser(mechanize.Browser):
             hsh = [hsh]
         if certhash not in hsh:
             raise ssl.SSLError()
+
+    def __setitem__(self, key, value):
+        if isinstance(value, unicode):
+            value = value.encode(self.ENCODING or 'utf-8')
+            warnings.warn('Implicit conversion of form field %r from unicode to str' % key,
+                          FormFieldConversionWarning, stacklevel=2)
+        if self.form is None:
+            raise AttributeError('Please select a form before setting values to fields')
+        return self.form.__setitem__(key, value)
+
 
 
 class BaseBrowser(StandardBrowser):
