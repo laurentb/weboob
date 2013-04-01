@@ -59,7 +59,8 @@ class DetailsPage(BasePage):
 
             # International parsing
             divint = div.xpath('div[@class="international hide"]')[0]
-            self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
+            if divint.xpath('div[@class="detail"]'):
+                self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
         for divbill in self.document.xpath('//div[@class="facture"]'):
             for trbill in divbill.xpath('table/tr'):
