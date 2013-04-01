@@ -42,7 +42,7 @@ class LoginPage(BasePage):
     def login(self, login):
         self.browser.select_form(name='Main')
         self.browser.set_all_readonly(False)
-        self.browser['ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$txnuabbd'] = login
+        self.browser['ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$txnuabbd'] = login.encode('utf-8')
         self.browser['__EVENTTARGET'] = 'ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$btnValider'
         self.browser.submit(nologin=True)
 
@@ -138,6 +138,20 @@ class IndexPage(BasePage):
 
         return accounts.itervalues()
 
+    def go_list(self):
+        self.browser.select_form(name='main')
+        self.browser.set_all_readonly(False)
+        self.browser['__EVENTTARGET'] = 'Menu_AJAX'
+        self.browser['__EVENTARGUMENT'] = 'CPTSYNT0'
+        self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
+        self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+        self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        self.browser.submit()
+
+
+
     def go_history(self, link_type, id):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
@@ -153,11 +167,22 @@ class IndexPage(BasePage):
 
     def get_history(self):
         i = 0
+        ignore = False
         for tr in self.document.xpath('//table[@cellpadding="1"]/tr'):
-            if tr.attrib.get('class', '') == 'DataGridHeader':
+            tds = tr.findall('td')
+
+            if len(tds) < 5:
                 continue
 
-            tds = tr.findall('td')
+            if tr.attrib.get('class', '') == 'DataGridHeader':
+                if tds[2].text == u'Titulaire':
+                    ignore = True
+                else:
+                    ignore = False
+                continue
+
+            if ignore:
+                continue
 
             t = Transaction(i)
 

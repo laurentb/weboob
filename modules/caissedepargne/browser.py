@@ -72,7 +72,10 @@ class CaisseEpargne(BaseBrowser):
         self.DOMAIN = v.netloc
 
     def get_accounts_list(self):
-        self.location(self.buildurl('/Portail.aspx'))
+        if self.is_on_page(IndexPage):
+            self.page.go_list()
+        else:
+            self.location(self.buildurl('/Portail.aspx'))
 
         return self.page.get_list()
 
@@ -87,7 +90,10 @@ class CaisseEpargne(BaseBrowser):
         return None
 
     def _get_history(self, link_type, id):
-        self.location(self.buildurl('/Portail.aspx'))
+        if self.is_on_page(IndexPage):
+            self.page.go_list()
+        else:
+            self.location(self.buildurl('/Portail.aspx'))
 
         self.page.go_history(link_type, id)
 
