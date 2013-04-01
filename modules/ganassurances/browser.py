@@ -28,17 +28,20 @@ __all__ = ['GanAssurances']
 
 class GanAssurances(BaseBrowser):
     PROTOCOL = 'https'
-    DOMAIN = 'espaceclient.ganassurances.fr'
-    PAGES = {'https://espaceclient.ganassurances.fr/wps/portal/login.*':         LoginPage,
-             'https://espaceclient.ganassurances.fr/wps/myportal/TableauDeBord': AccountsPage,
-             'https://espaceclient.ganassurances.fr/wps/myportal/!ut.*':         TransactionsPage,
+    PAGES = {'https://[^/]+/wps/portal/login.*':         LoginPage,
+             'https://[^/]+/wps/myportal/TableauDeBord': AccountsPage,
+             'https://[^/]+/wps/myportal/!ut.*':         TransactionsPage,
             }
+
+    def __init__(self, website, *args, **kwargs):
+        self.DOMAIN = website
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
         return self.page is not None and not self.is_on_page(LoginPage)
 
     def home(self):
-        self.location('https://espaceclient.ganassurances.fr/wps/myportal/TableauDeBord')
+        self.location('/wps/myportal/TableauDeBord')
 
     def login(self):
         """

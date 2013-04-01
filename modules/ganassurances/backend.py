@@ -20,7 +20,8 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import GanAssurances
 
@@ -35,12 +36,18 @@ class GanAssurancesBackend(BaseBackend, ICapBank):
     VERSION = '0.g'
     DESCRIPTION = u'Groupama Assurances French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='\d+'))
+    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
+        'espaceclient.groupama.fr':    u'Groupama Banque',
+        'espaceclient.ganassurances.fr':   u'Gan Assurances',
+        }.iteritems(), key=lambda (k, v): (v, k))])
+    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='espaceclient.groupama.fr'),
+                           ValueBackendPassword('login',    label='Account ID', masked=False),
+                           ValueBackendPassword('password', label='Password of account'))
     BROWSER = GanAssurances
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
+        return self.create_browser(self.config['website'].get(),
+                                   self.config['login'].get(),
                                    self.config['password'].get())
 
     def iter_accounts(self):
