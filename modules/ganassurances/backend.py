@@ -40,7 +40,7 @@ class GanAssurancesBackend(BaseBackend, ICapBank):
         'espaceclient.groupama.fr':    u'Groupama Banque',
         'espaceclient.ganassurances.fr':   u'Gan Assurances',
         }.iteritems(), key=lambda (k, v): (v, k))])
-    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='espaceclient.groupama.fr'),
+    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='espaceclient.ganassurances.fr'),
                            ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password of account'))
     BROWSER = GanAssurances
