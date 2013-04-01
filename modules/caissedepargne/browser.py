@@ -39,10 +39,13 @@ class CaisseEpargne(BaseBrowser):
             }
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        return self.page is not None and not self.is_on_page(LoginPage)
 
     def home(self):
-        self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0')
+        if self.is_logged():
+            self.location(self.buildurl('/Portail.aspx'))
+        else:
+            self.login()
 
     def login(self):
         """
@@ -56,7 +59,7 @@ class CaisseEpargne(BaseBrowser):
             return
 
         if not self.is_on_page(LoginPage):
-            self.home()
+            self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0', no_login=True)
 
         self.page.login(self.username)
         self.page.login2()
@@ -64,8 +67,6 @@ class CaisseEpargne(BaseBrowser):
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-        if self.is_on_page(ErrorPage):
-            raise BrowserIncorrectPassword(self.page.get_error())
 
         v = urlsplit(self.page.url)
         self.DOMAIN = v.netloc
@@ -85,10 +86,10 @@ class CaisseEpargne(BaseBrowser):
 
         return None
 
-    def get_history(self, account):
+    def _get_history(self, link_type, id):
         self.location(self.buildurl('/Portail.aspx'))
 
-        self.page.go_history(account.id)
+        self.page.go_history(link_type, id)
 
         while 1:
             assert self.is_on_page(IndexPage)
@@ -98,3 +99,11 @@ class CaisseEpargne(BaseBrowser):
 
             if not self.page.go_next():
                 return
+
+    def get_history(self, account):
+        return self._get_history(account._link_type, account.id)
+
+    def get_coming(self, account):
+        for link_type, id in account._card_links:
+            for tr in self._get_history(link_type, id):
+                yield tr

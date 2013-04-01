@@ -22,7 +22,9 @@ from decimal import Decimal
 import re
 
 from weboob.tools.mech import ClientForm
-from weboob.tools.browser import BasePage, BrokenPageError, BrowserUnavailable
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.browser import BasePage, BrokenPageError, BrowserUnavailable, BrowserIncorrectPassword
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -31,6 +33,12 @@ __all__ = ['LoginPage', 'ErrorPage', 'IndexPage', 'UnavailablePage']
 
 
 class LoginPage(BasePage):
+    def on_loaded(self):
+        try:
+            raise BrowserIncorrectPassword(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
+        except BrokenPageError:
+            pass
+
     def login(self, login):
         self.browser.select_form(name='Main')
         self.browser.set_all_readonly(False)
@@ -55,13 +63,8 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class ErrorPage(BasePage):
-    def get_error(self):
-        try:
-            return self.parser.select(self.document.getroot(), 'div.messErreur', 1).text.strip()
-        except BrokenPageError:
-            return None
-
+class ErrorPage(LoginPage):
+    pass
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -97,6 +100,8 @@ class IndexPage(BasePage):
                     }
 
     def get_list(self):
+        accounts = OrderedDict()
+
         for table in self.document.xpath('//table[@cellpadding="1"]'):
             account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tr'):
@@ -105,26 +110,39 @@ class IndexPage(BasePage):
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
                 else:
                     a = tds[1].find('a')
-                    m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_COMPTE&(\d+)'\)", a.attrib.get('href', ''))
+                    m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_(\w+)&(\d+)'\)", a.attrib.get('href', ''))
 
                     if not m:
-                        self.logger.warning('Unable to parse account %s' % (a.text.strip() if a.text is not None else ''))
+                        self.logger.warning('Unable to parse account %r' % (self.parser.tocleanstring(a)))
                         continue
 
                     account = Account()
-                    account.id = m.group(1)
-                    account.label = unicode(a.text.strip())
+                    account.id = m.group(2)
+                    account._link_type = m.group(1)
+                    account.label = self.parser.tocleanstring(a)
                     account.type = account_type
                     amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
                     account.balance = Decimal(FrenchTransaction.clean_amount(amount))
                     account.currency = account.get_currency(amount)
-                    yield account
+                    account._card_links = []
 
-    def go_history(self, id):
+                    if account._link_type == 'CB' and account.id in accounts:
+                        a = accounts[account.id]
+                        if not a.coming:
+                            a.coming = Decimal('0.0')
+                        a.coming += account.balance
+                        a._card_links.append((account._link_type, account.id))
+                        continue
+
+                    accounts[account.id] = account
+
+        return accounts.itervalues()
+
+    def go_history(self, link_type, id):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
         self.browser['__EVENTTARGET'] = 'MM$SYNTHESE'
-        self.browser['__EVENTARGUMENT'] = 'HISTORIQUE_COMPTE&%s' % id
+        self.browser['__EVENTARGUMENT'] = 'HISTORIQUE_%s&%s' % (link_type, id)
         self.browser['MM$m_CH$IsMsgInit'] = '0'
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
@@ -149,6 +167,8 @@ class IndexPage(BasePage):
             credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            if t.date is NotAvailable:
+                continue
             t.set_amount(credit, debit)
             yield t
 

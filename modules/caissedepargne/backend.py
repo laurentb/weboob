@@ -59,3 +59,7 @@ class CaisseEpargneBackend(BaseBackend, ICapBank):
     def iter_history(self, account):
         with self.browser:
             return self.browser.get_history(account)
+
+    def iter_coming(self, account):
+        with self.browser:
+            return self.browser.get_coming(account)
