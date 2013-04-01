@@ -64,5 +64,10 @@ class ArretSurImagesBrowser(BaseBrowser):
         self.page.login(self.username, self.password)
 
         if not self.is_logged():
-            raise BrowserIncorrectPassword()        
+            raise BrowserIncorrectPassword() 
+            
+    def latest_videos(self):
+        self.location(self.buildurl('/emissions.php'))
+        assert self.is_on_page(IndexPage)
+        return self.page.iter_videos()                   
 

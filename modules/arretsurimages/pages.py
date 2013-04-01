@@ -41,7 +41,6 @@ class IndexPage(BasePage):
             if m:
                 _id = m.group(1)
 
-
             video = ArretSurImagesVideo(_id)
             video.title = unicode(title)
             video.rating = None
