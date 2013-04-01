@@ -21,7 +21,7 @@ import os
 import codecs
 
 from PyQt4.QtCore import SIGNAL, Qt, QStringList
-from PyQt4.QtGui import QApplication, QCompleter
+from PyQt4.QtGui import QApplication, QCompleter, QFrame, QShortcut, QKeySequence
 
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.torrent import ICapTorrent
@@ -31,6 +31,7 @@ from weboob.tools.application.qt.backendcfg import BackendCfg
 
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.applications.qcineoob.ui.main_window_ui import Ui_MainWindow
+from weboob.applications.qcineoob.ui.result_ui import Ui_Result
 
 from .minimovie import MiniMovie
 from .miniperson import MiniPerson
@@ -42,6 +43,298 @@ from .torrent import Torrent
 from .subtitle import Subtitle
 
 
+class Result(QFrame):
+    def __init__(self, weboob, app, parent=None):
+        QFrame.__init__(self, parent)
+        self.ui = Ui_Result()
+        self.ui.setupUi(self)
+
+        self.parent = parent
+        self.weboob = weboob
+        self.app = app
+        self.minis = []
+        self.current_info_widget = None
+
+        # action history is composed by the last action and the action list
+        # An action is a function, a list of arguments and a description string
+        self.action_history = {'last_action': None, 'action_list': []}
+        self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
+        self.ui.backButton.hide()
+
+    def doAction(self, description, fun, args):
+        ''' Call fun with args as arguments
+        and save it in the action history
+        '''
+        self.ui.currentActionLabel.setText(description)
+        if self.action_history['last_action'] is not None:
+            self.action_history['action_list'].append(self.action_history['last_action'])
+            self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
+            self.ui.backButton.show()
+        self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
+        return fun(*args)
+
+    def doBack(self):
+        ''' Go back in action history
+        Basically call previous function and update history
+        '''
+        if len(self.action_history['action_list']) > 0:
+            todo = self.action_history['action_list'].pop()
+            self.ui.currentActionLabel.setText(todo['description'])
+            self.action_history['last_action'] = todo
+            if len(self.action_history['action_list']) == 0:
+                self.ui.backButton.hide()
+            else:
+                self.ui.backButton.setToolTip(self.action_history['action_list'][-1]['description'])
+            return todo['function'](*todo['args'])
+
+    def castingAction(self, backend_name, id, role):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        self.process = QtDo(self.weboob, self.addPerson)
+        self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=ICapCinema)
+        self.parent.ui.stopButton.show()
+
+    def filmographyAction(self, backend_name, id, role):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        self.process = QtDo(self.weboob, self.addMovie)
+        self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)
+        self.parent.ui.stopButton.show()
+
+    def search(self, tosearch, pattern, lang):
+        if tosearch == 'person':
+            self.searchPerson(pattern)
+        elif tosearch == 'movie':
+            self.searchMovie(pattern)
+        elif tosearch == 'torrent':
+            self.searchTorrent(pattern)
+        elif tosearch == 'subtitle':
+            self.searchSubtitle(lang, pattern)
+
+    def searchMovie(self, pattern):
+        if not pattern:
+            return
+        self.doAction(u'Search movie "%s"' % pattern, self.searchMovieAction, [pattern])
+
+    def searchMovieAction(self, pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addMovie)
+        #self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=ICapCinema)
+        self.parent.ui.stopButton.show()
+
+    def stopProcess(self):
+        self.process.process.finish_event.set()
+
+    def addMovie(self, backend, movie):
+        if not backend:
+            self.parent.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
+            self.process = None
+            self.parent.ui.stopButton.hide()
+            return
+        minimovie = MiniMovie(self.weboob, backend, movie, self)
+        self.ui.list_content.layout().addWidget(minimovie)
+        self.minis.append(minimovie)
+
+    def displayMovie(self, movie, backend):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget is not None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wmovie = Movie(movie, backend, self)
+        self.ui.info_content.layout().addWidget(wmovie)
+        self.current_info_widget = wmovie
+        QApplication.restoreOverrideCursor()
+
+    def searchPerson(self, pattern):
+        if not pattern:
+            return
+        self.doAction(u'Search person "%s"' % pattern, self.searchPersonAction, [pattern])
+
+    def searchPersonAction(self, pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addPerson)
+        #self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=ICapCinema)
+        self.parent.ui.stopButton.show()
+
+    def addPerson(self, backend, person):
+        if not backend:
+            self.parent.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
+            self.process = None
+            self.parent.ui.stopButton.hide()
+            return
+        miniperson = MiniPerson(self.weboob, backend, person, self)
+        self.ui.list_content.layout().addWidget(miniperson)
+        self.minis.append(miniperson)
+
+    def displayPerson(self, person, backend):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget is not None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wperson = Person(person, backend, self)
+        self.ui.info_content.layout().addWidget(wperson)
+        self.current_info_widget = wperson
+        QApplication.restoreOverrideCursor()
+
+    def searchTorrent(self, pattern):
+        if not pattern:
+            return
+        self.doAction(u'Search torrent "%s"' % pattern, self.searchTorrentAction, [pattern])
+
+    def searchTorrentAction(self, pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addTorrent)
+        #self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
+        self.parent.ui.stopButton.show()
+
+    def addTorrent(self, backend, torrent):
+        if not backend:
+            self.parent.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
+            self.process = None
+            self.parent.ui.stopButton.hide()
+            return
+        minitorrent = MiniTorrent(self.weboob, backend, torrent, self)
+        self.ui.list_content.layout().addWidget(minitorrent)
+        self.minis.append(minitorrent)
+
+    def displayTorrent(self, torrent, backend):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget is not None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wtorrent = Torrent(torrent, backend, self)
+        self.ui.info_content.layout().addWidget(wtorrent)
+        self.current_info_widget = wtorrent
+
+    def searchSubtitle(self, lang, pattern):
+        if not pattern:
+            return
+        self.doAction(u'Search subtitle "%s" (lang:%s)' % (pattern, lang), self.searchSubtitleAction, [lang, pattern])
+
+    def searchSubtitleAction(self, lang, pattern):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
+        for mini in self.minis:
+            self.ui.list_content.layout().removeWidget(mini)
+            mini.hide()
+            mini.deleteLater()
+
+        self.minis = []
+        self.parent.ui.searchEdit.setEnabled(False)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        backend_name = str(self.parent.ui.backendEdit.itemData(self.parent.ui.backendEdit.currentIndex()).toString())
+
+        self.process = QtDo(self.weboob, self.addSubtitle)
+        #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+        self.process.do(self.app._do_complete, self.parent.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
+        self.parent.ui.stopButton.show()
+
+    def addSubtitle(self, backend, subtitle):
+        if not backend:
+            self.parent.ui.searchEdit.setEnabled(True)
+            QApplication.restoreOverrideCursor()
+            self.process = None
+            self.parent.ui.stopButton.hide()
+            return
+        minisubtitle = MiniSubtitle(self.weboob, backend, subtitle, self)
+        self.ui.list_content.layout().addWidget(minisubtitle)
+        self.minis.append(minisubtitle)
+
+    def displaySubtitle(self, subtitle, backend):
+        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
+        if self.current_info_widget is not None:
+            self.ui.info_content.layout().removeWidget(self.current_info_widget)
+            self.current_info_widget.hide()
+            self.current_info_widget.deleteLater()
+        wsubtitle = Subtitle(subtitle, backend, self)
+        self.ui.info_content.layout().addWidget(wsubtitle)
+        self.current_info_widget = wsubtitle
+
+    def searchId(self, id, stype):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        title_field = 'name'
+        if stype == 'movie':
+            cap = ICapCinema
+            title_field = 'original_title'
+        elif stype == 'person':
+            cap = ICapCinema
+        elif stype == 'torrent':
+            cap = ICapTorrent
+        elif stype == 'subtitle':
+            cap = ICapSubtitle
+        if '@' in id:
+            backend_name = id.split('@')[1]
+            id = id.split('@')[0]
+        else:
+            backend_name = None
+        for backend in self.weboob.iter_backends():
+            if backend.has_caps(cap) and ((backend_name and backend.name == backend_name) or not backend_name):
+                exec('object = backend.get_%s(id)' % (stype))
+                if object:
+                    func_display = 'self.display' + stype[0].upper() + stype[1:]
+                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" % 
+                            (stype, title_field, func_display))
+        QApplication.restoreOverrideCursor()
+
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
@@ -51,20 +344,10 @@ class MainWindow(QtMainWindow):
         self.config = config
         self.weboob = weboob
         self.app = app
-        self.minis = []
-        self.current_info_widget = None
 
         # search history is a list of patterns which have been searched
         self.search_history = self.loadSearchHistory()
         self.updateCompletion()
-
-        # action history is composed by the last action and the action list
-        # An action is a function, a list of arguments and a description string
-        self.action_history = {'last_action': None, 'action_list': []}
-        self.connect(self.ui.backButton, SIGNAL("clicked()"), self.doBack)
-        self.ui.backButton.hide()
-        self.connect(self.ui.stopButton, SIGNAL("clicked()"), self.stopProcess)
-        self.ui.stopButton.hide()
 
         self.connect(self.ui.searchEdit, SIGNAL("returnPressed()"), self.search)
         self.connect(self.ui.idEdit, SIGNAL("returnPressed()"), self.searchId)
@@ -75,8 +358,20 @@ class MainWindow(QtMainWindow):
         showT = self.config.get('settings', 'showthumbnails')
         self.ui.showTCheck.setChecked(showT == '1')
 
+        self.connect(self.ui.stopButton, SIGNAL("clicked()"), self.stopProcess)
+        self.ui.stopButton.hide()
+
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
-        self.connect(self.ui.actionQuit, SIGNAL("triggered()"), self.close)
+        q = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self)
+        self.connect(q, SIGNAL("activated()"), self.close)
+        n = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageDown), self)
+        self.connect(n, SIGNAL("activated()"), self.nextTab)
+        p = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_PageUp), self)
+        self.connect(p, SIGNAL("activated()"), self.prevTab)
+        w = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_W), self)
+        self.connect(w, SIGNAL("activated()"), self.closeCurrentTab)
+
+        self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"),self.closeTab)
 
         self.loadBackendsList()
 
@@ -89,6 +384,73 @@ class MainWindow(QtMainWindow):
             self.ui.langCombo.addItem(lang)
         self.ui.langCombo.hide()
         self.ui.langLabel.hide()
+
+    def stopProcess(self):
+        self.ui.resultsTab.currentWidget().stopProcess()
+
+    def closeTab(self, index):
+        if self.ui.resultsTab.widget(index) != 0:
+            tabToClose = self.ui.resultsTab.widget(index)
+            self.ui.resultsTab.removeTab(index)
+            del(tabToClose)
+
+    def closeCurrentTab(self):
+        self.closeTab(self.ui.resultsTab.currentIndex())
+
+    def prevTab(self):
+        index = self.ui.resultsTab.currentIndex() - 1
+        size = self.ui.resultsTab.count()
+        if size != 0:
+            self.ui.resultsTab.setCurrentIndex(index % size)
+
+    def nextTab(self):
+        index = self.ui.resultsTab.currentIndex() + 1
+        size = self.ui.resultsTab.count()
+        if size != 0:
+            self.ui.resultsTab.setCurrentIndex(index % size)
+
+    def newTab(self, txt, backend, person=None, movie=None, torrent=None, subtitle=None):
+        id = ''
+        if person != None:
+            id = person.id
+            stype = 'person'
+        elif movie != None:
+            id = movie.id
+            stype = 'movie'
+        elif subtitle != None:
+            id = subtitle.id
+            stype = 'subtitle'
+        elif torrent != None:
+            id = torrent.id
+            stype = 'torrent'
+        new_res = Result(self.weboob, self.app, self)
+        self.ui.resultsTab.addTab(new_res, txt)
+        self.ui.resultsTab.setCurrentWidget(new_res)
+        new_res.searchId(id, stype)
+
+    def search(self):
+        pattern = unicode(self.ui.searchEdit.text())
+        # arbitrary max number of completion word
+        if len(self.search_history) > 50:
+            self.search_history.pop(0)
+        if pattern not in self.search_history:
+            self.search_history.append(pattern)
+            self.updateCompletion()
+
+        tosearch = self.ui.typeCombo.currentText()
+        lang = self.ui.langCombo.currentText()
+        new_res = Result(self.weboob, self.app, self)
+        self.ui.resultsTab.addTab(new_res, pattern)
+        self.ui.resultsTab.setCurrentWidget(new_res)
+        new_res.search(tosearch, pattern, lang)
+
+    def searchId(self):
+        id = unicode(self.ui.idEdit.text())
+        stype = unicode(self.ui.idTypeCombo.currentText())
+        new_res = Result(self.weboob, self.app, self)
+        self.ui.resultsTab.addTab(new_res, id)
+        self.ui.resultsTab.setCurrentWidget(new_res)
+        new_res.searchId(id, stype)
 
     def backendsConfig(self):
         bckndcfg = BackendCfg(self.weboob, (ICapCinema, ICapTorrent, ICapSubtitle,), self)
@@ -150,295 +512,6 @@ class MainWindow(QtMainWindow):
             return None
         else:
             return num
-
-    def doAction(self, description, fun, args):
-        ''' Call fun with args as arguments
-        and save it in the action history
-        '''
-        self.ui.currentActionLabel.setText(description)
-        if self.action_history['last_action'] is not None:
-            self.action_history['action_list'].append(self.action_history['last_action'])
-            self.ui.backButton.setToolTip(self.action_history['last_action']['description'])
-            self.ui.backButton.show()
-        self.action_history['last_action'] = {'function': fun, 'args': args, 'description': description}
-        return fun(*args)
-
-    def doBack(self):
-        ''' Go back in action history
-        Basically call previous function and update history
-        '''
-        if len(self.action_history['action_list']) > 0:
-            todo = self.action_history['action_list'].pop()
-            self.ui.currentActionLabel.setText(todo['description'])
-            self.action_history['last_action'] = todo
-            if len(self.action_history['action_list']) == 0:
-                self.ui.backButton.hide()
-            else:
-                self.ui.backButton.setToolTip(self.action_history['action_list'][-1]['description'])
-            return todo['function'](*todo['args'])
-
-    def castingAction(self, backend_name, id, role):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        self.process = QtDo(self.weboob, self.addPerson)
-        self.process.do('iter_movie_persons', id, role, backends=backend_name, caps=ICapCinema)
-        self.ui.stopButton.show()
-
-    def filmographyAction(self, backend_name, id, role):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        self.process = QtDo(self.weboob, self.addMovie)
-        self.process.do('iter_person_movies', id, role, backends=backend_name, caps=ICapCinema)
-        self.ui.stopButton.show()
-
-    def search(self):
-        pattern = unicode(self.ui.searchEdit.text())
-        # arbitrary max number of completion word
-        if len(self.search_history) > 50:
-            self.search_history.pop(0)
-        if pattern not in self.search_history:
-            self.search_history.append(pattern)
-            self.updateCompletion()
-
-        tosearch = self.ui.typeCombo.currentText()
-        if tosearch == 'person':
-            self.searchPerson()
-        elif tosearch == 'movie':
-            self.searchMovie()
-        elif tosearch == 'torrent':
-            self.searchTorrent()
-        elif tosearch == 'subtitle':
-            self.searchSubtitle()
-
-    def searchMovie(self):
-        pattern = unicode(self.ui.searchEdit.text())
-        if not pattern:
-            return
-        self.doAction(u'Search movie "%s"' % pattern, self.searchMovieAction, [pattern])
-
-    def searchMovieAction(self, pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
-
-        self.process = QtDo(self.weboob, self.addMovie)
-        #self.process.do('iter_movies', pattern, backends=backend_name, caps=ICapCinema)
-        self.process.do(self.app._do_complete, self.getCount(), ('original_title'), 'iter_movies', pattern, backends=backend_name, caps=ICapCinema)
-        self.ui.stopButton.show()
-
-    def stopProcess(self):
-        self.process.process.finish_event.set()
-
-    def addMovie(self, backend, movie):
-        if not backend:
-            self.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.ui.stopButton.hide()
-            return
-        minimovie = MiniMovie(self.weboob, backend, movie, self)
-        self.ui.list_content.layout().addWidget(minimovie)
-        self.minis.append(minimovie)
-
-    def displayMovie(self, movie, backend):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget is not None:
-            self.ui.info_content.layout().removeWidget(self.current_info_widget)
-            self.current_info_widget.hide()
-            self.current_info_widget.deleteLater()
-        wmovie = Movie(movie, backend, self)
-        self.ui.info_content.layout().addWidget(wmovie)
-        self.current_info_widget = wmovie
-        QApplication.restoreOverrideCursor()
-
-    def searchPerson(self):
-        pattern = unicode(self.ui.searchEdit.text())
-        if not pattern:
-            return
-        self.doAction(u'Search person "%s"' % pattern, self.searchPersonAction, [pattern])
-
-    def searchPersonAction(self, pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
-
-        self.process = QtDo(self.weboob, self.addPerson)
-        #self.process.do('iter_persons', pattern, backends=backend_name, caps=ICapCinema)
-        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_persons', pattern, backends=backend_name, caps=ICapCinema)
-        self.ui.stopButton.show()
-
-    def addPerson(self, backend, person):
-        if not backend:
-            self.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.ui.stopButton.hide()
-            return
-        miniperson = MiniPerson(self.weboob, backend, person, self)
-        self.ui.list_content.layout().addWidget(miniperson)
-        self.minis.append(miniperson)
-
-    def displayPerson(self, person, backend):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget is not None:
-            self.ui.info_content.layout().removeWidget(self.current_info_widget)
-            self.current_info_widget.hide()
-            self.current_info_widget.deleteLater()
-        wperson = Person(person, backend, self)
-        self.ui.info_content.layout().addWidget(wperson)
-        self.current_info_widget = wperson
-        QApplication.restoreOverrideCursor()
-
-    def searchTorrent(self):
-        pattern = unicode(self.ui.searchEdit.text())
-        if not pattern:
-            return
-        self.doAction(u'Search torrent "%s"' % pattern, self.searchTorrentAction, [pattern])
-
-    def searchTorrentAction(self, pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
-
-        self.process = QtDo(self.weboob, self.addTorrent)
-        #self.process.do('iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
-        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_torrents', pattern, backends=backend_name, caps=ICapTorrent)
-        self.ui.stopButton.show()
-
-    def addTorrent(self, backend, torrent):
-        if not backend:
-            self.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.ui.stopButton.hide()
-            return
-        minitorrent = MiniTorrent(self.weboob, backend, torrent, self)
-        self.ui.list_content.layout().addWidget(minitorrent)
-        self.minis.append(minitorrent)
-
-    def displayTorrent(self, torrent, backend):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget is not None:
-            self.ui.info_content.layout().removeWidget(self.current_info_widget)
-            self.current_info_widget.hide()
-            self.current_info_widget.deleteLater()
-        wtorrent = Torrent(torrent, backend, self)
-        self.ui.info_content.layout().addWidget(wtorrent)
-        self.current_info_widget = wtorrent
-
-    def searchSubtitle(self):
-        pattern = unicode(self.ui.searchEdit.text())
-        lang = unicode(self.ui.langCombo.currentText())
-        if not pattern:
-            return
-        self.doAction(u'Search subtitle "%s" (lang:%s)' % (pattern, lang), self.searchSubtitleAction, [lang, pattern])
-
-    def searchSubtitleAction(self, lang, pattern):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.list_page)
-        for mini in self.minis:
-            self.ui.list_content.layout().removeWidget(mini)
-            mini.hide()
-            mini.deleteLater()
-
-        self.minis = []
-        self.ui.searchEdit.setEnabled(False)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-
-        backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
-
-        self.process = QtDo(self.weboob, self.addSubtitle)
-        #self.process.do('iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
-        self.process.do(self.app._do_complete, self.getCount(), ('name'), 'iter_subtitles', lang, pattern, backends=backend_name, caps=ICapSubtitle)
-        self.ui.stopButton.show()
-
-    def addSubtitle(self, backend, subtitle):
-        if not backend:
-            self.ui.searchEdit.setEnabled(True)
-            QApplication.restoreOverrideCursor()
-            self.process = None
-            self.ui.stopButton.hide()
-            return
-        minisubtitle = MiniSubtitle(self.weboob, backend, subtitle, self)
-        self.ui.list_content.layout().addWidget(minisubtitle)
-        self.minis.append(minisubtitle)
-
-    def displaySubtitle(self, subtitle, backend):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.info_page)
-        if self.current_info_widget is not None:
-            self.ui.info_content.layout().removeWidget(self.current_info_widget)
-            self.current_info_widget.hide()
-            self.current_info_widget.deleteLater()
-        wsubtitle = Subtitle(subtitle, backend, self)
-        self.ui.info_content.layout().addWidget(wsubtitle)
-        self.current_info_widget = wsubtitle
-
-    def searchId(self):
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        stype = unicode(self.ui.idTypeCombo.currentText())
-        title_field = 'name'
-        if stype == 'movie':
-            cap = ICapCinema
-            title_field = 'original_title'
-        elif stype == 'person':
-            cap = ICapCinema
-        elif stype == 'torrent':
-            cap = ICapTorrent
-        elif stype == 'subtitle':
-            cap = ICapSubtitle
-        id = unicode(self.ui.idEdit.text())
-        if '@' in id:
-            backend_name = id.split('@')[1]
-            id = id.split('@')[0]
-        else:
-            backend_name = None
-        for backend in self.weboob.iter_backends():
-            if backend.has_caps(cap) and ((backend_name and backend.name == backend_name) or not backend_name):
-                exec('object = backend.get_%s(id)' % (stype))
-                if object:
-                    func_display = 'self.display' + stype[0].upper() + stype[1:]
-                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" % 
-                            (stype, title_field, func_display))
-        QApplication.restoreOverrideCursor()
 
     def closeEvent(self, ev):
         self.config.set('settings', 'backend', str(self.ui.backendEdit.itemData(

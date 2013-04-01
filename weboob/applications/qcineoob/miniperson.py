@@ -46,7 +46,7 @@ class MiniPerson(QFrame):
             self.ui.shortDescLabel.hide()
         self.ui.backendLabel.setText(backend.name)
 
-        if self.parent.ui.showTCheck.isChecked():
+        if self.parent.parent.ui.showTCheck.isChecked():
             self.gotThumbnail()
 
     def gotThumbnail(self):
@@ -70,6 +70,10 @@ class MiniPerson(QFrame):
 
         if event.button() == 2:
             self.gotThumbnail()
+        if event.button() == 4:
+            person = self.backend.get_person(self.person.id)
+            self.parent.parent.newTab(u'Details of person "%s"' %
+                 person.name, self.backend, person=person)
         else:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             person = self.backend.get_person(self.person.id)
