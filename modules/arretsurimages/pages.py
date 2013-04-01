@@ -71,26 +71,31 @@ class VideoPage(BasePage):
 
     def get_video(self, video=None):
         if not video:
-            video = ArretSurImagesVideo(self.get_id)
+            video = ArretSurImagesVideo(self.get_id())
         video.title = unicode(self.get_title())
         video.url = unicode(self.get_url())
         video.set_empty_fields(NotAvailable)
         return video
+
+    def get_firstUrl(self):
+        obj = self.parser.select(self.document.getroot(), 'a.bouton-telecharger', 1)
+        firstUrl = obj.attrib['href']
+        return firstUrl
 
     def get_title(self):
         title = self.document.getroot().cssselect('div[id=titrage-contenu] h1')[0].text
         return title;
         
     def get_id(self):
-        m = self.URL_REGEXP.match(self['url'])
+        m = re.match(r'http://videos.arretsurimages.net/telecharger/(.*)', self.get_firstUrl())
+        _id = ''
         if m:
-            return self.create_id(m.group(1))
+            return m.group(1)
         self.logger.warning('Unable to parse ID')
         return 0
         
     def get_url(self):
-        obj = self.parser.select(self.document.getroot(), 'a.bouton-telecharger', 1)
-        firstUrl = obj.attrib['href']
+        firstUrl = self.get_firstUrl()
         doc = self.browser.get_document(self.browser.openurl(firstUrl))
         links = doc.xpath('//a');
         url = None;
