@@ -26,7 +26,7 @@ from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
                    OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage, \
-                   ChangePasswordPage
+                   ChangePasswordPage, VerifCodePage
 
 
 __all__ = ['CICBrowser']
@@ -50,10 +50,11 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/BAD.*': InfoPage,
              'https://www.cic.fr/.*/fr/banque/.*Vir.*': TransfertPage,
              'https://www.cic.fr/.*/fr/validation/change_password.cgi': ChangePasswordPage,
+             'https://www.cic.fr/.*/fr/validation/verif_code.cgi.*': VerifCodePage,
              'https://www.cic.fr/.*/fr/': EmptyPage,
              'https://www.cic.fr/.*/fr/banques/index.html': EmptyPage,
              'https://www.cic.fr/.*/fr/banque/paci_beware_of_phishing.html.*': EmptyPage,
-             'https://www.cic.fr/.*/fr/validation/(?!change_password).*': EmptyPage,
+             'https://www.cic.fr/.*/fr/validation/(?!change_password|verif_code).*': EmptyPage,
             }
 
     currentSubBank = None

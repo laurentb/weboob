@@ -45,6 +45,9 @@ class ChangePasswordPage(BasePage):
     def on_loaded(self):
         raise BrowserIncorrectPassword('Please change your password')
 
+class VerifCodePage(BasePage):
+    def on_loaded(self):
+        raise BrowserIncorrectPassword('Unable to login: website asks a code from a card')
 
 class InfoPage(BasePage):
     pass
