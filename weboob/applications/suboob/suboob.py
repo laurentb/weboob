@@ -165,6 +165,26 @@ class Suboob(ReplApplication):
         search language [PATTERN]
 
         Search subtitles.
+
+        Language  Abbreviation
+        ----------------------
+        Arabic      ar          Esperanto   eo          Irish       ga          Russian     ru
+        Afrikaans   af          Estonian    et          Italian     it          Serbian     sr
+        Albanian    sq          Filipino    tl          Japanese    ja          Slovak      sk
+        Armenian    hy          Finnish     fi          Kannada     kn          Slovenian   sl
+        Azerbaijani az          French      fr          Korean      ko          Spanish     es
+        Basque      eu          Galician    gl          Latin       la          Swahili     sw
+        Belarusian  be          Georgian    ka          Latvian     lv          Swedish     sv
+        Bengali     bn          German      de          Lithuanian  lt          Tamil       ta
+        Bulgarian   bg          Greek       gr          Macedonian  mk          Telugu      te
+        Catalan     ca          Gujarati    gu          Malay       ms          Thai        th
+        Chinese     zh          Haitian     ht          Maltese     mt          Turkish     tr
+        Croatian    hr          Hebrew      iw          Norwegian   no          Ukrainian   uk
+        Czech       cz          Hindi       hi          Persian     fa          Urdu        ur
+        Danish      da          Hungaric    hu          Polish      pl          Vietnamese  vi
+        Dutch       nl          Icelandic   is          Portuguese  pt          Welsh       cy
+        English     en          Indonesian  id          Romanian    ro          Yiddish     yi
+        ----------------------
         """
         language, pattern = self.parse_command_args(line, 2, 1)
         self.change_path([u'search'])
