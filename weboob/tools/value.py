@@ -20,6 +20,7 @@
 
 import re
 from .ordereddict import OrderedDict
+from .misc import to_unicode
 
 
 __all__ = ['ValuesDict', 'Value', 'ValueBackendPassword', 'ValueInt', 'ValueFloat', 'ValueBool']
@@ -103,6 +104,8 @@ class Value(object):
         Set a value.
         """
         self.check_valid(v)
+        if isinstance(v, str):
+            v = to_unicode(v)
         self._value = v
 
     def dump(self):
@@ -131,7 +134,7 @@ class ValueBackendPassword(Value):
     def load(self, domain, password, callbacks):
         self.check_valid(password)
         self._domain = domain
-        self._value = password
+        self._value = to_unicode(password)
         self._callbacks = callbacks
 
     def check_valid(self, passwd):
@@ -149,7 +152,7 @@ class ValueBackendPassword(Value):
         if passwd == '':
             return
         if self._domain is None:
-            self._value = passwd
+            self._value = to_unicode(passwd)
             return
 
         try:
@@ -157,7 +160,7 @@ class ValueBackendPassword(Value):
             import keyring
             keyring.set_password(self._domain, self.id, passwd)
         except Exception:
-            self._value = passwd
+            self._value = to_unicode(passwd)
         else:
             self._value = ''
 
@@ -181,11 +184,11 @@ class ValueBackendPassword(Value):
 
         if passwd is not None:
             # Password has been read in the keyring.
-            return passwd
+            return to_unicode(passwd)
 
         # Prompt user to enter password by hand.
         if not self.noprompt and 'login' in self._callbacks:
-            self._value = self._callbacks['login'](self._domain, self)
+            self._value = to_unicode(self._callbacks['login'](self._domain, self))
             if self._value is None:
                 self._value = ''
             else:
