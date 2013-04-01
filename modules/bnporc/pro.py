@@ -20,8 +20,9 @@
 
 import re
 from urlparse import urlparse, parse_qsl
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 
@@ -45,7 +46,11 @@ class ProAccountsList(BasePage):
             account.id = self.parser.tocleanstring(cols[self.COL_ID])
             account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
             account.balance = Decimal(self.parser.tocleanstring(cols[self.COL_BALANCE]))
-            account.coming = Decimal(self.parser.tocleanstring(cols[self.COL_COMING]))
+            try:
+                account.coming = Decimal(self.parser.tocleanstring(cols[self.COL_COMING]))
+            except InvalidOperation:
+                self.logger.warning('Unable to parse coming value', exc_info=True)
+                account.coming = NotAvailable
             account._link_id = None
             account._stp = None
 
