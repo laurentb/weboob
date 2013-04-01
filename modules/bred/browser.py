@@ -42,10 +42,13 @@ class BredBrowser(BaseBrowser):
             }
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        return self.page is not None and not self.is_on_page(LoginPage)
 
     def home(self):
-        return self.location('https://www.bred.fr/mylittleform?type=1')
+        if not self.is_logged():
+            self.login()
+        else:
+            self.location('https://www.bred.fr/Andromede/Main')
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -56,13 +59,14 @@ class BredBrowser(BaseBrowser):
 
         self.page.login(self.username, self.password)
 
-        assert self.is_on_page(LoginResultPage)
+        assert self.is_on_page((LoginResultPage, EmptyPage))
 
-        error = self.page.get_error()
-        if error is not None:
-            raise BrowserIncorrectPassword(error)
+        if self.is_on_page(LoginResultPage):
+            error = self.page.get_error()
+            if error is not None:
+                raise BrowserIncorrectPassword(error)
 
-        self.page.confirm()
+            self.page.confirm()
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):

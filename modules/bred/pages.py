@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from mechanize import FormNotFoundError
 from decimal import Decimal, InvalidOperation
 import re
 
@@ -39,6 +40,25 @@ class LoginPage(BasePage):
 
 
 class LoginResultPage(BasePage):
+    def on_loaded(self):
+        for script in self.document.xpath('//script'):
+            text = script.text
+            if text is None:
+                continue
+            m = re.search("window.location.replace\('([^']+)'\);", text)
+            if m:
+                self.browser.location(m.group(1))
+
+        try:
+            self.browser.select_form(name='banque')
+        except FormNotFoundError:
+            pass
+        else:
+            self.browser.set_all_readonly(False)
+            self.browser['typeCompte'] = 'P'
+            self.browser.submit()
+
+
     def confirm(self):
         self.browser.location('MainAuth?typeDemande=AC', no_login=True)
 
