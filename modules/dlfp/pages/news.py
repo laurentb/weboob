@@ -121,7 +121,7 @@ class Article(Content):
             return
 
         header = tree.find('header')
-        self.title = u' — '.join([a.text for a in header.find('h1').findall('a')])
+        self.title = u' — '.join([a.text for a in header.find('h1').xpath('.//a')])
         try:
             a = self.browser.parser.select(header, 'a[rel=author]', 1)
         except BrokenPageError:
