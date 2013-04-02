@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import HTMLParser
+from HTMLParser import HTMLParser
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
@@ -47,6 +47,7 @@ class ImdbBrowser(BaseBrowser):
     def iter_movies(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
+        htmlparser = HTMLParser()
         for cat in ['title_popular', 'title_exact', 'title_approx']:
             if cat in jres:
                 for m in jres[cat]:
@@ -56,11 +57,11 @@ class ImdbBrowser(BaseBrowser):
                                                         0].strip(', '), tdesc.split('>')[1].split('<')[0])
                     else:
                         short_description = tdesc.strip(', ')
-                    movie = Movie(m['id'], latin2unicode(m['title']))
+                    movie = Movie(m['id'], htmlparser.unescape(m['title']))
                     movie.other_titles = NotLoaded
                     movie.release_date = NotLoaded
                     movie.duration = NotLoaded
-                    movie.short_description = latin2unicode(short_description)
+                    movie.short_description = htmlparser.unescape(short_description)
                     movie.pitch = NotLoaded
                     movie.country = NotLoaded
                     movie.note = NotLoaded
@@ -72,10 +73,11 @@ class ImdbBrowser(BaseBrowser):
     def iter_persons(self, pattern):
         res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
         jres = json.loads(res)
+        htmlparser = HTMLParser()
         for cat in ['name_popular', 'name_exact', 'name_approx']:
             if cat in jres:
                 for p in jres[cat]:
-                    person = Person(p['id'], latin2unicode(unicode(p['name'])))
+                    person = Person(p['id'], htmlparser.unescape(unicode(p['name'])))
                     person.real_name = NotLoaded
                     person.birth_place = NotLoaded
                     person.birth_date = NotLoaded
@@ -83,7 +85,7 @@ class ImdbBrowser(BaseBrowser):
                     person.gender = NotLoaded
                     person.nationality = NotLoaded
                     person.short_biography = NotLoaded
-                    person.short_description = latin2unicode(p['description'])
+                    person.short_description = htmlparser.unescape(p['description'])
                     person.roles = NotLoaded
                     person.thumbnail_url = NotLoaded
                     yield person
@@ -95,7 +97,7 @@ class ImdbBrowser(BaseBrowser):
             jres = json.loads(res)
         else:
             return None
-        htmlparser = HTMLParser.HTMLParser()
+        htmlparser = HTMLParser()
 
         title = NotAvailable
         duration = NotAvailable
@@ -208,31 +210,3 @@ class ImdbBrowser(BaseBrowser):
         self.location('http://www.imdb.com/title/%s/releaseinfo' % id)
         assert self.is_on_page(ReleasePage)
         return self.page.get_movie_releases(country)
-
-
-dict_hex = {'&#xE1;': u'á',
-            '&#xE9;': u'é',
-            '&#xE8;': u'è',
-            '&#xED;': u'í',
-            '&#xF1;': u'ñ',
-            '&#xF3;': u'ó',
-            '&#xFA;': u'ú',
-            '&#xFC;': u'ü',
-            '&#x26;': u'&',
-            '&#x27;': u"'",
-            '&#xE0;': u'à',
-            '&#xC0;': u'À',
-            '&#xE2;': u'â',
-            '&#xC9;': u'É',
-            '&#xEB;': u'ë',
-            '&#xF4;': u'ô',
-            '&#xF6;': u'ö',
-            '&#xE4;': u'ä',
-            '&#xE7;': u'ç'
-            }
-
-
-def latin2unicode(word):
-    for key in dict_hex.keys():
-        word = word.replace(key, dict_hex[key])
-    return unicode(word)
