@@ -1,6 +1,8 @@
 #!/bin/bash -u
 cd $(dirname $0)
 cd ..
+grep -r --include '*.py' 'class [^( ]\+:$' . && exit 3
+grep -r --include '*.py' $'\t\|\s$' . && exit 4
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
