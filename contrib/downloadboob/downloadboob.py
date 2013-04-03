@@ -51,7 +51,7 @@ def removeSpecial(s):
 DOWNLOAD_DIRECTORY=".files"
 
 
-class Downloadboob:
+class Downloadboob(object):
 
     def __init__(self, backend_name, download_directory, links_directory):
         self.download_directory = download_directory

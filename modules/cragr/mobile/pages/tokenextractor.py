@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-class TokenExtractor:
+class TokenExtractor(object):
     """ Extracts texts token from an HTML document """
     def __init__(self):
         self.iterated_elements = []

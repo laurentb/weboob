@@ -74,7 +74,7 @@ class HTTPSVerifiedConnection(httplib.HTTPSConnection):
                 raise ssl.SSLError(1, "Call back verification failed")
 
 
-class HellHTTPS:
+class HellHTTPS(object):
     "This class is the library used by the weboob's CMB module"
 
     def __init__(self, host, port=None, proxy=None, proxy_port=None,
