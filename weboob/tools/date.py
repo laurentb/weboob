@@ -50,8 +50,10 @@ class date(real_date):
 class datetime(real_datetime):
     def strftime(self, fmt):
         return strftime(self, fmt)
+
     def combine(self, date, time):
         return datetime(date.year, date.month, date.day, time.hour, time.minute, time.microsecond, time.tzinfo)
+
     def date(self):
         return date(self.year, self.month, self.day)
 
@@ -75,17 +77,19 @@ def new_datetime(d):
 # Allowed if there's an even number of "%"s because they are escaped.
 _illegal_formatting = re.compile(r"((^|[^%])(%%)*%[sy])")
 
+
 def _findall(text, substr):
-     # Also finds overlaps
-     sites = []
-     i = 0
-     while 1:
-         j = text.find(substr, i)
-         if j == -1:
-             break
-         sites.append(j)
-         i=j+1
-     return sites
+    # Also finds overlaps
+    sites = []
+    i = 0
+    while 1:
+        j = text.find(substr, i)
+        if j == -1:
+            break
+        sites.append(j)
+        i = j+1
+    return sites
+
 
 def strftime(dt, fmt):
     if dt.year >= 1900:
