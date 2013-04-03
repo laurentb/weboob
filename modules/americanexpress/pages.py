@@ -92,7 +92,7 @@ class TransactionsPage(BasePage):
     COL_CREDIT = -2
     COL_DEBIT = -1
 
-    MONTHS = ['janv', u'févr', u'mars', u'avri', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
+    MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
 
     def get_history(self, guesser):
         debit_date = self.get_debit_date()
