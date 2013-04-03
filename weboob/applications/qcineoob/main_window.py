@@ -371,7 +371,7 @@ class MainWindow(QtMainWindow):
         w = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_W), self)
         self.connect(w, SIGNAL("activated()"), self.closeCurrentTab)
 
-        self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"),self.closeTab)
+        self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"), self.closeTab)
 
         self.loadBackendsList()
 
@@ -411,16 +411,16 @@ class MainWindow(QtMainWindow):
 
     def newTab(self, txt, backend, person=None, movie=None, torrent=None, subtitle=None):
         id = ''
-        if person != None:
+        if person is not None:
             id = person.id
             stype = 'person'
-        elif movie != None:
+        elif movie is not None:
             id = movie.id
             stype = 'movie'
-        elif subtitle != None:
+        elif subtitle is not None:
             id = subtitle.id
             stype = 'subtitle'
-        elif torrent != None:
+        elif torrent is not None:
             id = torrent.id
             stype = 'torrent'
         new_res = Result(self.weboob, self.app, self)
