@@ -90,7 +90,7 @@ class RecipePage(BasePage):
         num_instr = 1
         for inst in l_divinst:
             instructions += '%s: %s\n' % (num_instr, inst.text_content())
-	    num_instr += 1
+        num_instr += 1
 
         prepmin = 0
         emprep = self.parser.select(self.document.getroot(), 'span#prepHoursSpan em')

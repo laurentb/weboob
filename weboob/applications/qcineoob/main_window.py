@@ -330,7 +330,7 @@ class Result(QFrame):
                 exec('object = backend.get_%s(id)' % (stype))
                 if object:
                     func_display = 'self.display' + stype[0].upper() + stype[1:]
-                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" % 
+                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" %
                             (stype, title_field, func_display))
         QApplication.restoreOverrideCursor()
 

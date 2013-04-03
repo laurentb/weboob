@@ -126,7 +126,7 @@ class RecipePage(BasePage):
                     author = comtxt.split('par ')[-1].split('|')[0]
                     comtxt = comtxt.replace('par %s' % author, '')
             comments.append(Comment(text=comtxt, author=author))
-            
+
         links_author = self.parser.select(self.document.getroot(), 'p.auteur a.couleur_membre')
         if len(links_author) > 0:
             author = unicode(links_author[0].text.strip())

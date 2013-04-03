@@ -169,8 +169,8 @@ class VideoPage(BasePage):
                         # headers = req.info()
                         # if headers.get('Content-Type', '') == 'text/html' and headers.get('Content-Length', '') == '2':
                         # print 'BUG'
-                            
-                        
+
+
                         #print req.code
                     except HTTPError, e:
                         #print e.getcode()
