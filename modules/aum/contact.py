@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from html2text import unescape
 import socket
 from datetime import datetime
 from dateutil.parser import parse as parse_dt
@@ -222,9 +223,9 @@ class Contact(_Contact):
             self.status = Contact.STATUS_OFFLINE
             self.status_msg = u'last connection %s' % profile['last_cnx']
 
-        self.summary = profile.get('announce', '').strip()
+        self.summary = unicode(unescape(profile.get('announce', '').strip()))
         if len(profile.get('shopping_list', '')) > 0:
-            self.summary += u'\n\nLooking for:\n%s' % profile['shopping_list'].strip()
+            self.summary += u'\n\nLooking for:\n%s' % unescape(profile['shopping_list'].strip())
 
         for photo in profile['pics']:
             self.set_photo(photo.split('/')[-1],
