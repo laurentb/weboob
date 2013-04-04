@@ -437,8 +437,8 @@ class MainWindow(QtMainWindow):
             self.search_history.append(pattern)
             self.updateCompletion()
 
-        tosearch = self.ui.typeCombo.currentText()
-        lang = self.ui.langCombo.currentText()
+        tosearch = unicode(self.ui.typeCombo.currentText())
+        lang = unicode(self.ui.langCombo.currentText())
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, pattern)
         self.ui.resultsTab.setCurrentWidget(new_res)
