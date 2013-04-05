@@ -371,6 +371,10 @@ class MainWindow(QtMainWindow):
         w = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_W), self)
         self.connect(w, SIGNAL("activated()"), self.closeCurrentTab)
 
+        l = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_L), self)
+        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.setFocus)
+        self.connect(l, SIGNAL("activated()"), self.ui.searchEdit.selectAll)
+
         self.connect(self.ui.resultsTab, SIGNAL("tabCloseRequested(int)"), self.closeTab)
 
         self.loadBackendsList()
@@ -425,7 +429,6 @@ class MainWindow(QtMainWindow):
             stype = 'torrent'
         new_res = Result(self.weboob, self.app, self)
         self.ui.resultsTab.addTab(new_res, txt)
-        self.ui.resultsTab.setCurrentWidget(new_res)
         new_res.searchId(id, stype)
 
     def search(self):
