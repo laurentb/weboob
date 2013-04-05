@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import HSBC
 
@@ -37,12 +37,14 @@ class HSBCBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'HSBC France bank website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password', regexp='^(\d+|)$'))
+                           ValueBackendPassword('password',   label='Password'),
+                           Value(               'secret',     label='Secret (optional)', default=''))
     BROWSER = HSBC
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   self.config['secret'].get())
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

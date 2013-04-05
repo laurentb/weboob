@@ -25,6 +25,7 @@ import re
 from weboob.tools.date import LinearDateGuesser
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BasePage, BrokenPageError
 from .pages.accounts import AccountsListPage, CPTHistoryPage, CardHistoryPage
+from .pages.login import LoginPage
 
 
 __all__ = ['HSBC']
@@ -43,21 +44,34 @@ class HSBC(BaseBrowser):
              'https://client.hsbc.fr/cgi-bin/emcgi\?.*debr=COMPTES_PAN':    AccountsListPage,
              'https://client.hsbc.fr/cgi-bin/emcgi\?.*CPT_IdPrestation=.*': CPTHistoryPage,
              'https://client.hsbc.fr/cgi-bin/emcgi\?.*CB_IdPrestation=.*':  CardHistoryPage,
+             'https://www.hsbc.fr/.*':                                      LoginPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi':                        LoginPage,
             }
 
     _session = None
+
+    def __init__(self, username, password, secret, *args, **kwargs):
+        self.secret = secret
+        BaseBrowser.__init__(self, username, password, *args, **kwargs)
 
     def home(self):
         self.login()
 
     def is_logged(self):
-        return self._session is not None and not self.is_on_page(NotLoggedPage)
+        return self._session is not None and not self.is_on_page((NotLoggedPage,LoginPage))
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-        assert self.password.isdigit()
 
+        self._ua_handlers['_cookies'].cookiejar.clear()
+
+        if len(self.username) == 11 and self.username.isdigit():
+            self.login_france()
+        else:
+            self.login_world()
+
+    def login_france(self):
         data = {'Ident': self.username}
         r = self.readurl('https://client.hsbc.fr/cgi-bin/emcgi?Appl=WEBACC', urllib.urlencode(data), if_fail='raise')
         m = re.search('sessionid=([^ "]+)', r, flags=re.MULTILINE)
@@ -74,7 +88,27 @@ class HSBC(BaseBrowser):
         m = re.search('url = "/cgi-bin/emcgi\?sessionid=([^& "]+)&debr="', r, flags=re.MULTILINE)
         if not m:
             raise BrokenPageError('Unable to find session token')
+
         self._session = m.group(1)
+
+    def login_world(self):
+        data = {'Appl':         'WEBACC',
+                'CODE_ABONNE':  self.username,
+                'Ident':        self.username,
+                'ifr':          0,
+                'nextPage':     'localsso.hbfr.Redirect',
+                'secret':       '',
+                'userid':       self.username,
+               }
+        self.location('https://www.hsbc.fr/1/2/?idv_cmd=idv.Authentication', urllib.urlencode(data), no_login=True)
+
+        self.page.login(self.username, self.secret, self.password)
+
+        error = self.page.get_error()
+        if error is not None:
+            raise BrowserIncorrectPassword(error)
+
+        self._session = self.page.get_session()
 
     def get_accounts_list(self):
         self.location(self.buildurl('/cgi-bin/emcgi', sessionid=self._session, debr='COMPTES_PAN'))
