@@ -3,7 +3,6 @@
 import subprocess
 import sys
 import os
-import shutil
 
 if len(sys.argv) < 2:
     print "Usage: %s SCRIPTNAME [args]" % sys.argv[0]
@@ -20,11 +19,7 @@ if not os.path.isdir(wd):
 env = os.environ.copy()
 env['PYTHONPATH'] = project
 env['WEBOOB_WORKDIR'] = wd
-
-shutil.copyfile(
-    os.path.expanduser('~/.config/weboob/backends'),
-    os.path.join(project, wd, 'backends'))
-os.chmod(os.path.join(project, wd, 'backends'), 0600)
+env['WEBOOB_BACKENDS'] = os.path.expanduser('~/.config/weboob/backends')
 
 with open(os.path.join(wd, 'sources.list'), 'w') as f:
     f.write("file://%s\n" % os.path.join(project, 'modules'))
