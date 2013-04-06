@@ -24,6 +24,7 @@ import re
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BasePage, BrokenPageError
+from weboob.tools.decorators import retry
 from .pages.accounts import AccountsListPage, CPTHistoryPage, CardHistoryPage
 from .pages.login import LoginPage
 
@@ -60,6 +61,7 @@ class HSBC(BaseBrowser):
     def is_logged(self):
         return self._session is not None and not self.is_on_page((NotLoggedPage,LoginPage))
 
+    @retry(BrokenPageError, tries=2)
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
