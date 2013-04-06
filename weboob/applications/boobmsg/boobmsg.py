@@ -212,8 +212,8 @@ class MessagesListFormatter(IFormatter):
                                                            message.thread.id,
                                                            message.id,
                                                            backend,
-                                                           flags,
                                                            self.NC,
+                                                           flags,
                                                            message.sender,
                                                            message.title)
         if message.children:
