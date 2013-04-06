@@ -105,15 +105,9 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
             thread = id
             id = thread.id
 
-            # Check if we have seen all comments of this thread.
-            oldhash = self.storage.get('hash', id, default="")
-            newhash = self.browser.get_hash(thread._rsscomment)
-            if not getseen and (oldhash == newhash or newhash is None):
-                return None
-            self.storage.set('hash', id, newhash)
             if thread.date:
                 self.storage.set('date', id, thread.date)
-            self.storage.save()
+                self.storage.save()
 
         with self.browser:
             content = self.browser.get_content(id)
@@ -183,10 +177,18 @@ class DLFPBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapContent):
 
     def iter_unread_messages(self):
         for thread in self.iter_threads():
-            self.fill_thread(thread, 'root', False)
-            for m in thread.iter_all_messages():
-                if m.flags & m.IS_UNREAD:
-                    yield m
+            # Check if we have seen all comments of this thread.
+            with self.browser:
+                oldhash = self.storage.get('hash', thread.id, default="")
+                newhash = self.browser.get_hash(thread._rsscomment)
+            if oldhash != newhash:
+                self.storage.set('hash', thread.id, newhash)
+                self.storage.save()
+
+                self.fill_thread(thread, 'root', getseen=False)
+                for m in thread.iter_all_messages():
+                    if m.flags & m.IS_UNREAD:
+                        yield m
 
     def set_message_read(self, message):
         self.storage.set('seen', message.thread.id, 'comments',
