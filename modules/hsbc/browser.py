@@ -41,12 +41,12 @@ class HSBC(BaseBrowser):
     PROTOCOL = 'https'
     CERTHASH = '3f8d5765792a7a83b8e82b121d87adf2c25f2358c3a39d4716c09854e5be791a'
     ENCODING = None # refer to the HTML encoding
-    PAGES = {'https://client.hsbc.fr/session_absente.html':                 NotLoggedPage,
-             'https://client.hsbc.fr/cgi-bin/emcgi\?.*debr=COMPTES_PAN':    AccountsListPage,
-             'https://client.hsbc.fr/cgi-bin/emcgi\?.*CPT_IdPrestation=.*': CPTHistoryPage,
-             'https://client.hsbc.fr/cgi-bin/emcgi\?.*CB_IdPrestation=.*':  CardHistoryPage,
-             'https://www.hsbc.fr/.*':                                      LoginPage,
-             'https://client.hsbc.fr/cgi-bin/emcgi':                        LoginPage,
+    PAGES = {'https://client.hsbc.fr/session_absente.html':                     NotLoggedPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi.*\?.*debr=COMPTES_PAN':      AccountsListPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi.*\?.*CPT_IdPrestation=.*':   CPTHistoryPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi.*\?.*CB_IdPrestation=.*':    CardHistoryPage,
+             'https://www.hsbc.fr/.*':                                          LoginPage,
+             'https://client.hsbc.fr/cgi-bin/emcgi':                            LoginPage,
             }
 
     _session = None
