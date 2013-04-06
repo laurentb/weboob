@@ -35,11 +35,12 @@ class CaisseEpargne(BaseBrowser):
     PAGES = {'https://[^/]+.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx.*':          LoginPage,
              'https://[^/]+.caisse-epargne.fr/Portail.aspx':                                IndexPage,
              'https://[^/]+.caisse-epargne.fr/login.aspx':                                  ErrorPage,
+             'https://[^/]+.caisse-epargne.fr/Pages/logout.aspx.*':                         ErrorPage,
              'https://[^/]+.caisse-epargne.fr/page_hs_dei_.*.aspx':                         UnavailablePage,
             }
 
     def is_logged(self):
-        return self.page is not None and not self.is_on_page(LoginPage)
+        return self.page is not None and not self.is_on_page((LoginPage,ErrorPage))
 
     def home(self):
         if self.is_logged():
