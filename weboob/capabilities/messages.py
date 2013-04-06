@@ -144,7 +144,7 @@ class Thread(_Thread):
     root =      Field('Root message', Message)
     title =     StringField('Title of thread')
     date =      DateField('Date of thread')
-    flags =     IntField('Flags (IS_* constants)', default=0)
+    flags =     IntField('Flags (IS_* constants)', default=IS_THREADS)
 
     def iter_all_messages(self):
         """
