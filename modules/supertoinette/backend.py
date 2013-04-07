@@ -22,8 +22,6 @@ from weboob.tools.backend import BaseBackend
 
 from .browser import SupertoinetteBrowser
 
-import unicodedata
-
 __all__ = ['SupertoinetteBackend']
 
 
