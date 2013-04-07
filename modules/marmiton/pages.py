@@ -68,7 +68,7 @@ class RecipePage(BasePage):
         ingredients = NotAvailable
         picture_url = NotAvailable
         instructions = NotAvailable
-        comments = []
+        comments = NotAvailable
 
         title = unicode(self.parser.select(self.document.getroot(), 'h1.m_title', 1).text_content().strip())
         main = self.parser.select(self.document.getroot(), 'div.m_content_recette_main', 1)
@@ -87,11 +87,15 @@ class RecipePage(BasePage):
         imgillu = self.parser.select(self.document.getroot(), 'a.m_content_recette_illu img')
         if len(imgillu) > 0:
             picture_url = unicode(imgillu[0].attrib.get('src', ''))
-        for divcom in self.parser.select(self.document.getroot(), 'div.m_commentaire_row'):
-            note = self.parser.select(divcom, 'div.m_commentaire_note span', 1).text.strip()
-            user = self.parser.select(divcom, 'div.m_commentaire_content span', 1).text.strip()
-            content = self.parser.select(divcom, 'div.m_commentaire_content p', 1).text.strip()
-            comments.append(Comment(author=user, rate=note, text=content))
+
+        divcoms = self.parser.select(self.document.getroot(), 'div.m_commentaire_row')
+        if len(divcoms) > 0:
+            comments = []
+            for divcom in divcoms:
+                note = self.parser.select(divcom, 'div.m_commentaire_note span', 1).text.strip()
+                user = self.parser.select(divcom, 'div.m_commentaire_content span', 1).text.strip()
+                content = self.parser.select(divcom, 'div.m_commentaire_content p', 1).text.strip()
+                comments.append(Comment(author=user, rate=note, text=content))
 
         recipe = Recipe(id, title)
         recipe.preparation_time = preparation_time

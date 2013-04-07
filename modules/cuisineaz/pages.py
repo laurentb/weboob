@@ -86,7 +86,7 @@ class RecipePage(BasePage):
         ingredients = NotAvailable
         picture_url = NotAvailable
         instructions = NotAvailable
-        comments = []
+        comments = NotAvailable
 
         title = unicode(self.parser.select(
             self.document.getroot(), 'div#ficheRecette h1.fn.recetteH1', 1).text)
@@ -125,12 +125,15 @@ class RecipePage(BasePage):
             instructions += '%s: ' % inst.text
             instructions += '%s\n' % inst.getnext().text
 
-        for divcom in self.parser.select(self.document.getroot(), 'div.comment'):
-            author = unicode(self.parser.select(
-                divcom, 'div.commentAuthor span', 1).text)
-            comtxt = unicode(self.parser.select(
-                divcom, 'p', 1).text_content().strip())
-            comments.append(Comment(author=author, text=comtxt))
+        divcoms = self.parser.select(self.document.getroot(), 'div.comment')
+        if len(divcoms) > 0:
+            comments = []
+            for divcom in divcoms:
+                author = unicode(self.parser.select(
+                    divcom, 'div.commentAuthor span', 1).text)
+                comtxt = unicode(self.parser.select(
+                    divcom, 'p', 1).text_content().strip())
+                comments.append(Comment(author=author, text=comtxt))
 
         spans_author = self.parser.select(self.document.getroot(), 'span.author')
         if len(spans_author) > 0:

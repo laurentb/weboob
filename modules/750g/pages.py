@@ -77,7 +77,7 @@ class RecipePage(BasePage):
         picture_url = NotAvailable
         instructions = NotAvailable
         author = NotAvailable
-        comments = []
+        comments = NotAvailable
 
         title = unicode(self.parser.select(self.document.getroot(), 'head > title', 1).text.split(' - ')[1])
         main = self.parser.select(self.document.getroot(), 'div.recette_description', 1)
@@ -117,15 +117,18 @@ class RecipePage(BasePage):
         if len(imgillu) > 0:
             picture_url = unicode(imgillu[0].attrib.get('src', ''))
 
-        for divcom in self.parser.select(self.document.getroot(), 'div.comment-outer'):
-            comtxt = unicode(' '.join(divcom.text_content().strip().split()))
-            if u'| Répondre' in comtxt:
-                comtxt = comtxt.strip('0123456789').replace(u' | Répondre', '')
-                author = None
-                if 'par ' in comtxt:
-                    author = comtxt.split('par ')[-1].split('|')[0]
-                    comtxt = comtxt.replace('par %s' % author, '')
-            comments.append(Comment(text=comtxt, author=author))
+        divcoms = self.parser.select(self.document.getroot(), 'div.comment-outer')
+        if len(divcoms) > 0:
+            comments = []
+            for divcom in divcoms:
+                comtxt = unicode(' '.join(divcom.text_content().strip().split()))
+                if u'| Répondre' in comtxt:
+                    comtxt = comtxt.strip('0123456789').replace(u' | Répondre', '')
+                    author = None
+                    if 'par ' in comtxt:
+                        author = comtxt.split('par ')[-1].split('|')[0]
+                        comtxt = comtxt.replace('par %s' % author, '')
+                comments.append(Comment(text=comtxt, author=author))
 
         links_author = self.parser.select(self.document.getroot(), 'p.auteur a.couleur_membre')
         if len(links_author) > 0:

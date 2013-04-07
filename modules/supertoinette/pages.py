@@ -71,7 +71,7 @@ class RecipePage(BasePage):
         ingredients = NotAvailable
         picture_url = NotAvailable
         instructions = NotAvailable
-        comments = []
+        comments = NotAvailable
 
         title = unicode(self.parser.select(self.document.getroot(), 'h1 span[property$=name]', 1).text)
         main = self.parser.select(self.document.getroot(), 'div[typeof$=Recipe]', 1)
