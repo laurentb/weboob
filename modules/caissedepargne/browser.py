@@ -59,6 +59,7 @@ class CaisseEpargne(BaseBrowser):
         if self.is_logged():
             return
 
+        self._ua_handlers['_cookies'].cookiejar.clear()
         if not self.is_on_page(LoginPage):
             self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0', no_login=True)
 
