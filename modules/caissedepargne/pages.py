@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from mechanize import ControlNotFoundError
 from decimal import Decimal
 import re
 
@@ -145,9 +146,12 @@ class IndexPage(BasePage):
         self.browser['__EVENTARGUMENT'] = 'CPTSYNT0'
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
-        self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        except ControlNotFoundError:
+            pass
         self.browser.submit()
 
 
@@ -160,9 +164,12 @@ class IndexPage(BasePage):
         self.browser['MM$m_CH$IsMsgInit'] = '0'
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
-        self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        except ControlNotFoundError:
+            pass
         self.browser.submit()
 
     def get_history(self):
@@ -211,9 +218,12 @@ class IndexPage(BasePage):
         self.browser['MM$m_CH$IsMsgInit'] = 'N'
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante'
-        self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
-        self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        try:
+            self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
+            self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageMessagerie', type='image'))
+        except ControlNotFoundError:
+            pass
         self.browser.submit()
 
         return True
