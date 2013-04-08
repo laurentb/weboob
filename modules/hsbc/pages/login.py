@@ -44,17 +44,17 @@ class LoginPage(BasePage):
         data = {'FMNUserId': username,
                 'memorableAnswer': secret,
                 'password': '',
-                'data': datastr,
                 '__data': datastr,
-                '__custtype': '',
-                'form_variable': '',
+                '__custtype': 'GLOBAL',
 
                }
-        for i, field in enumerate(form_world[0].xpath('.//div[@class="formInput extFormStyle01"]/input[@type="password"]')):
-            if field.attrib['name'].startswith('RccibNumber'):
+        for i, field in enumerate(form_world[0].xpath('.//div[@class="csLabel"]/nobr/input[@type="password"]')):
+            if field.attrib['name'].startswith('keyrcc_password_first') and not 'disabled' in field.attrib:
                 data[field.attrib['name']] = password[i]
                 data['password'] += password[i]
 
+        if url.startswith('/'):
+            url = 'https://www.hsbc.fr%s' % url
 
         self.browser.location(url, urllib.urlencode(data), no_login=True)
 
