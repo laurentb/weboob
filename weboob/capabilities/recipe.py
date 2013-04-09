@@ -70,7 +70,7 @@ class Recipe(CapBaseObject):
         if not empty(self.author):
             sauthor += '%s@' % self.author
 
-        if author == None:
+        if author is None:
             sauthor += 'Cookboob'
         else:
             sauthor += author
