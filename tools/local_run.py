@@ -28,7 +28,7 @@ with open(os.path.join(wd, 'sources.list'), 'w') as f:
 p = subprocess.Popen(
     [sys.executable, os.path.join(project, 'scripts', 'weboob-config'), 'update'],
     env=env,
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout=subprocess.PIPE)
 s = p.communicate()
 if p.returncode != 0:
     print s[0]
