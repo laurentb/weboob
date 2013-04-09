@@ -62,7 +62,7 @@ fi
 
 # path to sources
 WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
-find $WEBOOB_DIR -name "*.pyc" -delete
+${PYTHON} "$(dirname $0)/stale_pyc.py"
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
