@@ -33,13 +33,14 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 __all__ = ['LoginPage', 'ErrorPage', 'IndexPage', 'UnavailablePage']
 
 
-class LoginPage(BasePage):
+class _LogoutPage(BasePage):
     def on_loaded(self):
         try:
             raise BrowserIncorrectPassword(self.parser.tocleanstring(self.parser.select(self.document.getroot(), '.messErreur', 1)))
         except BrokenPageError:
             pass
 
+class LoginPage(_LogoutPage):
     def login(self, login):
         self.browser.select_form(name='Main')
         self.browser.set_all_readonly(False)
@@ -64,7 +65,7 @@ class LoginPage(BasePage):
         self.browser.submit(nologin=True)
 
 
-class ErrorPage(LoginPage):
+class ErrorPage(_LogoutPage):
     pass
 
 class UnavailablePage(BasePage):
@@ -76,33 +77,77 @@ class UnavailablePage(BasePage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})'),
+    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*'),
+                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})'),
+                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^\* (?P<text>.*)'),           FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
+                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^PRLV (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CB [\d\*]+ (?P<text>.*)'),    FrenchTransaction.TYPE_CARD),
+                (re.compile('^CHEQUE.*', re.IGNORECASE),    FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
                ]
 
 
 class IndexPage(BasePage):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,
                      u'Compte Courant':             Account.TYPE_CHECKING,
+                     u'Mes comptes':                Account.TYPE_CHECKING,
+                     u'Mon épargne':                Account.TYPE_SAVINGS,
                     }
+
+    def _get_account_info(self, a):
+        m = re.search("PostBack(Options)?\([\"'][^\"']+[\"'],\s*['\"]HISTORIQUE_([\d\w&]+)['\"]", a.attrib.get('href', ''))
+        if m is None:
+            return None
+        else:
+            # it is in form CB&12345[&2]. the last part is only for new website
+            # and is necessary for navigation.
+            link = m.group(2)
+            parts = link.split('&')
+            return {'type': parts[0], 'id': parts[1], 'link': link}
+
+    def _add_account(self, accounts, link, label, account_type, balance):
+        info = self._get_account_info(link)
+        if info is None:
+            self.logger.warning('Unable to parse account %r' % label)
+            return
+
+        account = Account()
+        account.id = info['id']
+        account._info = info
+        account.label = label
+        account.type = account_type
+        account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+        account.currency = account.get_currency(balance)
+        account._card_links = []
+
+        if account._info['type'] == 'CB' and account.id in accounts:
+            a = accounts[account.id]
+            if not a.coming:
+                a.coming = Decimal('0.0')
+            a.coming += account.balance
+            a._card_links.append(account._info)
+            return
+
+        accounts[account.id] = account
 
     def get_list(self):
         accounts = OrderedDict()
 
+        # Old website
         for table in self.document.xpath('//table[@cellpadding="1"]'):
             account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tr'):
@@ -111,41 +156,55 @@ class IndexPage(BasePage):
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
                 else:
                     a = tds[1].find('a')
-                    m = re.match("^javascript:__doPostBack\('.*','HISTORIQUE_(\w+)&(\d+)'\)", a.attrib.get('href', ''))
-
-                    if not m:
-                        self.logger.warning('Unable to parse account %r' % (self.parser.tocleanstring(a)))
+                    if a is None:
                         continue
 
-                    account = Account()
-                    account.id = m.group(2)
-                    account._link_type = m.group(1)
-                    account.label = self.parser.tocleanstring(a)
-                    account.type = account_type
-                    amount = u''.join([txt.strip() for txt in tds[-1].itertext()])
-                    account.balance = Decimal(FrenchTransaction.clean_amount(amount))
-                    account.currency = account.get_currency(amount)
-                    account._card_links = []
+                    label = self.parser.tocleanstring(a)
+                    balance = u''.join([txt.strip() for txt in tds[-1].itertext()])
+                    self._add_account(accounts, a, label, account_type, balance)
 
-                    if account._link_type == 'CB' and account.id in accounts:
-                        a = accounts[account.id]
-                        if not a.coming:
-                            a.coming = Decimal('0.0')
-                        a.coming += account.balance
-                        a._card_links.append((account._link_type, account.id))
+        if len(accounts) == 0:
+            # New website
+            for table in self.document.xpath('//div[@class="panel"]'):
+                title = table.getprevious()
+                if title is None:
+                    continue
+                account_type = self.ACCOUNT_TYPES.get(self.parser.tocleanstring(title), Account.TYPE_UNKNOWN)
+                for tr in table.xpath('.//tr'):
+                    tds = tr.findall('td')
+                    for i in xrange(len(tds)):
+                        a = tds[i].find('a')
+                        if a is not None:
+                            break
+
+                    if a is None:
                         continue
 
-                    accounts[account.id] = account
+                    label = self.parser.tocleanstring(tds[0])
+                    balance = self.parser.tocleanstring(tds[-1])
+
+                    self._add_account(accounts, a, label, account_type, balance)
 
         return accounts.itervalues()
 
     def go_list(self):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
-        self.browser['__EVENTTARGET'] = 'Menu_AJAX'
         self.browser['__EVENTARGUMENT'] = 'CPTSYNT0'
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
-        self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+
+        # Ugly check to determine if we are on the new or old website.
+        try:
+            self.browser['MM$m_CH$IsMsgInit']
+        except ControlNotFoundError:
+            self.logger.debug('New website')
+            self.browser['__EVENTTARGET'] = 'MM$m_PostBack'
+            self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$m_PostBack'
+        else:
+            self.logger.debug('Old website')
+            self.browser['__EVENTTARGET'] = 'Menu_AJAX'
+            self.browser['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+
         try:
             self.browser.controls.remove(self.browser.find_control(name='Cartridge$imgbtnMessagerie', type='image'))
             self.browser.controls.remove(self.browser.find_control(name='MM$m_CH$ButtonImageFondMessagerie', type='image'))
@@ -156,12 +215,16 @@ class IndexPage(BasePage):
 
 
 
-    def go_history(self, link_type, id):
+    def go_history(self, info):
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
         self.browser['__EVENTTARGET'] = 'MM$SYNTHESE'
-        self.browser['__EVENTARGUMENT'] = 'HISTORIQUE_%s&%s' % (link_type, id)
-        self.browser['MM$m_CH$IsMsgInit'] = '0'
+        self.browser['__EVENTARGUMENT'] = 'HISTORIQUE_%s' % info['link']
+        try:
+            self.browser['MM$m_CH$IsMsgInit'] = '0'
+        except ControlNotFoundError:
+            # Not available on new website.
+            pass
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE'
         try:
@@ -175,11 +238,14 @@ class IndexPage(BasePage):
     def get_history(self):
         i = 0
         ignore = False
-        for tr in self.document.xpath('//table[@cellpadding="1"]/tr'):
+        for tr in self.document.xpath('//table[@cellpadding="1"]/tr') + self.document.xpath('//tr[@class="rowClick" or @class="rowHover"]'):
             tds = tr.findall('td')
 
-            if len(tds) < 5:
+            if len(tds) < 4:
                 continue
+
+            # if there are more than 4 columns, ignore the first one.
+            i = min(len(tds) - 4, 1)
 
             if tr.attrib.get('class', '') == 'DataGridHeader':
                 if tds[2].text == u'Titulaire':
@@ -191,10 +257,15 @@ class IndexPage(BasePage):
             if ignore:
                 continue
 
+            # Remove useless details
+            detail = tr.cssselect('div.detail')
+            if len(detail) > 0:
+                detail[0].drop_tree()
+
             t = Transaction(i)
 
-            date = u''.join([txt.strip() for txt in tds[1].itertext()])
-            raw = u' '.join([txt.strip() for txt in tds[2].itertext()])
+            date = u''.join([txt.strip() for txt in tds[i+0].itertext()])
+            raw = u' '.join([txt.strip() for txt in tds[i+1].itertext()])
             debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
             credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
 
@@ -208,14 +279,18 @@ class IndexPage(BasePage):
 
     def go_next(self):
         link = self.document.xpath('//a[contains(@id, "lnkSuivante")]')
-        if len(link) == 0:
+        if len(link) == 0 or 'disabled' in link[0].attrib:
             return False
 
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
         self.browser['__EVENTTARGET'] = 'MM$HISTORIQUE_COMPTE$lnkSuivante'
         self.browser['__EVENTARGUMENT'] = ''
-        self.browser['MM$m_CH$IsMsgInit'] = 'N'
+        try:
+            self.browser['MM$m_CH$IsMsgInit'] = 'N'
+        except ControlNotFoundError:
+            # New website
+            pass
         self.browser.controls.append(ClientForm.TextControl('text', 'm_ScriptManager', {'value': ''}))
         self.browser['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante'
         try:

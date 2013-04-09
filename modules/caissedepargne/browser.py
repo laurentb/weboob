@@ -91,13 +91,13 @@ class CaisseEpargne(BaseBrowser):
 
         return None
 
-    def _get_history(self, link_type, id):
+    def _get_history(self, info):
         if self.is_on_page(IndexPage):
             self.page.go_list()
         else:
             self.location(self.buildurl('/Portail.aspx'))
 
-        self.page.go_history(link_type, id)
+        self.page.go_history(info)
 
         while 1:
             assert self.is_on_page(IndexPage)
@@ -109,9 +109,9 @@ class CaisseEpargne(BaseBrowser):
                 return
 
     def get_history(self, account):
-        return self._get_history(account._link_type, account.id)
+        return self._get_history(account._info)
 
     def get_coming(self, account):
-        for link_type, id in account._card_links:
-            for tr in self._get_history(link_type, id):
+        for info in account._card_links:
+            for tr in self._get_history(info):
                 yield tr
