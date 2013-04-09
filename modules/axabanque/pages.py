@@ -227,7 +227,12 @@ class TransactionsPage(BasePage):
         if len(tables) == 0:
             tables = self.document.getroot().cssselect('table.table-detail')
         if len(tables) == 0:
-            raise BrokenPageError('Unable to find table?')
+            try:
+                self.parser.select(self.document.getroot(), 'td.no-result', 1)
+            except BrokenPageError:
+                raise BrokenPageError('Unable to find table?')
+            else:
+                return
 
         for tr in tables[0].xpath('.//tr'):
             tds = tr.findall('td')
