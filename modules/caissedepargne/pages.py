@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from mechanize import ControlNotFoundError
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
+
 from decimal import Decimal
 import re
 
