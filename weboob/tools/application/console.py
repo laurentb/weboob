@@ -336,6 +336,8 @@ class ConsoleApplication(BaseApplication):
         try:
             config = config.load(self.weboob, module.name, name, params, nofail=True)
             for key, value in params.iteritems():
+                if key.startswith('_'):
+                    continue
                 config[key].set(value)
             config.save(edit=edit)
             print 'Backend "%s" successfully added.' % name
