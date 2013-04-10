@@ -26,6 +26,7 @@ from cStringIO import StringIO
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -245,6 +246,9 @@ class TransactionsPage(CDNBasePage):
 
             t.parse(date, raw)
             t.set_amount(line[self.COL_VALUE])
+
+            if t.date is NotAvailable:
+                continue
 
             if self.set_coming(t):
                 continue
