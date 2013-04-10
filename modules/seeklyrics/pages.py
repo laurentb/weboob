@@ -58,9 +58,11 @@ class SongResultsPage(BasePage):
                 first = False
                 continue
             artist = NotAvailable
-            ftitle = self.parser.select(tr, 'a > font > font', 1)
-            title = unicode(ftitle.getparent().getparent().text_content())
-            id = ftitle.getparent().getparent().attrib.get('href', '').replace('/lyrics/', '').replace('.html', '')
+            tds = self.parser.select(tr, 'td')
+            assert len(tds) > 2
+            title = unicode(tds[1].text_content())
+            link = self.parser.select(tds[1], 'a', 1)
+            id = link.attrib.get('href', '').replace('/lyrics/', '').replace('.html', '')
             aartist = self.parser.select(tr, 'a')[-1]
             artist = unicode(aartist.text)
             songlyrics = SongLyrics(id, title)
