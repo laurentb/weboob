@@ -39,9 +39,6 @@ class PiratebayBrowser(BaseBrowser):
              'https://thepiratebay.gl/torrent/.*': TorrentPage
              }
 
-    def home(self):
-        return self.location('https://thepiratebay.gl/')
-
     def iter_torrents(self, pattern):
         self.location('https://thepiratebay.gl/search/%s/0/7/0' % urllib.quote_plus(pattern.encode('utf-8')))
 

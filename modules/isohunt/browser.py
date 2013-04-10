@@ -36,9 +36,6 @@ class IsohuntBrowser(BaseBrowser):
         'https://isohunt.com/torrent_details.*tab=summary': TorrentPage,
     }
 
-    def home(self):
-        return self.location('https://isohunt.com')
-
     def iter_torrents(self, pattern):
         self.location('https://isohunt.com/torrents/%s?iht=-1&ihp=1&ihs1=1&iho1=d' % pattern.encode('utf-8'))
         assert self.is_on_page(TorrentsPage)
