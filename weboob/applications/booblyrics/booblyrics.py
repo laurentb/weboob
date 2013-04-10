@@ -103,7 +103,7 @@ class Booblyrics(ReplApplication):
 
         Search lyrics by artist name or by song title.
         """
-        criteria, pattern = self.parse_command_args(line, 2, 1)
+        criteria, pattern = self.parse_command_args(line, 2, 2)
         self.change_path([u'search'])
         if not pattern:
             pattern = None
