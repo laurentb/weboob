@@ -37,7 +37,7 @@ class BPBrowser(BaseBrowser):
     DOMAIN = 'voscomptesenligne.labanquepostale.fr'
     PROTOCOL = 'https'
     CERTHASH = 'd10d09246853237892d5fb44685826ea99bfdeaaf29fac6dd236dae8cb103c39'
-    ENCODING = None  # refer to the HTML encoding
+    ENCODING = 'iso-8859-1'
     PAGES = {r'.*wsost/OstBrokerWeb/loginform.*'                                         : LoginPage,
              r'.*authentification/repositionnerCheminCourant-identif.ea'                 : repositionnerCheminCourant,
              r'.*authentification/initialiser-identif.ea'                                : Initident,

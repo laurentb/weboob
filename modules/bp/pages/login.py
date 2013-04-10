@@ -21,6 +21,7 @@
 import hashlib
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 
 __all__ = ['LoginPage', 'BadLoginPage', 'AccountDesactivate', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', 'UnavailablePage']
 
@@ -35,27 +36,50 @@ class UnavailablePage(BasePage):
     def on_loaded(self):
         raise BrowserUnavailable()
 
+class VirtKeyboard(MappedVirtKeyboard):
+    symbols={'0':'18b66bc587a29742cbce4e10b7f1cb3f',
+             '1':'8f21fb2dddd2e4751b3c2347e5b991cb',
+             '2':'ae90fc2f7e44ab03e8eb0a6f2a8fcdfd',
+             '3':'35f1cc1a07dc1c1410761f56d37ac5f2',
+             '4':'86f286828f95846f5cde187436e53855',
+             '5':'6e08bc067ab243cb564226aba5e1ca1e',
+             '6':'ada513599ea3c98ad882ed9ffcd4b139',
+             '7':'ed13fea6185f3cbca43023374b5f41be',
+             '8':'ab4317d59ce2a7b1fd2e298af5785b10',
+             '9':'8c165ad38c1eb72200e6011636c4c9b6'
+            }
+
+    color=(0xff, 0xff, 0xff)
+
+    def __init__(self, page):
+        img = page.document.find("//img[@usemap='#map']")
+        img_file = page.browser.openurl(img.attrib['src'])
+        MappedVirtKeyboard.__init__(self, img_file, page.document, img, self.color, map_attr='id')
+
+        self.check_symbols(self.symbols, page.browser.responses_dirname)
+
+    def get_symbol_code(self,md5sum):
+        code = MappedVirtKeyboard.get_symbol_code(self,md5sum)
+        return '%02d' % int(code.split('_')[-1])
+
+    def get_string_code(self,string):
+        code = ''
+        for c in string:
+            code += self.get_symbol_code(self.symbols[c])
+        return code
+
+    def get_symbol_coords(self, (x1, y1, x2, y2)):
+        # strip borders
+        return MappedVirtKeyboard.get_symbol_coords(self, (x1+3, y1+3, x2-3, y2-3))
 
 class LoginPage(BasePage):
-    def on_loaded(self):
-        pass
-
     def login(self, login, pwd):
-        LOCAL_HASH = ['a02574d7bf67677d2a86b7bfc5e864fe', 'eb85e1cc45dd6bdb3cab65c002d7ac8a',
-                      '596e6fbd54d5b111fe5df8a4948e80a4', '9cdc989a4310554e7f5484d0d27a86ce',
-                      '0183943de6c0e331f3b9fc49c704ac6d', '291b9987225193ab1347301b241e2187',
-                      '163279f1a46082408613d12394e4042a', 'b0a9c740c4cada01eb691b4acda4daea',
-                      '3c4307ee92a1f3b571a3c542eafcb330', 'dbccecfa2206bfdb4ca891476404cc68']
-
-        process = lambda i: md5(self.browser.openurl(('https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?imgid=%d&0.25122230781963073' % i)))
-        keypad = [process(i) for i in range(10)]
-        correspondance = [keypad.index(i) for i in LOCAL_HASH]
-        newpassword = ''.join(str(correspondance[int(c)]) for c in pwd)
+        vk = VirtKeyboard(self)
 
         self.browser.select_form(name='formAccesCompte')
         self.browser.set_all_readonly(False)
-        self.browser['password'] = newpassword
-        self.browser['username'] = login
+        self.browser['password'] = vk.get_string_code(pwd)
+        self.browser['username'] = login.encode(self.browser.ENCODING)
         self.browser.submit()
 
 
