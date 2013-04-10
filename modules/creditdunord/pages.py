@@ -136,7 +136,7 @@ class ProAccountsPage(AccountsPage):
         args = {}
 
         for i, key in enumerate(self.ARGS):
-            args[key] = l[self.ARGS.index(key)]
+            args[key] = unicode(l[self.ARGS.index(key)]).encode(self.browser.ENCODING)
 
         return url, args
 
