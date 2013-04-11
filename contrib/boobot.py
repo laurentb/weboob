@@ -23,13 +23,14 @@ import logging
 import re
 import sys
 from threading import Thread, Event
-from ircbot import SingleServerIRCBot
+from irc.bot import SingleServerIRCBot
 
 from weboob.core import Weboob
+from weboob.tools.misc import get_backtrace
 from weboob.tools.storage import StandardStorage
 
 IRC_CHANNEL = '#weboob'
-IRC_NICKNAME = 'boobot'
+IRC_NICKNAME = 'booboot'
 IRC_SERVER = 'irc.freenode.org'
 STORAGE_FILE = 'boobot.storage'
 
@@ -51,10 +52,11 @@ class MyThread(Thread):
         self.weboob.loop()
 
     def find_keywords(self, text):
-        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
-                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
-                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
-                     'webcontentedit', 'weboorrents', 'capabilit', u'sàt', u'salut à toi']:
+        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg', \
+                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', \
+                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs', \
+                     'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m', \
+                     'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
             if word in text.lower():
                 return word
         return None
@@ -74,7 +76,7 @@ class MyThread(Thread):
 
         for backend, msg in self.weboob.do(iter_messages, backends=['dlfp']):
             word = self.find_keywords(msg.message)
-            if word is not None:
+            if word is not None and msg.login != 'moules':
                 message = msg.message.replace(word, '\002%s\002' % word)
                 self.bot.send_message('[DLFP] <%s> %s' % (msg.login, message))
 
@@ -84,7 +86,11 @@ class MyThread(Thread):
 
 class TestBot(SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
-        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname + "`")
+        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        #self.connection.add_global_handler('pubmsg', self.on_pubmsg)
+        self.connection.add_global_handler('join', self.on_join)
+        self.connection.add_global_handler('welcome', self.on_welcome)
+
         self.channel = channel
         self.joined = Event()
         self.weboob = None
@@ -96,9 +102,9 @@ class TestBot(SingleServerIRCBot):
         self.joined.set()
 
     def send_message(self, msg):
-        self.connection.privmsg(self.channel, msg.encode("UTF-8"))
+        self.connection.privmsg(self.channel, msg)
 
-    def on_pubmsg(self, channel, event):
+    def on_pubmsg(self, c, event):
         text = ' '.join(event.arguments())
         for m in re.findall('([\w\d_\-]+@\w+)', text):
             id, backend_name = m.split('@', 1)
@@ -110,6 +116,7 @@ class TestBot(SingleServerIRCBot):
                         try:
                             getattr(self, func)(backend, id)
                         except Exception, e:
+                            print get_backtrace()
                             self.send_message('Oops: [%s] %s' % (type(e).__name__, e))
                         break
 
