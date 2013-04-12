@@ -73,13 +73,17 @@ class SubtitleInfoFormatter(IFormatter):
 
 
 class SubtitleListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'name', 'url')
+    MANDATORY_FIELDS = ('id', 'name')
 
     def get_title(self, obj):
         return obj.name
 
     def get_description(self, obj):
-        return 'lang : %s ; %s CD ; url : %s' % (obj.language, obj.nb_cd, obj.url)
+        result = u'lang : %s' % obj.language
+        result += ' ; %s CD' % obj.nb_cd
+        if not empty(obj.url):
+            result += ' ; url : %s' % obj.url
+        return result
 
 
 class Suboob(ReplApplication):
