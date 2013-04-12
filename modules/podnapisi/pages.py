@@ -81,7 +81,7 @@ class SearchPage(BasePage):
     def iter_subtitles(self, language):
         linksresults = self.parser.select(self.document.getroot(), 'a.subtitle_page_link')
         for link in linksresults:
-            id = unicode(link.attrib.get('href', '').split('es-p')[-1])
+            id = unicode(link.attrib.get('href', '').split('-p')[-1])
             name = unicode(link.text_content())
             tr = link.getparent().getparent().getparent()
             cdtd = self.parser.select(tr, 'td')[4]
