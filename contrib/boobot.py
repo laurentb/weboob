@@ -31,7 +31,7 @@ from weboob.tools.storage import StandardStorage
 
 IRC_CHANNEL = '#weboob'
 IRC_NICKNAME = 'booboot'
-IRC_SERVER = 'irc.freenode.org'
+IRC_SERVER = 'chat.freenode.net'
 STORAGE_FILE = 'boobot.storage'
 
 
