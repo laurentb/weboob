@@ -81,7 +81,9 @@ class GDCVaultBrowser(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def close_session(self):
-        # XXX: only if is_logged? or was used?
+        if self.password is None or not self.is_logged():
+            return
+
         self.openurl('/logout', '')
 
     @id2url(GDCVaultVideo.id2url)
