@@ -105,7 +105,11 @@ class TestBot(SingleServerIRCBot):
         self.connection.privmsg(self.channel, msg)
 
     def on_pubmsg(self, c, event):
-        text = ' '.join(event.arguments())
+        # irclib 5.0 compatibility
+        if callable(event.arguments):
+            text = ' '.join(event.arguments())
+        else:
+            text = ' '.join(event.arguments)
         for m in re.findall('([\w\d_\-]+@\w+)', text):
             id, backend_name = m.split('@', 1)
             if backend_name in self.weboob.backend_instances:
