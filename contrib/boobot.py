@@ -52,10 +52,10 @@ class MyThread(Thread):
         self.weboob.loop()
 
     def find_keywords(self, text):
-        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg', \
-                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', \
-                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs', \
-                     'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m', \
+        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
+                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
+                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
+                     'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m',
                      'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
             if word in text.lower():
                 return word
@@ -139,7 +139,7 @@ def main():
     thread.start()
 
     try:
-        bot.start();
+        bot.start()
     except KeyboardInterrupt:
         print "Stopped."
 
