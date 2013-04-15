@@ -21,7 +21,6 @@
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
-from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 
 __all__ = ['SubtitlePage', 'SearchPage']

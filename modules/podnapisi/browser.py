@@ -19,7 +19,6 @@
 
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
-from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
 from .pages import SearchPage, SubtitlePage, LANGUAGE_NUMBERS
 
