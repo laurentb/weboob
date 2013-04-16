@@ -42,7 +42,8 @@ class BackendsConfig(object):
         try:
             mode = os.stat(confpath).st_mode
         except OSError:
-            os.makedirs(os.path.dirname(confpath))
+            if not os.path.isdir(os.path.dirname(confpath)):
+                os.makedirs(os.path.dirname(confpath))
             if sys.platform == 'win32':
                 fptr = open(confpath, 'w')
                 fptr.close()
