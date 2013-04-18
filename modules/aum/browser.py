@@ -314,7 +314,9 @@ class AuMBrowser(BaseBrowser):
         try:
             doc = self.get_document(self.openurl('http://www.adopteunmec.com/profile/%s' % id))
         except BrowserUnavailable:
-            self.logger.warning('Unable to find profile of %s on website' % id)
+            pass
+            # FUCK YOU AUM
+            #self.logger.warning('Unable to find profile of %s on website' % id)
         else:
             profile['popu'] = {}
             for tr in doc.xpath('//div[@id="popularity"]//tr'):
