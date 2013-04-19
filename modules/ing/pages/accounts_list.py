@@ -66,14 +66,19 @@ class AccountsList(BasePage):
             account.coming = NotAvailable
             if "Courant" in account.label:
                 account.id = "CC-" + account.id
+                account.type = Account.TYPE_CHECKING
             elif "Livret A" in account.label:
                 account.id = "LA-" + account.id
+                account.type = Account.TYPE_SAVINGS
             elif "Orange" in account.label:
                 account.id = "LEO-" + account.id
+                account.type = Account.TYPE_SAVINGS
             elif "Titres" in account.label:
                 account.id = "TITRE-" + account.id
+                account.type = Account.TYPE_MARKET
             elif "PEA" in account.label:
                 account.id = "PEA-" + account.id
+                account.type = Account.TYPE_MARKET
             jid = self.document.find('//input[@name="javax.faces.ViewState"]')
             account._jid = jid.attrib['value']
             yield account
