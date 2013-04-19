@@ -59,6 +59,7 @@ class Options(object):
     hildon = False
     qt = True
     xdg = True
+    deps = True
 
 options = Options()
 
@@ -94,6 +95,10 @@ if '--xdg' in args:
 elif '--no-xdg' in args:
     options.xdg = False
     args.remove('--no-xdg')
+
+if '--nodeps' in args:
+    options.deps = False
+    args.remove('--nodeps')
 
 sys.argv = args
 
@@ -163,6 +168,9 @@ if sys.version_info[0] > 2:
     sys.exit(1)
 if sys.version_info[1] < 6:  # older than 2.6
     requirements.append('simplejson')
+
+if not options.deps:
+    requirements = []
 
 setup(
     name='weboob',
