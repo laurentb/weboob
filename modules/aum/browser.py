@@ -65,6 +65,45 @@ class AuMException(UserError):
         self.code = code
 
 
+class WebsiteBrowser(BaseBrowser):
+    def login(self):
+        data = {'username': self.username,
+                'password': self.password,
+                'remember': 'on',
+               }
+        self.readurl('http://www.adopteunmec.com/auth/login', urllib.urlencode(data))
+
+    def get_profile(self, id):
+        profile = {}
+        try:
+            doc = self.get_document(self.openurl('http://www.adopteunmec.com/profile/%s' % id))
+        except BrowserUnavailable:
+            pass
+            # FUCK YOU AUM
+            #self.logger.warning('Unable to find profile of %s on website' % id)
+        else:
+            profile['popu'] = {}
+            for tr in doc.xpath('//div[@id="popularity"]//tr'):
+                cols = tr.findall('td')
+                if cols[0].text is None:
+                    continue
+                key = self.parser.tocleanstring(tr.find('th')).strip().lower()
+                value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
+                profile['popu'][key] = value
+
+            for script in doc.xpath('//script'):
+                text = script.text
+                if text is None:
+                    continue
+                m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
+                if m:
+                    profile['lat'] = float(m.group(1))
+                m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
+                if m:
+                    profile['lng'] = float(m.group(1))
+
+        return profile
+
 class AuMBrowser(BaseBrowser):
     DOMAIN = 'www.adopteunmec.com'
     APIKEY = 'fb0123456789abcd'
@@ -85,12 +124,16 @@ class AuMBrowser(BaseBrowser):
         # now we do authentication ourselves
         #self.add_password('http://www.adopteunmec.com/api/', self.username, self.password)
         self.login()
+
+        self.website = WebsiteBrowser(self.username, self.password, *args, **kwargs)
+        self.website.login()
+
         self.home()
 
         self.search_query = search_query
 
     def id2url(self, id):
-        return u'http://www.adopteunmec.com/index.php/profile/%s' % id
+        return u'http://www.adopteunmec.com/profile/%s' % id
 
     def url2id(func):
         def inner(self, id, *args, **kwargs):
@@ -98,9 +141,9 @@ class AuMBrowser(BaseBrowser):
             if m:
                 id = int(m.group(1))
             else:
-                m = re.match('^http://.*adopteunmec.com/index.php/profile/(\d+).*', str(id))
+                m = re.match('^http://.*adopteunmec.com/(index.php/)?profile/(\d+).*', str(id))
                 if m:
-                    id = int(m.group(1))
+                    id = int(m.group(2))
             return func(self, id, *args, **kwargs)
         return inner
 
@@ -310,33 +353,7 @@ class AuMBrowser(BaseBrowser):
         profile = {}
 
         profile.update(self.api_request('users/%s' % id))
-
-        try:
-            doc = self.get_document(self.openurl('http://www.adopteunmec.com/profile/%s' % id))
-        except BrowserUnavailable:
-            pass
-            # FUCK YOU AUM
-            #self.logger.warning('Unable to find profile of %s on website' % id)
-        else:
-            profile['popu'] = {}
-            for tr in doc.xpath('//div[@id="popularity"]//tr'):
-                cols = tr.findall('td')
-                if cols[0].text is None:
-                    continue
-                key = self.parser.tocleanstring(tr.find('th')).strip().lower()
-                value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
-                profile['popu'][key] = value
-
-            for script in doc.xpath('//script'):
-                text = script.text
-                if text is None:
-                    continue
-                m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
-                if m:
-                    profile['lat'] = float(m.group(1))
-                m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
-                if m:
-                    profile['lng'] = float(m.group(1))
+        profile.update(self.website.get_profile(id))
 
         # Calculate distance in km.
         profile['dist'] = 0.0
