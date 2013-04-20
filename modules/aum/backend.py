@@ -372,7 +372,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
             else:
                 raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
 
-            profile = self.browser.get_profile(_id)
+            profile = self.browser.get_full_profile(_id)
             if not profile:
                 return None
 

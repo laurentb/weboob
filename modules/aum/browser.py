@@ -75,32 +75,42 @@ class WebsiteBrowser(BaseBrowser):
 
     def get_profile(self, id):
         profile = {}
+        r = None
         try:
-            doc = self.get_document(self.openurl('http://www.adopteunmec.com/profile/%s' % id))
+            r = self.openurl('http://www.adopteunmec.com/profile/%s' % id)
         except BrowserUnavailable:
             pass
-            # FUCK YOU AUM
-            #self.logger.warning('Unable to find profile of %s on website' % id)
-        else:
-            profile['popu'] = {}
-            for tr in doc.xpath('//div[@id="popularity"]//tr'):
-                cols = tr.findall('td')
-                if cols[0].text is None:
-                    continue
-                key = self.parser.tocleanstring(tr.find('th')).strip().lower()
-                value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
-                profile['popu'][key] = value
 
-            for script in doc.xpath('//script'):
-                text = script.text
-                if text is None:
-                    continue
-                m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
-                if m:
-                    profile['lat'] = float(m.group(1))
-                m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
-                if m:
-                    profile['lng'] = float(m.group(1))
+        if r is None or not re.match('http://www.adopteunmec.com/profile/\d+', r.geturl()):
+            self.login()
+            try:
+                r = self.openurl('http://www.adopteunmec.com/profile/%s' % id)
+            except BrowserUnavailable:
+                r = None
+
+        if r is None:
+            return {}
+
+        doc = self.get_document(r)
+        profile['popu'] = {}
+        for tr in doc.xpath('//div[@id="popularity"]//tr'):
+            cols = tr.findall('td')
+            if cols[0].text is None:
+                continue
+            key = self.parser.tocleanstring(tr.find('th')).strip().lower()
+            value = int(re.sub(u'[ \xa0x]+', u'', cols[0].text).strip())
+            profile['popu'][key] = value
+
+        for script in doc.xpath('//script'):
+            text = script.text
+            if text is None:
+                continue
+            m = re.search('memberLat: ([\-\d\.]+),', text, re.IGNORECASE)
+            if m:
+                profile['lat'] = float(m.group(1))
+            m = re.search('memberLng: ([\-\d\.]+),', text, re.IGNORECASE)
+            if m:
+                profile['lng'] = float(m.group(1))
 
         return profile
 
@@ -110,6 +120,7 @@ class AuMBrowser(BaseBrowser):
     APITOKEN = 'DCh7Se53v8ejS8466dQe63'
     APIVERSION = '2.2.5'
     USER_AGENT = 'Mozilla/5.0 (Linux; U; Android4.1.1; fr_FR; GT-N7100; Build/JRO03C) com.adopteunmec.androidfr/17'
+    GIRL_PROXY = None
 
     consts = None
     my_sex = 0
@@ -234,7 +245,7 @@ class AuMBrowser(BaseBrowser):
         self.my_name = r['user']['pseudo']
 
         if self.my_coords == (0,0):
-            profile = self.get_profile(self.my_id)
+            profile = self.get_full_profile(self.my_id)
             if 'lat' in profile and 'lng' in profile:
                 self.my_coords = [profile['lat'], profile['lng']]
 
@@ -343,7 +354,34 @@ class AuMBrowser(BaseBrowser):
         return set(ids)
 
     @url2id
-    def get_profile(self, id, with_pics=True):
+    def get_full_profile(self, id):
+        if self.GIRL_PROXY is not None:
+            res = self.openurl(self.GIRL_PROXY % id)
+            profile = json.load(res)
+            if 'lat' in profile and 'lng' in profile:
+                profile['dist'] = self.get_dist(profile['lat'], profile['lng'])
+        else:
+            profile = self.get_profile(id)
+
+        return profile
+
+    def get_dist(self, lat, lng):
+        coords = (float(lat), float(lng))
+
+        R = 6371
+        lat1 = math.radians(self.my_coords[0])
+        lat2 = math.radians(coords[0])
+        lon1 = math.radians(self.my_coords[1])
+        lon2 = math.radians(coords[1])
+        dLat = lat2 - lat1
+        dLong = lon2 - lon1
+        a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
+        c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+        return R * c
+
+    @url2id
+    def get_profile(self, id):
         # XXX OLD API IS DISABLED (fucking faggots)
         #r = self.api0_request('member', 'view', data={'id': id})
         #if not 'result' in r:
@@ -358,17 +396,6 @@ class AuMBrowser(BaseBrowser):
         # Calculate distance in km.
         profile['dist'] = 0.0
         if 'lat' in profile and 'lng' in profile:
-            coords = (float(profile['lat']), float(profile['lng']))
-
-            R = 6371
-            lat1 = math.radians(self.my_coords[0])
-            lat2 = math.radians(coords[0])
-            lon1 = math.radians(self.my_coords[1])
-            lon2 = math.radians(coords[1])
-            dLat = lat2 - lat1
-            dLong = lon2 - lon1
-            a= pow(math.sin(dLat/2), 2) + math.cos(lat1) * math.cos(lat2) * pow(math.sin(dLong/2), 2)
-            c= 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-            profile['dist'] = R * c
+            profile['dist'] = self.get_dist(profile['lat'], profile['lng'])
 
         return profile
