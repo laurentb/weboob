@@ -23,16 +23,56 @@ import logging
 import re
 import sys
 from threading import Thread, Event
+from math import log
+
 from irc.bot import SingleServerIRCBot
+import mechanize
+from mechanize import _headersutil as headersutil
+import lxml.html
 
 from weboob.core import Weboob
+from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from weboob.tools.misc import get_backtrace
+from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage
 
 IRC_CHANNEL = '#weboob'
 IRC_NICKNAME = 'booboot'
 IRC_SERVER = 'chat.freenode.net'
 STORAGE_FILE = 'boobot.storage'
+
+
+class HeadRequest(mechanize.Request):
+    def get_method(self):
+        return "HEAD"
+
+
+class BoobotBrowser(StandardBrowser):
+    def urlinfo(self, url):
+        b = StandardBrowser()
+        r = b.openurl(HeadRequest(url))
+        headers = r.info()
+        content_type = headers.get('Content-Type')
+        try:
+            size = int(headers.get('Content-Length'))
+            hsize = self.human_size(size)
+        except TypeError:
+            size = None
+            hsize = None
+        is_html = headersutil.is_html([content_type], url, True)
+        title = None
+        if is_html:
+            h = lxml.html.fromstring(self.readurl(url))
+            for title in h.xpath('//head/title'):
+                title = to_unicode(title.text_content())
+        return content_type, hsize, title
+
+    def human_size(self, size):
+        if size:
+            units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+            exponent = int(log(size, 1024))
+            return "%.1f %s" % (float(size) / pow(1024, exponent), units[exponent])
+        return '0 B'
 
 
 class MyThread(Thread):
@@ -111,18 +151,35 @@ class TestBot(SingleServerIRCBot):
         else:
             text = ' '.join(event.arguments)
         for m in re.findall('([\w\d_\-]+@\w+)', text):
-            id, backend_name = m.split('@', 1)
-            if backend_name in self.weboob.backend_instances:
-                backend = self.weboob.backend_instances[backend_name]
-                for cap in backend.iter_caps():
-                    func = 'obj_info_%s' % cap.__name__[4:].lower()
-                    if hasattr(self, func):
-                        try:
-                            getattr(self, func)(backend, id)
-                        except Exception, e:
-                            print get_backtrace()
-                            self.send_message('Oops: [%s] %s' % (type(e).__name__, e))
-                        break
+            self.on_boobid(m)
+        for m in re.findall('(https?://\S+)', text):
+            self.on_url(m)
+
+    def on_boobid(self, boobid):
+        _id, backend_name = boobid.split('@', 1)
+        if backend_name in self.weboob.backend_instances:
+            backend = self.weboob.backend_instances[backend_name]
+            for cap in backend.iter_caps():
+                func = 'obj_info_%s' % cap.__name__[4:].lower()
+                if hasattr(self, func):
+                    try:
+                        getattr(self, func)(backend, _id)
+                    except Exception, e:
+                        print get_backtrace()
+                        self.send_message('Oops: [%s] %s' % (type(e).__name__, e))
+                    break
+
+    def on_url(self, url):
+        try:
+            content_type, hsize, title = BoobotBrowser().urlinfo(url)
+            if title:
+                self.send_message(u'URL: %s' % title)
+            elif hsize:
+                self.send_message(u'URL (file): %s, %s' % (content_type, hsize))
+            else:
+                self.send_message(u'URL (file): %s' % content_type)
+        except BrowserUnavailable as e:
+            self.send_message(u'URL (error): %s' % e)
 
     def obj_info_video(self, backend, id):
         v = backend.get_video(id)
