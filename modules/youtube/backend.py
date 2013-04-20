@@ -151,6 +151,9 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
                 if nb_yielded == max_results:
                     return
 
+            if nb_yielded < query_max_results:
+                return
+
     def latest_videos(self):
         return self.search_videos(None, ICapVideo.SEARCH_DATE)
 
