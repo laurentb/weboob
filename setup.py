@@ -52,7 +52,12 @@ def build_qt():
         print >>sys.stderr, 'Install missing component(s) (see above) or disable Qt applications (with --no-qt).'
         sys.exit(1)
 
-    subprocess.check_call([make, '-s', '-j2', 'all', 'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
+    subprocess.check_call(
+        [make,
+         '-f', 'build.mk',
+         '-s', '-j2',
+         'all',
+         'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
 
 
 class Options(object):
