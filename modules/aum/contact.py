@@ -184,7 +184,7 @@ class Contact(_Contact):
                                     ('origins',             FieldConst('origins')),
                                     ('signs',               FieldConst('features')),
                                     ('job',                 FieldStr('job')),
-                                    ('style',               FieldConst('style')),
+                                    ('style',               FieldConst('styles')),
                                     ('food',                FieldConst('diet')),
                                     ('favorite_food',       FieldConst('favourite_food')),
                                     ('drink',               FieldConst('alcohol')),
