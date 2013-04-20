@@ -165,9 +165,9 @@ class Contact(_Contact):
                                     ('mailable',            FieldBool('can_mail')),
                                   ))),
                  ('details',      OrderedDict((
-                                    ('old',                 FieldStr('age')),
-                                    #('old',                 FieldOld('birthday')),
-                                    ('birthday',            FieldStr('birthday')),
+                                    #('old',                 FieldStr('age')),
+                                    ('old',                 FieldOld('birthdate')),
+                                    ('birthday',            FieldStr('birthdate')),
                                     ('zipcode',             FieldStr('zip')),
                                     ('location',            FieldStr('city')),
                                     ('distance',            FieldDist('dist')),
@@ -211,6 +211,13 @@ class Contact(_Contact):
                                     ('assets',              FieldStr('assets')),
                                     ('fantasies',           FieldStr('fantasies')),
                                     ('is',                  FieldConst('character')),
+                                  ))),
+                ('-personality',  OrderedDict((
+                                    ('accessories',         FieldConst('accessories')),
+                                    ('skills',              FieldConst('skills')),
+                                    ('socios',              FieldConst('socios')),
+                                    ('family',              FieldConst('family')),
+                                    ('pets',                FieldConst('pets')),
                                   )))
         ))
 
