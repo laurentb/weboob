@@ -280,13 +280,20 @@ class IndexPage(BasePage):
             i += 1
 
     def go_next(self):
+        # <a id="MM_HISTORIQUE_CB_lnkSuivante" class="next" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;MM$HISTORIQUE_CB$lnkSuivante&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, true))">Suivant<span class="arrow">></span></a>
+
         link = self.document.xpath('//a[contains(@id, "lnkSuivante")]')
         if len(link) == 0 or 'disabled' in link[0].attrib:
             return False
 
+        account_type = 'COMPTE'
+        m = re.search('HISTORIQUE_(\w+)', link[0].attrib['href'])
+        if m:
+            account_type = m.group(1)
+
         self.browser.select_form(name='main')
         self.browser.set_all_readonly(False)
-        self.browser['__EVENTTARGET'] = 'MM$HISTORIQUE_COMPTE$lnkSuivante'
+        self.browser['__EVENTTARGET'] = 'MM$HISTORIQUE_%s$lnkSuivante' % account_type
         self.browser['__EVENTARGUMENT'] = ''
         try:
             self.browser['MM$m_CH$IsMsgInit'] = 'N'
