@@ -39,6 +39,7 @@ class ProAccountsList(BasePage):
     COL_COMING  = 5
 
     def get_list(self, pro=True):
+        accounts = []
         for tr in self.document.xpath('//tr[@class="comptes"]'):
             cols = tr.findall('td')
 
@@ -64,7 +65,7 @@ class ProAccountsList(BasePage):
                 account._link_id = p.get('ch4', None)
                 account._stp = p.get('stp', None)
 
-            yield account
+            accounts.append(account)
 
         # If there are also personnal accounts linked, display the page and iter on them.
         if pro and len(self.document.xpath('//div[@class="onglets"]//a[contains(@href, "afficherComptesPrives")]')) > 0:
@@ -74,7 +75,9 @@ class ProAccountsList(BasePage):
             self.browser.submit()
 
             for a in self.browser.page.get_list(False):
-                yield a
+                accounts.append(a)
+
+        return accounts
 
 
 class ProAccountHistory(BasePage):
