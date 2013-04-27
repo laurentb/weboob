@@ -29,6 +29,7 @@ import urllib2
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
+from weboob.tools.misc import to_unicode
 
 from weboob.capabilities.base import UserError
 from weboob.capabilities.messages import CantSendMessage
@@ -206,7 +207,7 @@ class AuMBrowser(BaseBrowser):
 
     def api_request(self, command, **kwargs):
         if 'data' in kwargs:
-            data = kwargs.pop('data').encode('utf-8', 'replace')
+            data = to_unicode(kwargs.pop('data')).encode('utf-8', 'replace')
         else:
             data = None
 
@@ -221,6 +222,8 @@ class AuMBrowser(BaseBrowser):
             headers['X-AUM-Token'] = token
 
         url = self.buildurl(self.absurl('/api/%s' % command), **kwargs)
+        if isinstance(url, unicode):
+            url = url.encode('utf-8')
         req = self.request_class(url, data, headers)
         buf = self.openurl(req).read()
 
