@@ -70,7 +70,7 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
                     yield tr
 
     def iter_transfer_recipients(self, ignored):
-        for account in self.browser.get_accounts_list().itervalues():
+        for account in self.browser.get_accounts_list():
             recipient = Recipient()
             recipient.id = account.id
             recipient.label = account.label
