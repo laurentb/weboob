@@ -66,7 +66,7 @@ class MiniVideo(QFrame):
     def mousePressEvent(self, event):
         QFrame.mousePressEvent(self, event)
 
-        video = self.backend.get_video(self.video.id)
+        video = self.backend.fillobj(self.video)
         if video:
             video_widget = Video(video, self)
             video_widget.show()
