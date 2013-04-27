@@ -51,7 +51,7 @@ Pierre Mazière <pierre.maziere@gmx.com>
         * BNPorc fixes.
 
 Xavier Guerrin <xavier@tuxfamily.org>
-        * CrAgr module maintainer.
+        * Author of the CrAgr module.
 
 Gabriel Kerneis <kerneis@pps.jussieu.fr>
         * Boursorama module maintainer.
@@ -82,6 +82,9 @@ Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
 
 Johann Broudin <johann.broudin@6-8.fr>
         * CMB module maintainer.
+
+Benjamin CARTON <carton_ben@yahoo.fr>
+        * Grooveshark module maintainer.
 
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance module maintainer.
@@ -128,6 +131,9 @@ Richard Genoud <richard.genoud@gmail.com>
 Jean-Christophe Dubacq <jcdubacq1@free.fr>
         * Fix on FreeMobile.
 
+Lucas Nussbaum <lucas@lucas-nussbaum.net>
+        * Fix on Credit Mutuel.
+
 Camille Baldock <camille.baldock@student.ecp.fr>
         * Fixes on BP.
 
@@ -139,6 +145,9 @@ Olivier Schwander <olivier.schwander@ens-lyon.org>
 
 Luc Didry <luc@didry.org>
         * Fixes on LCL.
+
+Stefano Zacchiroli <zack@upsilon.cc>
+        * Patch on the build system.
 
 Adrien Kunysz <adrien@kunysz.be>
         * Fixes on setup.py.
