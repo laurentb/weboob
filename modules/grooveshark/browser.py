@@ -20,22 +20,22 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.json import json as simplejson
 from weboob.capabilities.video import BaseVideo
+from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.thumbnail import Thumbnail
-import urllib2
 import hashlib
 import uuid
 import string
 import random
 import datetime
-from .pages import IndexPage
+
 
 __all__ = ['GroovesharkBrowser']
+
 
 class APIError(Exception):
     pass
 
 class GroovesharkBrowser(BaseBrowser):
-
     PROTOCOL = 'http'
     DOMAIN = 'html5.grooveshark.com'
     #SAVE_RESPONSE = True
@@ -59,14 +59,8 @@ class GroovesharkBrowser(BaseBrowser):
     #those values depends on a grooveshark version and may change
     GROOVESHARK_CONSTANTS  = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
-    
-    PAGES = {
-        'http://html5.grooveshark.com/.*': IndexPage,
-    }
 
     def home(self):
-        self.location('/');
-        assert self.is_on_page(IndexPage)
         self.get_communication_token()
 
     def search_videos(self, pattern, max_results):
@@ -100,8 +94,11 @@ class GroovesharkBrowser(BaseBrowser):
             video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
             video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.rating = float(song['AvgRating'])
-            video.date = datetime.date(year=int(song['Year']), month=1, day=1)
-            videos.append(video)      
+            try:
+                video.date = datetime.date(year=int(song['Year']), month=1, day=1)
+            except ValueError:
+                video.date = NotAvailable
+            videos.append(video)
         return videos
 
     def create_video_from_playlist_result(self, playlists):
@@ -129,9 +126,8 @@ class GroovesharkBrowser(BaseBrowser):
         self.COMMUNICATION_TOKEN = result['result']
 
     def create_token(self, method):
-
        if self.COMMUNICATION_TOKEN is None:
-	    self.get_communication_token()
+           self.get_communication_token()
 
        rnd = (''.join(random.choice(string.hexdigits) for x in range(6)))
        return rnd + hashlib.sha1('%s:%s:%s:%s' % (method, self.COMMUNICATION_TOKEN, self.GROOVESHARK_CONSTANTS[2], rnd)).hexdigest()
@@ -179,8 +175,8 @@ class GroovesharkBrowser(BaseBrowser):
         """
         data = self.create_json_data(method, parameters, token)
         req = self.create_request(method)
-        response = urllib2.urlopen(req, data)
-	return self.parse_response(response)
+        response = self.openurl(req, data)
+        return self.parse_response(response)
 
     def create_json_data(self, method, parameters, token):
         data = {}
@@ -194,7 +190,7 @@ class GroovesharkBrowser(BaseBrowser):
         return simplejson.dumps(data)
 
     def create_request(self, method):
-        req = urllib2.Request('%s?%s' %(self.API_URL, method))
+        req = self.request_class('%s?%s' %(self.API_URL, method))
         req.add_header('Content-Type', 'application/json')
         return req
 

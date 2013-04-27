@@ -19,7 +19,6 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection
 from .browser import GroovesharkBrowser
