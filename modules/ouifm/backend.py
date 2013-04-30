@@ -60,15 +60,17 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
                 yield radio
 
     def get_current(self, radio):
-        document = self.browser.location('http://rock.ouifm.fr/dynamic-menu.json')
-        suffix = ''
-        if radio != 'general':
-            suffix = '_%s' % radio
+        document = self.browser.location('http://www.ouifm.fr/onair.json')
+        rad = ''
+        if radio == 'general':
+            rad = 'rock'
+        else:
+            rad = radio
 
-        last = document['last%s' % suffix][0]
+        last = document[rad][0]
 
-        artist = to_unicode(last.get('artiste%s' % suffix, '').strip())
-        title = to_unicode(last.get('titre%s' % suffix, '').strip())
+        artist = to_unicode(last.get('artist', '').strip())
+        title = to_unicode(last.get('title', '').strip())
         return artist, title
 
     def get_radio(self, radio):
