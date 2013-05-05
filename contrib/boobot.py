@@ -101,7 +101,7 @@ class BoobotBrowser(StandardBrowser):
         title = None
         if is_html:
             r = self.openurl(url)
-            encoding = EncodingFinder('windows-1252').encoding(r)
+            encoding = EncodingFinder('windows-1252').encoding(r).lower().replace('iso-8859-1', 'windows-1252')
             h = self.get_document(r, parser='lxml', encoding=encoding)
             for title in h.xpath('//head/title'):
                 title = to_unicode(title.text_content())
