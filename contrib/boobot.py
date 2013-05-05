@@ -25,6 +25,8 @@ import os
 import sys
 from threading import Thread, Event
 from math import log
+import urlparse
+import urllib
 
 from irc.bot import SingleServerIRCBot
 import mechanize
@@ -41,6 +43,40 @@ IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
 IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
 IRC_SERVER = os.getenv('BOOBOT_SERVER', 'chat.freenode.net')
 STORAGE_FILE = 'boobot.storage'
+
+
+def fixurl(url):
+    # turn string into unicode
+    if not isinstance(url, unicode):
+        url = url.decode('utf8')
+
+    # parse it
+    parsed = urlparse.urlsplit(url)
+
+    # divide the netloc further
+    userpass, at, hostport = parsed.netloc.rpartition('@')
+    user, colon1, pass_ = userpass.partition(':')
+    host, colon2, port = hostport.partition(':')
+
+    # encode each component
+    scheme = parsed.scheme.encode('utf8')
+    user = urllib.quote(user.encode('utf8'))
+    colon1 = colon1.encode('utf8')
+    pass_ = urllib.quote(pass_.encode('utf8'))
+    at = at.encode('utf8')
+    host = host.encode('idna')
+    colon2 = colon2.encode('utf8')
+    port = port.encode('utf8')
+    path = '/'.join(  # could be encoded slashes!
+        urllib.quote(urllib.unquote(pce).encode('utf8'), '')
+        for pce in parsed.path.split('/')
+    )
+    query = urllib.quote(urllib.unquote(parsed.query).encode('utf8'), '=&?/')
+    fragment = urllib.quote(urllib.unquote(parsed.fragment).encode('utf8'))
+
+    # put it back together
+    netloc = ''.join((user, colon1, pass_, at, host, colon2, port))
+    return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
 class HeadRequest(mechanize.Request):
@@ -70,7 +106,8 @@ class BoobotBrowser(StandardBrowser):
 
     def human_size(self, size):
         if size:
-            units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+            units = ('B', 'KiB', 'MiB', 'GiB',
+                     'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
             exponent = int(log(size, 1024))
             return "%.1f %s" % (float(size) / pow(1024, exponent), units[exponent])
         return '0 B'
@@ -94,11 +131,12 @@ class MyThread(Thread):
         self.weboob.loop()
 
     def find_keywords(self, text):
-        for word in ['weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
-                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
-                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
-                     'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m',
-                     'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
+        for word in [
+            'weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
+            'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
+            'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
+            'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m',
+                'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
             if word in text.lower():
                 return word
         return None
@@ -108,7 +146,8 @@ class MyThread(Thread):
             word = self.find_keywords(msg.content)
             if word is not None:
                 url = msg.signature[msg.signature.find('https://linuxfr'):]
-                self.bot.send_message('[DLFP] %s talks about %s: %s' % (msg.sender, word, url))
+                self.bot.send_message('[DLFP] %s talks about %s: %s' % (
+                    msg.sender, word, url))
             backend.set_message_read(msg)
 
     def check_board(self):
@@ -129,7 +168,7 @@ class MyThread(Thread):
 class Boobot(SingleServerIRCBot):
     def __init__(self, channels, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
-        #self.connection.add_global_handler('pubmsg', self.on_pubmsg)
+        # self.connection.add_global_handler('pubmsg', self.on_pubmsg)
         self.connection.add_global_handler('join', self.on_join)
         self.connection.add_global_handler('welcome', self.on_welcome)
 
@@ -185,6 +224,7 @@ class Boobot(SingleServerIRCBot):
                     break
 
     def on_url(self, url):
+        url = fixurl(url)
         try:
             content_type, hsize, title = BoobotBrowser().urlinfo(url)
             if title:
