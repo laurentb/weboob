@@ -209,7 +209,7 @@ class Boobot(SingleServerIRCBot):
         for m in re.findall('([\w\d_\-]+@\w+)', text):
             for msg in self.on_boobid(m):
                 self.send_message(msg, channel)
-        for m in re.findall('(https?://\S+)', text):
+        for m in re.findall(u'(https?://[^\s\xa0+]+)', text):
             for msg in self.on_url(m):
                 self.send_message(msg, channel)
 
