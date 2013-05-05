@@ -31,7 +31,7 @@ import urllib
 from irc.bot import SingleServerIRCBot
 import mechanize
 from mechanize import _headersutil as headersutil
-import lxml.html
+from mechanize._html import EncodingFinder
 
 from weboob.core import Weboob
 from weboob.tools.browser import StandardBrowser, BrowserUnavailable
@@ -85,9 +85,10 @@ class HeadRequest(mechanize.Request):
 
 
 class BoobotBrowser(StandardBrowser):
+    ENCODING = None
+
     def urlinfo(self, url):
-        b = StandardBrowser()
-        r = b.openurl(HeadRequest(url))
+        r = self.openurl(HeadRequest(url))
         headers = r.info()
         content_type = headers.get('Content-Type')
         try:
@@ -99,7 +100,9 @@ class BoobotBrowser(StandardBrowser):
         is_html = headersutil.is_html([content_type], url, True)
         title = None
         if is_html:
-            h = lxml.html.fromstring(self.readurl(url))
+            r = self.openurl(url)
+            encoding = EncodingFinder('windows-1252').encoding(r)
+            h = self.get_document(r, parser='lxml', encoding=encoding)
             for title in h.xpath('//head/title'):
                 title = to_unicode(title.text_content())
         return content_type, hsize, title
