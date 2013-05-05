@@ -45,7 +45,7 @@ class Value(object):
 
     :param label: human readable description of a value
     :type label: str
-    :param required: if ``True``, the backend can't loaded if the key isn't found in its configuration
+    :param required: if ``True``, the backend can't load if the key isn't found in its configuration
     :type required: bool
     :param default: an optional default value, used when the key is not in config. If there is no default value and the key
                     is not found in configuration, the **required** parameter is implicitly set
@@ -67,7 +67,7 @@ class Value(object):
         self.default = kwargs.get('default', None)
         self.regexp = kwargs.get('regexp', None)
         self.choices = kwargs.get('choices', None)
-        if isinstance(self.choices, (list,tuple)):
+        if isinstance(self.choices, (list, tuple)):
             self.choices = dict(((v, v) for v in self.choices))
         self.masked = kwargs.get('masked', False)
         self.required = kwargs.get('required', self.default is None)
@@ -79,6 +79,8 @@ class Value(object):
 
         :raises: ValueError
         """
+        if self.default is not None and v == self.default:
+            return
         if v == '' and self.default != '':
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp, unicode(v)):
