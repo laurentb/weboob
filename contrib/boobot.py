@@ -21,6 +21,7 @@
 
 import logging
 import re
+import os
 import sys
 from threading import Thread, Event
 from math import log
@@ -36,9 +37,9 @@ from weboob.tools.misc import get_backtrace
 from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage
 
-IRC_CHANNEL = '#weboob'
-IRC_NICKNAME = 'booboot'
-IRC_SERVER = 'chat.freenode.net'
+IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
+IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
+IRC_SERVER = os.getenv('BOOBOT_SERVER', 'chat.freenode.net')
 STORAGE_FILE = 'boobot.storage'
 
 
@@ -84,7 +85,8 @@ class MyThread(Thread):
         self.bot.weboob = self.weboob
 
     def run(self):
-        self.bot.joined.wait()
+        for ev in self.bot.joined.itervalues():
+            ev.wait()
 
         self.weboob.repeat(300, self.check_board)
         self.weboob.repeat(600, self.check_dlfp)
@@ -124,36 +126,48 @@ class MyThread(Thread):
         self.weboob.want_stop()
 
 
-class TestBot(SingleServerIRCBot):
-    def __init__(self, channel, nickname, server, port=6667):
+class Boobot(SingleServerIRCBot):
+    def __init__(self, channels, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         #self.connection.add_global_handler('pubmsg', self.on_pubmsg)
         self.connection.add_global_handler('join', self.on_join)
         self.connection.add_global_handler('welcome', self.on_welcome)
 
-        self.channel = channel
-        self.joined = Event()
+        self.mainchannel = channels[0]
+        self.joined = dict()
+        for channel in channels:
+            self.joined[channel] = Event()
         self.weboob = None
 
-    def on_welcome(self, c, e):
-        c.join(self.channel)
+    def on_welcome(self, c, event):
+        for channel in self.joined.keys():
+            c.join(channel)
 
-    def on_join(self, c, e):
-        self.joined.set()
+    def on_join(self, c, event):
+        # irclib 5.0 compatibility
+        if callable(event.target):
+            channel = event.target()
+        else:
+            channel = event.target
+        self.joined[channel].set()
 
-    def send_message(self, msg):
-        self.connection.privmsg(self.channel, msg)
+    def send_message(self, msg, channel=None):
+        self.connection.privmsg(channel or self.mainchannel, msg)
 
     def on_pubmsg(self, c, event):
         # irclib 5.0 compatibility
         if callable(event.arguments):
             text = ' '.join(event.arguments())
+            channel = event.target()
         else:
             text = ' '.join(event.arguments)
+            channel = event.target
         for m in re.findall('([\w\d_\-]+@\w+)', text):
-            self.on_boobid(m)
+            for msg in self.on_boobid(m):
+                self.send_message(msg, channel)
         for m in re.findall('(https?://\S+)', text):
-            self.on_url(m)
+            for msg in self.on_url(m):
+                self.send_message(msg, channel)
 
     def on_boobid(self, boobid):
         _id, backend_name = boobid.split('@', 1)
@@ -163,38 +177,42 @@ class TestBot(SingleServerIRCBot):
                 func = 'obj_info_%s' % cap.__name__[4:].lower()
                 if hasattr(self, func):
                     try:
-                        getattr(self, func)(backend, _id)
-                    except Exception, e:
+                        for msg in getattr(self, func)(backend, _id):
+                            yield msg
+                    except Exception as e:
                         print get_backtrace()
-                        self.send_message('Oops: [%s] %s' % (type(e).__name__, e))
+                        yield 'Oops: [%s] %s' % (type(e).__name__, e)
                     break
 
     def on_url(self, url):
         try:
             content_type, hsize, title = BoobotBrowser().urlinfo(url)
             if title:
-                self.send_message(u'URL: %s' % title)
+                yield u'URL: %s' % title
             elif hsize:
-                self.send_message(u'URL (file): %s, %s' % (content_type, hsize))
+                yield u'URL (file): %s, %s' % (content_type, hsize)
             else:
-                self.send_message(u'URL (file): %s' % content_type)
+                yield u'URL (file): %s' % content_type
         except BrowserUnavailable as e:
-            self.send_message(u'URL (error): %s' % e)
+            yield u'URL (error): %s' % e
+        except Exception as e:
+            print get_backtrace()
+            yield 'Oops: [%s] %s' % (type(e).__name__, e)
 
     def obj_info_video(self, backend, id):
         v = backend.get_video(id)
         if v:
-            self.send_message(u'Video: %s (%s)' % (v.title, v.duration))
+            yield u'Video: %s (%s)' % (v.title, v.duration)
 
     def obj_info_housing(self, backend, id):
         h = backend.get_housing(id)
         if h:
-            self.send_message(u'Housing: %s (%sm² / %s%s)' % (h.title, h.area, h.cost, h.currency))
+            yield u'Housing: %s (%sm² / %s%s)' % (h.title, h.area, h.cost, h.currency)
 
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    bot = TestBot(IRC_CHANNEL, IRC_NICKNAME, IRC_SERVER)
+    bot = Boobot(IRC_CHANNELS, IRC_NICKNAME, IRC_SERVER)
 
     thread = MyThread(bot)
     thread.start()
