@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from urlparse import urlsplit
 import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserHTTPNotFound
@@ -30,25 +31,34 @@ __all__ = ['PiratebayBrowser']
 
 
 class PiratebayBrowser(BaseBrowser):
-    DOMAIN = 'thepiratebay.se'
-    PROTOCOL = 'https'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    PAGES = {'https://thepiratebay.se/': IndexPage,
-             'https://thepiratebay.se/search/.*/0/7/0': TorrentsPage,
-             'https://thepiratebay.se/torrent/.*': TorrentPage
-             }
+
+    def __init__(self, url, *args, **kwargs):
+        url = url or 'https://thepiratebay.sx/'
+        url_parsed = urlsplit(url)
+        self.PROTOCOL = url_parsed.scheme
+        self.DOMAIN = url_parsed.netloc
+        self.PAGES = {
+            '%s://%s/' % (self.PROTOCOL, self.DOMAIN): IndexPage,
+            '%s://%s/search/.*/0/7/0' % (self.PROTOCOL, self.DOMAIN): TorrentsPage,
+            '%s://%s/torrent/.*' % (self.PROTOCOL, self.DOMAIN): TorrentPage
+        }
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     def iter_torrents(self, pattern):
-        self.location('https://thepiratebay.se/search/%s/0/7/0' % urllib.quote_plus(pattern.encode('utf-8')))
+        self.location('%s://%s/search/%s/0/7/0' % (self.PROTOCOL,
+                                                   self.DOMAIN,
+                                                   urllib.quote_plus(pattern.encode('utf-8'))))
 
         assert self.is_on_page(TorrentsPage)
         return self.page.iter_torrents()
 
-    def get_torrent(self, id):
+    def get_torrent(self, _id):
         try:
-            self.location('https://thepiratebay.se/torrent/%s/' % id)
+            self.location('%s://%s/torrent/%s/' % (self.PROTOCOL,
+                                                   self.DOMAIN,
+                                                   _id))
         except BrowserHTTPNotFound:
             return
         if self.is_on_page(TorrentPage):
-            return self.page.get_torrent(id)
+            return self.page.get_torrent(_id)

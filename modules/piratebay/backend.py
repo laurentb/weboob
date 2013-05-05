@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly, Torrent
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.value import Value
 from weboob.capabilities.base import NotAvailable
 
 from .browser import PiratebayBrowser
@@ -35,9 +36,10 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
     DESCRIPTION = 'The Pirate Bay BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = PiratebayBrowser
+    CONFIG = BackendConfig(Value('proxybay', label='Use a Proxy Bay', regexp=r'https?://.*', default='', required=False))
 
     def create_default_browser(self):
-        return self.create_browser()
+        return self.create_browser(self.config['proxybay'].get())
 
     def get_torrent(self, id):
         return self.browser.get_torrent(id)
@@ -63,6 +65,4 @@ class PiratebayBackend(BaseBackend, ICapTorrent):
             torrent.url = tor.url
         return torrent
 
-    OBJECTS = {
-        Torrent:fill_torrent
-    }
+    OBJECTS = {Torrent: fill_torrent}
