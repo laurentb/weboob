@@ -34,7 +34,7 @@ from mechanize import _headersutil as headersutil
 from mechanize._html import EncodingFinder
 
 from weboob.core import Weboob
-from weboob.tools.browser import StandardBrowser, BrowserUnavailable
+from weboob.tools.browser import StandardBrowser, BrowserUnavailable, BrowserHTTPError
 from weboob.tools.misc import get_backtrace
 from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage
@@ -88,7 +88,13 @@ class BoobotBrowser(StandardBrowser):
     ENCODING = None
 
     def urlinfo(self, url):
-        r = self.openurl(HeadRequest(url))
+        try:
+            r = self.openurl(HeadRequest(url))
+            body = False
+        except BrowserHTTPError as e:
+            if 'HTTP Error 501' in unicode(e):
+                r = self.openurl(url)
+                body = True
         headers = r.info()
         content_type = headers.get('Content-Type')
         try:
@@ -100,7 +106,8 @@ class BoobotBrowser(StandardBrowser):
         is_html = headersutil.is_html([content_type], url, True)
         title = None
         if is_html:
-            r = self.openurl(url)
+            if not body:
+                r = self.openurl(url)
             encoding = EncodingFinder('windows-1252').encoding(r).lower().replace('iso-8859-1', 'windows-1252')
             h = self.get_document(r, parser='lxml', encoding=encoding)
             for title in h.xpath('//head/title'):
