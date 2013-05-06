@@ -27,7 +27,7 @@ __all__ = ['Freemobile']
 class Freemobile(BaseBrowser):
     DOMAIN = 'mobile.free.fr'
     PROTOCOL = 'https'
-    CERTHASH = '73d1205c91dc6188597399e718ee145d9f1287fcc290a31ff0ba4477fbc893b2'
+    CERTHASH = 'c35987d4cff8c16cc1548704e7eabb80e6d509e5f26c408ae6775a4350d2e68f'
     ENCODING = None  # refer to the HTML encoding
     PAGES = {'.*moncompte/index.php': LoginPage,
              '.*page=home':           HomePage,
