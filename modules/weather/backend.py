@@ -35,9 +35,6 @@ class WeatherBackend(BaseBackend, ICapWeather):
     LICENSE = 'AGPLv3+'
     BROWSER = WeatherBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def iter_city_search(self, pattern):
         return self.browser.iter_city_search(pattern)
 

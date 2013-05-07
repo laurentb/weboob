@@ -36,9 +36,6 @@ class SeeklyricsBackend(BaseBackend, ICapLyrics):
     LICENSE = 'AGPLv3+'
     BROWSER = SeeklyricsBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_lyrics(self, id):
         return self.browser.get_lyrics(id)
 

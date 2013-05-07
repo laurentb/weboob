@@ -36,9 +36,6 @@ class BtmonBackend(BaseBackend, ICapTorrent):
     LICENSE = 'AGPLv3+'
     BROWSER = BtmonBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_torrent(self, id):
         return self.browser.get_torrent(id)
 

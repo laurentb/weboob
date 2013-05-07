@@ -36,9 +36,6 @@ class MeteofranceBackend(BaseBackend, ICapWeather):
     LICENSE = 'AGPLv3+'
     BROWSER = MeteofranceBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_current(self, city_id):
         return self.browser.get_current(city_id)
 

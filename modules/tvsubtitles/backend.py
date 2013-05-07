@@ -36,9 +36,6 @@ class TvsubtitlesBackend(BaseBackend, ICapSubtitle):
     LICENSE = 'AGPLv3+'
     BROWSER = TvsubtitlesBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_subtitle(self, id):
         return self.browser.get_subtitle(id)
 

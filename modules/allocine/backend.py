@@ -36,9 +36,6 @@ class AllocineBackend(BaseBackend, ICapCinema):
     LICENSE = 'AGPLv3+'
     BROWSER = AllocineBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_movie(self, id):
         return self.browser.get_movie(id)
 

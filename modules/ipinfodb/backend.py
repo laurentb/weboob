@@ -36,9 +36,6 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
     DESCRIPTION = u"IPInfoDB IP addresses geolocation service"
     BROWSER = BaseBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_location(self, ipaddr):
         with self.browser:
 

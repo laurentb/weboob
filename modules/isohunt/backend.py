@@ -36,9 +36,6 @@ class IsohuntBackend(BaseBackend, ICapTorrent):
     LICENSE = 'AGPLv3+'
     BROWSER = IsohuntBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_torrent(self, id):
         return self.browser.get_torrent(id)
 

@@ -36,9 +36,6 @@ class MarmitonBackend(BaseBackend, ICapRecipe):
     LICENSE = 'AGPLv3+'
     BROWSER = MarmitonBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_recipe(self, id):
         return self.browser.get_recipe(id)
 

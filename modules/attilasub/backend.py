@@ -37,9 +37,6 @@ class AttilasubBackend(BaseBackend, ICapSubtitle):
     LANGUAGE_LIST = ['fr']
     BROWSER = AttilasubBrowser
 
-    def create_default_browser(self):
-        return self.create_browser()
-
     def get_subtitle(self, id):
         return self.browser.get_subtitle(id)
 
