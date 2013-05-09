@@ -46,9 +46,10 @@ STORAGE_FILE = 'boobot.storage'
 
 
 def fixurl(url):
-    # turn string into unicode
-    if not isinstance(url, unicode):
-        url = url.decode('utf8')
+    url = to_unicode(url)
+
+    # remove javascript crap
+    url = url.replace('/#!/', '/')
 
     # parse it
     parsed = urlparse.urlsplit(url)
