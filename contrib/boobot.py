@@ -87,14 +87,15 @@ class HeadRequest(mechanize.Request):
 
 class BoobotBrowser(StandardBrowser):
     ENCODING = None
+    DEFAULT_TIMEOUT = 3
 
     def urlinfo(self, url):
         try:
-            r = self.openurl(HeadRequest(url))
+            r = self.openurl(HeadRequest(url), _tries=2, _delay=0.2)
             body = False
         except BrowserHTTPError as e:
             if 'HTTP Error 501' in unicode(e) or 'HTTP Error 405' in unicode(e):
-                r = self.openurl(url)
+                r = self.openurl(url, _tries=2, _delay=0.2)
                 body = True
             else:
                 raise e
@@ -110,7 +111,7 @@ class BoobotBrowser(StandardBrowser):
         title = None
         if is_html:
             if not body:
-                r = self.openurl(url)
+                r = self.openurl(url, _tries=2, _delay=0.2)
             encoding = EncodingFinder('windows-1252').encoding(r).lower()
             if encoding == 'iso-8859-1':
                 encoding = 'windows-1252'
