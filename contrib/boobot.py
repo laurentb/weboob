@@ -71,7 +71,7 @@ def fixurl(url):
         urllib.quote(urllib.unquote(pce).encode('utf8'), '')
         for pce in parsed.path.split('/')
     )
-    query = urllib.quote(urllib.unquote(parsed.query).encode('utf8'), '=&?/')
+    query = urllib.quote(urllib.unquote(parsed.query).encode('utf8'), '=&?/;')
     fragment = urllib.quote(urllib.unquote(parsed.fragment).encode('utf8'))
 
     # put it back together
