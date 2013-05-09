@@ -34,7 +34,12 @@ if p.returncode != 0:
     print s[0]
     sys.exit(p.returncode)
 
+if os.path.exists(script):
+    spath = script
+else:
+    spath = os.path.join(project, 'scripts', script)
+
 os.execvpe(
     sys.executable,
-    ['-Wall', os.path.join(project, 'scripts', script)] + args,
+    ['-Wall', spath] + args,
     env)
