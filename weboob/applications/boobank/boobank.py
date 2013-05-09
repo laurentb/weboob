@@ -42,7 +42,7 @@ class QifFormatter(IFormatter):
         if hasattr(obj, 'category') and not empty(obj.category):
             result += u'N%s\n' % obj.category
         result += u'M%s\n' % obj.raw
-        result += u'^\n'
+        result += u'^'
         return result
 
 
@@ -67,7 +67,7 @@ class PrettyQifFormatter(QifFormatter):
         else:
             result += u'M%s\n' % obj.raw
 
-        result += u'^\n'
+        result += u'^'
         return result
 
 
