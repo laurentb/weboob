@@ -92,9 +92,11 @@ class BoobotBrowser(StandardBrowser):
             r = self.openurl(HeadRequest(url))
             body = False
         except BrowserHTTPError as e:
-            if 'HTTP Error 501' in unicode(e):
+            if 'HTTP Error 501' in unicode(e) or 'HTTP Error 405' in unicode(e):
                 r = self.openurl(url)
                 body = True
+            else:
+                raise e
         headers = r.info()
         content_type = headers.get('Content-Type')
         try:
