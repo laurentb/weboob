@@ -17,20 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.capabilities.collection import Collection
 
-from weboob.capabilities.video import BaseVideo
+__all__ = ['ArteLiveCollection']
 
-
-__all__ = ['ArteVideo','ArteLiveVideo']
-
-
-class ArteVideo(BaseVideo):
+class ArteLiveCollection(Collection):
     @classmethod
     def id2url(cls, _id):
-        return 'http://videos.arte.tv/fr/videos/%s.html' % _id
-
-
-class ArteLiveVideo(BaseVideo):
-    @classmethod
-    def id2url(cls, _id):
-        return 'http://arte.vo.llnwd.net/o21/liveweb/events/event-%s.xml' % _id
+        return 'http://liveweb.arte.tv/fr/cat/%s/' % _id

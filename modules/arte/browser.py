@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import IndexPage, VideoPage
+from .pages import IndexPage, VideoPage, ArteLivePage, ArteLiveCategorieVideoPage, ArteLiveVideoPage
 from .video import ArteVideo
 
 
@@ -33,7 +33,10 @@ class ArteBrowser(BaseBrowser):
     ENCODING = None
     PAGES = {r'http://videos.arte.tv/\w+/videos/toutesLesVideos.*': IndexPage,
              r'http://videos.arte.tv/\w+/do_search/videos/.*': IndexPage,
-             r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage
+             r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage,
+             r'http://liveweb.arte.tv/\w+' : ArteLivePage,
+             r'http://liveweb.arte.tv/\w+/cat/.*' : ArteLiveCategorieVideoPage,
+             r'http://arte.vo.llnwd.net/o21/liveweb/events/event-(?P<id>.+).xml' : ArteLiveVideoPage,
             }
 
     SEARCH_LANG = {'fr': 'recherche', 'de': 'suche', 'en': 'search'}
@@ -48,6 +51,11 @@ class ArteBrowser(BaseBrowser):
         self.location(url)
         return self.page.get_video(video, self.lang, self.quality)
 
+    def get_live_video(self, url, video=None):
+        self.location(url)
+        assert self.is_on_page(ArteLiveVideoPage)
+        return self.page.get_video(url, video, self.lang, self.quality)
+
     def home(self):
         self.location('http://videos.arte.tv/fr/videos/toutesLesVideos')
 
@@ -60,3 +68,13 @@ class ArteBrowser(BaseBrowser):
         self.home()
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
+
+    def get_arte_live_categories(self):
+        self.location('http://liveweb.arte.tv/%s' %self.lang)
+        assert self.is_on_page(ArteLivePage)
+        return self.page.iter_resources()
+
+    def live_videos(self, url):
+        self.location(url)
+        assert self.is_on_page(ArteLiveCategorieVideoPage)
+        return self.page.iter_videos(self.lang)

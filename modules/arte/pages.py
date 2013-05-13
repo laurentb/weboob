@@ -21,17 +21,114 @@
 import datetime
 import re
 import urllib
+import HTMLParser
 
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities import NotAvailable
 
+from .video import ArteVideo, ArteLiveVideo
+from .collection import ArteLiveCollection
 
-from .video import ArteVideo
+__all__ = ['IndexPage', 'VideoPage', 'ArteLivePage', 'ArteLiveCategorieVideoPage', 'ArteLiveVideoPage']
 
+class ArteLiveVideoPage(BasePage):
+    def get_video(self, url, video=None, lang='fr', quality='hd'):
+        if not video:
+            video = ArteVideo(self.group_dict['id'])
 
-__all__ = ['IndexPage', 'VideoPage']
+        HD = re.compile("(?<=<urlHd>)(.*)(?=</urlHd>)", re.DOTALL)
+        SD = re.compile("(?<=<urlSd>)(.*)(?=</urlSd>)", re.DOTALL)
 
+        page = self.browser.readurl(url)
+        urls = {}
+        try:
+            urls['hd'] = u'%s' %HD.search(page).group(0).split('?')[0]
+        except AttributeError:
+            urls['hd'] = None
+        try:
+            urls['sd'] = u'%s' %SD.search(page).group(0).split('?')[0]
+        except AttributeError:
+            urls['sd'] = None
+        video.url = urls[quality]
+        return video
+
+class ArteLiveCategorieVideoPage(BasePage):
+    def iter_videos(self, lang='fr'):
+        videos = list()
+        xml_url = (self.document.xpath('//link')[0]).attrib['href']
+        datas = self.browser.readurl(xml_url)
+        re_items = re.compile("(<item>.*?</item>)", re.DOTALL)
+        items = re.findall(re_items, datas)
+        for item in items:
+            parsed_element = self.get_element(item, lang)
+            if parsed_element:
+                video = ArteLiveVideo(parsed_element['ID'])
+                video.title = parsed_element['title']
+                video.description = parsed_element['pitch']
+                video.author = parsed_element['author']
+                if parsed_element['pict']:
+                    video.thumbnail = Thumbnail(parsed_element['pict'])
+                video.set_empty_fields(NotAvailable, ('url',))
+                videos.append(video)
+        return videos
+
+    def get_element(self, chain, lang):
+        ele = {}
+        tt = re.compile("(?<=<title>)(.*?)(?=</title>)", re.DOTALL)
+        lk = re.compile("(?<=<link>)(http://liveweb.arte.tv/{0}/video/.*?)"
+                        "(?=</link>)".format(lang), re.DOTALL)
+        dt = re.compile("(?<=<pubDate>)(.*?)(?=</pubDate>)", re.DOTALL)
+        pt = re.compile("(?<=<description>)(.*?)(?=</description>)", re.DOTALL)
+        at = re.compile("(?<=<author>)(.*?)(?=</author>)", re.DOTALL)
+        en = re.compile("<enclosure.*?/event/.*?/(.*?)-.*?/>", re.DOTALL)
+        pix = re.compile("(?<=<enclosure url=\")(.*?)(?=\" type=\"image/)", re.DOTALL)
+        try:
+            ele['link']  = lk.search(chain).group(0)
+        except:
+            return None
+        try:
+            ele['ID'] = int(en.search(chain).group(1))
+        except:
+            return None
+        try:
+            s = tt.search(chain).group(0)
+            ele['title'] = s.decode('utf-8', 'replace')
+        except:
+            ele['title'] = "No title"
+        try:
+            s = (dt.search(chain).group(0))
+            ele['date'] = s.decode('utf-8', 'replace')
+        except:
+            ele['date'] = "No date"
+        try:
+            s = (pt.search(chain).group(0))
+            s = HTMLParser.HTMLParser().unescape(s);
+            ele['pitch'] = HTMLParser.HTMLParser().unescape(s);
+        except:
+            ele['pitch'] = "No description"
+        try:
+            s = (at.search(chain).group(0))
+            ele['author'] = s.decode('utf-8', 'replace')
+        except:
+            ele['author'] = "Unknow"
+        try:
+            ele['pict'] = pix.search(chain).group(0)
+        except:
+            ele['pict'] = None
+        return ele
+
+class ArteLivePage(BasePage):
+    def iter_resources(self):
+        items = list()
+        for el in self.document.xpath('//ul[@id="categoryArray"]/li'):
+            m = re.match(r'http://liveweb.arte.tv/*', el.find('a').attrib['href'])
+            if m:
+                url = u'%s' %el.find('a').attrib['href']
+                _id = url.split('/')[-2:-1][0]
+                item = ArteLiveCollection([u'live', u'%s'%_id], u'%s' %(el.find('a').text))
+                items.append(item)
+        return items
 
 class IndexPage(BasePage):
     def iter_videos(self):
