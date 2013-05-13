@@ -28,7 +28,6 @@ import string
 import random
 import datetime
 
-
 __all__ = ['GroovesharkBrowser']
 
 
@@ -60,6 +59,8 @@ class GroovesharkBrowser(BaseBrowser):
     GROOVESHARK_CONSTANTS  = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
 
+    VIDEOS_FROM_SONG_RESULTS = None
+
     def home(self):
         self.get_communication_token()
 
@@ -81,8 +82,7 @@ class GroovesharkBrowser(BaseBrowser):
         return songs
 
     def create_video_from_songs_result(self, songs, max_results):
-        videos = []
-
+        self.VIDEOS_FROM_SONG_RESULTS = []
         if max_results:
             songs = songs[0:max_results]
 
@@ -98,8 +98,8 @@ class GroovesharkBrowser(BaseBrowser):
                 video.date = datetime.date(year=int(song['Year']), month=1, day=1)
             except ValueError:
                 video.date = NotAvailable
-            videos.append(video)
-        return videos
+            self.VIDEOS_FROM_SONG_RESULTS.append(video)
+        return self.VIDEOS_FROM_SONG_RESULTS
 
     def create_video_from_playlist_result(self, playlists):
         videos = []
@@ -132,9 +132,12 @@ class GroovesharkBrowser(BaseBrowser):
        rnd = (''.join(random.choice(string.hexdigits) for x in range(6)))
        return rnd + hashlib.sha1('%s:%s:%s:%s' % (method, self.COMMUNICATION_TOKEN, self.GROOVESHARK_CONSTANTS[2], rnd)).hexdigest()
 
-    def fill_stream_list(self, video):
-        if isinstance(video, BaseVideo):
-            video.url = self.get_stream_url_from_song_id(video.id)
+    def get_video_from_song_id(self, song_id):
+        if self.VIDEOS_FROM_SONG_RESULTS:
+            for video in self.VIDEOS_FROM_SONG_RESULTS:
+                if video.id == song_id:
+                    video.url = self.get_stream_url_from_song_id(song_id)
+                    return video
 
     def get_stream_url_from_song_id(self, song_id):
         method = 'getStreamKeyFromSongIDEx'

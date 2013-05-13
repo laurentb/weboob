@@ -20,12 +20,11 @@
 
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.video import ICapVideo, BaseVideo
-from weboob.capabilities.collection import ICapCollection
 from .browser import GroovesharkBrowser
 
 __all__ = ['GroovesharkBackend']
 
-class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
+class GroovesharkBackend(BaseBackend, ICapVideo):
     NAME = 'grooveshark'
     DESCRIPTION = u'grooveshark website'
     MAINTAINER = u'Bezleputh'
@@ -48,8 +47,8 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
             for video in self.browser.search_videos(pattern, max_results):
                yield video
 
-    def get_video(self, video):
+    def get_video(self, _id):
         with self.browser:
-            return self.browser.fill_stream_list(video)
+            return self.browser.get_video_from_song_id(_id)
 
     OBJECTS = {BaseVideo: fill_video}
