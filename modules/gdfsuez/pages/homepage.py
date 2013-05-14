@@ -24,6 +24,7 @@ from weboob.capabilities.bill import Subscription
 
 __all__ = ['LoginPage', 'HomePage', 'AccountPage', 'TimeoutPage']
 
+
 class LoginPage(BasePage):
 
     def login(self, login, password):
@@ -32,10 +33,12 @@ class LoginPage(BasePage):
         self.browser["portlet_login_plein_page_3{pageFlow.mForm.password}"] = str(password)
         self.browser.submit()
 
+
 class HomePage(BasePage):
 
     def on_loaded(self):
         pass
+
 
 class AccountPage(BasePage):
 
@@ -60,6 +63,7 @@ class AccountPage(BasePage):
                 sub.subscriber = unicode(cells[1])
                 sub.renewdate = sdate
                 yield sub
+
 
 class TimeoutPage(BasePage):
 

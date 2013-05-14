@@ -32,6 +32,7 @@ from weboob.capabilities.bill import Detail, Bill
 
 __all__ = ['HistoryPage', 'PdfPage']
 
+
 class HistoryPage(BasePage):
 
     def on_loaded(self):
@@ -74,6 +75,7 @@ class HistoryPage(BasePage):
     def get_bills(self):
         return self.bills
 
+
 class PdfPage():
 
     def __init__(self, file):
@@ -106,13 +108,13 @@ class PdfPage():
 
         # Parsing
         details = []
-        for title in [  'Abonnement',
-                        'Consommation',
-                        'Contributions et taxes liées à l\'énergie']:
-            section = page.split(title,1)[1].split('Total ')[0]
+        for title in ['Abonnement',
+                      'Consommation',
+                      'Contributions et taxes liées à l\'énergie']:
+            section = page.split(title, 1)[1].split('Total ')[0]
 
             # When a line holds '(0)', a newline is missing.
-            section = re.sub(footnote,'\n', section)
+            section = re.sub(footnote, '\n', section)
 
             lines = section.split('\n')
             lines = [x for x in lines if len(x) > 0]  # Remove empty lines
@@ -184,7 +186,7 @@ class PdfPage():
                         vat = line.split()[line.count(' ')-1].replace(',', '.')
                         detail.infos = unicode('TVA: ' + vat)
                 elif ' €' in line:
-                    price = line.replace(',','.')
+                    price = line.replace(',', '.')
                     if isinstance(detail, Detail):
                         detail.price = Decimal(price.strip(' €'))
                 elif re.match(enddate, line):
@@ -208,4 +210,3 @@ class PdfPage():
         else:
             pass
         return self._parse_page(page)
-

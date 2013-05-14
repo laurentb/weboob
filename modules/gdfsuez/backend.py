@@ -18,12 +18,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
-            BillNotFound, Subscription, Bill
+    BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import GdfSuez
 
 __all__ = ['GdfSuezBackend']
+
 
 class GdfSuezBackend(BaseBackend, ICapBill):
     NAME = 'gdfsuez'
@@ -38,7 +39,7 @@ class GdfSuezBackend(BaseBackend, ICapBill):
                            ValueBackendPassword('password',
                                                 label='Password',
                                                 masked=True)
-                          )
+                           )
     BROWSER = GdfSuez
 
     def create_default_browser(self):

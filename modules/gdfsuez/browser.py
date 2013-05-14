@@ -23,6 +23,7 @@ from .pages import LoginPage, HomePage, AccountPage, TimeoutPage, HistoryPage, P
 
 __all__ = ['GdfSuez']
 
+
 class GdfSuez(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.gdfsuez-dolcevita.fr'
@@ -31,7 +32,7 @@ class GdfSuez(BaseBrowser):
              '.*p/visualiser_mes_contrats.*?_nfpb=true': AccountPage,
              '.*p/page_historique_de_mes_factures': HistoryPage,
              '.*clients.*?_nfpb=true&_nfls=false&_pageLabel=page_erreur_timeout_session': TimeoutPage
-            }
+             }
 
     loginp = '/portailClients/appmanager/portail/clients'
     homep = '/portailClients/appmanager/portail/clients?_nfpb=true&_pageLabel=page_accueil_compte_en_ligne'
@@ -96,4 +97,3 @@ class GdfSuez(BaseBrowser):
         for b in self.iter_bills():
             if b.id == id:
                 return b
-
