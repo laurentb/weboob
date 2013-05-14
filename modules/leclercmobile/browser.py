@@ -34,7 +34,7 @@ class Leclercmobile(BaseBrowser):
              '.*EspaceClient/pgeWERL013_Accueil.aspx':     HomePage,
              '.*pgeWERL009_ReleveConso.aspx.*': HistoryPage,
              '.*ReleveConso.ashx.*': PdfPage
-            }
+             }
     accueil = "/EspaceClient/pgeWERL013_Accueil.aspx"
     login = "/EspaceClient/pgeWERL008_Login.aspx"
     conso = "/EspaceClient/pgeWERL009_ReleveConso.aspx"

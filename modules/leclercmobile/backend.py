@@ -20,7 +20,7 @@
 from __future__ import with_statement
 
 from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
-        BillNotFound, Subscription, Bill
+    BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -43,7 +43,7 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
                                                 regexp='^(\d{10}|)$'),
                            ValueBackendPassword('password',
                                                 label='Password')
-                          )
+                           )
     BROWSER = Leclercmobile
 
     def create_default_browser(self):

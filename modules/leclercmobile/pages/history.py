@@ -62,8 +62,8 @@ class PdfPage():
         page = txt.split('CONSOMMATION')[2].split('ACTIVITE DETAILLEE')[0]
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
-        lines.pop(0) # "MENSUELLE"
-        lines.pop(0) # "Votre consommation au "
+        lines.pop(0)  # "MENSUELLE"
+        lines.pop(0)  # "Votre consommation au "
         details = []
         detail = None
         for line in lines:
