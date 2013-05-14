@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, date
+from datetime import date
 
 from weboob.tools.browser import BasePage
-from weboob.tools.mech import ClientForm
 from weboob.capabilities.bill import Subscription
 
 __all__ = ['LoginPage', 'HomePage', 'AccountPage', 'TimeoutPage']

@@ -23,7 +23,7 @@ import subprocess
 import tempfile
 import shutil
 
-from datetime import datetime, date
+from datetime import date
 from decimal import Decimal
 
 from weboob.tools.browser import BasePage
@@ -60,14 +60,14 @@ class HistoryPage(BasePage):
 
     def _create_bill(self, date, price, link):
         bill = Bill()
-        bill.id = date.__str__().replace('-', '') 
+        bill.id = date.__str__().replace('-', '')
         bill.date = date
         bill._price = price
         bill._url = link
         bill.format = u'pdf'
         bill.label = unicode(price)
         return bill
-        
+
     def get_details(self):
         return self.details
 
@@ -100,10 +100,8 @@ class PdfPage():
         footnote = re.compile(r'\([0-9]\) ')                # (f)
         ht = re.compile('HT par mois')
         base = re.compile('la base de')
-        begindate = re.compile(' \d\d\/\d\d ')              # MM/DD
         enddate = re.compile('\d\d\/\d\d\/\d\d')            # YY/MM/DD
         endwithdigit = re.compile('\d+$')                   # blah blah 42
-        endwitheuro = re.compile('€$')                      # blah 00,00 €
         textwithcoma = re.compile('([a-z]|\d{4})\,')        # blah 2012, blah blah
 
         # Parsing

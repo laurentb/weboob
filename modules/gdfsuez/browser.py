@@ -44,11 +44,11 @@ class GdfSuez(BaseBrowser):
     def home(self):
         self.location(self.homep)
 
-    def is_logged(self): 
+    def is_logged(self):
         if self.is_on_page(LoginPage) or self.is_on_page(TimeoutPage):
             return False
         return True
-    
+
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)

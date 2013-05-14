@@ -51,7 +51,7 @@ class GdfSuezBackend(BaseBackend, ICapBill):
 
     def get_subscription(self, _id):
         if not _id.isdigit():
-            raise SubscriptionnotFound()
+            raise SubscriptionNotFound()
         with self.browser:
             subscription = self.browser.get_subscription(_id)
         if not subscription:
@@ -65,7 +65,7 @@ class GdfSuezBackend(BaseBackend, ICapBill):
         with self.browser:
             for history in self.browser.get_history(subscription):
                 yield history
-            
+
     def get_details(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
