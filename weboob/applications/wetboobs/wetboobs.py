@@ -206,10 +206,10 @@ class WetBoobs(ReplApplication):
 
         Iter sensors of a gauge.
         """
-        gauge, = self.parse_command_args(line, 1, 1)
+        gauge, pattern = self.parse_command_args(line, 2, 1)
         _id, backend_name = self.parse_id(gauge)
 
         self.start_format()
-        for backend, sensor in self.do('iter_sensors', _id, backends=backend_name, caps=ICapGauge):
+        for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=ICapGauge):
             self.format(sensor)
         self.flush()
