@@ -38,10 +38,10 @@ class IndexPage(BasePage):
         videos = self.document.getroot().cssselect("div[class=video]")
         for div in videos:
             title = div.find('h2').find('a').text
-            m = re.match(r'/fr/videos/(.*)\.html', div.find('h2').find('a').attrib['href'])
+            m = re.match(r'/(fr|de)/videos/(.*)\.html', div.find('h2').find('a').attrib['href'])
             _id = ''
             if m:
-                _id = m.group(1)
+                _id = m.group(2)
             rating = rating_max = 0
             rates = self.parser.select(div, 'div[class=rateContainer]', 1)
             for r in rates.findall('div'):
