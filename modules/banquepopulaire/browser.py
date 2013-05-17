@@ -22,7 +22,7 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, IndexPage, AccountsPage, TransactionsPage, UnavailablePage
+from .pages import LoginPage, IndexPage, AccountsPage, TransactionsPage, UnavailablePage, RedirectPage, HomePage
 
 
 __all__ = ['BanquePopulaire']
@@ -39,6 +39,9 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
+             'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
+             'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx\?vary=(?P<vary>.*)':     HomePage,
+             'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
             }
 
     def __init__(self, website, *args, **kwargs):

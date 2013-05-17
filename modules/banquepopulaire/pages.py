@@ -21,14 +21,113 @@
 from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
+from mechanize import Cookie
 
-from weboob.tools.browser import BasePage, BrowserUnavailable
+from weboob.tools.browser import BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'UnavailablePage']
+__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'UnavailablePage', 'RedirectPage']
 
+
+class WikipediaARC4(object):
+    def __init__(self, key = None):
+        self.state = range(256)
+        self.x = self.y = 0
+
+        if key is not None:
+            self.init(key)
+
+    def init(self, key):
+        for i in range(256):
+            self.x = (ord(key[i % len(key)]) + self.state[i] + self.x) & 0xFF
+            self.state[i], self.state[self.x] = self.state[self.x], self.state[i]
+        self.x = 0
+
+    def crypt(self, input):
+        output = [None]*len(input)
+        for i in xrange(len(input)):
+            self.x = (self.x + 1) & 0xFF
+            self.y = (self.state[self.x] + self.y) & 0xFF
+            self.state[self.x], self.state[self.y] = self.state[self.y], self.state[self.x]
+            output[i] = chr((ord(input[i]) ^ self.state[(self.state[self.x] + self.state[self.y]) & 0xFF]))
+        return ''.join(output)
+
+class RedirectPage(BasePage):
+    """
+    var i = 'lyhrnu551jo42yfzx0jm0sqk';
+    setCookie('i', i);
+    var welcomeMessage = decodeURI('M MACHIN');
+    var lastConnectionDate = decodeURI('17 Mai 2013');
+    var lastConnectionTime = decodeURI('14h27');
+    var userId = '12345678';
+    var userCat = '1';
+    setCookie('uwm', $.rc4EncryptStr(welcomeMessage, i));
+    setCookie('ulcd', $.rc4EncryptStr(lastConnectionDate, i));
+    setCookie('ulct', $.rc4EncryptStr(lastConnectionTime, i));
+    setCookie('uid', $.rc4EncryptStr(userId, i));
+    setCookie('uc', $.rc4EncryptStr(userCat, i));
+    var agentCivility = 'Mlle';
+    var agentFirstName = decodeURI('Jeanne');
+    var agentLastName = decodeURI('Machin');
+    var agentMail = decodeURI('gary@example.org');
+    setCookie('ac', $.rc4EncryptStr(agentCivility, i));
+    setCookie('afn', $.rc4EncryptStr(agentFirstName, i));
+    setCookie('aln', $.rc4EncryptStr(agentLastName, i));
+    setCookie('am', $.rc4EncryptStr(agentMail, i));
+    var agencyLabel = decodeURI('DTC');
+    var agencyPhoneNumber = decodeURI('0123456789');
+    setCookie('al', $.rc4EncryptStr(agencyLabel, i));
+    setCookie('apn', $.rc4EncryptStr(agencyPhoneNumber, i));
+
+    Note: that cookies are useless to login on website
+    """
+
+    def add_cookie(self, name, value):
+        c = Cookie(0, name, value,
+                      None, False,
+                      '.' + self.browser.DOMAIN, True, True,
+                      '/', False,
+                      False,
+                      None,
+                      False,
+                      None,
+                      None,
+                      {})
+        cookiejar = self.browser._ua_handlers["_cookies"].cookiejar
+        cookiejar.set_cookie(c)
+
+    def on_loaded(self):
+        redirect_url = None
+        args = {}
+        RC4 = None
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+
+            m = re.search('window.location=\'([^\']+)\'', script.text, flags=re.MULTILINE)
+            if m:
+                redirect_url = m.group(1)
+
+            for line in script.text.split('\r\n'):
+                m = re.match("^var (\w+) = [^']*'([^']*)'.*", line)
+                if m:
+                    args[m.group(1)] = m.group(2)
+
+                m = re.match("^setCookie\('([^']+)', (\w+)\);", line)
+                if m:
+                    self.add_cookie(m.group(1), args[m.group(2)])
+
+                m = re.match("^setCookie\('([^']+)', .*rc4EncryptStr\((\w+), \w+\)", line)
+                if m:
+                    self.add_cookie(m.group(1), RC4.crypt(args[m.group(2)]).encode('hex'))
+
+                if RC4 is None and 'i' in args:
+                    RC4 = WikipediaARC4(args['i'])
+
+        if redirect_url is not None:
+            self.browser.location(self.browser.request_class(self.browser.absurl(redirect_url), None, {'Referer': self.url}))
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -41,6 +140,18 @@ class UnavailablePage(BasePage):
 
 
 class LoginPage(BasePage):
+    def on_loaded(self):
+        try:
+            h1 = self.parser.select(self.document.getroot(), 'h1', 1)
+        except BrokenPageError:
+            pass
+
+        if h1.text is not None and h1.text.startswith('Le service est moment'):
+            try:
+                raise BrowserUnavailable(self.document.xpath('//h4')[0].text)
+            except KeyError:
+                raise BrowserUnavailable(h1.text)
+
     def login(self, login, passwd):
         self.browser.select_form(name='Login')
         self.browser['IDToken1'] = login.encode(self.browser.ENCODING)
@@ -52,6 +163,30 @@ class IndexPage(BasePage):
     def get_token(self):
         url = self.document.getroot().xpath('//frame[@name="portalHeader"]')[0].attrib['src']
         v = urlsplit(url)
+        args = dict(parse_qsl(v.query))
+        return args['token']
+
+
+class HomePage(BasePage):
+    def get_token(self):
+        vary = self.group_dict['vary']
+
+        #r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl("/portailinternet/_layouts/Ibp.Cyi.Application/GetuserInfo.ashx"), action='UInfo', vary=vary), None, {'Referer': self.url}))
+        #print r.read()
+
+        r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx'), vary=vary), 'taskId=aUniversMesComptes', {'Referer': self.url}))
+        doc = self.browser.get_document(r)
+        date = None
+        for script in doc.xpath('//script'):
+            if script.text is None:
+                continue
+
+            m = re.search('lastConnectionDate":"([^"]+)"', script.text)
+            if m:
+                date = m.group(1)
+
+        r = self.browser.openurl(self.browser.request_class(self.browser.absurl('/cyber/ibp/ate/portal/integratedInternet.jsp'), 'session%%3Aate.lastConnectionDate=%s&taskId=aUniversMesComptes' % date, {'Referer': r.geturl()}))
+        v = urlsplit(r.geturl())
         args = dict(parse_qsl(v.query))
         return args['token']
 
@@ -117,7 +252,8 @@ class Transaction(FrenchTransaction):
                 (re.compile('((\w+) )?(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB[:\*][^ ]+ (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_BANK),
