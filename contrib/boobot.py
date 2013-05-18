@@ -90,6 +90,8 @@ class BoobotBrowser(StandardBrowser):
     DEFAULT_TIMEOUT = 3
 
     def urlinfo(self, url):
+        if urlparse.urlsplit(url).netloc == 'mobile.twitter.com':
+            url = url.replace('mobile.twitter.com', 'twitter.com', 1)
         try:
             r = self.openurl(HeadRequest(url), _tries=2, _delay=0.2)
             body = False
@@ -119,6 +121,10 @@ class BoobotBrowser(StandardBrowser):
             for title in h.xpath('//head/title'):
                 title = to_unicode(title.text_content()).strip()
                 title = ' '.join(title.splitlines())
+            if urlparse.urlsplit(url).netloc.endswith('twitter.com'):
+                for title in h.getroot().cssselect('.permalink-tweet .tweet-text'):
+                    title = to_unicode(title.text_content()).strip()
+                    title = ' '.join(title.splitlines())
         return content_type, hsize, title
 
     def human_size(self, size):
