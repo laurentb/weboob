@@ -56,12 +56,12 @@ class VideoPage(PornPage):
         return unicode(a.attrib['href']), unicode(ext)
 
     def get_title(self):
-        element = self.parser.select(self.document.getroot(), '#videoCanvas h1', 1)
+        element = self.parser.select(self.document.getroot(), 'h1', 1)
         return element.text.strip().decode('utf-8')
 
     def set_details(self, v):
         for li in self.parser.select(self.document.getroot(), 'ul.spaced li'):
-            span = li.find('b')
+            span = li.find('label')
             name = span.text.strip()
             value = span.tail.strip()
 
