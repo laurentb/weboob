@@ -288,7 +288,7 @@ class AccountsList(CragrBasePage):
 
     def look_like_account_owner(self, string):
         """ Returns a date object built from a given day/month pair. """
-        result = re.match('^\s*(M\.|Mr|Mme|Mlle|Monsieur|Madame|Mademoiselle)', string, re.IGNORECASE)
+        result = re.match('^\s*(M\.|Mr|Mme|Mlle|Mle|Monsieur|Madame|Mademoiselle)', string, re.IGNORECASE)
         self.logger.debug('Does "%s" look like an account owner? %s', string, ('yes' if result else 'no'))
         return result
 
