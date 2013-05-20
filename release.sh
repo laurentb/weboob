@@ -37,6 +37,9 @@ echo "Generating manpages..."
 tools/make_man.sh
 echo -e "done!\n"
 
+# in case there are new manpages not included in the git tree.
+git add man/*
+
 echo "Release commit:"
 git commit -a -m "Weboob $VERSION released"
 echo -ne "\n"
