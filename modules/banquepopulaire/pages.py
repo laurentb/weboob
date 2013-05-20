@@ -292,7 +292,7 @@ class TransactionsPage(BasePage):
 
             t = Transaction(tr.attrib['id'].split('_', 1)[1])
 
-            date = u''.join([txt.strip() for txt in tds[4].itertext()])
+            date = u''.join([txt.strip() for txt in tds[3].itertext()])
             raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
             debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
             credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
