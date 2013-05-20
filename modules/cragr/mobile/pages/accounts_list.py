@@ -109,6 +109,8 @@ class AccountsList(CragrBasePage):
                     elif self.look_like_account_name(token):
                         required_tokens['account_name'] = token
                     elif self.look_like_account_owner(token):
+                        if 'account_owner' in optional_tokens and not 'account_name' in required_tokens:
+                            required_tokens['account_name'] = optional_tokens['account_owner']
                         optional_tokens['account_owner'] = token
                 # Step 3: create account objects
                 if len(required_tokens) >= 3:
