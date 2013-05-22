@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotLoaded
 import datetime, re
 
 __all__ = ['InfoStationPage', 'ListStationsPage']
@@ -62,7 +62,7 @@ class InfoStationPage(BasePage):
         if status == 0:
             status = 1
         else:
-            status = -1 
+            status = -1
         lastvalue.level = float(status)
         lastvalue.date = last_update
         lastvalue.alarm = u'-1'
