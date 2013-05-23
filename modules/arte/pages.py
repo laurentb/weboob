@@ -38,7 +38,7 @@ class IndexPage(BasePage):
         videos = self.document.getroot().cssselect("div[class=video]")
         for div in videos:
             title = div.find('h2').find('a').text
-            m = re.match(r'/(fr|de)/videos/(.*)\.html', div.find('h2').find('a').attrib['href'])
+            m = re.match(r'/(fr|de|en)/videos/(.*)\.html', div.find('h2').find('a').attrib['href'])
             _id = ''
             if m:
                 _id = m.group(2)
