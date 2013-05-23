@@ -21,7 +21,8 @@
 from weboob.tools.browser import BasePage
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotLoaded
-import datetime, re
+import datetime
+import re
 
 __all__ = ['InfoStationPage', 'ListStationsPage']
 
@@ -30,7 +31,7 @@ class InfoStationPage(BasePage):
     def _create_bikes_sensor(self, value, gauge_id, last_update, adresse):
         levelbikes = GaugeSensor(gauge_id + '-bikes')
         levelbikes.name = u'Bikes'
-        levelbikes.address = u'%s' %adresse
+        levelbikes.address = u'%s' % adresse
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
@@ -44,7 +45,7 @@ class InfoStationPage(BasePage):
     def _create_attach_sensor(self, value, gauge_id, last_update, adresse):
         levelattach = GaugeSensor(gauge_id + '-attach')
         levelattach.name = u'Attach'
-        levelattach.address = u'%s' %adresse
+        levelattach.address = u'%s' % adresse
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
@@ -56,7 +57,7 @@ class InfoStationPage(BasePage):
     def _create_status_sensor(self, value, gauge_id, last_update, adresse):
         levelstatus = GaugeSensor(gauge_id + '-status')
         levelstatus.name = u'Status'
-        levelstatus.address = u'%s' %adresse
+        levelstatus.address = u'%s' % adresse
         lastvalue = GaugeMeasure()
         status = float(value)
         if status == 0:
@@ -75,20 +76,19 @@ class InfoStationPage(BasePage):
 
     def get_station_infos(self, gauge_id):
 
-        last_update = self._get_last_update(self.parser.select(self.document.getroot(),'lastupd',1).text)
+        last_update = self._get_last_update(self.parser.select(self.document.getroot(), 'lastupd', 1).text)
         sensors = []
 
-        adresse = self.parser.select(self.document.getroot(),'adress',1).text
+        adresse = self.parser.select(self.document.getroot(), 'adress', 1).text
 
-        sensors.append(self._create_bikes_sensor(self.parser.select(self.document.getroot(),'bikes',1).text, gauge_id, last_update, adresse))
+        sensors.append(self._create_bikes_sensor(self.parser.select(self.document.getroot(), 'bikes', 1).text, gauge_id, last_update, adresse))
 
-        sensors.append(self._create_attach_sensor(self.parser.select(self.document.getroot(),'attachs',1).text, gauge_id, last_update, adresse))
+        sensors.append(self._create_attach_sensor(self.parser.select(self.document.getroot(), 'attachs', 1).text, gauge_id, last_update, adresse))
 
-        sensors.append(self._create_status_sensor(self.parser.select(self.document.getroot(),'status',1).text, gauge_id, last_update, adresse))
-
-        #print self.parser.select(self.document.getroot(),'paiement',1).text
+        sensors.append(self._create_status_sensor(self.parser.select(self.document.getroot(), 'status', 1).text, gauge_id, last_update, adresse))
 
         return sensors
+
 
 class ListStationsPage(BasePage):
     def get_station_list(self):

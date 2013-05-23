@@ -19,11 +19,12 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.gauge import ICapGauge,GaugeSensor, Gauge, SensorNotFound
+from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
 
 from .browser import VlilleBrowser
 
 __all__ = ['VlilleBackend']
+
 
 class VlilleBackend(BaseBackend, ICapGauge):
     NAME = 'vlille'
