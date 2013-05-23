@@ -65,6 +65,7 @@ class GaugeSensor(CapBaseObject):
     name =      StringField('Name of the sensor')
     unit =      StringField('Unit of values')
     forecast =  StringField('Forecast')
+    address =   StringField('Address')
     lastvalue = Field('Last value', GaugeMeasure)
     history =   Field('Value history', list)  # lastvalue not included
     gaugeid =   StringField('Id of the gauge')
