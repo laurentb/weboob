@@ -34,7 +34,8 @@ class InfoStationPage(BasePage):
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
-        lastvalue.alarm = u'0'
+        if lastvalue.level < 1:
+            lastvalue.alarm = u'Empty station'
         levelbikes.lastvalue = lastvalue
         levelbikes.history = NotLoaded
         levelbikes.gaugeid = gauge_id
@@ -47,7 +48,6 @@ class InfoStationPage(BasePage):
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
-        lastvalue.alarm = u'0'
         levelattach.lastvalue = lastvalue
         levelattach.history = NotLoaded
         levelattach.gaugeid = gauge_id
@@ -65,7 +65,6 @@ class InfoStationPage(BasePage):
             status = -1
         lastvalue.level = float(status)
         lastvalue.date = last_update
-        lastvalue.alarm = u'-1'
         levelstatus.lastvalue = lastvalue
         levelstatus.history = NotLoaded
         levelstatus.gaugeid = gauge_id
