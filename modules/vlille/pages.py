@@ -47,6 +47,8 @@ class InfoStationPage(BasePage):
         levelattach.name = u'Attach'
         levelattach.address = u'%s' % adresse
         lastvalue = GaugeMeasure()
+        if lastvalue.level < 1:
+            lastvalue.alarm = u'Full station'
         lastvalue.level = float(value)
         lastvalue.date = last_update
         levelattach.lastvalue = lastvalue
@@ -64,6 +66,8 @@ class InfoStationPage(BasePage):
             status = 1
         else:
             status = -1
+        if lastvalue.level < 1:
+            lastvalue.alarm = u'Not available station'
         lastvalue.level = float(status)
         lastvalue.date = last_update
         levelstatus.lastvalue = lastvalue
