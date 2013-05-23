@@ -30,7 +30,7 @@ class InfoStationPage(BasePage):
     def _create_bikes_sensor(self, value, gauge_id, last_update, adresse):
         levelbikes = GaugeSensor(gauge_id + '-bikes')
         levelbikes.name = u'Bikes'
-        levelbikes.forecast = u'%s' %adresse
+        levelbikes.address = u'%s' %adresse
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
@@ -44,7 +44,7 @@ class InfoStationPage(BasePage):
     def _create_attach_sensor(self, value, gauge_id, last_update, adresse):
         levelattach = GaugeSensor(gauge_id + '-attach')
         levelattach.name = u'Attach'
-        levelattach.forecast = u'%s' %adresse
+        levelattach.address = u'%s' %adresse
         lastvalue = GaugeMeasure()
         lastvalue.level = float(value)
         lastvalue.date = last_update
@@ -56,7 +56,7 @@ class InfoStationPage(BasePage):
     def _create_status_sensor(self, value, gauge_id, last_update, adresse):
         levelstatus = GaugeSensor(gauge_id + '-status')
         levelstatus.name = u'Status'
-        levelstatus.forecast = u'%s' %adresse
+        levelstatus.address = u'%s' %adresse
         lastvalue = GaugeMeasure()
         status = float(value)
         if status == 0:
