@@ -30,16 +30,16 @@ __all__ = ['LoginPage']
 
 
 class VirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'e1bcad576e43320e0f3b0c7c14895433',
-             '1':'dee70a13b9002b820059bb976a9be880',
-             '2':'e4969fc2cc6f02d1e9fd4bbc6b5d4f6c',
-             '3':'bb83b43088b40a7cf1d01627ba908e42',
-             '4':'0711fee716ecbf7c42d9c8836ad990bb',
-             '5':'7dd995622fac18df1c492934516380fd',
-             '6':'97e22311e482964823087ead7e7ba1cc',
-             '7':'6326d9d72be0c3e9b52c691ff3ca4ccd',
-             '8':'b67a2a4ac01d71b5184d4fafb40be9a2',
-             '9':'e4389eea90bea5dc5652ef773d7dc10c'
+    symbols={'0':'40fdd263e99d7268b49e22e06b73ebf1',
+             '1':'0d53ac10dba67d3ec601a086d0881b6f',
+             '2':'91b6e36e32ef8650127367a076b03c34',
+             '3':'bbda594275b7999fdac947e2499e7884',
+             '4':'26cd3d8f2279b5ec2be6d6f2be1e9c78',
+             '5':'408ceca0885b6ae720745531587f2766',
+             '6':'9008178542bdad8b9cbcd4d8a551f2fa',
+             '7':'3ab5c3555f36617d264d4938f487480c',
+             '8':'c06676612c15345c3634af51c058e64f',
+             '9':'d8323299dd4bd6489480b1e402fa5bcc'
             }
 
     color=(0,0,0)
