@@ -20,7 +20,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import urllib
+
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+
 from .pages import LoginPage, AccountsList, AccountHistory, UpdateInfoPage, AuthenticationPage
 
 
@@ -69,6 +72,19 @@ class Boursorama(BaseBrowser):
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
+
+        data = {'login':    self.username.encode('utf-8'),
+                'password': self.password.encode('utf-8'),
+                'submit':   'OK',
+               }
+        r = self.openurl('https://www.boursorama.com/iphone/logunique.phtml', urllib.urlencode(data))
+
+        if 'error' in r.geturl():
+            raise BrowserIncorrectPassword()
+
+        self.save_response(r)
+        return
+
         assert isinstance(self.device, basestring)
         assert isinstance(self.enable_twofactors, bool)
         assert self.password.isdigit()
