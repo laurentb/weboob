@@ -46,9 +46,22 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(lang=self.config['lang'].get(), quality=self.config['quality'].get())
 
+    def split_id(self, _id):
+        try:
+            site, _id = _id.split('.', 1)
+        except ValueError:
+            site = 'videos'
+
+        return site, _id
+
     def get_video(self, _id):
         with self.browser:
-            return self.browser.get_video(_id)
+            site, _id = self.split_id(_id)
+
+            if site == 'live':
+                return self.browser.get_live_video(_id)
+            else:
+                return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
@@ -58,10 +71,12 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:
+                site, _id = self.split_id(video.id)
+
                 if isinstance(video,ArteVideo):
-                    video = self.browser.get_video(ArteVideo.id2url(video.id), video)
+                    video = self.browser.get_video(_id, video)
                 if isinstance(video,ArteLiveVideo):
-                    video = self.browser.get_live_video(ArteLiveVideo.id2url(video.id), video)
+                    video = self.browser.get_live_video(_id, video)
         if 'thumbnail' in fields and video and video.thumbnail:
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
@@ -84,7 +99,7 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
                             yield categorie
                 if collection.path_level == 2:
                     if collection.split_path[0] == u'live':
-                        for video in self.browser.live_videos(ArteLiveCollection.id2url(collection.basename)):
+                        for video in self.browser.live_videos(ArteLiveCollection.id2url(collection.basename, self.browser.lang)):
                             yield video
 
     def validate_collection(self, objs, collection):

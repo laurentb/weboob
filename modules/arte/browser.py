@@ -22,7 +22,7 @@ from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
 from .pages import IndexPage, VideoPage, ArteLivePage, ArteLiveCategorieVideoPage, ArteLiveVideoPage
-from .video import ArteVideo
+from .video import ArteVideo, ArteLiveVideo
 
 
 __all__ = ['ArteBrowser']
@@ -42,22 +42,23 @@ class ArteBrowser(BaseBrowser):
     SEARCH_LANG = {'fr': 'recherche', 'de': 'suche', 'en': 'search'}
 
     def __init__(self, lang, quality, *args, **kwargs):
-        BaseBrowser.__init__(self, *args, **kwargs)
         self.lang = lang
         self.quality = quality
+        BaseBrowser.__init__(self, *args, **kwargs)
 
     @id2url(ArteVideo.id2url)
     def get_video(self, url, video=None):
         self.location(url)
         return self.page.get_video(video, self.lang, self.quality)
 
+    @id2url(ArteLiveVideo.id2url)
     def get_live_video(self, url, video=None):
         self.location(url)
         assert self.is_on_page(ArteLiveVideoPage)
-        return self.page.get_video(url, video, self.lang, self.quality)
+        return self.page.get_video(video, self.lang, self.quality)
 
     def home(self):
-        self.location('http://videos.arte.tv/fr/videos/toutesLesVideos')
+        self.location('http://videos.arte.tv/%s/videos/toutesLesVideos' % self.lang)
 
     def search_videos(self, pattern):
         self.location(self.buildurl('/%s/do_search/videos/%s' % (self.lang, self.SEARCH_LANG[self.lang]), q=pattern.encode('utf-8')))

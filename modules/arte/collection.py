@@ -23,5 +23,5 @@ __all__ = ['ArteLiveCollection']
 
 class ArteLiveCollection(Collection):
     @classmethod
-    def id2url(cls, _id):
-        return 'http://liveweb.arte.tv/fr/cat/%s/' % _id
+    def id2url(cls, _id, lang):
+        return 'http://liveweb.arte.tv/%s/cat/%s/' % (lang, _id)

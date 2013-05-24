@@ -33,24 +33,19 @@ from .collection import ArteLiveCollection
 __all__ = ['IndexPage', 'VideoPage', 'ArteLivePage', 'ArteLiveCategorieVideoPage', 'ArteLiveVideoPage']
 
 class ArteLiveVideoPage(BasePage):
-    def get_video(self, url, video=None, lang='fr', quality='hd'):
+    def get_video(self, video=None, lang='fr', quality='hd'):
         if not video:
             video = ArteVideo(self.group_dict['id'])
 
-        HD = re.compile("(?<=<urlHd>)(.*)(?=</urlHd>)", re.DOTALL)
-        SD = re.compile("(?<=<urlSd>)(.*)(?=</urlSd>)", re.DOTALL)
-
-        page = self.browser.readurl(url)
         urls = {}
-        try:
-            urls['hd'] = u'%s' %HD.search(page).group(0).split('?')[0]
-        except AttributeError:
-            urls['hd'] = None
-        try:
-            urls['sd'] = u'%s' %SD.search(page).group(0).split('?')[0]
-        except AttributeError:
-            urls['sd'] = None
-        video.url = urls[quality]
+        for url in self.document.xpath('//video')[0].getchildren():
+            if url.tag.startswith('url'):
+                urls[url.tag[-2:]] = url.text
+
+        if quality in urls:
+            video.url = urls[quality]
+        else:
+            video.url = urls.popitem()[1]
         return video
 
 class ArteLiveCategorieVideoPage(BasePage):
