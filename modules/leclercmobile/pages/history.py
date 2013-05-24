@@ -62,18 +62,25 @@ class PdfPage():
         page = txt.split('CONSOMMATION')[2].split('ACTIVITE DETAILLEE')[0]
         lines = page.split('\n')
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
-        lines.pop(0)  # "Votre consommation au "
         details = []
         detail = None
+        lines.pop(-1)  # line for picture informations
         for line in lines:
+            if "Votre consommation" in line:
+                line = line.split(": ", 1)[1]
             if re.match('[A-Za-z]', line[0]):
                 # We have a new element, return the other one
                 if detail is not None:
                     details.append(detail)
                 detail = Detail()
+                split = re.split("(\d)", line, maxsplit=1)
+                print split
                 detail.price = Decimal(0)
-                detail.infos = NotAvailable
-                detail.label = unicode(line, encoding='utf-8')
+                detail.infos = split[1] + split[2]
+                if '€' in line:
+                    specialprice = split[1] + split[2]
+                    detail.price = Decimal(specialprice.replace('€', ''))
+                detail.label = unicode(split[0], encoding='utf-8')
             elif '€' in line:
                 detail.price = Decimal(line.replace('€', ''))
             else:
