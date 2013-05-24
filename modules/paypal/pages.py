@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 import datetime
 
@@ -107,7 +107,11 @@ class AccountPage(BasePage):
             balance = row.xpath('.//td')[-1].text_content().strip()
             account = Account()
             account.type = Account.TYPE_CHECKING
-            account.balance = clean_amount(balance)
+            # XXX it ignores 5+ devises, so it's bad, but it prevents a crash, cf #1216
+            try:
+                account.balance = clean_amount(balance)
+            except InvalidOperation:
+                continue
             account.currency = Account.get_currency(balance)
             account.id = unicode(account.currency)
             account.label = u'%s %s' % (self.browser.username, balance.split()[-1])
