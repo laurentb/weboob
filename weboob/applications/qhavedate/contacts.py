@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -313,7 +313,7 @@ class ContactProfile(QWidget):
         self.display_photo()
 
     def display_photo(self):
-        if self.displayed_photo_idx >= len(self.contact.photos):
+        if self.displayed_photo_idx >= len(self.contact.photos) or self.displayed_photo_idx < 0:
             self.displayed_photo_idx = len(self.contact.photos) - 1
         if self.displayed_photo_idx < 0:
             self.ui.photoUrlLabel.setText('')

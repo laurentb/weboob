@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -147,3 +147,12 @@ class CapDating(CapBase):
         :rtype: iter[:class:`Event`]
         """
         raise NotImplementedError()
+
+    def iter_new_contacts(self):
+        """
+        Iter new contacts.
+
+        :rtype: iter[:class:`Contact`]
+        """
+        raise NotImplementedError()
+

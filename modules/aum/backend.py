@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -126,6 +126,12 @@ class AuMBackend(BaseBackend, CapMessages, CapMessagesPost, CapDating, CapChat, 
 
                 e.message = message % e.contact.name
                 yield e
+
+    def iter_new_contacts(self):
+        with self.browser:
+            for _id in self.browser.search_profiles():#.difference(self.OPTIM_PROFILE_WALKER.visited_profiles):
+                contact = Contact(_id, '', 0)
+                yield contact
 
     # ---- CapMessages methods ---------------------
 
