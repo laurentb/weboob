@@ -74,7 +74,6 @@ class PdfPage():
                     details.append(detail)
                 detail = Detail()
                 split = re.split("(\d)", line, maxsplit=1)
-                print split
                 detail.price = Decimal(0)
                 detail.infos = split[1] + split[2]
                 if '€' in line:
@@ -112,16 +111,16 @@ class PdfPage():
             page = page.split('RÉGLO MOBILE')[0].split('N.B. Prévoir')[0]  # remove footers
             lines = page.split('\n')
             lines = [x for x in lines if len(x) > 0]  # Remove empty lines
-            numitems = (len(lines) + 1) / 5  # Each line has five columns
+            numitems = (len(lines) + 1) / 4  # Each line has five columns
             lines.pop(0)
             modif = 0
             i = 0
             while i < numitems:
-                if modif > 0:
-                    numitems = ((len(lines) + 1 + modif) / 5)
-                nature = i * 5 - modif
-                dateop = nature + 1
-                corres = dateop + 1
+                if modif != 0:
+                    numitems = ((len(lines) + 1 + modif) / 4)
+                nature = i * 4 - modif
+                dateop = nature
+                corres = nature + 1
                 duree = corres + 1
                 price = duree + 1
 
@@ -129,19 +128,26 @@ class PdfPage():
                     modif += 1
                     i += 1
                     continue
-
+                if "Votre solde" in lines[nature]:
+                    lines[nature + 1] = "Votre solde " + lines[nature + 1]
+                    dateop = nature + 1
+                    corres = dateop + 1
+                    duree = corres + 1
+                    price = duree + 1
+                    modif -= 1
                 if not lines[corres][0:3].isdigit() and not lines[corres][0:3] == "-":
                     modif += 1
                 detail = Detail()
-                mydate = date(*reversed([int(x) for x in lines[dateop].split(' ')[0].split("/")]))
-                mytime = time(*[int(x) for x in lines[dateop].split(' ')[1].split(":")])
+                splits = re.split("(\d+\/\d+\/\d+)", lines[dateop])
+                mydate = date(*reversed([int(x) for x in splits[1].split("/")]))
+                mytime = time(*[int(x) for x in splits[2].split(":")])
                 detail.datetime = datetime.combine(mydate, mytime)
                 if lines[corres] == '-':
                     lines[corres] = ""
                 if lines[duree] == '-':
                     lines[duree] = ''
-                detail.label = unicode(lines[nature], encoding='utf-8', errors='replace') + u" " + lines[corres] + u" " + lines[duree]
-                # Special case with only 4 columns, we insert a price
+                detail.label = unicode(splits[0], encoding='utf-8', errors='replace') + u" " + lines[corres] + u" " + lines[duree]
+                # Special case with only 3 columns, we insert a price
                 if "Activation de votre ligne" in detail.label:
                     lines.insert(price, '0')
                 try:
