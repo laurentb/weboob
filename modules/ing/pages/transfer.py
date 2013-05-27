@@ -92,7 +92,7 @@ class TransferPage(BasePage):
             'AJAXREQUEST', {'value': "_viewRoot"}))
         self.browser.controls.append(ClientForm.TextControl('text',
             'AJAX:EVENTS_COUNT', {'value': "1"}))
-        self.browser['transfer_form:transferMotive'] = reason
+        self.browser['transfer_form:transferMotive'] = str(reason)
         self.browser.controls.append(ClientForm.TextControl('text', 'transfer_form:valide', {'value': "transfer_form:valide"}))
         self.browser['transfer_form:validateDoTransfer'] = "needed"
         self.browser['transfer_form:transferAmount'] = str(amount)
