@@ -85,9 +85,9 @@ class AccountsList(BasePage):
 
     def get_transactions(self, index):
         i = 0
-        for table in self.document.xpath('//table[@cellpadding="0"]'):
+        for table in self.document.xpath('//table'):
             try:
-                textdate = table.find('.//td[@class="elmt tdate"]').text_content()
+                textdate = table.find('.//td[@class="date"]').text_content()
             except AttributeError:
                 continue
             # Do not parse transactions already parsed
@@ -104,16 +104,16 @@ class AccountsList(BasePage):
                 textdate = textdate.replace(' ', '')
                 textdate = textdate.replace(frenchmonth, '/%s/' %month)
             # We use lower for compatibility with old website
-            textraw = table.find('.//td[@class="elmt lbl"]').text_content().strip().lower()
+            textraw = table.find('.//td[@class="lbl"]').text_content().strip().lower()
             # The id will be rewrite
             op = Transaction(1)
-            amount = op.clean_amount(table.xpath('.//td[starts-with(@class, "elmt amount")]')[0].text_content())
+            amount = op.clean_amount(table.xpath('.//td[starts-with(@class, "amount")]')[0].text_content())
             id = hashlib.md5(textdate.encode('utf-8') + textraw.encode('utf-8')
                     + amount.encode('utf-8')).hexdigest()
             op.id = id
             op.parse(date = date(*reversed([int(x) for x in textdate.split('/')])),
                     raw = textraw)
-            category = table.find('.//td[@class="elmt picto"]/span')
+            category = table.find('.//td[@class="picto"]/span')
             category = unicode(category.attrib['class'].split('-')[0].lower())
             try:
                 op.category = self.catvalue[category]
