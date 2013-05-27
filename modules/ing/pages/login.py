@@ -92,10 +92,10 @@ class LoginPage(BasePage):
         # First step : login and birthday
         self.browser.select_form('zone1Form')
         self.browser.set_all_readonly(False)
-        self.browser['zone1Form:numClient'] = login
-        self.browser['zone1Form:dateDay'] = birthday[0:2]
-        self.browser['zone1Form:dateMonth'] = birthday[2:4]
-        self.browser['zone1Form:dateYear'] = birthday[4:9]
+        self.browser['zone1Form:numClient'] = str(login)
+        self.browser['zone1Form:dateDay'] = str(birthday[0:2])
+        self.browser['zone1Form:dateMonth'] = str(birthday[2:4])
+        self.browser['zone1Form:dateYear'] = str(birthday[4:9])
         self.browser['zone1Form:idRememberMyCifCheck'] = False
         self.browser.submit(nologin=True)
 
