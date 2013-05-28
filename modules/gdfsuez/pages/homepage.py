@@ -29,8 +29,8 @@ class LoginPage(BasePage):
 
     def login(self, login, password):
         self.browser.select_form('symConnexionForm')
-        self.browser["portlet_login_plein_page_3{pageFlow.mForm.login}"] = str(login)
-        self.browser["portlet_login_plein_page_3{pageFlow.mForm.password}"] = str(password)
+        self.browser["portlet_login_plein_page_3{pageFlow.mForm.login}"] = unicode(login)
+        self.browser["portlet_login_plein_page_3{pageFlow.mForm.password}"] = unicode(password)
         self.browser.submit()
 
 
