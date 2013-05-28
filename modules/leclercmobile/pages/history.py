@@ -26,7 +26,6 @@ import shutil
 from datetime import datetime, date, time
 from decimal import Decimal
 
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Detail, Bill
 
