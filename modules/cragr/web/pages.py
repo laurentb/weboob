@@ -25,7 +25,7 @@ from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 
-__all__ = ['HomePage', 'LoginPage', 'LoginErrorPage', 'AccountsPage', 'TransactionsPage']
+__all__ = ['HomePage', 'LoginPage', 'LoginErrorPage', 'AccountsPage', 'TransactionsPage', 'UselessPage']
 
 
 class HomePage(BasePage):
@@ -61,6 +61,9 @@ class LoginPage(BasePage):
 
     def get_result_url(self):
         return self.parser.tocleanstring(self.document.getroot())
+
+class UselessPage(BasePage):
+    pass
 
 class LoginErrorPage(BasePage):
     pass

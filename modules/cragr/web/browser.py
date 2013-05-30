@@ -24,7 +24,7 @@ import re
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, SavingsPage, TransactionsPage
+from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, SavingsPage, TransactionsPage, UselessPage
 
 
 __all__ = ['Cragr']
@@ -34,13 +34,14 @@ class Cragr(BaseBrowser):
     PROTOCOL = 'https'
     ENCODING = 'ISO-8859-1'
 
-    PAGES = {'https?://[^/]+/':                                     HomePage,
-             'https?://[^/]+/stb/entreeBam':                        LoginPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':    AccountsPage,
-             'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':   SavingsPage,
-             'https?://[^/]+/stb/.*act=Releves.*':                  TransactionsPage,
-             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*': TransactionsPage,
-             'https?://[^/]+/stb/.*/erreur/.*':                     LoginErrorPage,
+    PAGES = {'https?://[^/]+/':                                          HomePage,
+             'https?://[^/]+/stb/entreeBam':                             LoginPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':         AccountsPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':        SavingsPage,
+             'https?://[^/]+/stb/.*act=Releves.*':                       TransactionsPage,
+             'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*':    TransactionsPage,
+             'https?://[^/]+/stb/.*/erreur/.*':                          LoginErrorPage,
+             'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
             }
 
     class WebsiteNotSupported(Exception):
@@ -107,7 +108,7 @@ class Cragr(BaseBrowser):
 
         self.location(url)
 
-        if self.is_on_page(LoginErrorPage) or not self.is_logged():
+        if self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
         if not self.is_on_page(AccountsPage):
