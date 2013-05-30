@@ -243,7 +243,7 @@ class GenericMuninPlugin(object):
             for backend, result in self.build_do():
                 if self.monitored(result):
                     value = self.get_value(result)
-                    self.write_output('%s.value %d' % (self.result2id(result), value))
+                    self.write_output('%s.value %f' % (self.result2id(result), value))
         except CallErrors, errors:
             self.print_errors(errors)
             self.print_cache(self.name)
