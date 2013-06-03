@@ -27,13 +27,13 @@ __all__ = ['StartPage']
 
 class StartPage(BasePage):
     name = [u"Temperatur", u"Wind", u"Luftdruck", u"Luftfeuchtigkeit",
-            u"Niederschlag", u"Globalstrahlung", u"Schneehoehe"]
-    unit = [u"°C", u"km/h", u"hPa", u"%", u"mm", u"W/m²", u"cm"]
+            u"Niederschlag", u"Globalstrahlung"]
+    unit = [u"°C", u"km/h", u"hPa", u"%", u"mm", u"W/m²"]
 
     def get_sensors_list(self):
         paraphs = self.document.xpath('//p[@align="center"]')
         sensors = []
-        for i in range(len(paraphs)):
+        for i in range(len(paraphs) - 1):
             sensor = GaugeSensor("dd-%s" % self.name[i].lower())
             sensor.name = self.name[i]
             sensor.unit = self.unit[i]
@@ -62,9 +62,6 @@ class StartPage(BasePage):
             if i == 5:
                 text = paraph.xpath('b/font/span')[0].text
                 lastvalue.level = float(text.split('\n')[1])
-            if i == 6:
-                text = paraph.xpath('b/font[@size="4"]/span')[1].text
-                lastvalue.level = float(text.split(' ')[0])
             sensor.lastvalue = lastvalue
             sensors.append(sensor)
         return sensors
