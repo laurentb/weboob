@@ -27,7 +27,7 @@ __all__ = ['ArteVideo','ArteLiveVideo']
 class ArteVideo(BaseVideo):
     @classmethod
     def id2url(cls, _id):
-        return 'http://videos.arte.tv/fr/videos/%s.html' % _id
+        return 'http://videos.arte.tv/fr/videos/--%s.html' % _id
 
 
 class ArteLiveVideo(BaseVideo):
