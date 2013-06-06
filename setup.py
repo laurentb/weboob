@@ -162,11 +162,16 @@ requirements = [
     'lxml',
     'feedparser',
     'mechanize',
-    'PIL',
     'gdata',
     'python-dateutil',
     'PyYAML',
 ]
+try:
+    import Image  # NOQA
+except ImportError:
+    requirements.append('Pillow')
+else:
+    requirements.append('PIL')
 
 if sys.version_info[0] > 2:
     print >>sys.stderr, 'Python 3 is not supported.'
