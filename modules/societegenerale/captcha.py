@@ -21,7 +21,7 @@
 import hashlib
 
 try:
-    import Image
+    from PIL import Image
 except ImportError:
     raise ImportError('Please install python-imaging')
 
