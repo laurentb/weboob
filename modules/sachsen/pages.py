@@ -78,7 +78,7 @@ class ListPage(BasePage):
             try:
                 lastvalue.alarm = self.alarmlevel[img]
             except KeyError:
-                lastvalue.alarm = ""
+                lastvalue.alarm = u""
             levelsensor.lastvalue = lastvalue
             levelsensor.history = NotLoaded
             levelsensor.gaugeid = gauge.id
@@ -98,7 +98,7 @@ class ListPage(BasePage):
             try:
                 lastvalue.alarm = self.alarmlevel[img]
             except KeyError:
-                lastvalue.alarm = ""
+                lastvalue.alarm = u""
             flowsensor.lastvalue = lastvalue
             flowsensor.history = NotLoaded
             flowsensor.gaugeid = gauge.id
