@@ -39,7 +39,7 @@ class NotLoggedPage(BasePage):
 class HSBC(BaseBrowser):
     DOMAIN = 'client.hsbc.fr'
     PROTOCOL = 'https'
-    CERTHASH = '3f8d5765792a7a83b8e82b121d87adf2c25f2358c3a39d4716c09854e5be791a'
+    CERTHASH = '48d84a782728eeeb622e9ff721688365e24f555ae1aec49b3be33831c7fe24e6'
     ENCODING = None # refer to the HTML encoding
     PAGES = {'https://client.hsbc.fr/session_absente.html':                     NotLoggedPage,
              'https://client.hsbc.fr/cgi-bin/emcgi.*\?.*debr=COMPTES_PAN':      AccountsListPage,
