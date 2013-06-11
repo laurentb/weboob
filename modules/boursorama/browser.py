@@ -69,7 +69,7 @@ class Boursorama(BaseBrowser):
                         """ You will receive SMS code but are limited in request per day (around 15)"""
                     )
 
-    def login(self):
+    def login_mobile(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
@@ -83,8 +83,8 @@ class Boursorama(BaseBrowser):
             raise BrowserIncorrectPassword()
 
         self.save_response(r)
-        return
 
+    def login(self):
         assert isinstance(self.device, basestring)
         assert isinstance(self.enable_twofactors, bool)
         assert self.password.isdigit()
