@@ -44,6 +44,16 @@ class PresseuropPage(GenericNewsPage):
         title = title.split('|')[0]
         return title
 
+    def get_author(self):
+        author = GenericNewsPage.get_author(self)
+        try:
+            source = self.document.getroot().xpath(
+                    "//span[@class='sourceinfo']/a")[0]
+            source = source.text
+            author = author + " | " + source
+            return author
+        except:
+            return author
 
 class DailyTitlesPage(PresseuropPage):
     def on_loaded(self):
