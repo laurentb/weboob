@@ -190,7 +190,7 @@ class GenericMuninPlugin(object):
         self.write_output('graph_title %s' % self.title.encode('iso-8859-15'))
         self.write_output('graph_vlabel %s' % self.vlabel.encode('iso-8859-15'))
         self.write_output('graph_category weboob')
-        self.write_output('graph_args -l 0')
+        self.write_output('graph_args --rigid')
         try:
             objects = []
             if self.tomonitore or self.exclude:
