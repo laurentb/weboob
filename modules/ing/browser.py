@@ -44,7 +44,7 @@ class Ing(BaseBrowser):
              '.*eStatement.jsf':               BillsPage,
              '.*displayCoordonneesCommand.*':  StopPage,
             }
-    CERTHASH = "fba557b387cccc3d71ba038f9ef1de4d71541d7954744c79f6a7ff5f3cd4dc12"
+    CERTHASH = "257100e5f69b3c24b27eaaa82951ca5539e9ca264dee433b7c8d4779e778a0b4"
 
     loginpage = '/public/displayLogin.jsf'
     accountspage = '/protected/pages/index.jsf'
