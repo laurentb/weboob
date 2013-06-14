@@ -41,6 +41,7 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx\?vary=(?P<vary>.*)':     HomePage,
+             'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)':                  HomePage,
              'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
             }
 
