@@ -20,7 +20,7 @@
 
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrokenPageError
 
 from .pages import LoginPage, IndexPage, AccountsPage, TransactionsPage, UnavailablePage, RedirectPage, HomePage
 
@@ -78,9 +78,13 @@ class BanquePopulaire(BaseBrowser):
     def get_accounts_list(self):
         self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptes', token=self.token))
         if self.page.is_error():
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptesPRO', token=self.token))
+        if self.page.is_error():
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
         if self.page.is_error():
             self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='accueilSynthese', token=self.token))
+        if self.page.is_error():
+            raise BrokenPageError('Unable to go on the accounts list page')
 
         return self.page.get_list()
 
