@@ -128,6 +128,7 @@ class TransactionsPage(BasePage):
              'Cheque Emis':                 Transaction.TYPE_CHECK,
              'Remise De Cheque':            Transaction.TYPE_DEPOSIT,
              'Prelevement':                 Transaction.TYPE_ORDER,
+             'Prelevt':                     Transaction.TYPE_ORDER,
             }
 
     def get_history(self, date_guesser):
@@ -181,12 +182,11 @@ class TransactionsPage(BasePage):
                 col_text = col_text.find('font')
 
             t.category = unicode(col_text.text.strip())
-            t.label = col_text.find('br').tail
-            if t.label is not None:
-                t.label = t.label.strip()
-            else:
-                # If there is only one line, try to separate category from label.
-                t.label = re.sub('(.*)  (.*)', r'\2', t.category).strip()
+            t.label = re.sub('(.*)  (.*)', r'\2', t.category).strip()
+
+            sub_label = col_text.find('br').tail
+            if sub_label is not None and (len(t.label) < 3 or t.label == t.category or len(re.findall('[^\w\s]', sub_label))/float(len(sub_label)) < len(re.findall('\d', t.label))/float(len(t.label))):
+                t.label = sub_label.strip()
             # Sometimes, the category contains the label, even if there is another line with it again.
             t.category = re.sub('(.*)  .*', r'\1', t.category).strip()
 
