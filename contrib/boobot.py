@@ -114,17 +114,26 @@ class BoobotBrowser(StandardBrowser):
         if is_html:
             if not body:
                 r = self.openurl(url, _tries=2, _delay=0.2)
+            # update size has we might not have it from headers
+            size = len(r.read())
+            hsize = self.human_size(size)
+            r.seek(0)
             encoding = EncodingFinder('windows-1252').encoding(r).lower()
             if encoding == 'iso-8859-1':
                 encoding = 'windows-1252'
-            h = self.get_document(r, parser='lxml', encoding=encoding)
-            for title in h.xpath('//head/title'):
-                title = to_unicode(title.text_content()).strip()
-                title = ' '.join(title.splitlines())
-            if urlparse.urlsplit(url).netloc.endswith('twitter.com'):
-                for title in h.getroot().cssselect('.permalink-tweet .tweet-text'):
+            try:
+                h = self.get_document(r, parser='lxml', encoding=encoding)
+                for title in h.xpath('//head/title'):
                     title = to_unicode(title.text_content()).strip()
                     title = ' '.join(title.splitlines())
+                if urlparse.urlsplit(url).netloc.endswith('twitter.com'):
+                    for title in h.getroot().cssselect('.permalink-tweet .tweet-text'):
+                        title = to_unicode(title.text_content()).strip()
+                        title = ' '.join(title.splitlines())
+            except AssertionError as e:
+                # invalid HTML
+                print e
+
         return content_type, hsize, title
 
     def human_size(self, size):
