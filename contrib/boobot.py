@@ -116,6 +116,14 @@ class BoobotBrowser(StandardBrowser):
             hsize = self.human_size(size)
             r.seek(0)
             encoding = EncodingFinder('windows-1252').encoding(r).lower()
+            try:
+                h = self.get_document(r, parser='lxml', encoding=encoding)
+                for meta in h.xpath('//head/meta'):
+                    encoding = meta.attrib.get('charset', encoding).lower()
+            except Exception as e:
+                print e
+            finally:
+                r.seek(0)
             if encoding == 'iso-8859-1':
                 encoding = 'windows-1252'
             try:
