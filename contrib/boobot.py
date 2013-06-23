@@ -42,6 +42,7 @@ from weboob.tools.storage import StandardStorage
 IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
 IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
 IRC_SERVER = os.getenv('BOOBOT_SERVER', 'chat.freenode.net')
+IRC_IGNORE = [re.compile(i) for i in os.getenv('BOOBOT_IGNORE', '!~?irker@').split(',')]
 STORAGE_FILE = os.getenv('BOOBOT_STORAGE', 'boobot.storage')
 
 
@@ -239,9 +240,14 @@ class Boobot(SingleServerIRCBot):
         if callable(event.arguments):
             text = ' '.join(event.arguments())
             channel = event.target()
+            nick = event.source()
         else:
             text = ' '.join(event.arguments)
             channel = event.target
+            nick = event.source
+        for ignore in IRC_IGNORE:
+            if ignore.search(nick):
+                return
         for m in re.findall('([\w\d_\-]+@\w+)', text):
             for msg in self.on_boobid(m):
                 self.send_message(msg, channel)
