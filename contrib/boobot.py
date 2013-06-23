@@ -42,7 +42,7 @@ from weboob.tools.storage import StandardStorage
 IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
 IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
 IRC_SERVER = os.getenv('BOOBOT_SERVER', 'chat.freenode.net')
-STORAGE_FILE = 'boobot.storage'
+STORAGE_FILE = os.getenv('BOOBOT_STORAGE', 'boobot.storage')
 
 
 def fixurl(url):
