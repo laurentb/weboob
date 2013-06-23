@@ -68,12 +68,9 @@ def fixurl(url):
     host = host.encode('idna')
     colon2 = colon2.encode('utf8')
     port = port.encode('utf8')
-    path = '/'.join(  # could be encoded slashes!
-        urllib.quote(urllib.unquote(pce).encode('utf8'), '')
-        for pce in parsed.path.split('/')
-    )
-    query = urllib.quote(urllib.unquote(parsed.query).encode('utf8'), '=&?/;')
-    fragment = urllib.quote(urllib.unquote(parsed.fragment).encode('utf8'))
+    path = '/'.join(pce.encode('utf8') for pce in parsed.path.split('/'))
+    query = parsed.query.encode('utf8')
+    fragment = parsed.fragment.encode('utf8')
 
     # put it back together
     netloc = ''.join((user, colon1, pass_, at, host, colon2, port))
