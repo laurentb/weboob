@@ -151,6 +151,8 @@ class BoobotBrowser(StandardBrowser):
 
 
 class MyThread(Thread):
+    daemon = True
+
     def __init__(self, bot):
         Thread.__init__(self)
         self.weboob = Weboob(storage=StandardStorage(STORAGE_FILE))
@@ -200,6 +202,7 @@ class MyThread(Thread):
 
     def stop(self):
         self.weboob.want_stop()
+        self.weboob.deinit()
 
 
 class Boobot(SingleServerIRCBot):
