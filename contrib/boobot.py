@@ -23,6 +23,7 @@ import logging
 import re
 import os
 import sys
+import codecs
 from threading import Thread, Event
 from math import log
 import urlparse
@@ -116,17 +117,29 @@ class BoobotBrowser(StandardBrowser):
             size = len(r.read())
             hsize = self.human_size(size)
             r.seek(0)
+
             encoding = EncodingFinder('windows-1252').encoding(r).lower()
             try:
                 h = self.get_document(r, parser='lxml', encoding=encoding)
                 for meta in h.xpath('//head/meta'):
+                    # meta http-equiv=content-type content=...
+                    if meta.attrib.get('http-equiv', '').lower() == 'content-type':
+                        for k, v in headersutil.split_header_words([meta.attrib.get('content', '')]):
+                            if k == 'charset':
+                                encoding = v
+                    # meta charset=...
                     encoding = meta.attrib.get('charset', encoding).lower()
             except Exception as e:
                 print e
             finally:
                 r.seek(0)
-            if encoding == 'iso-8859-1':
+            if encoding == 'iso-8859-1' or not encoding:
                 encoding = 'windows-1252'
+            try:
+                codecs.lookup(encoding)
+            except LookupError:
+                encoding = 'windows-1252'
+
             try:
                 h = self.get_document(r, parser='lxml', encoding=encoding)
                 for title in h.xpath('//head/title'):
