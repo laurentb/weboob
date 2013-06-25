@@ -21,6 +21,7 @@ from weboob.tools.browser.decorators import id2url
 from weboob.tools.browser import BaseBrowser
 from .job import LolixJobAdvert
 from .pages import SearchPage, AdvertPage
+import urllib
 
 __all__ = ['LolixBrowser']
 
@@ -31,12 +32,21 @@ class LolixBrowser(BaseBrowser):
     ENCODING = 'iso-8859-1'
 
     PAGES = {
-        '%s://%s/date.php' % (PROTOCOL, DOMAIN): SearchPage,
+        '%s://%s/search.php' % (PROTOCOL, DOMAIN): SearchPage,
         '%s://%s/offre.php\?id=(?P<id>.+)' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
-    def search_job(self):
-        self.location('%s://%s/date.php' % (self.PROTOCOL, self.DOMAIN))
+    def search_job(self, region=None, poste=None, contrat=None, limit_date=None):
+        data = {
+            'mode': 'find',
+            'page': '0',
+            'posteid': poste,
+            'contratid': contrat,
+            'regionid': region,
+            'limitjour': limit_date
+        }
+
+        self.location('%s://%s/search.php' % (self.PROTOCOL, self.DOMAIN), urllib.urlencode(data))
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 

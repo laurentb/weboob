@@ -80,15 +80,16 @@ class SearchPage(BasePage):
 
     def is_row_advert(self, row):
         cols = self.parser.select(row, 'td')
-        d = dict(cols[1].attrib)
-        if 'class' in d.keys():
-            if 'ListeDark' == d['class'] or 'ListeLight' == d['class']:
-                return cols
+        if len(cols) > 1:
+            d = dict(cols[1].attrib)
+            if 'class' in d.keys():
+                if 'ListeDark' == d['class'] or 'ListeLight' == d['class']:
+                    return cols
 
     def create_job_advert(self, cols):
-        a = self.parser.select(cols[3], 'a')[0]
+        a = self.parser.select(cols[2], 'a')[0]
         advert = LolixJobAdvert(re.match(r'offre.php\?id=(.*)', a.attrib['href']).group(1))
-        advert.publication_date = dateutil.parser.parse(cols[1].text).date()
-        advert.society_name = u'%s' % self.parser.select(cols[2], 'a')[0].text
+        advert.publication_date = dateutil.parser.parse(cols[0].text).date()
+        advert.society_name = u'%s' % self.parser.select(cols[1], 'a')[0].text
         advert.title = u'%s' % a.text
         return advert
