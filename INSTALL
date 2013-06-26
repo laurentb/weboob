@@ -56,3 +56,10 @@ For example, instead of running ``videoob -b youtube search plop``, you would
 run::
 
     $ ./tools/local_run.sh videoob -b youtube search plop
+
+
+Bash completion
+---------------
+
+To enable bash completion, just source the ``tools/weboob_bash_completion``
+file from your ``~/.bashrc`` file.
