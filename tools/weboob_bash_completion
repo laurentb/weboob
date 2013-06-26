@@ -22,26 +22,20 @@
 # This script can be distributed under the same license as the
 # weboob or bash packages.
 
-hash weboob-config 2>/dev/null &&
 _weboob()
 {
-    local cur words
+    local cur args
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    words="$(${COMP_WORDS[0]} --shell-completion)"
+    args="$(${COMP_WORDS[0]} --shell-completion)"
 
-    case ${COMP_WORDS[1]} in
-        *)
-            COMPREPLY=( $( compgen -W "$words" | grep "^$cur" ) )
-            ;;
-    esac
-
-    return 0
-
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-[ "$have" ] || return
+
+hash weboob-config 2>/dev/null &&
 weboob_applications=$(weboob-config applications)
+hash -d weboob-config
 for application in $weboob_applications
 do
     complete -F _weboob $application
