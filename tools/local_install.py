@@ -4,13 +4,24 @@ import subprocess
 import sys
 import os
 
+if '--deps' in sys.argv:
+    sys.argv.remove('--deps')
+    deps = []
+else:
+    deps = ['--nodeps']
+
 print "Weboob local installer"
 print
 if len(sys.argv) < 2:
     print "This tool will install Weboob to be usuable without requiring"
     print "messing with your system, which should only be touched by a package manager."
     print
-    print "Usage: %s DESTINATION" % sys.argv[0]
+    print "Usage: %s DESTINATION [OPTIONS]" % sys.argv[0]
+    print
+    print "By default, no dependencies are installed, as you should try"
+    print "to install them from your package manager as much as possible."
+    print "To install all the missing dependencies, add the option --deps"
+    print "at the end of the command line."
     print
     print >>sys.stderr, "Error: Please provide a destination, " \
                         "for example ‘%s/bin’" % os.getenv('HOME')
@@ -19,9 +30,10 @@ else:
     dest = os.path.expanduser(sys.argv[1])
 
 print "Installing weboob applications into ‘%s’." % dest
+
 subprocess.check_call(
     [sys.executable, 'setup.py',
-        'install', '--user', '--install-scripts', dest] + sys.argv[2:],
+        'install', '--user', '--install-scripts', dest] + sys.argv[2:] + deps,
     cwd=os.path.join(os.path.dirname(__file__), os.pardir))
 
 subprocess.check_call([sys.executable, os.path.join(dest, 'weboob-config'), 'update'])
