@@ -122,7 +122,7 @@ class LoginPage(BasePage):
         self.browser.select_form(nr=0)
         self.browser.set_all_readonly(False)
         code = vk.get_string_code(login)
-        self.browser['login_abo'] = code
+        self.browser['login_abo'] = code.encode('utf-8')
         vk.get_small(code)
-        self.browser['pwd_abo'] = password
+        self.browser['pwd_abo'] = password.encode('utf-8')
         self.browser.submit(nologin=True)
