@@ -171,7 +171,10 @@ try:
 except ImportError:
     requirements.append('Pillow')
 else:
-    requirements.append('PIL')
+    if 'PILcompat' not in Image.__file__:
+        requirements.append('PIL')
+    else:
+        requirements.append('Pillow')
 
 if sys.version_info[0] > 2:
     print >>sys.stderr, 'Python 3 is not supported.'
