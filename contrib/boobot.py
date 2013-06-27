@@ -53,6 +53,9 @@ def fixurl(url):
     # remove javascript crap
     url = url.replace('/#!/', '/')
 
+    # while valid, it is most likely an error
+    url = url.replace('//', '/')
+
     # parse it
     parsed = urlparse.urlsplit(url)
 
