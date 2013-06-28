@@ -53,9 +53,6 @@ def fixurl(url):
     # remove javascript crap
     url = url.replace('/#!/', '/')
 
-    # while valid, it is most likely an error
-    url = url.replace('//', '/')
-
     # parse it
     parsed = urlparse.urlsplit(url)
 
@@ -74,6 +71,8 @@ def fixurl(url):
     colon2 = colon2.encode('utf8')
     port = port.encode('utf8')
     path = '/'.join(pce.encode('utf8') for pce in parsed.path.split('/'))
+    # while valid, it is most likely an error
+    path = path.replace('//', '/')
     query = parsed.query.encode('utf8')
     fragment = parsed.fragment.encode('utf8')
 
