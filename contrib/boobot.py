@@ -35,7 +35,7 @@ from mechanize import _headersutil as headersutil
 from mechanize._html import EncodingFinder
 
 from weboob.core import Weboob
-from weboob.tools.browser import StandardBrowser, BrowserUnavailable, BrowserHTTPError
+from weboob.tools.browser import StandardBrowser, BrowserUnavailable
 from weboob.tools.misc import get_backtrace
 from weboob.tools.misc import to_unicode
 from weboob.tools.storage import StandardStorage
@@ -90,16 +90,19 @@ class BoobotBrowser(StandardBrowser):
     ENCODING = None
     DEFAULT_TIMEOUT = 3
 
-    def urlinfo(self, url):
+    def urlinfo(self, url, maxback=2):
         if urlparse.urlsplit(url).netloc == 'mobile.twitter.com':
             url = url.replace('mobile.twitter.com', 'twitter.com', 1)
         try:
             r = self.openurl(HeadRequest(url), _tries=2, _delay=0.2)
             body = False
-        except BrowserHTTPError as e:
-            if 'HTTP Error 501' in unicode(e) or 'HTTP Error 405' in unicode(e):
+        except BrowserUnavailable as e:
+            if u'HTTP Error 501' in unicode(e) or u'HTTP Error 405' in unicode(e):
                 r = self.openurl(url, _tries=2, _delay=0.2)
                 body = True
+            elif u'HTTP Error 404' in unicode(e) \
+                    and maxback and not url[-1].isalnum():
+                return self.urlinfo(url[:-1], maxback-1)
             else:
                 raise e
         headers = r.info()
