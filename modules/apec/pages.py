@@ -64,7 +64,10 @@ class AdvertPage(BasePage):
         advert.society_name = u'%s' % society_name.replace(a, '').strip()
         advert.contract_type = u'%s' % td[4].text_content().strip()
         advert.place = u'%s' % td[5].text_content()
-        advert.pay = u'%s' % td[7].text_content()
-        advert.experience = u'%s' % td[8].text_content()
+        td_pay = 6
+        if 'class' in td[6].attrib:
+            td_pay = 7
+        advert.pay = u'%s' % td[td_pay].text_content()
+        advert.experience = u'%s' % td[td_pay + 1].text_content()
         advert.url = url
         return advert
