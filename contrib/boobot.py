@@ -149,7 +149,7 @@ class BoobotBrowser(StandardBrowser):
                 h = self.get_document(r, parser='lxml', encoding=encoding)
                 for title in h.xpath('//head/title'):
                     title = to_unicode(title.text_content()).strip()
-                    title = ' '.join(title.splitlines())
+                    title = ' '.join(title.split())
                 if urlparse.urlsplit(url).netloc.endswith('twitter.com'):
                     for title in h.getroot().cssselect('.permalink-tweet .tweet-text'):
                         title = to_unicode(title.text_content()).strip()
