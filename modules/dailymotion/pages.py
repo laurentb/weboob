@@ -94,7 +94,7 @@ class VideoPage(BasePage):
         div = self.parser.select(self.document.getroot(), 'div#content', 1)
 
         video.title = unicode(self.parser.select(div, 'span.title', 1).text).strip()
-        video.author = unicode(self.parser.select(div, 'a.name, span.name', 1).text).strip()
+        video.author = unicode(self.parser.select(div, 'a.name, span.name, a[rel=author]', 1).text).strip()
         try:
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip() or unicode()
         except BrokenPageError:
