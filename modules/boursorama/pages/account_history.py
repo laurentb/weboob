@@ -83,11 +83,11 @@ class AccountHistory(BasePage):
         return self.operations
 
     def get_next_url(self):
-        items = self.document.getroot().cssselect('ul.mainmenu li')
+        items = self.document.getroot().cssselect('ul.menu-lvl-0 li')
 
         current = False
         for li in reversed(items):
-            if li.attrib.get('class', '') == 'selected':
+            if li.attrib.get('class', '') == 'active':
                 current = True
             elif current:
                 a = li.find('a')
