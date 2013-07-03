@@ -122,13 +122,18 @@ class PdfPage():
                 corres = nature + 1
                 duree = corres + 1
                 price = duree + 1
-
                 if "Changement vers le Forfait" in lines[nature]:
                     modif += 1
                     i += 1
                     continue
                 if "Votre solde" in lines[nature]:
                     lines[nature + 1] = "Votre solde " + lines[nature + 1]
+                    dateop = nature + 1
+                    corres = dateop + 1
+                    duree = corres + 1
+                    price = duree + 1
+                    modif -= 1
+                elif len(re.split("(\d+\/\d+\/\d+)", lines[dateop])) < 2:
                     dateop = nature + 1
                     corres = dateop + 1
                     duree = corres + 1
