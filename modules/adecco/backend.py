@@ -21,7 +21,7 @@
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.job import ICapJob
 from .browser import AdeccoBrowser
-
+from .job import AdeccoJobAdvert
 
 __all__ = ['AdeccoBackend']
 
@@ -40,6 +40,11 @@ class AdeccoBackend(BaseBackend, ICapJob):
             for advert in self.browser.search_job(pattern):
                 yield advert
 
-    def get_job_advert(self, _id, advert):
+    def get_job_advert(self, _id, advert=None):
         with self.browser:
             return self.browser.get_job_advert(_id, advert)
+
+    def fill_obj(self, advert, fields):
+        self.get_job_advert(advert.id, advert)
+
+    OBJECTS = {AdeccoJobAdvert: fill_obj}
