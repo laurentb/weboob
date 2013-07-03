@@ -383,9 +383,9 @@ class StandardBrowser(mechanize.Browser):
 
         Example:
 
-        >>> buildurl('/blah.php', ('a', '&'), ('b', '=')
+        >>> StandardBrowser.buildurl('/blah.php', ('a', '&'), ('b', '='))
         '/blah.php?a=%26&b=%3D'
-        >>> buildurl('/blah.php', a='&', 'b'='=')
+        >>> StandardBrowser.buildurl('/blah.php', a='&', b='=')
         '/blah.php?b=%3D&a=%26'
         """
 

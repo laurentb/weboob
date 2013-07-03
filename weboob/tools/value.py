@@ -30,8 +30,7 @@ class ValuesDict(OrderedDict):
     """
     Ordered dictionarry which can take values in constructor.
 
-    >>> ValuesDict(Value('a', label='Test'),
-                   ValueInt('b', label='Test2'))
+    >>> ValuesDict(Value('a', label='Test'), ValueInt('b', label='Test2'))
     """
     def __init__(self, *values):
         OrderedDict.__init__(self)
