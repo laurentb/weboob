@@ -23,11 +23,12 @@ from weboob.tools.value import Value
 from weboob.capabilities.job import ICapJob
 
 from .browser import LolixBrowser
+from .job import LolixJobAdvert
 
 __all__ = ['LolixBackend']
 
 
-class LolixBackend(BaseBackend, BackendConfig, ICapJob):
+class LolixBackend(BaseBackend, ICapJob):
     NAME = 'lolix'
     DESCRIPTION = u'Lolix est un centre de compétences spécialisé dans les technologies à base de Logiciel Libre.'
     MAINTAINER = u'Bezleputh'
@@ -140,6 +141,11 @@ class LolixBackend(BaseBackend, BackendConfig, ICapJob):
                                                   limit_date=self.config['limit_date'].get()):
                 yield advert
 
-    def get_job_advert(self, _id, advert):
+    def get_job_advert(self, _id, advert=None):
         with self.browser:
             return self.browser.get_job_advert(_id, advert)
+
+    def fill_obj(self, advert, fields):
+        self.get_job_advert(advert.id, advert)
+
+    OBJECTS = {LolixJobAdvert: fill_obj}
