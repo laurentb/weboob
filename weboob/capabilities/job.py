@@ -54,9 +54,6 @@ class BaseJobAdvert(CapBaseObject):
         message += u'experience : %s\r\n' % self.experience
         return message
 
-    def __repr__(self):
-        return self.__unicode__()
-
     @classmethod
     def id2url(cls, _id):
         """Overloaded in child classes provided by backends."""
