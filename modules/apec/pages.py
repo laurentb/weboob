@@ -29,7 +29,6 @@ __all__ = ['SearchPage', 'AdvertPage']
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):
-        adverts = []
         re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)', re.DOTALL)
         divs = self.document.getroot().xpath("//div[@class='boxContent offre']") + self.document.getroot().xpath("//div[@class='boxContent offre even']")
         for div in divs:
@@ -42,8 +41,7 @@ class SearchPage(BasePage):
             advert.place = u'%s' % l[-1].strip()
             date = self.parser.select(div, 'div/div/div', 1, method='xpath')
             advert.publication_date = dateutil.parser.parse(date.text_content().strip()[8:]).date()
-            adverts.append(advert)
-        return adverts
+            yield advert
 
 
 class AdvertPage(BasePage):

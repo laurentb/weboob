@@ -70,13 +70,11 @@ class AdvertPage(BasePage):
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):
-        adverts = []
         rows = self.document.getroot().xpath('//td[@class="Contenu"]/table/tr')
         for row in rows:
             cols = self.is_row_advert(row)
             if cols is not None:
-                adverts.append(self.create_job_advert(cols))
-        return adverts
+                yield self.create_job_advert(cols)
 
     def is_row_advert(self, row):
         cols = self.parser.select(row, 'td')

@@ -32,8 +32,6 @@ class SearchPage(BasePage):
         locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
         re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
 
-        adverts = []
-
         divs = self.document.getroot().xpath("//div[@class='resultContain right']") + self.document.getroot().xpath("//div[@class='resultContain left']")
 
         for div in divs:
@@ -49,8 +47,7 @@ class SearchPage(BasePage):
                 advert.publication_date = datetime.strptime(date, "%d %B %Y").date()
                 advert.title = u'%s' % self.parser.select(div, "div/h3/a", 1, method='xpath').text_content()
                 advert.place = u'%s' % self.parser.select(div, "div/h3/span[@class='offreLocalisation']", 1, method='xpath').text
-                adverts.append(advert)
-        return adverts
+                yield advert
 
 
 class AdvertPage(BasePage):
