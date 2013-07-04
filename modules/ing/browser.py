@@ -107,6 +107,9 @@ class Ing(BaseBrowser):
     def get_history(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
+        if account.type != Account.TYPE_CHECKING and\
+                account.type != Account.TYPE_SAVINGS:
+            raise NotImplementedError()
         if self.where != "start":
             self.location(self.accountspage)
         data = {"AJAX:EVENTS_COUNT": 1,
