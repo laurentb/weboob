@@ -30,7 +30,7 @@ __all__ = ['SearchPage', 'AdvertPage']
 class SearchPage(BasePage):
     def iter_job_adverts(self):
         locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-        re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)?$', re.DOTALL)
+        re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
 
         adverts = []
 
@@ -55,7 +55,7 @@ class SearchPage(BasePage):
 
 class AdvertPage(BasePage):
     def get_job_advert(self, url, advert):
-        re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)?$', re.DOTALL)
+        re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
         if advert is None:
             _id = u'%s/%s/%s' % (re_id.search(url).group(1), re_id.search(url).group(2), re_id.search(url).group(3))
             advert = AdeccoJobAdvert(_id)

@@ -33,7 +33,7 @@ class AdeccoBrowser(BaseBrowser):
 
     PAGES = {
         '%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx\?keywords=(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
-        '%s://%s/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)?$' % (PROTOCOL, DOMAIN): AdvertPage,
+        '%s://%s/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
     def search_job(self, pattern):
