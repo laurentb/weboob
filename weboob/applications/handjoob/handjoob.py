@@ -56,21 +56,7 @@ class JobAdvertFormatter(IFormatter):
 
 class JobAdvertListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title')
-    """
-    def format_obj(self, obj, alias):
-        title = self.get_title(obj)
-        desc = self.get_description(obj)
 
-        if desc is None:
-            title = '%s%s%s' % (self.NC, title, self.BOLD)
-
-        result = u'%s* (%s)\n %s%s' % (self.BOLD, obj.fullid, title, self.NC)
-
-        if desc is not None:
-            result += u'\n\t%s' % desc
-
-        return result
-    """
     def get_title(self, obj):
         return '%s' % (obj.title)
 
@@ -100,10 +86,6 @@ class Handjoob(ReplApplication):
     COMMANDS_FORMATTERS = {'search': 'job_advert_list',
                            'info': 'job_advert',
                            }
-
-    def main(self, argv):
-        self.load_config()
-        return ReplApplication.main(self, argv)
 
     def do_search(self, pattern):
         """
