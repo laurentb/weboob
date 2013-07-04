@@ -38,7 +38,7 @@ class AdeccoBrowser(BaseBrowser):
 
     def search_job(self, pattern):
         if pattern is not None:
-            self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s' % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ','+')))
+            self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s' % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ', '+')))
             assert self.is_on_page(SearchPage)
             return self.page.iter_job_adverts()
         else:

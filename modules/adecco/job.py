@@ -24,4 +24,4 @@ class AdeccoJobAdvert(BaseJobAdvert):
     @classmethod
     def id2url(cls, _id):
         splitted_id = _id.split('/')
-	return 'http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/%s/%s.aspx?IOF=%s' % (splitted_id[0], splitted_id[1], splitted_id[2])
+        return 'http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/%s/%s.aspx?IOF=%s' % (splitted_id[0], splitted_id[1], splitted_id[2])
