@@ -20,11 +20,12 @@
 
 from weboob.tools.browser import BasePage
 from .job import AdeccoJobAdvert
-from datetime import datetime
+import datetime
 import locale
 import re
 
 __all__ = ['SearchPage', 'AdvertPage']
+MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
 
 class SearchPage(BasePage):
@@ -44,7 +45,13 @@ class SearchPage(BasePage):
                 advert = AdeccoJobAdvert(_id)
 
                 date = u'%s' % self.parser.select(div, "div/span[@class='offreDatePublication']", 1, method='xpath').text
-                advert.publication_date = datetime.strptime(date, "%d %B %Y").date()
+                m = re.match('(\d{2})\s(.*?)\s(\d{4})', date)
+                if m:
+                    dd = int(m.group(1))
+                    mm = MONTHS.index(m.group(2)) + 1
+                    yyyy = int(m.group(3))
+                    advert.publication_date = datetime.date(yyyy, mm, dd)
+
                 advert.title = u'%s' % self.parser.select(div, "div/h3/a", 1, method='xpath').text_content()
                 advert.place = u'%s' % self.parser.select(div, "div/h3/span[@class='offreLocalisation']", 1, method='xpath').text
                 yield advert
@@ -61,7 +68,12 @@ class AdvertPage(BasePage):
         div = self.document.getroot().xpath("//div[@class='contain_MoreResults']")[0]
 
         date = u'%s' % self.parser.select(div, "div[@class='dateResult']", 1, method='xpath').text.strip()
-        advert.publication_date = datetime.strptime(date, "%d %B %Y").date()
+        m = re.match('(\d{2})\s(.*?)\s(\d{4})', date)
+        if m:
+            dd = int(m.group(1))
+            mm = MONTHS.index(m.group(2)) + 1
+            yyyy = int(m.group(3))
+            advert.publication_date = datetime.date(yyyy, mm, dd)
 
         title = self.parser.select(div, "h1", 1, method='xpath').text_content().strip()
         town = self.parser.select(div, "h1/span[@class='town']", 1, method='xpath').text_content()
