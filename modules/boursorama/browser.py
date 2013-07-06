@@ -44,6 +44,7 @@ class Boursorama(BaseBrowser):
              '.*connexion.phtml.*': LoginPage,
              '.*/comptes/synthese.phtml': AccountsList,
              '.*/comptes/banque/detail/mouvements.phtml.*': AccountHistory,
+             '.*/comptes/epargne/mouvements.phtml.*': AccountHistory,
              '.*/date_anniversaire.phtml.*':    UpdateInfoPage,
             }
 
