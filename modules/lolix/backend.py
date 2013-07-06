@@ -72,7 +72,7 @@ class LolixBackend(BaseBackend, ICapJob):
     }.iteritems())])
 
     poste_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '0': u'-- Indifférent',
+        '0': u'-- Indifférent --',
         '100000000': u'-- Service Technique',
         '100005000': u'-- Administrateur base de données',
         '100004000': u'-- Admin. Système/Réseaux',
@@ -113,12 +113,12 @@ class LolixBackend(BaseBackend, ICapJob):
 
     contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '0': u'-- Indifférent --',
-        '6': u'Alternance',
-        '5': u'Apprentissage',
-        '2': u'CDD',
-        '1': u'CDI',
-        '4': u'Freelance',
-        '3': u'Stage',
+        '60000000': u'Alternance',
+        '50000000': u'Apprentissage',
+        '20000000': u'CDD',
+        '10000000': u'CDI',
+        '40000000': u'Freelance',
+        '30000000': u'Stage',
     }.iteritems())])
 
     limit_date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
@@ -135,9 +135,10 @@ class LolixBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
+            contrat = int(self.config['contrat'].get()) / 10000000
             for advert in self.browser.search_job(region=self.config['region'].get(),
                                                   poste=self.config['poste'].get(),
-                                                  contrat=self.config['contrat'].get(),
+                                                  contrat=contrat,
                                                   limit_date=self.config['limit_date'].get()):
                 yield advert
 
