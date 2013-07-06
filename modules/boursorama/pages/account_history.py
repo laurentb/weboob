@@ -53,13 +53,17 @@ class AccountHistory(BasePage):
             if form.attrib.get('name', '') == 'marques':
                 for tr in form.getiterator('tr'):
                     tds = tr.findall('td')
-                    if len(tds) != 6:
+                    if len(tds) < 5:
                         continue
                     # tds[0]: operation
                     # tds[1]: valeur
                     d = date(*reversed([int(x) for x in tds[1].text.split('/')]))
                     labeldiv = tds[2].find('div')
-                    inputid = tds[5].find('input[@type="hidden"]')
+                    if len(tds) == 6:
+                        inputid = tds[5].find('input[@type="hidden"]')
+                        operation = Transaction(inputid.attrib['id'].split('_')[1])
+                    else:
+                        operation = Transaction(0)
                     label = u''
                     label += labeldiv.text
                     if labeldiv.find('a') is not None:
@@ -72,7 +76,6 @@ class AccountHistory(BasePage):
                     debit = tds[3].text or ""
                     credit = tds[4].text or ""
 
-                    operation = Transaction(inputid.attrib['id'].split('_')[1])
                     operation.parse(date=d, raw=label)
                     operation.set_amount(credit, debit)
                     operation.category = category
