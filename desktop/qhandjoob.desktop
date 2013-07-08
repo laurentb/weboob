@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QHandJoob
+Comment=Search for jobs
+Exec=qhandjoob
+Icon=qhandjoob
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;
