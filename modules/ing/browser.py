@@ -23,7 +23,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
 from .pages import AccountsList, LoginPage, \
                    TransferPage, TransferConfirmPage, \
-                   BillsPage, StopPage
+                   BillsPage, StopPage, TitrePage
 
 
 __all__ = ['Ing']
@@ -43,6 +43,8 @@ class Ing(BaseBrowser):
              '.*transferCreateValidation.jsf': TransferConfirmPage,
              '.*eStatement.jsf':               BillsPage,
              '.*displayCoordonneesCommand.*':  StopPage,
+             '.*portefeuille-TR.*':            TitrePage,
+             '.*compteTempsReelCK.php.*':      TitrePage,
             }
     CERTHASH = "257100e5f69b3c24b27eaaa82951ca5539e9ca264dee433b7c8d4779e778a0b4"
 
@@ -52,6 +54,7 @@ class Ing(BaseBrowser):
     dotransferpage = '/general?command=DisplayDoTransferCommand'
     valtransferpage = '/protected/pages/cc/transfer/create/transferCreateValidation.jsf'
     billpage = '/protected/pages/common/estatement/eStatement.jsf'
+    titrepage = 'https://bourse.ingdirect.fr/priv/portefeuille-TR.php'
     where = None
 
     def __init__(self, *args, **kwargs):
@@ -186,6 +189,28 @@ class Ing(BaseBrowser):
                 return self.page.recap()
         else:
             raise TransferError('Recipient not found')
+
+    def get_investments(self, account):
+        if account.type != Account.TYPE_MARKET:
+            raise NotImplementedError()
+        if self.where != "start":
+            self.location(self.accountspage)
+        data = {"AJAX:EVENTS_COUNT": 1,
+                "AJAXREQUEST": "_viewRoot",
+                "ajaxSingle": "index:setAccount",
+                "autoScroll": "",
+                "index": "index",
+                "index:setAccount": "index:setAccount",
+                "javax.faces.ViewState": account._jid,
+                "cptnbr": account._id
+                }
+        self.location(self.accountspage, urllib.urlencode(data))
+        self.location('https://secure.ingdirect.fr/general?command=goToAccount&zone=COMPTE')
+        self.where = "titre"
+
+        self.location(self.titrepage)
+        self.location('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php')
+        return self.page.iter_investments()
 
     def get_subscriptions(self):
         self.location('/protected/pages/common/estatement/eStatement.jsf')

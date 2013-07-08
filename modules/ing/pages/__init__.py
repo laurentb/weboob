@@ -22,6 +22,7 @@ from .accounts_list import AccountsList
 from .login import LoginPage, StopPage
 from .transfer import TransferPage, TransferConfirmPage
 from .bills import BillsPage
+from .titre import TitrePage
 
 
 class AccountPrelevement(AccountsList):
