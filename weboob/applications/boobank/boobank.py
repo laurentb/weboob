@@ -110,9 +110,12 @@ class TransferFormatter(IFormatter):
 class InvestmentFormatter(IFormatter):
     MANDATORY_FIELDS = ('label', 'quantity', 'unitvalue')
 
+    tot_valuation = Decimal(0)
+    tot_diff = Decimal(0)
+
     def start_format(self, **kwargs):
-        self.output(' Label                       Code       Quantity   Unit Value  Valuation   diff')
-        self.output('---------------------------+----------+----------+-----------+-----------+-----')
+        self.output(' Label                           Code     Quantity   Unit Value  Valuation   diff   ')
+        self.output('-------------------------------+--------+----------+-----------+-----------+--------')
 
     def format_obj(self, obj, alias):
         label = obj.label
@@ -120,8 +123,18 @@ class InvestmentFormatter(IFormatter):
             diff = obj.diff
         else:
             diff = obj.valuation - (obj.quantity * obj.unitprice)
-        return ' %-30s   %-10s %10.2f %10.2f %10.2f %10.2f' %\
-                (label[:30], obj.code[:10] if not empty(obj.code) else '', obj.quantity, obj.unitvalue, obj.valuation, diff)
+        self.tot_diff += diff
+        self.tot_valuation += obj.valuation
+
+        return ' %-30s %-10s %6d %11.2f %11.2f   %8.2f' %\
+                (label[:30], obj.code[:8] if not empty(obj.code) else '', obj.quantity, obj.unitvalue, obj.valuation, diff)
+
+    def flush(self):
+        self.output('-------------------------------+--------+----------+-----------+-----------+--------')
+        self.output(u'                                        Total                    %8s   %8s' %
+                     ('%.2f' % self.tot_valuation, '%.2f' % self.tot_diff))
+        self.tot_valuation = Decimal(0)
+        self.tot_diff = Decimal(0)
 
 
 class RecipientListFormatter(PrettyFormatter):
