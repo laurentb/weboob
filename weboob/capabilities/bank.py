@@ -148,6 +148,19 @@ class Transaction(CapBaseObject):
             label, self.amount)
 
 
+class Investment(CapBaseObject):
+    """
+    Investment in a financial market.
+    """
+
+    label =     StringField('Label of stocks')
+    quantity =  IntField('Quantity of stocks')
+    unitprice = DecimalField('Buy price of one stock')
+    unitvalue = DecimalField('Current value of one stock')
+    valuation = DecimalField('Total current valuation of the Investment')
+    diff =      DecimalField('Difference between the buy cost and the current valuation')
+
+
 class Transfer(CapBaseObject):
     """
     Transfer from an account to a recipient.
@@ -248,5 +261,16 @@ class ICapBank(ICapCollection):
         :type reason: :class:`unicode`
         :rtype: :class:`Transfer`
         :raises: :class:`AccountNotFound`, :class:`TransferError`
+        """
+        raise NotImplementedError()
+
+    def iter_investment(self, account):
+        """
+        Iter investment of a market account
+
+        :param account: account to get investments
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Investment`]
+        :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
