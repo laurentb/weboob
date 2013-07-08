@@ -107,6 +107,22 @@ class TransferFormatter(IFormatter):
             result += u'Reason:     %s\n' % obj.reason
         return result
 
+class InvestmentFormatter(IFormatter):
+    MANDATORY_FIELDS = ('label', 'quantity', 'unitvalue')
+
+    def start_format(self, **kwargs):
+        self.output(' Label                       Code       Quantity   Unit Value  Valuation   diff')
+        self.output('---------------------------+----------+----------+-----------+-----------+-----')
+
+    def format_obj(self, obj, alias):
+        label = obj.label
+        if not empty(obj.diff):
+            diff = obj.diff
+        else:
+            diff = obj.valuation - (obj.quantity * obj.unitprice)
+        return ' %-30s   %-10s %10.2f %10.2f %10.2f %10.2f' %\
+                (label[:30], obj.code[:10] if not empty(obj.code) else '', obj.quantity, obj.unitvalue, obj.valuation, diff)
+
 
 class RecipientListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'label')
@@ -166,6 +182,7 @@ class Boobank(ReplApplication):
                         'qif':            QifFormatter,
                         'pretty_qif':     PrettyQifFormatter,
                         'ops_list':       TransactionsFormatter,
+                        'investment_list': InvestmentFormatter,
                        }
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
@@ -173,6 +190,7 @@ class Boobank(ReplApplication):
                            'transfer':    'transfer',
                            'history':     'ops_list',
                            'coming':      'ops_list',
+                           'investment':  'investment_list',
                           }
     COLLECTION_OBJECTS = (Account, Transaction, )
 
@@ -286,4 +304,20 @@ class Boobank(ReplApplication):
         self.start_format()
         for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
             self.format(transfer)
+        self.flush()
+
+    def do_investment(self, id):
+        """
+        investment ID
+
+        Display investments of an account.
+        """
+        account = self.get_object(id, 'get_account', [])
+        if not account:
+            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            return 2
+
+        self.start_format()
+        for backend, investment in self.do('iter_investment', account, backends=account.backend):
+            self.format(investment)
         self.flush()
