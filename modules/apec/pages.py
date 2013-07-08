@@ -54,18 +54,26 @@ class AdvertPage(BasePage):
 
         advert.description = self.document.getroot().xpath("//div[@class='contentWithDashedBorderTop marginTop boxContent']/div")[0].text_content()
 
-        td = self.document.getroot().xpath("//table[@class='noFieldsTable']/tr/td")
         advert.job_name = advert.title
-        advert.publication_date = dateutil.parser.parse(td[2].text_content()).date()
-        society_name = td[3].text_content()
-        a = self.parser.select(td[3], 'a', 1, method='xpath').text_content()
-        advert.society_name = u'%s' % society_name.replace(a, '').strip()
-        advert.contract_type = u'%s' % td[4].text_content().strip()
-        advert.place = u'%s' % td[5].text_content()
-        td_pay = 6
-        if 'class' in td[6].attrib:
-            td_pay = 7
-        advert.pay = u'%s' % td[td_pay].text_content()
-        advert.experience = u'%s' % td[td_pay + 1].text_content()
+
+        trs = self.document.getroot().xpath("//table[@class='noFieldsTable']/tr")
+        for tr in trs:
+            th = self.parser.select(tr, 'th', 1, method='xpath')
+            td = self.parser.select(tr, 'td', 1, method='xpath')
+            if u'Date de publication' in u'%s' % th.text_content():
+                advert.publication_date = dateutil.parser.parse(td.text_content()).date()
+            elif u'Société' in u'%s' % th.text_content():
+                society_name = td.text_content()
+                a = self.parser.select(td, 'a', 1, method='xpath').text_content()
+                advert.society_name = u'%s' % society_name.replace(a, '').strip()
+            elif u'Type de contrat' in u'%s' % th.text_content():
+                advert.contract_type = u'%s' % td.text_content().strip()
+            elif u'Lieu' in u'%s' % th.text_content():
+                advert.place = u'%s' % td.text_content()
+            elif u'Salaire' in u'%s' % th.text_content():
+                advert.pay = u'%s' % td.text_content()
+            elif u'Expérience' in u'%s' % th.text_content():
+                advert.experience = u'%s' % td.text_content()
+
         advert.url = url
         return advert
