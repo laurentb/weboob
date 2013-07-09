@@ -169,7 +169,7 @@ class TransferConfirmPage(BasePage):
         confirmform = None
         for form in self.document.xpath('//form'):
             try:
-                if form.attrib['name'][0:4] == "j_id":
+                if form.attrib['name'][0:4] == "j_id" and 'enctype' not in form.attrib:
                     confirmform = form
                     break
             except:
