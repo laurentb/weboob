@@ -240,7 +240,6 @@ class Boobank(ReplApplication):
         self.start_format()
         for backend, transaction in self.do('iter_history', account, backends=account.backend):
             self.format(transaction)
-        self.flush()
 
     def complete_coming(self, text, line, *ignored):
         args = line.split(' ')
@@ -333,4 +332,3 @@ class Boobank(ReplApplication):
         self.start_format()
         for backend, investment in self.do('iter_investment', account, backends=account.backend):
             self.format(investment)
-        self.flush()
