@@ -19,13 +19,24 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.bank import Account
 
 
 class INGTest(BackendTest):
     BACKEND = 'ing'
 
-    def test_ing(self):
+    def test_accounts(self):
         l = list(self.backend.iter_accounts())
-        if len(l) > 0:
-            a = l[0]
-            list(self.backend.iter_history(a))
+        for account in l:
+            if account.type == Account.TYPE_CHECKING or account.type == Account.TYPE_CHECKING:
+                history = list(self.backend.iter_history(account))
+                self.assertTrue(len(history) > 0)
+            elif account.type == Account.TYPE_MARKET:
+                invest = list(self.backend.iter_investment(account))
+                self.assertTrue(len(invest) > 0)
+
+    def test_subscriptions(self):
+        l = list(self.backend.iter_subscription())
+        for sub in l:
+            bills = list(self.backend.iter_bills(sub))
+            self.assertTrue(len(bills) > 0)
