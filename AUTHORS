@@ -93,7 +93,8 @@ Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance module maintainer.
 
 Bezleputh <carton_ben@yahoo.fr>
-        * vlille and grooveshark modules maintainer.
+        * vlille, grooveshark, adecco, apec and lolix modules maintainer.
+        * handjoob application.
 
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
@@ -180,7 +181,7 @@ Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.
 
 David Jeanneteau <david.jeanneteau@gmail.com>
-        * Fix on ING an icon of ING
+        * Fix on ING and icon of ING
 
 Juliette Stehlé <juliette.stehle@gmail.com>
         * Enable LDD and PEL accounts on Boursorama
