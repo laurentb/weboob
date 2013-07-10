@@ -111,14 +111,18 @@ class LolixBackend(BaseBackend, ICapJob):
         '5000000': u'-- Traducteur',
     }.iteritems())])
 
+    '''
+        '000000' in order to display description in console question
+        the rule is  : len(key) > 5 or ' ' in key:
+    '''
     contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '0': u'-- Indifférent --',
-        '60000000': u'Alternance',
-        '50000000': u'Apprentissage',
-        '20000000': u'CDD',
-        '10000000': u'CDI',
-        '40000000': u'Freelance',
-        '30000000': u'Stage',
+        '000000': u'-- Indifférent --',
+        '6': u'Alternance',
+        '5': u'Apprentissage',
+        '2': u'CDD',
+        '1': u'CDI',
+        '4': u'Freelance',
+        '3': u'Stage',
     }.iteritems())])
 
     limit_date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
@@ -135,10 +139,9 @@ class LolixBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            contrat = int(self.config['contrat'].get()) / 10000000
             for advert in self.browser.search_job(region=self.config['region'].get(),
                                                   poste=self.config['poste'].get(),
-                                                  contrat=contrat,
+                                                  contrat=int(self.config['contrat'].get()),
                                                   limit_date=self.config['limit_date'].get()):
                 yield advert
 
