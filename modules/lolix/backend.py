@@ -139,11 +139,12 @@ class LolixBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            for advert in self.browser.search_job(region=self.config['region'].get(),
-                                                  poste=self.config['poste'].get(),
-                                                  contrat=int(self.config['contrat'].get()),
-                                                  limit_date=self.config['limit_date'].get()):
-                yield advert
+            if not pattern:
+                for advert in self.browser.search_job(region=self.config['region'].get(),
+                                                      poste=self.config['poste'].get(),
+                                                      contrat=int(self.config['contrat'].get()),
+                                                      limit_date=self.config['limit_date'].get()):
+                    yield advert
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:
