@@ -23,6 +23,7 @@ from weboob.tools.browser import BaseBrowser
 from .pages import SearchPage, AdvertPage
 from .job import ApecJobAdvert
 
+
 __all__ = ['ApecBrowser']
 
 
@@ -32,17 +33,29 @@ class ApecBrowser(BaseBrowser):
     ENCODING = None
 
     PAGES = {
+        'http://cadres.apec.fr/liste-offres-emploi-cadres/8_0___(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_offre-d-emploi.html': SearchPage,
         'http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp\?keywords=(.*?)': SearchPage,
         'http://cadres.apec.fr/offres-emploi-cadres/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)': AdvertPage,
     }
 
-    def search_job(self, pattern):
-        if pattern is not None:
-            self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s' % pattern.replace(' ','+'))
-            assert self.is_on_page(SearchPage)
-            return self.page.iter_job_adverts()
+    def search_job(self, pattern=None, region=None, fonction=None, secteur=None, salaire=None, contrat=None, limit_date=None, level=None):
+        if pattern:
+            self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
+                          % pattern.replace(' ', '+'))
         else:
-            return []
+            self.location(
+                'http://cadres.apec.fr/liste-offres-emploi-cadres/8_0___%s_%s_%s_%s_%s_%s_%s_offre-d-emploi.html'
+                % (
+                    region,
+                    fonction,
+                    secteur,
+                    salaire,
+                    level,
+                    limit_date,
+                    contrat
+                ))
+        assert self.is_on_page(SearchPage)
+        return self.page.iter_job_adverts()
 
     @id2url(ApecJobAdvert.id2url)
     def get_job_advert(self, url, advert):

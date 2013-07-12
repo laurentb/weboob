@@ -29,13 +29,13 @@ __all__ = ['SearchPage', 'AdvertPage']
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):
-        re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)', re.DOTALL)
+        re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?).html', re.DOTALL)
         divs = self.document.getroot().xpath("//div[@class='boxContent offre']") + self.document.getroot().xpath("//div[@class='boxContent offre even']")
         for div in divs:
             a = self.parser.select(div, 'div/h3/a', 1, method='xpath')
-            _id = u'%s/%s' % (re_id_title.search(a.attrib['href']).group(1), re_id_title.search(a.attrib['href']).group(2))
+            _id = u'%s/%s' % (re_id_title.search(a.attrib['href']).group(1), re_id_title.search(a.attrib['href']).group(9))
             advert = ApecJobAdvert(_id)
-            advert.title = u'%s' % re_id_title.search(a.attrib['href']).group(2).replace('-', ' ')
+            advert.title = u'%s' % re_id_title.search(a.attrib['href']).group(9).replace('-', ' ')
             l = self.parser.select(div, 'h4', 1).text.split('-')
             advert.society_name = u'%s' % l[0].strip()
             advert.place = u'%s' % l[-1].strip()
