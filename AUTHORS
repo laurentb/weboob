@@ -46,6 +46,10 @@ François Revol <revol@free.fr>
         * Europarl, GDCVault and Vimeo modules maintainer.
         * Canaplus and qvideoob fixes
 
+Benjamin Carton <carton_ben@yahoo.fr>
+        * vlille, grooveshark, adecco, apec and lolix modules maintainer.
+        * handjoob application.
+
 Pierre Mazière <pierre.maziere@gmx.com>
         * LCL module maintainer;
         * BNPorc fixes.
@@ -77,6 +81,12 @@ Lord <lord@lordtoniok.com>
 Lucien Loiseau <loiseau.lucien@gmail.com>
         * GoogleTranslate module maintainer.
 
+Christophe Lampin <weboob@lampin.net>
+        * HelloBank module maintainer.
+
+Sébastien Monel <sebastien.monel@gmail.com>
+        * QHandJoob application.
+
 Arno Renevier <arno@renevier.net>
         * Weather module maintainer.
 
@@ -86,15 +96,8 @@ Jocelyn Jaubert <jocelyn.jaubert@gmail.com>
 Johann Broudin <johann.broudin@6-8.fr>
         * CMB module maintainer.
 
-Benjamin CARTON <carton_ben@yahoo.fr>
-        * Grooveshark module maintainer.
-
 Cedric Defortis <cedric@aiur.fr>
         * MeteoFrance module maintainer.
-
-Bezleputh <carton_ben@yahoo.fr>
-        * vlille, grooveshark, adecco, apec and lolix modules maintainer.
-        * handjoob application.
 
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
