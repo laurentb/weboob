@@ -30,4 +30,4 @@ class AccountPrelevement(AccountsList):
 
 __all__ = ['AccountsList', 'LoginPage',
            'AccountPrelevement', 'TransferPage', 'TransferConfirmPage',
-           'BillsPage', 'StopPage']
+           'BillsPage', 'StopPage', 'TitrePage']

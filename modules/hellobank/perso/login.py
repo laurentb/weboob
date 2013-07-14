@@ -21,13 +21,12 @@
 
 import time
 import re
-from weboob.tools.mech import ClientForm
-import urllib
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
 
-__all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
+
+__all__ = ['LoginPage', 'ConfirmPage', 'InfoMessagePage']
 
 
 class HelloBankVirtKeyboard(VirtKeyboard):
@@ -60,7 +59,7 @@ class HelloBankVirtKeyboard(VirtKeyboard):
         coords["08"] = (185,100,203,121)
         coords["09"] = (262,100,280,121)
         coords["10"] = (339,100,357,121)
-		
+
         VirtKeyboard.__init__(self,basepage.browser.openurl(self.url % time.time()),coords,self.color)
         self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
@@ -90,7 +89,7 @@ class LoginPage(BasePage):
         except VirtKeyboardError,err:
             self.logger.error("Error: %s"%err)
             return False
-			
+
         self.browser.select_form('logincanalnet')
         self.browser.set_all_readonly(False)
         self.browser['ch1'] = login.encode('utf-8')

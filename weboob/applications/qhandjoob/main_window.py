@@ -17,15 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt4.QtGui import QListWidgetItem, QImage, QPixmap, QLabel, QIcon, QBrush, QColor
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtGui import QListWidgetItem
+from PyQt4.QtCore import SIGNAL
 
-from decimal import Decimal
-
-from weboob.tools.application.qt import QtMainWindow, QtDo, HTMLDelegate
+from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
-from weboob.capabilities.job import ICapJob, BaseJobAdvert
-from weboob.capabilities.base import NotLoaded, NotAvailable
+from weboob.capabilities.job import ICapJob
 
 from .ui.main_window_ui import Ui_MainWindow
 
@@ -86,7 +83,7 @@ class MainWindow(QtMainWindow):
         QtMainWindow.closeEvent(self, event)
 
     def backendsConfig(self):
-	bckndcfg = BackendCfg(self.weboob, (ICapJob,), self)
+        bckndcfg = BackendCfg(self.weboob, (ICapJob,), self)
         if bckndcfg.run():
             pass
 

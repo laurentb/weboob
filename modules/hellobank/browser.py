@@ -22,7 +22,6 @@
 import urllib
 import mechanize
 from datetime import datetime
-from logging import warning
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.capabilities.bank import TransferError, Transfer
@@ -84,14 +83,14 @@ class HelloBank(BaseBrowser):
             now = datetime.now()
             self.location('/NS_VIRDF?Origine=DSP_VIR&stp=%s' % now.strftime("%Y%m%d%H%M%S"))
 
-        accounts = self.page.get_accounts()  
+        accounts = self.page.get_accounts()
         if len(accounts) == 0:
             print 'no accounts'
             # oops, no accounts? check if we have not exhausted the allowed use
             # of this password
             for img in self.document.getroot().cssselect('img[align="middle"]'):
                 if img.attrib.get('alt', '') == 'Changez votre code secret':
-                    raise BrowserPasswordExpired('Your password has expired')        
+                    raise BrowserPasswordExpired('Your password has expired')
         self.location('/NSFR?Action=DSP_VGLOBALE')
         return self.page.get_list(accounts)
 
@@ -108,7 +107,7 @@ class HelloBank(BaseBrowser):
     def get_IBAN_from_account(self, account):
         self.go_to_history_page(account)
         return self.page.get_IBAN()
-        
+
     def go_to_history_page(self,account):
         if account._link_id is None:
             return iter([])
@@ -127,17 +126,17 @@ class HelloBank(BaseBrowser):
                 'pageId': 'releveoperations',
                 'sendEUD': 'true',
                 }
-        self.location('/udc', urllib.urlencode(data))    
-            
+        self.location('/udc', urllib.urlencode(data))
+
         return None
-            
+
     def go_to_coming_operations_page(self,account):
         if account._link_id is None:
             return iter([])
 
         if not self.is_on_page(AccountsList):
             self.location('/NSFR?Action=DSP_VGLOBALE')
-            
+
         data = {'gt': 'homepage:basic-theme',
                 'externalIAId': 'IAStatements',
                 'cboFlowName': 'flow/iastatement',
@@ -149,10 +148,10 @@ class HelloBank(BaseBrowser):
                 'pageId': 'mouvementsavenir',
                 'sendEUD': 'true',
                }
-        self.location('/udc', urllib.urlencode(data))    
-            
+        self.location('/udc', urllib.urlencode(data))
+
         return None
-                   
+
     def iter_history(self, account):
         self.go_to_history_page(account)
         return self.page.iter_operations()
@@ -178,7 +177,7 @@ class HelloBank(BaseBrowser):
         html, [("Content-Type", "text/html")],
         "https://client.hellobank.fr/NS_VIRDF", 200, "OK")
         self.set_response(response)
-        
+
         accounts = self.page.get_accounts()
         self.page.transfer(from_id, to_id, amount, reason)
 

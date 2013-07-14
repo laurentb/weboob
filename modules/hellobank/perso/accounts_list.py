@@ -19,15 +19,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 from decimal import Decimal
 
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
-from weboob.tools.browser import BasePage, BrokenPageError, BrowserPasswordExpired
+from weboob.tools.browser import BasePage, BrowserPasswordExpired
 from weboob.tools.json import json
-import unicodedata as ud
+
 
 __all__ = ['AccountsList', 'AccountPrelevement']
 
@@ -43,7 +40,7 @@ class AccountsList(BasePage):
 
     def on_loaded(self):
         pass
-      
+
     def get_list(self, accounts_ids):
         l = []
         # Read the json data
@@ -60,13 +57,13 @@ class AccountsList(BasePage):
                 account.type = self.ACCOUNT_TYPES.get(id_famille, Account.TYPE_UNKNOWN)
                 account.id = 0
                 account._link_id = 'KEY'+compte['key']
-                
+
                 # IBAN aren't in JSON
                 # Fast method, get it from transfer page.
                 for i,a in accounts_ids.items():
                     if a.label == account.label:
                         account.id = i
-                # But it's doesn't work with LOAN and MARKET, so use slow method : Get it from transaction page.        
+                # But it's doesn't work with LOAN and MARKET, so use slow method : Get it from transaction page.
                 if account.id == 0:
                     account.id = self.browser.get_IBAN_from_account(account)
                 l.append(account)
