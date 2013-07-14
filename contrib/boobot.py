@@ -191,9 +191,9 @@ class MyThread(Thread):
     def find_keywords(self, text):
         for word in [
             'weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
-            'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob',
+            'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', 'handjoob',
             'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
-            'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'ass2m',
+            'webcontentedit', 'weboorrents', u'sàt', u'salut à toi', 'assnet',
                 'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
             if word in text.lower():
                 return word
