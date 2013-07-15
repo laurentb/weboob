@@ -28,7 +28,7 @@ __all__ = ['VlilleBackend']
 
 class VlilleBackend(BaseBackend, ICapGauge):
     NAME = 'vlille'
-    DESCRIPTION = u'accès aux données vlille'
+    DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '0.g'
