@@ -196,7 +196,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
             return id, backend_name
 
-    def get_object(self, _id, method, fields=None):
+    def get_object(self, _id, method, fields=None, caps=None):
         if self.interactive:
             try:
                 obj = self.objects[int(_id) - 1]
@@ -210,8 +210,11 @@ class ReplApplication(Cmd, ConsoleApplication):
                     self.bcall_error_handler(backend, e, '')
 
         _id, backend_name = self.parse_id(_id)
+        kargs = {}
+        if caps is not None:
+            kargs = {'caps': caps}
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
-        for backend, obj in self.do(method, _id, backends=backend_names, fields=fields):
+        for backend, obj in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
             if obj:
                 return obj
 
