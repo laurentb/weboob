@@ -36,6 +36,7 @@ class Cragr(BaseBrowser):
 
     PAGES = {'https?://[^/]+/':                                          HomePage,
              'https?://[^/]+/stb/entreeBam':                             LoginPage,
+             'https?://[^/]+/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*': LoginPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthcomptes':         AccountsPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Synthepargnes':        SavingsPage,
              'https?://[^/]+/stb/.*act=Releves.*':                       TransactionsPage,
