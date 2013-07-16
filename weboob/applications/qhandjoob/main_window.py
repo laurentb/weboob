@@ -57,6 +57,7 @@ class MainWindow(QtMainWindow):
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
         self.connect(self.ui.searchEdit, SIGNAL('returnPressed()'), self.doSearch)
         self.connect(self.ui.jobList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.jobSelected)
+        self.connect(self.ui.searchButton, SIGNAL('clicked()'), self.doSearch)
 
         if self.weboob.count_backends() == 0:
             self.backendsConfig()

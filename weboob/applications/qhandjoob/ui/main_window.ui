@@ -35,7 +35,18 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QLineEdit" name="searchEdit"/>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLineEdit" name="searchEdit"/>
+          </item>
+          <item>
+           <widget class="QToolButton" name="searchButton">
+            <property name="text">
+             <string>search</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QListWidget" name="jobList">
@@ -405,6 +416,7 @@
   <tabstop>jobList</tabstop>
   <tabstop>descriptionEdit</tabstop>
   <tabstop>searchEdit</tabstop>
+  <tabstop>searchButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>
