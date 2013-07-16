@@ -229,11 +229,11 @@ class Cineoob(ReplApplication):
         """
         id1, id2 = self.parse_command_args(line, 2, 1)
 
-        person1 = self.get_object(id1, 'get_person')
+        person1 = self.get_object(id1, 'get_person', caps=ICapCinema)
         if not person1:
             print >>sys.stderr, 'Person not found: %s' % id1
             return 3
-        person2 = self.get_object(id2, 'get_person')
+        person2 = self.get_object(id2, 'get_person', caps=ICapCinema)
         if not person2:
             print >>sys.stderr, 'Person not found: %s' % id2
             return 3
@@ -252,7 +252,7 @@ class Cineoob(ReplApplication):
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
-            movie = self.get_object(common, 'get_movie')
+            movie = self.get_object(common, 'get_movie', caps=ICapCinema)
             if movie:
                 self.cached_format(movie)
         self.flush()
@@ -266,11 +266,11 @@ class Cineoob(ReplApplication):
         id1, id2 = self.parse_command_args(line, 2, 1)
         self.flush()
 
-        movie1 = self.get_object(id1, 'get_movie')
+        movie1 = self.get_object(id1, 'get_movie', caps=ICapCinema)
         if not movie1:
             print >>sys.stderr, 'Movie not found: %s' % id1
             return 3
-        movie2 = self.get_object(id2, 'get_movie')
+        movie2 = self.get_object(id2, 'get_movie', caps=ICapCinema)
         if not movie2:
             print >>sys.stderr, 'Movie not found: %s' % id2
             return 3
@@ -289,7 +289,7 @@ class Cineoob(ReplApplication):
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
-            person = self.get_object(common, 'get_person')
+            person = self.get_object(common, 'get_person', caps=ICapCinema)
             self.cached_format(person)
         self.flush()
 
@@ -299,7 +299,7 @@ class Cineoob(ReplApplication):
 
         Get information about a movie.
         """
-        movie = self.get_object(id, 'get_movie')
+        movie = self.get_object(id, 'get_movie', caps=ICapCinema)
 
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
@@ -315,7 +315,7 @@ class Cineoob(ReplApplication):
 
         Get information about a person.
         """
-        person = self.get_object(id, 'get_person')
+        person = self.get_object(id, 'get_person', caps=ICapCinema)
 
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
@@ -364,7 +364,7 @@ class Cineoob(ReplApplication):
         """
         movie_id, role = self.parse_command_args(line, 2, 1)
 
-        movie = self.get_object(movie_id, 'get_movie')
+        movie = self.get_object(movie_id, 'get_movie', caps=ICapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -382,7 +382,7 @@ class Cineoob(ReplApplication):
         """
         person_id, role = self.parse_command_args(line, 2, 1)
 
-        person = self.get_object(person_id, 'get_person')
+        person = self.get_object(person_id, 'get_person', caps=ICapCinema)
         if not person:
             print >>sys.stderr, 'Person not found: %s' % id
             return 3
@@ -397,7 +397,7 @@ class Cineoob(ReplApplication):
 
         Show the complete biography of a person.
         """
-        person = self.get_object(person_id, 'get_person', ('name', 'biography'))
+        person = self.get_object(person_id, 'get_person', ('name', 'biography'), caps=ICapCinema)
         if not person:
             print >>sys.stderr, 'Person not found: %s' % person_id
             return 3
@@ -420,7 +420,7 @@ class Cineoob(ReplApplication):
         """
         id, country = self.parse_command_args(line, 2, 1)
 
-        movie = self.get_object(id, 'get_movie', ('original_title'))
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -450,7 +450,7 @@ class Cineoob(ReplApplication):
         Get information about a torrent.
         """
 
-        torrent = self.get_object(id, 'get_torrent')
+        torrent = self.get_object(id, 'get_torrent', caps=ICapTorrent)
         if not torrent:
             print >>sys.stderr, 'Torrent not found: %s' % id
             return 3
@@ -528,7 +528,7 @@ class Cineoob(ReplApplication):
 
         Search torrents of movie_ID.
         """
-        movie = self.get_object(id, 'get_movie', ('original_title'))
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
@@ -558,7 +558,7 @@ class Cineoob(ReplApplication):
         Get information about a subtitle.
         """
 
-        subtitle = self.get_object(id, 'get_subtitle')
+        subtitle = self.get_object(id, 'get_subtitle', caps=ICapCinema)
         if not subtitle:
             print >>sys.stderr, 'Subtitle not found: %s' % id
             return 3
@@ -672,7 +672,7 @@ class Cineoob(ReplApplication):
         ----------------------
         """
         language, id = self.parse_command_args(line, 2, 2)
-        movie = self.get_object(id, 'get_movie', ('original_title'))
+        movie = self.get_object(id, 'get_movie', ('original_title'), caps=ICapCinema)
         if not movie:
             print >>sys.stderr, 'Movie not found: %s' % id
             return 3
