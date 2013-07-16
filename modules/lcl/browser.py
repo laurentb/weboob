@@ -39,6 +39,7 @@ class LCLBrowser(BaseBrowser):
     PAGES = {
         'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
