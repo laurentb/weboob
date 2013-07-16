@@ -21,7 +21,7 @@ from weboob.tools.browser.decorators import id2url
 from weboob.tools.browser import BaseBrowser
 from .job import AdeccoJobAdvert
 from .pages import SearchPage, AdvertPage
-
+import urllib
 
 __all__ = ['AdeccoBrowser']
 
@@ -32,17 +32,24 @@ class AdeccoBrowser(BaseBrowser):
     ENCODING = None
 
     PAGES = {
-        '%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx\?keywords=(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
+        '%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?(.*)$' % (PROTOCOL, DOMAIN): SearchPage,
         '%s://%s/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
-    def search_job(self, pattern):
-        if pattern is not None:
+    def search_job(self, pattern = None, publication_date = None, conty = None, region = None, job_category = None, activity_domain = None):
+        if pattern:
             self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s' % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ', '+')))
-            assert self.is_on_page(SearchPage)
-            return self.page.iter_job_adverts()
-        else:
-            return []
+	else:
+            data = {
+                'publicationDate': publication_date,
+                'department' : conty,
+                'region' : region,
+                'jobCategory' : job_category,
+                'activityDomain' : activity_domain,
+            }
+            self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?%s' % (self.PROTOCOL, self.DOMAIN, urllib.urlencode(data)))
+        assert self.is_on_page(SearchPage)
+        return self.page.iter_job_adverts()
 
     @id2url(AdeccoJobAdvert.id2url)
     def get_job_advert(self, url, advert):
