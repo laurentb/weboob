@@ -33,7 +33,7 @@ class StartPage(BasePage):
     def get_sensors_list(self):
         paraphs = self.document.xpath('//p[@align="center"]')
         sensors = []
-        for i in range(len(paraphs) - 1):
+        for i in range(len(paraphs)):
             sensor = GaugeSensor("dd-%s" % self.name[i].lower())
             sensor.name = self.name[i]
             sensor.unit = self.unit[i]
