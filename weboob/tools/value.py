@@ -53,6 +53,7 @@ class Value(object):
     :param regexp: if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
     :type regexp: str
     :param choices: if this parameter is set, the value must be in the list
+    :param tiny: the value of choices can be entered by an user (as they are small)
     :type choices: (list,dict)
     """
 
@@ -68,6 +69,7 @@ class Value(object):
         self.choices = kwargs.get('choices', None)
         if isinstance(self.choices, (list, tuple)):
             self.choices = dict(((v, v) for v in self.choices))
+        self.tiny = kwargs.get('tiny', None)
         self.masked = kwargs.get('masked', False)
         self.required = kwargs.get('required', self.default is None)
         self._value = kwargs.get('value', None)

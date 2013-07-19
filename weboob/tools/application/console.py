@@ -346,7 +346,7 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, 'Backend "%s" already exists.' % name
             return 1
 
-    def ask(self, question, default=None, masked=False, regexp=None, choices=None):
+    def ask(self, question, default=None, masked=False, regexp=None, choices=None, tiny=None):
         """
         Ask a question to user.
 
@@ -355,6 +355,7 @@ class ConsoleApplication(BaseApplication):
         @param masked  if True, do not show typed text (bool)
         @param regexp  text must match this regexp (str)
         @param choices  choices to do (list)
+        @param tiny  ask for the (small) value of the choice (bool)
         @return  entered text by user (str)
         """
 
@@ -368,6 +369,8 @@ class ConsoleApplication(BaseApplication):
                 v.regexp = regexp
             if choices:
                 v.choices = choices
+            if tiny:
+                v.tiny = tiny
         else:
             if isinstance(default, bool):
                 klass = ValueBool
@@ -378,7 +381,7 @@ class ConsoleApplication(BaseApplication):
             else:
                 klass = Value
 
-            v = klass(label=question, default=default, masked=masked, regexp=regexp, choices=choices)
+            v = klass(label=question, default=default, masked=masked, regexp=regexp, choices=choices, tiny=tiny)
 
         question = v.label
         if v.id:
@@ -388,15 +391,18 @@ class ConsoleApplication(BaseApplication):
         if isinstance(v, ValueBool):
             question = u'%s (%s/%s)' % (question, 'Y' if v.default else 'y', 'n' if v.default else 'N')
         elif v.choices:
-            tiny = True
-            for key in v.choices.iterkeys():
-                if len(key) > 5 or ' ' in key:
-                    tiny = False
-                    break
+            if v.tiny is None:
+                v.tiny = True
+                for key in v.choices.iterkeys():
+                    if len(key) > 5 or ' ' in key:
+                        v.tiny = False
+                        break
 
-            if tiny:
+            if v.tiny:
                 question = u'%s (%s)' % (question, '/'.join((s.upper() if s == v.default else s)
                                                             for s in (v.choices.iterkeys())))
+                for key, value in v.choices.iteritems():
+                    print '%s%s%s: %s' % (self.BOLD, key, self.NC, value)
             else:
                 for n, (key, value) in enumerate(v.choices.iteritems()):
                     print '%s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
