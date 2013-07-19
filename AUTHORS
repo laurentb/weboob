@@ -83,6 +83,7 @@ Lucien Loiseau <loiseau.lucien@gmail.com>
 
 Christophe Lampin <weboob@lampin.net>
         * HelloBank module maintainer.
+        * Patchs on cragr and freemobile
 
 Sébastien Monel <sebastien.monel@gmail.com>
         * QHandJoob application.
@@ -188,9 +189,6 @@ David Jeanneteau <david.jeanneteau@gmail.com>
 
 Juliette Stehlé <juliette.stehle@gmail.com>
         * Enable LDD and PEL accounts on Boursorama
-
-Kitof <git@kitof.net>
-        * Patch on freemobile
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
