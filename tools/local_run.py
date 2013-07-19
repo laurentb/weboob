@@ -19,7 +19,9 @@ if not os.path.isdir(wd):
 env = os.environ.copy()
 env['PYTHONPATH'] = project
 env['WEBOOB_WORKDIR'] = wd
-env['WEBOOB_BACKENDS'] = os.path.expanduser('~/.config/weboob/backends')
+env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
+                                   os.getenv('WEBOOB_BACKENDS',
+                                             os.path.expanduser('~/.config/weboob/backends')))
 
 with open(os.path.join(wd, 'sources.list'), 'w') as f:
     f.write("file://%s\n" % os.path.join(project, 'modules'))
