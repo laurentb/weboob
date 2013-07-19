@@ -81,11 +81,11 @@ class OperationsPage(BasePage):
             operation = Transaction(i)
 
             date = line.xpath('.//td[@class="nlb d"]')[0].text_content().strip()
-            raw = line.xpath('.//td[@class="t"]')[0].text_content().strip()
+            raw = self.parser.tocleanstring(line.xpath('.//td[@class="t"]')[0])
 
             amounts = line.xpath('.//td[@class="n"]')
             [debit, credit] = [amount.text_content().strip()
-                               for amount in line.xpath('.//td[@class="n"]')]
+                               for amount in amounts]
 
             operation.parse(date=date, raw=raw)
             operation.set_amount(credit, debit)
