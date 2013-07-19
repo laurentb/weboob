@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import ifilter
-
 from weboob.capabilities.bank import ICapBank
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -53,8 +51,4 @@ class DelubacBackend(BaseBackend, ICapBank):
 
     def iter_history(self, account, coming=False):
         with self.browser:
-            return ifilter(lambda tr: coming == tr._is_coming,
-                           self.browser.iter_history(account))
-
-    #def iter_coming(self, account):
-    #    return self.iter_history(account, coming=True)
+            return self.browser.iter_history(account)

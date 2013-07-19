@@ -30,7 +30,6 @@ __all__ = ['LoginPage', 'DashboardPage', 'OperationsPage']
 
 
 class LoginPage(BasePage):
-
     def login(self, username, password):
         self.browser.select_form(name="frmLogin")
         self.browser['username'] = username
@@ -105,5 +104,3 @@ class Transaction(FrenchTransaction):
                  FrenchTransaction.TYPE_CHECK),
                 (re.compile('^RCH (?P<text>.*)'),
                  FrenchTransaction.TYPE_DEPOSIT)]
-
-    _is_coming = False
