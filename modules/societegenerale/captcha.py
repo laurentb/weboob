@@ -94,7 +94,19 @@ class Tile(object):
             '11e7d4a6d447e66a5a112c1d9f7fc442': 8,
             '2ea3c82768030d91571d360acf7a0f75': 9,
             '28a834ebbf0238b46d3fffae1a0b781b': 0,
-            '04211db029ce488e07010f618a589c71': -1
+            '04211db029ce488e07010f618a589c71': -1,
+
+            '9a1bdf493d4067e98d3f364586c81e9d': 1,
+            '932032493860463bb4a3df7c99a900ad': 2,
+            '59cd90f1fa0b416ecdb440bc16d0b8e7': 3,
+            '53fe822c5efebe5f6fdef0f272c29638': 4,
+            '2082a9c830c0c7c9c22e9c809c6cadf7': 5,
+            '7f24aa97f0037bddcf2a4c8c2dbf5948': 6,
+            '725b6f11f44ecc2e9f6e79e86e3a82a5': 7,
+            '61d57da23894b96fab11f7b83c055bba': 8,
+            '18f6290c1cfaecadc5992e7ef6047a49': 9,
+            '1ce77709ec1d7475685d7b50d6f1c89e': 0,
+            '6718858a509fff4b86604f3096cf65e1': -1,
            }
 
     def __init__(self, _id):
@@ -122,3 +134,6 @@ class Tile(object):
 
     def display(self):
         print self.checksum()
+        #im = Image.new('RGB', (24, 23))
+        #im.putdata(self.map)
+        #im.save('/tmp/%s.png' % self.checksum())
