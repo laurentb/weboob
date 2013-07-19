@@ -62,26 +62,26 @@ class DetailsPage(BasePage):
             if divint.xpath('div[@class="detail"]'):
                 self.parse_div(divint, u"Appels émis : %s | Appels reçus : %s", num, True)
 
-        for divbill in self.document.xpath('//div[@class="facture"]'):
-            for trbill in divbill.xpath('table/tr'):
-                mydate = unicode(trbill.find('td').text.split(":")[1].strip())
-                for alink in trbill.xpath('td/a'):
-                    bill = Bill()
-                    bill.label = unicode(mydate)
-                    billid = mydate.replace('-', '')
-                    billid = billid[4:8] + billid[2:4] + billid[0:2]
-                    bill.id = billid
-                    bill.date = date(*reversed([int(x)
-                        for x in mydate.split("-")]))
-                    bill.format = u"pdf"
-                    bill._url = alink.attrib.get('href')
-                    if "pdfrecap" in alink.attrib.get('href'):
-                        bill.id = "recap-" + bill.id
-                    localid = re.search('&l=(?P<id>\d*)&id',
-                            alink.attrib.get('href')).group('id')
-                    if localid not in self.datebills:
-                        self.datebills[localid] = []
-                    self.datebills[localid].append(bill)
+        for divbills in self.document.xpath('//div[@id="factContainer"]'):
+            for divbill in divbills.xpath('.//div[@class="factLigne hide "]'):
+                alink = divbill.xpath('.//div[@class="pdf"]/a')[0]
+                localid = re.search('&l=(?P<id>\d*)&id',
+                        alink.attrib.get('href')).group('id')
+                mydate_str = re.search('&date=(?P<date>\d*)$',
+                        alink.attrib.get('href')).group('date')
+                mydate = datetime.strptime(mydate_str, "%Y%m%d").date()
+                
+                bill = Bill()
+                bill.label = unicode(mydate_str)
+                bill.id = unicode(mydate_str)
+                bill.date = mydate
+                bill.format = u"pdf"
+                bill._url = alink.attrib.get('href')
+                if "pdfrecap" in alink.attrib.get('href'):
+                    bill.id = "recap-" + bill.id
+                if localid not in self.datebills:
+                    self.datebills[localid] = []
+                self.datebills[localid].append(bill)
 
     def parse_div(self, divglobal, string, num, inter=False):
         divs = divglobal.xpath('div[@class="detail"]')
