@@ -32,8 +32,8 @@ __all__ = ['LoginPage', 'DashboardPage', 'OperationsPage']
 class LoginPage(BasePage):
     def login(self, username, password):
         self.browser.select_form(name="frmLogin")
-        self.browser['username'] = username
-        self.browser['password'] = password
+        self.browser['username'] = username.encode('utf-8')
+        self.browser['password'] = password.encode('utf-8')
         self.browser.find_control('lang').readonly = False
         self.browser['lang'] = 'fr'
         self.browser.submit(nologin=True)
@@ -62,8 +62,8 @@ class DashboardPage(BasePage):
         account = Account()
         account._url = unicode(line.xpath(self._URL_XPATH)[0])
         account.id = account._url.replace("tbord.do?id=", "")
-        account.balance = FrenchTransaction.clean_amount(
-            get_field('accountTotal'))
+        account.balance = Decimal(FrenchTransaction.clean_amount(
+            get_field('accountTotal')))
         account.label = get_field('accountLabel2')
         account.currency = Account.TXT2CUR.get(get_field('accountDev'),
                                                Account.CUR_UNKNOWN)
