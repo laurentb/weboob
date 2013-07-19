@@ -128,9 +128,9 @@ class ModulesLoader(object):
 
         minfo = self.repositories.get_module_info(module_name)
         if minfo is None:
-            raise ModuleLoadError(module_name, 'No such module')
+            raise ModuleLoadError(module_name, 'No such module %s' % module_name)
         if minfo.path is None:
-            raise ModuleLoadError(module_name, 'Module is not installed')
+            raise ModuleLoadError(module_name, 'Module %s is not installed' % module_name)
 
         try:
             fp, pathname, description = imp.find_module(module_name, [minfo.path])
