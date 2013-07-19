@@ -39,7 +39,7 @@ class SGPEBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        if not self.page or self.is_on_page(LoginPage):
+        if not self.page:
             return False
 
         error = self.page.get_error()
@@ -58,7 +58,7 @@ class SGPEBrowser(BaseBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.is_on_page(LoginPage):
+        if not self.is_logged():
             raise BrowserIncorrectPassword()
 
 
