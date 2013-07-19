@@ -23,9 +23,10 @@ from __future__ import with_statement
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import SocieteGenerale
+from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 
 
 __all__ = ['SocieteGeneraleBackend']
@@ -38,11 +39,15 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Société Générale French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password'))
-    BROWSER = SocieteGenerale
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login',      label='Account ID', masked=False),
+        ValueBackendPassword('password',   label='Password'),
+        Value('website', label='Website to use', default='par',
+              choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}))
 
     def create_default_browser(self):
+        b = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
+        self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 
