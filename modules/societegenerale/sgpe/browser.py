@@ -39,7 +39,7 @@ class SGPEBrowser(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
-        if not self.page:
+        if not self.page or self.is_on_page(LoginPage):
             return False
 
         error = self.page.get_error()
@@ -56,17 +56,30 @@ class SGPEBrowser(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN + '/', no_login=True)
 
-        self.page.login(self.username, self.password)
+            self.page.login(self.username, self.password)
 
-        if not self.is_logged():
+        # force page change
+        if not self.is_on_page(AccountsPage):
+            self.accounts()
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
+
+    def accounts(self):
+        self.location('/Pgn/NavigationServlet?MenuID=%s&PageID=Compte&Classeur=1&NumeroPage=1&Origine=Menu' % self.MENUID)
+
+    def get_accounts_list(self):
+        if not self.is_on_page(AccountsPage):
+            self.accounts()
+
 
 
 class SGProfessionalBrowser(SGPEBrowser):
     DOMAIN = 'professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
+    MENUID = 'SBORELCPT'
 
 
 class SGEnterpriseBrowser(SGPEBrowser):
     DOMAIN = 'entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
+    MENUID = 'BANRELCPT'
