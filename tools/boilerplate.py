@@ -23,6 +23,7 @@ import subprocess
 import datetime
 import os
 import sys
+import codecs
 from mako.lookup import TemplateLookup
 
 MODULE_PATH = os.getenv(
@@ -36,8 +37,12 @@ VERSION = '0.g'
 TEMPLATES = TemplateLookup(directories=[TEMPLATE_PATH])
 
 
+def u8(s):
+    return s.decode('utf-8')
+
+
 def gitconfig(entry):
-    return subprocess.check_output('git config -z --get %s' % entry, shell=True)[:-1].decode('utf-8')
+    return u8(subprocess.check_output('git config -z --get %s' % entry, shell=True)[:-1])
 
 
 def write(target, contents):
@@ -46,7 +51,7 @@ def write(target, contents):
     if os.path.exists(target):
         print >>sys.stderr, "%s already exists." % target
         sys.exit(4)
-    with open(target, mode='w') as f:
+    with codecs.open(target, mode='w', encoding='utf-8') as f:
         f.write(contents)
     print 'Created %s' % target
 
@@ -123,10 +128,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-a', '--author',
-        default=gitconfig('user.name'))
+        default=gitconfig('user.name'), type=u8)
     parser.add_argument(
         '-e', '--email',
-        default=gitconfig('user.email'))
+        default=gitconfig('user.email'), type=u8)
     subparsers = parser.add_subparsers()
 
     recipes = [BaseRecipe, ComicRecipe, ComicTestRecipe]
