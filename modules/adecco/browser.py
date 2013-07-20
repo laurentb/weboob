@@ -39,7 +39,7 @@ class AdeccoBrowser(BaseBrowser):
     def search_job(self, pattern = None, publication_date = None, conty = None, region = None, job_category = None, activity_domain = None):
         if pattern:
             self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s' % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ', '+')))
-	else:
+        else:
             data = {
                 'publicationDate': publication_date,
                 'department' : conty,

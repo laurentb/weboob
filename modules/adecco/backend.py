@@ -280,7 +280,7 @@ class AdeccoBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            for advert in self.browser.search_job(pattern, 
+            for advert in self.browser.search_job(pattern,
                                                   publication_date=int(self.config['publication_date'].get()),
                                                   conty=int(self.config['conty'].get()),
                                                   region=int(self.config['region'].get()),

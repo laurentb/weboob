@@ -70,7 +70,7 @@ class DetailsPage(BasePage):
                 mydate_str = re.search('&date=(?P<date>\d*)$',
                         alink.attrib.get('href')).group('date')
                 mydate = datetime.strptime(mydate_str, "%Y%m%d").date()
-                
+
                 bill = Bill()
                 bill.label = unicode(mydate_str)
                 bill.id = unicode(mydate_str)
