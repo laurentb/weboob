@@ -19,6 +19,7 @@
 
 
 from urlparse import parse_qsl
+import re
 
 from weboob.capabilities.base import UserError
 from weboob.tools.browser import BasePage, BrokenPageError, BrowserIncorrectPassword
@@ -137,6 +138,9 @@ class VideoPage(BaseYoutubePage):
                 continue
 
             sub = text[pos+len(pattern):].rstrip(';\n')
+            # json spec only allows \u - convert other escape sequences
+            sub = re.sub(r'\\x([a-f0-9]{2})', r'\u\1', sub)
+            sub = re.sub(r'\\U([a-f0-9]{4})([a-f0-9]{4})', r'\u\1\u\2', sub)
             a = json.loads(sub)
 
             for part in a['args']['url_encoded_fmt_stream_map'].split(','):
