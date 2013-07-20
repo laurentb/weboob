@@ -23,7 +23,7 @@ from threading import RLock
 from copy import copy
 
 from weboob.capabilities.base import CapBaseObject, FieldNotFound, \
-                                     IBaseCap, NotLoaded, NotAvailable
+    IBaseCap, NotLoaded, NotAvailable
 from weboob.tools.misc import iter_fields
 from weboob.tools.log import getLogger
 from weboob.tools.value import ValuesDict
@@ -54,6 +54,8 @@ class BackendStorage(object):
 
         Example:
 
+        >>> from weboob.tools.storage import StandardStorage
+        >>> backend = BackendStorage('blah', StandardStorage('/tmp/cfg'))
         >>> backend.storage.set('config', 'nb_of_threads', 10)
         >>>
 
@@ -77,6 +79,8 @@ class BackendStorage(object):
 
         Example:
 
+        >>> from weboob.tools.storage import StandardStorage
+        >>> backend = BackendStorage('blah', StandardStorage('/tmp/cfg'))
         >>> backend.storage.get('config', 'nb_of_threads')
         10
         >>> backend.storage.get('config', 'unexistant', 'path', default='lol')
@@ -161,7 +165,8 @@ class BackendConfig(ValuesDict):
                 field.load(cfg.instname, value, cfg.weboob.callbacks)
             except ValueError, v:
                 if not nofail:
-                    raise BaseBackend.ConfigError('Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))
+                    raise BaseBackend.ConfigError(
+                        'Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))
 
             cfg[name] = field
         return cfg
