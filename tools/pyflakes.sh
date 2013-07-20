@@ -4,6 +4,7 @@ cd ..
 PYFILES=$(git ls-files|grep '^scripts\|\.py$'|grep -v boilerplate_data|tr '\n' ' ')
 grep 'class [^( ]\+:$' ${PYFILES} && exit 3
 grep $'\t\|\s$' $PYFILES && exit 4
+grep '\.setlocale' ${PYFILES} && exit 5
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
