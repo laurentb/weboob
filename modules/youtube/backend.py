@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2013 Christophe Benz, Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -46,8 +46,8 @@ __all__ = ['YoutubeBackend']
 
 class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'youtube'
-    MAINTAINER = u'Christophe Benz'
-    EMAIL = 'christophe.benz@gmail.com'
+    MAINTAINER = u'Laurent Bachelier'
+    EMAIL = 'laurent@bachelier.name'
     VERSION = '0.g'
     DESCRIPTION = 'YouTube video streaming website'
     LICENSE = 'AGPLv3+'

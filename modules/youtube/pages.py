@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz, Romain Bignon
+# Copyright(C) 2010-2013 Christophe Benz, Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+# Some parts are taken from youtube-dl, licensed under the UNLICENSE.
 
 
 from urlparse import parse_qsl

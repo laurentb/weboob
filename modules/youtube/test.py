@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
