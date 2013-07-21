@@ -169,7 +169,7 @@ requirements = [
     'PyYAML',
 ]
 try:
-    import Image  # NOQA
+    import Image
 except ImportError:
     requirements.append('Pillow')
 else:
