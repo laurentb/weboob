@@ -61,7 +61,7 @@ class DelubacBrowser(BaseBrowser):
 
         self.page.login(self.username, self.password)
 
-        self.location(self.page_url('loginSecurite')+'?_top')
+        self.location(self.page_url('loginSecurite')+'?_top', no_login=True)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
