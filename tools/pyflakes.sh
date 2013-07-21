@@ -15,10 +15,15 @@ if which flake8-python2 >/dev/null 2>&1; then
 fi
 
 if [ -n "${FLAKE8}" ]; then
-    set -e
-    ${FLAKE8} --ignore=E,W --exclude='*_ui.py' *.py $PYFILES
+    exec ${FLAKE8} --select=E9,F *.py $PYFILES
 else
-    # grep will return 0 only if it founds something, but our script
-    # wants to return 0 when it founds nothing!
-    pyflakes $PYFILES | grep -v redefinition && exit 1 || exit 0
-fi
+    # check for modern pyflakes
+    if pyflakes --version >/dev/null 2>&1; then
+        exec pyflakes $PYFILES
+    else
+        # hide error reported by mistake.
+        # grep will return 0 only if it founds something, but our script
+        # wants to return 0 when it founds nothing!
+        pyflakes $PYFILES | grep -v redefinition && exit 1 || exit 0
+    fi
+ fi
