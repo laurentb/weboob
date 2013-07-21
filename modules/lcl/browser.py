@@ -40,6 +40,7 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/outil/UAUT/Authentication/authenticate': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT\?from=.*': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
+        'https://particuliers.secure.lcl.fr//outil/UAUT/Contract/routing': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
@@ -60,16 +61,13 @@ class LCLBrowser(BaseBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         assert self.password.isdigit()
-        assert isinstance(self.agency, basestring)
-        assert self.agency.isdigit()
 
         if not self.is_on_page(LoginPage):
             self.location('%s://%s/outil/UAUT/Authentication/authenticate'
                           % (self.PROTOCOL, self.DOMAIN),
                           no_login=True)
 
-        if not self.page.login(self.agency, self.username, self.password) or \
-           not self.is_logged() or \
+        if not self.page.login(self.username, self.password, self.agency) or \
            (self.is_on_page(LoginPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
         self.location('%s://%s/outil/UWSP/Synthese'

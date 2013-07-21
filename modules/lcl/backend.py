@@ -39,7 +39,7 @@ class LCLBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d+\w$', masked=False),
                            ValueBackendPassword('password', label='Password of account', regexp='^\d{6}$'),
-                           Value('agency',   label='Agency code', regexp='^\d{3,4}$'))
+                           Value('agency',   label='Agency code (deprecated)', regexp='^(\d{3,4}|)$', default=''))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
