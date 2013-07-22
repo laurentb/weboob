@@ -217,7 +217,7 @@ class HelloBank(BaseBrowser):
         self.form.set_all_readonly(False)
         self['identifiant'] = page_id
         if len(thread.id):
-            self['idMessage'] = thread.id
+            self['idMessage'] = thread.id.encode('utf-8')
         # the JS does this, but it makes us unable to read unread messages
         #if unread:
         #    self['newMsg'] = thread.id
