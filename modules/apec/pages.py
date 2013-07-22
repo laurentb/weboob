@@ -62,10 +62,13 @@ class AdvertPage(BasePage):
             td = self.parser.select(tr, 'td', 1, method='xpath')
             if u'Date de publication' in u'%s' % th.text_content():
                 advert.publication_date = dateutil.parser.parse(td.text_content()).date()
-            elif u'Société' in u'%s' % th.text_content():
+            elif u'Société' in u'%s' % th.text_content() and not advert.society_name:
                 society_name = td.text_content()
-                a = self.parser.select(td, 'a', 1, method='xpath').text_content()
-                advert.society_name = u'%s' % society_name.replace(a, '').strip()
+                a = self.parser.select(td, 'a', method='xpath')
+                if a:
+                    advert.society_name = u'%s' % society_name.replace(a[0].text_content(), '').strip()
+                else:
+                    advert.society_name = society_name.strip()
             elif u'Type de contrat' in u'%s' % th.text_content():
                 advert.contract_type = u'%s' % td.text_content().strip()
             elif u'Lieu' in u'%s' % th.text_content():
