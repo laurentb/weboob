@@ -29,6 +29,6 @@ class FreeMobileTest(BackendTest):
 
     def test_freemobile(self):
         for subscription in self.backend.iter_subscription():
-            list(self.backend.iter_history(subscription.id))
+            list(self.backend.iter_bills_history(subscription.id))
             for bill in self.backend.iter_bills(subscription.id):
                 self.backend.download_bill(bill.id)
