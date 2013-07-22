@@ -38,7 +38,7 @@ class DelubacBrowser(BaseBrowser):
     PAGES = {
         '%s://%s/(simpleIndex|index).do(\;.*)?' % (PROTOCOL, DOMAIN): LoginPage,
         '%s://%s/tbord.do(\?.*)?' % (PROTOCOL, DOMAIN): DashboardPage,
-        '%s://%s/releve.do' % (PROTOCOL, DOMAIN): OperationsPage,
+        '%s://%s/releve.do(\?.*)?' % (PROTOCOL, DOMAIN): OperationsPage,
     }
 
     PAGES_REV = {
@@ -79,6 +79,14 @@ class DelubacBrowser(BaseBrowser):
 
     def iter_history(self, account):
         self.location(account._url)
-        assert self.is_on_page(OperationsPage)
 
-        return self.page.iter_history()
+        while True:
+            assert self.is_on_page(OperationsPage)
+            for i in self.page.iter_history():
+                yield i
+
+            next_page = self.page.next_page()
+            if not next_page:
+                break
+
+            self.location(next_page)

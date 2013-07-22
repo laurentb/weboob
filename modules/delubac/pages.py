@@ -73,6 +73,7 @@ class DashboardPage(BasePage):
 
 class OperationsPage(BasePage):
     _LINE_XPATH = '//tr[starts-with(@class,"PL_LIGLST_")]'
+    _NEXT_XPATH = '//a[contains(@class,"pg_next")]/@href'
 
     def iter_history(self):
         i = 0
@@ -91,6 +92,11 @@ class OperationsPage(BasePage):
             operation.set_amount(credit, debit)
 
             yield operation
+
+    def next_page(self):
+        next_button = self.document.xpath(self._NEXT_XPATH)
+        if next_button:
+            return next_button[0]
 
 
 class Transaction(FrenchTransaction):
