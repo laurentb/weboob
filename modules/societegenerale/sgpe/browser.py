@@ -29,11 +29,11 @@ __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 
 class SGPEBrowser(BaseBrowser):
     PROTOCOL = 'https'
-    ENCODING = None
+    ENCODING = 'ISO-8859-1'
 
     def __init__(self, *args, **kwargs):
         self.PAGES = OrderedDict((
-            ('%s://%s/Pgn/.+PageID=Compte&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
+            ('%s://%s/Pgn/.+PageID=SoldeV3&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -65,12 +65,13 @@ class SGPEBrowser(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def accounts(self):
-        self.location('/Pgn/NavigationServlet?MenuID=%s&PageID=Compte&Classeur=1&NumeroPage=1&Origine=Menu' % self.MENUID)
+        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID)
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
             self.accounts()
-
+        assert self.is_on_page(AccountsPage)
+        return self.page.get_list()
 
 
 class SGProfessionalBrowser(SGPEBrowser):

@@ -19,11 +19,15 @@
 
 from logging import error
 import re
-from weboob.tools.json import json
-
-from weboob.tools.mech import ClientForm
+from decimal import Decimal
 
 from weboob.tools.browser import BasePage
+from weboob.tools.json import json
+from weboob.tools.mech import ClientForm
+from weboob.tools.misc import to_unicode
+
+from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from ..captcha import Captcha, TileError
 
@@ -81,4 +85,18 @@ class LoginPage(SGPEPage):
 
 
 class AccountsPage(SGPEPage):
-    pass
+    def get_list(self):
+        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
+        for tr in self.parser.select(table, 'tr', 'many'):
+            tdname, tdid, tdagency, tdbalance = [td.text_content().strip()
+                                                 for td
+                                                 in self.parser.select(tr, 'td', 4)]
+            # it has empty rows - ignore those without the necessary info
+            if all((tdname, tdid, tdbalance)):
+                account = Account()
+                account.label = to_unicode(tdname)
+                account.id = to_unicode(tdid.replace(u'\xa0', '').replace(' ', ''))
+                account._agency = to_unicode(tdagency)
+                account.balance = Decimal(FrenchTransaction.clean_amount(tdbalance))
+                account.currency = account.get_currency(tdbalance)
+                yield account
