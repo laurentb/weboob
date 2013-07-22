@@ -33,13 +33,10 @@ __all__ = ['LoginPage', 'AccountsPage']
 
 class SGPEPage(BasePage):
     def get_error(self):
-        try:
-            return self.document.xpath('//div[@class="ngo_mire_reco_message"]')[0] \
-                .text.strip()
-            return self.document.xpath('//*[@id="nge_zone_centre"]//[@class="nge_cadre_message_utilisateur"')[0] \
-                .text_content.strip()
-        except IndexError:
-            return None
+        err = self.document.getroot().cssselect('div.ngo_mire_reco_message') \
+            or self.document.getroot().cssselect('#nge_zone_centre .nge_cadre_message_utilisateur')
+        if err:
+            return err[0].text.strip()
 
 
 class LoginPage(SGPEPage):
