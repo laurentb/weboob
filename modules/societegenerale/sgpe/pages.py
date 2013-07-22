@@ -111,6 +111,9 @@ class HistoryPage(SGPEPage):
     def iter_transactions(self, account):
         table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
         for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+            # td colspan=5
+            if len(self.parser.select(tr, 'td')) == 1:
+                continue
             tddate, tdlabel, tddebit, tdcredit, tdval, tdbal = [td.text_content().strip()
                                                                 for td
                                                                 in self.parser.select(tr, 'td', 4)]
@@ -129,3 +132,10 @@ class HistoryPage(SGPEPage):
                 t.parse(date, l1 + '  ' + l2)
                 t._val = val  # FIXME is it rdate? date?
                 yield t
+
+    def has_next(self):
+        for n in self.parser.select(self.document.getroot(), '#numPageBloc'):
+            cur = int(self.parser.select(n, '#numPage', 1).value)
+            for end in self.parser.select(n, '.contenu3-lien'):
+                return int(end.text.replace('/', '')) > cur
+        return False

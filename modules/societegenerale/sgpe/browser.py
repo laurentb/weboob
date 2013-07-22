@@ -68,8 +68,12 @@ class SGPEBrowser(BaseBrowser):
     def accounts(self):
         self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID)
 
-    def history(self, _id):
-        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%s&Classeur=1&Rib=%s&NumeroPage=1' % (self.MENUID, _id))
+    def history(self, _id, page=1):
+        if page > 1:
+            pgadd = '&page_numero_page_courante=%s' % page
+        else:
+            pgadd = ''
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%s&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
@@ -83,10 +87,16 @@ class SGPEBrowser(BaseBrowser):
                 yield a
 
     def iter_history(self, account):
-        self.history(account.id)
-        assert self.is_on_page(HistoryPage)
-        for transaction in self.page.iter_transactions(account):
-            yield transaction
+        page = 1
+        while page:
+            self.history(account.id, page)
+            assert self.is_on_page(HistoryPage)
+            for transaction in self.page.iter_transactions(account):
+                yield transaction
+            if self.page.has_next():
+                page += 1
+            else:
+                page = False
 
 
 class SGProfessionalBrowser(SGPEBrowser):
