@@ -69,7 +69,7 @@ class JobAdvertListFormatter(PrettyFormatter):
         if hasattr(obj, 'society_name') and obj.society_name:
             result += '\tSociety : %s\n' % obj.society_name
         if hasattr(obj, 'contract_type') and obj.contract_type:
-            result += '\tContract : %s\n'
+            result += '\tContract : %s\n' % obj.contract_type
         return result
 
 
