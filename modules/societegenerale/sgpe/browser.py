@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, AccountsPage
+from .pages import LoginPage, AccountsPage, HistoryPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -34,6 +34,7 @@ class SGPEBrowser(BaseBrowser):
     def __init__(self, *args, **kwargs):
         self.PAGES = OrderedDict((
             ('%s://%s/Pgn/.+PageID=SoldeV3&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
+            ('%s://%s/Pgn/.+PageID=ReleveCompteV3&.+' % (self.PROTOCOL, self.DOMAIN), HistoryPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -67,11 +68,25 @@ class SGPEBrowser(BaseBrowser):
     def accounts(self):
         self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID)
 
+    def history(self, _id):
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%s&Classeur=1&Rib=%s&NumeroPage=1' % (self.MENUID, _id))
+
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
             self.accounts()
         assert self.is_on_page(AccountsPage)
         return self.page.get_list()
+
+    def get_account(self, _id):
+        for a in self.get_accounts_list():
+            if a.id == _id:
+                yield a
+
+    def iter_history(self, account):
+        self.history(account.id)
+        assert self.is_on_page(HistoryPage)
+        for transaction in self.page.iter_transactions(account):
+            yield transaction
 
 
 class SGProfessionalBrowser(SGPEBrowser):

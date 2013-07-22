@@ -20,6 +20,7 @@
 from logging import error
 import re
 from decimal import Decimal
+from datetime import datetime
 
 from weboob.tools.browser import BasePage
 from weboob.tools.json import json
@@ -33,6 +34,10 @@ from ..captcha import Captcha, TileError
 
 
 __all__ = ['LoginPage', 'AccountsPage']
+
+
+class Transaction(FrenchTransaction):
+    _coming = False
 
 
 class SGPEPage(BasePage):
@@ -97,6 +102,30 @@ class AccountsPage(SGPEPage):
                 account.label = to_unicode(tdname)
                 account.id = to_unicode(tdid.replace(u'\xa0', '').replace(' ', ''))
                 account._agency = to_unicode(tdagency)
-                account.balance = Decimal(FrenchTransaction.clean_amount(tdbalance))
+                account.balance = Decimal(Transaction.clean_amount(tdbalance))
                 account.currency = account.get_currency(tdbalance)
                 yield account
+
+
+class HistoryPage(SGPEPage):
+    def iter_transactions(self, account):
+        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
+        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+            tddate, tdlabel, tddebit, tdcredit, tdval, tdbal = [td.text_content().strip()
+                                                                for td
+                                                                in self.parser.select(tr, 'td', 4)]
+            tdamount = tddebit or tdcredit
+            # not sure it has empty rows like AccountsPage, but check anyway
+            if all((tddate, tdlabel, tdamount)):
+                t = Transaction(i)
+                t.set_amount(tdamount)
+                date = datetime.strptime(tddate, '%d/%m/%Y')
+                val = datetime.strptime(tdval, '%d/%m/%Y')
+                # so that first line is separated by parse()
+                # also clean up tabs, spaces, etc.
+                l1, _, l2 = tdlabel.partition('\n')
+                l1 = ' '.join(l1.split())
+                l2 = ' '.join(l2.split())
+                t.parse(date, l1 + '  ' + l2)
+                t._val = val  # FIXME is it rdate? date?
+                yield t
