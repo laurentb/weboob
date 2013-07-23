@@ -24,6 +24,7 @@ from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDe
 
 __all__ = ['AmeliBrowser']
 
+
 class AmeliBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'assure.ameli.fr'
@@ -34,7 +35,7 @@ class AmeliBrowser(BaseBrowser):
              '.*_pageLabel=as_etat_civil_page.*': AccountPage,
              '.*_pageLabel=as_revele_mensuel_presta_page.*': BillsPage,
              '.*_pageLabel=as_dernier_paiement_page': LastPaymentsPage,
-             '.*_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements&paiements.*' : PaymentDetailsPage
+             '.*_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements&paiements.*': PaymentDetailsPage
              }
 
     loginp = '/PortailAS/appmanager/PortailAS/assure?_somtc=true&_pageLabel=as_login_page'
@@ -80,7 +81,7 @@ class AmeliBrowser(BaseBrowser):
         assert isinstance(id, basestring)
         for sub in self.iter_subscription_list():
             if id == sub._id:
-               return sub
+                return sub
         return None
 
     def iter_history(self, sub):

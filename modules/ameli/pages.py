@@ -31,9 +31,11 @@ __all__ = ['AmeliBasePage', 'LoginPage', 'HomePage', 'AccountPage', 'LastPayment
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
+
 class AmeliBasePage(BasePage):
     def is_logged(self):
         return len(self.document.xpath('//a[@id="logout"]')) > 0
+
 
 class LoginPage(AmeliBasePage):
     def login(self, login, password):
@@ -42,8 +44,8 @@ class LoginPage(AmeliBasePage):
         self.browser["connexioncompte_2codeConfidentiel"] = password.encode('utf8')
         self.browser.submit()
 
-class HomePage(AmeliBasePage):
 
+class HomePage(AmeliBasePage):
     def on_loaded(self):
         pass
 
@@ -70,8 +72,8 @@ class AccountPage(AmeliBasePage):
             sub.subscriber = unicode(name)
             yield sub
 
-class LastPaymentsPage(AmeliBasePage):
 
+class LastPaymentsPage(AmeliBasePage):
     def iter_last_payments(self):
         list_table = self.document.xpath('//table[@id="ligneTabDerniersPaiements"]')
         if len(list_table) > 0:
@@ -82,13 +84,13 @@ class LastPaymentsPage(AmeliBasePage):
                     continue
                 yield list_a[0].attrib.get('href')
 
-class PaymentDetailsPage(AmeliBasePage):
 
+class PaymentDetailsPage(AmeliBasePage):
     def iter_payment_details(self, sub):
         if sub._id.isdigit():
             idx = 0
         else:
-            idx = sub._id.replace('AFFILIE','')
+            idx = sub._id.replace('AFFILIE', '')
         if len(self.document.xpath('//div[@class="centrepage"]/h3')) > idx or self.document.xpath('//table[@id="DetailPaiement3"]') > idx:
             id_str = self.document.xpath('//div[@class="centrepage"]/h3')[idx].text.strip()
             m = re.match('.*le (.*) pour un montant de.*', id_str)
@@ -100,7 +102,7 @@ class PaymentDetailsPage(AmeliBasePage):
                 line = 1
                 last_date = None
                 for tr in table:
-                    tds = tr.xpath('.//td');
+                    tds = tr.xpath('.//td')
                     if len(tds) == 0:
                         continue
                     date_str = tds[0].text
@@ -114,13 +116,13 @@ class PaymentDetailsPage(AmeliBasePage):
                         det.infos = u'Payé ' + unicode(re.sub('[^\d,-]+', '', tds[2].text)) + u'€ / Base ' + unicode(re.sub('[^\d,-]+', '', tds[3].text)) + u'€ / Taux ' + unicode(re.sub('[^\d,-]+', '', tds[4].text)) + '%'
                         det.datetime = datetime.strptime(date_str, '%d/%m/%Y').date()
                         last_date = det.datetime
-                    det.price = Decimal(re.sub('[^\d,-]+', '', tds[5].text).replace(',','.'))
+                    det.price = Decimal(re.sub('[^\d,-]+', '', tds[5].text).replace(',', '.'))
                     line = line + 1
                     yield det
 
-class BillsPage(AmeliBasePage):
 
-    def iter_bills(self,sub):
+class BillsPage(AmeliBasePage):
+    def iter_bills(self, sub):
         table = self.document.xpath('//table[@id="tableauDecompte"]')[0].xpath('.//tr')
         for tr in table:
             list_tds = tr.xpath('.//td')
@@ -128,11 +130,11 @@ class BillsPage(AmeliBasePage):
                 continue
             date_str = list_tds[0].text
             month_str = date_str.split()[0]
-            date = datetime.strptime(re.sub(month_str,str(FRENCH_MONTHS.index(month_str) + 1),date_str),"%m %Y").date()
+            date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
             amount = list_tds[1].text
             if amount is None:
                 continue
-            amount = re.sub(' euros','',amount)
+            amount = re.sub(' euros', '', amount)
             bil = Bill()
             bil.id = sub._id + "." + date.strftime("%Y%m")
             bil.date = date
@@ -143,6 +145,5 @@ class BillsPage(AmeliBasePage):
             bil._args = {'PDF.moisRecherche': filedate}
             yield bil
 
-    def get_bill(self,bill):
-       self.location(bill._url, urllib.urlencode(bill._args))
-
+    def get_bill(self, bill):
+        self.location(bill._url, urllib.urlencode(bill._args))
