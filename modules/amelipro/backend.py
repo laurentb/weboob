@@ -90,4 +90,4 @@ class AmeliProBackend(BaseBackend, ICapBill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
         with self.browser:
-            return self.browser.readurl(bill._url,urllib.urlencode(bill._args))
+            return self.browser.readurl(bill._url, urllib.urlencode(bill._args))

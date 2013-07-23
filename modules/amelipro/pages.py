@@ -21,6 +21,7 @@
 from datetime import datetime
 from decimal import Decimal
 import re
+import urllib
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
@@ -30,12 +31,14 @@ __all__ = ['LoginPage', 'HomePage', 'AccountPage', 'HistoryPage', 'BillsPage']
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
+
 class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form('connexionCompteForm')
         self.browser["vp_connexion_portlet_1numPS"] = login.encode('utf8')
         self.browser["vp_connexion_portlet_1password"] = password.encode('utf8')
         self.browser.submit()
+
 
 class HomePage(BasePage):
 
@@ -57,6 +60,7 @@ class AccountPage(BasePage):
         sub.subscriber = unicode(name)
         return sub
 
+
 class HistoryPage(BasePage):
 
     def iter_history(self):
@@ -77,8 +81,9 @@ class HistoryPage(BasePage):
             det.label = lot
             det.infos = factures_lbl
             det.datetime = datetime.strptime(date, "%d/%m/%Y").date()
-            det.price = Decimal(montant.replace(',','.'))
+            det.price = Decimal(montant.replace(',', '.'))
             yield det
+
 
 class BillsPage(BasePage):
 
@@ -91,7 +96,7 @@ class BillsPage(BasePage):
 
             date_str = tr.xpath('.//td[@class="cAlignGauche"]')[0].text
             month_str = date_str.split()[0]
-            date = datetime.strptime(re.sub(month_str,str(FRENCH_MONTHS.index(month_str) + 1),date_str),"%m %Y").date()
+            date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
             amount = tr.xpath('.//td[@class="cAlignDroite"]')[0].text
             for format in ('CSV', 'PDF'):
                 bil = Bill()
@@ -107,5 +112,5 @@ class BillsPage(BasePage):
                 }
                 yield bil
 
-    def get_bill(self,bill):
-       self.location(bill._url, urllib.urlencode(bill._args))
+    def get_bill(self, bill):
+        self.location(bill._url, urllib.urlencode(bill._args))
