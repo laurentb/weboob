@@ -21,7 +21,6 @@
 from weboob.tools.browser import BasePage
 from .job import AdeccoJobAdvert
 import datetime
-import locale
 import re
 
 __all__ = ['SearchPage', 'AdvertPage']
@@ -30,7 +29,6 @@ MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet
 
 class SearchPage(BasePage):
     def iter_job_adverts(self):
-        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
         re_id = re.compile('http://www.adecco.fr/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$', re.DOTALL)
 
         divs = self.document.getroot().xpath("//div[@class='resultContain right']") + self.document.getroot().xpath("//div[@class='resultContain left']")
