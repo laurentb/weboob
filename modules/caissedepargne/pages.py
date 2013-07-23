@@ -55,8 +55,14 @@ class LoginPage(_LogoutPage):
         self.browser.set_all_readonly(False)
         self.browser['__EVENTARGUMENT'] = 'idsrv=WE'
 
-        a = self.document.xpath('//a[@title="Valider"]')[0]
-        m = re.match("javascript:RedirectToDeiPro\('([^']+)', \d+\);", a.attrib['href'])
+        m = None
+        try:
+            a = self.document.xpath('//a[@title="Valider"]')[0]
+        except IndexError:
+            pass
+        else:
+            m = re.match("javascript:RedirectToDeiPro\('([^']+)', \d+\);", a.attrib['href'])
+
         if m:
             self.browser['nuusager'] = nuser.encode('utf-8')
             self.browser['codconf'] = passwd.encode('utf-8')
@@ -66,7 +72,7 @@ class LoginPage(_LogoutPage):
 
         return m is not None
 
-    def login3(self, nuser, passwd):
+    def login3(self, passwd):
         self.browser.select_form(name='Main')
         self.browser['codconf'] = passwd.encode('utf-8')
         a = self.document.xpath('//a[@title="Valider"]')[0]
