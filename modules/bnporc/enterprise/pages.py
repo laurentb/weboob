@@ -108,7 +108,7 @@ class LoginPage(BEPage):
         self.browser.select_form(name='ident')
         self.browser.set_all_readonly(False)
 
-        self.browser['ch1'] = login
+        self.browser['ch1'] = login.encode('iso-8859-1')
         self.browser['chgrille'] = vk.get_string_code(password)
         self.browser.submit()
 

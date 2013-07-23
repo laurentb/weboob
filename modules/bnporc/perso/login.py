@@ -83,7 +83,7 @@ class LoginPage(BasePage):
         self.browser.controls.append(ClientForm.TextControl('text', 'ch1', {'value': ''}))
         self.browser.set_all_readonly(False)
 
-        self.browser['ch1'] = unicode(login)
+        self.browser['ch1'] = login.encode('iso-8859-1')
         self.browser['ch5'] = vk.get_string_code(password)
         self.browser.submit()
 
