@@ -261,7 +261,7 @@ class BaseBackend(object):
         self.lock.release()
 
     def __repr__(self):
-        return u"<Backend '%s'>" % self.name
+        return u"<Backend %r>" % self.name
 
     def __init__(self, weboob, name, config=None, storage=None, logger=None):
         self.logger = getLogger(name, parent=logger)
