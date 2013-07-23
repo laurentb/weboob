@@ -20,7 +20,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import CaisseEpargne
 
@@ -36,11 +36,13 @@ class CaisseEpargneBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'Caisse d\'Épargne French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='\d+'))
+                           ValueBackendPassword('password', label='Password', regexp='\d+'),
+                           Value('nuser', label='User ID (optional)', default=''))
     BROWSER = CaisseEpargne
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
+        return self.create_browser(self.config['nuser'].get(),
+                                   self.config['login'].get(),
                                    self.config['password'].get())
 
     def iter_accounts(self):

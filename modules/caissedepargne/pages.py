@@ -50,13 +50,23 @@ class LoginPage(_LogoutPage):
         self.browser['__EVENTTARGET'] = 'ctl01$CC_ind_pauthpopup$ctl01$CC_ind_ident$ctl01$CC_ind_inputuserid_sup$btnValider'
         self.browser.submit(nologin=True)
 
-    def login2(self):
+    def login2(self, nuser, passwd):
         self.browser.select_form(name='Main')
         self.browser.set_all_readonly(False)
         self.browser['__EVENTARGUMENT'] = 'idsrv=WE'
+
+        a = self.document.xpath('//a[@title="Valider"]')[0]
+        m = re.match("javascript:RedirectToDeiPro\('([^']+)', \d+\);", a.attrib['href'])
+        if m:
+            self.browser['nuusager'] = nuser.encode('utf-8')
+            self.browser['codconf'] = passwd.encode('utf-8')
+            self.browser.form.action = m.group(1)
+
         self.browser.submit(nologin=True)
 
-    def login3(self, passwd):
+        return m is not None
+
+    def login3(self, nuser, passwd):
         self.browser.select_form(name='Main')
         self.browser['codconf'] = passwd.encode('utf-8')
         a = self.document.xpath('//a[@title="Valider"]')[0]
@@ -124,7 +134,7 @@ class IndexPage(BasePage):
     def _add_account(self, accounts, link, label, account_type, balance):
         info = self._get_account_info(link)
         if info is None:
-            self.logger.warning('Unable to parse account %r' % label)
+            self.logger.warning('Unable to parse account %r: %r' % (label, link))
             return
 
         account = Account()
@@ -157,12 +167,25 @@ class IndexPage(BasePage):
                 if tr.attrib.get('class', '') == 'DataGridHeader':
                     account_type = self.ACCOUNT_TYPES.get(tds[1].text.strip(), Account.TYPE_UNKNOWN)
                 else:
-                    a = tds[1].find('a')
-                    if a is None:
-                        continue
+                    label = ''
+                    i = 1
+                    a = None
+                    while label == '' and i < len(tds):
+                        a = tds[i].find('a')
+                        if a is None:
+                            continue
 
-                    label = self.parser.tocleanstring(a)
-                    balance = u''.join([txt.strip() for txt in tds[-1].itertext()])
+                        label = self.parser.tocleanstring(a)
+                        i += 1
+
+                    balance = ''
+                    i = -1
+                    while balance == '' and i > -len(tds):
+                        try:
+                            balance = self.parser.tocleanstring(tds[i].xpath('./a')[0])
+                        except KeyError:
+                            balance = u''.join([txt.strip() for txt in tds[i].itertext()])
+                        i -= 1
                     self._add_account(accounts, a, label, account_type, balance)
 
         if len(accounts) == 0:

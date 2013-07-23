@@ -39,6 +39,10 @@ class CaisseEpargne(BaseBrowser):
              'https://[^/]+.caisse-epargne.fr/page_hs_dei_.*.aspx':                         UnavailablePage,
             }
 
+    def __init__(self, nuser, *args, **kwargs):
+        self.nuser = nuser
+        BaseBrowser.__init__(self, *args, **kwargs)
+
     def is_logged(self):
         return self.page is not None and not self.is_on_page((LoginPage,ErrorPage))
 
@@ -64,8 +68,9 @@ class CaisseEpargne(BaseBrowser):
             self.location('https://www.caisse-epargne.fr/particuliers/ind_pauthpopup.aspx?mar=101&reg=&fctpopup=auth&cv=0', no_login=True)
 
         self.page.login(self.username)
-        self.page.login2()
-        self.page.login3(self.password)
+        if not self.page.login2(self.nuser, self.password):
+            # perso
+            self.page.login3(self.password)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
