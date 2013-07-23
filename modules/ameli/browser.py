@@ -17,12 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-import mechanize
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
-from .pages import AmeliBasePage, LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
+from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
 
 __all__ = ['AmeliBrowser']
 

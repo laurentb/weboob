@@ -20,8 +20,8 @@
 
 from datetime import datetime
 import re
+import urllib
 from decimal import Decimal
-import locale
 from weboob.tools.browser import BasePage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
@@ -98,6 +98,7 @@ class PaymentDetailsPage(AmeliBasePage):
                 id = sub._id + "." + datetime.strftime(id_date, "%Y%m%d")
                 table = self.document.xpath('//table[@id="DetailPaiement3"]')[idx].xpath('.//tr')
                 line = 1
+                last_date = None
                 for tr in table:
                     tds = tr.xpath('.//td');
                     if len(tds) == 0:
