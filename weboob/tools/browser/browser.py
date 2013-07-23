@@ -123,6 +123,7 @@ class NoHistory(object):
 class BrokenPageError(Exception):
     pass
 
+
 class FormFieldConversionWarning(UserWarning):
     """
     A value has been set to a form's field and has been implicitly converted.
@@ -438,14 +439,17 @@ class StandardBrowser(mechanize.Browser):
             return
 
     def lowsslcheck(self, domain, hsh):
-        certs = ssl.get_server_certificate((domain,  443))
-        certhash = hashlib.sha256(certs).hexdigest()
+        certhash = self._certhash(domain)
         if self.logger:
             self.logger.debug('Found %s as certificate hash' % certhash)
         if isinstance(hsh, basestring):
             hsh = [hsh]
         if certhash not in hsh:
             raise ssl.SSLError()
+
+    def _certhash(self, domain, port=443):
+        certs = ssl.get_server_certificate((domain, port))
+        return hashlib.sha256(certs).hexdigest()
 
     def __setitem__(self, key, value):
         if isinstance(value, unicode):
