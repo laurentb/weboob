@@ -25,6 +25,7 @@ from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LCLBrowser
+from .enterprise.browser import LCLEnterpriseBrowser
 
 
 __all__ = ['LCLBackend']
@@ -37,15 +38,33 @@ class LCLBackend(BaseBackend, ICapBank):
     VERSION = '0.g'
     DESCRIPTION = u'Le Crédit Lyonnais French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d+\w$', masked=False),
-                           ValueBackendPassword('password', label='Password of account', regexp='^\d{6}$'),
-                           Value('agency',   label='Agency code (deprecated)', regexp='^(\d{3,4}|)$', default=''))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
+                           ValueBackendPassword('password', label='Password of account'),
+                           Value('agency',   label='Agency code (deprecated)', regexp='^(\d{3,4}|)$', default=''),
+                           Value('website', label='Website to use', default='par',
+                                 choices={'par': 'Particuliers',
+                                          'ent': 'Entreprises'}))
     BROWSER = LCLBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['agency'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
+        website = self.config['website'].get()
+        if website == 'ent':
+            self.BROWSER = LCLEnterpriseBrowser
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
+        else:
+            self.BROWSER = LCLBrowser
+            return self.create_browser(self.config['agency'].get(),
+                                       self.config['login'].get(),
+                                       self.config['password'].get())
+
+    def deinit(self):
+        try:
+            deinit = self.browser.deinit
+        except AttributeError:
+            pass
+        else:
+            deinit()
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
@@ -60,6 +79,9 @@ class LCLBackend(BaseBackend, ICapBank):
             raise AccountNotFound()
 
     def iter_coming(self, account):
+        if self.BROWSER != LCLBrowser:
+            raise NotImplementedError
+
         with self.browser:
             transactions = list(self.browser.get_cb_operations(account))
             transactions.sort(key=lambda tr: tr.rdate, reverse=True)
