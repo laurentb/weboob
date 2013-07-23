@@ -67,6 +67,9 @@ class MovementsPage(BasePage):
 
         return account
 
+    def nb_pages(self):
+        return int(self.document.xpath('//input[@name="nbPages"]/@value')[0])
+
     def get_operations(self):
         LINE_XPATH = '//table[@id="listeEffets"]/tbody/tr'
 

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from urllib import urlencode
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
@@ -47,6 +48,7 @@ class LCLEnterpriseBrowser(BaseBrowser):
         PAGES_REV[LogoutOkPage]: LogoutOkPage,
         PAGES_REV[MessagesPage]: MessagesPage,
         PAGES_REV[MovementsPage]: MovementsPage,
+        'https://entreprises.secure.lcl.fr/outil/IQMT/mvt.Synthese/paginerReleve': MovementsPage,
         'https://entreprises.secure.lcl.fr/': RootPage,
         'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/dejaConnecte': AlreadyConnectedPage,
         'https://entreprises.secure.lcl.fr/outil/IQEN/Authentication/sessionExpiree': ExpiredPage,
@@ -97,5 +99,10 @@ class LCLEnterpriseBrowser(BaseBrowser):
         if not self.is_on_page(MovementsPage):
             self.location(self.PAGES_REV[MovementsPage])
 
-        for tr in self.page.get_operations():
-            yield tr
+        for n in range(1, self.page.nb_pages()):
+            self.location('/outil/IQMT/mvt.Synthese/paginerReleve',
+                          urlencode({'numPage': str(n)}),
+                          no_login=True)
+
+            for tr in self.page.get_operations():
+                yield tr
