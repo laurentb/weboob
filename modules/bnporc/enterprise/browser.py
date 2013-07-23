@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage
+from .pages import LoginPage, AccountsPage, UnknownPage
 
 __all__ = ['BNPEnterprise']
 
@@ -31,7 +31,8 @@ class BNPEnterprise(BaseBrowser):
     CERTHASH = '423f68a8162d1328bacb48269675d8b8577ebcc9d222860de8421792c4d222c1'
 
     PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
-             '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage}
+             '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage,
+             '%s://%s/NSFR' % (PROTOCOL, DOMAIN): UnknownPage}
 
     def home(self):
         self.location('%s://%s/NSAccess' % (self.PROTOCOL, self.DOMAIN))

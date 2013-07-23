@@ -29,7 +29,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.tools.misc import to_unicode
 
 
-__all__ = ['LoginPage', 'AccountsPage']
+__all__ = ['LoginPage', 'AccountsPage', 'UnknownPage']
 
 
 class Transaction(FrenchTransaction):
@@ -143,3 +143,7 @@ class AccountsPage(BEPage):
             account.currency = Account.get_currency(tdbalcur.text)
             account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
             yield account
+
+
+class UnknownPage(BEPage):
+    pass
