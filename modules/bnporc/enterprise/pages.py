@@ -17,12 +17,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BasePage
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-
+from decimal import Decimal
 import hashlib
+from urlparse import parse_qs
+from datetime import datetime
+
+from weboob.capabilities.bank import Account
+from weboob.tools.browser import BasePage
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.misc import to_unicode
+
 
 __all__ = ['LoginPage', 'AccountsPage']
+
+
+class Transaction(FrenchTransaction):
+    pass
 
 
 class BEPage(BasePage):
@@ -103,4 +114,32 @@ class LoginPage(BEPage):
 
 
 class AccountsPage(BEPage):
-    pass
+    def find_table(self):
+        for table in self.parser.select(self.document.getroot(), 'table', 'many'):
+            for td in self.parser.select(table, 'tr td'):
+                if td.text and td.text.strip().startswith('COMPTES COURANTS'):
+                    return table
+
+    def get_list(self):
+        table = self.find_table()
+        # skip first tr
+        trs = self.parser.select(table, 'tr')
+        for tr in trs:
+            tds = self.parser.select(tr, 'td')
+            if len(tds) != 6:
+                continue
+            tdlabel, tdid, tdcur, tdupdated, tdbal, tdbalcur = tds
+
+            account = Account()
+            account.label = to_unicode(tdlabel.text_content().strip())
+            # this is important - and is also the last part of the id (considering spaces)
+            # we can't use only the link as it does not goes where we want
+            link = self.parser.select(tdlabel, 'a', 1)
+            account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
+            account.id = to_unicode(tdid.text.strip().replace(' ', ''))
+            # just in case we are showing the converted balances
+            account._main_currency = Account.get_currency(tdcur.text)
+            account.balance = Decimal(Transaction.clean_amount(tdbal.text_content()))
+            account.currency = Account.get_currency(tdbalcur.text)
+            account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
+            yield account

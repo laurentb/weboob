@@ -31,7 +31,7 @@ class BNPEnterprise(BaseBrowser):
     CERTHASH = '423f68a8162d1328bacb48269675d8b8577ebcc9d222860de8421792c4d222c1'
 
     PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
-             '%s://%s/UNE\?Action=DSP_VGLOBALE' % (PROTOCOL, DOMAIN): AccountsPage}
+             '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage}
 
     def home(self):
         self.location('%s://%s/NSAccess' % (self.PROTOCOL, self.DOMAIN))
@@ -51,7 +51,15 @@ class BNPEnterprise(BaseBrowser):
             self.home()
 
         self.page.login(self.username, self.password)
-        self.location('/UNE?Action=DSP_VGLOBALE', no_login=True)
+        self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O', no_login=True)
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
+
+    def get_accounts_list(self):
+        # options shows accounts in their original currency
+        # it's the "en capitaux" mode, not sure if it's the best
+        # the "en valeur" mode is ch8=1000
+        self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O')
+        for account in self.page.get_list():
+            yield account
