@@ -106,4 +106,17 @@ class ProAccountHistory(BasePage):
             yield op
 
     def iter_coming_operations(self):
-        raise NotImplementedError()
+        for i, tr in enumerate(self.document.xpath('//tr[@class="hdoc1" or @class="hdotc1"]')):
+            cols = tr.findall('td')
+
+            op = Transaction(i)
+
+            date = self.parser.tocleanstring(cols[self.COL_DATE])
+            raw = self.parser.tocleanstring(cols[self.COL_LABEL])
+            raw = re.sub(r'[ \xa0]+', ' ', raw).strip()
+            op.parse(date=date, raw=raw)
+
+            credit = self.parser.tocleanstring(cols[self.COL_CREDIT])
+            op.set_amount(credit)
+
+            yield op

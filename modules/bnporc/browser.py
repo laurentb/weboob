@@ -59,8 +59,8 @@ class BNPorc(BaseBrowser):
 
              # Pro
              'https?://www.secure.bnpparibas.net/banque/portail/entrepros/Fiche\?.*identifiant=PRO_Une_Comptes.*':  ProAccountsList,
-             'https?://www.secure.bnpparibas.net/SAF_ROP\?Origine=DSP_HISTOCPT.*':  ProAccountHistory,
-             'https?://www.secure.bnpparibas.net/SAF_ROP\?Origine=DSP_ET.*':  ProAccountHistory,
+             'https?://www.secure.bnpparibas.net/SAF_ROP.*':  ProAccountHistory,
+             'https?://www.secure.bnpparibas.net/NS_AVEDT.*':  ProAccountHistory,
             }
 
     def __init__(self, *args, **kwargs):
@@ -203,9 +203,9 @@ class BNPorc(BaseBrowser):
 
         if account._stp is not None:
             # Pro
-            self.location(self.buildurl('/SAF_ROP', Origine='DSP_ET', ch4=account._link_id, stp=account._stp))
+            self.location(self.buildurl('/NS_AVEDT', Origine='DSP_DT', ch4=account._link_id, stp=account._stp))
         else:
-            # Persô
+            # Perso
             if not self.is_on_page(AccountsList):
                 self.location('/NSFR?Action=DSP_VGLOBALE')
 
