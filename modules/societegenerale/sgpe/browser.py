@@ -103,9 +103,11 @@ class SGProfessionalBrowser(SGPEBrowser):
     DOMAIN = 'professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
     MENUID = 'SBORELCPT'
+    CERTHASH = 'd369315d357ba0018c2bd4d3394645669d99106c797d7390fded516b098a933e'
 
 
 class SGEnterpriseBrowser(SGPEBrowser):
     DOMAIN = 'entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
     MENUID = 'BANRELCPT'
+    CERTHASH = 'd5c21d47c7d5a300b40856be49d0b36b42eaae409c8891184652b888d16a05f5'
