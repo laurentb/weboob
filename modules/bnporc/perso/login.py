@@ -24,38 +24,38 @@ from weboob.tools.mech import ClientForm
 import urllib
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard,VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'9cc4789a2cb223e8f2d5e676e90264b5',
-             '1':'e10b58fc085f9683052d5a63c96fc912',
-             '2':'04ec647e7b3414bcc069f0c54eb55a4c',
-             '3':'fde84fd9bac725db8463554448f1e469',
-             '4':'2359eea8671bf112b58264bec0294f71',
-             '5':'82b55b63480114f04fad8c5c4fa5673a',
-             '6':'e074864faeaeabb3be3d118192cd8879',
-             '7':'af5740e4ca71fadc6f4ae1412d864a1c',
-             '8':'cab759c574038ad89a0e35cc76ab7214',
-             '9':'828cf0faf86ac78e7f43208907620527'
+    symbols={'0': '9cc4789a2cb223e8f2d5e676e90264b5',
+             '1': 'e10b58fc085f9683052d5a63c96fc912',
+             '2': '04ec647e7b3414bcc069f0c54eb55a4c',
+             '3': 'fde84fd9bac725db8463554448f1e469',
+             '4': '2359eea8671bf112b58264bec0294f71',
+             '5': '82b55b63480114f04fad8c5c4fa5673a',
+             '6': 'e074864faeaeabb3be3d118192cd8879',
+             '7': 'af5740e4ca71fadc6f4ae1412d864a1c',
+             '8': 'cab759c574038ad89a0e35cc76ab7214',
+             '9': '828cf0faf86ac78e7f43208907620527'
             }
 
     url="/NSImgGrille?timestamp=%d"
 
     color=27
 
-    def __init__(self,basepage):
+    def __init__(self, basepage):
         img=basepage.document.find("//img[@usemap='#MapGril']")
-        MappedVirtKeyboard.__init__(self,basepage.browser.openurl(self.url % time.time()),basepage.document,img,self.color)
-        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
+        MappedVirtKeyboard.__init__(self, basepage.browser.openurl(self.url % time.time()), basepage.document, img, self.color)
+        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
-    def get_symbol_code(self,md5sum):
-        code=MappedVirtKeyboard.get_symbol_code(self,md5sum)
+    def get_symbol_code(self, md5sum):
+        code=MappedVirtKeyboard.get_symbol_code(self, md5sum)
         return code[-4:-2]
 
-    def get_string_code(self,string):
+    def get_string_code(self, string):
         code=''
         for c in string:
             code+=self.get_symbol_code(self.symbols[c])
@@ -74,7 +74,7 @@ class LoginPage(BasePage):
     def login(self, login, password):
         try:
             vk=BNPVirtKeyboard(self)
-        except VirtKeyboardError,err:
+        except VirtKeyboardError, err:
             self.logger.error("Error: %s"%err)
             return False
 
@@ -83,7 +83,7 @@ class LoginPage(BasePage):
         self.browser.controls.append(ClientForm.TextControl('text', 'ch1', {'value': ''}))
         self.browser.set_all_readonly(False)
 
-        self.browser['ch1'] = login
+        self.browser['ch1'] = unicode(login)
         self.browser['ch5'] = vk.get_string_code(password)
         self.browser.submit()
 
@@ -111,7 +111,7 @@ class ChangePasswordPage(BasePage):
     def change_password(self, current, new):
         try:
             vk=BNPVirtKeyboard(self)
-        except VirtKeyboardError,err:
+        except VirtKeyboardError, err:
             self.logger.error("Error: %s"%err)
             return False
 
