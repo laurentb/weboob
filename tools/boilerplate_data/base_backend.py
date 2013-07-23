@@ -12,6 +12,7 @@ class ${r.classname}Backend(BaseBackend):
     DESCRIPTION = u'${r.name} website'
     MAINTAINER = u'${r.author}'
     EMAIL = '${r.email}'
+    LICENSE = 'AGPLv3+'
     VERSION = '${r.version}'
 
     BROWSER = ${r.classname}Browser
