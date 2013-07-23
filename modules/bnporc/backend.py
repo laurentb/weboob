@@ -27,9 +27,10 @@ from datetime import datetime, timedelta
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Account, Recipient
 from weboob.capabilities.messages import ICapMessages, Thread
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import BNPorc
+from .enterprise.browser import BNPEnterprise
 
 
 __all__ = ['BNPorcBackend']
@@ -42,12 +43,14 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     VERSION = '0.g'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'BNP Paribas French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
-                           ValueBackendPassword('rotating_password', default='',
-                                 label='Password to set when the allowed uses are exhausted (6 digits)',
-                                 regexp='^(\d{6}|)$'))
-    BROWSER = BNPorc
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login',      label='Account ID', masked=False),
+        ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
+        ValueBackendPassword('rotating_password', default='',
+            label='Password to set when the allowed uses are exhausted (6 digits)',
+            regexp='^(\d{6}|)$'),
+        Value('website', label='Website to use', default='pp',
+              choices={'pp': 'Particuliers/Profesionnels', 'ent': 'Entreprises'}))
     STORAGE = {'seen': []}
 
     # Store the messages *list* for this duration
@@ -59,14 +62,20 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
         self._threads_age = datetime.utcnow()
 
     def create_default_browser(self):
+        b = {'pp': BNPorc, 'ent': BNPEnterprise}
+        self.BROWSER = b[self.config['website'].get()]
         if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
             rotating_password = self.config['rotating_password'].get()
         else:
             rotating_password = None
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   password_changed_cb=self._password_changed_cb,
-                                   rotating_password=rotating_password)
+        if self.config['website'].get() != 'pp':
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get())
+        else:
+            return self.create_browser(self.config['login'].get(),
+                                       self.config['password'].get(),
+                                       password_changed_cb=self._password_changed_cb,
+                                       rotating_password=rotating_password)
 
     def _password_changed_cb(self, old, new):
         self.config['password'].set(new)
@@ -92,10 +101,16 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             return self.browser.iter_history(account)
 
     def iter_coming(self, account):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+
         with self.browser:
             return self.browser.iter_coming_operations(account)
 
     def iter_transfer_recipients(self, ignored):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+
         for account in self.browser.get_transfer_accounts().itervalues():
             recipient = Recipient()
             recipient.id = account.id
@@ -103,6 +118,9 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             yield recipient
 
     def transfer(self, account, to, amount, reason=None):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+
         if isinstance(account, Account):
             account = account.id
 
@@ -141,6 +159,9 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             return self.get_thread(thread)
 
     def get_thread(self, _id):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+
         if isinstance(_id, Thread):
             thread = _id
             _id = thread.id
@@ -151,6 +172,9 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
         return thread
 
     def iter_unread_messages(self):
+        if self.config['website'].get() != 'pp':
+            raise NotImplementedError()
+
         threads = list(self.iter_threads(cache=True))
         for thread in threads:
             if thread.root.flags & thread.root.IS_UNREAD:
