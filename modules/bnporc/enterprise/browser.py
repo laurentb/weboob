@@ -20,7 +20,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, UnknownPage
+from .pages import LoginPage, AccountsPage, HistoryPage, UnknownPage
 
 __all__ = ['BNPEnterprise']
 
@@ -32,6 +32,7 @@ class BNPEnterprise(BaseBrowser):
 
     PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
              '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage,
+             '%s://%s/ROP\?Action=F_RELCO.+' % (PROTOCOL, DOMAIN): HistoryPage,
              '%s://%s/NSFR' % (PROTOCOL, DOMAIN): UnknownPage}
 
     def home(self):
@@ -61,6 +62,18 @@ class BNPEnterprise(BaseBrowser):
         # options shows accounts in their original currency
         # it's the "en capitaux" mode, not sure if it's the best
         # the "en valeur" mode is ch8=1000
-        self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O')
+        if not self.is_on_page(AccountsPage):
+            self.location('/UNE?ch6=0&ch8=2000&chA=1&chh=O')
         for account in self.page.get_list():
             yield account
+
+    def get_account(self, _id):
+        for a in self.get_accounts_list():
+            if a.id == _id:
+                yield a
+
+    def iter_history(self, account):
+        if not self.is_on_page(HistoryPage):
+            self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
+        for transaction in self.page.iter_history():
+            yield transaction

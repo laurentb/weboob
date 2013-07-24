@@ -122,9 +122,7 @@ class AccountsPage(BEPage):
 
     def get_list(self):
         table = self.find_table()
-        # skip first tr
-        trs = self.parser.select(table, 'tr')
-        for tr in trs:
+        for tr in self.parser.select(table, 'tr', 'many'):
             tds = self.parser.select(tr, 'td')
             if len(tds) != 6:
                 continue
@@ -147,6 +145,42 @@ class AccountsPage(BEPage):
             account.currency = Account.get_currency(tdbalcur.text)
             account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
             yield account
+
+
+class HistoryPage(BEPage):
+    def is_empty(self):
+        for td in self.parser.select(self.document.getroot(), 'td.V11vertGras'):
+            if u'Aucune opération enregistrée' in to_unicode(td.text_content()):
+                return True
+        return False
+
+    def find_table(self):
+        for table in self.parser.select(self.document.getroot(), 'table', 'many'):
+            for td in self.parser.select(table, 'tr td'):
+                if td.text_content().strip() == 'OPERATIONS':
+                    return table
+
+    def iter_history(self):
+        if not self.is_empty():
+            table = self.find_table()
+            for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+                tds = self.parser.select(tr, 'td')
+                if len(tds) != 5 or self.parser.select(tr, 'td.thtitrefondbleu'):
+                    continue
+                tddate, tdval, tdlabel, tddebit, tdcredit = \
+                    [t.text_content().replace(u'\xa0', ' ').strip() for t in tds]
+                if all((tddate, tdlabel, any((tddebit, tdcredit)))):
+                    if tddebit:
+                        tdamount = '- %s' % tddebit
+                    else:
+                        tdamount = tdcredit
+                    t = Transaction(i)
+                    t.set_amount(tdamount)
+                    date = datetime.strptime(tddate, '%d/%m/%Y')
+                    val = datetime.strptime(tdval, '%d/%m/%Y')
+                    t.parse(date, tdlabel)
+                    t._val = val  # FIXME is it rdate? date?
+                    yield t
 
 
 class UnknownPage(BEPage):
