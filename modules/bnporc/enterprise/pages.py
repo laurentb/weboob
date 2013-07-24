@@ -160,6 +160,12 @@ class HistoryPage(BEPage):
                 if td.text_content().strip() == 'OPERATIONS':
                     return table
 
+    def get_date_range(self):
+        radio = self.parser.select(self.document.getroot(), '//input[@name="br_tout_date"]', 1, 'xpath')
+        d1 = radio.attrib['value'][0:10]
+        d2 = radio.attrib['value'][10:20]
+        return (d1, d2)
+
     def iter_history(self):
         if not self.is_empty():
             table = self.find_table()
