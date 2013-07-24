@@ -113,9 +113,9 @@ class AccountsPage(SGPEPage):
 
 
 class HistoryPage(SGPEPage):
-    def iter_transactions(self, account):
+    def iter_transactions(self, account, basecount):
         table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
-        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+        for i, tr in enumerate(self.parser.select(table, 'tr', 'many'), basecount):
             # td colspan=5
             if len(self.parser.select(tr, 'td')) == 1:
                 continue
