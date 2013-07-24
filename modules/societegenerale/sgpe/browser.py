@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, AccountsPage, HistoryPage
+from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -35,6 +35,7 @@ class SGPEBrowser(BaseBrowser):
         self.PAGES = OrderedDict((
             ('%s://%s/Pgn/.+PageID=SoldeV3&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
             ('%s://%s/Pgn/.+PageID=ReleveCompteV3&.+' % (self.PROTOCOL, self.DOMAIN), HistoryPage),
+            ('%s://%s/authent\.html' % (self.PROTOCOL, self.DOMAIN), ErrorPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -61,12 +62,12 @@ class SGPEBrowser(BaseBrowser):
 
         # force page change
         if not self.is_on_page(AccountsPage):
-            self.accounts()
-        if self.is_on_page(LoginPage):
+            self.accounts(no_login=True)
+        if not self.is_logged():
             raise BrowserIncorrectPassword()
 
-    def accounts(self):
-        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID)
+    def accounts(self, no_login=False):
+        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID, no_login=no_login)
 
     def history(self, _id, page=1):
         if page > 1:

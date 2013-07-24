@@ -48,6 +48,11 @@ class SGPEPage(BasePage):
             return err[0].text.strip()
 
 
+class ErrorPage(SGPEPage):
+    def get_error(self):
+        return SGPEPage.get_error(self) or 'Unknown error'
+
+
 class LoginPage(SGPEPage):
     def login(self, login, password):
         DOMAIN = self.browser.DOMAIN
