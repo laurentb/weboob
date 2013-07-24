@@ -139,6 +139,10 @@ class AccountsPage(BEPage):
             account.id = to_unicode(tdid.text.strip().replace(' ', ''))
             # just in case we are showing the converted balances
             account._main_currency = Account.get_currency(tdcur.text)
+            # we have to ignore those accounts, because using NotAvailable
+            # makes boobank and probably many others crash
+            if tdbal.text_content().strip() == 'indisponible':
+                continue
             account.balance = Decimal(Transaction.clean_amount(tdbal.text_content()))
             account.currency = Account.get_currency(tdbalcur.text)
             account._updated = datetime.strptime(tdupdated.text, '%d/%m/%Y')
