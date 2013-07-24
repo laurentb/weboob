@@ -22,7 +22,7 @@ from urllib import urlencode
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages import HomePage, MessagesPage, LogoutPage, LogoutOkPage, \
-                   AlreadyConnectedPage, ExpiredPage, MovementsPage, RootPage
+    AlreadyConnectedPage, ExpiredPage, MovementsPage, RootPage
 
 
 __all__ = ['LCLEnterpriseBrowser']
@@ -63,9 +63,11 @@ class LCLEnterpriseBrowser(BaseBrowser):
             self.logout()
 
     def is_logged(self):
-        ID_XPATH = '//div[@id="headerIdentite"]'
-        self._logged = bool(self.page.document.xpath(ID_XPATH))
-        return self._logged
+        if self.page:
+            ID_XPATH = '//div[@id="headerIdentite"]'
+            self._logged = bool(self.page.document.xpath(ID_XPATH))
+            return self._logged
+        return False
 
     def login(self):
         assert isinstance(self.username, basestring)
@@ -79,7 +81,11 @@ class LCLEnterpriseBrowser(BaseBrowser):
         if self.is_on_page(AlreadyConnectedPage):
             raise BrowserIncorrectPassword("Another session is already open. Please try again later.")
         if not self.is_logged():
-            raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
+            raise BrowserIncorrectPassword(
+                "Invalid login/password.\n"
+                "If you did not change anything, be sure to check for password renewal request\n"
+                "on the original website.\n"
+                "Automatic renewal will be implemented later.")
 
     def logout(self):
         self.location(self.PAGES_REV[LogoutPage], no_login=True)
