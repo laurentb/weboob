@@ -150,7 +150,7 @@ class IFormatter(object):
             formatted = self.format_obj(obj, alias)
         else:
             try:
-                return OrderedDict(obj)
+                obj = OrderedDict(obj)
             except ValueError:
                 raise TypeError('Please give a CapBaseObject or a dict')
 
