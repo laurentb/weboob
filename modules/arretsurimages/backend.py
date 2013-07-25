@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import UserError
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -40,19 +39,19 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='email', masked=False),
                            ValueBackendPassword('password', label='Password'))
     BROWSER = ArretSurImagesBrowser
-    
+
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
-    
+
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
         with self.browser:
             return self.browser.search_videos(pattern)
 #        raise UserError('Search does not work on ASI website, use ls latest command')
-            
+
     def get_video(self, _id):
         with self.browser:
-            return self.browser.get_video(_id)            
-            
+            return self.browser.get_video(_id)
+
     def fill_video(self, video, fields):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
@@ -62,8 +61,8 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
-        return video            
-        
+        return video
+
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
             collection = self.get_collection(objs, split_path)
@@ -79,6 +78,6 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
         if BaseVideo in objs and collection.split_path == [u'latest']:
             collection.title = u'Latest ArretSurImages videos'
             return
-        raise CollectionNotFound(collection.split_path)     
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {ArretSurImagesVideo: fill_video}

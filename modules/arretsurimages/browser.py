@@ -39,7 +39,7 @@ class ArretSurImagesBrowser(BaseBrowser):
         '%s://%s/forum/login.php' % (PROTOCOL, DOMAIN): LoginPage,
         '%s://%s/forum/index.php' % (PROTOCOL, DOMAIN): LoginRedirectPage,
     }
-    
+
     def home(self):
         self.location('http://www.arretsurimages.net')
 
@@ -47,15 +47,15 @@ class ArretSurImagesBrowser(BaseBrowser):
         self.location(self.buildurl('/emissions.php'))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
-        
+
     @id2url(ArretSurImagesVideo.id2url)
     def get_video(self, url, video=None):
         self.login()
         self.location(url)
         return self.page.get_video(video)
-        
+
     def is_logged(self):
-        return self.is_on_page(LoginPage) == False
+        return not self.is_on_page(LoginPage)
 
     def login(self):
         if not self.is_on_page(LoginPage):
@@ -64,10 +64,9 @@ class ArretSurImagesBrowser(BaseBrowser):
         self.page.login(self.username, self.password)
 
         if not self.is_logged():
-            raise BrowserIncorrectPassword() 
-            
+            raise BrowserIncorrectPassword()
+
     def latest_videos(self):
         self.location(self.buildurl('/emissions.php'))
         assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()                   
-
+        return self.page.iter_videos()

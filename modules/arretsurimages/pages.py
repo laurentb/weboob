@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import mechanize
 
 from weboob.capabilities.base import UserError
 from weboob.tools.browser import BasePage, BrokenPageError
@@ -50,6 +49,7 @@ class IndexPage(BasePage):
             video.thumbnail = Thumbnail(u'http://www.arretsurimages.net' + thumb.attrib['src'])
 
             yield video
+
 
 class ForbiddenVideo(UserError):
     pass
@@ -83,40 +83,40 @@ class VideoPage(BasePage):
 
     def get_title(self):
         title = self.document.getroot().cssselect('div[id=titrage-contenu] h1')[0].text
-        return title;
-        
+        return title
+
     def get_id(self):
         m = re.match(r'http://videos.arretsurimages.net/telecharger/(.*)', self.get_firstUrl())
-        _id = ''
         if m:
             return m.group(1)
         self.logger.warning('Unable to parse ID')
         return 0
-        
+
     def get_url(self):
         firstUrl = self.get_firstUrl()
         doc = self.browser.get_document(self.browser.openurl(firstUrl))
-        links = doc.xpath('//a');
-        url = None;
+        links = doc.xpath('//a')
+        url = None
         i = 1
-        for link in links :
+        for link in links:
             # we take the second link of the page
             if i == 2:
                 url = link.attrib['href']
-            i=i+1
+            i += 1
         return url
-        
+
+
 class LoginPage(BasePage):
     def login(self, username, password):
         response = self.browser.response()
-        response.set_data(response.get_data().replace("<br/>", "<br />")) #Python mechanize is broken, fixing it.
+        response.set_data(response.get_data().replace("<br/>", "<br />"))  # Python mechanize is broken, fixing it.
         self.browser.set_response(response)
         self.browser.select_form(nr=0)
-        self.browser.form.set_all_readonly(False) 
+        self.browser.form.set_all_readonly(False)
         self.browser['redir'] = '/forum/index.php'
         self.browser['username'] = username
         self.browser['password'] = password
-        self.browser.submit()        
+        self.browser.submit()
 
 
 class LoginRedirectPage(BasePage):
