@@ -42,7 +42,12 @@ class AccountsList(BasePage):
                             break
 
                         elif td.attrib.get('class', '') == 'account-name':
-                            account.label = self.parser.tocleanstring(td.xpath('./span[@class="label"]')[0])
+                            try:
+                                span = td.xpath('./span[@class="label"]')[0]
+                            except IndexError:
+                                # ignore account
+                                break
+                            account.label = self.parser.tocleanstring(span)
                             account._link_id = td.xpath('.//a')[0].attrib['href']
 
                         elif td.attrib.get('class', '') == 'account-more-actions':

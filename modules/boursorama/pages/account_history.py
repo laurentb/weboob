@@ -47,11 +47,15 @@ class AccountHistory(BasePage):
     def get_operations(self):
         for form in self.document.xpath('//form[@name="marques"]'):
             for tr in form.xpath('.//tbody/tr'):
-                if tr.attrib.get('class', '') == 'total':
+                if tr.attrib.get('class', '') == 'total' or 'style' in tr.attrib:
                     continue
 
-                date = self.parser.tocleanstring(tr.cssselect('td.label span.DateOperation')[0])
-                label = self.parser.tocleanstring(tr.cssselect('td.label span')[-1])
+                date = self.parser.tocleanstring(tr.cssselect('td.operation span.DateOperation')[0])
+                span = tr.cssselect('td.operation span, td.operation a')[-1]
+                # remove links
+                for font in span.xpath('./font'):
+                    font.drop_tree()
+                label = self.parser.tocleanstring(span)
                 amount = self.parser.tocleanstring(tr.cssselect('td.amount')[0])
 
                 try:
