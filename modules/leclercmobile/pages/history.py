@@ -75,7 +75,7 @@ class PdfPage():
                 detail = Detail()
                 split = re.split("(\d)", line, maxsplit=1)
                 detail.price = Decimal(0)
-                detail.infos = split[1] + split[2]
+                detail.infos = unicode(split[1] + split[2], encoding='utf-8')
                 if '€' in line:
                     specialprice = split[1] + split[2]
                     detail.price = Decimal(specialprice.replace('€', ''))
