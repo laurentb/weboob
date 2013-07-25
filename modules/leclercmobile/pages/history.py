@@ -176,7 +176,7 @@ class HistoryPage(BasePage):
             link = li.xpath('a')[0]
             bill = Bill()
             bill._url = link.attrib['href']
-            bill.label = link.text
+            bill.label = unicode(link.text)
             bill.format = u"pdf"
             bill.id = parentid + bill.label.replace(' ', '')
             yield bill

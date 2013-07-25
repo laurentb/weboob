@@ -34,8 +34,8 @@ class LoginPage(BasePage):
         self.browser.set_all_readonly(False)
         self.browser.controls.append(ClientForm.TextControl('text', '__ASYNCPOST', {'value': "true"}))
         self.browser['__EVENTTARGET'] = "ctl00$cMain$lnkValider"
-        self.browser['ctl00$cMain$ascSaisieMsIsdn$txtMsIsdn'] = login
-        self.browser['ctl00$cMain$txtMdp'] = password
+        self.browser['ctl00$cMain$ascSaisieMsIsdn$txtMsIsdn'] = login.encode('iso-8859-1')
+        self.browser['ctl00$cMain$txtMdp'] = password.encode('iso-8859-1')
         self.browser.submit(nologin=True)
         return form
 
@@ -66,6 +66,6 @@ class LoginPage(BasePage):
         self.browser['__VIEWSTATE'] = state
         self.browser['__EVENTTARGET'] = "ctl00$ascAttente$timerAttente"
         self.browser['__EVENTVALIDATION'] = controlvalue
-        self.browser['ctl00$cMain$ascSaisieMsIsdn$txtMsIsdn'] = login
+        self.browser['ctl00$cMain$ascSaisieMsIsdn$txtMsIsdn'] = login.encode('iso-8859-1')
         self.browser['ctl00$cMain$txtMdp'] = ""
         self.browser.submit(nologin=True)
