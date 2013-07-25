@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Fourcot Florent
+# Copyright(C) 2012-2013  Fourcot Florent
 #
 # This file is part of weboob.
 #
@@ -27,8 +27,35 @@ __all__ = ['LeclercMobileTest']
 class LeclercMobileTest(BackendTest):
     BACKEND = 'leclercmobile'
 
-    def test_leclercmobile(self):
+    def test_list(self):
+        """
+        Test listing of subscriptions .
+        No support of multi-account on the website, we could assume to
+        have only one subscription.
+        Check the balance if the subscription is ok.
+        """
+        subscriptions = list(self.backend.iter_subscription())
+        self.assertTrue(len(subscriptions) == 1, msg="Account listing failed")
+        self.assertTrue(self.backend.get_balance(subscriptions[0]) > 0,
+                        msg="Get balance failed")
+
+    def test_downloadbills(self):
+        """
+        Iter all bills and try to download it.
+        """
         for subscription in self.backend.iter_subscription():
-            list(self.backend.iter_bills_history(subscription.id))
             for bill in self.backend.iter_bills(subscription.id):
                 self.backend.download_bill(bill.id)
+
+    def test_history(self):
+        for subscription in self.backend.iter_subscription():
+            self.assertTrue(len(list(self.backend.iter_bills_history(subscription))) > 0)
+
+    def test_details(self):
+        for subscription in self.backend.iter_subscription():
+            details = list(self.backend.get_details(subscription))
+            self.assertTrue(len(details) > 5, msg="Not enough details")
+            total = 0
+            for d in details:
+                total += d.price
+            self.assertTrue(total > 0, msg="Parsing of price failed")
