@@ -55,10 +55,13 @@ class Boursorama(BaseBrowser):
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def home(self):
-        self.location('https://' + self.DOMAIN + '/connexion.phtml')
+        if not self.is_logged():
+            self.login()
+        else:
+            self.location('https://' + self.DOMAIN + '/comptes/synthese.phtml')
 
     def is_logged(self):
-        return not self.is_on_page(LoginPage)
+        return self.page is not None and not self.is_on_page(LoginPage)
 
     def handle_authentication(self):
         if self.is_on_page(AuthenticationPage):
@@ -91,7 +94,7 @@ class Boursorama(BaseBrowser):
         assert self.password.isdigit()
 
         if not self.is_on_page(LoginPage):
-            self.location('https://' + self.DOMAIN + '/connexion.phtml')
+            self.location('https://' + self.DOMAIN + '/connexion.phtml', no_login=True)
 
         self.page.login(self.username, self.password)
 

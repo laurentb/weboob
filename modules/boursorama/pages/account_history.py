@@ -20,7 +20,6 @@
 
 
 from urlparse import urlparse
-from datetime import date
 import re
 
 from weboob.tools.browser import BasePage
@@ -45,45 +44,26 @@ class Transaction(FrenchTransaction):
 
 
 class AccountHistory(BasePage):
-
-    def on_loaded(self):
-        self.operations = []
-
-        for form in self.document.getiterator('form'):
-            if form.attrib.get('name', '') == 'marques':
-                for tr in form.getiterator('tr'):
-                    tds = tr.findall('td')
-                    if len(tds) < 5:
-                        continue
-                    # tds[0]: operation
-                    # tds[1]: valeur
-                    d = date(*reversed([int(x) for x in tds[1].text.split('/')]))
-                    labeldiv = tds[2].find('div')
-                    if len(tds) == 6:
-                        inputid = tds[5].find('input[@type="hidden"]')
-                        operation = Transaction(inputid.attrib['id'].split('_')[1])
-                    else:
-                        operation = Transaction(0)
-                    label = u''
-                    label += labeldiv.text
-                    if labeldiv.find('a') is not None:
-                        label += labeldiv.find('a').text
-                    label = label.strip(u' \n\t')
-
-                    category = labeldiv.attrib.get('title', '')
-                    useless, sep, category = [part.strip() for part in category.partition(':')]
-
-                    debit = tds[3].text or ""
-                    credit = tds[4].text or ""
-
-                    operation.parse(date=d, raw=label)
-                    operation.set_amount(credit, debit)
-                    operation.category = category
-
-                    self.operations.append(operation)
-
     def get_operations(self):
-        return self.operations
+        for form in self.document.xpath('//form[@name="marques"]'):
+            for tr in form.xpath('.//tbody/tr'):
+                if tr.attrib.get('class', '') == 'total':
+                    continue
+
+                date = self.parser.tocleanstring(tr.cssselect('td.label span.DateOperation')[0])
+                label = self.parser.tocleanstring(tr.cssselect('td.label span')[-1])
+                amount = self.parser.tocleanstring(tr.cssselect('td.amount')[0])
+
+                try:
+                    _id = tr.xpath('.//input[@type="hidden"]')[0].attrib['id'].split('_')[1]
+                except KeyError:
+                    _id = 0
+
+                operation = Transaction(_id)
+                operation.parse(date=date, raw=label)
+                operation.set_amount(amount)
+
+                yield operation
 
     def get_next_url(self):
         items = self.document.getroot().cssselect('ul.menu-lvl-0 li')

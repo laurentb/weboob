@@ -23,7 +23,6 @@ from decimal import Decimal
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
-from weboob.tools.misc import to_unicode
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -43,8 +42,8 @@ class AccountsList(BasePage):
                             break
 
                         elif td.attrib.get('class', '') == 'account-name':
-                            a = td.find('a')
-                            account.label = to_unicode(a.text)
+                            account.label = self.parser.tocleanstring(td.xpath('./span[@class="label"]')[0])
+                            account._link_id = td.xpath('.//a')[0].attrib['href']
 
                         elif td.attrib.get('class', '') == 'account-more-actions':
                             for a in td.getiterator('a'):

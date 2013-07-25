@@ -48,7 +48,7 @@ class VirtKeyboard(MappedVirtKeyboard):
         return r > 240 and g > 240 and b > 240
 
     def __init__(self, page):
-        img = page.document.find("//img[@usemap='#pass_map']")
+        img = page.document.find("//img[@usemap='#login-pad_map']")
         img_file = page.browser.openurl(img.attrib['src'])
         MappedVirtKeyboard.__init__(self, img_file, page.document, img, self.color, convert='RGB')
 
