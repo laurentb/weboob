@@ -35,7 +35,7 @@ class JobListWidgetItem(QListWidgetItem):
          return self.job.publication_date < other.job.publication_date
 
     def setAttrs(self, storage):
-        text =  u'%s' % self.job.title
+        text =  u'%s - %s' % (self.job.backend, self.job.title)
         self.setText(text)
 
 class MainWindow(QtMainWindow):
@@ -125,7 +125,7 @@ class MainWindow(QtMainWindow):
             self.ui.contractTypeLabel.setText("%s" % job.contract_type)
             self.ui.formationLabel.setText("%s" % job.formation)
             self.ui.experienceLabel.setText("%s" % job.experience)
-            self.ui.urlLabel.setText("%s" % job.url)
+            self.ui.urlLabel.setText("<a href='%s'>%s</a>" % (job.url, job.url))
             self.ui.jobFrame.show()
         else:
             self.ui.jobFrame.hide()

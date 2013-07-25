@@ -339,6 +339,12 @@
                    <property name="textInteractionFlags">
                     <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
                    </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="openExternalLinks">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -413,10 +419,9 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>jobList</tabstop>
-  <tabstop>descriptionEdit</tabstop>
   <tabstop>searchEdit</tabstop>
   <tabstop>searchButton</tabstop>
+  <tabstop>jobList</tabstop>
  </tabstops>
  <resources/>
  <connections/>
