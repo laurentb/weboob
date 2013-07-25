@@ -63,7 +63,8 @@ class PdfPage():
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
         details = []
         detail = None
-        lines.pop(-1)  # line for picture informations
+        lines.pop(0)  # MENSUELLE
+        lines.pop(-1)  # Line to describes pictures
         for line in lines:
             if "Votre consommation" in line:
                 line = line.split(": ", 1)[1]
