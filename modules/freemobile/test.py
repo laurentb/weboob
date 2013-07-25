@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Romain Bignon
+# Copyright(C) 2013 Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -27,8 +27,26 @@ __all__ = ['FreeMobileTest']
 class FreeMobileTest(BackendTest):
     BACKEND = 'freemobile'
 
-    def test_freemobile(self):
+    def test_details(self):
         for subscription in self.backend.iter_subscription():
-            list(self.backend.iter_bills_history(subscription.id))
+            details = list(self.backend.get_details(subscription))
+            self.assertTrue(len(details) > 4, msg="Not enough details")
+
+    def test_history(self):
+        for subscription in self.backend.iter_subscription():
+            self.assertTrue(len(list(self.backend.iter_bills_history(subscription))) > 0)
+
+    def test_downloadbills(self):
+        """
+        Iter all bills and try to download it.
+        """
+        for subscription in self.backend.iter_subscription():
             for bill in self.backend.iter_bills(subscription.id):
                 self.backend.download_bill(bill.id)
+
+    def test_list(self):
+        """
+        Test listing of subscriptions.
+        """
+        subscriptions = list(self.backend.iter_subscription())
+        self.assertTrue(len(subscriptions) > 0, msg="Account listing failed")
