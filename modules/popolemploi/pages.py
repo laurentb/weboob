@@ -58,11 +58,15 @@ class AdvertPage(BasePage):
             _id = self.parser.select(content, 'ul/li/ul/li/div[@class="value"]/span', 1, method='xpath').text
             advert = PopolemploiJobAdvert(_id)
 
+        print url
         advert.title = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
         advert.job_name = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
         advert.description = u'%s' % self.parser.select(content, 'p[@itemprop="description"]', 1, method='xpath').text
-        advert.society_name = u'%s' % self.parser.select(content, 'div[@class="vcard"]/p[@class="title"]/span',
-                                                         1, method='xpath').text
+        society_name = self.parser.select(content, 'div[@class="vcard"]/p[@class="title"]/span', method='xpath')
+
+        if society_name:
+            advert.society_name = u'%s' % society_name[0].text
+
         advert.url = url
         advert.place = u'%s' % self.parser.select(content,
                                                   'ul/li/div[@class="value"]/ul/li[@itemprop="addressRegion"]',
