@@ -24,7 +24,8 @@ import re
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, SavingsPage, TransactionsPage, UselessPage
+from .pages import HomePage, LoginPage, LoginErrorPage, AccountsPage, \
+                   SavingsPage, TransactionsPage, UselessPage, CardsPage
 
 
 __all__ = ['Cragr']
@@ -43,6 +44,8 @@ class Cragr(BaseBrowser):
              'https?://[^/]+/stb/collecteNI\?.*sessionAPP=Releves.*':    TransactionsPage,
              'https?://[^/]+/stb/.*/erreur/.*':                          LoginErrorPage,
              'https?://[^/]+/stb/entreeBam\?.*act=Messagesprioritaires': UselessPage,
+             'https?://[^/]+/stb/collecteNI\?.*fwkaction=Cartes.*':      CardsPage,
+             'https?://[^/]+/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*': CardsPage,
             }
 
     class WebsiteNotSupported(Exception):
@@ -127,6 +130,14 @@ class Cragr(BaseBrowser):
         if not self.is_on_page(AccountsPage):
             self.location(self.accounts_url)
         accounts_list.extend(self.page.get_list())
+
+        # credit cards
+        cards_page = self.page.cards_page()
+        if cards_page:
+            self.location(cards_page)
+            assert self.is_on_page(CardsPage)
+            accounts_list.extend(self.page.get_list())
+
         # savings accounts
         self.location(self.savings_url)
         if self.is_on_page(SavingsPage):
@@ -150,15 +161,20 @@ class Cragr(BaseBrowser):
         if account._link is None:
             return
 
-        self.location(account._link)
-        url = account._link
         date_guesser = LinearDateGuesser()
+        self.location(account._link)
 
-        while url:
-            self.location(url)
-            assert self.is_on_page(TransactionsPage)
-
+        if self.is_on_page(CardsPage):
             for tr in self.page.get_history(date_guesser):
                 yield tr
+        else:
+            url = account._link
 
-            url = self.page.get_next_url()
+            while url:
+                self.location(url)
+                assert self.is_on_page(TransactionsPage)
+
+                for tr in self.page.get_history(date_guesser):
+                    yield tr
+
+                url = self.page.get_next_url()

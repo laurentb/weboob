@@ -20,6 +20,7 @@
 import re
 from decimal import Decimal
 
+from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
@@ -100,6 +101,97 @@ class _AccountsPage(BasePage):
                 account._link = a.attrib['href'].replace(' ', '%20')
 
             yield account
+
+    def cards_page(self):
+        try:
+            return self.document.xpath('//table[@class="ca-table"]' +
+                                       '/tr[@class="ligne-connexe"]' +
+                                       '//a/@href')[0]
+        except IndexError:
+            pass
+
+
+class CardsPage(BasePage):
+
+    def get_list(self):
+        TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption"]]'
+
+        cards_tables = self.document.xpath(TABLE_XPATH)
+
+        if cards_tables:
+            # There are several cards
+            xpaths = {
+                '_id': './caption/span[@class="tdb-cartes-num"]',
+                'label1': './caption/span[@class="tdb-cartes-carte l30"]',
+                'label2': './caption/span[@class="tdb-cartes-prop"]',
+                'balance': './/tr[last()]/td[@class="cel-num"]',
+                'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
+                'link': './/tr//a/@href',
+            }
+        else:
+            xpaths = {
+                '_id': './/tr/td[@class="cel-texte"]',
+                'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
+                'label2': './caption/span[@class="tdb-cartes-prop"]/b',
+                'balance': './/tr[last()-1]/td[@class="cel-num"]',
+                'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
+            }
+            TABLE_XPATH = '(//table[@class="ca-table"])[1]'
+            cards_tables = self.document.xpath(TABLE_XPATH)
+
+        for table in cards_tables:
+            get = lambda name: self.parser.tocleanstring(table.xpath(xpaths[name])[0])
+
+            account = Account()
+            account.id = ''.join(get('_id').split()[1:])
+            account.label = '%s - %s' % (get('label1'),
+                                         re.sub('\s*-\s*$', '', get('label2')))
+            account.balance = Decimal(Transaction.clean_amount(get('balance')))
+            account.currency = account.get_currency(self.document
+                    .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
+            if 'link' in xpaths:
+                account._link = table.xpath(xpaths['link'])[-1]
+            else:
+                account._link = self.url
+
+            yield account
+
+
+    def get_history(self, date_guesser):
+        seen = set()
+        lines = self.document.xpath('(//table[@class="ca-table"])[2]/tr')
+        for line in lines[1:]:  # first line is balance
+            is_balance = line.xpath('./td/@class="cel-texte cel-neg"')
+
+            [date, label, _, amount] = [self.parser.tocleanstring(td)
+                                        for td in line.xpath('./td')]
+
+            clean_amount = Decimal(Transaction.clean_amount(amount))
+
+            t = Transaction(0)
+
+            if is_balance:
+                date_str = label.replace( u"Opérations débitées le ", "") \
+                                .replace(" :","")
+                t.date = parse_french_date(date_str)
+                t.label = u"Débit"
+                t.amount = -clean_amount
+            else:
+                day, month = map(int, date.split('/', 1))
+                t.date = date_guesser.guess_date(day, month)
+                t.label = t.raw = label
+                t.amount = clean_amount
+
+            t.type = t.TYPE_CARD
+            t.rdate = t.date
+            try:
+                t.id = t.unique_id(seen)
+            except UnicodeEncodeError:
+                print t
+                print t.label
+                raise
+
+            yield t
 
 class AccountsPage(_AccountsPage):
     pass
