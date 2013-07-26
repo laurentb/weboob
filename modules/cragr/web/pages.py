@@ -89,7 +89,7 @@ class _AccountsPage(BasePage):
             balance = self.parser.tocleanstring(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
-            if balance == 'indisponible':
+            if balance in ('indisponible', ''):
                 continue
             account.balance = Decimal(Transaction.clean_amount(balance))
             account.currency = account.get_currency(self.parser.tocleanstring(cols[self.COL_CURRENCY]))
