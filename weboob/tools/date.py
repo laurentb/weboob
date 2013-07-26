@@ -19,6 +19,7 @@
 
 
 from datetime import date as real_date, datetime as real_datetime, timedelta
+import dateutil.parser
 import time
 import re
 try:
@@ -199,3 +200,29 @@ class LinearDateGuesser(object):
             if change_current_date:
                 self.set_current_date(parsed_date)
         return parsed_date
+
+DATE_TRANSLATE_FR = [(re.compile(u'janvier', re.I),   u'january'),
+                     (re.compile(u'février', re.I),   u'february'),
+                     (re.compile(u'mars', re.I),      u'march'),
+                     (re.compile(u'avril', re.I),     u'april'),
+                     (re.compile(u'mai', re.I),       u'may'),
+                     (re.compile(u'juin', re.I),      u'june'),
+                     (re.compile(u'juillet', re.I),   u'july'),
+                     (re.compile(u'août', re.I),      u'august'),
+                     (re.compile(u'septembre', re.I), u'september'),
+                     (re.compile(u'octobre', re.I),   u'october'),
+                     (re.compile(u'novembre', re.I),  u'november'),
+                     (re.compile(u'décembre', re.I),  u'december'),
+                     (re.compile(u'lundi', re.I),     u'monday'),
+                     (re.compile(u'mardi', re.I),     u'tuesday'),
+                     (re.compile(u'mercredi', re.I),  u'wednesday'),
+                     (re.compile(u'jeudi', re.I),     u'thursday'),
+                     (re.compile(u'vendredi', re.I),  u'friday'),
+                     (re.compile(u'samedi', re.I),    u'saturday'),
+                     (re.compile(u'dimanche', re.I),  u'sunday')]
+
+def parse_french_date(date):
+    for fr, en in DATE_TRANSLATE_FR:
+        date = fr.sub(en, date)
+
+    return dateutil.parser.parse(date)
