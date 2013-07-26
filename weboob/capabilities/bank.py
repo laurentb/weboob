@@ -20,6 +20,7 @@
 
 import re
 from datetime import date, datetime
+from binascii import crc32
 
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError
 from .collection import ICapCollection
@@ -146,6 +147,22 @@ class Transaction(CapBaseObject):
         label = self.label.encode('utf-8') if self.label else self.label
         return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
             label, self.amount)
+
+    def unique_id(self, seen=None, account_id=None):
+        crc = crc32(str(self.date))
+        crc = crc32(str(self.amount), crc)
+        crc = crc32(self.label.encode("utf-8"), crc)
+
+        if account_id is not None:
+            crc = crc32(str(account_id), crc)
+
+        if seen is not None:
+            while crc in seen:
+                crc = crc32("*", crc)
+
+            seen.add(crc)
+
+        return "%08x" % (crc & 0xffffffff)
 
 
 class Investment(CapBaseObject):
