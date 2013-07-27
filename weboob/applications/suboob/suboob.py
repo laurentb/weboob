@@ -121,16 +121,16 @@ class Suboob(ReplApplication):
         self.format(subtitle)
         self.flush()
 
-    def complete_getfile(self, text, line, *ignored):
+    def complete_download(self, text, line, *ignored):
         args = line.split(' ', 2)
         if len(args) == 2:
             return self._complete_object()
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
-    def do_getfile(self, line):
+    def do_download(self, line):
         """
-        getfile ID [FILENAME]
+        download ID [FILENAME]
 
         Get the subtitle or archive file.
         FILENAME is where to write the file. If FILENAME is '-',
