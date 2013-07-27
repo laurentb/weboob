@@ -160,6 +160,8 @@ class Suboob(ReplApplication):
                     except IOError, e:
                         print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
                         return 1
+                    else:
+                        print 'Saved to %s' % dest
                 return
 
     def do_search(self, line):
