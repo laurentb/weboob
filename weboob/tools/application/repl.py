@@ -949,15 +949,9 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
-        self.start_format()
         self.objects = []
-        for obj in objects:
-            if only is False or not hasattr(obj, 'id') or obj.id in only:
-                if isinstance(obj, CapBaseObject):
-                    self.cached_format(obj)
-                else:
-                    print obj
 
+        self.start_format()
         for collection in collections:
             if only is False or collection.basename in only:
                 if collection.basename and collection.title:
@@ -966,6 +960,13 @@ class ReplApplication(Cmd, ConsoleApplication):
                 else:
                     print u'%s~ (%s) (%s)%s' % \
                     (self.BOLD, collection.basename, collection.backend, self.NC)
+
+        for obj in objects:
+            if only is False or not hasattr(obj, 'id') or obj.id in only:
+                if isinstance(obj, CapBaseObject):
+                    self.cached_format(obj)
+                else:
+                    print obj
 
         if path:
             # Let's go back to the parent directory
