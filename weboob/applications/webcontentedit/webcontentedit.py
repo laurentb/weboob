@@ -66,8 +66,7 @@ class WebContentEdit(ReplApplication):
                 tmpdir = os.path.join(tempfile.gettempdir(), "weboob")
                 if not os.path.isdir(tmpdir):
                     os.makedirs(tmpdir)
-                fd, path = tempfile.mkstemp(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir)
-                with os.fdopen(fd, 'w') as f:
+                with tempfile.NamedTemporaryFile(prefix='%s_' % content.id.replace(os.path.sep, '_'), dir=tmpdir, delete=False) as f:
                     data = content.content
                     if isinstance(data, unicode):
                         data = data.encode('utf-8')
@@ -75,7 +74,7 @@ class WebContentEdit(ReplApplication):
                         content.content = u''
                         data = ''
                     f.write(data)
-                paths[path.encode('utf-8')] = content
+                paths[f.name.encode('utf-8')] = content
 
             params = ''
             editor = os.environ.get('EDITOR', 'vim')

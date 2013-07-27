@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import os
 import tempfile
 import logging
@@ -60,10 +58,9 @@ class YamlConfig(IConfig):
 
     def save(self):
         # write in a temporary file to avoid corruption problems
-        fd, path = tempfile.mkstemp(dir=os.path.dirname(self.path))
-        with os.fdopen(fd, 'w') as f:
+        with tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False) as f:
             yaml.dump(self.values, f, Dumper=Dumper)
-        os.rename(path, self.path)
+        os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
         default = None
