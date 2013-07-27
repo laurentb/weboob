@@ -4,7 +4,9 @@ cd ..
 PYFILES=$(git ls-files|grep '^scripts\|\.py$'|grep -v boilerplate_data|tr '\n' ' ')
 grep -n 'class [^( ]\+:$' ${PYFILES} && exit 3
 grep -n $'\t\|\s$' $PYFILES && exit 4
-grep -n '\.setlocale' ${PYFILES} && exit 5
+grep -Fn '.setlocale' ${PYFILES} && exit 5
+grep -Fn '__future__ import with_statement' ${PYFILES} && exit 6
+grep -nE 'except [[:alnum:] ]+,[[:alnum:] ]+' ${PYFILES} && exit 7
 
 FLAKE8=""
 if which flake8 >/dev/null 2>&1; then
