@@ -118,7 +118,12 @@ class WeboobCfg(ReplApplication):
         """
         caps = line.split()
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
-            module = self.weboob.modules_loader.get_or_load_module(name)
+            try:
+                module = self.weboob.modules_loader.get_or_load_module(name)
+            except ModuleLoadError, e:
+                self.logger.warning('Unable to load module %r: %s' % (name, e))
+                continue
+
             if caps and not module.has_caps(*caps):
                 continue
             row = OrderedDict([('Name', instance_name),
