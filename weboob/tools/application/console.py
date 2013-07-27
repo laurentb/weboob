@@ -188,7 +188,10 @@ class ConsoleApplication(BaseApplication):
 
         Applications can overload this method to restrict backends loaded.
         """
-        self.load_backends(self.CAPS)
+        if len(self.STORAGE) > 0:
+            self.load_backends(self.CAPS, storage=self.create_storage())
+        else:
+            self.load_backends(self.CAPS)
 
     @classmethod
     def run(klass, args=None):
