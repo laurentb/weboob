@@ -93,6 +93,11 @@ class Flatboob(ReplApplication):
 
     @defaultcount(10)
     def do_search(self, line):
+        """
+        search
+
+        Search for housing. Parameters are interactively asked.
+        """
         pattern = 'notempty'
         query = Query()
         query.cities = []
@@ -104,7 +109,7 @@ class Flatboob(ReplApplication):
                 break
 
             cities = []
-            for backend, city in self.do('search_city', pattern):
+            for backend, city in self.weboob.do('search_city', pattern):
                 cities.append(city)
 
             if len(cities) == 0:
@@ -156,6 +161,11 @@ class Flatboob(ReplApplication):
             return self._complete_object()
 
     def do_info(self, _id):
+        """
+        info ID
+
+        Get information about a housing.
+        """
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
