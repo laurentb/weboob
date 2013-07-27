@@ -248,9 +248,6 @@ class ReplApplication(Cmd, ConsoleApplication):
     def main(self, argv):
         cmd_args = argv[1:]
         if cmd_args:
-            if cmd_args[0] == 'help':
-                self._parser.print_help()
-                self._parser.exit()
             cmd_line = u' '.join(cmd_args)
             cmds = cmd_line.split(';')
             for cmd in cmds:
