@@ -245,7 +245,6 @@ class HaveDate(Boobmsg):
                         status = ''
                     line.append((b, status))
                 self.format(tuple(line))
-            self.flush()
             return
         print >>sys.stderr, "No such command '%s'" % cmd
         return 1
@@ -260,4 +259,3 @@ class HaveDate(Boobmsg):
         self.start_format()
         for backend, event in self.do('iter_events'):
             self.cached_format(event)
-        self.flush()

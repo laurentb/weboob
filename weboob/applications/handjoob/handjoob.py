@@ -98,7 +98,6 @@ class Handjoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, job_advert in self.do('search_job', pattern):
             self.cached_format(job_advert)
-        self.flush()
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -123,4 +122,3 @@ class Handjoob(ReplApplication):
 
         self.start_format()
         self.format(job_advert)
-        self.flush()

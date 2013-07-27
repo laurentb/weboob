@@ -134,7 +134,6 @@ class WeboobCfg(ReplApplication):
                                    for key, value in params.iteritems())),
                                ])
             self.format(row)
-        self.flush()
 
     def do_remove(self, instance_name):
         """
@@ -195,7 +194,6 @@ class WeboobCfg(ReplApplication):
                                ('Description', info.description),
                                ])
             self.format(row)
-        self.flush()
 
     def do_info(self, line):
         """

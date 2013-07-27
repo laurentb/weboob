@@ -69,4 +69,3 @@ class Boobooks(ReplApplication):
 
         for backend, renew in self.do('renew_book', id, backends=names):
             self.format(renew)
-        self.flush()

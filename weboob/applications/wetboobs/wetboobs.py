@@ -91,7 +91,6 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, city in self.do('iter_city_search', pattern, caps=ICapWeather):
             self.cached_format(city)
-        self.flush()
 
     def complete_current(self, text, line, *ignored):
         args = line.split(' ')
@@ -124,7 +123,6 @@ class WetBoobs(ReplApplication):
         for backend, current in self.do('get_current', _id, backends=backend_name, caps=ICapWeather):
             if current:
                 self.format(current)
-        self.flush()
 
     def complete_forecasts(self, text, line, *ignored):
         args = line.split(' ')
@@ -149,7 +147,6 @@ class WetBoobs(ReplApplication):
 
         for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
             self.format(forecast)
-        self.flush()
 
     def do_gauges(self, pattern):
         """
@@ -161,7 +158,6 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapGauge):
             self.cached_format(gauge)
-        self.flush()
 
     def complete_gauge(self, text, line, *ignored):
         args = line.split(' ')
@@ -180,7 +176,6 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
-        self.flush()
 
     def complete_last_sensor_measure(self, text, line, *ignored):
         args = line.split(' ')
@@ -199,7 +194,6 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
-        self.flush()
 
     def do_sensors(self, line):
         """
@@ -213,4 +207,3 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=ICapGauge):
             self.format(sensor)
-        self.flush()

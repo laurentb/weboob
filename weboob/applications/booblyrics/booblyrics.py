@@ -90,7 +90,6 @@ class Booblyrics(ReplApplication):
 
         self.start_format()
         self.format(songlyrics)
-        self.flush()
 
     def complete_search(self, text, line, *ignored):
         args = line.split(' ')
@@ -112,4 +111,3 @@ class Booblyrics(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, songlyrics in self.do('iter_lyrics', criteria, pattern):
             self.cached_format(songlyrics)
-        self.flush()

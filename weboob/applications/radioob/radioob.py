@@ -117,7 +117,6 @@ class Radioob(ReplApplication):
             print >>sys.stderr, 'Radio not found:', _id
             return 3
         self.format(radio)
-        self.flush()
 
     @defaultcount(10)
     def do_search(self, pattern=None):
@@ -133,7 +132,6 @@ class Radioob(ReplApplication):
         for backend, radio in self.do('iter_radios_search', pattern=pattern):
             self.add_object(radio)
             self.format(radio)
-        self.flush()
 
     def do_ls(self, line):
         """

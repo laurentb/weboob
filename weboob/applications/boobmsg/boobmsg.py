@@ -418,7 +418,6 @@ class Boobmsg(ReplApplication):
             else:
                 self.threads.append(thread)
             self.format(thread)
-        self.flush()
 
     def do_export_all(self, arg):
         """
@@ -438,7 +437,6 @@ class Boobmsg(ReplApplication):
         self.start_format()
         for backend, msg in self.do(func):
             self.format(msg)
-        self.flush()
 
     def do_export_thread(self, arg):
         """
@@ -453,7 +451,6 @@ class Boobmsg(ReplApplication):
             if thread is not None :
                 for msg in thread.iter_all_messages():
                     self.format(msg)
-        self.flush()
 
     def do_show(self, arg):
         """
@@ -477,7 +474,6 @@ class Boobmsg(ReplApplication):
         if message is not None:
             self.start_format()
             self.format(message)
-            self.flush()
             self.weboob.do('set_message_read', message, backends=message.backend)
             return
         else:
@@ -500,8 +496,6 @@ class Boobmsg(ReplApplication):
 
         if not found:
             self.logger.error(u'Profile not found')
-        else:
-            self.flush()
 
     def do_photos(self, id):
         """
@@ -535,5 +529,3 @@ class Boobmsg(ReplApplication):
 
         if not found:
             self.logger.error(u'Profile not found')
-        else:
-            self.flush()

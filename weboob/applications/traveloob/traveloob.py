@@ -51,7 +51,6 @@ class Traveloob(ReplApplication):
         """
         for backend, station in self.do('iter_station_search', pattern):
             self.format(station)
-        self.flush()
 
     @defaultcount(10)
     def do_departures(self, line):
@@ -80,7 +79,6 @@ class Traveloob(ReplApplication):
 
         for backend, departure in self.do('iter_station_departures', station_id, arrival_id, backends=backends):
             self.format(departure)
-        self.flush()
 
     def do_roadmap(self, line):
         """
@@ -110,7 +108,6 @@ class Traveloob(ReplApplication):
 
         for backend, route in self.do('iter_roadmap', departure, arrival, filters):
             self.format(route)
-        self.flush()
 
     def parse_datetime(self, text):
         if text is None:

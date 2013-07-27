@@ -329,7 +329,6 @@ class Boobank(ReplApplication):
             self.start_format()
             for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=names):
                 self.cached_format(recipient)
-            self.flush()
             return 0
 
         id_to, backend_name_to = self.parse_id(id_to)
@@ -361,7 +360,6 @@ class Boobank(ReplApplication):
         self.start_format()
         for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
             self.format(transfer)
-        self.flush()
 
     def do_investment(self, id):
         """

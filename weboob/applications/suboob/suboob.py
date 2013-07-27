@@ -119,7 +119,6 @@ class Suboob(ReplApplication):
 
         self.start_format()
         self.format(subtitle)
-        self.flush()
 
     def complete_download(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -199,4 +198,3 @@ class Suboob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern):
             self.cached_format(subtitle)
-        self.flush()

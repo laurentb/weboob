@@ -75,7 +75,6 @@ class Galleroob(ReplApplication):
         for backend, gallery in self.do('search_gallery', pattern=pattern,
                                         max_results=self.options.count):
             self.cached_format(gallery)
-        self.flush()
 
     def do_download(self, line):
         """
@@ -157,4 +156,3 @@ class Galleroob(ReplApplication):
 
         self.start_format()
         self.format(gallery)
-        self.flush()

@@ -125,7 +125,6 @@ class Comparoob(ReplApplication):
             products.append(price)
         for price in sorted(products, key=self._get_price):
             self.cached_format(price)
-        self.flush()
 
     def _get_price(self, price):
         return price.cost
@@ -147,4 +146,3 @@ class Comparoob(ReplApplication):
 
         self.start_format()
         self.format(price)
-        self.flush()

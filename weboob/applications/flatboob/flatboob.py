@@ -143,7 +143,6 @@ class Flatboob(ReplApplication):
         self.start_format()
         for backend, housing in self.do('search_housings', query):
             self.cached_format(housing)
-        self.flush()
 
     def ask_int(self, txt):
         r = self.ask(txt, default='', regexp='(\d+|)')
@@ -168,4 +167,3 @@ class Flatboob(ReplApplication):
 
         self.start_format()
         self.format(housing)
-        self.flush()

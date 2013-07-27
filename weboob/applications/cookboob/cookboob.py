@@ -105,7 +105,6 @@ class Cookboob(ReplApplication):
 
         self.start_format()
         self.format(recipe)
-        self.flush()
 
     def complete_export(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -159,4 +158,3 @@ class Cookboob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, recipe in self.do('iter_recipes', pattern=pattern):
             self.cached_format(recipe)
-        self.flush()

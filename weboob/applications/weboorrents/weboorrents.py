@@ -104,7 +104,6 @@ class Weboorrents(ReplApplication):
 
         self.start_format()
         self.format(torrent)
-        self.flush()
 
     def complete_getfile(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -168,4 +167,3 @@ class Weboorrents(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, torrent in self.do('iter_torrents', pattern=pattern):
             self.cached_format(torrent)
-        self.flush()

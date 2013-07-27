@@ -114,7 +114,6 @@ class Translaboob(ReplApplication):
             self.start_format(source=text)
             for backend, translation in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
                 self.format(translation)
-            self.flush()
         except (TranslationFail, LanguageNotSupported) as error:
             print >>sys.stderr, error
             pass

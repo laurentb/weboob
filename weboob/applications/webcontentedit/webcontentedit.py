@@ -162,7 +162,6 @@ class WebContentEdit(ReplApplication):
         self.start_format()
         for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count, backends=backend_names):
             self.format(revision)
-        self.flush()
 
     def do_get(self, line):
         """

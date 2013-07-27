@@ -134,7 +134,6 @@ class BoobTracker(ReplApplication):
         for backend, issue in self.do('iter_issues', query, backends=backends):
             self.add_object(issue)
             self.format(issue)
-        self.flush()
 
     def complete_get(self, text, line, *ignored):
         args = line.split(' ')
@@ -156,7 +155,6 @@ class BoobTracker(ReplApplication):
             print >>sys.stderr, 'Issue not found: %s' % line
             return 3
         self.format(issue)
-        self.flush()
 
     def complete_comment(self, text, line, *ignored):
         args = line.split(' ')
@@ -346,7 +344,6 @@ class BoobTracker(ReplApplication):
             if i:
                 print 'Issue %s%s@%s%s updated' % (self.BOLD, issue.id, issue.backend, self.NC)
                 self.format(i)
-        self.flush()
 
     def complete_attach(self, text, line, *ignored):
         args = line.split(' ')

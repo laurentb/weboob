@@ -244,18 +244,15 @@ class Cineoob(ReplApplication):
         lid1 = []
         for backend, id in self.do('iter_person_movies_ids', person1.id, caps=ICapCinema):
             lid1.append(id)
-        self.flush()
         lid2 = []
         for backend, id in self.do('iter_person_movies_ids', person2.id, caps=ICapCinema):
             lid2.append(id)
-        self.flush()
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
             movie = self.get_object(common, 'get_movie', caps=ICapCinema)
             if movie:
                 self.cached_format(movie)
-        self.flush()
 
     def do_persons_in_common(self, line):
         """
@@ -264,7 +261,6 @@ class Cineoob(ReplApplication):
         Get the list of common persons between two movies.
         """
         id1, id2 = self.parse_command_args(line, 2, 1)
-        self.flush()
 
         movie1 = self.get_object(id1, 'get_movie', caps=ICapCinema)
         if not movie1:
@@ -281,17 +277,14 @@ class Cineoob(ReplApplication):
         lid1 = []
         for backend, id in self.do('iter_movie_persons_ids', movie1.id, caps=ICapCinema):
             lid1.append(id)
-        self.flush()
         lid2 = []
         for backend, id in self.do('iter_movie_persons_ids', movie2.id, caps=ICapCinema):
             lid2.append(id)
-        self.flush()
         self.options.count = initial_count
         inter = list(set(lid1) & set(lid2))
         for common in inter:
             person = self.get_object(common, 'get_person', caps=ICapCinema)
             self.cached_format(person)
-        self.flush()
 
     def do_info_movie(self, id):
         """
@@ -307,7 +300,6 @@ class Cineoob(ReplApplication):
 
         self.start_format()
         self.format(movie)
-        self.flush()
 
     def do_info_person(self, id):
         """
@@ -323,7 +315,6 @@ class Cineoob(ReplApplication):
 
         self.start_format()
         self.format(person)
-        self.flush()
 
     @defaultcount(10)
     def do_search_movie(self, pattern):
@@ -339,7 +330,6 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, movie in self.do('iter_movies', pattern=pattern, caps=ICapCinema):
             self.cached_format(movie)
-        self.flush()
 
     @defaultcount(10)
     def do_search_person(self, pattern):
@@ -355,7 +345,6 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, person in self.do('iter_persons', pattern=pattern, caps=ICapCinema):
             self.cached_format(person)
-        self.flush()
 
     def do_casting(self, line):
         """
@@ -373,7 +362,6 @@ class Cineoob(ReplApplication):
 
         for backend, person in self.do('iter_movie_persons', movie.id, role, backends=movie.backend, caps=ICapCinema):
             self.cached_format(person)
-        self.flush()
 
     def do_filmography(self, line):
         """
@@ -391,7 +379,6 @@ class Cineoob(ReplApplication):
 
         for backend, movie in self.do('iter_person_movies', person.id, role, backends=person.backend, caps=ICapCinema):
             self.cached_format(movie)
-        self.flush()
 
     def do_biography(self, person_id):
         """
@@ -406,7 +393,6 @@ class Cineoob(ReplApplication):
 
         self.start_format()
         self.format(person)
-        self.flush()
 
     def complete_releases(self, text, line, *ignored):
         args = line.split(' ')
@@ -436,7 +422,6 @@ class Cineoob(ReplApplication):
                 return 3
         self.start_format()
         self.format(movie)
-        self.flush()
 
     #================== TORRENT ==================
 
@@ -459,7 +444,6 @@ class Cineoob(ReplApplication):
 
         self.start_format()
         self.format(torrent)
-        self.flush()
 
     def complete_getfile_torrent(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -523,7 +507,6 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
             self.cached_format(torrent)
-        self.flush()
 
     @defaultcount(10)
     def do_search_movie_torrent(self, id):
@@ -546,7 +529,6 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, torrent in self.do('iter_torrents', pattern=pattern, caps=ICapTorrent):
             self.cached_format(torrent)
-        self.flush()
 
     #================== SUBTITLE ==================
 
@@ -569,7 +551,6 @@ class Cineoob(ReplApplication):
 
         self.start_format()
         self.format(subtitle)
-        self.flush()
 
     def complete_getfile_subtitle(self, text, line, *ignored):
         args = line.split(' ', 2)
@@ -648,7 +629,6 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
             self.cached_format(subtitle)
-        self.flush()
 
     @defaultcount(10)
     def do_search_movie_subtitle(self, line):
@@ -691,4 +671,3 @@ class Cineoob(ReplApplication):
         self.start_format(pattern=pattern)
         for backend, subtitle in self.do('iter_subtitles', language=language, pattern=pattern, caps=ICapSubtitle):
             self.cached_format(subtitle)
-        self.flush()

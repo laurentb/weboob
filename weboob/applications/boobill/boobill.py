@@ -73,7 +73,6 @@ class Boobill(ReplApplication):
             self.start_format()
             for backend, result in self.do(method, id, backends=names):
                 self.format(result)
-            self.flush()
 
     def do_subscriptions(self, line):
         """
@@ -84,7 +83,6 @@ class Boobill(ReplApplication):
         self.start_format()
         for subscription in self.get_object_list('iter_subscription'):
             self.format(subscription)
-        self.flush()
 
     def do_details(self, id):
         """
@@ -117,7 +115,6 @@ class Boobill(ReplApplication):
                 mysum.price = detail.price + mysum.price
 
             self.format(mysum)
-            self.flush()
 
     def do_balance(self, id):
         """

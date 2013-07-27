@@ -179,7 +179,6 @@ class Videoob(ReplApplication):
 
         self.start_format()
         self.format(video)
-        self.flush()
 
     def complete_nsfw(self, text, line, begidx, endidx):
         return ['on', 'off']
@@ -220,4 +219,3 @@ class Videoob(ReplApplication):
         for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw,
                                       max_results=self.options.count):
             self.cached_format(video)
-        self.flush()
