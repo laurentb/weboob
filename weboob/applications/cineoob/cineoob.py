@@ -574,22 +574,18 @@ class Cineoob(ReplApplication):
         if dest is None:
             dest = '%s' % _id
 
-        try:
-            for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=ICapSubtitle):
-                if buf:
-                    if dest == '-':
-                        print buf
-                    else:
-                        try:
-                            with open(dest, 'w') as f:
-                                f.write(buf)
-                        except IOError as e:
-                            print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
-                            return 1
-                    return
-        except CallErrors as errors:
-            for backend, error, backtrace in errors:
-                self.bcall_error_handler(backend, error, backtrace)
+        for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name, caps=ICapSubtitle):
+            if buf:
+                if dest == '-':
+                    print buf
+                else:
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(buf)
+                    except IOError as e:
+                        print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                        return 1
+                return
 
         print >>sys.stderr, 'Subtitle "%s" not found' % id
         return 3

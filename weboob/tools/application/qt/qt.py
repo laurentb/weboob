@@ -37,7 +37,7 @@ from weboob.tools.value import ValueInt, ValueBool, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.capabilities import UserError
 
-from ..base import BaseApplication
+from ..base import BaseApplication, MoreResultsAvailable
 
 
 __all__ = ['QtApplication', 'QtMainWindow', 'QtDo', 'HTMLDelegate']
@@ -201,6 +201,10 @@ class QtDo(QObject):
         self.process.callback_thread(self.thread_cb, self.thread_eb)
 
     def default_eb(self, backend, error, backtrace):
+        if isinstance(error, MoreResultsAvailable):
+            # This is not an error, ignore.
+            return
+
         msg = unicode(error)
         if isinstance(error, BrowserIncorrectPassword):
             if not msg:
@@ -247,9 +251,6 @@ class QtDo(QObject):
 
     def local_eb(self, backend, error, backtrace):
         self.eb(backend, error, backtrace)
-        self.disconnect(self, SIGNAL('cb'), self.local_cb)
-        self.disconnect(self, SIGNAL('eb'), self.local_eb)
-        self.process = None
 
     def thread_cb(self, backend, data):
         self.emit(SIGNAL('cb'), backend, data)

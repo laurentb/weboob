@@ -56,10 +56,12 @@ class ResultsConditionError(Exception):
 class BackendsCall(object):
     def __init__(self, backends, condition, function, *args, **kwargs):
         """
-        @param backends  list of backends to call.
-        @param condition  a IResultsCondition object. Can be None.
-        @param function  backends' method name, or callable object.
-        @param args, kwargs  arguments given to called functions.
+        :param backends: List of backends to call
+        :type backends: list[:class:`BaseBackend`]
+        :param condition: Condition applied on results (can be None)
+        :type condition: :class:`IResultsCondition`
+        :param function: backends' method name, or callable object.
+        :type function: :class:`str` or :class:`callable`
         """
         self.logger = getLogger('bcall')
         # Store if a backend is finished

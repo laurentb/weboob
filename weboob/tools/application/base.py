@@ -37,6 +37,9 @@ from weboob.tools.misc import to_unicode
 __all__ = ['BaseApplication']
 
 
+class MoreResultsAvailable(Exception):
+    pass
+
 class ApplicationStorage(object):
     def __init__(self, name, storage):
         self.name = name
@@ -164,10 +167,13 @@ class BaseApplication(object):
         """
         Create a storage object.
 
-        @param path [str]  an optional specific path.
-        @param klass [IStorage]  what klass to instance.
-        @param localonly [bool]  if True, do not set it on the Weboob object.
-        @return  a IStorage object
+        :param path: An optional specific path
+        :type path: :class:`str`
+        :param klass: What class to instance
+        :type klass: :class:`weboob.tools.storage.IStorage`
+        :param localonly: If True, do not set it on the :class:`Weboob` object.
+        :type localonly: :class:`bool`
+        :rtype: :class:`weboob.tools.storage.IStorage`
         """
         if klass is None:
             from weboob.tools.storage import StandardStorage
@@ -191,9 +197,11 @@ class BaseApplication(object):
         """
         Load a configuration file and get his object.
 
-        @param path [str]  an optional specific path.
-        @param klass [IConfig]  what klass to instance.
-        @return  a IConfig object
+        :param path: An optional specific path
+        :type path: :class:`str`
+        :param klass: What class to instance
+        :type klass: :class:`weboob.tools.config.iconfig.IConfig`
+        :rtype: :class:`weboob.tools.config.iconfig.IConfig`
         """
         if klass is None:
             from weboob.tools.config.iniconfig import INIConfig
@@ -242,7 +250,7 @@ class BaseApplication(object):
     def _do_complete_iter(self, backend, count, fields, res):
         for i, sub in enumerate(res):
             if count and i == count:
-                break
+                raise MoreResultsAvailable()
             sub = self._do_complete_obj(backend, fields, sub)
             yield sub
 
@@ -264,18 +272,39 @@ class BaseApplication(object):
 
         This method can be overrided to support more exceptions types.
         """
+
+        # Ignore this error.
+        if isinstance(error, MoreResultsAvailable):
+            return False
+
         print >>sys.stderr, u'Error(%s): %s' % (backend.name, error)
         if logging.root.level == logging.DEBUG:
             print >>sys.stderr, backtrace
+        else:
+            return True
 
-    def bcall_errors_handler(self, errors):
+    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces', ignore=()):
         """
         Handler for the CallErrors exception.
+
+        It calls `bcall_error_handler` for each error.
+
+        :param errors: Object containing errors from backends
+        :type errors: :class:`weboob.core.bcall.CallErrors`
+        :param debugmsg: Default message asking to enable the debug mode
+        :type debugmsg: :class:`basestring`
+        :param ignore: Exceptions to ignore
+        :type ignore: tuple[:class:`Exception`]
         """
+        ask_debug_mode = False
         for backend, error, backtrace in errors.errors:
-            self.bcall_error_handler(backend, error, backtrace)
-        if logging.root.level != logging.DEBUG:
-            print >>sys.stderr, 'Use --debug option to print backtraces.'
+            if isinstance(error, ignore):
+                continue
+            elif self.bcall_error_handler(backend, error, backtrace):
+                ask_debug_mode = True
+
+        if ask_debug_mode:
+            print >>sys.stderr, debugmsg
 
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
@@ -372,6 +401,7 @@ class BaseApplication(object):
         a call to sys.exit().
 
         For example:
+
         >>> from weboob.application.myapplication import MyApplication
         >>> MyApplication.run()
         """

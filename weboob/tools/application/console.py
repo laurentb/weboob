@@ -37,7 +37,7 @@ from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword, B
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
 from weboob.tools.misc import to_unicode
 
-from .base import BaseApplication
+from .base import BaseApplication, MoreResultsAvailable
 
 
 __all__ = ['ConsoleApplication', 'BackendNotGiven']
@@ -497,6 +497,8 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, u'      %s   please contact: %s <%s>' % (' ' * len(backend.name), backend.MAINTAINER, backend.EMAIL)
         elif isinstance(error, UserError):
             print >>sys.stderr, u'Error(%s): %s' % (backend.name, to_unicode(error))
+        elif isinstance(error, MoreResultsAvailable):
+            print >>sys.stderr, u'Hint: There are more results for backend %s' % (backend.name)
         elif isinstance(error, SSLError):
             print >>sys.stderr, u'FATAL(%s): ' % backend.name + self.BOLD + '/!\ SERVER CERTIFICATE IS INVALID /!\\' + self.NC
         else:
@@ -519,14 +521,21 @@ class ConsoleApplication(BaseApplication):
             else:
                 return True
 
-    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces'):
+    def bcall_errors_handler(self, errors, debugmsg='Use --debug option to print backtraces', ignore=()):
         """
         Handler for the CallErrors exception.
         """
         ask_debug_mode = False
+        more_results = set()
         for backend, error, backtrace in errors.errors:
-            if self.bcall_error_handler(backend, error, backtrace):
+            if isinstance(error, MoreResultsAvailable):
+                more_results.add(backend.name)
+            elif isinstance(error, ignore):
+                continue
+            elif self.bcall_error_handler(backend, error, backtrace):
                 ask_debug_mode = True
 
         if ask_debug_mode:
             print >>sys.stderr, debugmsg
+        elif len(more_results) > 0:
+            print >>sys.stderr, 'Hint: There are more results available for %s' % (', '.join(more_results))

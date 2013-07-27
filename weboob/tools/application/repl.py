@@ -453,11 +453,11 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
 
-    def bcall_errors_handler(self, errors):
+    def bcall_errors_handler(self, errors, ignore=()):
         if self.interactive:
-            ConsoleApplication.bcall_errors_handler(self, errors, 'Use "logging debug" option to print backtraces.')
+            ConsoleApplication.bcall_errors_handler(self, errors, 'Use "logging debug" option to print backtraces.', ignore)
         else:
-            ConsoleApplication.bcall_errors_handler(self, errors)
+            ConsoleApplication.bcall_errors_handler(self, errors, ignore=ignore)
 
     # -- options related methods -------------
     def _handle_options(self):
@@ -998,11 +998,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                 if res:
                     collections.append(res)
         except CallErrors as errors:
-            for backend, error, backtrace in errors.errors:
-                if isinstance(error, CollectionNotFound):
-                    pass
-                else:
-                    self.bcall_error_handler(backend, error, backtrace)
+            self.bcall_errors_handler(errors, CollectionNotFound)
+
         if len(collections):
             # update the path from the collection if possible
             if len(collections) == 1:
@@ -1027,11 +1024,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 else:
                     objects.append(res)
         except CallErrors as errors:
-            for backend, error, backtrace in errors.errors:
-                if isinstance(error, CollectionNotFound):
-                    pass
-                else:
-                    self.bcall_error_handler(backend, error, backtrace)
+            self.bcall_errors_handler(errors, CollectionNotFound)
 
         return (objects, collections)
 
@@ -1055,11 +1048,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             try:
                 self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
             except CallErrors as errors:
-                for backend, error, backtrace in errors.errors:
-                    if isinstance(error, CollectionNotFound):
-                        pass
-                    else:
-                        self.bcall_error_handler(backend, error, backtrace)
+                self.bcall_errors_handler(errors, CollectionNotFound)
 
         collections = self.all_collections()
         for collection in collections:
