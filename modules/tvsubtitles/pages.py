@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.tools.browser import BasePage
@@ -95,8 +96,16 @@ class SeasonPage(BasePage):
         desc = u"files :\n"
         desc += file_names
 
+        m = re.match('(.*?)\.(\w+)$', name)
+        if m:
+            name = m.group(1)
+            ext = m.group(2)
+        else:
+            ext = 'zip'
+
         subtitle = Subtitle(id, name)
         subtitle.url = url
+        subtitle.ext = ext
         subtitle.language = lang
         subtitle.nb_cd = nb_cd
         subtitle.description = desc

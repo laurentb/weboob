@@ -38,6 +38,7 @@ class Subtitle(CapBaseObject):
     Subtitle object.
     """
     name =      StringField('Name of subtitle')
+    ext =       StringField('Extension of file')
     url =       StringField('Direct url to subtitle file')
     nb_cd =     IntField('Number of cd or files')
     language =  StringField('Language of the subtitle')
@@ -46,7 +47,6 @@ class Subtitle(CapBaseObject):
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
         self.name = name
-
 
 class ICapSubtitle(IBaseCap):
     """

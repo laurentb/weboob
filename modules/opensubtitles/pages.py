@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.capabilities.subtitle import Subtitle
 from weboob.capabilities.base import NotAvailable, NotLoaded
@@ -109,6 +110,11 @@ class SubtitlePage(BasePage):
         father = self.parser.select(self.document.getroot(), 'a#app_link', 1).getparent()
         a = self.parser.select(father, 'a')[1]
         id = a.attrib.get('href', '').split('/')[-1]
+        m = re.match('Download \((\w+)\)', self.parser.tocleanstring(a))
+        if m:
+            ext = m.group(1)
+        else:
+            ext = u'zip'
         url = unicode('http://www.opensubtitles.org/subtitleserve/sub/%s' % id)
         link = self.parser.select(self.document.getroot(), 'link[rel=bookmark]', 1)
         title = unicode(link.attrib.get('title', ''))
@@ -126,6 +132,7 @@ class SubtitlePage(BasePage):
 
         subtitle = Subtitle(id, name)
         subtitle.url = url
+        subtitle.ext = ext
         for lshort, llong in LANGUAGE_CONV.items():
             if lang == llong:
                 lang = unicode(lshort)

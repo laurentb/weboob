@@ -63,6 +63,7 @@ class SubtitlesPage(BasePage):
         url = unicode('http://davidbillemont3.free.fr/%s' % href)
         subtitle = Subtitle(id, name)
         subtitle.url = url
+        subtitle.ext = url.split('.')[-1]
         subtitle.language = unicode('fr')
         subtitle.nb_cd = nb_cd
         subtitle.description = NotAvailable
@@ -106,6 +107,7 @@ class SubtitlesPage(BasePage):
                 id = unicode('%s|%s' % (self.browser.geturl().split('/')[-1], href))
                 subtitle = Subtitle(id, name)
                 subtitle.url = url
+                subtitle.ext = url.split('.')[-1]
                 subtitle.language = unicode('fr')
                 subtitle.nb_cd = nb_cd
                 subtitle.description = NotAvailable
