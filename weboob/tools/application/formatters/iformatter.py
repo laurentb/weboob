@@ -18,13 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import os
 import sys
 import subprocess
 if sys.platform == 'win32':
     import WConio
+
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(s, *args, **kwargs):
+        return s
 
 try:
     import tty
@@ -80,6 +84,14 @@ class IFormatter(object):
 
     BOLD = property(get_bold)
     NC = property(get_nc)
+
+    def colored(self, string, color, attrs=None, on_color=None):
+        if self.outfile != sys.stdout or not (os.isatty(self.outfile.fileno())):
+            return string
+
+        if isinstance(attrs, basestring):
+            attrs = [attrs]
+        return colored(string, color, on_color=on_color, attrs=attrs)
 
     def __init__(self, display_keys=True, display_header=True, outfile=sys.stdout):
         self.display_keys = display_keys
@@ -199,16 +211,18 @@ class PrettyFormatter(IFormatter):
         title = self.get_title(obj)
         desc = self.get_description(obj)
 
-        if desc is None:
-            title = '%s%s%s' % (self.NC, title, self.BOLD)
-
         if alias is not None:
-            result = u'%s* (%s) %s (%s)%s' % (self.BOLD, alias, title, obj.backend, self.NC)
+            result = u'%s %s %s (%s)' % (self.colored('%2s' % alias, 'red', 'bold'),
+                                         self.colored(u'—', 'cyan', 'bold'),
+                                         self.colored(title, 'yellow', 'bold'),
+                                         self.colored(obj.backend, 'blue', 'bold'))
         else:
-            result = u'%s* (%s) %s%s' % (self.BOLD, obj.fullid, title, self.NC)
+            result = u'%s %s %s' % (self.colored(obj.fullid, 'red', 'bold'),
+                                    self.colored(u'—', 'cyan', 'bold'),
+                                    self.colored(title, 'yellow', 'bold'))
 
         if desc is not None:
-            result += u'\n\t%s' % desc
+            result += u'\n\t%s' % self.colored(desc, 'white')
 
         return result
 
