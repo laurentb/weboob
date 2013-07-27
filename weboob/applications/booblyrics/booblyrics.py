@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.lyrics import ICapLyrics
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -97,6 +97,7 @@ class Booblyrics(ReplApplication):
         if len(args) == 2:
             return self.SEARCH_CRITERIAS
 
+    @defaultcount(10)
     def do_search(self, line):
         """
         search [artist | song] [PATTERN]

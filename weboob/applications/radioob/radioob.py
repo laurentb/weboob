@@ -22,7 +22,7 @@ import sys
 
 from weboob.capabilities.radio import ICapRadio, Radio
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
@@ -119,6 +119,7 @@ class Radioob(ReplApplication):
         self.format(radio)
         self.flush()
 
+    @defaultcount(10)
     def do_search(self, pattern=None):
         """
         search PATTERN
@@ -140,8 +141,5 @@ class Radioob(ReplApplication):
 
         List radios
         """
-        count = self.options.count
-        self.options.count = None
         ret = super(Radioob, self).do_ls(line)
-        self.options.count = count
         return ret

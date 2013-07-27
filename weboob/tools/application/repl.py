@@ -69,6 +69,24 @@ class ReplOptionFormatter(IndentedHelpFormatter):
                 s += '    %s\n' % c
         return s
 
+def defaultcount(default_count=10):
+    def deco(f):
+        def inner(self, *args, **kwargs):
+            oldvalue = self.options.count
+            if self._is_default_count:
+                self.options.count = default_count
+
+            try:
+                return f(self, *args, **kwargs)
+            finally:
+                self.options.count = oldvalue
+
+        inner.__doc__ = f.__doc__
+        assert inner.__doc__ is not None, "A command must have a docstring"
+        inner.__doc__ += '\nDefault is limited to %s results.' % default_count
+
+        return inner
+    return deco
 
 class ReplApplication(Cmd, ConsoleApplication):
     """
@@ -116,8 +134,8 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         results_options = OptionGroup(self._parser, 'Results Options')
         results_options.add_option('-c', '--condition', help='filter result items to display given a boolean expression')
-        results_options.add_option('-n', '--count', default='10', type='int',
-                                   help='get a maximum number of results (all backends merged)')
+        results_options.add_option('-n', '--count', type='int',
+                                   help='limit number of results (from each backends)')
         results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
         self._parser.add_option_group(results_options)
 
@@ -131,6 +149,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._parser.add_option_group(formatting_options)
 
         self._interactive = False
+        self._is_default_count = True
         self.working_path = WorkingPath()
         self._change_prompt()
 
@@ -458,6 +477,8 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.condition = None
 
+        if self.options.count is not None:
+            self._is_default_count = False
         if self.options.count <= 0:
             # infinite search
             self.options.count = None
@@ -759,6 +780,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if line:
             if line == 'off':
                 self.options.count = None
+                self._is_default_count = False
             else:
                 try:
                     count = int(line)
@@ -768,6 +790,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 else:
                     if count > 0:
                         self.options.count = count
+                        self._is_default_count = False
                     else:
                         print >>sys.stderr, 'Number must be at least 1.'
                         return 2

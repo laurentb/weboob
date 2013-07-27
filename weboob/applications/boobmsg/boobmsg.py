@@ -30,7 +30,7 @@ from weboob.core import CallErrors
 from weboob.capabilities.messages import ICapMessages, Message, Thread
 from weboob.capabilities.account import ICapAccount
 from weboob.capabilities.contact import ICapContact, Contact
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter
 from weboob.tools.misc import html2text
 
@@ -382,6 +382,7 @@ class Boobmsg(ReplApplication):
     threads = []
     messages = []
 
+    @defaultcount(10)
     def do_list(self, arg):
         """
         list

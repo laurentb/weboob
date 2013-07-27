@@ -23,7 +23,7 @@ from datetime import datetime
 import logging
 
 from weboob.capabilities.travel import ICapTravel, RoadmapFilters
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 
 
 __all__ = ['Traveloob']
@@ -42,6 +42,7 @@ class Traveloob(ReplApplication):
         group.add_option('--departure-time')
         group.add_option('--arrival-time')
 
+    @defaultcount(10)
     def do_stations(self, pattern):
         """
         stations PATTERN
@@ -52,6 +53,7 @@ class Traveloob(ReplApplication):
             self.format(station)
         self.flush()
 
+    @defaultcount(10)
     def do_departures(self, line):
         """
         departures STATION [ARRIVAL]

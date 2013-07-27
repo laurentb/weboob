@@ -22,7 +22,7 @@ import sys
 from decimal import Decimal
 
 from weboob.capabilities.bill import ICapBill, Detail, Subscription
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
@@ -129,6 +129,7 @@ class Boobill(ReplApplication):
 
         self.exec_method(id, 'get_balance')
 
+    @defaultcount(10)
     def do_history(self, id):
         """
         history [Id]
@@ -138,6 +139,7 @@ class Boobill(ReplApplication):
         """
         self.exec_method(id, 'iter_bills_history')
 
+    @defaultcount(10)
     def do_bills(self, id):
         """
         bills [Id]

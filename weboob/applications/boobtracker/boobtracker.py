@@ -22,7 +22,7 @@ from datetime import timedelta
 import sys
 
 from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.misc import html2text
 
@@ -96,6 +96,7 @@ class BoobTracker(ReplApplication):
         group.add_option('--category')
         group.add_option('--status')
 
+    @defaultcount(10)
     def do_search(self, line):
         """
         search PROJECT

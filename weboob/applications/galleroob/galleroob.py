@@ -23,7 +23,7 @@ import sys
 import os
 from re import search, sub
 
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.capabilities.base import empty
 from weboob.capabilities.gallery import ICapGallery, BaseGallery, BaseImage
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
@@ -60,6 +60,7 @@ class Galleroob(ReplApplication):
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
 
+    @defaultcount(10)
     def do_search(self, pattern):
         """
         search PATTERN

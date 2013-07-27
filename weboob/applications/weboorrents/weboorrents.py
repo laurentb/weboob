@@ -22,7 +22,7 @@
 import sys
 
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
 from weboob.capabilities.base import NotAvailable
@@ -154,6 +154,7 @@ class Weboorrents(ReplApplication):
         print >>sys.stderr, 'Torrent "%s" not found' % id
         return 3
 
+    @defaultcount(10)
     def do_search(self, pattern):
         """
         search [PATTERN]

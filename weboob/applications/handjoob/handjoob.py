@@ -20,7 +20,7 @@
 import sys
 
 from weboob.capabilities.job import ICapJob
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 __all__ = ['Handjoob']
@@ -87,6 +87,7 @@ class Handjoob(ReplApplication):
                            'info': 'job_advert',
                            }
 
+    @defaultcount(10)
     def do_search(self, pattern):
         """
         search PATTERN

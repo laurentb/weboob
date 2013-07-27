@@ -21,7 +21,7 @@
 import sys
 
 from weboob.capabilities.housing import ICapHousing, Query
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -91,6 +91,7 @@ class Flatboob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
+    @defaultcount(10)
     def do_search(self, line):
         pattern = 'notempty'
         query = Query()

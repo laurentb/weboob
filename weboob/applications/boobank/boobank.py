@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import ICapBank, Account, Transaction
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -226,6 +226,7 @@ class Boobank(ReplApplication):
         if len(args) == 2:
             return self._complete_account()
 
+    @defaultcount(10)
     def do_history(self, id):
         """
         history ID
@@ -246,6 +247,7 @@ class Boobank(ReplApplication):
         if len(args) == 2:
             return self._complete_account()
 
+    @defaultcount(10)
     def do_coming(self, id):
         """
         coming ID

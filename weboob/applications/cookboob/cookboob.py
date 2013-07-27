@@ -24,7 +24,7 @@ import codecs
 
 from weboob.capabilities.recipe import ICapRecipe
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -148,6 +148,7 @@ class Cookboob(ReplApplication):
         print >>sys.stderr, 'Recipe "%s" not found' % id
         return 3
 
+    @defaultcount(10)
     def do_search(self, pattern):
         """
         search [PATTERN]

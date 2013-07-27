@@ -25,7 +25,7 @@ import os
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
@@ -204,6 +204,7 @@ class Videoob(ReplApplication):
         else:
             print "on" if self.nsfw else "off"
 
+    @defaultcount()
     def do_search(self, pattern):
         """
         search PATTERN

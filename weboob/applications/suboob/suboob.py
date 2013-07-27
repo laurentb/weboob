@@ -23,7 +23,7 @@ import sys
 
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 
@@ -164,6 +164,7 @@ class Suboob(ReplApplication):
                         print 'Saved to %s' % dest
                 return
 
+    @defaultcount(10)
     def do_search(self, line):
         """
         search language [PATTERN]

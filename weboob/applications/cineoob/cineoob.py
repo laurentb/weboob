@@ -28,7 +28,7 @@ from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.capabilities.cinema import ICapCinema
 from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.capabilities.base import empty
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
 
@@ -325,6 +325,7 @@ class Cineoob(ReplApplication):
         self.format(person)
         self.flush()
 
+    @defaultcount(10)
     def do_search_movie(self, pattern):
         """
         search_movie  [PATTERN]
@@ -340,6 +341,7 @@ class Cineoob(ReplApplication):
             self.cached_format(movie)
         self.flush()
 
+    @defaultcount(10)
     def do_search_person(self, pattern):
         """
         search_person  [PATTERN]
@@ -507,6 +509,7 @@ class Cineoob(ReplApplication):
         print >>sys.stderr, 'Torrent "%s" not found' % id
         return 3
 
+    @defaultcount(10)
     def do_search_torrent(self, pattern):
         """
         search_torrent [PATTERN]
@@ -522,6 +525,7 @@ class Cineoob(ReplApplication):
             self.cached_format(torrent)
         self.flush()
 
+    @defaultcount(10)
     def do_search_movie_torrent(self, id):
         """
         search_movie_torrent movie_ID
@@ -609,6 +613,7 @@ class Cineoob(ReplApplication):
         print >>sys.stderr, 'Subtitle "%s" not found' % id
         return 3
 
+    @defaultcount(10)
     def do_search_subtitle(self, line):
         """
         search_subtitle language [PATTERN]
@@ -645,6 +650,7 @@ class Cineoob(ReplApplication):
             self.cached_format(subtitle)
         self.flush()
 
+    @defaultcount(10)
     def do_search_movie_subtitle(self, line):
         """
         search_movie_subtitle language movie_ID
