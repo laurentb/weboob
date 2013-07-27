@@ -33,8 +33,7 @@ class Movie(QFrame):
         self.parent = parent
         self.ui = Ui_Movie()
         self.ui.setupUi(self)
-        langs = LANGUAGE_CONV.keys()
-        langs.sort()
+        langs = sorted(LANGUAGE_CONV.keys())
         for lang in langs:
             self.ui.langCombo.addItem(lang)
 

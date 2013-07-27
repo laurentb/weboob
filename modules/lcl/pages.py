@@ -92,7 +92,7 @@ class LoginPage(BasePage):
     def login(self, login, passwd, agency):
         try:
             vk=LCLVirtKeyboard(self)
-        except VirtKeyboardError,err:
+        except VirtKeyboardError as err:
             error("Error: %s"%err)
             return False
 

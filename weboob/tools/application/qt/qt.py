@@ -150,12 +150,12 @@ class QtApplication(QApplication, BaseApplication):
         return Weboob(scheduler=QtScheduler(self))
 
     def load_backends(self, *args, **kwargs):
-        while 1:
+        while True:
             try:
                 return BaseApplication.load_backends(self, *args, **kwargs)
-            except VersionsMismatchError, e:
+            except VersionsMismatchError as e:
                 msg = 'Versions of modules mismatch with version of weboob.'
-            except ConfigError, e:
+            except ConfigError as e:
                 msg = unicode(e)
 
             res = QMessageBox.question(None, 'Configuration error', u'%s\n\nDo you want to update repositories?' % msg, QMessageBox.Yes|QMessageBox.No)
@@ -168,7 +168,7 @@ class QtApplication(QApplication, BaseApplication):
             pd.setWindowModality(Qt.WindowModal)
             try:
                 self.weboob.update(pd)
-            except ModuleInstallError, err:
+            except ModuleInstallError as err:
                 QMessageBox.critical(None, self.tr('Update error'),
                                      unicode(self.tr('Unable to update repositories: %s' % err)),
                                      QMessageBox.Ok)

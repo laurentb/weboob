@@ -223,7 +223,7 @@ class Weboob(object):
             module = None
             try:
                 module = self.modules_loader.get_or_load_module(module_name)
-            except ModuleLoadError, e:
+            except ModuleLoadError as e:
                 self.logger.error(u'Unable to load module "%s": %s' % (module_name, e))
                 continue
 
@@ -233,7 +233,7 @@ class Weboob(object):
 
             try:
                 backend_instance = module.create_instance(self, instance_name, params, storage)
-            except BaseBackend.ConfigError, e:
+            except BaseBackend.ConfigError as e:
                 if errors is not None:
                     errors.append(self.LoadError(instance_name, e))
             else:

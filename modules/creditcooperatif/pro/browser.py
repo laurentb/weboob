@@ -86,7 +86,7 @@ class CreditCooperatif(BaseBrowser):
     def get_history(self, account):
         self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
 
-        while 1:
+        while True:
             assert self.is_on_page(TransactionsPage)
 
             for tr in self.page.get_history():

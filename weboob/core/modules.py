@@ -118,7 +118,7 @@ class ModulesLoader(object):
         for existing_module_name in self.iter_existing_module_names():
             try:
                 self.load_module(existing_module_name)
-            except ModuleLoadError, e:
+            except ModuleLoadError as e:
                 self.logger.warning(e)
 
     def load_module(self, module_name):
@@ -139,7 +139,7 @@ class ModulesLoader(object):
             finally:
                 if fp:
                     fp.close()
-        except Exception, e:
+        except Exception as e:
             if logging.root.level == logging.DEBUG:
                 self.logger.exception(e)
             raise ModuleLoadError(module_name, e)

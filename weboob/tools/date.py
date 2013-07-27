@@ -83,7 +83,7 @@ def _findall(text, substr):
     # Also finds overlaps
     sites = []
     i = 0
-    while 1:
+    while True:
         j = text.find(substr, i)
         if j == -1:
             break
@@ -153,10 +153,10 @@ class LinearDateGuesser(object):
         In case initialization still fails with max_year, this function raises
         a ValueError.
         """
-        while 1:
+        while True:
             try:
                 return date(start_year, month, day)
-            except ValueError, e:
+            except ValueError as e:
                 if start_year == max_year:
                     raise e
                 start_year += cmp(max_year, start_year)

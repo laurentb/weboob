@@ -94,7 +94,7 @@ class Radioob(ReplApplication):
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
             self.player.play(radio.streams[0], player_name=player_name, player_args=media_player_args)
-        except (InvalidMediaPlayer, MediaPlayerNotFound), e:
+        except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
             print '%s\nRadio URL: %s' % (e, radio.streams[0].url)
 
     def complete_info(self, text, line, *ignored):

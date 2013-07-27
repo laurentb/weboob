@@ -55,7 +55,7 @@ from weboob.tools.parsers import get_parser
 # Try to load cookies
 try:
     from .firefox_cookies import FirefoxCookieJar
-except ImportError, e:
+except ImportError as e:
     warning("Unable to store cookies: %s" % e)
     HAVE_COOKIES = False
 else:
@@ -281,7 +281,7 @@ class StandardBrowser(mechanize.Browser):
         try:
             return self._openurl(*args, **kwargs)
         except (mechanize.BrowserStateError, mechanize.response_seek_wrapper,
-                urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
+                urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError) as e:
             if isinstance(e, mechanize.BrowserStateError) and hasattr(self, 'home'):
                 self.home()
                 return self._openurl(*args, **kwargs)
@@ -289,7 +289,7 @@ class StandardBrowser(mechanize.Browser):
                 raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
             else:
                 return None
-        except BrowserRetry, e:
+        except BrowserRetry as e:
             return self._openurl(*args, **kwargs)
 
     def get_exception(self, e):
@@ -426,7 +426,7 @@ class StandardBrowser(mechanize.Browser):
                         if isinstance(is_list, (list, tuple)):
                             try:
                                 value = [self.str(is_list.index(args[label]))]
-                            except ValueError, e:
+                            except ValueError as e:
                                 if args[label]:
                                     print >>sys.stderr, '[%s] %s: %s' % (label, args[label], e)
                                 return
@@ -555,10 +555,10 @@ class BaseBrowser(StandardBrowser):
         nologin = kwargs.pop('nologin', False)
         try:
             self._change_location(mechanize.Browser.submit(self, *args, **kwargs), no_login=nologin)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError) as e:
             self.page = None
             raise self.get_exception(e)(e)
-        except (mechanize.BrowserStateError, BrowserRetry), e:
+        except (mechanize.BrowserStateError, BrowserRetry) as e:
             raise BrowserUnavailable(e)
 
     def is_on_page(self, pageCls):
@@ -587,10 +587,10 @@ class BaseBrowser(StandardBrowser):
         """
         try:
             self._change_location(mechanize.Browser.follow_link(self, *args, **kwargs))
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError) as e:
             self.page = None
             raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
-        except (mechanize.BrowserStateError, BrowserRetry), e:
+        except (mechanize.BrowserStateError, BrowserRetry) as e:
             self.home()
             raise BrowserUnavailable(e)
 
@@ -622,7 +622,7 @@ class BaseBrowser(StandardBrowser):
             if not self.page or not args or self.page.url != args[0]:
                 keep_kwargs['no_login'] = True
                 self.location(*keep_args, **keep_kwargs)
-        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError), e:
+        except (mechanize.response_seek_wrapper, urllib2.HTTPError, urllib2.URLError, BadStatusLine, ssl.SSLError) as e:
             self.page = None
             raise self.get_exception(e)('%s (url="%s")' % (e, args and args[0] or 'None'))
         except mechanize.BrowserStateError:
@@ -758,7 +758,7 @@ class HTTPSConnection2(httplib.HTTPSConnection):
                 self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=proto)
                 self._HOSTS['%s:%s' % (self.host, self.port)] = [proto]
                 return
-            except ssl.SSLError, e:
+            except ssl.SSLError as e:
                 sock.close()
         raise e
 

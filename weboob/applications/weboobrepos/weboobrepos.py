@@ -95,7 +95,7 @@ class WeboobRepos(ReplApplication):
         try:
             with open(index_file, 'r') as fp:
                 r.parse_index(fp)
-        except IOError, e:
+        except IOError as e:
             print >>sys.stderr, 'Unable to open repository: %s' % e
             print >>sys.stderr, 'Use the "create" command before.'
             return 1
@@ -131,7 +131,7 @@ class WeboobRepos(ReplApplication):
                 if not os.path.exists(krname):
                     raise Exception('No valid key file found.')
                 kr_mtime = mktime(strptime(str(r.key_update), '%Y%m%d%H%M'))
-                os.chmod(krname, 0644)
+                os.chmod(krname, 0o644)
                 os.utime(krname, (kr_mtime, kr_mtime))
             else:
                 print 'Keyring is up to date'

@@ -88,7 +88,7 @@ class Pastoob(ReplApplication):
             try:
                 with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
                     contents = fp.read()
-            except IOError, e:
+            except IOError as e:
                 print >>sys.stderr, 'Unable to open file "%s": %s' % (filename, e.strerror)
                 return 1
 

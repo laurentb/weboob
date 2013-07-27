@@ -20,7 +20,7 @@
 
 try:
     import sqlite3 as sqlite
-except ImportError, e:
+except ImportError as e:
     from pysqlite2 import dbapi2 as sqlite
 
 from mechanize import CookieJar, Cookie
@@ -39,7 +39,7 @@ class FirefoxCookieJar(CookieJar):
     def __connect(self):
         try:
             db = sqlite.connect(database=self.sqlite_file, timeout=10.0)
-        except sqlite.OperationalError, err:
+        except sqlite.OperationalError as err:
             print 'Unable to open %s database: %s' % (self.sqlite_file, err)
             return None
 

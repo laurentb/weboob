@@ -301,7 +301,7 @@ class AuMBackend(BaseBackend, ICapMessages, ICapMessagesPost, ICapDating, ICapCh
                                               children=[],
                                               flags=Message.IS_UNREAD)
                         yield thread.root
-        except BrowserUnavailable, e:
+        except BrowserUnavailable as e:
             self.logger.debug('No messages, browser is unavailable: %s' % e)
             pass  # don't care about waiting
 

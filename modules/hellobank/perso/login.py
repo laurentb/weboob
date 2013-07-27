@@ -86,7 +86,7 @@ class LoginPage(BasePage):
     def login(self, login, password):
         try:
             vk=HelloBankVirtKeyboard(self)
-        except VirtKeyboardError,err:
+        except VirtKeyboardError as err:
             self.logger.error("Error: %s"%err)
             return False
 

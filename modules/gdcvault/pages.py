@@ -113,7 +113,7 @@ class VideoPage(BasePage):
         if len(obj) > 0:
             try:
                 title = unicode(obj[0].text)
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError as e:
                 title = None
 
 
@@ -125,7 +125,7 @@ class VideoPage(BasePage):
                         # FIXME: 1013483 has buggus title (latin1)
                         # for now we just pass it as-is
                         title = obj[0].attrib['content']
-                    except UnicodeDecodeError, e:
+                    except UnicodeDecodeError as e:
                         # XXX: this doesn't even works!?
                         title = obj[0].attrib['content'].decode('iso-5589-15')
 
@@ -172,7 +172,7 @@ class VideoPage(BasePage):
 
 
                         #print req.code
-                    except HTTPError, e:
+                    except HTTPError as e:
                         #print e.getcode()
                         if e.getcode() == 302 and hasattr(e, 'hdrs'):
                             #print e.hdrs['Location']
@@ -218,7 +218,7 @@ class VideoPage(BasePage):
             self.browser.set_handle_redirect(False)
             try:
                 self.browser.open_novisit(video.url)
-            except HTTPError, e:
+            except HTTPError as e:
                 if e.getcode() == 302 and hasattr(e, 'hdrs'):
                     video.url = unicode(e.hdrs['Location'])
             self.browser.set_handle_redirect(True)
@@ -298,7 +298,7 @@ class VideoPage(BasePage):
             # 1016634 has "Invalid Date"
             try:
                 video.date = parse_dt(obj.text)
-            except ValueError, e:
+            except ValueError as e:
                 video.date = NotAvailable
 
         obj = self.parser.select(config.getroot(), 'duration', 1)

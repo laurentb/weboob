@@ -101,7 +101,7 @@ class LoginPage(BEPage):
     def login(self, login, password):
         try:
             vk = BNPVirtKeyboard(self)
-        except VirtKeyboardError, err:
+        except VirtKeyboardError as err:
             self.logger.error("Error: %s" % err)
             return False
 

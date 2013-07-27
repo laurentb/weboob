@@ -55,7 +55,7 @@ class TransferSummary(BasePage):
         #HACK for deal with bad encoding ...
         try:
             text = p.text
-        except UnicodeDecodeError, error:
+        except UnicodeDecodeError as error:
             text = error.object.strip()
 
         match = re.search("Votre virement N.+ ([0-9]+) ", text)

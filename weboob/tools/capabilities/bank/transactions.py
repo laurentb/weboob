@@ -152,7 +152,7 @@ class FrenchTransaction(Transaction):
                             self.rdate = datetime.datetime(yy, mm, dd, int(args['HH']), int(args['MM']))
                         else:
                             self.rdate = datetime.date(yy, mm, dd)
-                    except ValueError, e:
+                    except ValueError as e:
                         self._logger.warning('Unable to date in label %r: %s' % (self.raw, e))
 
                 return

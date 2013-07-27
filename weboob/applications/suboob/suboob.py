@@ -157,7 +157,7 @@ class Suboob(ReplApplication):
                     try:
                         with open(dest, 'w') as f:
                             f.write(buf)
-                    except IOError, e:
+                    except IOError as e:
                         print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
                         return 1
                     else:

@@ -194,7 +194,7 @@ class ConsoleApplication(BaseApplication):
     def run(klass, args=None):
         try:
             super(ConsoleApplication, klass).run(args)
-        except BackendNotFound, e:
+        except BackendNotFound as e:
             print 'Error: Backend "%s" not found.' % e
             sys.exit(1)
 
@@ -223,7 +223,7 @@ class ConsoleApplication(BaseApplication):
     def register_backend(self, name, ask_add=True):
         try:
             backend = self.weboob.modules_loader.get_or_load_module(name)
-        except ModuleLoadError, e:
+        except ModuleLoadError as e:
             backend = None
 
         if not backend:
@@ -240,7 +240,7 @@ class ConsoleApplication(BaseApplication):
             website = 'on website %s' % backend.website
         else:
             website = 'with backend %s' % backend.name
-        while 1:
+        while True:
             asked_config = False
             for key, prop in backend.klass.ACCOUNT_REGISTER_PROPERTIES.iteritems():
                 if not asked_config:
@@ -254,7 +254,7 @@ class ConsoleApplication(BaseApplication):
                 print '-----------------------------%s' % ('-' * len(website))
             try:
                 backend.klass.register_account(account)
-            except AccountRegisterError, e:
+            except AccountRegisterError as e:
                 print u'%s' % e
                 if self.ask('Do you want to try again?', default=True):
                     continue
@@ -275,7 +275,7 @@ class ConsoleApplication(BaseApplication):
     def install_module(self, name):
         try:
             self.weboob.repositories.install(name)
-        except ModuleInstallError, e:
+        except ModuleInstallError as e:
             print >>sys.stderr, 'Unable to install module "%s": %s' % (name, e)
             return False
 
@@ -307,7 +307,7 @@ class ConsoleApplication(BaseApplication):
                 items.update(params)
                 params = items
                 config = module.config.load(self.weboob, bname, name, params, nofail=True)
-        except ModuleLoadError, e:
+        except ModuleLoadError as e:
             print >>sys.stderr, 'Unable to load module "%s": %s' % (name, e)
             return 1
 
@@ -441,7 +441,7 @@ class ConsoleApplication(BaseApplication):
 
             try:
                 v.set(line)
-            except ValueError, e:
+            except ValueError as e:
                 print >>sys.stderr, u'Error: %s' % e
             else:
                 break

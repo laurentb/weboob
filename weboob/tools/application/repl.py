@@ -174,7 +174,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                     id = '%s@%s' % (obj.id, obj.backend)
         try:
             return ConsoleApplication.parse_id(self, id, unique_backend)
-        except BackendNotGiven, e:
+        except BackendNotGiven as e:
             backend_name = None
             while not backend_name:
                 print 'This command works with an unique backend. Availables:'
@@ -206,7 +206,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                 try:
                     backend = self.weboob.get_backend(obj.backend)
                     return backend.fillobj(obj, fields)
-                except UserError, e:
+                except UserError as e:
                     self.bcall_error_handler(backend, e, '')
 
         _id, backend_name = self.parse_id(_id)
@@ -355,11 +355,11 @@ class ReplApplication(Cmd, ConsoleApplication):
         try:
             try:
                 return super(ReplApplication, self).onecmd(line)
-            except CallErrors, e:
+            except CallErrors as e:
                 self.bcall_errors_handler(e)
-            except BackendNotGiven, e:
+            except BackendNotGiven as e:
                 print >>sys.stderr, 'Error: %s' % str(e)
-            except NotEnoughArguments, e:
+            except NotEnoughArguments as e:
                 print >>sys.stderr, 'Error: not enough arguments. %s' % str(e)
             except (KeyboardInterrupt, EOFError):
                 # ^C during a command process doesn't exit application.
@@ -739,7 +739,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             else:
                 try:
                     self.condition = ResultsCondition(line)
-                except ResultsConditionError, e:
+                except ResultsConditionError as e:
                     print >>sys.stderr, '%s' % e
                     return 2
         else:
@@ -977,7 +977,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                                                           caps=ICapCollection):
                 if res:
                     collections.append(res)
-        except CallErrors, errors:
+        except CallErrors as errors:
             for backend, error, backtrace in errors.errors:
                 if isinstance(error, CollectionNotFound):
                     pass
@@ -1006,7 +1006,7 @@ class ReplApplication(Cmd, ConsoleApplication):
                     collections.append(res)
                 else:
                     objects.append(res)
-        except CallErrors, errors:
+        except CallErrors as errors:
             for backend, error, backtrace in errors.errors:
                 if isinstance(error, CollectionNotFound):
                     pass
@@ -1034,7 +1034,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         if len(self.objects) == 0 and len(self.collections) == 0:
             try:
                 self.objects, self.collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
-            except CallErrors, errors:
+            except CallErrors as errors:
                 for backend, error, backtrace in errors.errors:
                     if isinstance(error, CollectionNotFound):
                         pass
@@ -1062,7 +1062,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         """
         try:
             self.formatter = self.formatters_loader.build_formatter(name)
-        except FormatterLoadError, e:
+        except FormatterLoadError as e:
             print >>sys.stderr, '%s' % e
             if self.DEFAULT_FORMATTER == name:
                 self.DEFAULT_FORMATTER = ReplApplication.DEFAULT_FORMATTER
@@ -1098,9 +1098,9 @@ class ReplApplication(Cmd, ConsoleApplication):
             fields = None
         try:
             self.formatter.format(obj=result, selected_fields=fields, alias=alias)
-        except FieldNotFound, e:
+        except FieldNotFound as e:
             print >>sys.stderr, e
-        except MandatoryFieldsNotFound, e:
+        except MandatoryFieldsNotFound as e:
             print >>sys.stderr, '%s Hint: select missing fields or use another formatter (ex: multiline).' % e
 
     def flush(self):

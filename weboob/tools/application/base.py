@@ -351,7 +351,7 @@ class BaseApplication(object):
     def create_logging_file_handler(self, filename):
         try:
             stream = open(filename, 'w')
-        except IOError, e:
+        except IOError as e:
             self.logger.error('Unable to create the logging file: %s' % e)
             sys.exit(1)
         else:
@@ -383,7 +383,7 @@ class BaseApplication(object):
 
         try:
             app = klass()
-        except BackendsConfig.WrongPermissions, e:
+        except BackendsConfig.WrongPermissions as e:
             print >>sys.stderr, e
             sys.exit(1)
 
@@ -396,10 +396,10 @@ class BaseApplication(object):
                 sys.exit(0)
             except EOFError:
                 sys.exit(0)
-            except ConfigError, e:
+            except ConfigError as e:
                 print >>sys.stderr, 'Configuration error: %s' % e
                 sys.exit(1)
-            except CallErrors, e:
+            except CallErrors as e:
                 app.bcall_errors_handler(e)
                 sys.exit(1)
         finally:

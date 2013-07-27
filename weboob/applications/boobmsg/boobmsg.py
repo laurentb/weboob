@@ -373,7 +373,7 @@ class Boobmsg(ReplApplication):
 
             try:
                 self.do('post_message', message, backends=backend_name).wait()
-            except CallErrors, errors:
+            except CallErrors as errors:
                 self.bcall_errors_handler(errors)
             else:
                 if self.interactive:

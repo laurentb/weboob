@@ -172,7 +172,7 @@ class Repository(object):
             filename = os.path.join(self.localurl2path(), self.INDEX)
             try:
                 fp = open(filename, 'r')
-            except IOError, e:
+            except IOError as e:
                 # This local repository doesn't contain a built modules.list index.
                 self.name = Repositories.url2filename(self.url)
                 self.build_index(self.localurl2path(), filename)
@@ -182,7 +182,7 @@ class Repository(object):
             browser = WeboobBrowser()
             try:
                 fp = browser.openurl(posixpath.join(self.url, self.INDEX))
-            except BrowserUnavailable, e:
+            except BrowserUnavailable as e:
                 raise RepositoryUnavailable(unicode(e))
 
         self.parse_index(fp)
@@ -212,7 +212,7 @@ class Repository(object):
             try:
                 keyring_data = browser.readurl(posixpath.join(self.url, self.KEYRING))
                 sig_data = browser.readurl(posixpath.join(self.url, self.KEYRING + '.sig'))
-            except BrowserUnavailable, e:
+            except BrowserUnavailable as e:
                 raise RepositoryUnavailable(unicode(e))
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
@@ -241,9 +241,9 @@ class Repository(object):
             self.maintainer = items['maintainer']
             self.signed = bool(int(items.get('signed', '0')))
             self.key_update = int(items.get('key_update', '0'))
-        except KeyError, e:
+        except KeyError as e:
             raise RepositoryUnavailable('Missing global parameters in repository: %s' % e)
-        except ValueError, e:
+        except ValueError as e:
             raise RepositoryUnavailable('Incorrect value in repository parameters: %s' % e)
 
         if len(self.name) == 0:
@@ -297,7 +297,7 @@ class Repository(object):
                 finally:
                     if fp:
                         fp.close()
-            except Exception, e:
+            except Exception as e:
                 print >>sys.stderr, 'Unable to build module %s: [%s] %s' % (name, type(e).__name__, e)
             else:
                 m = ModuleInfo(module.name)
@@ -538,7 +538,7 @@ class Repositories(object):
     def _parse_source_list(self):
         l = []
         with open(self.sources_list, 'r') as f:
-            for line in f.xreadlines():
+            for line in f:
                 line = line.strip() % {'version': self.version}
                 m = re.match('(file|https?)://.*', line)
                 if m:
@@ -572,7 +572,7 @@ class Repositories(object):
                 else:
                     progress.error('Cannot find gpgv to check for repository authenticity.\n'
                                     'You should install GPG for better security.')
-            except RepositoryUnavailable, e:
+            except RepositoryUnavailable as e:
                 progress.error('Unable to load repository: %s' % e)
             else:
                 self.repositories.append(repository)
@@ -617,7 +617,7 @@ class Repositories(object):
             inst_progress = InstallProgress(n)
             try:
                 self.install(info, inst_progress)
-            except ModuleInstallError, e:
+            except ModuleInstallError as e:
                 inst_progress.progress(1.0, unicode(e))
 
     def install(self, module, progress=IProgress()):
@@ -657,7 +657,7 @@ class Repositories(object):
         progress.progress(0.2, 'Downloading module...')
         try:
             tardata = browser.readurl(module.url)
-        except BrowserUnavailable, e:
+        except BrowserUnavailable as e:
             raise ModuleInstallError('Unable to fetch module: %s' % e)
 
         # Check signature

@@ -70,7 +70,7 @@ class HaveDate(Boobmsg):
 
         try:
             self.do('init_optimizations').wait()
-        except CallErrors, e:
+        except CallErrors as e:
             self.bcall_errors_handler(e)
 
         optimizations = self.storage.get('optims')
@@ -157,7 +157,7 @@ class HaveDate(Boobmsg):
                                 except KeyError:
                                     pass
                 sys.stdout.write('.\n')
-            except CallErrors, errors:
+            except CallErrors as errors:
                 for backend, error, backtrace in errors:
                     if isinstance(error, OptimizationNotFound):
                         self.logger.error(u'Error(%s): Optimization "%s" not found' % (backend.name, optim_name))

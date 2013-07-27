@@ -66,14 +66,14 @@ class MonboobScheduler(Scheduler):
                 port = self.app.options.smtpd
             try:
                 FakeSMTPD(self.app, host, int(port))
-            except socket.error, e:
+            except socket.error as e:
                 self.logger.error('Unable to start the SMTP daemon: %s' % e)
                 return False
 
         # XXX Fuck, we shouldn't copy this piece of code from
         # weboob.scheduler.Scheduler.run().
         try:
-            while 1:
+            while True:
                 self.stop_event.wait(0.1)
                 if self.app.options.smtpd:
                     asyncore.loop(timeout=0.1, count=1)
@@ -178,10 +178,10 @@ class Monboob(ReplApplication):
                             content += unicode(s, charset)
                         else:
                             content += unicode(s)
-                    except UnicodeError, e:
+                    except UnicodeError as e:
                         self.logger.warning('Unicode error: %s' % e)
                         continue
-                    except Exception, e:
+                    except Exception as e:
                         self.logger.exception(e)
                         continue
                     else:
@@ -235,7 +235,7 @@ class Monboob(ReplApplication):
                           content=content)
         try:
             backend.post_message(message)
-        except Exception, e:
+        except Exception as e:
             content = u'Unable to send message to %s:\n' % thread_id
             content += u'\n\t%s\n' % to_unicode(e)
             if logging.root.level == logging.DEBUG:
@@ -269,7 +269,7 @@ class Monboob(ReplApplication):
             for backend, message in self.weboob.do('iter_unread_messages'):
                 if self.send_email(backend, message):
                     backend.set_message_read(message)
-        except CallErrors, e:
+        except CallErrors as e:
             self.bcall_errors_handler(e)
 
     def send_email(self, backend, mail):
@@ -363,7 +363,7 @@ class Monboob(ReplApplication):
             try:
                 smtp = SMTP(self.config.get('smtp'))
                 smtp.sendmail(sender, recipient, msg.as_string())
-            except Exception, e:
+            except Exception as e:
                 self.logger.error('Unable to deliver mail: %s' % e)
                 return False
             else:

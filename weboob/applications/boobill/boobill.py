@@ -193,7 +193,7 @@ class Boobill(ReplApplication):
                     try:
                         with open(dest, 'w') as f:
                             f.write(buf)
-                    except IOError, e:
+                    except IOError as e:
                         print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                         return 1
                 return
@@ -210,7 +210,7 @@ class Boobill(ReplApplication):
                         try:
                             with open(dest, 'w') as f:
                                 f.write(buf)
-                        except IOError, e:
+                        except IOError as e:
                             print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                             return 1
 

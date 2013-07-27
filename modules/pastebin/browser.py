@@ -122,7 +122,7 @@ class PastebinBrowser(BaseBrowser):
                 urllib.urlencode(data)).decode(self.ENCODING)
         try:
             self._validate_api_response(res)
-        except BadAPIRequest, e:
+        except BadAPIRequest as e:
             if str(e) == 'invalid login':
                 raise BrowserIncorrectPassword()
             else:

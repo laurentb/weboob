@@ -118,7 +118,7 @@ class Scheduler(IScheduler):
 
     def run(self):
         try:
-            while 1:
+            while True:
                 self.stop_event.wait(0.1)
         except KeyboardInterrupt:
             self._wait_to_stop()

@@ -490,11 +490,11 @@ class Cineoob(ReplApplication):
                         try:
                             with open(dest, 'w') as f:
                                 f.write(buf)
-                        except IOError, e:
+                        except IOError as e:
                             print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
                             return 1
                     return
-        except CallErrors, errors:
+        except CallErrors as errors:
             for backend, error, backtrace in errors:
                 if isinstance(error, MagnetOnly):
                     print >>sys.stderr, u'Error(%s): No direct URL available, ' \
@@ -598,11 +598,11 @@ class Cineoob(ReplApplication):
                         try:
                             with open(dest, 'w') as f:
                                 f.write(buf)
-                        except IOError, e:
+                        except IOError as e:
                             print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
                             return 1
                     return
-        except CallErrors, errors:
+        except CallErrors as errors:
             for backend, error, backtrace in errors:
                 self.bcall_error_handler(backend, error, backtrace)
 

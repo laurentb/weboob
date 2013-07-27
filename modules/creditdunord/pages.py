@@ -52,7 +52,7 @@ class CDNBasePage(BasePage):
             if start < 0:
                 continue
 
-            while 1:
+            while True:
                 if value is None:
                     value = ''
                 else:

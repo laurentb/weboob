@@ -189,7 +189,7 @@ class DLFP(BaseBrowser):
 
         try:
             self.submit()
-        except BrowserHTTPError, e:
+        except BrowserHTTPError as e:
             raise CantSendMessage('Unable to send message to %s.%s: %s' % (thread, reply_id, e))
 
         if self.is_on_page(NodePage):

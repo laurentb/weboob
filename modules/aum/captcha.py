@@ -197,7 +197,7 @@ class Decoder(object):
 
     def main(self):
         try:
-            while 1:
+            while True:
                 self.process()
         except KeyboardInterrupt:
             print ''

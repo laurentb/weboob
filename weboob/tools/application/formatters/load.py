@@ -37,15 +37,14 @@ class FormattersLoader(object):
     def get_available_formatters(self):
         l = set(self.formatters.iterkeys())
         l = l.union(self.BUILTINS)
-        l = list(l)
-        l.sort()
+        l = sorted(l)
         return l
 
     def build_formatter(self, name):
         if not name in self.formatters:
             try:
                 self.formatters[name] = self.load_builtin_formatter(name)
-            except ImportError, e:
+            except ImportError as e:
                 FormattersLoader.BUILTINS.remove(name)
                 raise FormatterLoadError('Unable to load formatter "%s": %s' % (name, e))
         return self.formatters[name]()

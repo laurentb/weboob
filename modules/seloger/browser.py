@@ -69,7 +69,7 @@ class SeLogerBrowser(BaseBrowser):
 
         self.location(self.buildurl('http://ws.seloger.com/search.xml', **data))
 
-        while 1:
+        while True:
             assert self.is_on_page(SearchResultsPage)
 
             for housing in self.page.iter_housings():

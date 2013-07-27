@@ -120,7 +120,7 @@ class WeboobCfg(ReplApplication):
         for instance_name, name, params in sorted(self.weboob.backends_config.iter_backends()):
             try:
                 module = self.weboob.modules_loader.get_or_load_module(name)
-            except ModuleLoadError, e:
+            except ModuleLoadError as e:
                 self.logger.warning('Unable to load module %r: %s' % (name, e))
                 continue
 

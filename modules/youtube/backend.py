@@ -105,7 +105,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         yt_service.ssl = True
         try:
             entry = yt_service.GetYouTubeVideoEntry(video_id=_id)
-        except gdata.service.Error, e:
+        except gdata.service.Error as e:
             if e.args[0]['status'] == 400:
                 return None
             raise

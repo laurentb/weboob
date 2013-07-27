@@ -20,7 +20,7 @@
 
 try:
     import sqlite3 as sqlite
-except ImportError, e:
+except ImportError as e:
     from pysqlite2 import dbapi2 as sqlite
 
 from weboob.core import Weboob
@@ -35,13 +35,13 @@ def main(filename):
     weboob = Weboob()
     try:
         hds = weboob.build_backend('hds')
-    except ModuleLoadError, e:
+    except ModuleLoadError as e:
         print >>sys.stderr, 'Unable to load "hds" module: %s' % e
         return 1
 
     try:
         db = sqlite.connect(database=filename, timeout=10.0)
-    except sqlite.OperationalError, err:
+    except sqlite.OperationalError as err:
         print >>sys.stderr, 'Unable to open %s database: %s' % (filename, err)
         return 1
 
@@ -49,7 +49,7 @@ def main(filename):
     sys.stdout.flush()
     try:
         results = db.execute('SELECT id, author FROM stories')
-    except sqlite.OperationalError, err:
+    except sqlite.OperationalError as err:
         print >>sys.stderr, 'fail!\nUnable to read database: %s' % err
         return 1
 

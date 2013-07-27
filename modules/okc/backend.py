@@ -198,7 +198,7 @@ class OkCBackend(BaseBackend, ICapMessages, ICapContact, ICapMessagesPost):
     #                    if m.flags & m.IS_UNREAD:
     #                        yield m
 
-    #    except BrowserUnavailable, e:
+    #    except BrowserUnavailable as e:
     #        self.logger.debug('No messages, browser is unavailable: %s' % e)
     #        pass # don't care about waiting
 

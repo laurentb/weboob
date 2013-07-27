@@ -105,7 +105,7 @@ class Recipe(QFrame):
             try:
                 with codecs.open(dest, 'w', 'utf-8') as f:
                     f.write(data)
-            except IOError, e:
+            except IOError as e:
                 print >>sys.stderr, 'Unable to write Krecipe file in "%s": %s' % (dest, e)
                 return 1
             return

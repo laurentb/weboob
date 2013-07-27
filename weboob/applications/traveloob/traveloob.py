@@ -101,7 +101,7 @@ class Traveloob(ReplApplication):
         try:
             filters.departure_time = self.parse_datetime(self.options.departure_time)
             filters.arrival_time = self.parse_datetime(self.options.arrival_time)
-        except ValueError, e:
+        except ValueError as e:
             print >>sys.stderr, 'Invalid datetime value: %s' % e
             print >>sys.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
             return 1

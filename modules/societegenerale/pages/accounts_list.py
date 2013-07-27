@@ -149,7 +149,7 @@ class AccountHistory(BasePage):
             # There are no transactions in this kind of account
             return
 
-        while 1:
+        while True:
             d = XML(self.browser.readurl(url))
             try:
                 el = self.parser.select(d, '//dataBody', 1, 'xpath')

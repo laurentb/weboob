@@ -382,8 +382,7 @@ class MainWindow(QtMainWindow):
         if self.ui.backendEdit.count() == 0:
             self.backendsConfig()
 
-        langs = LANGUAGE_CONV.keys()
-        langs.sort()
+        langs = sorted(LANGUAGE_CONV.keys())
         for lang in langs:
             self.ui.langCombo.addItem(lang)
         self.ui.langCombo.hide()

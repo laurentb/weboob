@@ -104,7 +104,7 @@ class CaisseEpargne(BaseBrowser):
 
         self.page.go_history(info)
 
-        while 1:
+        while True:
             assert self.is_on_page(IndexPage)
 
             for tr in self.page.get_history():

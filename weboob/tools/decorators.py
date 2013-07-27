@@ -41,7 +41,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
                     return f(*args, **kwargs)
                     try_one_last_time = False
                     break
-                except ExceptionToCheck, e:
+                except ExceptionToCheck as e:
                     logging.debug(u'%s, Retrying in %d seconds...' % (e, mdelay))
                     time.sleep(mdelay)
                     mtries -= 1

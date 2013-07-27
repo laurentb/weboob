@@ -163,7 +163,7 @@ class BackendConfig(ValuesDict):
             field = copy(field)
             try:
                 field.load(cfg.instname, value, cfg.weboob.callbacks)
-            except ValueError, v:
+            except ValueError as v:
                 if not nofail:
                     raise BaseBackend.ConfigError(
                         'Backend(%s): Configuration error for field "%s": %s' % (cfg.instname, name, v))

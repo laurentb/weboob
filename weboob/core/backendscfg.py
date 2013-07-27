@@ -49,11 +49,11 @@ class BackendsConfig(object):
                 fptr.close()
             else:
                 try:
-                    os.mknod(confpath, 0600)
+                    os.mknod(confpath, 0o600)
                 except OSError:
                     fptr = open(confpath, 'w')
                     fptr.close()
-                    os.chmod(confpath, 0600)
+                    os.chmod(confpath, 0o600)
         else:
             if sys.platform != 'win32':
                 if mode & stat.S_IRGRP or mode & stat.S_IROTH:

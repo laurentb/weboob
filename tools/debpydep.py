@@ -14,7 +14,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
             s = "from %s import %s" % (root.strip('/').replace('/', '.'), f[:-3])
             try:
                 exec s
-            except ImportError, e:
+            except ImportError as e:
                 print >>sys.stderr, str(e)
             else:
                 m = eval(f[:-3])

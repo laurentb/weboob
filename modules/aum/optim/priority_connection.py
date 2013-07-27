@@ -131,7 +131,7 @@ class PriorityConnection(Optimization):
                                      zipcode=    75001,
                                      country=    'fr',
                                      godfather=  my_id)
-                except AccountRegisterError, e:
+                except AccountRegisterError as e:
                     self.logger.warning('Unable to register account: %s' % e)
                 except CaptchaError:
                     self.logger.warning('Unable to solve captcha... Retrying')
@@ -156,12 +156,12 @@ class PriorityConnection(Optimization):
             fakes = self.storage.get('priority_connection', 'fakes', default={})
             if len(fakes) == 0:
                 return
-            while 1:
+            while True:
                 name = random.choice(fakes.keys())
                 fake = fakes[name]
                 try:
                     browser = AuMBrowser(fake['username'], fake['password'], proxy=self.browser.proxy)
-                except (AdopteBanned,BrowserIncorrectPassword), e:
+                except (AdopteBanned,BrowserIncorrectPassword) as e:
                     self.logger.warning('Fake %s can\'t login: %s' % (name, e))
                     continue
 

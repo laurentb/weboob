@@ -64,7 +64,7 @@ class LoginPage(BasePage):
 
         try:
             img.build_tiles()
-        except TileError, err:
+        except TileError as err:
             error("Error: %s" % err)
             if err.tile:
                 err.tile.display()

@@ -107,7 +107,7 @@ class LoginPage(BasePage):
         # 2) And now, the virtual Keyboard
         try:
             vk = INGVirtKeyboard(self)
-        except VirtKeyboardError, err:
+        except VirtKeyboardError as err:
             error("Error: %s" % err)
             return False
         realpasswd = ""

@@ -97,7 +97,7 @@ class ProfilesWalker(Optimization):
                 # We consider this profil hasn't been [correctly] analysed
                 self.profiles_queue.add(id)
                 return
-            except Exception, e:
+            except Exception as e:
                 print e
         finally:
             if self.view_cron is not None:

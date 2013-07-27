@@ -112,7 +112,7 @@ class BackendsCall(object):
                         result = function(backend, *args, **kwargs)
                     else:
                         result = getattr(backend, function)(*args, **kwargs)
-                except Exception, error:
+                except Exception as error:
                     self.logger.debug('%s: Called function %s raised an error: %r' % (backend, function, error))
                     self._store_error(backend, error)
                 else:
@@ -125,7 +125,7 @@ class BackendsCall(object):
                                 # Lock mutex only in loop in case the iterator is slow
                                 # (for example if backend do some parsing operations)
                                 self._store_result(backend, subresult)
-                        except Exception, error:
+                        except Exception as error:
                             self._store_error(backend, error)
                     else:
                         self._store_result(backend, result)

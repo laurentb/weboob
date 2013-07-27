@@ -82,7 +82,7 @@ class Subtitle(QFrame):
             try:
                 with open(dest, 'w') as f:
                     f.write(data)
-            except IOError, e:
+            except IOError as e:
                 print >>sys.stderr, 'Unable to write subtitle file in "%s": %s' % (dest, e)
                 return 1
             return

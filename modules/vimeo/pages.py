@@ -118,7 +118,7 @@ class VideoPage(BasePage):
         self.browser.set_handle_redirect(False)
         try:
             self.browser.open_novisit(v.url)
-        except HTTPError, e:
+        except HTTPError as e:
             if e.getcode() == 302 and hasattr(e, 'hdrs'):
                 #print e.hdrs['Location']
                 v.url = unicode(e.hdrs['Location'])

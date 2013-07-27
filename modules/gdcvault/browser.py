@@ -97,7 +97,7 @@ class GDCVaultBrowser(BaseBrowser):
         try:
             self.open_novisit(url)
             #headers = req.info()
-        except HTTPError, e:
+        except HTTPError as e:
             # print e.getcode()
             if e.getcode() == 302 and hasattr(e, 'hdrs'):
                 #print e.hdrs['Location']

@@ -96,7 +96,7 @@ class PhpBB(BaseBrowser):
         assert self.is_on_page(TopicPage)
 
         parent = 0
-        while 1:
+        while True:
             for post in self.page.iter_posts():
                 if stop_id and post.id >= stop_id:
                     return
@@ -117,7 +117,7 @@ class PhpBB(BaseBrowser):
         assert self.is_on_page(TopicPage)
 
         child = None
-        while 1:
+        while True:
             for post in self.page.riter_posts():
                 if child:
                     child.parent = post.id

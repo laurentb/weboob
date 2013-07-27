@@ -86,7 +86,7 @@ class Torrent(QFrame):
             try:
                 with open(unicode(dest), 'w') as f:
                     f.write(data)
-            except IOError, e:
+            except IOError as e:
                 print >>sys.stderr, 'Unable to write .torrent in "%s": %s' % (dest, e)
                 return 1
             return

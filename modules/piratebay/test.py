@@ -38,6 +38,6 @@ class PiratebayTest(BackendTest):
             assert isinstance(full_torrent.description, basestring)
             try:
                 assert self.backend.get_torrent_file(torrent.id)
-            except MagnetOnly, e:
+            except MagnetOnly as e:
                 assert e.magnet.startswith('magnet:')
                 assert e.magnet == full_torrent.magnet

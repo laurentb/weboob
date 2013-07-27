@@ -141,7 +141,7 @@ class Cookboob(ReplApplication):
                 try:
                     with codecs.open(dest, 'w', 'utf-8') as f:
                         f.write(xmlstring)
-                except IOError, e:
+                except IOError as e:
                     print >>sys.stderr, 'Unable to write .kreml in "%s": %s' % (dest, e)
                     return 1
             return

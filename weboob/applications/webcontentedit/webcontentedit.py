@@ -113,7 +113,7 @@ class WebContentEdit(ReplApplication):
                 sys.stdout.flush()
                 try:
                     self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
-                except CallErrors, e:
+                except CallErrors as e:
                     errors.errors += e.errors
                     sys.stdout.write(' error (content saved in %s)\n' % path)
                 else:
@@ -136,7 +136,7 @@ class WebContentEdit(ReplApplication):
                 sys.stdout.flush()
                 try:
                     self.do('push_content', content, message, minor=minor, backends=[content.backend]).wait()
-                except CallErrors, e:
+                except CallErrors as e:
                     errors.errors += e.errors
                     sys.stdout.write(' error\n')
                 else:

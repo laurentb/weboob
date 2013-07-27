@@ -154,7 +154,7 @@ class Videoob(ReplApplication):
                 self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
                                   'configuration file.')
             self.player.play(video, player_name=player_name, player_args=media_player_args)
-        except (InvalidMediaPlayer, MediaPlayerNotFound), e:
+        except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
             print '%s\nVideo URL: %s' % (e, video.url)
 
     def complete_info(self, text, line, *ignored):

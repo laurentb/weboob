@@ -133,7 +133,7 @@ class Ing(BaseBrowser):
 
         index = 0 # index, we get always the same page, but with more informations
         hashlist = []
-        while 1:
+        while True:
             i = index
             for transaction in self.page.get_transactions(index):
                 while transaction.id in hashlist:
@@ -227,7 +227,7 @@ class Ing(BaseBrowser):
                 "transfer_issuer_radio": subscription.id
                }
         self.location(self.billpage, urllib.urlencode(data))
-        while 1:
+        while True:
             for bill in self.page.iter_bills(subscription.id):
                 yield bill
             if self.page.islast():

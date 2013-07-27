@@ -156,7 +156,7 @@ class TransferConfirmPage(BasePage):
     def confirm(self, password):
         try:
             vk = INGVirtKeyboard(self)
-        except VirtKeyboardError, err:
+        except VirtKeyboardError as err:
             error("Error: %s" % err)
             return
         realpasswd = ""
