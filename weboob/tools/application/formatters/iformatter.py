@@ -27,8 +27,11 @@ if sys.platform == 'win32':
 try:
     from termcolor import colored
 except ImportError:
-    def colored(s, *args, **kwargs):
-        return s
+    def colored(s, color=None, on_color=None, attrs=None):
+        if attrs is not None and 'bold' in attrs:
+            return '%s%s%s' % (IFormatter.BOLD, s, IFormatter.NC)
+        else:
+            return s
 
 try:
     import tty
