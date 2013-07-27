@@ -65,7 +65,6 @@ class ReplOptionFormatter(IndentedHelpFormatter):
                 s += '\n'
             s += '%s Commands:\n' % section
             for c in cmds:
-                c = c.split('\n')[0]
                 s += '    %s\n' % c
         return s
 
@@ -493,15 +492,15 @@ class ReplApplication(Cmd, ConsoleApplication):
         if not doc:
             return '%s' % command
 
-        doc = '\n'.join(line.strip() for line in doc.strip().split('\n'))
-        if not doc.startswith(command):
-            doc = '%s\n\n%s' % (command, doc)
-        if short:
-            doc = doc.split('\n')[0]
-            if not doc.startswith(command):
-                doc = command
+        lines = [line.strip() for line in doc.strip().split('\n')]
+        if not lines[0].startswith(command):
+            lines = [command, '\n', '\n'] + lines
 
-        return doc
+        if short:
+            return lines[0]
+
+        lines[0] = '%s%s%s' % (self.BOLD, lines[0], self.NC)
+        return '\n'.join(lines)
 
     def get_commands_doc(self):
         names = set(name for name in self.get_names() if name.startswith('do_'))
@@ -513,12 +512,12 @@ class ReplApplication(Cmd, ConsoleApplication):
             if cmd in self.hidden_commands.union(self.weboob_commands).union(['help']):
                 continue
             elif getattr(self, name).__doc__:
-                d[appname].append(self.get_command_help(cmd))
+                d[appname].append(self.get_command_help(cmd, short=True))
             else:
                 d[appname].append(cmd)
         if not self.DISABLE_REPL:
             for cmd in self.weboob_commands:
-                d['Weboob'].append(self.get_command_help(cmd))
+                d['Weboob'].append(self.get_command_help(cmd, short=True))
 
         return d
 
