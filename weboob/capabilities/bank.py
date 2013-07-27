@@ -22,6 +22,8 @@ import re
 from datetime import date, datetime
 from binascii import crc32
 
+from weboob.tools.ordereddict import OrderedDict
+
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError
 from .collection import ICapCollection
 
@@ -50,12 +52,12 @@ class Currency(object):
     CUR_CHF            = 2
     CUR_USD            = 3
 
-    TXT2CUR = {u'€':   CUR_EUR,
-               u'EUR': CUR_EUR,
-               u'CHF': CUR_CHF,
-               u'$':   CUR_USD,
-               u'USD': CUR_USD,
-              }
+    TXT2CUR = OrderedDict(((u'€',   CUR_EUR),
+                           (u'EUR', CUR_EUR),
+                           (u'CHF', CUR_CHF),
+                           (u'$',   CUR_USD),
+                           (u'USD', CUR_USD),
+              ))
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
 
@@ -83,6 +85,13 @@ class Currency(object):
             if cur is not None:
                 return cur
         return klass.CUR_UNKNOWN
+
+    @classmethod
+    def currency2txt(klass, currency):
+        for txt, value in klass.TXT2CUR.iteritems():
+            if value == currency:
+                return txt
+        return u''
 
 
 class Recipient(CapBaseObject):
@@ -118,6 +127,10 @@ class Account(Recipient, Currency):
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
+
+    @property
+    def currency_text(self):
+        return Currency.currency2txt(self.currency)
 
 
 class Transaction(CapBaseObject):
