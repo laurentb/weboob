@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2010-2013 Christophe Benz, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from __future__ import with_statement
 
 from setuptools import find_packages, setup
 
@@ -182,7 +180,8 @@ if sys.version_info[0] > 2:
     print >>sys.stderr, 'Python 3 is not supported.'
     sys.exit(1)
 if sys.version_info[1] < 6:  # older than 2.6
-    requirements.append('simplejson')
+    print >>sys.stderr, 'Python older than 2.6 is not supported.'
+    sys.exit(1)
 
 if not options.deps:
     requirements = []
@@ -202,7 +201,6 @@ setup(
         'Environment :: Console',
         'Environment :: X11 Applications :: Qt',
         'License :: OSI Approved :: GNU Affero General Public License v3',
-        'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python',
