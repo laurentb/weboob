@@ -21,7 +21,6 @@
 import os
 import sys
 import re
-from copy import copy
 
 from weboob.capabilities.account import ICapAccount
 from weboob.core.modules import ModuleLoadError
@@ -43,9 +42,6 @@ class WeboobCfg(ReplApplication):
                            'list':        'table',
                            }
     DISABLE_REPL = True
-
-    weboob_commands = copy(ReplApplication.weboob_commands)
-    weboob_commands.remove('backends')
 
     def load_default_backends(self):
         pass
