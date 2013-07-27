@@ -25,11 +25,7 @@ from weboob.tools.browser.decorators import id2url
 from StringIO import StringIO
 from time import time
 import re
-
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs
+from urlparse import parse_qs
 
 
 __all__ = ['RadioFranceBrowser', 'RadioFranceVideo']

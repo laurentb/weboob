@@ -20,10 +20,7 @@
 
 import datetime
 import re
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs
+from urlparse import parse_qs
 
 from weboob.capabilities import NotAvailable
 from weboob.tools.browser import BasePage, BrokenPageError
