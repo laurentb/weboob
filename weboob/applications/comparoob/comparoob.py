@@ -91,6 +91,12 @@ class Comparoob(ReplApplication):
     CAPS = ICapPriceComparison
 
     def do_prices(self, pattern):
+        """
+        prices [PATTERN]
+
+        Display prices for a product. If a pattern is supplied, do not prompt
+        what product to compare.
+        """
         products = []
         for backend, product in self.do('search_products', pattern):
             double = False
@@ -135,6 +141,11 @@ class Comparoob(ReplApplication):
             return self._complete_object()
 
     def do_info(self, _id):
+        """
+        info ID
+
+        Get information about a product.
+        """
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2

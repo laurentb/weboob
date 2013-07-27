@@ -486,11 +486,12 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def get_command_help(self, command, short=False):
         try:
-            doc = getattr(self, 'do_' + command).__doc__
+            func = getattr(self, 'do_' + command)
         except AttributeError:
             return None
-        if not doc:
-            return '%s' % command
+
+        doc = func.__doc__
+        assert doc is not None, "A command must have a docstring"
 
         lines = [line.strip() for line in doc.strip().split('\n')]
         if not lines[0].startswith(command):
@@ -511,10 +512,8 @@ class ReplApplication(Cmd, ConsoleApplication):
             cmd = name[3:]
             if cmd in self.hidden_commands.union(self.weboob_commands).union(['help']):
                 continue
-            elif getattr(self, name).__doc__:
-                d[appname].append(self.get_command_help(cmd, short=True))
-            else:
-                d[appname].append(cmd)
+
+            d[appname].append(self.get_command_help(cmd, short=True))
         if not self.DISABLE_REPL:
             for cmd in self.weboob_commands:
                 d['Weboob'].append(self.get_command_help(cmd, short=True))

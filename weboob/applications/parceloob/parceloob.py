@@ -148,6 +148,11 @@ class Parceloob(ReplApplication):
             self.cached_format(p)
 
     def do_info(self, id):
+        """
+        info ID
+
+        Get information about a parcel.
+        """
         parcel = self.get_object(id, 'get_parcel_tracking', [])
         if not parcel:
             print >>sys.stderr, 'Error: parcel not found'
