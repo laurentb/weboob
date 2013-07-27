@@ -25,7 +25,6 @@ from weboob.capabilities.subtitle import ICapSubtitle
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
-from weboob.core import CallErrors
 
 
 __all__ = ['Suboob']
@@ -139,30 +138,29 @@ class Suboob(ReplApplication):
         """
         id, dest = self.parse_command_args(line, 2, 1)
 
-        _id, backend_name = self.parse_id(id)
+        subtitle = self.get_object(id, 'get_subtitle')
+        if not subtitle:
+            print >>sys.stderr, 'Subtitle not found: %s' % id
+            return 3
 
         if dest is None:
-            dest = '%s' % _id
+            ext = subtitle.ext
+            if empty(ext):
+                ext = 'zip'
+            dest = '%s.%s' % (subtitle.name, ext)
 
-        try:
-            for backend, buf in self.do('get_subtitle_file', _id, backends=backend_name):
-                if buf:
-                    if dest == '-':
-                        print buf
-                    else:
-                        try:
-                            with open(dest, 'w') as f:
-                                f.write(buf)
-                        except IOError, e:
-                            print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
-                            return 1
-                    return
-        except CallErrors, errors:
-            for backend, error, backtrace in errors:
-                self.bcall_error_handler(backend, error, backtrace)
-
-        print >>sys.stderr, 'Subtitle "%s" not found' % id
-        return 3
+        for backend, buf in self.do('get_subtitle_file', subtitle.id, backends=subtitle.backend):
+            if buf:
+                if dest == '-':
+                    sys.stdout.write(buf)
+                else:
+                    try:
+                        with open(dest, 'w') as f:
+                            f.write(buf)
+                    except IOError, e:
+                        print >>sys.stderr, 'Unable to write file in "%s": %s' % (dest, e)
+                        return 1
+                return
 
     def do_search(self, line):
         """
