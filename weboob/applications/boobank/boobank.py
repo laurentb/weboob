@@ -126,7 +126,7 @@ class InvestmentFormatter(IFormatter):
         self.tot_diff += diff
         self.tot_valuation += obj.valuation
 
-        return ' %-30s %-10s %6d %11.2f %11.2f   %8.2f' %\
+        return u' %-30s %-10s %6d %11.2f %11.2f   %8.2f' %\
                 (label[:30], obj.code[:8] if not empty(obj.code) else '', obj.quantity, obj.unitvalue, obj.valuation, diff)
 
     def flush(self):
@@ -312,6 +312,16 @@ class Boobank(ReplApplication):
             backend_name = backend_name_from
 
         names = (backend_name,) if backend_name is not None else None
+
+        if self.interactive:
+            origin = self.get_object(id_from, 'get_account', [])
+            to = self.get_object(id_to, 'iter_transfer_recipients', [])
+
+            print 'Amount: %s%s' % (amount, origin.currency_text)
+            print 'From:   %s' % origin.label
+            print 'To:     %s' % to.label
+            if not self.ask('Are you sure to do this transfer?', default=True):
+                return
 
         self.start_format()
         for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
