@@ -91,7 +91,12 @@ class TransactionsFormatter(IFormatter):
         label = obj.label
         if not label and hasattr(obj, 'raw'):
             label = obj.raw
-        return ' %-10s   %-12s %-50s %10.2f' % (obj.date.strftime('%Y-%m-%d') if not empty(obj.date) else '', _type[:12], label[:50], obj.amount)
+        date = obj.date.strftime('%Y-%m-%d') if not empty(obj.date) else ''
+        amount = obj.amount or Decimal('0')
+        return ' %s   %s %s %s' % (self.colored('%-10s' % date, 'blue'),
+                                   self.colored('%-12s' % _type[:12], 'magenta'),
+                                   self.colored('%-50s' % label[:50], 'yellow'),
+                                   self.colored('%10.2f' % obj.amount, 'green' if amount >= 0 else 'red'))
 
 
 class TransferFormatter(IFormatter):
@@ -131,8 +136,8 @@ class InvestmentFormatter(IFormatter):
 
     def flush(self):
         self.output('-------------------------------+--------+----------+-----------+-----------+--------')
-        self.output(u'                                        Total                    %8s   %8s' %
-                     ('%.2f' % self.tot_valuation, '%.2f' % self.tot_diff))
+        self.output(u'                                        Total                    %8.2f   %8.2f' %
+                     (self.tot_valuation, self.tot_diff))
         self.tot_valuation = Decimal(0)
         self.tot_diff = Decimal(0)
 
@@ -159,23 +164,32 @@ class AccountListFormatter(IFormatter):
 
     def format_obj(self, obj, alias):
         if alias is not None:
-            id = '#%s (%s)' % (alias, obj.backend)
+            id = '%s (%s)' % (self.colored('%3s' % ('#' + alias), 'red', 'bold'),
+                              self.colored(obj.backend, 'blue', 'bold'))
+            clean = '#%s (%s)' % (alias, obj.backend)
+            if len(clean) < 15:
+                id += (' ' * (15 - len(clean)))
         else:
-            id = obj.fullid
+            id = self.colored('%30s' % obj.fullid, 'red', 'bold')
 
-        result = (u' %s%-' + (u'15' if alias is not None else '30') + u's%s %-25s  %8s   %8s') % \
-                             (self.BOLD, id, self.NC,
-                              obj.label, '%.2f' % obj.balance, '%.2f' % (obj.coming or Decimal(0)))
+        balance = obj.balance or Decimal('0')
+        coming = obj.coming or Decimal('0')
+        result = u'%s %s %s  %s' % (id,
+                                    self.colored('%-25s' % obj.label, 'yellow'),
+                                    self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red'),
+                                    self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red'))
 
-        self.tot_balance += obj.balance
-        if obj.coming:
-            self.tot_coming += obj.coming
+        self.tot_balance += balance
+        self.tot_coming += coming
         return result
 
     def flush(self):
         self.output(u'------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
-        self.output(u'%s                                    Total   %8s   %8s' % ((' ' * 15) if not self.interactive else '',
-                                                                               '%.2f' % self.tot_balance, '%.2f' % self.tot_coming))
+        self.output(u'%s                                    Total   %s   %s' % (
+                        (' ' * 15) if not self.interactive else '',
+                        self.colored('%8.2f' % self.tot_balance, 'green' if self.tot_balance >= 0 else 'red'),
+                        self.colored('%8.2f' % self.tot_coming, 'green' if self.tot_coming >= 0 else 'red'))
+                   )
         self.tot_balance = Decimal(0)
         self.tot_coming = Decimal(0)
 
