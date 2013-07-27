@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import date
+import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
@@ -99,7 +99,7 @@ class TransactionsFormatter(IFormatter):
         return ' %s   %s %s %s' % (self.colored('%-10s' % date, 'blue'),
                                    self.colored('%-12s' % _type[:12], 'magenta'),
                                    self.colored('%-50s' % label[:50], 'yellow'),
-                                   self.colored('%10.2f' % obj.amount, 'green' if amount >= 0 else 'red'))
+                                   self.colored('%10.2f' % amount, 'green' if amount >= 0 else 'red'))
 
 
 class TransferFormatter(IFormatter):
@@ -179,8 +179,8 @@ class AccountListFormatter(IFormatter):
         coming = obj.coming or Decimal('0')
         result = u'%s %s %s  %s' % (id,
                                     self.colored('%-25s' % obj.label, 'yellow'),
-                                    self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red'),
-                                    self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red'))
+                                    self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red') if not empty(obj.balance) else ' ' * 9,
+                                    self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red') if not empty(obj.coming) else '')
 
         self.tot_balance += balance
         self.tot_coming += coming
@@ -250,7 +250,8 @@ class Boobank(ReplApplication):
             try:
                 end_date = parse_date(end_date)
             except ValueError:
-                print >>sys.stderr, '"%s" is an incorrect date format (for example %s)' % (end_date, (date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'))
+                print >>sys.stderr, '"%s" is an incorrect date format (for example %s)' % \
+                            (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'))
                 return 3
             old_count = self.options.count
             self.options.count = None
