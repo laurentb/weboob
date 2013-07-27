@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 # python2.5 compatibility
-from __future__ import with_statement
+
 
 import time
 from weboob.capabilities.messages import ICapMessages, Message, Thread

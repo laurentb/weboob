@@ -19,7 +19,7 @@
 
 
 # python2.5 compatibility
-from __future__ import with_statement
+
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound,\
         Account, Recipient

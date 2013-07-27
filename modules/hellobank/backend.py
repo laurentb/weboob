@@ -20,7 +20,7 @@
 
 
 # python2.5 compatibility
-from __future__ import with_statement
+
 
 from decimal import Decimal
 from datetime import datetime, timedelta

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement
+
 
 from weboob.capabilities.housing import ICapHousing, City, Housing, HousingPhoto
 from weboob.tools.backend import BaseBackend

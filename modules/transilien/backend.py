@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import with_statement
+
 
 from weboob.capabilities.travel import ICapTravel, Station, Departure, RoadStep
 from weboob.tools.backend import BaseBackend

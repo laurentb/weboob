@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import with_statement
+
 
 from weboob.capabilities.content import ICapContent, Content
 from weboob.capabilities.bugtracker import ICapBugTracker, Issue, Project, User, \

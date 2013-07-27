@@ -8,7 +8,7 @@
 # To Public License, Version 2, as published by Sam Hocevar. See
 # http://sam.zoy.org/wtfpl/COPYING for more details.
 
-from __future__ import with_statement
+
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
