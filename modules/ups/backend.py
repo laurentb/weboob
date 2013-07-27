@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.tracking import ICapPackageTracking
+from weboob.capabilities.parcel import ICapParcel
 from weboob.tools.backend import BaseBackend
 
 from .browser import UpsBrowser
@@ -27,7 +27,7 @@ from .browser import UpsBrowser
 __all__ = ['UpsBackend']
 
 
-class UpsBackend(BaseBackend, ICapPackageTracking):
+class UpsBackend(BaseBackend, ICapParcel):
     NAME = 'ups'
     DESCRIPTION = u'UPS website'
     MAINTAINER = u'Romain Bignon'
@@ -36,6 +36,6 @@ class UpsBackend(BaseBackend, ICapPackageTracking):
 
     BROWSER = UpsBrowser
 
-    def track_package(self, id):
+    def get_parcel_tracking(self, id):
         with self.browser:
             return self.browser.get_tracking_info(id)

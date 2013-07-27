@@ -21,7 +21,7 @@
 import re
 from dateutil.parser import parse as parse_date
 
-from weboob.capabilities.tracking import Package, Location
+from weboob.capabilities.parcel import Parcel, Event
 from weboob.capabilities import NotAvailable
 from weboob.tools.browser import BasePage
 
@@ -37,7 +37,10 @@ class IndexPage(BasePage):
 
 class TrackPage(BasePage):
     def get_info(self, id):
-        p = Package(id)
+        if len(self.document.xpath('//libelle[@nom="MSG_AUCUN_EVT"]')) > 0:
+            return None
+
+        p = Parcel(id)
         p.arrival = NotAvailable
         p.history = []
 
@@ -46,14 +49,18 @@ class TrackPage(BasePage):
             if len(tds) < 3:
                 continue
 
-            loc = Location(i)
-            loc.name = unicode(tds[1].text)
-            loc.activity = unicode(tds[1].find('br').tail)
+            ev = Event(i)
+            ev.location = unicode(tds[1].text)
+            ev.activity = unicode(tds[1].find('br').tail)
             if tds[-1].text is not None:
-                loc.activity += ', ' + self.parser.tocleanstring(tds[-1])
+                ev.activity += ', ' + self.parser.tocleanstring(tds[-1])
             date = re.sub('[a-z]+', '', self.parser.tocleanstring(tds[0])).strip()
             date = re.sub('(\d+)/(\d+)/(\d+)', r'\3-\2-\1', date)
-            loc.date = parse_date(date)
-            p.history.append(loc)
+            ev.date = parse_date(date)
+            p.history.append(ev)
+
+        p.info = ' '.join([t.strip() for t in self.document.xpath('//div[@class="numeroColi2"]')[0].itertext()][1:])
+        if u'Livraison effectuée' in p.history[0].activity:
+            p.status = p.STATUS_ARRIVED
 
         return p

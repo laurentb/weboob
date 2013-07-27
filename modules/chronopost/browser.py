@@ -32,7 +32,7 @@ class ChronopostBrowser(BaseBrowser):
 
     PAGES = {
         'http://www.chronopost.fr/transport-express/livraison-colis':  IndexPage,
-        'http://www.chronopost.fr/transport-express/livraison-colis/cache/offonce/accueil/suivi.*':  TrackPage,
+        'http://www.chronopost.fr/transport-express/livraison-colis/.*accueil/suivi.*':  TrackPage,
     }
 
     def get_tracking_info(self, _id):

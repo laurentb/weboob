@@ -21,19 +21,34 @@
 from .base import IBaseCap, CapBaseObject, Field, StringField, DateField
 
 
-class Location(CapBaseObject):
-    name = StringField('Location name')
+class Event(CapBaseObject):
     date = DateField('Date')
     activity = StringField('Activity')
+    location = StringField('Location')
 
     def __repr__(self):
-        return u'<Location name=%r date=%r activity=%r>' % (self.name, self.date, self.activity)
+        return u'<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
 
-class Package(CapBaseObject):
+class Parcel(CapBaseObject):
+    STATUS_UNKNOWN = 0
+    STATUS_PLANNED = 1
+    STATUS_IN_TRANSIT = 2
+    STATUS_ARRIVED = 3
+
     arrival = DateField('Scheduled arrival date')
+    status = Field('Status of parcel', int, default=STATUS_UNKNOWN)
+    info = StringField('Information about parcel status')
     history = Field('History', list)
 
 
-class ICapPackageTracking(IBaseCap):
-    def track_package(self, id):
+class ICapParcel(IBaseCap):
+    def get_parcel_tracking(self, id):
+        """
+        Get information abouut a parcel.
+
+        :param id: ID of the parcel
+        :type id: :class:`str`
+        :rtype: :class:`Parcel`
+        """
+
         raise NotImplementedError()

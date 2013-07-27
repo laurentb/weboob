@@ -21,7 +21,7 @@
 import re
 from dateutil.parser import parse as parse_date
 
-from weboob.capabilities.tracking import Package, Location
+from weboob.capabilities.parcel import Parcel, Event
 from weboob.tools.browser import BasePage
 
 
@@ -30,17 +30,26 @@ __all__ = ['TrackPage']
 
 class TrackPage(BasePage):
     def get_info(self, id):
-        p = Package(id)
+        if len(self.parser.tocleanstring(self.document.xpath('//p[@class="error"]')[0])) > 0:
+            return None
+
+        p = Parcel(id)
         for dl in self.document.xpath('//dl'):
             dt = dl.find('dt')
             dd = dl.find('dd')
             if dt is None or dd is None:
                 continue
             label = self.parser.tocleanstring(dt)
-            if label == 'Scheduled Delivery:' or label == 'Delivered On':
-                m = re.search('(\d+/\d+/\d+)', dd.text)
-                if m:
-                    p.arrival = parse_date(m.group(1))
+            if label == 'Scheduled Delivery:':
+                p.status = p.STATUS_IN_TRANSIT
+            elif label == u'Delivered On:':
+                p.status = p.STATUS_ARRIVED
+            else:
+                continue
+
+            m = re.search('(\d+/\d+/\d+)', dd.text)
+            if m:
+                p.arrival = parse_date(m.group(1))
 
         p.history = []
         for i, tr in enumerate(self.document.xpath('//table[@class="dataTable"]//tr')):
@@ -48,10 +57,12 @@ class TrackPage(BasePage):
             if len(tds) < 4:
                 continue
 
-            loc = Location(i)
-            loc.name = self.parser.tocleanstring(tds[0])
-            loc.activity = self.parser.tocleanstring(tds[-1])
-            loc.date = parse_date('%s %s' % (tds[1].text, tds[2].text))
-            p.history.append(loc)
+            ev = Event(i)
+            ev.location = self.parser.tocleanstring(tds[0])
+            ev.activity = self.parser.tocleanstring(tds[-1])
+            ev.date = parse_date('%s %s' % (tds[1].text, tds[2].text))
+            p.history.append(ev)
+
+        p.info = self.document.xpath('//a[@id="tt_spStatus"]')[0].text.strip()
 
         return p

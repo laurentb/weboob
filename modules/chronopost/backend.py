@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.tracking import ICapPackageTracking
+from weboob.capabilities.parcel import ICapParcel
 from weboob.tools.backend import BaseBackend
 
 from .browser import ChronopostBrowser
@@ -27,7 +27,7 @@ from .browser import ChronopostBrowser
 __all__ = ['ChronopostBackend']
 
 
-class ChronopostBackend(BaseBackend, ICapPackageTracking):
+class ChronopostBackend(BaseBackend, ICapParcel):
     NAME = 'chronopost'
     DESCRIPTION = u'Chronopost website'
     MAINTAINER = u'Romain Bignon'
@@ -36,6 +36,6 @@ class ChronopostBackend(BaseBackend, ICapPackageTracking):
 
     BROWSER = ChronopostBrowser
 
-    def track_package(self, id):
+    def get_parcel_tracking(self, id):
         with self.browser:
             return self.browser.get_tracking_info(id)
