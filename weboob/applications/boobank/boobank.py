@@ -18,6 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import date
+from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
 import sys
 
@@ -235,26 +238,47 @@ class Boobank(ReplApplication):
         """
         return self.do_ls(line)
 
+    def show_history(self, command, line):
+        id, end_date = self.parse_command_args(line, 2, 1)
+
+        account = self.get_object(id, 'get_account', [])
+        if not account:
+            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            return 2
+
+        if end_date is not None:
+            try:
+                end_date = parse_date(end_date)
+            except ValueError:
+                print >>sys.stderr, '"%s" is an incorrect date format (for example %s)' % (end_date, (date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'))
+                return 3
+            old_count = self.options.count
+            self.options.count = None
+
+        self.start_format()
+        for backend, transaction in self.do(command, account, backends=account.backend):
+            if end_date is not None and transaction.date < end_date:
+                break
+            self.format(transaction)
+
+        if end_date is not None:
+            self.options.count = old_count
+
     def complete_history(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_account()
 
     @defaultcount(10)
-    def do_history(self, id):
+    def do_history(self, line):
         """
-        history ID
+        history ID [END_DATE]
 
         Display history of transactions.
-        """
-        account = self.get_object(id, 'get_account', [])
-        if not account:
-            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
-            return 2
 
-        self.start_format()
-        for backend, transaction in self.do('iter_history', account, backends=account.backend):
-            self.format(transaction)
+        If END_DATE is supplied, list all transactions until this date.
+        """
+        return self.show_history('iter_history', line)
 
     def complete_coming(self, text, line, *ignored):
         args = line.split(' ')
@@ -262,21 +286,15 @@ class Boobank(ReplApplication):
             return self._complete_account()
 
     @defaultcount(10)
-    def do_coming(self, id):
+    def do_coming(self, line):
         """
-        coming ID
+        coming ID [END_DATE]
 
         Display future transactions.
-        """
-        account = self.get_object(id, 'get_account', [])
-        if not account:
-            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
-            return 2
 
-        self.start_format(id=id)
-        for backend, transaction in self.do('iter_coming', account, backends=account.backend):
-            self.format(transaction)
-        self.flush()
+        If END_DATE is supplied, show all transactions list this date.
+        """
+        return self.show_history('iter_coming', line)
 
     def complete_transfer(self, text, line, *ignored):
         args = line.split(' ')
