@@ -70,7 +70,7 @@ class RecipeListFormatter(PrettyFormatter):
             result += 'prep time: %smin' % obj.preparation_time
         if not empty(obj.short_description):
             result += 'description: %s\n' % obj.short_description
-        return result
+        return result.strip()
 
 
 class Cookboob(ReplApplication):
