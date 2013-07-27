@@ -68,7 +68,7 @@ class ICapVideo(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def search_videos(self, pattern, sortby=SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=SEARCH_RELEVANCE, nsfw=False):
         """
         Iter results of a search on a pattern.
 
@@ -77,8 +77,6 @@ class ICapVideo(IBaseCap):
         :param sortby: sort by... (use SEARCH_* constants)
         :param nsfw: include non-suitable for work videos if True
         :type nsfw: bool
-        :param max_results: maximum number of results to return
-        :type max_results: int
         :rtype: iter[:class:`BaseVideo`]
         """
         raise NotImplementedError()

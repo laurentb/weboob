@@ -64,7 +64,7 @@ class GroovesharkBrowser(BaseBrowser):
     def home(self):
         self.get_communication_token()
 
-    def search_videos(self, pattern, max_results):
+    def search_videos(self, pattern):
         method = 'getResultsFromSearch'
 
         parameters = {}
@@ -75,16 +75,14 @@ class GroovesharkBrowser(BaseBrowser):
 
         response = self.API_post(method, parameters, self.create_token(method))
 
-        songs = self.create_video_from_songs_result(response['result']['result']['Songs'], max_results)
+        songs = self.create_video_from_songs_result(response['result']['result']['Songs'])
         #playlists = self.create_video_from_playlist_result(response['result']['result']['Playlists'])
         #albums = self.create_video_from_albums_result(response['result']['result']['Albums'])
 
         return songs
 
-    def create_video_from_songs_result(self, songs, max_results):
+    def create_video_from_songs_result(self, songs):
         self.VIDEOS_FROM_SONG_RESULTS = []
-        if max_results:
-            songs = songs[0:max_results]
 
         for song in songs:
             video = BaseVideo(song['SongID'])
@@ -99,7 +97,8 @@ class GroovesharkBrowser(BaseBrowser):
             except ValueError:
                 video.date = NotAvailable
             self.VIDEOS_FROM_SONG_RESULTS.append(video)
-        return self.VIDEOS_FROM_SONG_RESULTS
+
+            yield video
 
     def create_video_from_playlist_result(self, playlists):
         videos = []

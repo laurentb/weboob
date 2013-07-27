@@ -116,7 +116,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         video.set_empty_fields(NotAvailable)
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         YOUTUBE_MAX_RESULTS = 50
         YOUTUBE_MAX_START_INDEX = 1000
         yt_service = gdata.youtube.service.YouTubeService()
@@ -133,26 +133,21 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
             query.orderby = ('relevance', 'rating', 'viewCount', 'published')[sortby]
             query.racy = 'include' if nsfw else 'exclude'
 
-            if max_results is None or max_results > YOUTUBE_MAX_RESULTS:
-                query_max_results = YOUTUBE_MAX_RESULTS
-            else:
-                query_max_results = max_results
-            query.max_results = query_max_results
+            query.max_results = YOUTUBE_MAX_RESULTS
 
             if start_index > YOUTUBE_MAX_START_INDEX:
                 return
             query.start_index = start_index
-            start_index += query_max_results
+            start_index += YOUTUBE_MAX_RESULTS
 
             feed = yt_service.YouTubeQuery(query)
             for entry in feed.entry:
                 yield self._entry2video(entry)
                 nb_yielded += 1
-                if nb_yielded == max_results:
-                    return
 
-            if nb_yielded < query_max_results:
+            if nb_yielded < YOUTUBE_MAX_RESULTS:
                 return
+
 
     def latest_videos(self):
         return self.search_videos(None, ICapVideo.SEARCH_DATE)

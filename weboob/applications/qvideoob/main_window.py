@@ -31,7 +31,7 @@ from .minivideo import MiniVideo
 
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, weboob, parent=None):
+    def __init__(self, config, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -39,6 +39,7 @@ class MainWindow(QtMainWindow):
         self.config = config
         self.weboob = weboob
         self.minivideos = []
+        self.app = app
 
         self.ui.sortbyEdit.setCurrentIndex(int(self.config.get('settings', 'sortby')))
         self.ui.nsfwCheckBox.setChecked(int(self.config.get('settings', 'nsfw')))
@@ -109,7 +110,7 @@ class MainWindow(QtMainWindow):
         backend_name = str(self.ui.backendEdit.itemData(self.ui.backendEdit.currentIndex()).toString())
 
         self.process = QtDo(self.weboob, self.addVideo)
-        self.process.do('search_videos', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True, max_results=20, backends=backend_name)
+        self.process.do(self.app._do_complete, 20, (), 'search_videos', pattern, self.ui.sortbyEdit.currentIndex(), nsfw=True, backends=backend_name)
 
     def addVideo(self, backend, video):
         if not backend:

@@ -57,14 +57,12 @@ class ICapContent(IBaseCap):
         """
         raise NotImplementedError()
 
-    def iter_revisions(self, id, max_results=10):
+    def iter_revisions(self, id):
         """
         Iter revisions of a content.
 
         :param id: id of content
         :type id: str
-        :param max_results: maximum results
-        :type max_results: int
         :rtype: iter[:class:`Revision`]
         """
         raise NotImplementedError()

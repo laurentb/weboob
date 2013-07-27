@@ -216,6 +216,5 @@ class Videoob(ReplApplication):
 
         self.change_path([u'search'])
         self.start_format(pattern=pattern)
-        for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw,
-                                      max_results=self.options.count):
+        for backend, video in self.do('search_videos', pattern=pattern, nsfw=self.nsfw):
             self.cached_format(video)

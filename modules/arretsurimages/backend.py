@@ -43,7 +43,7 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 #        raise UserError('Search does not work on ASI website, use ls latest command')

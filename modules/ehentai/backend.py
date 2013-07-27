@@ -54,7 +54,7 @@ class EHentaiBackend(BaseBackend, ICapGallery, ICapCollection):
             password = None
         return self.create_browser(self.config['domain'].get(), username, password)
 
-    def search_gallery(self, pattern, sortby=None, max_results=None):
+    def search_gallery(self, pattern, sortby=None):
         with self.browser:
             return self.browser.search_gallery(pattern)
 

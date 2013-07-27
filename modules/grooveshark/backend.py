@@ -42,10 +42,9 @@ class GroovesharkBackend(BaseBackend, ICapVideo):
             with self.browser:
                 video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=10):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
-            for video in self.browser.search_videos(pattern, max_results):
-               yield video
+            return self.browser.search_videos(pattern)
 
     def get_video(self, _id):
         with self.browser:

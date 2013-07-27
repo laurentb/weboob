@@ -148,30 +148,43 @@ class MediawikiBrowser(BaseBrowser):
             data['lgtoken'] = result['login']['token']
             self.API_post(data)
 
-    def iter_wiki_revisions(self, page, nb_entries):
+    def iter_wiki_revisions(self, page):
         """
-        Yield 'Revision' objects for the last <nb_entries> revisions of the specified page.
+        Yield 'Revision' objects.
         """
         if len(self.username) > 0 and not self.is_logged():
             self.login()
-        data = {'action':       'query',
-                'titles':       page,
-                'prop':         'revisions',
-                'rvprop':       'ids|timestamp|comment|user|flags',
-                'rvlimit':      str(nb_entries),
-                }
 
-        result = self.API_get(data)
-        pageid = str(result['query']['pages'].keys()[0])
+        MAX_RESULTS = 50
+        results = MAX_RESULTS
+        last_id = None
 
-        if pageid != "-1":
-            for rev in result['query']['pages'][pageid]['revisions']:
-                rev_content = Revision(str(rev['revid']))
-                rev_content.comment = rev['comment']
-                rev_content.author = rev['user']
-                rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
-                rev_content.minor = 'minor' in rev
-                yield rev_content
+        while results == MAX_RESULTS:
+            data = {'action':       'query',
+                    'titles':       page,
+                    'prop':         'revisions',
+                    'rvprop':       'ids|timestamp|comment|user|flags',
+                    'rvlimit':      str(MAX_RESULTS),
+                    }
+
+            if last_id is not None:
+                data['rvstartid'] = last_id
+
+            result = self.API_get(data)
+            pageid = str(result['query']['pages'].keys()[0])
+
+            results = 0
+            if pageid != "-1":
+                for rev in result['query']['pages'][pageid]['revisions']:
+                    rev_content = Revision(str(rev['revid']))
+                    rev_content.comment = rev['comment']
+                    rev_content.author = rev['user']
+                    rev_content.timestamp = datetime.datetime.strptime(rev['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+                    rev_content.minor = 'minor' in rev
+                    yield rev_content
+
+                    last_id = rev_content.id
+                    results += 1
 
     def home(self):
         # We don't need to change location, we're using the JSON API here.

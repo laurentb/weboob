@@ -29,7 +29,7 @@ import codecs
 
 from weboob.core.bcall import CallErrors
 from weboob.capabilities.content import ICapContent, Revision
-from weboob.tools.application.repl import ReplApplication
+from weboob.tools.application.repl import ReplApplication, defaultcount
 
 
 __all__ = ['WebContentEdit']
@@ -144,6 +144,7 @@ class WebContentEdit(ReplApplication):
         if len(errors.errors) > 0:
             raise errors
 
+    @defaultcount(10)
     def do_log(self, line):
         """
         log ID
@@ -160,7 +161,7 @@ class WebContentEdit(ReplApplication):
         _id = _id.encode('utf-8')
 
         self.start_format()
-        for backend, revision in self.do('iter_revisions', _id, max_results=self.options.count, backends=backend_names):
+        for backend, revision in self.do('iter_revisions', _id, backends=backend_names):
             self.format(revision)
 
     def do_get(self, line):

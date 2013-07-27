@@ -23,6 +23,7 @@ from PyQt4.QtCore import SIGNAL
 from PyQt4.QtGui import QMessageBox, QTableWidgetItem
 from PyQt4.QtCore import Qt
 
+from weboob.tools.application.base import MoreResultsAvailable
 from weboob.tools.application.qt import QtMainWindow, QtDo
 from weboob.tools.application.qt.backendcfg import BackendCfg
 from weboob.capabilities.content import ICapContent
@@ -32,7 +33,7 @@ from .ui.main_window_ui import Ui_MainWindow
 
 
 class MainWindow(QtMainWindow):
-    def __init__(self, config, weboob, parent=None):
+    def __init__(self, config, weboob, app, parent=None):
         QtMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -40,6 +41,7 @@ class MainWindow(QtMainWindow):
         self.config = config
         self.weboob = weboob
         self.backend = None
+        self.app = app
 
         self.connect(self.ui.idEdit,
                      SIGNAL("returnPressed()"),
@@ -217,9 +219,11 @@ class MainWindow(QtMainWindow):
         self.process = QtDo(self.weboob,
                             self._gotRevision,
                             self._errorHistory)
-        self.process.do('iter_revisions',
+        self.process.do(self.app._do_complete,
+                        self.ui.nbRevBox.value(),
+                        (),
+                        'iter_revisions',
                         self.content.id,
-                        max_results=self.ui.nbRevBox.value(),
                         backends=(self.backend,))
 
     def _gotRevision(self, backend, revision):
@@ -256,6 +260,9 @@ class MainWindow(QtMainWindow):
 
     def _errorHistory(self, backend, error, backtrace):
         """ Loading the history has failed """
+        if isinstance(error, MoreResultsAvailable):
+            return
+
         content = unicode(self.tr('Unable to load history:\n%s\n')) % to_unicode(error)
         if logging.root.level == logging.DEBUG:
             content += '\n%s\n' % to_unicode(backtrace)

@@ -65,9 +65,8 @@ class MediawikiBackend(BaseBackend, ICapContent):
         content.content = data
         return content
 
-    def iter_revisions(self, _id, max_results=10):
-        for rev in self.browser.iter_wiki_revisions(_id, max_results):
-            yield rev
+    def iter_revisions(self, _id):
+        return self.browser.iter_wiki_revisions(_id)
 
     def push_content(self, content, message=None, minor=False):
         self.browser.set_wiki_source(content, message, minor)

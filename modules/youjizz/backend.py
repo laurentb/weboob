@@ -45,7 +45,7 @@ class YoujizzBackend(BaseBackend, ICapVideo, ICapCollection):
             video = self.browser.get_video(_id)
         return video
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         if not nsfw:
             return set()
         with self.browser:

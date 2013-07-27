@@ -44,7 +44,7 @@ class TricTracTVBackend(BaseBackend, ICapVideo):
         with self.browser:
             return self.browser.get_video(_id)
 
-    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False, max_results=None):
+    def search_videos(self, pattern=None, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         with self.browser:
             return self.browser.search_videos(pattern)
 

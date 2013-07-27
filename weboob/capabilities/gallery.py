@@ -111,7 +111,7 @@ class ICapGallery(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def search_gallery(self, pattern, sortby=SEARCH_RELEVANCE, max_results=None):
+    def search_gallery(self, pattern, sortby=SEARCH_RELEVANCE):
         """
         Iter results of a search on a pattern.
 
@@ -119,10 +119,6 @@ class ICapGallery(IBaseCap):
         :type pattern: str
         :param sortby: sort by...
         :type sortby: SEARCH_*
-        :param nsfw: include non-suitable for work videos if True
-        :type nsfw: bool
-        :param max_results: maximum number of results to return
-        :type max_results: int
         :rtype: :class:`BaseGallery`
         """
         raise NotImplementedError()
