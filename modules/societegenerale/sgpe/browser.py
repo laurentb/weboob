@@ -94,7 +94,7 @@ class SGPEBrowser(BaseBrowser):
             self.history(account.id, page)
             assert self.is_on_page(HistoryPage)
             for transaction in self.page.iter_transactions(account, basecount):
-                basecount = transaction.id + 1
+                basecount = int(transaction.id) + 1
                 yield transaction
             if self.page.has_next():
                 page += 1
