@@ -23,7 +23,7 @@ from urlparse import parse_qs
 from datetime import datetime
 
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.misc import to_unicode
@@ -117,7 +117,7 @@ class AccountsPage(BEPage):
     def find_table(self):
         for table in self.parser.select(self.document.getroot(), 'table', 'many'):
             for td in self.parser.select(table, 'tr td'):
-                if td.text and td.text.strip().startswith('COMPTES COURANTS'):
+                if td.text and td.text.strip().startswith('COMPTES '):
                     return table
 
     def get_list(self):
@@ -132,8 +132,13 @@ class AccountsPage(BEPage):
             account.label = to_unicode(tdlabel.text_content().strip())
             # this is important - and is also the last part of the id (considering spaces)
             # we can't use only the link as it does not goes where we want
-            link = self.parser.select(tdlabel, 'a', 1)
-            account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
+            try:
+                link = self.parser.select(tdlabel, 'a', 1)
+            except BrokenPageError:
+                # probably an account we can't display the history
+                account._link_id = None
+            else:
+                account._link_id = parse_qs(link.attrib['href'])['ch4'][0]
             account.id = to_unicode(tdid.text.strip().replace(' ', ''))
             # just in case we are showing the converted balances
             account._main_currency = Account.get_currency(tdcur.text)

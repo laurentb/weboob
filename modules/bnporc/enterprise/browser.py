@@ -73,9 +73,12 @@ class BNPEnterprise(BaseBrowser):
                 yield a
 
     def iter_history(self, account):
-        if not self.is_on_page(HistoryPage):
-            self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
-            d1, d2 = self.page.get_date_range()
-            self.location('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
+        if account._link_id is None:
+            return
+
+        self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
+        d1, d2 = self.page.get_date_range()
+        self.location('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
+
         for transaction in self.page.iter_history():
             yield transaction
