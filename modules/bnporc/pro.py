@@ -109,6 +109,9 @@ class ProAccountHistory(BasePage):
         for i, tr in enumerate(self.document.xpath('//tr[@class="hdoc1" or @class="hdotc1"]')):
             cols = tr.findall('td')
 
+            if len(cols) < 4:
+                continue
+
             op = Transaction(i)
 
             date = self.parser.tocleanstring(cols[self.COL_DATE])
