@@ -36,8 +36,8 @@ class LoginPage(BasePage):
         indentType = "RENFORCE" if strong_auth else "MDP"
 
         self.browser.select_form(name='loginCoForm', nr=form_nb)
-        self.browser['codeUtil'] = login
-        self.browser['motPasse'] = pin
+        self.browser['codeUtil'] = login.encode(self.browser.ENCODING)
+        self.browser['motPasse'] = pin.encode(self.browser.ENCODING)
 
         assert self.browser['identType'] == indentType
         self.browser.submit(nologin=True)
