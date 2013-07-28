@@ -214,6 +214,9 @@ class CardHistoryPage(SGPEPage):
             raw = self.parser.tocleanstring(tds[self.COL_LABEL])
             amount = self.parser.tocleanstring(tds[self.COL_AMOUNT])
 
+            if len(date) == 0:
+                continue
+
             t = Transaction(i)
             t.parse(date, raw)
             t.set_amount(amount)
