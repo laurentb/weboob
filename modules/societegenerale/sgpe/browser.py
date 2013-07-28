@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.ordereddict import OrderedDict
 
-from .pages import LoginPage, ErrorPage, AccountsPage, HistoryPage
+from .pages import LoginPage, ErrorPage, AccountsPage, CardsPage, HistoryPage, CardHistoryPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -34,7 +34,9 @@ class SGPEBrowser(BaseBrowser):
     def __init__(self, *args, **kwargs):
         self.PAGES = OrderedDict((
             ('%s://%s/Pgn/.+PageID=SoldeV3&.+' % (self.PROTOCOL, self.DOMAIN), AccountsPage),
+            ('%s://%s/Pgn/.+PageID=Cartes&.+' % (self.PROTOCOL, self.DOMAIN), CardsPage),
             ('%s://%s/Pgn/.+PageID=ReleveCompteV3&.+' % (self.PROTOCOL, self.DOMAIN), HistoryPage),
+            ('%s://%s/Pgn/.+PageID=ReleveCarte&.+' % (self.PROTOCOL, self.DOMAIN), CardHistoryPage),
             ('%s://%s/authent\.html' % (self.PROTOCOL, self.DOMAIN), ErrorPage),
             ('%s://%s/' % (self.PROTOCOL, self.DOMAIN), LoginPage),
         ))
@@ -67,20 +69,36 @@ class SGPEBrowser(BaseBrowser):
             raise BrowserIncorrectPassword()
 
     def accounts(self, no_login=False):
-        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%s&Classeur=1&NumeroPage=1' % self.MENUID, no_login=no_login)
+        self.location('/Pgn/NavigationServlet?PageID=SoldeV3&MenuID=%sCPT&Classeur=1&NumeroPage=1' % self.MENUID, no_login=no_login)
+
+    def cards(self):
+        doc = self.get_document(self.openurl('/Pgn/NavigationServlet?PageID=CartesFutures&MenuID=%sOPF&Classeur=1&NumeroPage=1&PageDetail=1' % self.MENUID))
+        url = doc.xpath('//iframe[@name="cartes"]')[0].attrib['src']
+        self.location(url)
 
     def history(self, _id, page=1):
         if page > 1:
             pgadd = '&page_numero_page_courante=%s' % page
         else:
             pgadd = ''
-        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%s&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCompteV3&MenuID=%sCPT&Classeur=1&Rib=%s&NumeroPage=1%s' % (self.MENUID, _id, pgadd))
+
+    def card_history(self, rib, _id, date, currency, page=1):
+        self.location('/Pgn/NavigationServlet?PageID=ReleveCarte&MenuID=%sOPF&Classeur=1&Rib=%s&Carte=%s&Date=%s&PageDetail=%s&Devise=%s' % (self.MENUID, rib, _id, date, page, currency))
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
             self.accounts()
+
         assert self.is_on_page(AccountsPage)
-        return self.page.get_list()
+        for acc in self.page.get_list():
+            yield acc
+
+        self.cards()
+
+        assert self.is_on_page(CardsPage)
+        for acc in self.page.get_list():
+            yield acc
 
     def get_account(self, _id):
         for a in self.get_accounts_list():
@@ -88,29 +106,41 @@ class SGPEBrowser(BaseBrowser):
                 yield a
 
     def iter_history(self, account):
-        page = 1
-        basecount = 0
-        while page:
-            self.history(account.id, page)
-            assert self.is_on_page(HistoryPage)
-            for transaction in self.page.iter_transactions(account, basecount):
-                basecount = int(transaction.id) + 1
-                yield transaction
-            if self.page.has_next():
-                page += 1
-            else:
-                page = False
+        if account._is_card:
+            page = 1
+            while page:
+                self.card_history(account._link_rib, account.id, account._link_date, account._link_currency, page)
+                assert self.is_on_page(CardHistoryPage)
+                for tr in self.page.iter_transactions():
+                    yield tr
+                if self.page.has_next():
+                    page += 1
+                else:
+                    page = False
+        else:
+            page = 1
+            basecount = 0
+            while page:
+                self.history(account.id, page)
+                assert self.is_on_page(HistoryPage)
+                for transaction in self.page.iter_transactions(account, basecount):
+                    basecount = int(transaction.id) + 1
+                    yield transaction
+                if self.page.has_next():
+                    page += 1
+                else:
+                    page = False
 
 
 class SGProfessionalBrowser(SGPEBrowser):
     DOMAIN = 'professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
-    MENUID = 'SBORELCPT'
+    MENUID = 'SBOREL'
     CERTHASH = 'd369315d357ba0018c2bd4d3394645669d99106c797d7390fded516b098a933e'
 
 
 class SGEnterpriseBrowser(SGPEBrowser):
     DOMAIN = 'entreprises.secure.societegenerale.fr'
     LOGIN_FORM = 'auth'
-    MENUID = 'BANRELCPT'
+    MENUID = 'BANREL'
     CERTHASH = 'd5c21d47c7d5a300b40856be49d0b36b42eaae409c8891184652b888d16a05f5'

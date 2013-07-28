@@ -33,7 +33,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from ..captcha import Captcha, TileError
 
 
-__all__ = ['LoginPage', 'AccountsPage']
+__all__ = ['LoginPage', 'AccountsPage', 'CardsPage', 'HistoryPage', 'CardHistoryPage']
 
 
 class Transaction(FrenchTransaction):
@@ -107,9 +107,63 @@ class AccountsPage(SGPEPage):
                 account.label = to_unicode(tdname)
                 account.id = to_unicode(tdid.replace(u'\xa0', '').replace(' ', ''))
                 account._agency = to_unicode(tdagency)
+                account._is_card = False
                 account.balance = Decimal(Transaction.clean_amount(tdbalance))
                 account.currency = account.get_currency(tdbalance)
                 yield account
+
+class CardsPage(SGPEPage):
+    COL_ID = 0
+    COL_LABEL = 1
+    COL_BALANCE = 2
+
+    def get_list(self):
+        rib = None
+        currency = None
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+
+            m = re.search('var rib = "(\d+)"', script.text)
+            if m:
+                rib = m.group(1)
+            m = re.search("var devise='(\w+)'", script.text)
+            if m:
+                currency = m.group(1)
+
+            if all((rib, currency)):
+                break
+
+        if not all((rib, currency)):
+            self.logger.error('Unable to find rib or currency')
+
+        for tr in self.document.xpath('//table[@id="tab-corps"]//tr'):
+            tds = tr.findall('td')
+
+            if len(tds) != 3:
+                continue
+
+            account = Account()
+            account.label = self.parser.tocleanstring(tds[self.COL_LABEL])
+            if len(account.label) == 0:
+                continue
+
+            link = tds[self.COL_ID].xpath('.//a')[0]
+            m = re.match(r"changeCarte\('(\d+)','(\d+)','([\d/]+)'\);.*", link.attrib['onclick'])
+            if not m:
+                self.logger.error('Unable to parse link %r' % link.attrib['onclick'])
+                continue
+            account.id = m.group(2)
+            account._link_num = m.group(1) #useless
+            account._link_date = m.group(3)
+            account._link_rib = rib
+            account._link_currency = currency
+            account._is_card = True
+            tdbalance = self.parser.tocleanstring(tds[self.COL_BALANCE])
+            account.balance = - Decimal(Transaction.clean_amount(tdbalance))
+            account.currency = account.get_currency(tdbalance)
+            yield account
+
 
 
 class HistoryPage(SGPEPage):
@@ -143,4 +197,43 @@ class HistoryPage(SGPEPage):
             cur = int(self.parser.select(n, '#numPage', 1).value)
             for end in self.parser.select(n, '.contenu3-lien'):
                 return int(end.text.replace('/', '')) > cur
+        return False
+
+class CardHistoryPage(SGPEPage):
+    COL_DATE = 0
+    COL_LABEL = 1
+    COL_AMOUNT = -1
+
+    def iter_transactions(self):
+        table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
+        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+
+            tds = tr.findall('td')
+
+            date = self.parser.tocleanstring(tds[self.COL_DATE])
+            raw = self.parser.tocleanstring(tds[self.COL_LABEL])
+            amount = self.parser.tocleanstring(tds[self.COL_AMOUNT])
+
+            t = Transaction(i)
+            t.parse(date, raw)
+            t.set_amount(amount)
+            yield t
+
+    def has_next(self):
+        current = None
+        total = None
+        for script in self.document.xpath('//script'):
+            if script.text is None:
+                continue
+
+            m = re.search('var pageActive\s+= (\d+)', script.text)
+            if m:
+                current = int(m.group(1))
+            m = re.search("var nombrePage\s+= (\d+)", script.text)
+            if m:
+                total = int(m.group(1))
+
+        if all((current, total)) and current < total:
+            return True
+
         return False
