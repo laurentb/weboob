@@ -58,7 +58,7 @@ class SGPEBrowser(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.location('https://' + self.DOMAIN + '/', no_login=True)
 
-            self.page.login(self.username, self.password)
+        self.page.login(self.username, self.password)
 
         # force page change
         if not self.is_on_page(AccountsPage):
