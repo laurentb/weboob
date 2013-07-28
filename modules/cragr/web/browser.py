@@ -115,6 +115,14 @@ class Cragr(BaseBrowser):
         if self.is_on_page(LoginErrorPage):
             raise BrowserIncorrectPassword()
 
+        if self.page is None:
+            raise self.WebsiteNotSupported()
+
+        if not self.is_on_page(AccountsPage):
+            # Sometimes the home page is Releves.
+            new_url  = re.sub('act=([^&=]+)', 'act=Synthcomptes', self.page.url, 1)
+            self.location(new_url)
+
         if not self.is_on_page(AccountsPage):
             raise self.WebsiteNotSupported()
 
