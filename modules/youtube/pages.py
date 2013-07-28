@@ -43,8 +43,8 @@ class LoginPage(BasePage):
 
     def login(self, username, password):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'gaia_loginform')
-        self.browser['Email'] = username
-        self.browser['Passwd'] = password
+        self.browser['Email'] = username.encode(self.browser.ENCODING)
+        self.browser['Passwd'] = password.encode(self.browser.ENCODING)
         self.browser.submit()
 
 
