@@ -243,14 +243,14 @@ class Boobank(ReplApplication):
 
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            print >>sys.stderr, 'Error: account "%s" not found (Hint: try the command "list")' % id
             return 2
 
         if end_date is not None:
             try:
                 end_date = parse_date(end_date)
             except ValueError:
-                print >>sys.stderr, '"%s" is an incorrect date format (for example %s)' % \
+                print >>sys.stderr, '"%s" is an incorrect date format (for example "%s")' % \
                             (end_date, (datetime.date.today() - relativedelta(months=1)).strftime('%Y-%m-%d'))
                 return 3
             old_count = self.options.count
@@ -369,7 +369,7 @@ class Boobank(ReplApplication):
         """
         account = self.get_object(id, 'get_account', [])
         if not account:
-            print >>sys.stderr, 'Error: please give an account ID (hint: use list command)'
+            print >>sys.stderr, 'Error: account "%s" not found (Hint: try the command "list")' % id
             return 2
 
         self.start_format()
