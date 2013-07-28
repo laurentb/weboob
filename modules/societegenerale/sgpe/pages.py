@@ -121,7 +121,7 @@ class HistoryPage(SGPEPage):
                 continue
             tddate, tdlabel, tddebit, tdcredit, tdval, tdbal = [td.text_content().strip()
                                                                 for td
-                                                                in self.parser.select(tr, 'td', 4)]
+                                                                in self.parser.select(tr, 'td', 6)]
             tdamount = tddebit or tdcredit
             # not sure it has empty rows like AccountsPage, but check anyway
             if all((tddate, tdlabel, tdamount)):
