@@ -59,6 +59,10 @@ class LCLBackend(BaseBackend, ICapBank):
                                        self.config['password'].get())
 
     def deinit(self):
+        # don't need to logout if the browser hasn't been used.
+        if not self._browser:
+            return
+
         try:
             deinit = self.browser.deinit
         except AttributeError:
