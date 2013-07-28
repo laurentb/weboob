@@ -283,6 +283,13 @@ class TransactionsPage(BasePage):
 
         return params
 
+    COL_COMPTA_DATE = 0
+    COL_LABEL = 1
+    COL_REF = 2
+    COL_OP_DATE = 3
+    COL_VALUE_DATE = 4
+    COL_DEBIT = -2
+    COL_CREDIT = -1
     def get_history(self):
         for tr in self.document.xpath('//table[@id="tbl1"]/tbody/tr'):
             tds = tr.findall('td')
@@ -292,10 +299,15 @@ class TransactionsPage(BasePage):
 
             t = Transaction(tr.attrib['id'].split('_', 1)[1])
 
-            date = u''.join([txt.strip() for txt in tds[4].itertext()])
-            raw = u' '.join([txt.strip() for txt in tds[1].itertext()])
-            debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
-            credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
+            # XXX We currently take the *value* date, but it will probably
+            # necessary to use the *operation* one.
+            # Default sort on website is by compta date, so in browser.py we
+            # change the sort on value date.
+            date = self.parser.tocleanstring(tds[self.COL_VALUE_DATE])
+            raw = self.parser.tocleanstring(tds[self.COL_LABEL])
+            debit = self.parser.tocleanstring(tds[self.COL_DEBIT])
+            credit = self.parser.tocleanstring(tds[self.COL_CREDIT])
+
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
             yield t

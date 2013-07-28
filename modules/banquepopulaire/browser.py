@@ -38,6 +38,7 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
+             'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
              'https://[^/]+/s3f-web/indispo.*':                                                 UnavailablePage,
              'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*':   RedirectPage,
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx\?vary=(?P<vary>.*)':     HomePage,
@@ -102,6 +103,11 @@ class BanquePopulaire(BaseBrowser):
         if not self.is_on_page(AccountsPage):
             account = self.get_account(account.id)
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
+
+        # Sort by values dates (see comment in TransactionsPage.get_history)
+        self.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
+        self.form.action = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
+        self.submit()
 
         while True:
             assert self.is_on_page(TransactionsPage)
