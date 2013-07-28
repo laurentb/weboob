@@ -19,7 +19,7 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, ComingTransactionsPage
+from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage
 
 
 __all__ = ['CreditCooperatif']
@@ -33,7 +33,9 @@ class CreditCooperatif(BaseBrowser):
              'https://www.coopanet.com/banque/cpt/incoopanetj2ee.do.*': AccountsPage,
              'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkReleveAction=X&numeroExterne=.*': TransactionsPage,
              'https://www.coopanet.com/banque/cpt/cpt/relevecompte.do\?tri_page=.*': TransactionsPage,
-             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': ComingTransactionsPage
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpCB=X&numeroExterne=.*': CardTransactionsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/situationcomptes.do\?lnkOpEC=X&numeroExterne=.*': ComingTransactionsPage,
+             'https://www.coopanet.com/banque/cpt/cpt/operationEnCours.do.*': ComingTransactionsPage,
             }
 
     def __init__(self, *args, **kwargs):
@@ -83,11 +85,11 @@ class CreditCooperatif(BaseBrowser):
 
         return None
 
-    def get_history(self, account):
-        self.location('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
+    def _get_history(self, link):
+        self.location(link)
 
         while True:
-            assert self.is_on_page(TransactionsPage)
+            assert self.is_on_page(ITransactionsPage)
 
             for tr in self.page.get_history():
                 yield tr
@@ -98,10 +100,13 @@ class CreditCooperatif(BaseBrowser):
 
             self.location(next_url)
 
+    def get_history(self, account):
+        return self._get_history('/banque/cpt/cpt/situationcomptes.do?lnkReleveAction=X&numeroExterne='+ account.id)
+
     def get_coming(self, account):
-        self.location('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id)
-
-        assert self.is_on_page(ComingTransactionsPage)
-
-        for ctr in self.page.get_history():
-            yield ctr
+        # credit cards transactions
+        for tr in self._get_history('/banque/cpt/cpt/situationcomptes.do?lnkOpCB=X&numeroExterne='+ account.id):
+            yield tr
+        # coming transactions
+        for tr in self._get_history('/banque/cpt/cpt/situationcomptes.do?lnkOpEC=X&numeroExterne='+ account.id):
+            yield tr

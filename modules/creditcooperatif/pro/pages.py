@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage']
+__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage', 'ComingTransactionsPage', 'CardTransactionsPage', 'ITransactionsPage']
 
 
 class LoginPage(BasePage):
@@ -85,9 +85,9 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^CARTE \d+ .*'),                     FrenchTransaction.TYPE_CARD),
+                (re.compile('^CARTE \d+ .*'),               FrenchTransaction.TYPE_CARD),
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'),       FrenchTransaction.TYPE_BANK),
                 (re.compile('^ABONNEMENT (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
@@ -98,8 +98,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_UNKNOWN),
                ]
 
-
-class TransactionsPage(BasePage):
+class ITransactionsPage(BasePage):
     def get_next_url(self):
         # can be 'Suivant' or ' Suivant'
         next = self.document.xpath("//a[normalize-space(text()) = 'Suivant']")
@@ -109,17 +108,22 @@ class TransactionsPage(BasePage):
 
         return next[0].attrib["href"]
 
+    def get_history(self):
+        raise NotImplementedError()
+
+class TransactionsPage(ITransactionsPage):
     TR_DATE = 0
     TR_TEXT = 2
     TR_DEBIT = 3
     TR_CREDIT = 4
+    TABLE_NAME = 'operation'
 
     def get_history(self):
-        for tr in self.document.xpath('//table[@id="operation"]/tbody/tr'):
+        for tr in self.document.xpath('//table[@id="%s"]/tbody/tr' % self.TABLE_NAME):
             tds = tr.findall('td')
 
             def get_content(td):
-                ret = "".join([ttd.text if ttd.text else "" for ttd in td.xpath(".//td")])
+                ret = self.parser.tocleanstring(td)
                 return ret.replace(u"\xa0", " ").strip()
 
             date = get_content(tds[self.TR_DATE])
@@ -134,8 +138,14 @@ class TransactionsPage(BasePage):
 
             yield t
 
+class ComingTransactionsPage(TransactionsPage):
+    TR_DATE = 2
+    TR_TEXT = 1
+    TR_DEBIT = -2
+    TR_CREDIT = -1
+    TABLE_NAME = 'operationAVenir'
 
-class ComingTransactionsPage(BasePage):
+class CardTransactionsPage(ITransactionsPage):
     COM_TR_COMMENT = 0
     COM_TR_DATE = 1
     COM_TR_TEXT = 2
