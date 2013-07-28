@@ -73,8 +73,13 @@ class SGPEBrowser(BaseBrowser):
 
     def cards(self):
         doc = self.get_document(self.openurl('/Pgn/NavigationServlet?PageID=CartesFutures&MenuID=%sOPF&Classeur=1&NumeroPage=1&PageDetail=1' % self.MENUID))
-        url = doc.xpath('//iframe[@name="cartes"]')[0].attrib['src']
-        self.location(url)
+        try:
+            url = doc.xpath('//iframe[@name="cartes"]')[0].attrib['src']
+        except IndexError:
+            return False
+        else:
+            self.location(url)
+            return True
 
     def history(self, _id, page=1):
         if page > 1:
@@ -94,11 +99,10 @@ class SGPEBrowser(BaseBrowser):
         for acc in self.page.get_list():
             yield acc
 
-        self.cards()
-
-        assert self.is_on_page(CardsPage)
-        for acc in self.page.get_list():
-            yield acc
+        if self.cards():
+            assert self.is_on_page(CardsPage)
+            for acc in self.page.get_list():
+                yield acc
 
     def get_account(self, _id):
         for a in self.get_accounts_list():
