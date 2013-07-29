@@ -190,7 +190,7 @@ class HistoryPage(BEPage):
                     date = datetime.strptime(tddate, '%d/%m/%Y')
                     val = datetime.strptime(tdval, '%d/%m/%Y')
                     t.parse(date, tdlabel)
-                    t._val = val  # FIXME is it rdate? date?
+                    t.vdate = val
                     yield t
 
 

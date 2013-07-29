@@ -112,6 +112,7 @@ class AccountsPage(SGPEPage):
                 account.currency = account.get_currency(tdbalance)
                 yield account
 
+
 class CardsPage(SGPEPage):
     COL_ID = 0
     COL_LABEL = 1
@@ -165,7 +166,6 @@ class CardsPage(SGPEPage):
             yield account
 
 
-
 class HistoryPage(SGPEPage):
     def iter_transactions(self, account, basecount):
         table = self.parser.select(self.document.getroot(), '#tab-corps', 1)
@@ -189,7 +189,7 @@ class HistoryPage(SGPEPage):
                 l1 = ' '.join(l1.split())
                 l2 = ' '.join(l2.split())
                 t.parse(date, l1 + '  ' + l2)
-                t._val = val  # FIXME is it rdate? date?
+                t.vdate = val
                 yield t
 
     def has_next(self):
@@ -198,6 +198,7 @@ class HistoryPage(SGPEPage):
             for end in self.parser.select(n, '.contenu3-lien'):
                 return int(end.text.replace('/', '')) > cur
         return False
+
 
 class CardHistoryPage(SGPEPage):
     COL_DATE = 0
