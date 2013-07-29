@@ -148,13 +148,14 @@ class Transaction(CapBaseObject):
     TYPE_LOAN_PAYMENT = 8
     TYPE_BANK         = 9
 
-    date =      DateField('Debit date')
-    rdate =     DateField('Real date, when the payment has been made')
+    date =      DateField('Debit date on the bank statement')
+    rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
+    vdate =     DateField('Validity date, or accounting date; usually for professional accounts')
     type =      IntField('Type of transaction, use TYPE_* constants', default=TYPE_UNKNOWN)
     raw =       StringField('Raw label of the transaction')
-    category =  StringField('Category of transaction')
+    category =  StringField('Category of the transaction')
     label =     StringField('Pretty label')
-    amount =    DecimalField('Amount of transaction')
+    amount =    DecimalField('Amount of the transaction')
 
     def __repr__(self):
         label = self.label.encode('utf-8') if self.label else self.label
