@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import ICapBank, AccountNotFound
 
 from .browser import CitelisBrowser
 
@@ -50,3 +50,12 @@ class CitelisBackend(BaseBackend, ICapBank):
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
+
+    def get_account(self, _id):
+        for account in self.iter_accounts():
+            if account.id == _id:
+                return account
+        raise AccountNotFound()
+
+    def iter_history(self, account):
+        return self.browser.iter_history(account)

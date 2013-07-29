@@ -21,7 +21,7 @@
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
-from .pages import LoginPage, SummaryPage, UselessPage
+from .pages import LoginPage, SummaryPage, UselessPage, TransactionSearchPage, TransactionsPage, TransactionsCsvPage
 
 
 __all__ = ['CitelisBrowser']
@@ -37,6 +37,9 @@ class CitelisBrowser(BaseBrowser):
         '%s://%s/userManager\.do\?reqCode=prepareLogin.*' % (PROTOCOL, DOMAIN): LoginPage,
         '%s://%s/summarySearch\.do\?reqCode=search.*' % (PROTOCOL, DOMAIN): SummaryPage,
         '%s://%s/userManager\.do\?reqCode=goToHomePage.+' % (PROTOCOL, DOMAIN): UselessPage,
+        '%s://%s/menu\.do\?reqCode=prepareSearchTransaction.+' % (PROTOCOL, DOMAIN): TransactionSearchPage,
+        '%s://%s/transactionSearch\.do\?reqCode=search.+' % (PROTOCOL, DOMAIN): TransactionsPage,
+        '%s://%s/documents/transaction/l_TransactionSearchWebBooster\.jsp.+' % (PROTOCOL, DOMAIN): (TransactionsCsvPage, 'csv')
     }
 
     def __init__(self, merchant_id, *args, **kwargs):
@@ -61,3 +64,13 @@ class CitelisBrowser(BaseBrowser):
         account.balance = self.page.get_balance()
         account.label = u'Synthèse financière'
         return [account]
+
+    def iter_history(self, account):
+        assert account.id == '1'
+        if not self.is_on_page(TransactionSearchPage):
+            self.location('%s://%s/menu.do?reqCode=prepareSearchTransaction&init=true&screen=new'
+                          % (self.PROTOCOL, self.DOMAIN))
+            self.page.search()
+        self.location(self.page.get_csv_url())
+        for transaction in self.page.iter_transactions():
+            yield transaction

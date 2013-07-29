@@ -19,13 +19,11 @@
 
 
 from decimal import Decimal
+import datetime
 import re
 
 from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-
-
-__all__ = ['LoginPage', 'SummaryPage', 'UselessPage']
 
 
 class Transaction(FrenchTransaction):
@@ -70,3 +68,50 @@ class SummaryPage(BasePage):
 
 class UselessPage(BasePage):
     pass
+
+
+class TransactionSearchPage(BasePage):
+    def search(self, accepted=True, refused=False):
+        self.browser.select_form(name='transactionSearchForm')
+        self.browser['selectedDateCriteria'] = ['thisweek']  # TODO ask for more
+        self.browser['transactionAccepted'] = ['0'] if accepted else []
+        self.browser['transactionRefused'] = ['0'] if refused else []
+
+        # simulate the javascript
+        nonce = self.parser.select(self.document.getroot(), '#menu li.global a')[0] \
+            .attrib['href'].partition('CSRF_NONCE=')[2]
+        self.browser.form.action = '%s://%s/transactionSearch.do?reqCode=%s&org.apache.catalina.filters.CSRF_NONCE=%s&screen=new' % (self.browser.PROTOCOL, self.browser.DOMAIN, 'search', nonce)
+        self.browser.submit()
+
+
+class TransactionsPage(BasePage):
+    def get_csv_url(self):
+        for a in self.parser.select(self.document.getroot(), '.exportlinks a'):
+            if len(self.parser.select(a, 'span.csv')):
+                return a.attrib['href']
+
+
+class TransactionsCsvPage(BasePage):
+    def guess_format(self, amount):
+        if re.search(r'\d\.\d\d$', amount):
+            date_format = "%m/%d/%Y"
+        else:
+            date_format = "%d/%m/%Y"
+        time_format = "%H:%M:%S"
+        return date_format + ' ' + time_format
+
+    def iter_transactions(self):
+        ID = 0
+        DATE = 2
+        AMOUNT = 4
+        CARD = 7
+        NUMBER = 8
+        for row in self.document.rows:
+            t = Transaction(row[ID])
+            date = row[DATE]
+            amount = row[AMOUNT]
+            datetime_format = self.guess_format(amount)
+            t.set_amount(amount)
+            t.parse(datetime.datetime.strptime(date, datetime_format),
+                    row[CARD] + '  ' + row[NUMBER])
+            yield t
