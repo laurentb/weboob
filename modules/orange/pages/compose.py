@@ -52,7 +52,6 @@ class ComposePage(BasePage):
         #Fill the form
         self.browser.select_form(name="formulaire")
         self.browser.new_control("hidden", "autorize", {'value': ''})
-        self.browser.new_control("textarea", "msg", {'value': ''})
 
         self.browser.set_all_readonly(False)
 
