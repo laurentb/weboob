@@ -73,10 +73,9 @@ class DailyTitlesPage(PresseuropPage):
 
 class DailySinglePage(PresseuropPage):
     def get_daily_date(self):
-        ul = self.document.getroot().xpath(
-                "//ul[@class='carousel-skin carousel-today']")
-        if len(ul) > 0:
-            link = ul[0].xpath('li/a')[0]
+        plink = self.document.getroot().xpath("//p[@class='w200']")
+        if len(plink) > 0:
+            link = plink[0].xpath('a')[0]
             date = link.attrib['href'].split('/')[3]
             return date
         return None
