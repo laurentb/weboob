@@ -65,17 +65,24 @@ class PdfPage():
         detail = None
         lines.pop(0)  # MENSUELLE
         lines.pop(-1)  # Line to describes pictures
+        twolines = False
         for line in lines:
             if "Votre consommation" in line:
                 line = line.split(": ", 1)[1]
-            if re.match('[A-Za-z]', line[0]):
+            if twolines:
+                twolines = False
+                detail.infos = unicode(line, encoding='utf-8')
+            elif re.match('[A-Za-z]', line[0]):
                 # We have a new element, return the other one
                 if detail is not None:
                     details.append(detail)
                 detail = Detail()
                 split = re.split("(\d)", line, maxsplit=1)
                 detail.price = Decimal(0)
-                detail.infos = unicode(split[1] + split[2], encoding='utf-8')
+                if len(split) > 2:
+                    detail.infos = unicode(split[1] + split[2], encoding='utf-8')
+                else:
+                    twolines = True
                 if '€' in line:
                     specialprice = split[1] + split[2]
                     detail.price = Decimal(specialprice.replace('€', ''))
