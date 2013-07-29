@@ -18,10 +18,24 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from decimal import Decimal
+import re
+
 from weboob.tools.browser import BasePage
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 __all__ = ['LoginPage', 'SummaryPage', 'UselessPage']
+
+
+class Transaction(FrenchTransaction):
+    @classmethod
+    def clean_amount(cls, text):
+        text = text.strip()
+        # Convert "American" UUU.CC format to "French" UUU,CC format
+        if re.search(r'\d\.\d\d$', text):
+            text = text.replace(',', ' ').replace('.', ',')
+        return FrenchTransaction.clean_amount(text)
 
 
 class LoginPage(BasePage):
@@ -34,7 +48,24 @@ class LoginPage(BasePage):
 
 
 class SummaryPage(BasePage):
-    pass
+    def clean_amount(self, el, debit):
+        amount = Decimal(Transaction.clean_amount(el.text_content()))
+        if amount == Decimal('0.00'):
+            return None
+        if debit and amount > Decimal('0'):
+            return -1 * amount
+        return amount
+
+    def get_balance(self):
+        zone = self.parser.select(self.document.getroot(), '#ActionZone_Euro', 1)
+        for tr in self.parser.select(zone, '#transactionError tr'):
+            tds = self.parser.select(tr, 'td')
+            if tds and tds[0].text_content().strip() == 'Total':
+                debit, credit = self.parser.select(tr, 'td.amount', 4)[-2:]  # keep the last 2
+                debit = self.clean_amount(debit, debit=True)
+                credit = self.clean_amount(credit, debit=False)
+                amount = credit or debit
+                return amount
 
 
 class UselessPage(BasePage):

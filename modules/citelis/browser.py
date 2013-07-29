@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.bank import Account
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages import LoginPage, SummaryPage, UselessPage
@@ -34,8 +35,8 @@ class CitelisBrowser(BaseBrowser):
 
     PAGES = {
         '%s://%s/userManager\.do\?reqCode=prepareLogin.*' % (PROTOCOL, DOMAIN): LoginPage,
-        '%s://%s//summarySearch\.do\?reqCode=search.*' % (PROTOCOL, DOMAIN): SummaryPage,
-        '%s://%s//userManager\.do\?reqCode=goToHomePage.+' % (PROTOCOL, DOMAIN): UselessPage,
+        '%s://%s/summarySearch\.do\?reqCode=search.*' % (PROTOCOL, DOMAIN): SummaryPage,
+        '%s://%s/userManager\.do\?reqCode=goToHomePage.+' % (PROTOCOL, DOMAIN): UselessPage,
     }
 
     def __init__(self, merchant_id, *args, **kwargs):
@@ -54,4 +55,9 @@ class CitelisBrowser(BaseBrowser):
 
     def get_accounts_list(self):
         self.location('%s://%s/summarySearch.do?reqCode=search' % (self.PROTOCOL, self.DOMAIN))
-        # TODO
+        account = Account()
+        account.id = u'1'
+        account.currency = Account.CUR_EUR
+        account.balance = self.page.get_balance()
+        account.label = u'Synthèse financière'
+        return [account]
