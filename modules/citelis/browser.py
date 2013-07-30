@@ -37,6 +37,7 @@ class CitelisBrowser(BaseBrowser):
         '%s://%s/userManager\.do\?reqCode=prepareLogin.*' % (PROTOCOL, DOMAIN): LoginPage,
         '%s://%s/summarySearch\.do\?reqCode=search.*' % (PROTOCOL, DOMAIN): SummaryPage,
         '%s://%s/userManager\.do\?reqCode=goToHomePage.+' % (PROTOCOL, DOMAIN): UselessPage,
+        '%s://%s/userManager\.do\?org.apache.+' % (PROTOCOL, DOMAIN): UselessPage,
         '%s://%s/menu\.do\?reqCode=prepareSearchTransaction.+' % (PROTOCOL, DOMAIN): TransactionSearchPage,
         '%s://%s/transactionSearch\.do\?reqCode=search.+' % (PROTOCOL, DOMAIN): TransactionsPage,
         '%s://%s/documents/transaction/l_TransactionSearchWebBooster\.jsp.+' % (PROTOCOL, DOMAIN): (TransactionsCsvPage, 'csv')
