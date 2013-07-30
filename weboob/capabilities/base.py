@@ -20,6 +20,7 @@
 
 import warnings
 import datetime
+import re
 from decimal import Decimal
 from copy import deepcopy, copy
 
@@ -424,3 +425,51 @@ class CapBaseObject(object):
 
         fields_iterator = self.iter_fields()
         return OrderedDict(iter_decorate(fields_iterator))
+
+
+class Currency(object):
+    CUR_UNKNOWN        = 0
+    CUR_EUR            = 1
+    CUR_CHF            = 2
+    CUR_USD            = 3
+
+    TXT2CUR = OrderedDict(((u'€',   CUR_EUR),
+                           (u'EUR', CUR_EUR),
+                           (u'CHF', CUR_CHF),
+                           (u'$',   CUR_USD),
+                           (u'USD', CUR_USD),
+              ))
+
+    EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
+
+    @classmethod
+    def get_currency(klass, text):
+        u"""
+        >>> Currency.get_currency(u'42')
+        0
+        >>> Currency.get_currency(u'42 €')
+        1
+        >>> Currency.get_currency(u'$42')
+        3
+        >>> Currency.get_currency(u'42.000,00€')
+        1
+        >>> Currency.get_currency(u'$42 USD')
+        3
+        >>> Currency.get_currency(u'%42 USD')
+        3
+        >>> Currency.get_currency(u'US1D')
+        0
+        """
+        curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
+        for curtext in curtexts:
+            cur = klass.TXT2CUR.get(curtext)
+            if cur is not None:
+                return cur
+        return klass.CUR_UNKNOWN
+
+    @classmethod
+    def currency2txt(klass, currency):
+        for txt, value in klass.TXT2CUR.iteritems():
+            if value == currency:
+                return txt
+        return u''

@@ -23,7 +23,8 @@ from datetime import date, timedelta
 import re
 import hashlib
 
-from weboob.capabilities.bank import Account, Currency, Transaction
+from weboob.capabilities.base import Currency
+from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
