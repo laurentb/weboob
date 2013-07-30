@@ -18,11 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
 from datetime import date, datetime
 from binascii import crc32
-
-from weboob.tools.ordereddict import OrderedDict
 
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
 from .collection import ICapCollection
