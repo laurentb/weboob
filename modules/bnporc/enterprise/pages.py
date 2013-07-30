@@ -21,6 +21,7 @@ from decimal import Decimal
 import hashlib
 from urlparse import parse_qs
 from datetime import datetime
+import re
 
 from weboob.capabilities.bank import Account
 from weboob.tools.browser import BasePage, BrokenPageError
@@ -162,7 +163,7 @@ class HistoryPage(BEPage):
     def find_table(self):
         for table in self.parser.select(self.document.getroot(), 'table', 'many'):
             for td in self.parser.select(table, 'tr td'):
-                if td.text_content().strip() == 'OPERATIONS':
+                if re.search('^OP.RATION', td.text_content().strip()):
                     return table
 
     def get_date_range(self):
@@ -171,27 +172,34 @@ class HistoryPage(BEPage):
         d2 = radio.attrib['value'][10:20]
         return (d1, d2)
 
-    def iter_history(self):
-        if not self.is_empty():
-            table = self.find_table()
-            for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
-                tds = self.parser.select(tr, 'td')
-                if len(tds) != 5 or self.parser.select(tr, 'td.thtitrefondbleu'):
-                    continue
-                tddate, tdval, tdlabel, tddebit, tdcredit = \
-                    [t.text_content().replace(u'\xa0', ' ').strip() for t in tds]
-                if all((tddate, tdlabel, any((tddebit, tdcredit)))):
-                    if tddebit:
-                        tdamount = '- %s' % tddebit
-                    else:
-                        tdamount = tdcredit
-                    t = Transaction(i)
-                    t.set_amount(tdamount)
-                    date = datetime.strptime(tddate, '%d/%m/%Y')
-                    val = datetime.strptime(tdval, '%d/%m/%Y')
-                    t.parse(date, tdlabel)
-                    t.vdate = val
-                    yield t
+    def iter_history(self, only_coming=False):
+        if self.is_empty():
+            return
+
+        table = self.find_table()
+        for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
+            tds = self.parser.select(tr, 'td')
+            if len(tds) != 5 or self.parser.select(tr, 'td.thtitrefondbleu'):
+                continue
+            tddate, tdval, tdlabel, tddebit, tdcredit = \
+                [t.text_content().replace(u'\xa0', ' ').strip() for t in tds]
+
+            if tds[0].find('span') is None and only_coming:
+                # coming
+                continue
+
+            if all((tddate, tdlabel, any((tddebit, tdcredit)))):
+                if tddebit:
+                    tdamount = '- %s' % tddebit
+                else:
+                    tdamount = tdcredit
+                t = Transaction(i)
+                t.set_amount(tdamount)
+                date = datetime.strptime(tddate, '%d/%m/%Y')
+                val = datetime.strptime(tdval, '%d/%m/%Y')
+                t.parse(date, tdlabel)
+                t.vdate = val
+                yield t
 
 
 class UnknownPage(BEPage):

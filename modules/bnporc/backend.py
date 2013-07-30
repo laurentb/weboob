@@ -101,9 +101,6 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             return self.browser.iter_history(account)
 
     def iter_coming(self, account):
-        if self.config['website'].get() != 'pp':
-            raise NotImplementedError()
-
         with self.browser:
             return self.browser.iter_coming_operations(account)
 

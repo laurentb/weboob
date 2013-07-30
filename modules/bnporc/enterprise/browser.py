@@ -33,6 +33,7 @@ class BNPEnterprise(BaseBrowser):
     PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
              '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage,
              '%s://%s/ROP\?Action=F_RELCO.+' % (PROTOCOL, DOMAIN): HistoryPage,
+             '%s://%s/RLOPI\?.+' % (PROTOCOL, DOMAIN): HistoryPage,
              '%s://%s/NSFR' % (PROTOCOL, DOMAIN): UnknownPage}
 
     def home(self):
@@ -80,5 +81,13 @@ class BNPEnterprise(BaseBrowser):
         d1, d2 = self.page.get_date_range()
         self.location('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
 
-        for transaction in self.page.iter_history():
-            yield transaction
+        return self.page.iter_history()
+
+    def iter_coming_operations(self, account):
+        if account._link_id is None:
+            return
+
+        # XXX change date here
+        self.location('/RLOPI?chC=%s&ch8=0000&chB=1&ch7=30/06/2013&ch9=18/09/2013' % account.id)
+
+        return self.page.iter_history(only_coming=True)
