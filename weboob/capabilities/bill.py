@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBaseObject, StringField, DateField, DecimalField, UserError
+from .base import CapBaseObject, StringField, DateField, DecimalField, IntField, UserError, Currency
 from .collection import ICapCollection
 
 
@@ -48,7 +48,11 @@ class Detail(CapBaseObject):
     label =     StringField('label of the detail line')
     infos =     StringField('information')
     datetime =  DateField('date information')
-    price =     DecimalField('price')
+    price =     DecimalField('Total price, taxes included')
+    vat =       DecimalField('Value added Tax')
+    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
+    quantity =  DecimalField('Number of units consumed')
+    unit =      StringField('Unit of the consumption')
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)
