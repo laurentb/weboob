@@ -134,13 +134,21 @@ class InvestmentFormatter(IFormatter):
         self.tot_diff += diff
         self.tot_valuation += obj.valuation
 
-        return u' %-30s %-10s %6d %11.2f %11.2f   %8.2f' %\
-                (label[:30], obj.code[:8] if not empty(obj.code) else '', obj.quantity, obj.unitvalue, obj.valuation, diff)
+        return u' %s %s %s %s %s   %s' %\
+                (self.colored('%-30s' % label[:30], 'red'),
+                 self.colored('%-10s' % obj.code[:8], 'yellow') if not empty(obj.code) else ' ' * 10,
+                 self.colored('%6d' % obj.quantity, 'yellow'),
+                 self.colored('%11.2f' % obj.unitvalue, 'yellow'),
+                 self.colored('%11.2f' % obj.valuation, 'yellow'),
+                 self.colored('%8.2f' % diff, 'green' if diff >=0 else 'red')
+                 )
 
     def flush(self):
         self.output('-------------------------------+--------+----------+-----------+-----------+--------')
-        self.output(u'                                        Total                    %8.2f   %8.2f' %
-                     (self.tot_valuation, self.tot_diff))
+        self.output(u'                                        Total                    %s   %s' %\
+                     (self.colored('%8.2f' % self.tot_valuation, 'yellow'),
+                      self.colored('%8.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
+                    ))
         self.tot_valuation = Decimal(0)
         self.tot_diff = Decimal(0)
 
