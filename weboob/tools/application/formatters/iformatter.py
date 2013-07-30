@@ -73,20 +73,8 @@ class MandatoryFieldsNotFound(Exception):
 class IFormatter(object):
     MANDATORY_FIELDS = None
 
-    def get_bold(self):
-        if self.outfile != sys.stdout:
-            return ''
-        else:
-            return ConsoleApplication.BOLD
-
-    def get_nc(self):
-        if self.outfile != sys.stdout:
-            return ''
-        else:
-            return ConsoleApplication.NC
-
-    BOLD = property(get_bold)
-    NC = property(get_nc)
+    BOLD = ConsoleApplication.BOLD
+    NC = ConsoleApplication.NC
 
     def colored(self, string, color, attrs=None, on_color=None):
         if self.outfile != sys.stdout or not (os.isatty(self.outfile.fileno())):
