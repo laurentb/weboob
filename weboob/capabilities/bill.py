@@ -62,10 +62,15 @@ class Bill(CapBaseObject):
     """
     Bill.
     """
-    date =      DateField('date of the bill')
-    format =    StringField('format of the bill')
-    label =     StringField('label of bill')
-    idparent =  StringField('id of the parent subscription')
+    date =          DateField('The day the bill has been sent to the subscriber')
+    format =        StringField('file format of the bill')
+    label =         StringField('label of bill')
+    idparent =      StringField('id of the parent subscription')
+    price =         DecimalField('Price to pay')
+    currency =      IntField('Currency', default=Currency.CUR_UNKNOWN)
+    deadline =      DateField('The latest day to pay')
+    startdate =     DateField('The first day the bill applies to')
+    finishdate =    DateField('The last day the bill applies to')
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)
