@@ -538,4 +538,4 @@ class ConsoleApplication(BaseApplication):
         if ask_debug_mode:
             print >>sys.stderr, debugmsg
         elif len(more_results) > 0:
-            print >>sys.stderr, 'Hint: There are more results available for %s (use option -n or count parameter)' % (', '.join(more_results))
+            print >>sys.stderr, 'Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results))
