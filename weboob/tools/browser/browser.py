@@ -738,6 +738,20 @@ ssl.wrap_socketold = ssl.wrap_socket
 ssl.wrap_socket = mywrap_socket
 
 
+cacheDNS = {}
+
+def my_getaddrinfo(*args):
+    try:
+        return cacheDNS[args]
+    except KeyError:
+        res = socket.getaddrinfoold(*args)
+        cacheDNS[args] = res
+        return res
+
+socket.getaddrinfoold = socket.getaddrinfo
+socket.getaddrinfo = my_getaddrinfo
+
+
 class HTTPSConnection2(httplib.HTTPSConnection):
     _HOSTS = {}
     _PROTOCOLS = [ssl.PROTOCOL_TLSv1, ssl.PROTOCOL_SSLv3]
