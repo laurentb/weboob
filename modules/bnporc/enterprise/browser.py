@@ -73,21 +73,38 @@ class BNPEnterprise(BaseBrowser):
             if a.id == _id:
                 yield a
 
+    def _get_history(self, url):
+        numPage = 1
+        while numPage is not None:
+            self.location(url + '&chP=%s' % numPage)
+
+            for tr in self.page.iter_history():
+                yield tr
+
+            nextNumPage = self.page.get_next_numpage()
+            if nextNumPage is not None and nextNumPage <= numPage:
+                self.logger.error("Currently on page %d, next page cannot be %d!" % (numPage, nextNumPage))
+                return
+
+            numPage = nextNumPage
+
+
     def iter_history(self, account):
         if account._link_id is None:
             return
 
         self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
         d1, d2 = self.page.get_date_range()
-        self.location('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
 
-        return self.page.iter_history()
+        return self._get_history('/ROP?Action=F_RELCO&ch4=%s&ch5=%s&ch9=%s&ch8=2000' % (account._link_id, d1, d2))
 
     def iter_coming_operations(self, account):
         if account._link_id is None:
             return
 
-        # XXX change date here
-        self.location('/RLOPI?chC=%s&ch8=0000&chB=1&ch7=30/06/2013&ch9=18/09/2013' % account.id)
+        self.location('/RLOPI?chC=%s&ch8=0000' % account.id)
+        d1, d2 = self.page.get_date_range()
 
-        return self.page.iter_history(only_coming=True)
+        for tr in self._get_history('/RLOPI?chC=%s&ch8=0000&chB=1&ch7=%s&ch9=%s' % (account.id, d1, d2)):
+            if tr._coming:
+                yield tr

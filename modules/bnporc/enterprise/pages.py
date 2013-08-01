@@ -167,26 +167,50 @@ class HistoryPage(BEPage):
                     return table
 
     def get_date_range(self):
-        radio = self.parser.select(self.document.getroot(), '//input[@name="br_tout_date"]', 1, 'xpath')
-        d1 = radio.attrib['value'][0:10]
-        d2 = radio.attrib['value'][10:20]
+        try:
+            radio = self.parser.select(self.document, '//input[@name="br_tout_date"]', 1, 'xpath')
+        except BrokenPageError:
+            input = self.document.xpath('//input[@name="chB"]')[0]
+            print '%r' % input.tail
+            d1, d2 = re.findall('(\d+/\d+/\d+)', input.tail)
+        else:
+            d1 = radio.attrib['value'][0:10]
+            d2 = radio.attrib['value'][10:20]
         return (d1, d2)
 
-    def iter_history(self, only_coming=False):
+    TXT2CONST = {u'DATE VALEUR':    'vdate',
+                 u'DATE D\'OPE':    'date',
+                 u'OP.RATION':      'label',
+                 u'D.BIT':          'debit',
+                 u'CR.DIT':         'credit',
+                }
+
+    def iter_history(self):
         if self.is_empty():
             return
+
+        columns = {'date': 0, 'vdate': 1, 'label': 2, 'debit': 3, 'credit': 4}
 
         table = self.find_table()
         for i, tr in enumerate(self.parser.select(table, 'tr', 'many')):
             tds = self.parser.select(tr, 'td')
-            if len(tds) != 5 or self.parser.select(tr, 'td.thtitrefondbleu'):
+            if len(tds) != 5:
                 continue
-            tddate, tdval, tdlabel, tddebit, tdcredit = \
-                [t.text_content().replace(u'\xa0', ' ').strip() for t in tds]
 
-            if tds[0].find('span') is None and only_coming:
-                # coming
+            if self.parser.select(tr, 'td.thtitrefondbleu'):
+                for i, td in enumerate(tds):
+                    txt = self.parser.tocleanstring(td)
+                    for part, const in self.TXT2CONST.iteritems():
+                        if re.search(part, txt):
+                            columns[const] = i
+                            break
                 continue
+
+            tddate = self.parser.tocleanstring(tds[columns['date']])
+            tdval = self.parser.tocleanstring(tds[columns['vdate']])
+            tdlabel = self.parser.tocleanstring(tds[columns['label']])
+            tddebit = self.parser.tocleanstring(tds[columns['debit']])
+            tdcredit = self.parser.tocleanstring(tds[columns['credit']])
 
             if all((tddate, tdlabel, any((tddebit, tdcredit)))):
                 if tddebit:
@@ -195,12 +219,40 @@ class HistoryPage(BEPage):
                     tdamount = tdcredit
                 t = Transaction(i)
                 t.set_amount(tdamount)
-                date = datetime.strptime(tddate, '%d/%m/%Y')
-                val = datetime.strptime(tdval, '%d/%m/%Y')
-                t.parse(date, tdlabel)
-                t.vdate = val
+                t.parse(tddate, tdlabel, tdval)
+
+                t._coming = (tds[0].find('span') is not None)
+
                 yield t
 
+    def get_next_numpage(self):
+        current = 1
+        m = re.search('chP=(\d+)', self.url)
+        if m:
+            current = int(m.group(1))
+
+        try:
+            pages = self.parser.tocleanstring(self.document.xpath('.//td[contains(text(), "Page")]')[0])
+        except IndexError:
+            # No pagination
+            return None
+
+        # We get list of all page numbers...
+        pages = sorted(map(int, re.findall('(\d+)', pages)))
+
+        try:
+            # ...find position of the current page...
+            curidx = pages.index(current)
+        except ValueError:
+            self.logger.warning('Unable to find the current page (%d)' % current)
+            return None
+
+        try:
+            # ... and return number of the next page
+            return pages[curidx+1]
+        except IndexError:
+            # Last page
+            return None
 
 class UnknownPage(BEPage):
     pass
