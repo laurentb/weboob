@@ -66,7 +66,24 @@ class FrenchTransaction(Transaction):
         else:
             self.amount = Decimal('0')
 
-    def parse(self, date, raw):
+    def parse_date(self, date):
+        if date is None:
+            return NotAvailable
+
+        if not isinstance(date, (datetime.date, datetime.datetime)):
+            if date.isdigit() and len(date) == 8:
+                date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
+            elif '/' in date:
+                date = datetime.date(*reversed([int(x) for x in date.split('/')]))
+        if not isinstance(date, (datetime.date, datetime.datetime)):
+            self._logger.warning('Unable to parse date %r' % date)
+            date = NotAvailable
+        elif date.year < 100:
+            date = date.replace(year=2000 + date.year)
+
+        return date
+
+    def parse(self, date, raw, vdate=None):
         """
         Parse date and raw strings to create datetime.date objects,
         determine the type of transaction, and create a simplified label
@@ -87,19 +104,9 @@ class FrenchTransaction(Transaction):
             * category: part of label representing the category
             * yy, mm, dd, HH, MM: date and time parts
         """
-        if not isinstance(date, (datetime.date, datetime.datetime)):
-            if date.isdigit() and len(date) == 8:
-                date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
-            elif '/' in date:
-                date = datetime.date(*reversed([int(x) for x in date.split('/')]))
-        if not isinstance(date, (datetime.date, datetime.datetime)):
-            self._logger.warning('Unable to parse date %r' % date)
-            date = NotAvailable
-        elif date.year < 100:
-            date = date.replace(year=2000 + date.year)
-
-        self.date = date
-        self.rdate = date
+        self.date = self.parse_date(date)
+        self.vdate = self.parse_date(vdate)
+        self.rdate = self.date
         self.raw = to_unicode(raw.replace(u'\n', u' ').strip())
         self.category = NotAvailable
 
