@@ -99,7 +99,7 @@ class Transaction(CapBaseObject):
 
     date =      DateField('Debit date on the bank statement')
     rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
-    vdate =     DateField('Validity date, or accounting date; usually for professional accounts')
+    vdate =     DateField('Value date, or accounting date; usually for professional accounts')
     type =      IntField('Type of transaction, use TYPE_* constants', default=TYPE_UNKNOWN)
     raw =       StringField('Raw label of the transaction')
     category =  StringField('Category of the transaction')
