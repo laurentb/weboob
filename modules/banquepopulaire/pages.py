@@ -303,11 +303,12 @@ class TransactionsPage(BasePage):
             # necessary to use the *operation* one.
             # Default sort on website is by compta date, so in browser.py we
             # change the sort on value date.
-            date = self.parser.tocleanstring(tds[self.COL_VALUE_DATE])
+            date = self.parser.tocleanstring(tds[self.COL_OP_DATE])
+            vdate = self.parser.tocleanstring(tds[self.COL_VALUE_DATE])
             raw = self.parser.tocleanstring(tds[self.COL_LABEL])
             debit = self.parser.tocleanstring(tds[self.COL_DEBIT])
             credit = self.parser.tocleanstring(tds[self.COL_CREDIT])
 
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate)
             t.set_amount(credit, debit)
             yield t
