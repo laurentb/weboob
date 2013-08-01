@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
 from weboob.capabilities.bank import Account
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 
 
@@ -146,11 +146,18 @@ class CardsPage(BasePage):
             account.id = ''.join(get('_id').split()[1:])
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
-            account.balance = Decimal(Transaction.clean_amount(get('balance')))
-            account.currency = account.get_currency(self.document
-                    .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
+            try:
+                account.balance = Decimal(Transaction.clean_amount(get('balance')))
+                account.currency = account.get_currency(self.document
+                        .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
+            except IndexError:
+                account.balance = Decimal('0.0')
+
             if 'link' in xpaths:
-                account._link = table.xpath(xpaths['link'])[-1]
+                try:
+                    account._link = table.xpath(xpaths['link'])[-1]
+                except IndexError:
+                    account._link = None
             else:
                 account._link = self.url
 
@@ -166,21 +173,20 @@ class CardsPage(BasePage):
             [date, label, _, amount] = [self.parser.tocleanstring(td)
                                         for td in line.xpath('./td')]
 
-            clean_amount = Decimal(Transaction.clean_amount(amount))
-
             t = Transaction(0)
+            t.set_amount(amount)
+            t.label = t.raw = label
 
             if is_balance:
-                date_str = label.replace( u"Opérations débitées le ", "") \
-                                .replace(" :","")
-                t.date = parse_french_date(date_str)
-                t.label = u"Débit"
-                t.amount = -clean_amount
+                m = re.search('(\d+ [^ ]+ \d+)', label)
+                if not m:
+                    raise BrokenPageError('Unable to read card balance in history: %r' % label)
+
+                t.date = parse_french_date(m.group(1))
+                t.amount = -t.amount
             else:
                 day, month = map(int, date.split('/', 1))
                 t.date = date_guesser.guess_date(day, month)
-                t.label = t.raw = label
-                t.amount = clean_amount
 
             t.type = t.TYPE_CARD
             t.rdate = t.date
