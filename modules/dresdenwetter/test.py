@@ -41,9 +41,9 @@ class DresdenWetterTest(BackendTest):
         self.assertTrue(temperature < 50., msg="Temperature to high")
         self.assertTrue(self.backend.get_last_measure("dd-wind").level >= 0)
         self.assertTrue(self.backend.get_last_measure("dd-luftdruck").level > 800.)
-        self.assertTrue(self.backend.get_last_measure("dd-luftfeuchtigkeit").level > 0.)
-        self.assertTrue(self.backend.get_last_measure("dd-niederschlag").level > 0.)
-        self.assertTrue(self.backend.get_last_measure("dd-globalstrahlung").level > 0.)
+        self.assertTrue(self.backend.get_last_measure("dd-luftfeuchtigkeit").level >= 0.)
+        self.assertTrue(self.backend.get_last_measure("dd-niederschlag").level >= 0.)
+        self.assertTrue(self.backend.get_last_measure("dd-globalstrahlung").level >= 0.)
 
     def test_temperature(self):
         """
