@@ -55,6 +55,8 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
         return site, _id
 
     def get_video(self, _id):
+        if _id.startswith('http://') and not _id.startswith('http://videos.arte.tv'):
+            return None
         with self.browser:
             site, _id = self.split_id(_id)
 
