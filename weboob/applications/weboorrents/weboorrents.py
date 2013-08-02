@@ -66,12 +66,27 @@ class TorrentListFormatter(PrettyFormatter):
     def get_title(self, obj):
         return obj.name
 
+    NB2COLOR = ((0, 'red', None),
+                (1, 'blue', None),
+                (5, 'green', None),
+                (10, 'green', 'bold'),
+               )
+    def _get_color(self, nb):
+        if empty(nb):
+            return self.colored('N/A', 'red')
+
+        for threshold, _color, _attr in self.NB2COLOR:
+            if nb >= threshold:
+                color = _color
+                attr = _attr
+
+        return self.colored('%3d' % nb, color, attr)
+
     def get_description(self, obj):
-        size = sizeof_fmt(obj.size)
-        if not empty(obj.seeders) and not empty(obj.leechers):
-            return '%10s   (Seed: %2d / Leech: %2d)' % (size, obj.seeders, obj.leechers)
-        else:
-            return '%10s   (Seed and Leech not available)' % size
+        size = self.colored('%10s' % sizeof_fmt(obj.size), 'magenta')
+        return '%s   (Seed: %s / Leech: %s)' % (size,
+                                                self._get_color(obj.seeders),
+                                                self._get_color(obj.leechers))
 
 
 class Weboorrents(ReplApplication):
