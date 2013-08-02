@@ -327,19 +327,26 @@ class Boobank(ReplApplication):
         """
         id_from, id_to, amount, reason = self.parse_command_args(line, 4, 1)
 
-        id_from, backend_name_from = self.parse_id(id_from)
+        account = self.get_object(id_from, 'get_account', [])
+        if not account:
+            print >>sys.stderr, 'Error: account %s not found' % id_from
+            return 1
+
         if not id_to:
             self.objects = []
             self.set_formatter('recipient_list')
             self.set_formatter_header(u'Available recipients')
-            names = (backend_name_from,) if backend_name_from is not None else None
 
             self.start_format()
-            for backend, recipient in self.do('iter_transfer_recipients', id_from, backends=names):
+            for backend, recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
                 self.cached_format(recipient)
             return 0
 
         id_to, backend_name_to = self.parse_id(id_to)
+
+        if account.backend != backend_name_to:
+            print >>sys.stderr, "Transfer between different backends is not implemented"
+            return 4
 
         try:
             amount = Decimal(amount)
@@ -347,26 +354,25 @@ class Boobank(ReplApplication):
             print >>sys.stderr, 'Error: please give a decimal amount to transfer'
             return 2
 
-        if backend_name_from != backend_name_to:
-            print >>sys.stderr, "Transfer between different backends is not implemented"
-            return 4
-        else:
-            backend_name = backend_name_from
-
-        names = (backend_name,) if backend_name is not None else None
-
         if self.interactive:
-            origin = self.get_object(id_from, 'get_account', [])
-            to = self.get_object(id_to, 'iter_transfer_recipients', [])
+            # Try to find the recipient label. It can be missing from
+            # recipients list, for example for banks which allow transfers to
+            # arbitrary recipients.
+            to = id_to
+            for backend, recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend):
+                if recipient.id == id_to:
+                    to = recipient.label
+                    break
 
-            print 'Amount: %s%s' % (amount, origin.currency_text)
-            print 'From:   %s' % origin.label
-            print 'To:     %s' % to.label
+            print 'Amount: %s%s' % (amount, account.currency_text)
+            print 'From:   %s' % account.label
+            print 'To:     %s' % to
+            print 'Reason: %s' % (reason or '')
             if not self.ask('Are you sure to do this transfer?', default=True):
                 return
 
         self.start_format()
-        for backend, transfer in self.do('transfer', id_from, id_to, amount, reason, backends=names):
+        for backend, transfer in self.do('transfer', account.id, id_to, amount, reason, backends=account.backend):
             self.format(transfer)
 
     def do_investment(self, id):
