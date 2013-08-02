@@ -91,7 +91,7 @@ class BNPEnterprise(BaseBrowser):
 
     def iter_history(self, account):
         if account._link_id is None:
-            return
+            return iter([])
 
         self.location('/ROP?Action=F_RELCO&ch4=%s&ch8=2000' % account._link_id)
         d1, d2 = self.page.get_date_range()
