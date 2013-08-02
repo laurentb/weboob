@@ -43,18 +43,23 @@ class TransferError(UserError):
     """
 
 
-class Recipient(CapBaseObject):
+class Recipient(CapBaseObject, Currency):
     """
     Recipient of a transfer.
     """
 
     label = StringField('Name')
+    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)
 
+    @property
+    def currency_text(self):
+        return Currency.currency2txt(self.currency)
 
-class Account(Recipient, Currency):
+
+class Account(Recipient):
     """
     Bank account.
 
@@ -72,14 +77,9 @@ class Account(Recipient, Currency):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Coming balance')
-    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
 
     def __repr__(self):
         return u"<Account id=%r label=%r>" % (self.id, self.label)
-
-    @property
-    def currency_text(self):
-        return Currency.currency2txt(self.currency)
 
 
 class Transaction(CapBaseObject):
