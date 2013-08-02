@@ -28,7 +28,8 @@ try:
     from termcolor import colored
 except ImportError:
     def colored(s, color=None, on_color=None, attrs=None):
-        if attrs is not None and 'bold' in attrs:
+        if os.getenv('ANSI_COLORS_DISABLED') is None \
+                and attrs is not None and 'bold' in attrs:
             return '%s%s%s' % (IFormatter.BOLD, s, IFormatter.NC)
         else:
             return s

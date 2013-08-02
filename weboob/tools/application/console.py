@@ -63,7 +63,9 @@ class ConsoleApplication(BaseApplication):
     CAPS = None
 
     # shell escape strings
-    if sys.platform == 'win32' or not os.isatty(sys.stdout.fileno()):
+    if sys.platform == 'win32' \
+            or not os.isatty(sys.stdout.fileno()) \
+            or os.getenv('ANSI_COLORS_DISABLED') is not None:
         #workaround to disable bold
         BOLD   = ''
         NC     = ''          # no color
