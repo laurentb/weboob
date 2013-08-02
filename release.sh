@@ -20,6 +20,7 @@ fi
 
 VERSION=$1
 
+export LANG=C
 mv ChangeLog ChangeLog.old
 echo -e "Weboob $VERSION (`date +%Y-%m-%d`)\n\t \n\n" > ChangeLog
 cat ChangeLog.old >> ChangeLog

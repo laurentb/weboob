@@ -3,6 +3,9 @@
 # stop on failure
 set -e
 
+# Use C local to avoid local dates in headers
+export LANG=C
+
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
 
 # do not allow undefined variables anymore
