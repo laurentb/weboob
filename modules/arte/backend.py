@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
+import re
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
@@ -46,19 +46,22 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
     def create_default_browser(self):
         return self.create_browser(lang=self.config['lang'].get(), quality=self.config['quality'].get())
 
-    def split_id(self, _id):
-        try:
-            site, _id = _id.split('.', 1)
-        except ValueError:
-            site = 'videos'
+    def parse_id(self, _id):
+        m = re.match('^(\w+)\.(.*)', _id)
+        if m:
+            return m.groups()
 
-        return site, _id
+        m = re.match('https?://videos.arte.tv/\w+/videos/(?P<id>.+)\.html', _id)
+        if m:
+            return 'videos', m.group(1)
+
+        # TODO support live videos
+
+        return 'videos', _id
 
     def get_video(self, _id):
-        if _id.startswith('http://') and not _id.startswith('http://videos.arte.tv'):
-            return None
         with self.browser:
-            site, _id = self.split_id(_id)
+            site, _id = self.parse_id(_id)
 
             if site == 'live':
                 return self.browser.get_live_video(_id)
@@ -73,7 +76,7 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
         if fields != ['thumbnail']:
             # if we don't want only the thumbnail, we probably want also every fields
             with self.browser:
-                site, _id = self.split_id(video.id)
+                site, _id = self.parse_id(video.id)
 
                 if isinstance(video,ArteVideo):
                     video = self.browser.get_video(_id, video)
