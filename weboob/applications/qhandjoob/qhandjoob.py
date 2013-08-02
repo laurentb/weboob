@@ -28,7 +28,7 @@ from .main_window import MainWindow
 class QHandJoob(QtApplication):
     APPNAME = 'qhandjoob'
     VERSION = '0.g'
-    COPYRIGHT = 'Copyright(C) 2010-2012 Sébastien Monel'
+    COPYRIGHT = u'Copyright(C) 2013 Sébastien Monel'
     DESCRIPTION = "Qt application to search for job."
     SHORT_DESCRIPTION = "search for job"
     CAPS = ICapJob
