@@ -177,7 +177,7 @@ For full COPYRIGHT see COPYING file with weboob package.
     # Skip internal applications.
     footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/applications/%s" % application.APPNAME
 
-    mantext = u"%r\n%r\n%r\n%r\n%r" % (coding, header, name, helptext, footer)
+    mantext = u"%s\n%s\n%s\n%s\n%s" % (coding, header, name, helptext, footer)
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
             manfile.write('%s\n' % line.lstrip().encode('utf-8'))
