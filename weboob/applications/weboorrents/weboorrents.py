@@ -25,7 +25,7 @@ from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.core import CallErrors
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 
 
 __all__ = ['Weboorrents']
@@ -68,7 +68,10 @@ class TorrentListFormatter(PrettyFormatter):
 
     def get_description(self, obj):
         size = sizeof_fmt(obj.size)
-        return '%10s   (Seed: %2d / Leech: %2d)' % (size, obj.seeders, obj.leechers)
+        if not empty(obj.seeders) and not empty(obj.leechers):
+            return '%10s   (Seed: %2d / Leech: %2d)' % (size, obj.seeders, obj.leechers)
+        else:
+            return '%10s   (Seed and Leech not available)' % size
 
 
 class Weboorrents(ReplApplication):
