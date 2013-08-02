@@ -738,14 +738,23 @@ ssl.wrap_socketold = ssl.wrap_socket
 ssl.wrap_socket = mywrap_socket
 
 
+class DNSTimeoutException(Exception):
+    pass
+
 cacheDNS = {}
 
 def my_getaddrinfo(*args):
     try:
-        return cacheDNS[args]
-    except KeyError:
+        res, timeout = cacheDNS[args]
+        # Do not cache result more than one hour
+        # it prevents to cache results in long time application
+        # like monboob
+        if time.time() - timeout > 3600:
+            raise DNSTimeoutException()
+        return res
+    except (KeyError, DNSTimeoutException):
         res = socket.getaddrinfoold(*args)
-        cacheDNS[args] = res
+        cacheDNS[args] = res, time.time()
         return res
 
 socket.getaddrinfoold = socket.getaddrinfo
