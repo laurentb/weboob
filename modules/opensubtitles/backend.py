@@ -32,7 +32,7 @@ class OpensubtitlesBackend(BaseBackend, ICapSubtitle):
     NAME = 'opensubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.g'
+    VERSION = '0.h'
     DESCRIPTION = 'Opensubtitles subtitle website'
     LICENSE = 'AGPLv3+'
     BROWSER = OpensubtitlesBrowser

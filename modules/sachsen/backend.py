@@ -33,7 +33,7 @@ class SachsenLevelBackend(BaseBackend, ICapGauge):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Level of Sachsen river"
     BROWSER = SachsenBrowser

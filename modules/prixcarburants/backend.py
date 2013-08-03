@@ -31,7 +31,7 @@ class PrixCarburantsBackend(BaseBackend, ICapPriceComparison):
     NAME = 'prixcarburants'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.g'
+    VERSION = '0.h'
     DESCRIPTION = 'French governement website to compare fuel prices'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('zipcode',                 label='Zipcode', regexp='\d+'))

@@ -35,7 +35,7 @@ class FortuneoBackend(BaseBackend, ICapBank):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo French bank website'
     CONFIG = BackendConfig(

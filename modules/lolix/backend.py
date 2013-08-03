@@ -33,7 +33,7 @@ class LolixBackend(BaseBackend, ICapJob):
     DESCRIPTION = u'Lolix est un centre de compétences spécialisé dans les technologies à base de Logiciel Libre.'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.g'
+    VERSION = '0.h'
 
     BROWSER = LolixBrowser
 

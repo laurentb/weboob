@@ -32,7 +32,7 @@ class CmsoBackend(BaseBackend, ICapBank):
     NAME = 'cmso'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.g'
+    VERSION = '0.h'
     DESCRIPTION = u'Crédit Mutuel Sud-Ouest French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),

@@ -40,7 +40,7 @@ class HelloBankBackend(BaseBackend, ICapBank, ICapMessages):
     NAME = 'hellobank'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Hello Bank ! website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),

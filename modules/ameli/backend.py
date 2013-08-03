@@ -31,7 +31,7 @@ class AmeliBackend(BaseBackend, ICapBill):
     DESCRIPTION = u'Ameli website: French Health Insurance'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     BROWSER = AmeliBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',

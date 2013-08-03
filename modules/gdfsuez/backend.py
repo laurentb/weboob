@@ -30,7 +30,7 @@ class GdfSuezBackend(BaseBackend, ICapBill):
     NAME = 'gdfsuez'
     MAINTAINER = u'Mathieu Jourdan'
     EMAIL = 'mathieu.jourdan@gresille.org'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'GdF-Suez website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

@@ -33,7 +33,7 @@ class GanAssurancesBackend(BaseBackend, ICapBank):
     NAME = 'ganassurances'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.g'
+    VERSION = '0.h'
     DESCRIPTION = u'Groupama Assurances French bank website'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({

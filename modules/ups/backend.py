@@ -32,7 +32,7 @@ class UpsBackend(BaseBackend, ICapParcel):
     DESCRIPTION = u'UPS website'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.g'
+    VERSION = '0.h'
 
     BROWSER = UpsBrowser
 

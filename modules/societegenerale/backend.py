@@ -36,7 +36,7 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Société Générale French bank website'
     CONFIG = BackendConfig(

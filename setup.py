@@ -188,7 +188,7 @@ if not options.deps:
 
 setup(
     name='weboob',
-    version='0.g',
+    version='0.h',
     description='Weboob, Web Outside Of Browsers',
     long_description=open('README').read(),
     author='Romain Bignon',

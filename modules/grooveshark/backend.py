@@ -29,7 +29,7 @@ class GroovesharkBackend(BaseBackend, ICapVideo):
     DESCRIPTION = u'grooveshark website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3+'
 
     BROWSER = GroovesharkBrowser
