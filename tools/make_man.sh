@@ -4,7 +4,7 @@
 set -e
 
 # Use C local to avoid local dates in headers
-export LANG=C
+export LANG=en_US.utf8
 
 # disable termcolor
 export ANSI_COLORS_DISABLED=1

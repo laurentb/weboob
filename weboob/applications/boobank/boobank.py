@@ -301,7 +301,7 @@ class Boobank(ReplApplication):
 
         Display future transactions.
 
-        If END_DATE is supplied, show all transactions list this date.
+        If END_DATE is supplied, show all transactions until this date.
         """
         return self.show_history('iter_coming', line)
 
