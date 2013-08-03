@@ -18,9 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-# python2.5 compatibility
-
-
 from weboob.capabilities.bank import ICapBank, AccountNotFound,\
         Account, Recipient
 from weboob.capabilities.bill import ICapBill, Bill, Subscription,\

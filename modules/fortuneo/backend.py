@@ -18,9 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-# python2.5 compatibility
-
-
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword

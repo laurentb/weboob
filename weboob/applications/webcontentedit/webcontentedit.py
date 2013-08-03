@@ -18,9 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-# python2.5 compatibility
-
-
 import os
 import sys
 import tempfile

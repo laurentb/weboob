@@ -19,9 +19,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-# python2.5 compatibility
-
-
 from decimal import Decimal
 from datetime import datetime, timedelta
 

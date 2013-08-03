@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-# python2.5 compatibility
-
 
 import time
 from weboob.capabilities.messages import ICapMessages, Message, Thread
