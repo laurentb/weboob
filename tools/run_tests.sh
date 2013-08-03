@@ -51,7 +51,7 @@ fi
 # do not allow undefined variables anymore
 set -u
 WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
-cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/"
+cp "${WEBOOB_BACKENDS}" "${WEBOOB_TMPDIR}/backends"
 
 # xunit nose setup
 if [ -n "${RSYNC_TARGET}" ]; then
