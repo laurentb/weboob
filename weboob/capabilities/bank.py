@@ -25,7 +25,7 @@ from .base import CapBaseObject, Field, StringField, DateField, DecimalField, In
 from .collection import ICapCollection
 
 
-__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Transfer', 'ICapBank']
+__all__ = ['AccountNotFound', 'TransferError', 'Recipient', 'Account', 'Transaction', 'Investment', 'Transfer', 'ICapBank']
 
 
 class AccountNotFound(UserError):
