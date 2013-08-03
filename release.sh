@@ -4,7 +4,7 @@
 function set_version {
 	echo -n "Replacing version in source files to $1"
 	for fl in $(find . -iname "*.py"); do
-        sed "s/^\(\s\*\)\(VERSION\|version\|release\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $fl > $fl.new
+        sed "s/^\(\s*\)\(VERSION\|version\|release\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $fl > $fl.new
 		diff $fl.new $fl >/dev/null && echo -n "." || echo -n "+"
 		cp -f $fl.new $fl
 		rm -f $fl.new
