@@ -396,8 +396,10 @@ class Cineoob(ReplApplication):
 
     def complete_releases(self, text, line, *ignored):
         args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
         if len(args) == 3:
-            return self.COUNTRY_LIST
+            return COUNTRY_LIST
 
     def do_releases(self, line):
         """
@@ -414,11 +416,11 @@ class Cineoob(ReplApplication):
             return 3
 
         # i would like to clarify with fillobj but how could i fill the movie AND choose the country ?
-        for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema):
+        for backend, release in self.do('get_movie_releases', movie.id, country, caps=ICapCinema, backends=movie.backend):
             if not empty(release):
                 movie.all_release_dates = u'%s' % (release)
             else:
-                print >>sys.stderr, 'Movie releases not found: %s' % id
+                print >>sys.stderr, 'Movie releases not found for %s' % movie.original_title
                 return 3
         self.start_format()
         self.format(movie)
