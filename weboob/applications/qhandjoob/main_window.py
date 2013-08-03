@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Sébastien Monel
+# Copyright(C) 2013 Sébastien Monel
 #
 # This file is part of weboob.
 #
