@@ -29,7 +29,7 @@ __all__ = ['DelubacBackend']
 
 class DelubacBackend(BaseBackend, ICapBank):
     NAME = 'delubac'
-    DESCRIPTION = u'Banque Delubac & Cie'
+    DESCRIPTION = u'Banque Delubac & Cie French banking website'
     MAINTAINER = u'Noe Rubinstein'
     EMAIL = 'nru@budget-insight.com'
     VERSION = '0.h'

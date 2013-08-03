@@ -42,7 +42,7 @@ class HelloBankBackend(BaseBackend, ICapBank, ICapMessages):
     EMAIL = 'weboob@lampin.net'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'Hello Bank ! website'
+    DESCRIPTION = u'Hello Bank! French banking website'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
                            ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'))
     BROWSER = HelloBank

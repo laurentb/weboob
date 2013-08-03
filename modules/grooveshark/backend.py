@@ -26,7 +26,7 @@ __all__ = ['GroovesharkBackend']
 
 class GroovesharkBackend(BaseBackend, ICapVideo):
     NAME = 'grooveshark'
-    DESCRIPTION = u'grooveshark website'
+    DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '0.h'

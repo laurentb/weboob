@@ -30,7 +30,7 @@ __all__ = ['LolixBackend']
 
 class LolixBackend(BaseBackend, ICapJob):
     NAME = 'lolix'
-    DESCRIPTION = u'Lolix est un centre de compétences spécialisé dans les technologies à base de Logiciel Libre.'
+    DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '0.h'
