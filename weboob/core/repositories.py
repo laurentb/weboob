@@ -501,8 +501,12 @@ class Repositories(object):
         """
         self.repositories = []
         for name in sorted(os.listdir(self.repos_dir)):
-            repository = Repository(os.path.join(self.repos_dir, name))
-            self.repositories.append(repository)
+            path = os.path.join(self.repos_dir, name)
+            try:
+                repository = Repository(path)
+                self.repositories.append(repository)
+            except RepositoryUnavailable as e:
+                print >>sys.stderr, 'Unable to load repository %s (%s), try to update repositories.' % (name, e)
 
     def get_module_icon_path(self, module):
         return os.path.join(self.icons_dir, '%s.png' % module.name)
