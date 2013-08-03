@@ -107,9 +107,7 @@ class Transaction(CapBaseObject):
     amount =    DecimalField('Amount of the transaction')
 
     def __repr__(self):
-        label = self.label.encode('utf-8') if self.label else self.label
-        return "<Transaction date='%s' label='%s' amount=%s>" % (self.date,
-            label, self.amount)
+        return "<Transaction date=%r label=%r amount=%r>" % (self.date, self.label, self.amount)
 
     def unique_id(self, seen=None, account_id=None):
         crc = crc32(str(self.date))
