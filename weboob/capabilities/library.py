@@ -54,12 +54,10 @@ class ICapBook(ICapCollection):
             self._restrict_level(split_path)
             return self.iter_books()
 
-    def iter_books(self, pattern):
+    def iter_books(self):
         """
-        Iter books from a pattern.
+        Iter books.
 
-        :param pattern: pattern to search
-        :type pattern: str
         :rtype: iter[:class:`Book`]
         """
         raise NotImplementedError()
