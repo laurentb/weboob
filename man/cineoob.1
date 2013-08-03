@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH CINEOOB 1 "20 May 2013" "cineoob 0\&.g"
+.TH CINEOOB 1 "03 August 2013" "cineoob 0\&.g"
 .SH NAME
 cineoob \- search movies and persons around cinema
 .SH SYNOPSIS
@@ -81,6 +81,10 @@ If COUNTRY is given, show release in this country.
 \fBsearch_movie\fR  [\fIPATTERN\fR]
 .br
 Search movies.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsearch_movie_subtitle\fR language movie\fI_ID\fR
 .br
@@ -125,14 +129,26 @@ Dutch       nl          Icelandic   is          Portuguese  pt          Welsh   
 English     en          Indonesian  id          Romanian    ro          Yiddish     yi
 .br
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsearch_movie_torrent\fR movie\fI_ID\fR
 .br
 Search torrents of movie_ID.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsearch_person\fR  [\fIPATTERN\fR]
 .br
 Search persons.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsearch_subtitle\fR language [\fIPATTERN\fR]
 .br
@@ -177,10 +193,18 @@ Dutch       nl          Icelandic   is          Portuguese  pt          Welsh   
 English     en          Indonesian  id          Romanian    ro          Yiddish     yi
 .br
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsearch_torrent\fR [\fIPATTERN\fR]
 .br
 Search torrents.
+.br
+
+.br
+Default is limited to 10 results.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -347,7 +371,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

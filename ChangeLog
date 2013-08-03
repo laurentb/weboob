@@ -1,3 +1,464 @@
+Weboob 0.g (2013-08-03)
+
+	General
+	* New application: handjoob
+	* New application: parceloob
+	* New application: qhandjoob
+	* New capabilitie: CapJob
+	* New capabilitie: CapParcel
+	* New module: Citélis (CapBank)
+	* New module: Banque Delubac (CapBank)
+	* New module: Hello Bank! (CapBank) (#1276)
+	* New module: Ameli (CapBill)
+	* New module: AmeliPro (CapBill)
+	* New module: GDF SUEZ DolceVita (CapBill)
+	* New module: V'Lille (CapGauge)
+	* New module: Adecco (CapJob)
+	* New module: Apec (CapJob)
+	* New module: Lolix (CapJob)
+	* New module: Pôle Emploi (CapJob)
+	* New module: Paroles.net (CapLyrics)
+	* New module: Chronopost (CapParcel)
+	* New module: UPS (CapParcel)
+	* New module: Allrecipes (CapRecipe)
+	* New module: Supertoinette (CapRecipe)
+	* New module: podnapisi (CapSubtitle)
+	* New module: Arrêt sur Images (CapVideo)
+	* New module: Grooveshark (CapVideo)
+	* New tool: stale_pyc.py
+	* New tool: certhash.py
+
+	Core
+	* Change '_backend' setting to '_module' (#789)
+	* Remove all compatibily glue for python 2.5 (#806)
+	* Remove some from __future__, forbid 2.5 in setup
+	* Do not crash when repository is invalid (#1281)
+	* Explicit module load errors
+	* Fix: import Pillow in core
+	* Fix: create containing directory of backend configuration
+	* Fix: better English sentence when Weboob refuses to start
+	* Fix: crash if backend name contains unicode chars
+
+	Core: applications
+	* Display a message when more results are available (#1038)
+	* Default behavior is now to unlimit results, except for explicit commands
+	(searches or history) (#1139)
+	* Remove useless calls to ReplApplication.flush() (#812)
+	* Add colors in console applications
+	* console: display collections before objects with ls command
+	* console: fix error if there are private attributes on backend
+	* console: better handling of "tiny" choices, allow forcing
+	* console: Automatically create a storage if STORAGE class attribute is not empty
+	* repl: add a new caps parameter to get_object
+	* repl: get_object supports backend's services returning lists
+	* repl: Invoking 'help' command from shell display only list of commands
+	* Fix: printing of DictObj
+
+	Core: browser
+	* Add a cache for DNS requests
+	* Implicitly convert unicode objects to str for form values
+
+	Core: capabilities
+	* Move Currency from CapBank to CapBase
+	* Fix: problem with strftime on date.year<1900
+
+	CapBase
+	* add method to convert currency value to text
+
+	CapBank
+	* do not crash if date in label regexp isn't valid
+	* add Investment object and iter_investment method
+	* add Transaction.unique_id
+	* more help for date fields
+	* introduce vdate
+	* FrenchTransaction.parse takes a new optional argument 'vdate'
+
+	CapBill
+	* add attributes to Bill (#1202)
+	* add new attributes to Detail (#1203)
+
+	CapBook
+	* remove unused parameter 'pattern' in iter_books
+
+	CapGauge
+	* add address field to GaugeSensor
+
+	CapMessage
+	* default type of threads is IS_THREADS
+
+	CapRecipe
+	* handle interval number of persons
+	* fix comparison to None
+
+	CapSubtitle
+	* add 'ext' attribut (extension of file)
+
+	CapWeather
+	* always call base constructor of CapBaseObject to prevent
+	shared fields
+
+	Core: documentation
+	* Fix typo and wordwrap in INSTALL
+	* Add manpages for new applications
+
+	Core: tools
+	* Do not try to fill None
+	* All string values are Unicode
+	* Allow overriding delay and tries in decorated function arguments
+	* Add parse_french_date in weboob.tools.date
+
+	Application: boobank
+	* In interactive mode, 'transfer' commands asks confirmation (#1077)
+	* Add parameter END_DATE to 'history' and 'coming' commands (#1150)
+	* Add investment command
+	* Avoid blank lines between entries in (pretty_)qif formatting
+	* Better error messages
+	* Prevent encoding issues in __repr__ of Transactions
+	* Fix: do not flush twice
+
+	Application: booblyrics
+	* Fix: search command needs 2 arguments
+
+	Application: boobmsg
+	* Fix: display of messages list in non interactive mode
+
+	Application: cineoob
+	* Add caps parameter to get_object (#1280)
+	* Filmographies and castings restricted to movie/person backend
+	* Add language abbreviations in subtitle search help
+	* Small bug fixes
+
+	Application: comparoob
+	* Add missing docstrings to commands
+
+	Application: cookboob
+	* Handle interval number of persons
+	* Better nb_person interval display
+	* Check if preparation time is available
+	* Strip newlines from descriptions in search results
+
+	Application: flatboob
+	* Add command help
+	* Do not use limit for cities search
+
+	Application: qcineoob
+	* Check if short description is available
+	* Encode filename when download
+	* Add tabs navigation
+	* ctrl+l to get focus on search edit
+	* Do not go on middle click opened tab
+	* Remove useless print
+
+	Application: qcookboob
+	* Handle interval number of persons
+	* Better nb_person interval display
+
+	Application: qvideoob
+	* Use fillobj instead of get_video to complete all fields
+
+	Application: suboob
+	* Rename command 'getfile' to 'download'
+	* Save subtitles in a better file name (#1278)
+	* Print filename where subtitle is saved (#1279)
+	* Add language abbreviations in subtitle search help
+	* Do not show URL if empty
+
+	Application: webcontentedit
+	* Use NamedTemporaryFile(delete=False) instead of mkstemp
+
+	Application: weboobcfg
+	* Remove 'backends' command from help
+	* Fix: do not crash if a module cannot be loaded
+
+	Application: weboorrents
+	* Catch empty seeders and leechers
+
+	Application: wetboobs
+	* Fix: gauges command parsing
+
+	Module: 750g
+	* Strip accents in search URL
+	* Fix: comments and accents striping
+
+	Module: allocine
+	* Fix: gender detection
+
+	Module: americanexpress
+	* Fix: parsing of coming value
+	* Fix: parsing of April month
+
+	Module: aum
+	* Support new fields
+	* Logging to see profile (because of craps)
+	* Unescape description of profiles
+	* Disable warning when unable to get public profile from website
+	* Fix: encoding errors
+	* Fix: typo on 'style' field
+
+	Module: arte
+	* Add support of ArteLive
+	* Fix: parsing on German and English pages
+	* Fix: id is now prefixed with "--"
+	* Fix: prevent module from catching all URLs
+
+	Module: attilasub
+	* Add attribute 'ext'
+
+	Module: axabanque
+	* Detect when there is no operations
+
+	Module: banquepopulaire
+	* Support new authentication on some regions
+	* Sort entries by value date
+	* Add new URL for homepage
+	* Store vdate
+	* Fix: go on professional accounts list page
+
+	Module: bnporc
+	* Add support of personal accounts on professional website
+	* Add enterprise website support
+	* Support when sometimes 'coming' value is '-'
+	* Prevent navigation conflicts during accounts iteration
+	* Add regexp for payback of card transactions
+
+	Module: bp
+	* Fix: support new authentication
+
+	Module: boursorama
+	* Add two factor authentication for boursorama module
+	* Add history for saving accounts
+	* Add PEL support
+	* Fix: parsing on new website
+	* Fix: new certificat
+	* Fix: support new website
+
+	Module: bred
+	* Supports new page which asks for a code from a card
+	* Fix: login on accounts with several subaccounts
+	* Fix: new certificat
+
+	Module: caissedepargne
+	* Support professional website
+	* Add support of deferred debit cards
+	* Be more robust on logout
+	* Clear cookies during login
+	* Fix: detection on login failed
+	* Fix: navigation
+	* Fix: avoid crashes if some useless fields are missing in global form
+	* Fix: support new version of website
+	* Fix: import of ControlNotFound on old versions of mechanize
+	* Fix: navigation in card accounts history
+
+	Module: cmb
+	* Use new-style classes (coding style)
+
+	Module: cic
+	* Supports new page which asks for a code from a card
+
+	Module: cragr
+	* Add support for credit cards
+	* Ignore accounts without balance
+	* Add new regions
+	* Support special login URLs on some regions
+	* Use new-style classes (coding style)
+	* Support account where name contains the owner
+	* Do not raise BrowserIncorrectPassword when the website displays an
+	useless "urgent message" on login
+	* Better detection of useful label
+	* Fix: use web site instead of mobile website for ca-centrest, and
+	probably others (#1035)
+	* Fix: an account owner name can start with Mle
+
+	Module: creditcooperatif
+	* Support coming transactions on pro accounts
+
+	Module: creditdunord
+	* Fix: navigation in history calls
+	* Fix: attach cards to the good account
+	* Fix: encoding error to get history for accounts with special chars in
+	name
+	* Fix: navigation for deferred cards
+	* Fix: crash if the date of a transaction is empty
+
+	Module: creditmutuel
+	* Fix: listing of recipients in transfer
+
+	Module: cuisineaz
+	* Temporary fix of person number range
+	* Fix: comments and accents striping
+
+	Module: dailymotion
+	* Fix: parsing of authors
+
+	Module: dlfp
+	* Be compliant with the dlfp 1st april joke
+	* Fix: get new threads even if there is no comment
+
+	Module: dresdenwetter
+	* Add tests
+	* Fix: no more snow sensor
+
+	Module: freemobile
+	* Add some tests
+	* Fix: history when internationals calls option is not subscribed (#1078)
+	* Fix: new certificat
+	* Fix: conversion warnings
+	* Fix: new bill listing
+	* Fix: bad method name in tests
+
+	Module: ganassurances
+	* Enable support to Groupama Banque (#1112)
+
+	Module: gdcvault
+	* Only logout when actually logged in
+
+	Module: hsbc
+	* Support international accounts
+	* Add a retry if login fail
+	* Add missing file (login.py)
+	* Fix: update module to support last website update
+	* Fix: new certificate
+
+	Module: imdb
+	* Replace latin2unicode by HTMLParser
+
+	Module: ing
+	* Add support of investments
+	* Add type of accounts
+	* Raise NotImplementedError if account type not supported
+	* Add some tests
+	* Fix: conversion warnings
+	* Fix: history of accounts
+	* Fix: new certificat
+	* Fix: transfer
+
+	Module: kickass
+	* Use https
+	* Fix: new URL
+
+	Module: lcl
+	* Add enterprise site
+	* Fix: detection of bad passwords
+	* Fix: support new auth system
+	* Fix: do not need to logout if the browser hasn't been used
+
+	Module: leclercmobile
+	* Add real tests
+	* Fix: history parsing
+	* Fix: details parsing
+	* Fix: compatibility with calibre 0.9
+
+	Module: marmiton
+	* Fix: comments and accents striping
+
+	Module: opensubtitles
+	* Add attribute 'ext'
+
+	Module: orange
+	* Fix SMS sending (#1206)
+
+	Module: ouifm
+	* Fix: json describing current songs and artists changed
+
+	Module: paypal
+	* Fix: ignore extra-lines in accounts list
+	* Fix: new certificate
+
+	Module: piratebay
+	* New URL
+	* Support proxies
+
+	Module: presseurop
+	* Get newspaper source
+	* Fix: body parsing
+	* Fix: better check for daily links
+
+	Module: redmine
+	* Fix: missing id class on older versions
+
+	Module: sachsen
+	* Fix: string conversion
+	* Fix: tests do not work with new CapGauge API
+
+	Module: seeklyrics
+	* Fix: parsing in some cases
+
+	Module: societegenerale
+	* Add entreprise support
+	* Do not consider expired cards
+	* support 'OPPOSITION' state for cards
+	* Fix: conflicts in detection of balance
+	* Fix: new hashes for login
+	* Fix: new certificat
+
+	Module: tvsubtitles
+	* Add attribute 'ext'
+
+	Module: youtube
+	* Support for a silly protection (#1277)
+	* Detect if video is forbidden
+	* Use https
+	* Change maintainer
+	* Fix: encoding of pages
+	* Fix: stop search queries if there is no more results
+	* Fix: parsing details
+	* Fix: crash with weird characters
+	* Fix: credentials encoding
+
+	Module: vimeo
+	* Get authors
+
+	Module: weather
+	* Add a favicon
+
+	Tools
+	* boilerplate.py: fix encoding issues
+	* boilerplate.py: add default license
+	* pyflakes.sh: more code quality checks
+	* pyflakes.sh: use only tracked Python files
+	* pyflakes.sh: add lines number
+	* pyflakes.sh: ban more stuff
+	* local_install.py: no deps by default on local install
+	* local_run.py: do not copy the backends file
+	* local_run.py: do not capture stderr
+	* local_run.py and run_tests.sh: remove stale .pyc files
+	* local_run.py: allow complete paths for script
+	* local_run.py: allow overriding WEBOOB_BACKENDS
+	* weboob_bash_completion: fix bash completion
+
+	Contrib: boobot
+	* Support python-irclib >= 3 
+	* Proper freenode server name
+	* Irc 5.0+ compatibility
+	* Display regular URL info
+	* Support multiple channel
+	* Fix weird/unicode URLs
+	* Guess page encoding
+	* Better newline handling
+	* Support servers without HEAD
+	* Faster timeout
+	* Twitter support
+	* Configuration of boobot storage path
+	* Better handling of zero/invalid HTML
+	* Proper ^C closing
+	* Support ignored users
+
+	Contrib: freemobile-munin
+	* Fix SMS regexp
+
+	Contrib: generic-munin
+	* Allow float values
+	* Do not start every graph to 0
+	* Use rigid
+
+	Packaging
+	* Add --nodeps option to ignore dependencies in setup.py
+	* Rename Makefile -> build.mk to avoid spurious build attempts
+	* Use Pillow, unless PIL is already there
+	* Better README/INSTALL files
+	* Workaround Debian compatibily layer	 
+
+
 Weboob 0.f (2013-03-26)
 
 	General

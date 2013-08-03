@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH COMPAROOB 1 "26 mars 2013" "comparoob 0\&.f"
+.TH COMPAROOB 1 "03 August 2013" "comparoob 0\&.g"
 .SH NAME
 comparoob \- compare products
 .SH SYNOPSIS
@@ -18,9 +18,15 @@ Console application to compare products.
 * prixcarburants (French governement website to compare fuel prices)
 .SH COMPAROOB COMMANDS
 .TP
-\fBinfo\fR
+\fBinfo\fR \fIID\fR
+.br
+Get information about a product.
 .TP
-\fBprices\fR
+\fBprices\fR [\fIPATTERN\fR]
+.br
+Display prices for a product. If a pattern is supplied, do not prompt
+.br
+what product to compare.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -187,7 +193,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH GALLEROOB 1 "26 mars 2013" "galleroob 0\&.f"
+.TH GALLEROOB 1 "03 August 2013" "galleroob 0\&.g"
 .SH NAME
 galleroob \- browse and download web image galleries
 .SH SYNOPSIS
@@ -49,6 +49,10 @@ Get information about a gallery.
 \fBsearch\fR \fIPATTERN\fR
 .br
 List galleries matching a PATTERN.
+.br
+
+.br
+Default is limited to 10 results.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -215,7 +219,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

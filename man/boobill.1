@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH BOOBILL 1 "26 mars 2013" "boobill 0\&.f"
+.TH BOOBILL 1 "03 August 2013" "boobill 0\&.g"
 .SH NAME
 boobill \- get and download bills
 .SH SYNOPSIS
@@ -15,7 +15,13 @@ boobill \- get and download bills
 Console application allowing to get and download bills.
 
 .SS Supported websites:
+* ameli (Ameli website: French Health Insurance)
+.br
+* amelipro (Ameli website: French Health Insurance for Professionals)
+.br
 * freemobile (Free Mobile website)
+.br
+* gdfsuez (GdF\-Suez website)
 .br
 * ing (ING Direct French bank website)
 .br
@@ -35,6 +41,10 @@ If no ID given, display balance of all backends
 Get the list of bills documents for subscriptions.
 .br
 If no ID given, display bills of all backends
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBdetails\fR [\fIID\fR]
 .br
@@ -73,6 +83,10 @@ If Id not given, download bills of all subscriptions.
 Get the history of subscriptions.
 .br
 If no ID given, display histories of all backends
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBsubscriptions\fR
 .br
@@ -243,7 +257,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

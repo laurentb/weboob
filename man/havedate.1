@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH HAVEDATE 1 "26 mars 2013" "havedate 0\&.f"
+.TH HAVEDATE 1 "03 August 2013" "havedate 0\&.g"
 .SH NAME
 havedate \- interact with dating websites
 .SH SYNOPSIS
@@ -33,6 +33,10 @@ Export the thread identified by ID
 \fBlist\fR
 .br
 Display all threads.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBoptim\fR [list | start | edit | stop] \fIBACKEND\fR [\fIOPTIM\fR1 [\fIOPTIM\fR2 ...]]
 .br
@@ -257,7 +261,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

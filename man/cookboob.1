@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH COOKBOOB 1 "20 May 2013" "cookboob 0\&.g"
+.TH COOKBOOB 1 "03 August 2013" "cookboob 0\&.g"
 .SH NAME
 cookboob \- search and consult recipes
 .SH SYNOPSIS
@@ -41,6 +41,10 @@ Get information about a recipe.
 \fBsearch\fR [\fIPATTERN\fR]
 .br
 Search recipes.
+.br
+
+.br
+Default is limited to 10 results.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -207,7 +211,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

@@ -1,25 +1,27 @@
 .\" -*- coding: utf-8 -*-
-.TH QWEBCONTENTEDIT 1 "03 August 2013" "qwebcontentedit 0\&.g"
+.TH QHANDJOOB 1 "03 August 2013" "qhandjoob 0\&.g"
 .SH NAME
-qwebcontentedit \- manage websites content
+qhandjoob \- search for job
 .SH SYNOPSIS
-.B qwebcontentedit
+.B qhandjoob
 [\-h] [\-dqv] [\-b \fIbackends\fR] ...
 .br
-.B qwebcontentedit
+.B qhandjoob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Qt application allowing to manage content of various websites.
+Qt application to search for job.
 
 .SS Supported websites:
-* dlfp (Da Linux French Page news website)
+* adecco (adecco website)
 .br
-* mediawiki (Wikis running MediaWiki, like Wikipedia)
+* apec (apec website)
 .br
-* redmine (The Redmine project management web application)
+* lolix (Lolix est un centre de compétences spécialisé dans les technologies à base de Logiciel Libre.)
+.br
+* popolemploi (Pole Emploi website)
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -55,7 +57,7 @@ file to save logs
 save every response
 
 .SH COPYRIGHT
-Copyright(C) 2011 Clément Schreiner
+Copyright(C) 2013 Sébastien Monel
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -63,5 +65,7 @@ For full COPYRIGHT see COPYING file with weboob package.
 .SH FILES
 "~/.config/weboob/backends" 
 
+"~/.config/weboob/qhandjoob"
+
 .SH SEE ALSO
-Home page: http://weboob.org/applications/qwebcontentedit
+Home page: http://weboob.org/applications/qhandjoob

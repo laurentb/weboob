@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH WEBOOB-CONFIG 1 "26 mars 2013" "weboob-config 0\&.f"
+.TH WEBOOB-CONFIG 1 "03 August 2013" "weboob-config 0\&.g"
 .SH NAME
 weboob-config \- manage backends or register new accounts
 .SH SYNOPSIS
@@ -23,32 +23,6 @@ Add a backend.
 \fBapplications\fR
 .br
 Show applications.
-.TP
-\fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
-.br
-Select used backends.
-.br
-
-.br
-ACTION is one of the following (default: list):
-.br
-* enable         enable given backends
-.br
-* disable        disable given backends
-.br
-* only           enable given backends and disable the others
-.br
-* list           list backends
-.br
-* add            add a backend
-.br
-* register       register a new account on a website
-.br
-* edit           edit a backend
-.br
-* remove         remove a backend
-.br
-* list\-modules   list modules
 .TP
 \fBconfirm\fR \fIBACKEND\fR
 .br
@@ -138,7 +112,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

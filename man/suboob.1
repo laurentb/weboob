@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH SUBOOB 1 "20 May 2013" "suboob 0\&.g"
+.TH SUBOOB 1 "03 August 2013" "suboob 0\&.g"
 .SH NAME
 suboob \- search and download subtitles
 .SH SYNOPSIS
@@ -24,7 +24,7 @@ Console application allowing to search for subtitles on various services and dow
 * tvsubtitles (Tvsubtitles subtitle website)
 .SH SUBOOB COMMANDS
 .TP
-\fBgetfile\fR \fIID\fR [\fIFILENAME\fR]
+\fBdownload\fR \fIID\fR [\fIFILENAME\fR]
 .br
 Get the subtitle or archive file.
 .br
@@ -79,6 +79,10 @@ Dutch       nl          Icelandic   is          Portuguese  pt          Welsh   
 English     en          Indonesian  id          Romanian    ro          Yiddish     yi
 .br
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.br
+
+.br
+Default is limited to 10 results.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -245,7 +249,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)

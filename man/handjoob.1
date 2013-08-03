@@ -1,52 +1,40 @@
 .\" -*- coding: utf-8 -*-
-.TH WETBOOBS 1 "03 August 2013" "wetboobs 0\&.g"
+.TH HANDJOOB 1 "03 August 2013" "handjoob 0\&.g"
 .SH NAME
-wetboobs \- display weather and forecasts
+handjoob \- search for a job
 .SH SYNOPSIS
-.B wetboobs
+.B handjoob
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B wetboobs
+.B handjoob
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display weather and forecasts in your city.
+Console application to search for a job.
 
-.SH WETBOOBS COMMANDS
-.TP
-\fBcities\fR \fIPATTERN\fR
+.SS Supported websites:
+* adecco (adecco website)
 .br
-Search cities.
+* apec (apec website)
+.br
+* lolix (Lolix est un centre de compétences spécialisé dans les technologies à base de Logiciel Libre.)
+.br
+* popolemploi (Pole Emploi website)
+.SH HANDJOOB COMMANDS
+.TP
+\fBinfo\fR \fIID\fR
+.br
+Get information about an advert.
+.TP
+\fBsearch\fR \fIPATTERN\fR
+.br
+Search for an advert  matching a PATTERN.
 .br
 
 .br
 Default is limited to 10 results.
-.TP
-\fBcurrent\fR \fICITY_ID\fR
-.br
-Get current weather for specified city. Use the 'cities' command to find them.
-.TP
-\fBforecasts\fR \fICITY_ID\fR
-.br
-Get forecasts for specified city. Use the 'cities' command to find them.
-.TP
-\fBgauge\fR \fIGAUGE_ID\fR
-.br
-Get history of a specific gauge (use 'gauges' to find them).
-.TP
-\fBgauges\fR [\fIPATTERN\fR]
-.br
-List all rivers. If PATTERN is specified, search on a pattern.
-.TP
-\fBlast_sensor_measure\fR \fIGAUGE_ID\fR
-.br
-Get last measure of a sensor.
-.TP
-\fBsensors\fR \fIGAUGE_ID\fR
-.br
-Iter sensors of a gauge.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -221,7 +209,7 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (cities, csv, current, forecasts, htmltable, json,
+select output formatter (csv, htmltable, job_advert, job_advert_list, json,
 multiline, simple, table, webkit)
 .TP
 \fB\-\-no\-header\fR
@@ -234,7 +222,7 @@ do not display item keys
 file to export result
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2012 Bezleputh
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -243,4 +231,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/wetboobs
+Home page: http://weboob.org/applications/handjoob

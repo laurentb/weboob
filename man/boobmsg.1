@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH BOOBMSG 1 "26 mars 2013" "boobmsg 0\&.f"
+.TH BOOBMSG 1 "03 August 2013" "boobmsg 0\&.g"
 .SH NAME
 boobmsg \- send and receive message threads
 .SH SYNOPSIS
@@ -28,6 +28,8 @@ Console application allowing to send messages on various websites and to display
 * fourchan (4chan image board)
 .br
 * hds (Histoires de Sexe French erotic novels)
+.br
+* hellobank (Hello Bank ! website)
 .br
 * inrocks (Les Inrocks French news website)
 .br
@@ -61,6 +63,10 @@ Export the thread identified by ID
 \fBlist\fR
 .br
 Display all threads.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBphotos\fR \fIID\fR
 .br
@@ -261,7 +267,7 @@ save every response
 filter result items to display given a boolean expression
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
-get a maximum number of results (all backends merged)
+limit number of results (from each backends)
 .TP
 \fB\-s SELECT\fR, \fB\-\-select=SELECT\fR
 select result item keys to display (comma separated)
