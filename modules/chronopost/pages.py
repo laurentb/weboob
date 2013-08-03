@@ -50,7 +50,7 @@ class TrackPage(BasePage):
                 continue
 
             ev = Event(i)
-            ev.location = unicode(tds[1].text)
+            ev.location = unicode(tds[1].text) if tds[1].text else None
             ev.activity = unicode(tds[1].find('br').tail)
             if tds[-1].text is not None:
                 ev.activity += ', ' + self.parser.tocleanstring(tds[-1])
