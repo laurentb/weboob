@@ -1,5 +1,6 @@
 #!/bin/bash
 # This script is used to release a version.
+set -e
 
 function set_version {
 	echo -n "Replacing version in source files to $1"
@@ -31,7 +32,6 @@ vi +2 ChangeLog
 set_version $VERSION
 
 echo "Building Qt applications..."
-make clean
 ./setup.py sdist bdist clean -a || exit 1
 
 echo "Generating manpages..."
