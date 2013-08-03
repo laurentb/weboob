@@ -65,6 +65,7 @@ class ReplOptionFormatter(IndentedHelpFormatter):
                 s += '\n'
             s += '%s Commands:\n' % section
             for c in cmds:
+                c = c.split('\n')[0]
                 s += '    %s\n' % c
         return s
 
@@ -495,12 +496,11 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         lines = [line.strip() for line in doc.strip().split('\n')]
         if not lines[0].startswith(command):
-            lines = [command, '\n', '\n'] + lines
+            lines = [command, ''] + lines
 
         if short:
             return lines[0]
 
-        lines[0] = '%s%s%s' % (self.BOLD, lines[0], self.NC)
         return '\n'.join(lines)
 
     def get_commands_doc(self):
@@ -513,10 +513,10 @@ class ReplApplication(Cmd, ConsoleApplication):
             if cmd in self.hidden_commands.union(self.weboob_commands).union(['help']):
                 continue
 
-            d[appname].append(self.get_command_help(cmd, short=True))
+            d[appname].append(self.get_command_help(cmd))
         if not self.DISABLE_REPL:
             for cmd in self.weboob_commands:
-                d['Weboob'].append(self.get_command_help(cmd, short=True))
+                d['Weboob'].append(self.get_command_help(cmd))
 
         return d
 
@@ -536,6 +536,11 @@ class ReplApplication(Cmd, ConsoleApplication):
         return self.do_quit(arg)
 
     def do_help(self, arg=None):
+        """
+        help [COMMAND]
+
+        List commands, or get information about a command.
+        """
         if arg:
             cmd_names = set(name[3:] for name in self.get_names() if name.startswith('do_'))
             if arg in cmd_names:
@@ -543,7 +548,9 @@ class ReplApplication(Cmd, ConsoleApplication):
                 if command_help is None:
                     logging.warning(u'Command "%s" is undocumented' % arg)
                 else:
-                    self.stdout.write('%s\n' % command_help)
+                    lines = command_help.split('\n')
+                    lines[0] = '%s%s%s' % (self.BOLD, lines[0], self.NC)
+                    self.stdout.write('%s\n' % '\n'.join(lines))
             else:
                 print >>sys.stderr, 'Unknown command: "%s"' % arg
         else:
