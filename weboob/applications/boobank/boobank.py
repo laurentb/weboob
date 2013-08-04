@@ -88,7 +88,7 @@ class TransactionsFormatter(IFormatter):
         else:
             try:
                 _type = self.TYPES[obj.type]
-            except (IndexError,AttributeError):
+            except (IndexError, AttributeError):
                 _type = ''
 
         label = obj.label
@@ -115,6 +115,7 @@ class TransferFormatter(IFormatter):
             result += u'Reason:     %s\n' % obj.reason
         return result
 
+
 class InvestmentFormatter(IFormatter):
     MANDATORY_FIELDS = ('label', 'quantity', 'unitvalue')
 
@@ -134,7 +135,7 @@ class InvestmentFormatter(IFormatter):
         self.tot_diff += diff
         self.tot_valuation += obj.valuation
 
-        return u' %s %s %s %s %s   %s' %\
+        return u' %s %s %s %s %s   %s' % \
                 (self.colored('%-30s' % label[:30], 'red'),
                  self.colored('%-10s' % obj.code[:8], 'yellow') if not empty(obj.code) else ' ' * 10,
                  self.colored('%6d' % obj.quantity, 'yellow'),
@@ -145,7 +146,7 @@ class InvestmentFormatter(IFormatter):
 
     def flush(self):
         self.output('-------------------------------+--------+----------+-----------+-----------+--------')
-        self.output(u'                                        Total                    %s   %s' %\
+        self.output(u'                                        Total                    %s   %s' %
                      (self.colored('%8.2f' % self.tot_valuation, 'yellow'),
                       self.colored('%8.2f' % self.tot_diff, 'green' if self.tot_diff >=0 else 'red')
                     ))

@@ -32,6 +32,7 @@ from .collection import ArteLiveCollection
 
 __all__ = ['IndexPage', 'VideoPage', 'ArteLivePage', 'ArteLiveCategorieVideoPage', 'ArteLiveVideoPage']
 
+
 class ArteLiveVideoPage(BasePage):
     def get_video(self, video=None, lang='fr', quality='hd'):
         if not video:
@@ -47,6 +48,7 @@ class ArteLiveVideoPage(BasePage):
         else:
             video.url = urls.popitem()[1]
         return video
+
 
 class ArteLiveCategorieVideoPage(BasePage):
     def iter_videos(self, lang='fr'):
@@ -79,7 +81,7 @@ class ArteLiveCategorieVideoPage(BasePage):
         en = re.compile("<enclosure.*?/event/.*?/(.*?)-.*?/>", re.DOTALL)
         pix = re.compile("(?<=<enclosure url=\")(.*?)(?=\" type=\"image/)", re.DOTALL)
         try:
-            ele['link']  = lk.search(chain).group(0)
+            ele['link'] = lk.search(chain).group(0)
         except:
             return None
         try:
@@ -98,8 +100,8 @@ class ArteLiveCategorieVideoPage(BasePage):
             ele['date'] = "No date"
         try:
             s = (pt.search(chain).group(0))
-            s = HTMLParser.HTMLParser().unescape(s);
-            ele['pitch'] = HTMLParser.HTMLParser().unescape(s);
+            s = HTMLParser.HTMLParser().unescape(s)
+            ele['pitch'] = HTMLParser.HTMLParser().unescape(s)
         except:
             ele['pitch'] = "No description"
         try:
@@ -113,17 +115,19 @@ class ArteLiveCategorieVideoPage(BasePage):
             ele['pict'] = None
         return ele
 
+
 class ArteLivePage(BasePage):
     def iter_resources(self):
         items = list()
         for el in self.document.xpath('//ul[@id="categoryArray"]/li'):
             m = re.match(r'http://liveweb.arte.tv/*', el.find('a').attrib['href'])
             if m:
-                url = u'%s' %el.find('a').attrib['href']
+                url = u'%s' % el.find('a').attrib['href']
                 _id = url.split('/')[-2:-1][0]
-                item = ArteLiveCollection([u'live', u'%s'%_id], u'%s' %(el.find('a').text))
+                item = ArteLiveCollection([u'live', u'%s' % _id], u'%s' % (el.find('a').text))
                 items.append(item)
         return items
+
 
 class IndexPage(BasePage):
     def iter_videos(self):

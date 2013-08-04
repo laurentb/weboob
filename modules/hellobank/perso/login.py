@@ -23,54 +23,53 @@ import time
 import re
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard,VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
 
 __all__ = ['LoginPage', 'ConfirmPage', 'InfoMessagePage']
 
 
 class HelloBankVirtKeyboard(VirtKeyboard):
-    symbols={'0':'4d1e060efb694ee60e4bd062d800401c',
-             '1':'509134b5c09980e282cdd5867815e9e3',
-             '2':'4cd09c9c44405e00b12e0371e2f972ae',
-             '3':'227d854efc5623292eda4ca2f9bfc4d7',
-             '4':'be8d23e7f5fce646193b7b520ff80443',
-             '5':'5fe450b35c946c3a983f1df6e5b41fd1',
-             '6':'113a6f63714f5094c7f0b25caaa66f78',
-             '7':'de0e93ba880a8a052aea79237f08f3f8',
-             '8':'3d70474c05c240b606556c89baca0568',
-             '9':'040954a5e5e93ec2fb03ac0cfe592ac2'
-            }
+    symbols = {'0': '4d1e060efb694ee60e4bd062d800401c',
+               '1': '509134b5c09980e282cdd5867815e9e3',
+               '2': '4cd09c9c44405e00b12e0371e2f972ae',
+               '3': '227d854efc5623292eda4ca2f9bfc4d7',
+               '4': 'be8d23e7f5fce646193b7b520ff80443',
+               '5': '5fe450b35c946c3a983f1df6e5b41fd1',
+               '6': '113a6f63714f5094c7f0b25caaa66f78',
+               '7': 'de0e93ba880a8a052aea79237f08f3f8',
+               '8': '3d70474c05c240b606556c89baca0568',
+               '9': '040954a5e5e93ec2fb03ac0cfe592ac2'
+               }
 
+    url = "/NSImgBDGrille?timestamp=%d"
 
-    url="/NSImgBDGrille?timestamp=%d"
+    color = 17
 
-    color=17
-
-    def __init__(self,basepage):
+    def __init__(self, basepage):
         coords = {}
-        coords["01"] = (31,28,49,49)
-        coords["02"] = (108,28,126,49)
-        coords["03"] = (185,28,203,49)
-        coords["04"] = (262,28,280,49)
-        coords["05"] = (339,28,357,49)
-        coords["06"] = (31,100,49,121)
-        coords["07"] = (108,100,126,121)
-        coords["08"] = (185,100,203,121)
-        coords["09"] = (262,100,280,121)
-        coords["10"] = (339,100,357,121)
+        coords["01"] = (31, 28, 49, 49)
+        coords["02"] = (108, 28, 126, 49)
+        coords["03"] = (185, 28, 203, 49)
+        coords["04"] = (262, 28, 280, 49)
+        coords["05"] = (339, 28, 357, 49)
+        coords["06"] = (31, 100, 49, 121)
+        coords["07"] = (108, 100, 126, 121)
+        coords["08"] = (185, 100, 203, 121)
+        coords["09"] = (262, 100, 280, 121)
+        coords["10"] = (339, 100, 357, 121)
 
-        VirtKeyboard.__init__(self,basepage.browser.openurl(self.url % time.time()),coords,self.color)
-        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
+        VirtKeyboard.__init__(self, basepage.browser.openurl(self.url % time.time()), coords, self.color)
+        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
-    def get_symbol_code(self,md5sum):
-        code=VirtKeyboard.get_symbol_code(self,md5sum)
+    def get_symbol_code(self, md5sum):
+        code = VirtKeyboard.get_symbol_code(self, md5sum)
         return code
 
-    def get_string_code(self,string):
-        code=''
+    def get_string_code(self, string):
+        code = ''
         for c in string:
-            code+=self.get_symbol_code(self.symbols[c])
+            code += self.get_symbol_code(self.symbols[c])
         return code
 
 
@@ -85,9 +84,9 @@ class LoginPage(BasePage):
 
     def login(self, login, password):
         try:
-            vk=HelloBankVirtKeyboard(self)
+            vk = HelloBankVirtKeyboard(self)
         except VirtKeyboardError as err:
-            self.logger.error("Error: %s"%err)
+            self.logger.error("Error: %s" % err)
             return False
 
         self.browser.select_form('logincanalnet')
@@ -114,4 +113,3 @@ class ConfirmPage(BasePage):
 class InfoMessagePage(BasePage):
     def on_loaded(self):
         pass
-

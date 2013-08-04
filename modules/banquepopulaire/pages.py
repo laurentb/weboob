@@ -32,7 +32,7 @@ __all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'Unavai
 
 
 class WikipediaARC4(object):
-    def __init__(self, key = None):
+    def __init__(self, key=None):
         self.state = range(256)
         self.x = self.y = 0
 
@@ -53,6 +53,7 @@ class WikipediaARC4(object):
             self.state[self.x], self.state[self.y] = self.state[self.y], self.state[self.x]
             output[i] = chr((ord(input[i]) ^ self.state[(self.state[self.x] + self.state[self.y]) & 0xFF]))
         return ''.join(output)
+
 
 class RedirectPage(BasePage):
     """
@@ -128,6 +129,7 @@ class RedirectPage(BasePage):
 
         if redirect_url is not None:
             self.browser.location(self.browser.request_class(self.browser.absurl(redirect_url), None, {'Referer': self.url}))
+
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -290,6 +292,7 @@ class TransactionsPage(BasePage):
     COL_VALUE_DATE = 4
     COL_DEBIT = -2
     COL_CREDIT = -1
+
     def get_history(self):
         for tr in self.document.xpath('//table[@id="tbl1"]/tbody/tr'):
             tds = tr.findall('td')

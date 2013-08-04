@@ -48,8 +48,8 @@ class Boursorama(BaseBrowser):
              '.*/date_anniversaire.phtml.*':    UpdateInfoPage,
             }
 
-    def __init__(self, device="weboob", enable_twofactors=False
-                , *args, **kwargs):
+    def __init__(self, device="weboob", enable_twofactors=False,
+                 *args, **kwargs):
         self.device = device
         self.enable_twofactors = enable_twofactors
         BaseBrowser.__init__(self, *args, **kwargs)
@@ -69,9 +69,9 @@ class Boursorama(BaseBrowser):
                 self.page.authenticate(self.device)
             else:
                 raise BrowserIncorrectAuthenticationCode(
-                        """Boursorama - activate the two factor authentication in boursorama config."""\
-                        """ You will receive SMS code but are limited in request per day (around 15)"""
-                    )
+                    """Boursorama - activate the two factor authentication in boursorama config."""
+                    """ You will receive SMS code but are limited in request per day (around 15)"""
+                )
 
     def login_mobile(self):
         assert isinstance(self.username, basestring)

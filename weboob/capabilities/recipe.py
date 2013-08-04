@@ -19,8 +19,12 @@
 
 
 from .base import IBaseCap, CapBaseObject, StringField, IntField, Field, empty
+
 import lxml.etree as ET
-import base64, re, urllib
+
+import base64
+import re
+import urllib
 
 
 __all__ = ['Recipe', 'ICapRecipe']
@@ -41,6 +45,7 @@ class Comment():
         if self.text:
             result += 'comment: %s' % self.text
         return result
+
 
 class Recipe(CapBaseObject):
     """
@@ -108,7 +113,7 @@ class Recipe(CapBaseObject):
             datab64 = base64.encodestring(data)[:-1]
 
             pictures = ET.SubElement(desc, 'pictures')
-            pic = ET.SubElement(pictures, 'pic', {'format' : 'JPEG', 'id' : '1'})
+            pic = ET.SubElement(pictures, 'pic', {'format': 'JPEG', 'id': '1'})
             pic.text = ET.CDATA(datab64)
 
         if not empty(self.ingredients):

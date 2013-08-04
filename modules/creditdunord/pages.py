@@ -94,7 +94,7 @@ class AccountsPage(CDNBasePage):
 
         for line in data:
             a = Account()
-            a.id = line[self.COL_ID].replace(' ','')
+            a.id = line[self.COL_ID].replace(' ', '')
             fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
             a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
@@ -128,6 +128,7 @@ class ProAccountsPage(AccountsPage):
     COL_BALANCE = 1
 
     ARGS = ['Banque', 'Agence', 'classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
+
     def params_from_js(self, text):
         l = []
         for sub in re.findall("'([^']*)'", text):
@@ -140,7 +141,6 @@ class ProAccountsPage(AccountsPage):
             args[key] = unicode(l[self.ARGS.index(key)]).encode(self.browser.ENCODING)
 
         return url, args
-
 
     def get_list(self):
         for tr in self.document.xpath('//table[@class="datas"]//tr'):
@@ -254,6 +254,7 @@ class TransactionsPage(CDNBasePage):
                 continue
 
             yield t
+
 
 class ProTransactionsPage(TransactionsPage):
     def get_next_args(self, args):

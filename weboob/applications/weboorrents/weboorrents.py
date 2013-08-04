@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 import sys
 
 from weboob.capabilities.torrent import ICapTorrent, MagnetOnly
@@ -56,7 +55,7 @@ class TorrentInfoFormatter(IFormatter):
             for f in obj.files:
                 result += ' * %s\n' % f
         result += '\n%sDescription%s\n' % (self.BOLD, self.NC)
-        result += '%s'%obj.description
+        result += '%s' % obj.description
         return result
 
 
@@ -71,6 +70,7 @@ class TorrentListFormatter(PrettyFormatter):
                 (5, 'green', None),
                 (10, 'green', 'bold'),
                )
+
     def _get_color(self, nb):
         if empty(nb):
             return self.colored('N/A', 'red')
@@ -115,7 +115,7 @@ class Weboorrents(ReplApplication):
 
         Get information about a torrent.
         """
-        torrent = self.get_object(id, 'get_torrent', ('description','files'))
+        torrent = self.get_object(id, 'get_torrent', ('description', 'files'))
         if not torrent:
             print >>sys.stderr, 'Torrent not found: %s' % id
             return 3

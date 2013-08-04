@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib, sys, codecs
+import urllib
+import sys
+import codecs
 
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QFrame, QImage, QPixmap, QFileDialog
@@ -85,11 +87,11 @@ class Recipe(QFrame):
         if not empty(self.recipe.picture_url):
             data = urllib.urlopen(self.recipe.picture_url).read()
             img = QImage.fromData(data)
-            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250,Qt.SmoothTransformation))
+            self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250, Qt.SmoothTransformation))
 
     def export(self):
         fileDial = QFileDialog(self, 'Export "%s" recipe' %
-                               self.recipe.title, '%s.kreml' % self.recipe.title.replace('/',','), 'Krecipe file (*.kreml);;all files (*)')
+                               self.recipe.title, '%s.kreml' % self.recipe.title.replace('/', ','), 'Krecipe file (*.kreml);;all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
         fileDial.setLabelText(QFileDialog.Accept, 'Export recipe')
         fileDial.setLabelText(QFileDialog.FileName, 'Recipe file name')

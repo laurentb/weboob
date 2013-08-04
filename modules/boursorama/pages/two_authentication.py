@@ -125,6 +125,3 @@ class AuthenticationPage(BasePage):
     def print_cookies(self):
         for c in self.browser._ua_handlers["_cookies"].cookiejar:
             print "%s : %s" % (c.name, c.value)
-
-
-

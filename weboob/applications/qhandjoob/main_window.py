@@ -26,17 +26,19 @@ from weboob.capabilities.job import ICapJob
 
 from .ui.main_window_ui import Ui_MainWindow
 
+
 class JobListWidgetItem(QListWidgetItem):
     def __init__(self, job, *args, **kwargs):
         QListWidgetItem.__init__(self, *args, **kwargs)
         self.job = job
 
     def __lt__(self, other):
-         return self.job.publication_date < other.job.publication_date
+        return self.job.publication_date < other.job.publication_date
 
     def setAttrs(self, storage):
-        text =  u'%s - %s' % (self.job.backend, self.job.title)
+        text = u'%s - %s' % (self.job.backend, self.job.title)
         self.setText(text)
+
 
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
@@ -129,4 +131,3 @@ class MainWindow(QtMainWindow):
             self.ui.jobFrame.show()
         else:
             self.ui.jobFrame.hide()
-

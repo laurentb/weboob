@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-
 import os
 import shutil
 
@@ -38,6 +36,7 @@ __all__ = ['Weboob']
 
 class VersionsMismatchError(ConfigError):
     pass
+
 
 class Weboob(object):
     """
