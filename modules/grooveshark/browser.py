@@ -31,8 +31,15 @@ import datetime
 __all__ = ['GroovesharkBrowser']
 
 
+class GroovesharkVideo(BaseVideo):
+    def __init__(self, *args, **kwargs):
+        BaseVideo.__init__(self, *args, **kwargs)
+        self.ext = u'mp3'
+
+
 class APIError(Exception):
     pass
+
 
 class GroovesharkBrowser(BaseBrowser):
     PROTOCOL = 'http'
@@ -56,7 +63,7 @@ class GroovesharkBrowser(BaseBrowser):
     HEADER["uuid"] = str.upper(str(uuid.uuid4()))
 
     #those values depends on a grooveshark version and may change
-    GROOVESHARK_CONSTANTS  = ('mobileshark', '20120830', 'gooeyFlubber')
+    GROOVESHARK_CONSTANTS = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
 
     VIDEOS_FROM_SONG_RESULTS = None
@@ -69,7 +76,7 @@ class GroovesharkBrowser(BaseBrowser):
 
         parameters = {}
         parameters['query'] = pattern.encode(self.ENCODING)
-        parameters['type'] = ['Songs']#['Songs','Playlists','Albums']
+        parameters['type'] = ['Songs']  # ['Songs','Playlists','Albums']
         parameters['guts'] = 0
         parameters['ppOverr'] = ''
 
@@ -85,10 +92,10 @@ class GroovesharkBrowser(BaseBrowser):
         self.VIDEOS_FROM_SONG_RESULTS = []
 
         for song in songs:
-            video = BaseVideo(song['SongID'])
+            video = GroovesharkVideo(song['SongID'])
             video.title = u'Song - %s' % song['SongName'].encode('ascii', 'replace')
             video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
-            video.description = u'%s - %s - %s'%(video.author, song['AlbumName'].encode('ascii', 'replace'), song['Year'].encode('ascii', 'replace'))
+            video.description = u'%s - %s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'), song['Year'].encode('ascii', 'replace'))
             video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
             video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.rating = float(song['AvgRating'])
@@ -103,8 +110,8 @@ class GroovesharkBrowser(BaseBrowser):
     def create_video_from_playlist_result(self, playlists):
         videos = []
         for playlist in playlists:
-            video = BaseVideo(playlist['PlaylistID'])
-            video.title = u'Playlist - %s' %(playlist['Name'])
+            video = GroovesharkVideo(playlist['PlaylistID'])
+            video.title = u'Playlist - %s' % (playlist['Name'])
             video.description = playlist['Artists']
             videos.append(video)
         return videos
@@ -112,12 +119,11 @@ class GroovesharkBrowser(BaseBrowser):
     def create_video_from_albums_result(self, albums):
         videos = []
         for album in albums:
-            video = BaseVideo(album['AlbumID'])
-            video.title = u'Album - %s' %(album['Name'])
+            video = GroovesharkVideo(album['AlbumID'])
+            video.title = u'Album - %s' % (album['Name'])
             video.description = album['Year']
             videos.append(video)
         return videos
-
 
     def get_communication_token(self):
         parameters = {'secretKey': hashlib.md5(self.HEADER["session"]).hexdigest()}
@@ -125,11 +131,11 @@ class GroovesharkBrowser(BaseBrowser):
         self.COMMUNICATION_TOKEN = result['result']
 
     def create_token(self, method):
-       if self.COMMUNICATION_TOKEN is None:
-           self.get_communication_token()
+        if self.COMMUNICATION_TOKEN is None:
+            self.get_communication_token()
 
-       rnd = (''.join(random.choice(string.hexdigits) for x in range(6)))
-       return rnd + hashlib.sha1('%s:%s:%s:%s' % (method, self.COMMUNICATION_TOKEN, self.GROOVESHARK_CONSTANTS[2], rnd)).hexdigest()
+        rnd = (''.join(random.choice(string.hexdigits) for x in range(6)))
+        return rnd + hashlib.sha1('%s:%s:%s:%s' % (method, self.COMMUNICATION_TOKEN, self.GROOVESHARK_CONSTANTS[2], rnd)).hexdigest()
 
     def get_video_from_song_id(self, song_id):
         if self.VIDEOS_FROM_SONG_RESULTS:
@@ -151,7 +157,7 @@ class GroovesharkBrowser(BaseBrowser):
 
         self.mark_song_downloaded_ex(response['result'])
 
-        return u'http://%s/stream.php?streamKey=%s' %(response['result']['ip'], response['result']['streamKey'])
+        return u'http://%s/stream.php?streamKey=%s' % (response['result']['ip'], response['result']['streamKey'])
 
     # in order to simulate a real browser
     def mark_song_downloaded_ex(self, response):
@@ -192,7 +198,7 @@ class GroovesharkBrowser(BaseBrowser):
         return simplejson.dumps(data)
 
     def create_request(self, method):
-        req = self.request_class('%s?%s' %(self.API_URL, method))
+        req = self.request_class('%s?%s' % (self.API_URL, method))
         req.add_header('Content-Type', 'application/json')
         return req
 
