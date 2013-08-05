@@ -58,14 +58,14 @@ class ResultsCondition(IResultsCondition):
                     different = False
                 if k in d:
                     if different:
-                        if d[k] == v:
-                            return False
-                    else:
                         if d[k] != v:
-                            return False
+                            return True
+                    else:
+                        if d[k] == v:
+                            return True
                 else:
                     raise ResultsConditionError(u'Field "%s" is not valid.' % k)
-        return True
+        return False
 
     def __str__(self):
         return unicode(self).encode('utf-8')
