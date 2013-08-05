@@ -27,14 +27,14 @@ __all__ = ['ResultsCondition', 'ResultsConditionError']
 class ResultsCondition(IResultsCondition):
     condition_str = None
 
+    # TODO: NOT?
     def __init__(self, condition_str):
-        condition_str = condition_str.replace(' OR ', ' or ') \
-                                     .replace(' AND ', ' and ') \
-                                     .replace(' NOT ', ' not ')
+        condition_str = condition_str.replace(' NOT ', ' not ')
+
         or_list = []
-        for _or in condition_str.split(' or '):
+        for _or in condition_str.split(' OR '):
             and_dict = {}
-            for _and in _or.split(' and '):
+            for _and in _or.split(' AND '):
                 if '!=' in _and:
                     k, v = _and.split('!=')
                     k = k.strip() + '!'
@@ -47,24 +47,35 @@ class ResultsCondition(IResultsCondition):
         self.condition = or_list
         self.condition_str = condition_str
 
+
     def is_valid(self, obj):
         d = dict(obj.iter_fields())
+        # A and B give us a list with one elements of two dicts ([{u'A': u'toto', u'B': u'charles'}]
+        # A or B  give us a list with two elements of one dict  [{u'A': u'toto'}, {u'B': u'charles'}]
+        # We have to return True if one element of the list is True, and to evaluate all dicts at each iteration
         for _or in self.condition:
+            myeval = True
             for k, v in _or.iteritems():
+                different = False
                 if k.endswith('!'):
                     k = k[:-1]
                     different = True
-                else:
-                    different = False
                 if k in d:
-                    if different:
-                        if d[k] != v:
-                            return True
-                    else:
-                        if d[k] == v:
-                            return True
+                    # We have to change the type of v, always gived as string by application
+                    typed = type(d[k])
+                    try:
+                        myeval = (d[k] == typed(v)) != different
+                    except:
+                        myeval = False
                 else:
                     raise ResultsConditionError(u'Field "%s" is not valid.' % k)
+                # Do not try all AND conditions if one is false
+                if not myeval:
+                    break
+            # Return True at the first OR valid condition
+            if myeval:
+                return True
+        # If we are here, all OR conditions are False
         return False
 
     def __str__(self):
