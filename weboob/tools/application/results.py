@@ -24,47 +24,69 @@ from weboob.core.bcall import IResultsCondition, ResultsConditionError
 __all__ = ['ResultsCondition', 'ResultsConditionError']
 
 
+class Condition(object):
+   def  __init__(self, left, op, right):
+       self.left = left  # Field of the object to test
+       self.op = op
+       self.right = right
+
+
+def is_egal(left, right):
+    return left == right
+
+def is_notegal(left, right):
+    return left != right
+
+def is_sup(left, right):
+    return left < right
+
+def is_inf(left, right):
+    return left > right
+
+functions = {'=': is_egal, '!=': is_notegal, '>': is_sup, '<': is_inf}
+
 class ResultsCondition(IResultsCondition):
     condition_str = None
 
-    # TODO: NOT?
+    # Supported operators
+    # =, !=, <, > for float/int/decimal
+    # =, != for strings
+    # We build a list of list. Return true if each conditions of one list is TRUE
     def __init__(self, condition_str):
-        condition_str = condition_str.replace(' NOT ', ' not ')
-
         or_list = []
         for _or in condition_str.split(' OR '):
-            and_dict = {}
+            and_list = []
             for _and in _or.split(' AND '):
+                # TODO: a regexp will be cleaner
                 if '!=' in _and:
-                    k, v = _and.split('!=')
-                    k = k.strip() + '!'
+                    operator = '!='
                 elif '=' in _and:
-                    k, v = _and.split('=')
+                    operator = '='
+                elif '>' in _and:
+                    operator = '>'
+                elif '<' in _and:
+                    operator = '<'
                 else:
                     raise ResultsConditionError(u'Could not find = or != operator in sub-expression "%s"' % _and)
-                and_dict[k.strip()] = v.strip()
-            or_list.append(and_dict)
+                l, r = _and.split(operator)
+                and_list.append(Condition(l, operator, r))
+            or_list.append(and_list)
         self.condition = or_list
         self.condition_str = condition_str
 
 
     def is_valid(self, obj):
         d = dict(obj.iter_fields())
-        # A and B give us a list with one elements of two dicts ([{u'A': u'toto', u'B': u'charles'}]
-        # A or B  give us a list with two elements of one dict  [{u'A': u'toto'}, {u'B': u'charles'}]
-        # We have to return True if one element of the list is True, and to evaluate all dicts at each iteration
+        # We evaluate all member of a list at each iteration.
         for _or in self.condition:
             myeval = True
-            for k, v in _or.iteritems():
-                different = False
-                if k.endswith('!'):
-                    k = k[:-1]
-                    different = True
-                if k in d:
+            for condition in _or:
+                if condition.left in d:
                     # We have to change the type of v, always gived as string by application
-                    typed = type(d[k])
+                    typed = type(d[condition.left])
                     try:
-                        myeval = (d[k] == typed(v)) != different
+                        tocompare = typed(condition.right)
+                        myeval = functions[condition.op](tocompare, d[condition.left])
                     except:
                         myeval = False
                 else:
