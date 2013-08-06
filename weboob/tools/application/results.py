@@ -43,7 +43,10 @@ def is_sup(left, right):
 def is_inf(left, right):
     return left > right
 
-functions = {'=': is_egal, '!=': is_notegal, '>': is_sup, '<': is_inf}
+def is_in(left, right):
+    return left in right
+
+functions = {'!=': is_notegal, '=': is_egal, '>': is_sup, '<': is_inf, '|': is_in}
 
 class ResultsCondition(IResultsCondition):
     condition_str = None
@@ -57,16 +60,12 @@ class ResultsCondition(IResultsCondition):
         for _or in condition_str.split(' OR '):
             and_list = []
             for _and in _or.split(' AND '):
-                # TODO: a regexp will be cleaner
-                if '!=' in _and:
-                    operator = '!='
-                elif '=' in _and:
-                    operator = '='
-                elif '>' in _and:
-                    operator = '>'
-                elif '<' in _and:
-                    operator = '<'
-                else:
+                operator = None
+                for op in ['!=', '=', '>', '<', '|']:
+                    if op in _and:
+                        operator = op
+                        break
+                if operator is None:
                     raise ResultsConditionError(u'Could not find = or != operator in sub-expression "%s"' % _and)
                 l, r = _and.split(operator)
                 and_list.append(Condition(l, operator, r))
