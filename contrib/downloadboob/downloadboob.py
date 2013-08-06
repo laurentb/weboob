@@ -94,7 +94,7 @@ class Downloadboob(object):
 
         # search for videos
         videos = []
-        for i, video in enumerate(self.backend.search_videos(pattern, sortby, nsfw, max_results)):
+        for i, video in enumerate(self.backend.search_videos(pattern, sortby, nsfw)):
             if i == max_results:
                 break
 
