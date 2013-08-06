@@ -90,7 +90,7 @@ class ResultsCondition(IResultsCondition):
                     except:
                         myeval = False
                 else:
-                    raise ResultsConditionError(u'Field "%s" is not valid.' % k)
+                    raise ResultsConditionError(u'Field "%s" is not valid.' % condition.left)
                 # Do not try all AND conditions if one is false
                 if not myeval:
                     break
