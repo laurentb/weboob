@@ -98,8 +98,6 @@ class BackendsCall(object):
     def _store_result(self, backend, result):
         with self.mutex:
             if isinstance(result, CapBaseObject):
-                if self.condition and not self.condition.is_valid(result):
-                    return
                 result.backend = backend.name
             self.responses.append((backend, result))
             self.response_event.set()
