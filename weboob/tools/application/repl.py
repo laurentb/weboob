@@ -472,16 +472,22 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.selected_fields = ['$direct']
 
-        if self.options.condition:
-            self.condition = ResultsCondition(self.options.condition)
-        else:
-            self.condition = None
 
         if self.options.count is not None:
             self._is_default_count = False
         if self.options.count <= 0:
             # infinite search
             self.options.count = None
+
+        if self.options.condition:
+            self.condition = ResultsCondition(self.options.condition)
+            # Enable infinite search by default is condition is set
+            # (count applies on the non-filtered result, and can be confusing for users)
+            if self._is_default_count:
+                self.options.count = None
+                self._is_default_count = False
+        else:
+            self.condition = None
 
         return super(ReplApplication, self)._handle_options()
 
