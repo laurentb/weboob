@@ -318,8 +318,6 @@ class Weboob(object):
         :type backends: list[:class:`str`]
         :param caps: iterate on backends which implement this caps
         :type caps: list[:class:`weboob.capabilities.base.IBaseCap`]
-        :param condition: a condition to validate results
-        :type condition: :class:`weboob.core.bcall.IResultsCondition`
         :rtype: A :class:`weboob.core.bcall.BackendsCall` object (iterable)
         """
         backends = self.backend_instances.values()
@@ -349,13 +347,12 @@ class Weboob(object):
         if 'caps' in kwargs:
             caps = kwargs.pop('caps')
             backends = [backend for backend in backends if backend.has_caps(caps)]
-        condition = kwargs.pop('condition', None)
 
         # The return value MUST BE the BackendsCall instance. Please never iterate
         # here on this object, because caller might want to use other methods, like
         # wait() on callback_thread().
         # Thanks a lot.
-        return BackendsCall(backends, condition, function, *args, **kwargs)
+        return BackendsCall(backends, function, *args, **kwargs)
 
     def schedule(self, interval, function, *args):
         """

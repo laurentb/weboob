@@ -18,10 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.core.bcall import IResultsCondition, ResultsConditionError
-
-
 __all__ = ['ResultsCondition', 'ResultsConditionError']
+
+class IResultsCondition(object):
+    def is_valid(self, obj):
+        raise NotImplementedError()
+
+
+class ResultsConditionError(Exception):
+    pass
 
 
 class Condition(object):

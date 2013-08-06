@@ -305,7 +305,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         """
         backends = kwargs.pop('backends', None)
         kwargs['backends'] = self.enabled_backends if backends is None else backends
-        kwargs['condition'] = self.condition
         fields = kwargs.pop('fields', self.selected_fields) or self.selected_fields
         if '$direct' in fields:
             fields = []
@@ -449,10 +448,7 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         This method can be overrided to support more exceptions types.
         """
-        if isinstance(error, ResultsConditionError):
-            print >>sys.stderr, u'Error(%s): condition error: %s' % (backend.name, error)
-        else:
-            return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
+        return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
 
     def bcall_errors_handler(self, errors, ignore=()):
         if self.interactive:

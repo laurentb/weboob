@@ -28,7 +28,7 @@ from weboob.tools.misc import get_backtrace
 from weboob.tools.log import getLogger
 
 
-__all__ = ['BackendsCall', 'CallErrors', 'IResultsCondition', 'ResultsConditionError']
+__all__ = ['BackendsCall', 'CallErrors']
 
 
 class CallErrors(Exception):
@@ -44,22 +44,11 @@ class CallErrors(Exception):
         return self.errors.__iter__()
 
 
-class IResultsCondition(object):
-    def is_valid(self, obj):
-        raise NotImplementedError()
-
-
-class ResultsConditionError(Exception):
-    pass
-
-
 class BackendsCall(object):
-    def __init__(self, backends, condition, function, *args, **kwargs):
+    def __init__(self, backends, function, *args, **kwargs):
         """
         :param backends: List of backends to call
         :type backends: list[:class:`BaseBackend`]
-        :param condition: Condition applied on results (can be None)
-        :type condition: :class:`IResultsCondition`
         :param function: backends' method name, or callable object.
         :type function: :class:`str` or :class:`callable`
         """
@@ -68,8 +57,6 @@ class BackendsCall(object):
         self.backends = {}
         for backend in backends:
             self.backends[backend.name] = False
-        # Condition
-        self.condition = condition
         # Global mutex on object
         self.mutex = RLock()
         # Event set when every backends have give their data
