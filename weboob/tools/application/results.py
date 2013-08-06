@@ -25,28 +25,33 @@ __all__ = ['ResultsCondition', 'ResultsConditionError']
 
 
 class Condition(object):
-   def  __init__(self, left, op, right):
-       self.left = left  # Field of the object to test
-       self.op = op
-       self.right = right
+    def __init__(self, left, op, right):
+        self.left = left  # Field of the object to test
+        self.op = op
+        self.right = right
 
 
 def is_egal(left, right):
     return left == right
 
+
 def is_notegal(left, right):
     return left != right
+
 
 def is_sup(left, right):
     return left < right
 
+
 def is_inf(left, right):
     return left > right
+
 
 def is_in(left, right):
     return left in right
 
 functions = {'!=': is_notegal, '=': is_egal, '>': is_sup, '<': is_inf, '|': is_in}
+
 
 class ResultsCondition(IResultsCondition):
     condition_str = None
@@ -66,13 +71,12 @@ class ResultsCondition(IResultsCondition):
                         operator = op
                         break
                 if operator is None:
-                    raise ResultsConditionError(u'Could not find = or != operator in sub-expression "%s"' % _and)
+                    raise ResultsConditionError(u'Could not find a valid operator in sub-expression "%s"' % _and)
                 l, r = _and.split(operator)
                 and_list.append(Condition(l, operator, r))
             or_list.append(and_list)
         self.condition = or_list
         self.condition_str = condition_str
-
 
     def is_valid(self, obj):
         d = dict(obj.iter_fields())
