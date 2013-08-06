@@ -27,6 +27,7 @@ import tempfile
 import warnings
 
 from weboob.capabilities.base import ConversionWarning
+from weboob.tools.browser.browser import FormFieldConversionWarning
 from weboob.core import Weboob, CallErrors
 from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
@@ -338,6 +339,7 @@ class BaseApplication(object):
         # this only matters to developers
         if not self.options.debug and not self.options.save_responses:
             warnings.simplefilter('ignore', category=ConversionWarning)
+            warnings.simplefilter('ignore', category=FormFieldConversionWarning)
 
         handlers = []
 
