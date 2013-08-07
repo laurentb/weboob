@@ -21,7 +21,7 @@
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import BredBrowser
 
@@ -37,11 +37,15 @@ class BredBackend(BaseBackend, ICapBank):
     DESCRIPTION = u'BRED French bank website'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+                           ValueBackendPassword('password', label='Password of account'),
+                           Value('accnum', label='Account number to force (optional)', default='', masked=False)
+                           )
     BROWSER = BredBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config['accnum'].get(),
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def iter_accounts(self):
         with self.browser:

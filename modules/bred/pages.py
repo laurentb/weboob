@@ -55,7 +55,27 @@ class LoginResultPage(BasePage):
             pass
         else:
             self.browser.set_all_readonly(False)
-            self.browser['typeCompte'] = 'P'
+            accounts = {}
+            for tr in self.document.getroot().cssselect('table.compteTable tbody tr'):
+                attr = tr.xpath('.//a')[0].attrib.get('onclick', '')
+                m = re.search("value = '(\w+)';checkAndSubmit\('\w+','(\w+)','(\w+)'\)", attr)
+                if m:
+                    typeCompte = m.group(1)
+                    tagName = m.group(2)
+                    value = self.document.xpath('//input[@id="%s%s"]' % (m.group(2), m.group(3)))[0].attrib['value']
+                    accounts[value] = (typeCompte, tagName)
+
+            try:
+                typeCompte, tagName = accounts[self.browser.accnum]
+                value = self.browser.accnum
+            except KeyError:
+                if self.browser.accnum != '00000000000':
+                    self.logger.warning(u'Unable to find account "%s". Available ones: %s' % (self.browser.accnum, ', '.join(accounts.keys())))
+                elif len(accounts) > 1:
+                    self.logger.warning('There are several accounts, please use "accnum" backend parameter to force the one to use')
+                value, (typeCompte, tagName) = accounts.popitem()
+            self.browser['typeCompte'] = typeCompte
+            self.browser[tagName] = [value]
             self.browser.submit()
 
 

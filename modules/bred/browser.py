@@ -41,6 +41,10 @@ class BredBrowser(BaseBrowser):
              'https://www.bred.fr/':                                    EmptyPage,
             }
 
+    def __init__(self, accnum, *args, **kwargs):
+        self.accnum = accnum.zfill(11)
+        BaseBrowser.__init__(self, *args, **kwargs)
+
     def is_logged(self):
         return self.page is not None and not self.is_on_page(LoginPage)
 
