@@ -25,8 +25,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Transfer, TransferError
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, EmptyPage, \
-                   OperationsPage, CardPage, NoOperationsPage, InfoPage, TransfertPage, \
-                   ChangePasswordPage, VerifCodePage
+                   OperationsPage, CardPage, ComingPage, NoOperationsPage, InfoPage, \
+                   TransfertPage, ChangePasswordPage, VerifCodePage
 
 
 __all__ = ['CICBrowser']
@@ -44,6 +44,7 @@ class CICBrowser(BaseBrowser):
              'https://www.cic.fr/.*/fr/banque/situation_financiere.cgi': AccountsPage,
              'https://www.cic.fr/.*/fr/banque/espace_personnel.aspx': UserSpacePage,
              'https://www.cic.fr/.*/fr/banque/mouvements.cgi.*': OperationsPage,
+             'https://www.cic.fr/.*/fr/banque/mvts_instance.cgi.*': ComingPage,
              'https://www.cic.fr/.*/fr/banque/nr/nr_devbooster.aspx.*': OperationsPage,
              'https://www.cic.fr/.*/fr/banque/operations_carte\.cgi.*': CardPage,
              'https://www.cic.fr/.*/fr/banque/CR/arrivee\.asp.*': NoOperationsPage,
@@ -125,6 +126,11 @@ class CICBrowser(BaseBrowser):
                 transactions.append(tr)
             elif last_debit is None:
                 last_debit = (tr.date - timedelta(days=10)).month
+
+        coming_link = self.page.get_coming_link()
+        if coming_link is not None:
+            for tr in self.list_operations(coming_link):
+                transactions.append(tr)
 
         month = 0
         for card_link in account._card_links:
