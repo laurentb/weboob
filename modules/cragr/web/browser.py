@@ -140,8 +140,7 @@ class Cragr(BaseBrowser):
         accounts_list.extend(self.page.get_list())
 
         # credit cards
-        cards_page = self.page.cards_page()
-        if cards_page:
+        for cards_page in self.page.cards_pages():
             self.location(cards_page)
             assert self.is_on_page(CardsPage)
             accounts_list.extend(self.page.get_list())

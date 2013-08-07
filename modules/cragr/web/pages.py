@@ -102,13 +102,15 @@ class _AccountsPage(BasePage):
 
             yield account
 
-    def cards_page(self):
-        try:
-            return self.document.xpath('//table[@class="ca-table"]' +
-                                       '/tr[@class="ligne-connexe"]' +
-                                       '//a/@href')[0]
-        except IndexError:
-            pass
+    def cards_pages(self):
+        for line in self.document.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
+            try:
+                link = line.xpath('.//a/@href')[0]
+            except IndexError:
+                pass
+            else:
+                if not link.startswith('javascript:'):
+                    yield link
 
 
 class CardsPage(BasePage):
