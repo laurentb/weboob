@@ -127,7 +127,7 @@ class CICBrowser(BaseBrowser):
             elif last_debit is None:
                 last_debit = (tr.date - timedelta(days=10)).month
 
-        coming_link = self.page.get_coming_link()
+        coming_link = self.page.get_coming_link() if self.is_on_page(OperationsPage) else None
         if coming_link is not None:
             for tr in self.list_operations(coming_link):
                 transactions.append(tr)
