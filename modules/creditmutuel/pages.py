@@ -23,7 +23,7 @@ from urlparse import urlparse, parse_qs
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage, BrowserIncorrectPassword
+from weboob.tools.browser import BasePage, BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -106,12 +106,33 @@ class AccountsPage(BasePage):
                 account._link_id = link
                 account._card_links = []
 
+                # Find accounting amount
+                page = self.browser.get_document(self.browser.openurl(link))
+                coming = self.find_amount(page, u"Opérations à venir")
+                accounting = self.find_amount(page, u"Solde comptable")
+
+                if account is not None and accounting + (coming or Decimal('0')) != balance:
+                    self.logger.warning('%s + %s != %s' % (accounting, coming, balance))
+
+                if accounting is not None:
+                    balance = accounting
+
+                if coming is not None:
+                    account.coming = coming
                 account.balance = balance
                 account.currency = currency
 
                 accounts[account.id] = account
 
         return accounts.itervalues()
+
+    def find_amount(self, page, title):
+        try:
+            td = page.xpath(u'//th[contains(text(), "%s")]/../td' % title)[0]
+        except IndexError:
+            return None
+        else:
+            return Decimal(FrenchTransaction.clean_amount(td.text))
 
 
 class Transaction(FrenchTransaction):
@@ -156,11 +177,14 @@ class OperationsPage(BasePage):
                 if parts[0].startswith('PAIEMENT CB'):
                     parts.reverse()
 
-                operation.parse(date=tds[0].text,
-                                raw=u' '.join(parts))
+                date = tds[0].text
+                vdate = tds[1].text if len(tds) >= 5 else None
+                raw = u' '.join(parts)
 
-                credit = u''.join([txt.strip() for txt in tds[-1].itertext()])
-                debit = u''.join([txt.strip() for txt in tds[-2].itertext()])
+                operation.parse(date=date, vdate=vdate, raw=raw)
+
+                credit = self.parser.tocleanstring(tds[-1])
+                debit = self.parser.tocleanstring(tds[-2])
                 operation.set_amount(credit, debit)
                 yield operation
 
@@ -193,6 +217,34 @@ class OperationsPage(BasePage):
         self.browser.location(form.attrib['action'], urllib.urlencode(inputs))
 
         return True
+
+    def get_coming_link(self):
+        try:
+            a = self.parser.select(self.document, u'//a[contains(text(), "Opérations à venir")]', 1, 'xpath')
+        except BrokenPageError:
+            return None
+        else:
+            return a.attrib['href']
+
+
+class ComingPage(OperationsPage):
+    def get_history(self):
+        index = 0
+        for tr in self.document.xpath('//table[@class="liste"]/tbody/tr'):
+            tds = tr.findall('td')
+            if len(tds) < 3:
+                continue
+
+            tr = Transaction(index)
+
+            date = self.parser.tocleanstring(tds[0])
+            raw = self.parser.tocleanstring(tds[1])
+            amount = self.parser.tocleanstring(tds[-1])
+
+            tr.parse(date=date, raw=raw)
+            tr.set_amount(amount)
+            tr._is_coming = True
+            yield tr
 
 
 class CardPage(OperationsPage):
