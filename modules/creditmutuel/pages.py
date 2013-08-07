@@ -111,7 +111,7 @@ class AccountsPage(BasePage):
                 coming = self.find_amount(page, u"Opérations à venir")
                 accounting = self.find_amount(page, u"Solde comptable")
 
-                if account is not None and accounting + (coming or Decimal('0')) != balance:
+                if accounting is not None and accounting + (coming or Decimal('0')) != balance:
                     self.logger.warning('%s + %s != %s' % (accounting, coming, balance))
 
                 if accounting is not None:
