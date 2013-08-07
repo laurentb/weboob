@@ -20,6 +20,7 @@
 
 
 from decimal import Decimal
+import string
 
 from weboob.capabilities.bank import ICapBank, AccountNotFound, Recipient, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
@@ -69,7 +70,7 @@ class CICBackend(BaseBackend, ICapBank):
                     yield tr
 
     def iter_transfer_recipients(self, ignored):
-        for account in self.browser.get_accounts_list().itervalues():
+        for account in self.browser.get_accounts_list():
             recipient = Recipient()
             recipient.id = account.id
             recipient.label = account.label
@@ -79,6 +80,8 @@ class CICBackend(BaseBackend, ICapBank):
         if isinstance(account, Account):
             account = account.id
 
+        account = str(account).strip(string.letters)
+        to = str(to).strip(string.letters)
         try:
             assert account.isdigit()
             assert to.isdigit()
