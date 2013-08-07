@@ -187,7 +187,7 @@ class AccountListFormatter(IFormatter):
         balance = obj.balance or Decimal('0')
         coming = obj.coming or Decimal('0')
         result = u'%s %s %s  %s' % (id,
-                                    self.colored('%-25s' % obj.label, 'yellow'),
+                                    self.colored('%-25s' % obj.label[:25], 'yellow'),
                                     self.colored('%9.2f' % obj.balance, 'green' if balance >= 0 else 'red') if not empty(obj.balance) else ' ' * 9,
                                     self.colored('%9.2f' % obj.coming, 'green' if coming >= 0 else 'red') if not empty(obj.coming) else '')
 
