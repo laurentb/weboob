@@ -149,5 +149,5 @@ class Pastoob(ReplApplication):
                          help='Paste title',
                          type='string')
         group.add_option('-m', '--max-age', action='store',
-                         help='Maximum age (duration), default "1 month"',
+                         help='Maximum age (duration), default "1 month", "never" for infinite',
                          type='string', default='1 month')
