@@ -103,6 +103,8 @@ class _AccountsPage(BasePage):
             yield account
 
     def cards_pages(self):
+        # Use a set because it is possible to see several times the same link.
+        links = set()
         for line in self.document.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
             try:
                 link = line.xpath('.//a/@href')[0]
@@ -110,27 +112,28 @@ class _AccountsPage(BasePage):
                 pass
             else:
                 if not link.startswith('javascript:'):
-                    yield link
+                    links.add(link)
+        return links
 
 
 class CardsPage(BasePage):
-
     def get_list(self):
-        TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption"]]'
+        TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
 
         cards_tables = self.document.xpath(TABLE_XPATH)
 
         if cards_tables:
-            # There are several cards
+            self.logger.debug('There are several cards')
             xpaths = {
                 '_id': './caption/span[@class="tdb-cartes-num"]',
-                'label1': './caption/span[@class="tdb-cartes-carte l30"]',
+                'label1': './caption/span[contains(@class, "tdb-cartes-carte")]',
                 'label2': './caption/span[@class="tdb-cartes-prop"]',
-                'balance': './/tr[last()]/td[@class="cel-num"]',
+                'balance': './/tr/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
-                'link': './/tr//a/@href',
+                'link': './/tr//a/@href[contains(., "fwkaction=Detail")]',
             }
         else:
+            self.logger.debug('There is only one card')
             xpaths = {
                 '_id': './/tr/td[@class="cel-texte"]',
                 'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
@@ -149,7 +152,7 @@ class CardsPage(BasePage):
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
             try:
-                account.balance = Decimal(Transaction.clean_amount(get('balance')))
+                account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
                 account.currency = account.get_currency(self.document
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
             except IndexError:
@@ -160,6 +163,8 @@ class CardsPage(BasePage):
                     account._link = table.xpath(xpaths['link'])[-1]
                 except IndexError:
                     account._link = None
+                else:
+                    account._link = re.sub('[\n\r\t]+', '', account._link)
             else:
                 account._link = self.url
 
