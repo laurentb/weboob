@@ -128,14 +128,8 @@ class LoginPage(BasePage):
         return True
 
     def is_error(self):
-        for text in self.document.find('body').itertext():
-            text=text.strip()
-            # Login seems valid, but password does not
-            needle='Les données saisies sont incorrectes'
-            if text.startswith(needle.decode('utf-8')):
-                return True
-        return False
-
+        errors = self.document.xpath(u'//div[@class="erreur"]')
+        return len(errors) > 0
 
 class ContractsPage(BasePage):
     def on_loaded(self):
