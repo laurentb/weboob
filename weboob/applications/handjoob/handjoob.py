@@ -63,14 +63,14 @@ class JobAdvertListFormatter(PrettyFormatter):
     def get_description(self, obj):
         result = u''
         if hasattr(obj, 'publication_date') and obj.publication_date:
-            result += 'Publication date : %s\n' % obj.publication_date.strftime('%Y-%m-%d')
+            result += '\tPublication date : %s\n' % obj.publication_date.strftime('%Y-%m-%d')
         if hasattr(obj, 'place') and obj.place:
             result += '\tLocation: %s\n' % obj.place
         if hasattr(obj, 'society_name') and obj.society_name:
             result += '\tSociety : %s\n' % obj.society_name
         if hasattr(obj, 'contract_type') and obj.contract_type:
             result += '\tContract : %s\n' % obj.contract_type
-        return result
+        return result.strip('\n\t')
 
 
 class Handjoob(ReplApplication):
