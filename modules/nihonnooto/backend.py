@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.radio import ICapRadio, Radio, Stream
+from weboob.capabilities.radio import ICapRadio, Radio
 from weboob.tools.backend import BaseBackend
 from .browser import NihonNoOtoBrowser
 
@@ -39,7 +39,7 @@ class NihonNoOtoBackend(BaseBackend, ICapRadio):
             if pattern.lower() in radio.title.lower() or pattern.lower() in radio.description.lower():
                 self.browser.get_current_emission()
                 radio.current = self.browser.get_current_emission()
- 
+
                 yield radio
 
     def get_radio(self, radio):

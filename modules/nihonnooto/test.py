@@ -19,12 +19,11 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.radio import Radio
 
 
 class NihonNoOtoTest(BackendTest):
     BACKEND = 'nihonnooto'
 
     def test_nihonnooto(self):
-        l = list(self.backend.iter_radios_search('')
+        l = list(self.backend.iter_radios_search(''))
         self.assertTrue(len(l) > 0)

@@ -30,7 +30,7 @@ class LivePage(BasePage):
         radio.streams = []
 
         index = -1
-       
+
         for el in self.document.xpath('//source'):
             index += 1
             mime_type  = el.attrib['type']
