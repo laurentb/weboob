@@ -37,8 +37,7 @@ class TitrePage(BasePage):
         #popup=2{6{E:ALO{PAR{{reel{695{380{ALSTOM REGROUPT#XX#YY,YY &euro;#YY,YY &euro;#1 YYY,YY &euro;#-YYY,YY &euro;#-42,42%#-0,98 %#42,42 %#|1|AXA#cotationValeur.php?val=E:CS&amp;pl=6&amp;nc=1&amp;
         #popup=2{6{E:CS{PAR{{reel{695{380{AXA#XX#YY,YY &euro;#YY,YYY &euro;#YYY,YY &euro;#YY,YY &euro;#3,70%#42,42 %#42,42 %#|1|blablablab #cotationValeur.php?val=P:CODE&amp;pl=6&amp;nc=1&amp;
         # [...]
-        text = self.parser.tostring(self.document.getroot())
-        lines = text.split("popup=2")
+        lines = self.document.split("popup=2")
         lines.pop(0)
         for line in lines:
             columns = line.split('#')

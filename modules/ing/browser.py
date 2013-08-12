@@ -43,8 +43,8 @@ class Ing(BaseBrowser):
              '.*transferCreateValidation.jsf': TransferConfirmPage,
              '.*eStatement.jsf':               BillsPage,
              '.*displayCoordonneesCommand.*':  StopPage,
-             '.*portefeuille-TR.*':            TitrePage,
-             '.*compteTempsReelCK.php.*':      TitrePage,
+             '.*portefeuille-TR.*':            (TitrePage, 'raw'),
+             '.*compteTempsReelCK.php.*':      (TitrePage, 'raw'),
             }
     CERTHASH = "257100e5f69b3c24b27eaaa82951ca5539e9ca264dee433b7c8d4779e778a0b4"
 
