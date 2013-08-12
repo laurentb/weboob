@@ -16,6 +16,7 @@ The Weboob capability to load.
 Example: env.do get_balance
 
 The Weboob command to call the capability. It can take more than one argument. With two argument, the second is used as parameter for the command. The third is used to restrict backends.
+If you use get_object_list option, you can use only one argument in env.do.
 
 ==== env.import ====
 Example: from weboob.capabilities.bank import ICapBank
@@ -50,13 +51,18 @@ Example: env.cumulate 0 (default 1)
 
 Display data in Area mode (default) or in line mode.
 
+==== env.get_object_list ====
+Exemple: env.get_object_list="iter_subscriptions"
+
+Run a first time a cap's method to get a list of objects. env.do is then applied on all results.
+
 ==== env.attribid ====
-Example env.attribid id
+Example: env.attribid id
 
 Munin need an id for each value. The default is to use the id of results objects, but you can configure an other attribut. Like for env.attribvalue, you can configure a hierarchical attribut with / as separator, for example "temp/id".
 
 ==== env.title ====
-Example env.title a wonderful graph
+Example: env.title a wonderful graph
 
 A title for the graph (default: nothing)
 

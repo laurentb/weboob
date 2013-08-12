@@ -27,6 +27,7 @@ import logging
 from weboob.core import Weboob, CallErrors
 from weboob.tools.browser import BrowserIncorrectPassword
 
+
 class GenericMuninPlugin(object):
     def __init__(self):
         if 'weboob_path' in os.environ:
@@ -48,6 +49,9 @@ class GenericMuninPlugin(object):
         self.mimport = os.environ["import"]
         exec(self.mimport)
         # We can monitore only some objects
+        self.object_list = None
+        if 'get_object_list' in os.environ:
+            self.object_list = os.environ["get_object_list"]
         self.tomonitore = None
         if 'id_monitored' in os.environ:
             self.tomonitore = os.environ['id_monitored'].split(' ')
@@ -147,12 +151,26 @@ class GenericMuninPlugin(object):
             self.cache.write('%s\n' % line)
 
     def build_do(self):
-        if len(self.do) == 1:
-            return self.weboob.do(self.do[0])
+        if self.object_list:
+            results = []
+            for result in self.weboob.do(self.object_list):
+                results.append(result)
+            for backend, result in results:
+                try:
+                    for i in self.weboob.do(self.do[0], result.id, backends=backend):
+                        yield i
+                # Do not crash if one module does not implement the feature
+                except CallErrors:
+                    pass
+        elif len(self.do) == 1:
+            for i in self.weboob.do(self.do[0]):
+                yield i
         elif len(self.do) == 2:
-            return self.weboob.do(self.do[0], self.do[1])
+            for i in self.weboob.do(self.do[0], self.do[1]):
+                yield i
         elif len(self.do) == 3:
-            return self.weboob.do(self.do[0], self.do[1], backends=self.do[2])
+            for i in self.weboob.do(self.do[0], self.do[1], backends=self.do[2]):
+                yield i
 
     def get_value(self, result):
         attribs = self.attribvalue.split('/')

@@ -23,7 +23,7 @@ rm banbank
 export cache_expire=7200
 export HOME="/home/flo"
 export capa="ICapGauge"
-export do="get_last_measure,501060-level"
+export do="get_last_measure,501060-level,sachsen"
 export import="from weboob.capabilities.gauge import ICapGauge"
 export attribvalue="level"
 export title="Niveau de l'elbe"
@@ -74,6 +74,26 @@ cp ./generic-munin ./bill
 echo "========= ICapBill config"
 ./bill config
 rm bill
+
+# Monitor all balances of all subscriptions
+export cache_expire=7200
+export HOME="/home/flo"
+export capa="ICapBill"
+export do="get_balance"
+export get_object_list="iter_subscription"
+export import="from weboob.capabilities.bill import ICapBill"
+export attribvalue="price"
+export title="Solde restant"
+export vlabel="Solde"
+
+echo "========= ICapBill2 fetch"
+cp ./generic-munin ./bill
+./bill
+echo "========= ICapBill2 config"
+./bill config
+rm bill
+
+unset get_object_list
 
 # Monitor temperature in Rennes
 
