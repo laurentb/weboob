@@ -22,14 +22,10 @@ import sys
 import os
 import tempfile
 import imp
-import inspect               
+import inspect
 import optparse
 import re
 import time
-
-class Prout:
-    pass
-
 
 from weboob.tools.application.base import BaseApplication
 
