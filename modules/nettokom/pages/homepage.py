@@ -18,8 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import Subscription
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.browser import BasePage
 from datetime import date
+from decimal import Decimal
 
 __all__ = ['HomePage']
 
@@ -48,6 +50,7 @@ class HomePage(BasePage):
         subscription.subscriber = unicode(owner)
         expiredate = date(*reversed([int(x) for x in expiredate.split(".")]))
         subscription.validity = expiredate
+        subscription._balance = Decimal(FrenchTransaction.clean_amount(credit))
 
         l.append(subscription)
 

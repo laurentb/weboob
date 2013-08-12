@@ -19,7 +19,8 @@
 
 
 
-from weboob.capabilities.bill import ICapBill, SubscriptionNotFound
+from weboob.capabilities.bill import ICapBill, Subscription, SubscriptionNotFound, Detail
+from weboob.capabilities.base import Currency
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -54,8 +55,6 @@ class NettoKomBackend(BaseBackend, ICapBill):
             yield subscription
 
     def get_subscription(self, _id):
-        if not _id.isdigit():
-            raise SubscriptionNotFound()
         with self.browser:
             subscription = self.browser.get_subscription(_id)
         if subscription:
@@ -73,3 +72,12 @@ class NettoKomBackend(BaseBackend, ICapBill):
         with self.browser:
             for detail in self.browser.get_details():
                 yield detail
+
+    def get_balance(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        balance = Detail()
+        balance.price = subscription._balance
+        balance.label = u"Balance"
+        balance.currency = Currency.CUR_EUR
+        return balance
