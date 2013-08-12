@@ -61,7 +61,7 @@ else
 fi
 
 # path to sources
-WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
+WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
 ${PYTHON} "$(dirname $0)/stale_pyc.py"
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 

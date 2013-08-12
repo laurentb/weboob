@@ -10,7 +10,7 @@ set -u
 WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_lint.XXXXX")
 
 # path to sources
-WEBOOB_DIR=$(readlink -e $(dirname $0)/..)
+WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
 touch "${WEBOOB_TMPDIR}/backends"
 chmod 600 "${WEBOOB_TMPDIR}/backends"
 echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
