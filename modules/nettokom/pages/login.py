@@ -30,6 +30,6 @@ class LoginPage(BasePage):
     def login(self, login, password):
         self.browser.select_form(nr=0)
         self.browser.set_all_readonly(False)
-        self.browser['number'] = login
-        self.browser['password'] = password
+        self.browser['number'] = login.encode('iso-8859-1')
+        self.browser['password'] = password.encode('iso-8859-1')
         self.browser.submit(nologin=True)
