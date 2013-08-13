@@ -48,5 +48,11 @@ class ProgramPage(BasePage):
     def get_current_emission(self):
         self.document.xpath('//p')[0].text
         current = Emission(0)
-        current.artist, current.title = self.document.xpath('//p')[0].text.split('/////')[0].split(' - ')
+        two_or_more = self.document.xpath('//p')[0].text.split('/////')[0].split(' - ')
+        # Consider that if String(' - ') appears it'll be in title rather in the artist name
+        if len(two_or_more) > 2:
+          current.artist = two_or_more.pop(0)
+          current.title = ' - '.join(two_or_more)
+        else:
+          current.artist, current.title = two_or_more
         return current
