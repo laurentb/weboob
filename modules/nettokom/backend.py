@@ -77,7 +77,7 @@ class NettoKomBackend(BaseBackend, ICapBill):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         balance = Detail()
-        balance.id = "%s-balance" % subscription.id 
+        balance.id = "%s-balance" % subscription.id
         balance.price = subscription._balance
         balance.label = u"Balance %s" % subscription.id
         balance.currency = Currency.CUR_EUR
