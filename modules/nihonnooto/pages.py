@@ -25,7 +25,7 @@ __all__ = ['LivePage', 'ProgramPage']
 class LivePage(BasePage):
     def iter_radios_list(self):
         radio = Radio('nihon')
-        radio.title = 'Nihon no Oto'
+        radio.title = u'Nihon no Oto'
         radio.description = u'Nihon no Oto: le son du Japon'
         radio.streams = []
 
@@ -33,8 +33,8 @@ class LivePage(BasePage):
 
         for el in self.document.xpath('//source'):
             index += 1
-            mime_type  = el.attrib['type']
-            stream_url = el.attrib['src']
+            mime_type  = unicode(el.attrib['type'])
+            stream_url = unicode(el.attrib['src'])
             stream = Stream(index)
             stream.title = radio.title + ' ' + mime_type
             stream.url = stream_url
@@ -46,9 +46,8 @@ class LivePage(BasePage):
 
 class ProgramPage(BasePage):
     def get_current_emission(self):
-        self.document.xpath('//p')[0].text
         current = Emission(0)
-        two_or_more = self.document.xpath('//p')[0].text.split('/////')[0].split(' - ')
+        two_or_more = unicode(self.document.xpath('//p')[0].text).split('/////')[0].split(' - ')
         # Consider that if String(' - ') appears it'll be in title rather in the artist name
         if len(two_or_more) > 2:
           current.artist = two_or_more.pop(0)
