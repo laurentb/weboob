@@ -17,12 +17,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from .browser import NihonNoOtoBrowser
 
 __all__ = ['NihonNoOtoBackend']
 
-class NihonNoOtoBackend(BaseBackend, ICapRadio):
+class NihonNoOtoBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'nihonnooto'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'
@@ -33,6 +34,14 @@ class NihonNoOtoBackend(BaseBackend, ICapRadio):
 
     BROWSER = NihonNoOtoBrowser
     _RADIOS = {'nihonnooto': (u'Nihon no OTO', True) }
+
+    def iter_resources(self, objs, split_path):
+        if Radio in objs:
+            self._restrict_level(split_path)
+        for radio in self.browser.iter_radios_list():
+            self.browser.get_current_emission()
+            radio.current = self.browser.get_current_emission()
+            yield radio
 
     def iter_radios_search(self, pattern):
         for radio in self.browser.iter_radios_list():
