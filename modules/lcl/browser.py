@@ -42,6 +42,8 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/outil/UAUT/Accueil/preRoutageLogin': LoginPage,
         'https://particuliers.secure.lcl.fr//outil/UAUT/Contract/routing': LoginPage,
         'https://particuliers.secure.lcl.fr/outil/UAUT/Contrat/choixContrat.*': ContractsPage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/getContract.*': ContractsPage,
+        'https://particuliers.secure.lcl.fr/outil/UAUT/Contract/selectContracts.*': ContractsPage,
         'https://particuliers.secure.lcl.fr/outil/UWSP/Synthese': AccountsPage,
         'https://particuliers.secure.lcl.fr/outil/UWLM/ListeMouvements.*/accesListeMouvements.*': AccountHistoryPage,
         'https://particuliers.secure.lcl.fr/outil/UWCB/UWCBEncours.*/listeCBCompte.*': CBListPage,

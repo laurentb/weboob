@@ -138,7 +138,7 @@ class ContractsPage(BasePage):
     def select_contract(self):
         # XXX We select automatically the default contract in list. We should let user
         # ask what contract he wants to see, or display accounts for all contracts.
-        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'mainForm')
+        self.browser.select_form(nr=0)
         self.browser.submit()
 
 
