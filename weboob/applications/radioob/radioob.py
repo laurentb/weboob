@@ -73,15 +73,20 @@ class Radioob(ReplApplication):
         if len(args) == 2:
             return self._complete_object()
 
-    def do_play(self, _id):
+    def do_play(self, line):
         """
-        play ID
+        play ID [stream_id]
 
-        Play a radio with a found player.
+        Play a radio with a found player (optionnaly specify the wanted stream).
         """
+        _id, _stream_id = self.parse_command_args(line, 2, 1)
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return 2
+        try:
+            _stream_id = int(_stream_id)
+        except ValueError:
+            _stream_id = 0
 
         radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
@@ -93,9 +98,9 @@ class Radioob(ReplApplication):
             if not player_name:
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
-            self.player.play(radio.streams[0], player_name=player_name, player_args=media_player_args)
+            self.player.play(radio.streams[int(_stream_id)], player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
-            print '%s\nRadio URL: %s' % (e, radio.streams[0].url)
+            print '%s\nRadio URL: %s' % (e, radio.streams[int(_stream_id)].url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
