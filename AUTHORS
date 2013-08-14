@@ -105,6 +105,7 @@ François D. <franek@chicour.net>
         * ArretsurImages module maintainer.
 
 Thomas Lecavelier <thomas-weboob@lecavelier.name>
+        * Patches on radioob.
         * nihonnooto module maintainer.
 
 Gabriel Serme <gabriel@serme.net>
@@ -192,10 +193,10 @@ Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.
 
 David Jeanneteau <david.jeanneteau@gmail.com>
-        * Fix on ING and icon of ING
+        * Fix on ING and icon of ING.
 
 Juliette Stehlé <juliette.stehle@gmail.com>
-        * Enable LDD and PEL accounts on Boursorama
+        * Enable LDD and PEL accounts on Boursorama.
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
