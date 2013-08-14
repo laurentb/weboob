@@ -41,8 +41,10 @@ class ColissimoBackend(BaseBackend, ICapParcel):
         label = data['message']
         p.info = label
         # TODO, need to know the delivery message
-        if "blablabla" in label:
+        if u"remis au gardien ou" in label or u"Votre colis est livré" in label:
             p.status = p.STATUS_ARRIVED
+        elif u"pas encore pris en charge par La Poste" in label:
+            p.status = p.STATUS_PLANNED
         else:
             p.status = p.STATUS_IN_TRANSIT
 
