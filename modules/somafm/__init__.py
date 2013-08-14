@@ -21,4 +21,4 @@
 from .backend import SomaFMBackend
 
 
-__all__ = ['DIFMBackend']
+__all__ = ['SomaFMBackend']

@@ -23,7 +23,6 @@ from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
-from weboob.tools.misc import to_unicode
 from weboob.tools.parsers.iparser import IParser
 
 
