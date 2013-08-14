@@ -123,8 +123,8 @@ class DIFMBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.current = current
 
         radio.streams = []
-        for format in self.FORMATS:
-            stream = Stream(0)
+        for stream_id, format in enumerate(self.FORMATS):
+            stream = Stream(stream_id)
             stream.title = u'%s %skbps' % format
             stream.url = self._get_playlist_url(radio.id, format)
             radio.streams.append(stream)
