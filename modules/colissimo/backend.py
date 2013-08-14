@@ -39,6 +39,9 @@ class ColissimoBackend(BaseBackend, ICapParcel):
         data = self.browser.get_tracking_info(_id)
         p = Parcel(_id)
         label = data['message']
+        if data['error']:
+            p.info = label
+            return p
         p.info = label
         # TODO, need to know the delivery message
         if u"remis au gardien ou" in label or u"Votre colis est livré" in label:
