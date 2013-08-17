@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Christophe Benz
+# Copyright(C) 2010-2013 Christophe Benz
 #
 # This file is part of weboob.
 #
@@ -19,6 +19,6 @@
 
 
 from .bcall import CallErrors
-from .ouiboube import Weboob
+from .ouiboube import Weboob, WebNip
 
-__all__ = ['CallErrors', 'Weboob']
+__all__ = ['CallErrors', 'Weboob', 'WebNip']

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -22,7 +22,7 @@ import os
 import shutil
 
 from weboob.core.bcall import BackendsCall
-from weboob.core.modules import ModulesLoader, ModuleLoadError
+from weboob.core.modules import ModulesLoader, RepositoryModulesLoader, ModuleLoadError
 from weboob.core.backendscfg import BackendsConfig
 from weboob.core.repositories import Repositories, IProgress
 from weboob.core.scheduler import Scheduler
@@ -31,90 +31,44 @@ from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import getLogger
 
 
-__all__ = ['Weboob']
+__all__ = ['WebNip', 'Weboob']
 
 
 class VersionsMismatchError(ConfigError):
     pass
 
 
-class Weboob(object):
+class WebNip(object):
     """
-    The main class of Weboob, used to manage backends and call methods.
+    Weboob in Non Integrated Programs
 
-    :param workdir: optional parameter to set path of the working directory
-    :type workdir: str
-    :param backends_filename: name of the *backends* file, where configuration of
-                              backends is stored
-    :type backends_filename: str
-    :param scheduler: what scheduler to use; default is :class:`weboob.core.scheduler.Scheduler`
-    :type scheduler: :class:`weboob.core.scheduler.IScheduler`
+    It provides methods to build backends or call methods on all loaded
+    backends.
+
+    :param modules_path: path to directory containing modules.
+    :type modules_path: :class:`basestring`
     :param storage: provide a storage where backends can save data
     :type storage: :class:`weboob.tools.storage.IStorage`
+    :param scheduler: what scheduler to use; default is :class:`weboob.core.scheduler.Scheduler`
+    :type scheduler: :class:`weboob.core.scheduler.IScheduler`
     """
     VERSION = '0.h'
-    BACKENDS_FILENAME = 'backends'
 
-    def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
+    def __init__(self, modules_path=None, storage=None, scheduler=None):
         self.logger = getLogger('weboob')
         self.backend_instances = {}
         self.callbacks = {'login':   lambda backend_name, value: None,
                           'captcha': lambda backend_name, image: None,
                          }
 
-        # Scheduler
+        if modules_path is not None:
+            self.modules_loader = ModulesLoader(modules_path, self.VERSION)
+
         if scheduler is None:
             scheduler = Scheduler()
         self.scheduler = scheduler
 
-        # Create WORKDIR
-        if workdir is not None:
-            datadir = workdir
-        elif 'WEBOOB_WORKDIR' in os.environ:
-            datadir = workdir = os.environ.get('WEBOOB_WORKDIR')
-        else:
-            old_workdir = os.path.join(os.path.expanduser('~'), '.weboob')
-            xdg_config_home = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
-            xdg_data_home = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share')), 'weboob')
-
-            if os.path.isdir(old_workdir):
-                self.logger.warning('You are using "%s" as working directory. Files are moved into %s and %s.'
-                                    % (old_workdir, xdg_config_home, xdg_data_home))
-                self._create_dir(xdg_config_home)
-                self._create_dir(xdg_data_home)
-                for f in os.listdir(old_workdir):
-                    if f in Repositories.SHARE_DIRS:
-                        dest = xdg_data_home
-                    else:
-                        dest = xdg_config_home
-                    shutil.move(os.path.join(old_workdir, f), dest)
-                shutil.rmtree(old_workdir)
-            workdir = xdg_config_home
-            datadir = xdg_data_home
-
-        self.workdir = os.path.realpath(workdir)
-        self._create_dir(workdir)
-
-        # Repositories management
-        self.repositories = Repositories(workdir, datadir, self.VERSION)
-        # Backends loader
-        self.modules_loader = ModulesLoader(self.repositories)
-
-        # Backend instances config
-        if not backends_filename:
-            backends_filename = os.environ.get('WEBOOB_BACKENDS', os.path.join(self.workdir, self.BACKENDS_FILENAME))
-        elif not backends_filename.startswith('/'):
-            backends_filename = os.path.join(self.workdir, backends_filename)
-        self.backends_config = BackendsConfig(backends_filename)
-
-        # Storage
         self.storage = storage
-
-    def _create_dir(self, name):
-        if not os.path.exists(name):
-            os.makedirs(name)
-        elif not os.path.isdir(name):
-            self.logger.error(u'"%s" is not a directory' % name)
 
     def __deinit__(self):
         self.deinit()
@@ -126,17 +80,26 @@ class Weboob(object):
         """
         self.unload_backends()
 
-    def update(self, progress=IProgress()):
+    def build_backend(self, module_name, params=None, storage=None, name=None):
         """
-        Update modules from repositories.
-        """
-        self.repositories.update(progress)
+        Create a backend.
 
-        modules_to_check = set([module_name for name, module_name, params in self.backends_config.iter_backends()])
-        for module_name in modules_to_check:
-            minfo = self.repositories.get_module_info(module_name)
-            if minfo and not minfo.is_installed():
-                self.repositories.install(minfo, progress)
+        It does not load it into the Weboob object, so you are responsible for
+        deinitialization and calls.
+
+        :param module_name: name of module
+        :param params: parameters to give to backend
+        :type params: :class:`dict`
+        :param storage: storage to use
+        :type storage: :class:`weboob.tools.storage.IStorage`
+        :param name: name of backend
+        :type name: :class:`basestring`
+        :rtype: :class:`weboob.tools.backend.BaseBackend`
+        """
+        module = self.modules_loader.get_or_load_module(module_name)
+
+        backend_instance = module.create_instance(self, name or module_name, params or {}, storage)
+        return backend_instance
 
     class LoadError(Exception):
         """
@@ -149,95 +112,29 @@ class Weboob(object):
             Exception.__init__(self, unicode(exception))
             self.backend_name = backend_name
 
-    def build_backend(self, module_name, params=None, storage=None):
+    def load_backend(self, module_name, name, params=None, storage=None):
         """
-        Create a single backend which is not listed
-        in configuration.
+        Load a backend.
 
-        :param module_name: name of module
+        :param module_name: name of module to load
+        :type module_name: :class:`basestring`:
+        :param name: name of instance
+        :type name: :class:`basestring`
         :param params: parameters to give to backend
         :type params: :class:`dict`
         :param storage: storage to use
         :type storage: :class:`weboob.tools.storage.IStorage`
         :rtype: :class:`weboob.tools.backend.BaseBackend`
         """
-        minfo = self.repositories.get_module_info(module_name)
-        if minfo is None:
-            raise ModuleLoadError(module_name, 'Module does not exist.')
+        if name is None:
+            name = module_name
 
-        if not minfo.is_installed():
-            self.repositories.install(minfo)
+        if name in self.backend_instances:
+            raise self.LoadError(name, 'A loaded backend already named "%s"' % name)
 
-        module = self.modules_loader.get_or_load_module(module_name)
-
-        backend_instance = module.create_instance(self, module_name, params or {}, storage)
-        return backend_instance
-
-    def load_backends(self, caps=None, names=None, modules=None, exclude=None, storage=None, errors=None):
-        """
-        Load backends listed in config file.
-
-        :param caps: load backends which implement all of specified caps
-        :type caps: tuple[:class:`weboob.capabilities.base.ICapBase`]
-        :param names: load backends with instance name in list
-        :type names: tuple[:class:`str`]
-        :param modules: load backends which module is in list
-        :type modules: tuple[:class:`str`]
-        :param exclude: do not load modules in list
-        :type exclude: tuple[:class:`str`]
-        :param storage: use this storage if specified
-        :type storage: :class:`weboob.tools.storage.IStorage`
-        :param errors: if specified, store every errors in this list
-        :type errors: list[:class:`LoadError`]
-        :returns: loaded backends
-        :rtype: dict[:class:`str`, :class:`weboob.tools.backend.BaseBackend`]
-        """
-        loaded = {}
-        if storage is None:
-            storage = self.storage
-
-        if not self.repositories.check_repositories():
-            self.logger.error(u'Repositories are not consistent with the sources.list')
-            raise VersionsMismatchError(u'Versions mismatch, please run "weboob-config update"')
-
-        for instance_name, module_name, params in self.backends_config.iter_backends():
-            if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
-               names is not None and instance_name not in names or \
-               modules is not None and module_name not in modules or \
-               exclude is not None and module_name in exclude:
-                continue
-
-            minfo = self.repositories.get_module_info(module_name)
-            if minfo is None:
-                self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
-                                     'Perhaps a missing repository?' % (module_name, self.backends_config.confpath))
-                continue
-
-            if caps is not None and not minfo.has_caps(caps):
-                continue
-
-            if not minfo.is_installed():
-                self.repositories.install(minfo)
-
-            module = None
-            try:
-                module = self.modules_loader.get_or_load_module(module_name)
-            except ModuleLoadError as e:
-                self.logger.error(u'Unable to load module "%s": %s' % (module_name, e))
-                continue
-
-            if instance_name in self.backend_instances:
-                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
-                self.unload_backends(instance_name)
-
-            try:
-                backend_instance = module.create_instance(self, instance_name, params, storage)
-            except BaseBackend.ConfigError as e:
-                if errors is not None:
-                    errors.append(self.LoadError(instance_name, e))
-            else:
-                self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
-        return loaded
+        backend = self.build_backend(module_name, params, storage, name)
+        self.backend_instances[name] = backend
+        return backend
 
     def unload_backends(self, names=None):
         """
@@ -399,3 +296,151 @@ class Weboob(object):
         Run the scheduler loop
         """
         return self.scheduler.run()
+
+
+class Weboob(WebNip):
+    """
+    The main class of Weboob, used to manage backends, modules repositories and
+    call methods on all loaded backends.
+
+    :param workdir: optional parameter to set path of the working directory
+    :type workdir: str
+    :param backends_filename: name of the *backends* file, where configuration of
+                              backends is stored
+    :type backends_filename: str
+    :param storage: provide a storage where backends can save data
+    :type storage: :class:`weboob.tools.storage.IStorage`
+    """
+    BACKENDS_FILENAME = 'backends'
+
+    def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
+        super(Weboob, self).__init__(scheduler=scheduler, storage=storage)
+
+        # Create WORKDIR
+        if workdir is not None:
+            datadir = workdir
+        elif 'WEBOOB_WORKDIR' in os.environ:
+            datadir = workdir = os.environ.get('WEBOOB_WORKDIR')
+        else:
+            workdir = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob')
+            datadir = os.path.join(os.environ.get('XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local', 'share')), 'weboob')
+
+        self.workdir = os.path.realpath(workdir)
+        self._create_dir(workdir)
+
+        # Modules management
+        self.repositories = Repositories(workdir, datadir, self.VERSION)
+        self.modules_loader = RepositoryModulesLoader(self.repositories)
+
+        # Backend instances config
+        if not backends_filename:
+            backends_filename = os.environ.get('WEBOOB_BACKENDS', os.path.join(self.workdir, self.BACKENDS_FILENAME))
+        elif not backends_filename.startswith('/'):
+            backends_filename = os.path.join(self.workdir, backends_filename)
+        self.backends_config = BackendsConfig(backends_filename)
+
+    def _create_dir(self, name):
+        if not os.path.exists(name):
+            os.makedirs(name)
+        elif not os.path.isdir(name):
+            self.logger.error(u'"%s" is not a directory' % name)
+
+    def update(self, progress=IProgress()):
+        """
+        Update modules from repositories.
+        """
+        self.repositories.update(progress)
+
+        modules_to_check = set([module_name for name, module_name, params in self.backends_config.iter_backends()])
+        for module_name in modules_to_check:
+            minfo = self.repositories.get_module_info(module_name)
+            if minfo and not minfo.is_installed():
+                self.repositories.install(minfo, progress)
+
+    def build_backend(self, module_name, params=None, storage=None, name=None):
+        """
+        Create a single backend which is not listed in configuration.
+
+        :param module_name: name of module
+        :param params: parameters to give to backend
+        :type params: :class:`dict`
+        :param storage: storage to use
+        :type storage: :class:`weboob.tools.storage.IStorage`
+        :param name: name of backend
+        :type name: :class:`basestring`
+        :rtype: :class:`weboob.tools.backend.BaseBackend`
+        """
+        minfo = self.repositories.get_module_info(module_name)
+        if minfo is None:
+            raise ModuleLoadError(module_name, 'Module does not exist.')
+
+        if not minfo.is_installed():
+            self.repositories.install(minfo)
+
+        return super(Weboob, self).build_backend(module_name, params, storage, name)
+
+    def load_backends(self, caps=None, names=None, modules=None, exclude=None, storage=None, errors=None):
+        """
+        Load backends listed in config file.
+
+        :param caps: load backends which implement all of specified caps
+        :type caps: tuple[:class:`weboob.capabilities.base.ICapBase`]
+        :param names: load backends with instance name in list
+        :type names: tuple[:class:`str`]
+        :param modules: load backends which module is in list
+        :type modules: tuple[:class:`str`]
+        :param exclude: do not load modules in list
+        :type exclude: tuple[:class:`str`]
+        :param storage: use this storage if specified
+        :type storage: :class:`weboob.tools.storage.IStorage`
+        :param errors: if specified, store every errors in this list
+        :type errors: list[:class:`LoadError`]
+        :returns: loaded backends
+        :rtype: dict[:class:`str`, :class:`weboob.tools.backend.BaseBackend`]
+        """
+        loaded = {}
+        if storage is None:
+            storage = self.storage
+
+        if not self.repositories.check_repositories():
+            self.logger.error(u'Repositories are not consistent with the sources.list')
+            raise VersionsMismatchError(u'Versions mismatch, please run "weboob-config update"')
+
+        for instance_name, module_name, params in self.backends_config.iter_backends():
+            if '_enabled' in params and not params['_enabled'].lower() in ('1', 'y', 'true', 'on', 'yes') or \
+               names is not None and instance_name not in names or \
+               modules is not None and module_name not in modules or \
+               exclude is not None and module_name in exclude:
+                continue
+
+            minfo = self.repositories.get_module_info(module_name)
+            if minfo is None:
+                self.logger.warning(u'Backend "%s" is referenced in %s but was not found. '
+                                     'Perhaps a missing repository?' % (module_name, self.backends_config.confpath))
+                continue
+
+            if caps is not None and not minfo.has_caps(caps):
+                continue
+
+            if not minfo.is_installed():
+                self.repositories.install(minfo)
+
+            module = None
+            try:
+                module = self.modules_loader.get_or_load_module(module_name)
+            except ModuleLoadError as e:
+                self.logger.error(u'Unable to load module "%s": %s' % (module_name, e))
+                continue
+
+            if instance_name in self.backend_instances:
+                self.logger.warning(u'Oops, the backend "%s" is already loaded. Unload it before reloading...' % instance_name)
+                self.unload_backends(instance_name)
+
+            try:
+                backend_instance = module.create_instance(self, instance_name, params, storage)
+            except BaseBackend.ConfigError as e:
+                if errors is not None:
+                    errors.append(self.LoadError(instance_name, e))
+            else:
+                self.backend_instances[instance_name] = loaded[instance_name] = backend_instance
+        return loaded

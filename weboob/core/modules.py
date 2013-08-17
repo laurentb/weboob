@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import imp
 import logging
 
@@ -24,7 +25,7 @@ from weboob.tools.backend import BaseBackend
 from weboob.tools.log import getLogger
 
 
-__all__ = ['Module', 'ModulesLoader', 'ModuleLoadError']
+__all__ = ['Module', 'ModulesLoader', 'RepositoryModulesLoader', 'ModuleLoadError']
 
 
 class ModuleLoadError(Exception):
@@ -97,8 +98,12 @@ class Module(object):
 
 
 class ModulesLoader(object):
-    def __init__(self, repositories):
-        self.repositories = repositories
+    """
+    Load modules.
+    """
+    def __init__(self, path, version=None):
+        self.version = version
+        self.path = path
         self.loaded = {}
         self.logger = getLogger('modules')
 
@@ -111,8 +116,13 @@ class ModulesLoader(object):
         return self.loaded[module_name]
 
     def iter_existing_module_names(self):
-        for name in self.repositories.get_all_modules_info().iterkeys():
-            yield name
+        for name in os.listdir(self.path):
+            try:
+                if '__init__.py' in os.listdir(os.path.join(self.path, name)):
+                    yield name
+            except OSError:
+                # if path/name is not a directory
+                continue
 
     def load_all(self):
         for existing_module_name in self.iter_existing_module_names():
@@ -126,14 +136,10 @@ class ModulesLoader(object):
             self.logger.debug('Module "%s" is already loaded from %s' % (module_name, self.loaded[module_name].package.__path__[0]))
             return
 
-        minfo = self.repositories.get_module_info(module_name)
-        if minfo is None:
-            raise ModuleLoadError(module_name, 'No such module %s' % module_name)
-        if minfo.path is None:
-            raise ModuleLoadError(module_name, 'Module %s is not installed' % module_name)
+        path = self.get_module_path(module_name)
 
         try:
-            fp, pathname, description = imp.find_module(module_name, [minfo.path])
+            fp, pathname, description = imp.find_module(module_name, [path])
             try:
                 module = Module(imp.load_module(module_name, fp, pathname, description))
             finally:
@@ -144,9 +150,33 @@ class ModulesLoader(object):
                 self.logger.exception(e)
             raise ModuleLoadError(module_name, e)
 
-        if module.version != self.repositories.version:
+        if module.version != self.version:
             raise ModuleLoadError(module_name, "Module requires Weboob %s, but you use Weboob %s. Hint: use 'weboob-config update'"
-                                               % (module.version, self.repositories.version))
+                                               % (module.version, self.version))
 
         self.loaded[module_name] = module
         self.logger.debug('Loaded module "%s" from %s' % (module_name, module.package.__path__[0]))
+
+    def get_module_path(self, module_name):
+        return self.path
+
+class RepositoryModulesLoader(ModulesLoader):
+    """
+    Load modules from repositories.
+    """
+    def __init__(self, repositories):
+        super(RepositoryModulesLoader, self).__init__(repositories.modules_dir, repositories.version)
+        self.repositories = repositories
+
+    def iter_existing_module_names(self):
+        for name in self.repositories.get_all_modules_info().iterkeys():
+            yield name
+
+    def get_module_path(self, module_name):
+        minfo = self.repositories.get_module_info(module_name)
+        if minfo is None:
+            raise ModuleLoadError(module_name, 'No such module %s' % module_name)
+        if minfo.path is None:
+            raise ModuleLoadError(module_name, 'Module %s is not installed' % module_name)
+
+        return minfo.path
