@@ -24,8 +24,8 @@ from weboob.tools.test import BackendTest
 class LolixTest(BackendTest):
     BACKEND = 'lolix'
 
-    def test_lolix(self):
-        l = list(self.backend.search_job())
+    def test_lolix_advanced_search(self):
+        l = list(self.backend.iter_resources([], []))
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, l[0])
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))

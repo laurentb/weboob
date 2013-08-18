@@ -24,8 +24,14 @@ from weboob.tools.test import BackendTest
 class AdeccoTest(BackendTest):
     BACKEND = 'adecco'
 
-    def test_adecco(self):
+    def test_adecco_search(self):
         l = list(self.backend.search_job(u'valet de chambre'))
+        assert len(l)
+        advert = self.backend.get_job_advert(l[0].id, None)
+        self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
+
+    def test_adecco_advanced_search(self):
+        l = list(self.backend.iter_resources([], []))
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, None)
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))

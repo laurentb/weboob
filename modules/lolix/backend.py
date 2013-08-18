@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from weboob.capabilities.job import ICapJob
@@ -28,7 +29,7 @@ from .job import LolixJobAdvert
 __all__ = ['LolixBackend']
 
 
-class LolixBackend(BaseBackend, ICapJob):
+class LolixBackend(BaseBackend, ICapJob, ICapCollection):
     NAME = 'lolix'
     DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'
@@ -137,14 +138,20 @@ class LolixBackend(BaseBackend, ICapJob):
                            Value('contrat', label=u'Contrat', choices=contrat_choices),
                            Value('limit_date', label=u'Date limite', choices=limit_date_choices))
 
-    def search_job(self, pattern=None):
+    def iter_resources(self, objs, split_path):
         with self.browser:
-            if not pattern:
-                for advert in self.browser.search_job(region=self.config['region'].get(),
-                                                      poste=self.config['poste'].get(),
-                                                      contrat=int(self.config['contrat'].get()),
-                                                      limit_date=self.config['limit_date'].get()):
-                    yield advert
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                for advert in self.browser.advanced_search_job(region=self.config['region'].get(),
+                                                               poste=self.config['poste'].get(),
+                                                               contrat=int(self.config['contrat'].get()),
+                                                               limit_date=self.config['limit_date'].get()):
+                        yield advert
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        raise CollectionNotFound(collection.split_path)
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:

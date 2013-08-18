@@ -24,8 +24,14 @@ from weboob.tools.test import BackendTest
 class PopolemploiTest(BackendTest):
     BACKEND = 'popolemploi'
 
-    def test_popolemploi(self):
+    def test_popolemploi_search(self):
         l = list(self.backend.search_job('infographiste'))
+        assert len(l)
+        advert = self.backend.get_job_advert(l[0].id, l[0])
+        self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
+
+    def test_popolemploi_advanced_search(self):
+        l = list(self.backend.iter_resources([], []))
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, l[0])
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))

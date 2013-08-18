@@ -38,22 +38,24 @@ class ApecBrowser(BaseBrowser):
         'http://cadres.apec.fr/offres-emploi-cadres/offres-emploi-cadres/\d*_\d*_\d*_(.*?)________(.*?).html(.*?)': AdvertPage,
     }
 
-    def search_job(self, pattern=None, region=None, fonction=None, secteur=None, salaire=None, contrat=None, limit_date=None, level=None):
-        if pattern:
-            self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
-                          % pattern.replace(' ', '+'))
-        else:
-            self.location(
-                'http://cadres.apec.fr/liste-offres-emploi-cadres/8_0___%s_%s_%s_%s_%s_%s_%s_offre-d-emploi.html'
-                % (
-                    region,
-                    fonction,
-                    secteur,
-                    salaire,
-                    level,
-                    limit_date,
-                    contrat
-                ))
+    def search_job(self, pattern=None):
+        self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
+                      % pattern.replace(' ', '+'))
+        assert self.is_on_page(SearchPage)
+        return self.page.iter_job_adverts()
+
+    def advanced_search_job(self, region=None, fonction=None, secteur=None, salaire=None, contrat=None, limit_date=None, level=None):
+        self.location(
+            'http://cadres.apec.fr/liste-offres-emploi-cadres/8_0___%s_%s_%s_%s_%s_%s_%s_offre-d-emploi.html'
+            % (
+                region,
+                fonction,
+                secteur,
+                salaire,
+                level,
+                limit_date,
+                contrat
+            ))
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 

@@ -24,8 +24,14 @@ from weboob.tools.test import BackendTest
 class ApecTest(BackendTest):
     BACKEND = 'apec'
 
-    def test_apec(self):
+    def test_apec_search(self):
         l = list(self.backend.search_job(u'informaticien'))
+        assert len(l)
+        advert = self.backend.get_job_advert(l[0].id, None)
+        self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
+
+    def test_apec_advanced_search(self):
+        l = list(self.backend.iter_resources([], []))
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, None)
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))

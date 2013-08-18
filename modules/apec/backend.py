@@ -19,6 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.capabilities.job import ICapJob
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
@@ -28,7 +29,7 @@ from .job import ApecJobAdvert
 __all__ = ['ApecBackend']
 
 
-class ApecBackend(BaseBackend, ICapJob):
+class ApecBackend(BaseBackend, ICapJob, ICapCollection):
     NAME = 'apec'
     DESCRIPTION = u'apec website'
     MAINTAINER = u'Bezleputh'
@@ -229,15 +230,26 @@ class ApecBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            for job_advert in self.browser.search_job(pattern=pattern,
-                                                      region=self.config['place'].get(),
-                                                      fonction=self.config['fonction'].get(),
-                                                      secteur=self.config['secteur'].get(),
-                                                      salaire=self.config['salaire'].get(),
-                                                      contrat=self.config['contrat'].get(),
-                                                      limit_date=self.config['limit_date'].get(),
-                                                      level=self.config['level'].get()):
+            for job_advert in self.browser.search_job(pattern=pattern):
                 yield job_advert
+
+    def iter_resources(self, objs, split_path):
+        with self.browser:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                for job_advert in self.browser.advanced_search_job(region=self.config['place'].get(),
+                                                                   fonction=self.config['fonction'].get(),
+                                                                   secteur=self.config['secteur'].get(),
+                                                                   salaire=self.config['salaire'].get(),
+                                                                   contrat=self.config['contrat'].get(),
+                                                                   limit_date=self.config['limit_date'].get(),
+                                                                   level=self.config['level'].get()):
+                        yield job_advert
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        raise CollectionNotFound(collection.split_path)
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:

@@ -19,6 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.capabilities.job import ICapJob
 from weboob.tools.value import Value
 from weboob.tools.ordereddict import OrderedDict
@@ -29,7 +30,7 @@ from .job import PopolemploiJobAdvert
 __all__ = ['PopolemploiBackend']
 
 
-class PopolemploiBackend(BaseBackend, ICapJob):
+class PopolemploiBackend(BaseBackend, ICapJob, ICapCollection):
     NAME = 'popolemploi'
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'
@@ -202,10 +203,20 @@ class PopolemploiBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            return self.browser.search_job(pattern=pattern,
-                                           metier=self.config['metier'].get(),
-                                           place=self.config['place'].get(),
-                                           contrat=self.config['contrat'].get())
+            return self.browser.search_job(pattern=pattern)
+
+    def iter_resources(self, objs, split_path):
+        with self.browser:
+            collection = self.get_collection(objs, split_path)
+            if collection.path_level == 0:
+                return self.browser.advanced_search_job(metier=self.config['metier'].get(),
+                                                        place=self.config['place'].get(),
+                                                        contrat=self.config['contrat'].get())
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+        raise CollectionNotFound(collection.split_path)
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:

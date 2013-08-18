@@ -36,7 +36,7 @@ class LolixBrowser(BaseBrowser):
         '%s://%s/offre.php\?id=(?P<id>.+)' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
-    def search_job(self, region=None, poste=None, contrat=None, limit_date=None):
+    def advanced_search_job(self, region=None, poste=None, contrat=None, limit_date=None):
         data = {
             'mode': 'find',
             'page': '0',
