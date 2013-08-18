@@ -1,0 +1,2 @@
+recursive-include modules *.py
+recursive-include modules *.png
