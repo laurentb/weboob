@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import pkg_resources
 import os
-import shutil
 
 from weboob.core.bcall import BackendsCall
 from weboob.core.modules import ModulesLoader, RepositoryModulesLoader, ModuleLoadError
@@ -61,7 +61,10 @@ class WebNip(object):
                           'captcha': lambda backend_name, image: None,
                          }
 
-        if modules_path is not None:
+        if modules_path is None:
+            modules_path = pkg_resources.resource_filename('weboob_modules', '')
+
+        if modules_path:
             self.modules_loader = ModulesLoader(modules_path, self.VERSION)
 
         if scheduler is None:
@@ -314,7 +317,7 @@ class Weboob(WebNip):
     BACKENDS_FILENAME = 'backends'
 
     def __init__(self, workdir=None, backends_filename=None, scheduler=None, storage=None):
-        super(Weboob, self).__init__(scheduler=scheduler, storage=storage)
+        super(Weboob, self).__init__(modules_path=False, scheduler=scheduler, storage=storage)
 
         # Create WORKDIR
         if workdir is not None:
