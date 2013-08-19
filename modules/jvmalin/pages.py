@@ -22,7 +22,7 @@ class RoadmapSearchPage(BasePage):
             try:
                 if form.attrs['id'] == 'rech-iti':
                      match = i
-            except KeyError as e:
+            except KeyError:
                 pass
             i += 1
 
@@ -203,5 +203,3 @@ class RoadmapPage(BasePage):
         if m:
             return datetime.timedelta(hours=int(m.group(1)),
                                       minutes=int(m.group(2)))
-
-

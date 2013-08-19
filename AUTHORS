@@ -47,7 +47,7 @@ François Revol <revol@free.fr>
         * Canaplus and qvideoob fixes
 
 Benjamin Carton <carton_ben@yahoo.fr>
-        * vlille, grooveshark, adecco, apec, lolix and popolemploi modules 
+        * vlille, grooveshark, adecco, apec, lolix and popolemploi modules
           maintainer.
         * handjoob application.
 
@@ -88,6 +88,9 @@ Christophe Lampin <weboob@lampin.net>
 
 Sébastien Monel <sebastien.monel@gmail.com>
         * QHandJoob application.
+
+Alexandre Lissy <github@lissy.me>
+        * JVMalin module maintainer.
 
 Arno Renevier <arno@renevier.net>
         * Weather module maintainer.

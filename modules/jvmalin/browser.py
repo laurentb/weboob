@@ -18,11 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime, date, time
-
 from weboob.tools.browser import BaseBrowser
-from weboob.tools.misc import to_unicode
-from weboob.tools.browser import BrokenPageError
 from .pages import RoadmapSearchPage, RoadmapResultsPage, RoadmapPage, RoadmapAmbiguity
 
 
@@ -51,7 +47,7 @@ class JVMalin(BaseBrowser):
         dest = ''
         try:
             dest = self.page.find_best()
-        except RoadmapAmbiguity as am:
+        except RoadmapAmbiguity:
             self.page.resubmit_best_form()
             assert self.is_on_page(RoadmapResultsPage)
             dest = self.page.find_best()
