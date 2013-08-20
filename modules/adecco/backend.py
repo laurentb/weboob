@@ -19,7 +19,6 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.collection import ICapCollection, CollectionNotFound
 from weboob.tools.ordereddict import OrderedDict
 from weboob.tools.value import Value
 from weboob.capabilities.job import ICapJob
@@ -29,7 +28,7 @@ from .job import AdeccoJobAdvert
 __all__ = ['AdeccoBackend']
 
 
-class AdeccoBackend(BaseBackend, ICapJob, ICapCollection):
+class AdeccoBackend(BaseBackend, ICapJob):
     NAME = 'adecco'
     DESCRIPTION = u'adecco website'
     MAINTAINER = u'Bezleputh'
@@ -284,22 +283,14 @@ class AdeccoBackend(BaseBackend, ICapJob, ICapCollection):
             for advert in self.browser.search_job(pattern):
                 yield advert
 
-    def iter_resources(self, objs, split_path):
-        with self.browser:
-            collection = self.get_collection(objs, split_path)
-            if collection.path_level == 0:
-                for advert in self.browser.advanced_search_job(publication_date=int(self.config['publication_date'].get()),
-                                                               conty=int(self.config['conty'].get()),
-                                                               region=int(self.config['region'].get()),
-                                                               job_category=int(self.config['job_category'].get()),
-                                                               activity_domain=int(self.config['activity_domain'].get())
-                                                               ):
-                    yield advert
-
-    def validate_collection(self, objs, collection):
-        if collection.path_level == 0:
-            return
-        raise CollectionNotFound(collection.split_path)
+    def advanced_search_job(self):
+        for advert in self.browser.advanced_search_job(publication_date=int(self.config['publication_date'].get()),
+                                                       conty=int(self.config['conty'].get()),
+                                                       region=int(self.config['region'].get()),
+                                                       job_category=int(self.config['job_category'].get()),
+                                                       activity_domain=int(self.config['activity_domain'].get())
+                                                       ):
+            yield advert
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:

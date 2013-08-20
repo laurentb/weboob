@@ -84,6 +84,7 @@ class Handjoob(ReplApplication):
                         'job_advert': JobAdvertFormatter,
                         }
     COMMANDS_FORMATTERS = {'search': 'job_advert_list',
+                           'ls': 'job_advert_list',
                            'info': 'job_advert',
                            }
 
@@ -97,6 +98,17 @@ class Handjoob(ReplApplication):
         self.change_path([u'search'])
         self.start_format(pattern=pattern)
         for backend, job_advert in self.do('search_job', pattern):
+            self.cached_format(job_advert)
+
+    @defaultcount(10)
+    def do_ls(self, line):
+        """
+        advanced search
+
+        Search for an advert matching to advanced filters.
+        """
+        self.change_path([u'advanced'])
+        for backend, job_advert in self.do('advanced_search_job'):
             self.cached_format(job_advert)
 
     def complete_info(self, text, line, *ignored):

@@ -81,6 +81,13 @@ class ICapJob(IBaseCap):
         """
         raise NotImplementedError()
 
+    def advanced_search_job(self):
+        """
+         Iter results of an advanced search
+
+        :rtype: iter[:class:`BaseJobAdvert`]
+        """
+
     def get_job_advert(self, _id, advert=None):
         """
         Get an announce from an ID.

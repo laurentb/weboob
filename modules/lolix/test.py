@@ -25,7 +25,7 @@ class LolixTest(BackendTest):
     BACKEND = 'lolix'
 
     def test_lolix_advanced_search(self):
-        l = list(self.backend.iter_resources([], []))
+        l = list(self.backend.advanced_search_job())
         assert len(l)
         advert = self.backend.get_job_advert(l[0].id, l[0])
         self.assertTrue(advert.url, 'URL for announce "%s" not found: %s' % (advert.id, advert.url))
