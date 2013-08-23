@@ -24,6 +24,7 @@ import re
 
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import to_unicode
+from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -55,14 +56,19 @@ class LoginResultPage(BasePage):
             pass
         else:
             self.browser.set_all_readonly(False)
-            accounts = {}
-            for tr in self.document.getroot().cssselect('table.compteTable tbody tr'):
+            accounts = OrderedDict()
+            for tr in self.document.getroot().cssselect('table.compteTable > tbody > tr'):
+                if len(tr.findall('td')) == 0:
+                    continue
                 attr = tr.xpath('.//a')[0].attrib.get('onclick', '')
-                m = re.search("value = '(\w+)';checkAndSubmit\('\w+','(\w+)','(\w+)'\)", attr)
+                m = re.search("value = '(\w+)';(checkAndSubmit\('\w+','(\w+)','(\w+)'\))?", attr)
                 if m:
                     typeCompte = m.group(1)
-                    tagName = m.group(2)
-                    value = self.document.xpath('//input[@id="%s%s"]' % (m.group(2), m.group(3)))[0].attrib['value']
+                    tagName = m.group(3)
+                    if tagName is not None:
+                        value = self.document.xpath('//input[@id="%s%s"]' % (m.group(3), m.group(4)))[0].attrib['value']
+                    else:
+                        value = typeCompte
                     accounts[value] = (typeCompte, tagName)
 
             try:
@@ -73,9 +79,10 @@ class LoginResultPage(BasePage):
                     self.logger.warning(u'Unable to find account "%s". Available ones: %s' % (self.browser.accnum, ', '.join(accounts.keys())))
                 elif len(accounts) > 1:
                     self.logger.warning('There are several accounts, please use "accnum" backend parameter to force the one to use')
-                value, (typeCompte, tagName) = accounts.popitem()
+                value, (typeCompte, tagName) = accounts.popitem(last=False)
             self.browser['typeCompte'] = typeCompte
-            self.browser[tagName] = [value]
+            if tagName is not None:
+                self.browser[tagName] = [value]
             self.browser.submit()
 
 
