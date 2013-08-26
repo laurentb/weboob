@@ -108,7 +108,9 @@ class Leclercmobile(BaseBrowser):
             if mimetype == "application/pdf":
                 pdf = PdfPage(StringIO.StringIO(response.read()))
                 for call in pdf.get_calls():
-                    yield call
+                    call.label = call.label.strip()
+                    if call.label != "Votre solde":
+                        yield call
 
     def get_details(self):
         if not self.is_on_page(HistoryPage):
