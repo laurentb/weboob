@@ -114,6 +114,9 @@ Thomas Lecavelier <thomas-weboob@lecavelier.name>
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
 
+Jean-Philippe Dutrève <jdutreve@winancial.com>
+        * Fixes on bank modules.
+
 Erwan Jahier <Erwan.Jahier@imag.fr>
         * Patches on BP.
 
