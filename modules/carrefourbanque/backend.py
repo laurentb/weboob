@@ -35,7 +35,7 @@ class CarrefourBanqueBackend(BaseBackend, ICapBank):
     VERSION = '0.h'
     DESCRIPTION = u'Carrefour Banque French bank website'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='\d+', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
                            ValueBackendPassword('password', label='Password', regexp='\d+'))
     BROWSER = CarrefourBanque
 
