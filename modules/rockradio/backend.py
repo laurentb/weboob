@@ -20,20 +20,13 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import lxml.html
 from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
-from weboob.tools.parsers.iparser import IParser
 
 
 __all__ = ['RockRadioBackend']
-
-
-class LxmlParser(IParser):
-    def parse(self, data, encoding=None):
-        return lxml.html.fromstring(data.read())
 
 
 class RockRadioBackend(BaseBackend, ICapRadio, ICapCollection):
@@ -47,11 +40,8 @@ class RockRadioBackend(BaseBackend, ICapRadio, ICapCollection):
 
     ALLINFO = 'http://www.rockradio.com'
     # FIXME
-    # 
+    #
     # MPlayer does not like the pls file sent from this site.
-
-    def create_default_browser(self):
-        return self.create_browser(parser=LxmlParser())
 
     def _parse_current(self, data):
         current = data.split(' - ')
