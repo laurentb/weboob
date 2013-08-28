@@ -122,11 +122,10 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                                  default='h')
                            )
 
-    HISTORY = {}
-
     def __init__(self, *a, **kw):
         super(AudioAddictBackend, self).__init__(*a, **kw)
         self.RADIOS = {}
+        self.HISTORY = {}
 
     def _get_tracks_history(self, network):
         self._fetch_radio_list()
