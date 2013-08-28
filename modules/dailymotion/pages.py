@@ -104,7 +104,7 @@ class VideoPage(BasePage):
             if 'id' in script.attrib and script.attrib['id'].startswith('container_player_') and \
                script.find('script') is not None:
                 text = script.find('script').text
-                mobj = re.search(r'\s*var flashvars = (.*)', text)
+                mobj = re.search(r'<param name="flashvars" value="(.*)"', text)
                 if mobj is None:
                     raise BrokenPageError('Unable to extract video url')
                 flashvars = urllib.unquote(mobj.group(1))
