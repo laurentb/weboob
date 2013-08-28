@@ -28,6 +28,14 @@ import time
 
 __all__ = ['AudioAddictBackend']
 
+#
+# WARNING
+#
+# AudioAddict playlists do not seem to be appreciated by mplayer
+# VLC plays them successfully, therefore I advice to set the media_player
+# option to another player in the ~/.config/weboob/radioob config file:
+# [ROOT]
+# media_player = your_non_mplayer_player
 
 class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'audioaddict'
@@ -38,7 +46,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser
 
-# http://tobiass.eu/api-doc.html
+# Data extracted from http://tobiass.eu/api-doc.html
     NETWORKS = {
         'DI': {
             'desc': 'Digitally Imported addictive electronic music',
