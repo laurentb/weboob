@@ -181,7 +181,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
             for radio in self.RADIOS[network]:
                 radio_dict = self.RADIOS[network][radio]
                 if pattern in radio_dict['name'].lower() or pattern in radio_dict['description'].lower():
-                    yield self.get_radio(network,radio)
+                    yield self.get_radio(network+"."+radio)
 
     def iter_resources(self, objs, split_path):
         self._fetch_radio_list()
@@ -190,7 +190,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
             for network in self.config['networks'].get().split():
                 if split_path == [network]:
                     for radio in self.RADIOS[network]:
-                        yield self.get_radio(network,radio)
+                        yield self.get_radio(network+"."+radio)
                     return
             for network in self.config['networks'].get().split():
                 yield Collection([network],self.NETWORKS[network]['desc'])
@@ -214,21 +214,23 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
 
         return artist, title
 
-    def get_radio(self, network, radio):
+    def get_radio(self, radio):
         self._fetch_radio_list()
 
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
-        if not radio.id in self.RADIOS[network]:
+        network=radio.id[:radio.id.find(".")]
+        radioName=radio.id[radio.id.find(".")+1:]
+
+        if not radioName in self.RADIOS[network]:
             return None
 
-        radio_dict = self.RADIOS[network][radio.id]
+        radio_dict = self.RADIOS[network][radioName]
         radio.title = radio_dict['name']
         radio.description = radio_dict['description']
-        radio._network=network
 
-        artist, title = self.get_current(network,radio.id)
+        artist, title = self.get_current(network,radioName)
         current = Emission(0)
         current.artist = artist
         current.title = title
@@ -241,14 +243,16 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                 (self.NETWORKS[network]['streams'][name]['fmt'],
                  self.NETWORKS[network]['streams'][name]['rate'])
         stream.url = 'http://listen.%s/%s/%s.pls'%\
-                (self.NETWORKS[network]['domain'],name,radio.id)
+                (self.NETWORKS[network]['domain'],name,radioName)
         radio.streams.append(stream)
         return radio
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
+            network=radio.id[:radio.id.find(".")]
+            radioName=radio.id[radio.id.find(".")+1:]
             radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.get_current(radio._network,radio.id)
+            radio.current.artist, radio.current.title = self.get_current(network,radioName)
             return radio
 
     OBJECTS = {Radio: fill_radio}
