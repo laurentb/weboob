@@ -128,7 +128,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         self.HISTORY = {}
 
     def _get_tracks_history(self, network):
-        self._fetch_radio_list()
+        self._fetch_radio_list(network)
         domain=self.NETWORKS[network]['domain']
         url='http://api.audioaddict.com/v1/%s/track_history' %\
                 (domain[:domain.rfind('.')])
@@ -152,24 +152,25 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                     break
         return streamName
 
-    def _fetch_radio_list(self):
+    def _fetch_radio_list(self,network=None):
         quality=self.config['quality'].get()
-        for network in self.config['networks'].get().split():
-            streamName=self._get_stream_name(network,quality)
-            if not self.RADIOS:
-                self.RADIOS={}
-            if not network in self.RADIOS:
-                document = self.browser.location('http://listen.%s/%s'%\
-                                                 (self.NETWORKS[network]['domain'],
-                                                  streamName))
-                self.RADIOS[network]={}
-                for info in document:
-                    radio = info['key']
-                    self.RADIOS[network][radio] = {}
-                    self.RADIOS[network][radio]['id'] = info['id']
-                    self.RADIOS[network][radio]['description'] = info['description']
-                    self.RADIOS[network][radio]['name'] = info['name']
-                    self.RADIOS[network][radio]['playlist'] = info['playlist']
+        for selectedNetwork in self.config['networks'].get().split():
+            if network is None or network == selectedNetwork:
+                streamName=self._get_stream_name(selectedNetwork,quality)
+                if not self.RADIOS:
+                    self.RADIOS={}
+                if not selectedNetwork in self.RADIOS:
+                    document = self.browser.location('http://listen.%s/%s'%\
+                                                     (self.NETWORKS[selectedNetwork]['domain'],
+                                                      streamName))
+                    self.RADIOS[selectedNetwork]={}
+                    for info in document:
+                        radio = info['key']
+                        self.RADIOS[selectedNetwork][radio] = {}
+                        self.RADIOS[selectedNetwork][radio]['id'] = info['id']
+                        self.RADIOS[selectedNetwork][radio]['description'] = info['description']
+                        self.RADIOS[selectedNetwork][radio]['name'] = info['name']
+                        self.RADIOS[selectedNetwork][radio]['playlist'] = info['playlist']
 
         return self.RADIOS
 
@@ -215,13 +216,13 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         return artist, title
 
     def get_radio(self, radio):
-        self._fetch_radio_list()
-
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
         network=radio.id[radio.id.find(".")+1:]
         radioName=radio.id[:radio.id.find(".")]
+
+        self._fetch_radio_list(network)
 
         if not radioName in self.RADIOS[network]:
             return None
