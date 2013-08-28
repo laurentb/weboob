@@ -32,7 +32,7 @@ class AudioAddictTest(BackendTest):
         search = list(self.backend.iter_radios_search('classic'))
         self.assertTrue(len(search) > 0)
 
-        radio = self.backend.get_radio('RockRadio.classicrock')
+        radio = self.backend.get_radio('classicrock.RockRadio')
         self.assertTrue(radio.title)
         self.assertTrue(radio.description)
         self.assertTrue(radio.current.title)
