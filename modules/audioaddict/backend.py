@@ -213,6 +213,11 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         artist = u'' + (channel.get('artist', '') or 'Unknown')
         title = u''+(channel.get('title', '') or 'Unknown')
 
+        if artist == 'Unknown' :
+            track=u'' + (channel.get('track', '') or 'Unknown')
+            if track != 'Unknown' :
+                artist = track[:track.find(' - ')]
+
         return artist, title
 
     def get_radio(self, radio):
