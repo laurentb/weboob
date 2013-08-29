@@ -224,8 +224,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
-        network=radio.id[radio.id.find(".")+1:]
-        radioName=radio.id[:radio.id.find(".")]
+        radioName,network=radio.id.split('.',1)
 
         self._fetch_radio_list(network)
 
@@ -255,8 +254,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            network=radio.id[radio.id.find(".")+1:]
-            radioName=radio.id[:radio.id.find(".")]
+            radioName,network=radio.id.split('.',1)
             radio.current = Emission(0)
             radio.current.artist, radio.current.title = self.get_current(network,radioName)
             return radio
