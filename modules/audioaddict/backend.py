@@ -46,7 +46,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser
 
-# Data extracted from http://tobiass.eu/api-doc.html
+    # Data extracted from http://tobiass.eu/api-doc.html
     NETWORKS = {
         'DI': {
             'desc': 'Digitally Imported addictive electronic music',
@@ -101,17 +101,17 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                         'premium_high': {'rate': 256, 'fmt': 'mp3'}
                         }
         },
-    'RockRadio': {
-        'desc': 'Rock Radio',
-        'domain': 'rockradio.com',
-        'streams': {'android_low': {'rate': 40, 'fmt': 'aac'},
-                    'android': {'rate': 64, 'fmt': 'aac'},
-                    'android_premium_medium': {'rate': 64, 'fmt': 'aac'},
-                    'android_premium': {'rate': 128, 'fmt': 'aac'},
-                    'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
-                    'public3': {'rate': 96, 'fmt': 'mp3'}
-                    }
-    },
+        'RockRadio': {
+            'desc': 'Rock Radio',
+            'domain': 'rockradio.com',
+            'streams': {'android_low': {'rate': 40, 'fmt': 'aac'},
+                        'android': {'rate': 64, 'fmt': 'aac'},
+                        'android_premium_medium': {'rate': 64, 'fmt': 'aac'},
+                        'android_premium': {'rate': 128, 'fmt': 'aac'},
+                        'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
+                        'public3': {'rate': 96, 'fmt': 'mp3'}
+                       }
+        }
     }
 
     CONFIG = BackendConfig(Value('networks',
