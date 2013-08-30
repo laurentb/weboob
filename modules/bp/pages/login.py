@@ -37,16 +37,16 @@ class UnavailablePage(BasePage):
         raise BrowserUnavailable()
 
 class VirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':'18b66bc587a29742cbce4e10b7f1cb3f',
-             '1':'8f21fb2dddd2e4751b3c2347e5b991cb',
-             '2':'ae90fc2f7e44ab03e8eb0a6f2a8fcdfd',
-             '3':'35f1cc1a07dc1c1410761f56d37ac5f2',
-             '4':'86f286828f95846f5cde187436e53855',
-             '5':'6e08bc067ab243cb564226aba5e1ca1e',
-             '6':'ada513599ea3c98ad882ed9ffcd4b139',
-             '7':'ed13fea6185f3cbca43023374b5f41be',
-             '8':'ab4317d59ce2a7b1fd2e298af5785b10',
-             '9':'8c165ad38c1eb72200e6011636c4c9b6'
+    symbols={'0':'daa52d75287bea58f505823ef6c8b96c',
+             '1':'f5da96c2592803a8cdc5a928a2e4a3b0',
+             '2':'9ff78367d5cb89cacae475368a11e3af',
+             '3':'908a0a42a424b95d4d885ce91bc3d920',
+             '4':'3fc069f33b801b3d0cdce6655a65c0ac',
+             '5':'58a2afebf1551d45ccad79fad1600fc3',
+             '6':'7fedfd9e57007f2985c3a1f44fb38ea1',
+             '7':'389b8ef432ae996ac0141a2fcc7b540f',
+             '8':'bf357ff09cc29ea544991642cd97d453',
+             '9':'b744015eb89c1b950e13a81364112cd6'
             }
 
     color=(0xff, 0xff, 0xff)
