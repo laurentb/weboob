@@ -74,6 +74,9 @@ class AccountsList(BasePage):
             elif "Orange" in account.label:
                 account.id = "LEO-" + account.id
                 account.type = Account.TYPE_SAVINGS
+            elif "Durable" in account.label:
+                account.id = "LDD-" + account.id
+                account.type = Account.TYPE_SAVINGS
             elif "Titres" in account.label:
                 account.id = "TITRE-" + account.id
                 account.type = Account.TYPE_MARKET
