@@ -107,6 +107,9 @@ Cedric Defortis <cedric@aiur.fr>
 François D. <franek@chicour.net>
         * ArretsurImages module maintainer.
 
+Christophe Gouiran <bechris13250@gmail.com>
+        * EDF module maintainer.
+
 Thomas Lecavelier <thomas-weboob@lecavelier.name>
         * Patches on radioob.
         * nihonnooto module maintainer.
@@ -115,6 +118,9 @@ Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
 
 Jean-Philippe Dutrève <jdutreve@winancial.com>
+        * Fixes on bank modules.
+
+Mathieu Lordon <mathieu.lordon@gmail.com>
         * Fixes on bank modules.
 
 Erwan Jahier <Erwan.Jahier@imag.fr>
@@ -159,6 +165,9 @@ Jean-Christophe Dubacq <jcdubacq1@free.fr>
 Lucas Nussbaum <lucas@lucas-nussbaum.net>
         * Fix on Credit Mutuel.
 
+Jerem <jer151@gmail.com>
+        * Fix on BP authentication.
+
 Camille Baldock <camille.baldock@student.ecp.fr>
         * Fixes on BP.
 
@@ -170,6 +179,9 @@ Olivier Schwander <olivier.schwander@ens-lyon.org>
 
 Luc Didry <luc@didry.org>
         * Fixes on LCL.
+
+Jean-Benoist Leger <leger@jblg.fr>
+        * Fix on Dailymotion.
 
 Stefano Zacchiroli <zack@upsilon.cc>
         * Patch on the build system.
