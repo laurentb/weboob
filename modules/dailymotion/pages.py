@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.json import json
 import datetime
-import urllib
 import re
 
 from weboob.tools.capabilities.thumbnail import Thumbnail
@@ -70,10 +70,6 @@ class IndexPage(BasePage):
             url = url.replace('jpeg_preview_medium.jpg', 'jpeg_preview_large.jpg')
             video.thumbnail = Thumbnail(unicode(url))
 
-            rating_div = self.parser.select(div, 'div.small_stars', 1)
-            video.rating_max = self.get_rate(rating_div)
-            video.rating = self.get_rate(rating_div.find('div'))
-
             video.set_empty_fields(NotAvailable, ('url',))
             yield video
 
@@ -99,24 +95,23 @@ class VideoPage(BasePage):
             video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip() or unicode()
         except BrokenPageError:
             video.description = u''
-        for script in self.parser.select(self.document.getroot(), 'div.dmco_html'):
-            # TODO support videos from anyclip, cf http://www.dailymotion.com/video/xkyjiv for example
-            if 'id' in script.attrib and script.attrib['id'].startswith('container_player_') and \
-               script.find('script') is not None:
-                text = script.find('script').text
-                mobj = re.search(r'<param name="flashvars" value="(.*)"', text)
-                if mobj is None:
-                    raise BrokenPageError('Unable to extract video url')
-                flashvars = urllib.unquote(mobj.group(1))
-                for key in ['hd1080URL', 'hd720URL', 'hqURL', 'sdURL', 'ldURL', 'video_url']:
-                    if key in flashvars:
-                        max_quality = key
-                        break
 
-                mobj = re.search(r'"' + max_quality + r'":"(.+?)"', flashvars)
-                if mobj is None:
-                    raise BrokenPageError('Unable to extract video url')
-                video.url = urllib.unquote(mobj.group(1)).replace('\\/', '/')
+        embed_page = self.browser.readurl('http://www.dailymotion.com/embed/video/%s' % video.id)
+
+        m = re.search('var info = ({.*?}),', embed_page)
+        if not m:
+            raise BrokenPageError('Unable to find information about video')
+
+        info = json.loads(m.group(1))
+        for key in ['stream_h264_hd1080_url','stream_h264_hd_url',
+                    'stream_h264_hq_url','stream_h264_url',
+                    'stream_h264_ld_url']:
+            if info.get(key):#key in info and info[key]:
+                max_quality = key
+                break
+        else:
+            raise BrokenPageError(u'Unable to extract video URL')
+        video.url = info[max_quality]
 
         video.set_empty_fields(NotAvailable)
 
