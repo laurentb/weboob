@@ -23,7 +23,6 @@ from weboob.capabilities.collection import ICapCollection, Collection
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
 from weboob.tools.browser import StandardBrowser
-from weboob.tools.misc import to_unicode
 import time
 
 __all__ = ['AudioAddictBackend']
