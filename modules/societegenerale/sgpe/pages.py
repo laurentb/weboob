@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 from logging import error
 import re
 from decimal import Decimal
@@ -150,13 +151,13 @@ class CardsPage(SGPEPage):
                 continue
 
             link = tds[self.COL_ID].xpath('.//a')[0]
-            m = re.match(r"changeCarte\('(\d+)','(\d+)','([\d/]+)'\);.*", link.attrib['onclick'])
+            m = re.match(r"changeCarte\('(\d+)','(\d+)','([^']+)'\);.*", link.attrib['onclick'])
             if not m:
                 self.logger.error('Unable to parse link %r' % link.attrib['onclick'])
                 continue
             account.id = m.group(2)
             account._link_num = m.group(1) #useless
-            account._link_date = m.group(3)
+            account._link_date = urllib.quote(m.group(3))
             account._link_rib = rib
             account._link_currency = currency
             account._is_card = True
