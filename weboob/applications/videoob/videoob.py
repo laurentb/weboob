@@ -60,9 +60,10 @@ class Videoob(ReplApplication):
     CAPS = ICapVideo
     EXTRA_FORMATTERS = {'video_list': VideoListFormatter}
     COMMANDS_FORMATTERS = {'search': 'video_list',
-                           'ls': 'video_list'}
+                           'ls': 'video_list',
+                           'playlist': 'video_list'}
     COLLECTION_OBJECTS = (BaseVideo, )
-
+    PLAYLIST = []
     nsfw = True
 
     def __init__(self, *args, **kwargs):
@@ -179,6 +180,72 @@ class Videoob(ReplApplication):
 
         self.start_format()
         self.format(video)
+
+    def do_playlist(self, line):
+        """
+        playlist cmd [args]
+        playlist add ID [ID2 ID3 ...]
+        playlist remove ID [ID2 ID3 ...]
+        playlist export [FILENAME]
+        playlist display
+        """
+
+        if not line:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('playlist')
+            return 2
+
+        cmd, args = self.parse_command_args(line, 2, req_n=1)
+        if cmd == "add":
+            _ids = args.strip().split(' ')
+            for _id in _ids:
+                video = self.get_object(_id, 'get_video')
+
+                if not video:
+                    print >>sys.stderr, 'Video not found: %s' % _id
+                    return 3
+
+                if not video.url:
+                    print >>sys.stderr, 'Error: the direct URL is not available.'
+                    return 4
+
+                self.PLAYLIST.append(video)
+
+        elif cmd == "remove":
+            _ids = args.strip().split(' ')
+            for _id in _ids:
+
+                video_to_remove = self.get_object(_id, 'get_video')
+
+                if not video_to_remove:
+                    print >>sys.stderr, 'Video not found: %s' % _id
+                    return 3
+
+                if not video_to_remove.url:
+                    print >>sys.stderr, 'Error: the direct URL is not available.'
+                    return 4
+
+                for video in self.PLAYLIST:
+                    if video.id == video_to_remove.id:
+                        self.PLAYLIST.remove(video)
+                        break
+
+        elif cmd == "export":
+            filename = "playlist.m3u"
+            if args:
+                filename = args
+
+            file = open(filename, 'w')
+            for video in self.PLAYLIST:
+                file.write('%s\r\n' % video.url)
+            file.close()
+
+        elif cmd == "display":
+            for video in self.PLAYLIST:
+                self.cached_format(video)
+
+        else:
+            print >>sys.stderr, 'Playlist command only support "add", "remove", "display" and "export" arguments.'
+            return 2
 
     def complete_nsfw(self, text, line, begidx, endidx):
         return ['on', 'off']
