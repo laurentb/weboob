@@ -38,7 +38,31 @@ __all__ = ['LoginPage', 'AccountsPage', 'CardsPage', 'HistoryPage', 'CardHistory
 
 
 class Transaction(FrenchTransaction):
-    _coming = False
+    PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.* (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? RETRAIT DAB (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^CARTE \w+ REMBT (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<category>(COTISATION|PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(\d+ )?VIR (PERM )?POUR: (.*?) (REF: \d+ )?MOTIF: (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(?P<category>VIR(EMEN)?T? \w+) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(CHEQUE) (?P<text>.*)'),     FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(FRAIS) (?P<text>.*)'),      FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^(?P<category>ECHEANCEPRET)(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile(r'^(?P<category>REMISE CHEQUES)(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^CARTE RETRAIT (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+               ]
 
 
 class SGPEPage(BasePage):

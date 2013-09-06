@@ -34,7 +34,23 @@ __all__ = ['LoginPage', 'AccountsPage', 'UnknownPage']
 
 
 class Transaction(FrenchTransaction):
-    pass
+    PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)(?P<text>.*)'),        FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(?P<category>FACTURE CARTE) DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*?)( CA?R?T?E? ?\d*X*\d*)?$'),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile('^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^(?P<category>VIR(EMEN)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^(?P<category>REMBOURST) CB DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
+                (re.compile('^(?P<category>COMMISSIONS)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
+                (re.compile('^(?P<category>REMISE CHEQUES)(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+               ]
 
 
 class BEPage(BasePage):
@@ -94,7 +110,6 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
                     s += "O"
             s += "\n"
         s = '\n'.join([l for l in s.splitlines() if l.strip()])
-        #print s
         return hashlib.md5(s).hexdigest()
 
 
@@ -171,7 +186,6 @@ class HistoryPage(BEPage):
             radio = self.parser.select(self.document, '//input[@name="br_tout_date"]', 1, 'xpath')
         except BrokenPageError:
             input = self.document.xpath('//input[@name="chB"]')[0]
-            print '%r' % input.tail
             d1, d2 = re.findall('(\d+/\d+/\d+)', input.tail)
         else:
             d1 = radio.attrib['value'][0:10]
