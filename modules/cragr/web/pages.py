@@ -174,13 +174,14 @@ class CardsPage(BasePage):
     def get_history(self, date_guesser):
         seen = set()
         lines = self.document.xpath('(//table[@class="ca-table"])[2]/tr')
-        for line in lines[1:]:  # first line is balance
+        debit_date = None
+        for i, line in enumerate(lines):
             is_balance = line.xpath('./td/@class="cel-texte cel-neg"')
 
             [date, label, _, amount] = [self.parser.tocleanstring(td)
                                         for td in line.xpath('./td')]
 
-            t = Transaction(0)
+            t = Transaction(i)
             t.set_amount(amount)
             t.label = t.raw = label
 
@@ -189,14 +190,22 @@ class CardsPage(BasePage):
                 if not m:
                     raise BrokenPageError('Unable to read card balance in history: %r' % label)
 
-                t.date = parse_french_date(m.group(1))
+                debit_date = parse_french_date(m.group(1))
+
+                # Skip the first line because it is balance
+                if i == 0:
+                    continue
+
+                t.date = t.rdate = debit_date
+
+                # Consider the second one as a positive amount to reset balance to 0.
                 t.amount = -t.amount
             else:
                 day, month = map(int, date.split('/', 1))
-                t.date = date_guesser.guess_date(day, month)
+                t.rdate = date_guesser.guess_date(day, month)
+                t.date = debit_date
 
             t.type = t.TYPE_CARD
-            t.rdate = t.date
             try:
                 t.id = t.unique_id(seen)
             except UnicodeEncodeError:
