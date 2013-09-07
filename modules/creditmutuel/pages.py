@@ -22,11 +22,13 @@ import urllib
 from urlparse import urlparse, parse_qs
 from decimal import Decimal
 import re
+from dateutil.relativedelta import relativedelta
 
 from weboob.tools.browser import BasePage, BrowserIncorrectPassword, BrokenPageError
 from weboob.tools.ordereddict import OrderedDict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.date import parse_french_date
 
 
 class LoginPage(BasePage):
@@ -250,6 +252,11 @@ class ComingPage(OperationsPage):
 class CardPage(OperationsPage):
     def get_history(self):
         index = 0
+        label = self.parser.select(self.document.getroot(), 'div.lister p.c', 1).text
+        label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
+        # use the trick of relativedelta to get the last day of month.
+        debit_date = parse_french_date(label) + relativedelta(day=31)
+
         for tr in self.document.xpath('//table[@class="liste"]/tbody/tr'):
             tds = tr.findall('td')[:4]
             if len(tds) < 4:
@@ -261,8 +268,11 @@ class CardPage(OperationsPage):
 
             tr.parse(date=tds[0].text.strip(' \xa0'),
                      raw=u' '.join(parts))
+            tr.date = debit_date
             tr.type = tr.TYPE_CARD
 
+            # Don't take all of the content (with tocleanstring for example),
+            # because there is a span.aide.
             tr.set_amount(tds[-1].text)
             yield tr
 
