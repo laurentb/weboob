@@ -214,8 +214,8 @@ class TransactionsPage(BasePage):
             if col_label.find('a') is not None:
                 col_label = col_label.find('a')
 
-            date = u''.join([txt.strip() for txt in cols[0].itertext()])
-            label = u''.join([txt.strip() for txt in col_label.itertext()])
+            date = self.parser.tocleanstring(cols[0])
+            label = self.parser.tocleanstring(col_label)
 
             # always strip card debits transactions. if we are on a card page, all next
             # transactions will be probably already debited.
@@ -240,8 +240,8 @@ class TransactionsPage(BasePage):
             if t.label == t.raw:
                 t.label = label
 
-            debit = u''.join([txt.strip() for txt in cols[-2].itertext()])
-            credit = u''.join([txt.strip() for txt in cols[-1].itertext()])
+            debit = self.parser.tocleanstring(cols[-2])
+            credit = self.parser.tocleanstring(cols[-1])
             t.set_amount(credit, debit)
 
             if 'CUMUL DES DEPENSES CARTES BANCAIRES REGLEES' in t.raw:
@@ -250,6 +250,11 @@ class TransactionsPage(BasePage):
                 continue
 
             t._is_coming = bool(is_coming)
+
+            # If this is a card, get the right debit date (rdate is already set
+            # with the operation date with t.parse())
+            if is_coming is not None:
+                t.date = t.parse_date(self.parser.tocleanstring(cols[-3]))
 
             transactions.append(t)
 
