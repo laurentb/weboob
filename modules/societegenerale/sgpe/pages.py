@@ -63,6 +63,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^CARTE RETRAIT (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                ]
+    _coming = False
 
 
 class SGPEPage(BasePage):
