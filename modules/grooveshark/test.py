@@ -19,6 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.capabilities.video import BaseVideo
 
 
 class GroovesharkTest(BackendTest):
@@ -26,4 +27,14 @@ class GroovesharkTest(BackendTest):
 
     def test_grooveshark_video_search(self):
         result = list(self.backend.search_videos("Loic Lantoine"))
-        self.assertTrue(len(result)>0)
+        self.assertTrue(len(result) > 0)
+
+    def test_grooveshark_album_search(self):
+        l1 = list(self.backend.iter_resources([BaseVideo], [u'albums', u'live']))
+        assert len(l1)
+        c = l1[0]
+        l2 = list(self.backend.iter_resources([BaseVideo], c.split_path))
+        assert len(l2)
+        v = l2[0]
+        self.backend.fillobj(v, ('url',))
+        self.assertTrue(v.url is not None, 'URL for video "%s" not found: %s' % (v.id, v.url))

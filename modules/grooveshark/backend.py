@@ -20,11 +20,13 @@
 
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
 from .browser import GroovesharkBrowser
 
 __all__ = ['GroovesharkBackend']
 
-class GroovesharkBackend(BaseBackend, ICapVideo):
+
+class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'grooveshark'
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'
@@ -49,5 +51,41 @@ class GroovesharkBackend(BaseBackend, ICapVideo):
     def get_video(self, _id):
         with self.browser:
             return self.browser.get_video_from_song_id(_id)
+
+    def iter_resources(self, objs, split_path):
+        with self.browser:
+            if BaseVideo in objs:
+                collection = self.get_collection(objs, split_path)
+                if collection.path_level == 0:
+                    yield Collection([u'albums'], u'Search for Albums')
+                if collection.path_level == 1:
+                        print u'Enter cd [%s\'s name] then ls to launch search' % collection.split_path[0]
+                if collection.path_level == 2 and collection.split_path[0] == u'albums':
+                    for item in self.browser.search_albums(collection.split_path):
+                        yield item
+                if collection.path_level == 3 and collection.split_path[0] == u'albums':
+                    for video in self.browser.get_all_songs_from_album(collection.split_path[2]):
+                        yield video
+
+    def validate_collection(self, objs, collection):
+        if collection.path_level == 0:
+            return
+
+        if BaseVideo in objs and collection.split_path == [u'albums']:
+            return
+
+        if BaseVideo in objs and collection.path_level == 2 and \
+                (collection.split_path[0] == u'albums'):
+            return
+
+        if BaseVideo in objs and collection.path_level == 3 and \
+                (collection.split_path[0] == u'albums'):
+            try:
+                int(collection.split_path[2])
+            except ValueError:
+                raise CollectionNotFound(collection.split_path)
+            return
+
+        raise CollectionNotFound(collection.split_path)
 
     OBJECTS = {BaseVideo: fill_video}
