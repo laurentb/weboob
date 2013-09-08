@@ -64,7 +64,8 @@ class LibQuvi04(object):
         if self.lib is None:
             return False
 
-        version_str = c_char_p(self.lib.quvi_version(self.QUVI_VERSION)).value
+        self.lib.quvi_version.restype = c_char_p
+        version_str = self.lib.quvi_version(self.QUVI_VERSION)
         if version_str.startswith('v0.4'):
             return True
         else:
@@ -108,8 +109,9 @@ class LibQuvi04(object):
 
     def _assert_ok(self, status):
         if status != self.QUVI_OK:
-            c_msg = c_char_p(self.lib.quvi_strerror(self.qh, status))
-            raise QuviError(c_msg.value)
+            self.lib.quvi_strerror.restype = c_char_p
+            c_msg = self.lib.quvi_strerror(self.qh, status)
+            raise QuviError(c_msg)
 
     def _get_str(self, prop):
         c_value = c_char_p()

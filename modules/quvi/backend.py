@@ -103,6 +103,9 @@ class QuviVideo(BaseVideo):
         if _id.startswith('http'):
             return _id
 
+        if not '.' in _id:
+            raise UserError('Please give an ID in form WEBSITE.ID (for example youtube.BaW_jenozKc). Supported websites are: %s' % ', '.join(cls.BACKENDS.keys()))
+
         sub_backend, sub_id = _id.split('.', 1)
         try:
             return cls.BACKENDS[sub_backend] % sub_id
