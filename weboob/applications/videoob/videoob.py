@@ -22,6 +22,7 @@
 import subprocess
 import sys
 import os
+import re
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import empty
@@ -109,7 +110,7 @@ class Videoob(ReplApplication):
             ext = video.ext
             if not ext:
                 ext = 'avi'
-            dest = '%s.%s' % (video.id, ext)
+            dest = '%s.%s' % (re.sub('[?:/]', '-', video.id), ext)
 
         if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
