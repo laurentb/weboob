@@ -39,17 +39,17 @@ class RadioListFormatter(PrettyFormatter):
     def get_description(self, obj):
         result = '%-30s' % obj.description
         if hasattr(obj, 'current') and not empty(obj.current):
-            if obj.current.artist:
-                result += ' (Current: %s - %s)' % (obj.current.artist, obj.current.title)
+            if obj.current.who:
+                result += ' (Current: %s - %s)' % (obj.current.who, obj.current.what)
             else:
-                result += ' (Current: %s)' % obj.current.title
+                result += ' (Current: %s)' % obj.current.what
         return result
 
 
 class Radioob(ReplApplication):
     APPNAME = 'radioob'
     VERSION = '0.h'
-    COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2013 Romain Bignon\nCopyright(C) 2013 Pierre Maziere'
     DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
                   "like the current song."
     SHORT_DESCRIPTION = "search, show or listen to radio stations"
