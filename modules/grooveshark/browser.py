@@ -75,15 +75,13 @@ class GroovesharkBrowser(BaseBrowser):
 
         parameters = {}
         parameters['query'] = pattern.encode(self.ENCODING)
-        parameters['type'] = ['Songs']  # ['Songs','Playlists','Albums']
+        parameters['type'] = ['Songs']
         parameters['guts'] = 0
         parameters['ppOverr'] = ''
 
         response = self.API_post(method, parameters, self.create_token(method))
 
         songs = self.create_video_from_songs_result(response['result']['result']['Songs'])
-        #playlists = self.create_video_from_playlist_result(response['result']['result']['Playlists'])
-        #albums = self.create_video_from_albums_result(response['result']['result']['Albums'])
 
         return songs
 
@@ -128,7 +126,8 @@ class GroovesharkBrowser(BaseBrowser):
             video.title = u'Song - %s' % song['Name'].encode('ascii', 'replace')
             video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
             video.description = u'%s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'))
-            video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+            if song['CoverArtFilename']:
+                video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
             if song['EstimateDuration']:
                 video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.date = NotAvailable
