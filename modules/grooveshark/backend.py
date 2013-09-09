@@ -59,7 +59,7 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
                 if collection.path_level == 0:
                     yield Collection([u'albums'], u'Search for Albums')
                 if collection.path_level == 1:
-                        print u'Enter cd [%s\'s name] then ls to launch search' % collection.split_path[0]
+                    print u'Enter cd [%s\'s name] then ls to launch search' % collection.split_path[0]
                 if collection.path_level == 2 and collection.split_path[0] == u'albums':
                     for item in self.browser.search_albums(collection.split_path):
                         yield item
