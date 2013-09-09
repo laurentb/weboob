@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon
+# Copyright(C) 2013 Pierre Mazière
 #
 # This file is part of weboob.
 #
@@ -19,41 +20,10 @@
 
 
 from .base import IBaseCap, CapBaseObject, Field, StringField
+from .audiostream import AudioStreamInfo, ICapAudioStream, BaseAudioStream
 
 
-__all__ = ['Emission', 'Stream', 'Radio', 'ICapRadio']
-
-
-class Emission(CapBaseObject):
-    """
-    Emission of a radio.
-    """
-    artist =    StringField('Name of artist')
-    title =     StringField('Title of song or emission')
-
-    def __iscomplete__(self):
-        # This volatile information may be reloaded everytimes.
-        return False
-
-    def __unicode__(self):
-        if self.artist:
-            return u'%s - %s' % (self.artist, self.title)
-        else:
-            return self.title
-
-
-class Stream(CapBaseObject):
-    """
-    Stream of a radio.
-    """
-    title =     StringField('Title of stream')
-    url =       StringField('Direct URL to the stream')
-
-    def __unicode__(self):
-        return u'%s (%s)' % (self.title, self.url)
-
-    def __repr__(self):
-        return self.__unicode__()
+__all__ = ['Radio', 'ICapRadio']
 
 
 class Radio(CapBaseObject):
@@ -62,9 +32,8 @@ class Radio(CapBaseObject):
     """
     title =         StringField('Title of radio')
     description =   StringField('Description of radio')
-    current =       Field('Current emission', Emission)
+    current =       Field('Current emission', AudioStreamInfo)
     streams =       Field('List of streams', list)
-
 
 class ICapRadio(IBaseCap):
     """
