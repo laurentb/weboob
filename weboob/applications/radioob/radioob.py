@@ -83,12 +83,14 @@ class Radioob(ReplApplication):
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return 2
-        _stream_id = 0
         if _stream_id:
             try:
                 _stream_id = int(_stream_id)
             except:
+                _stream_id = 0
                 pass
+        else:
+            _stream_id = 0
 
         radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
