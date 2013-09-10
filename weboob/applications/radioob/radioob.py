@@ -79,32 +79,36 @@ class Radioob(ReplApplication):
 
         Play a radio with a found player (optionnaly specify the wanted stream).
         """
-        _id, _stream_id = self.parse_command_args(line, 2, 1)
+        _id, stream_id = self.parse_command_args(line, 2, 1)
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return 2
-        if _stream_id:
-            try:
-                _stream_id = int(_stream_id)
-            except:
-                _stream_id = 0
-                pass
-        else:
-            _stream_id = 0
+
+        try:
+            stream_id = int(stream_id)
+        except (ValueError,TypeError):
+            stream_id = 0
 
         radio = self.get_object(_id, 'get_radio', ['streams'])
         if not radio:
             print >>sys.stderr, 'Radio not found:', _id
             return 1
+
+        try:
+            stream = radio.streams[stream_id]
+        except IndexError:
+            print >>sys.stderr, 'Stream #%d not found' % stream_id
+            return 1
+
         try:
             player_name = self.config.get('media_player')
             media_player_args = self.config.get('media_player_args')
             if not player_name:
                 self.logger.debug(u'You can set the media_player key to the player you prefer in the radioob '
                                   'configuration file.')
-            self.player.play(radio.streams[int(_stream_id)], player_name=player_name, player_args=media_player_args)
+            self.player.play(stream, player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
-            print '%s\nRadio URL: %s' % (e, radio.streams[int(_stream_id)].url)
+            print '%s\nRadio URL: %s' % (e, stream.url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
