@@ -55,7 +55,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
     CONFIG = BackendConfig(Value('username', label='Email address', default=''),
                            ValueBackendPassword('password', label='Password', default=''))
 
-    URL_RE = re.compile(r'^https?://(?:\w*\.?youtube(?:|-nocookie)\.com/(?:watch\?v=|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
+    URL_RE = re.compile(r'^https?://(?:\w*\.?youtube(?:|-nocookie)\.com/(?:watch\?v=|embed/|v/)|youtu\.be\/|\w*\.?youtube\.com\/user\/\w+#p\/u\/\d+\/)([^\?&]+)')
 
     def create_default_browser(self):
         password = None
