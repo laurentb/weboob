@@ -19,6 +19,7 @@
 
 
 from decimal import Decimal
+from datetime import date
 
 from weboob.capabilities.bank import Investment
 from weboob.tools.browser import BasePage
@@ -26,6 +27,8 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 __all__ = ['TitrePage']
 
+class Transaction(FrenchTransaction):
+    pass
 
 class TitrePage(BasePage):
     def on_loaded(self):
@@ -52,3 +55,23 @@ class TitrePage(BasePage):
             invest.diff = Decimal(FrenchTransaction.clean_amount(columns[5]))
 
             yield invest
+
+class TitreHistory(BasePage):
+    def on_loaded(self):
+        pass
+
+    def iter_history(self):
+        table = self.document.xpath('//table[@class="datas retour"]')[0]
+        trs = table.xpath('tr')
+        trs.pop(0)
+        trs.pop(-1)
+        for tr in trs:
+            td = tr.xpath('td')
+            op = Transaction(1)
+            textraw = td[3].text_content()
+            if len(td[2].xpath('a')) > 0:
+                textraw += u" " + td[2].xpath('a')[0].text_content()
+            amount = op.clean_amount(td[6].text_content())
+            op.parse(date(*reversed([int(x) for x in td[1].text_content().split('/')])), raw = textraw)
+            op.amount = Decimal(amount)
+            yield op

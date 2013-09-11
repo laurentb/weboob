@@ -23,7 +23,8 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, TransferError
 from .pages import AccountsList, LoginPage, \
                    TransferPage, TransferConfirmPage, \
-                   BillsPage, StopPage, TitrePage
+                   BillsPage, StopPage, TitrePage, \
+                   TitreHistory
 
 
 __all__ = ['Ing']
@@ -45,6 +46,7 @@ class Ing(BaseBrowser):
              '.*displayCoordonneesCommand.*':  StopPage,
              '.*portefeuille-TR.*':            (TitrePage, 'raw'),
              '.*compteTempsReelCK.php.*':      (TitrePage, 'raw'),
+             '.*compte.php\?ong=3':            TitreHistory,
             }
     CERTHASH = "257100e5f69b3c24b27eaaa82951ca5539e9ca264dee433b7c8d4779e778a0b4"
 
@@ -110,9 +112,14 @@ class Ing(BaseBrowser):
     def get_history(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
-        if account.type != Account.TYPE_CHECKING and\
+        if account.type == Account.TYPE_MARKET:
+            for tr in self.get_history_titre(account):
+                yield tr
+            return
+        elif account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
+
         if self.where != "start":
             self.location(self.accountspage)
         data = {"AJAX:EVENTS_COUNT": 1,
@@ -190,9 +197,7 @@ class Ing(BaseBrowser):
         else:
             raise TransferError('Recipient not found')
 
-    def get_investments(self, account):
-        if account.type != Account.TYPE_MARKET:
-            raise NotImplementedError()
+    def go_investments(self, account):
         if self.where != "start":
             self.location(self.accountspage)
         data = {"AJAX:EVENTS_COUNT": 1,
@@ -209,8 +214,19 @@ class Ing(BaseBrowser):
         self.where = "titre"
 
         self.location(self.titrepage)
+
+    def get_investments(self, account):
+        if account.type != Account.TYPE_MARKET:
+            raise NotImplementedError()
+        self.go_investments(account)
+
         self.location('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php')
         return self.page.iter_investments()
+
+    def get_history_titre(self, account):
+        self.go_investments(account)
+        self.location('https://bourse.ingdirect.fr/priv/compte.php?ong=3')
+        return self.page.iter_history()
 
     def get_subscriptions(self):
         self.location('/protected/pages/common/estatement/eStatement.jsf')
