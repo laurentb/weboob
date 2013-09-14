@@ -98,7 +98,7 @@ class VideoPage(BasePage):
 
         embed_page = self.browser.readurl('http://www.dailymotion.com/embed/video/%s' % video.id)
 
-        m = re.search('var info = ({.*?}),', embed_page)
+        m = re.search('var info = ({.*?}),[^{"]', embed_page)
         if not m:
             raise BrokenPageError('Unable to find information about video')
 
