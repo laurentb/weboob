@@ -31,6 +31,7 @@ from .collection import ArteLiveCollection
 
 __all__ = ['ArteBackend']
 
+
 class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'arte'
     MAINTAINER = u'Romain Bignon'
@@ -38,22 +39,42 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
     VERSION = '0.h'
     DESCRIPTION = 'Arte French and German TV'
     LICENSE = 'AGPLv3+'
+
+    order = {'AIRDATE_DESC': 'Date',
+             'VIEWS': 'Views',
+             'ALPHA': 'Alphabetic',
+             'LAST_CHANCE': 'Last chance'
+             }
+
     CONFIG = BackendConfig(Value('lang', label='Lang of videos',
                                  choices={'fr': 'French', 'de': 'Deutsch', 'en': 'English'}, default='fr'),
-                           Value('quality', label='Quality of videos', choices=['hd', 'sd'], default='hd'))
+                           Value('order', label='Sort order', choices=order, default='AIRDATE_DESC'),
+                           Value('quality', label='Quality of videos', choices=['hd', 'sd', 'md', 'ed'], default='hd'))
+
+    TRANSLATION  = {'fr': 'F',
+                    'en': 'F',
+                    'de': 'D',
+                    'hd': 'HQ',
+                    'md': 'MQ',
+                    'sd': 'SQ',
+                    'eq': 'EQ'
+                    }
+
     BROWSER = ArteBrowser
 
     def create_default_browser(self):
-        return self.create_browser(lang=self.config['lang'].get(), quality=self.config['quality'].get())
+        return self.create_browser(lang=self.TRANSLATION[self.config['lang'].get()],
+                                   quality=self.TRANSLATION[self.config['quality'].get()],
+                                   order=self.config['order'].get())
 
     def parse_id(self, _id):
         m = re.match('^(\w+)\.(.*)', _id)
         if m:
             return m.groups()
 
-        m = re.match('https?://videos.arte.tv/\w+/videos/(?P<id>.+)\.html', _id)
+        m = re.match('https?://www.arte.tv/guide/\w+/(?P<id>.+)/(.*)', _id)
         if m:
-            return 'videos', m.group(1)
+            return 'program', m.group(1)
 
         m = re.match('https?://liveweb.arte.tv/\w+/video/(.*)/', _id)
         if m:
@@ -71,6 +92,9 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
             elif site == 'live_url':
                 return self.browser.get_live_from_url(_id)
 
+            elif site == 'program':
+                return self.browser.get_video_from_program_id(_id)
+
             else:
                 return self.browser.get_video(_id)
 
@@ -84,9 +108,9 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
             with self.browser:
                 site, _id = self.parse_id(video.id)
 
-                if isinstance(video,ArteVideo):
+                if isinstance(video, ArteVideo):
                     video = self.browser.get_video(_id, video)
-                if isinstance(video,ArteLiveVideo):
+                if isinstance(video, ArteLiveVideo):
                     video = self.browser.get_live_video(_id, video)
         if 'thumbnail' in fields and video and video.thumbnail:
             with self.browser:
@@ -99,26 +123,26 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
             if BaseVideo in objs:
                 collection = self.get_collection(objs, split_path)
                 if collection.path_level == 0:
-                    yield Collection([u'latest'],u'Latest Arte videos')
-                    yield Collection([u'live'],u'Arte Web Live videos')
+                    yield Collection([u'arte-latest'], u'Latest Arte videos')
+                    yield Collection([u'arte-live'], u'Arte Web Live videos')
                 if collection.path_level == 1:
-                    if collection.split_path == [u'latest']:
+                    if collection.split_path == [u'arte-latest']:
                         for video in self.browser.latest_videos():
                             yield video
-                    if collection.split_path == [u'live']:
+                    if collection.split_path == [u'arte-live']:
                         for categorie in self.browser.get_arte_live_categories():
                             yield categorie
                 if collection.path_level == 2:
-                    if collection.split_path[0] == u'live':
-                        for video in self.browser.live_videos(ArteLiveCollection.id2url(collection.basename, self.browser.lang)):
+                    if collection.split_path[0] == u'arte-live':
+                        for video in self.browser.live_videos(ArteLiveCollection.id2url(collection.basename, self.browser.LIVE_LANG[self.browser.lang])):
                             yield video
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if BaseVideo in objs and ( collection.split_path == [u'latest'] or collection.split_path == [u'live'] ):
+        if BaseVideo in objs and (collection.split_path == [u'arte-latest'] or collection.split_path == [u'arte-live']):
             return
-        if BaseVideo in objs and collection.path_level == 2 and collection.split_path[0] == u'live' :
+        if BaseVideo in objs and collection.path_level == 2 and collection.split_path[0] == u'arte-live':
             return
         raise CollectionNotFound(collection.split_path)
 

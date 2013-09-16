@@ -30,20 +30,20 @@ class ArteTest(BackendTest):
         if len(l) > 0:
             v = l[0]
             self.backend.fillobj(v, ('url',))
-            self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+            self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_live(self):
-        l1 = list(self.backend.iter_resources([BaseVideo], [u'live']))
+        l1 = list(self.backend.iter_resources([BaseVideo], [u'arte-live']))
         assert len(l1)
-        l2 = list(self.backend.iter_resources([BaseVideo], [u'live',u'%s'%l1[0]]))
+        l2 = list(self.backend.iter_resources([BaseVideo], [u'arte-live', u'%s' % l1[0]]))
         assert len(l2)
         v = l2[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 
     def test_latest(self):
-        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
+        l = list(self.backend.iter_resources([BaseVideo], [u'arte-latest']))
         assert len(l)
         v = l[0]
         self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url and v.url.startswith('rtmp://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
+        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
