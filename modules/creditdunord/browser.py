@@ -36,8 +36,8 @@ class CreditDuNordBrowser(BaseBrowser):
              'https://[^/]+/.*\?.*_pageLabel=page_erreur_connexion':    LoginPage,
              'https://[^/]+/vos-comptes/particuliers(\?.*)?':           AccountsPage,
              'https://[^/]+/vos-comptes/.*/transac/particuliers.*':     TransactionsPage,
-             'https://[^/]+/vos-comptes/professionnels.*':              ProAccountsPage,
-             'https://[^/]+/vos-comptes/.*/transac/professionnels.*':   ProTransactionsPage,
+             'https://[^/]+/vos-comptes/(?P<kind>professionnels|entreprises).*':    ProAccountsPage,
+             'https://[^/]+/vos-comptes/.*/transac/(professionnels|entreprises).*': ProTransactionsPage,
             }
     account_type = 'particuliers'
 

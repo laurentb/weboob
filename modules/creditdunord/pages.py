@@ -134,7 +134,8 @@ class ProAccountsPage(AccountsPage):
         for sub in re.findall("'([^']*)'", text):
             l.append(sub)
 
-        url = '/vos-comptes/IPT/appmanager/transac/professionnels?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
+        kind = self.group_dict['kind']
+        url = '/vos-comptes/IPT/appmanager/transac/' + kind + '?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
         args = {}
 
         for i, key in enumerate(self.ARGS):
