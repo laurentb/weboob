@@ -32,9 +32,15 @@ class LoginPage(BasePage):
     def on_loaded(self):
         pass
 
+    def _predicate_form(self, form):
+        try:
+            return form.attrs['class'] == "form-detail"
+        except:
+            return False
+
     def login(self, login, password):
         # Form without name
-        self.browser.select_form(nr=1)
+        self.browser.select_form(predicate=self._predicate_form)
         self.browser.set_all_readonly(False)
         self.browser['login[username]'] = login.encode('iso-8859-1')
         self.browser['login[password]'] = password.encode('iso-8859-1')
