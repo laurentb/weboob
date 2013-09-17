@@ -167,9 +167,10 @@ class TransferConfirmPage(BasePage):
                 realpasswd += password[i]
             i += 1
         confirmform = None
-        for form in self.document.xpath('//form'):
+        divform = self.document.xpath('//div[@id="transfer_panel"]')[0]
+        for form in divform.xpath('./form'):
             try:
-                if form.attrib['name'][0:4] == "j_id" and 'enctype' not in form.attrib:
+                if form.attrib['name'][0:4] == "j_id":
                     confirmform = form
                     break
             except:
