@@ -217,7 +217,12 @@ class Downloadboob(object):
 config = ConfigParser.ConfigParser()
 config.read(['/etc/downloadboob.conf', os.path.expanduser('~/downloadboob.conf'), 'downloadboob.conf'])
 
-links_directory=os.path.expanduser(config.get('main','directory', '.'))
+try:
+    links_directory=os.path.expanduser(config.get('main','directory', '.'))
+except ConfigParser.NoSectionError:
+    print "Please create a documentation file (see the README file and the downloadboob.conf example file)"
+    sys.exit(2)
+
 links_directory=links_directory.decode('utf-8')
 
 download_directory=os.path.join(links_directory, DOWNLOAD_DIRECTORY)
