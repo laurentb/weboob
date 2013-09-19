@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import IndexPage, VideoPage, ArteLivePage, ArteLiveCategorieVideoPage, ArteLiveVideoPage
+from .pages import IndexPage, VideoPage, ArteLivePage, ArteLiveCategorieVideoPage, ArteLiveVideoPage, ArteLivePlayerPage
 from .video import ArteVideo, ArteLiveVideo
 
 
@@ -36,6 +36,7 @@ class ArteBrowser(BaseBrowser):
              r'http://videos.arte.tv/\w+/videos/(?P<id>.+)\.html': VideoPage,
              r'http://liveweb.arte.tv/\w+' : ArteLivePage,
              r'http://liveweb.arte.tv/\w+/cat/.*' : ArteLiveCategorieVideoPage,
+             r'http://liveweb.arte.tv/\w+/video/.*': ArteLivePlayerPage,
              r'http://arte.vo.llnwd.net/o21/liveweb/events/event-(?P<id>.+).xml' : ArteLiveVideoPage,
             }
 
@@ -79,3 +80,10 @@ class ArteBrowser(BaseBrowser):
         self.location(url)
         assert self.is_on_page(ArteLiveCategorieVideoPage)
         return self.page.iter_videos(self.lang)
+
+    def get_live_from_url(self, url):
+        self.location(url)
+        assert self.is_on_page(ArteLivePlayerPage)
+        _id = self.page.retrieve_id()
+        if _id:
+            return self.get_live_video(_id)

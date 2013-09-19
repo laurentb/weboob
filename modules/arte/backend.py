@@ -55,7 +55,9 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
         if m:
             return 'videos', m.group(1)
 
-        # TODO support live videos
+        m = re.match('https?://liveweb.arte.tv/\w+/video/(.*)/', _id)
+        if m:
+            return 'live_url', _id
 
         return 'videos', _id
 
@@ -65,6 +67,10 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
 
             if site == 'live':
                 return self.browser.get_live_video(_id)
+
+            elif site == 'live_url':
+                return self.browser.get_live_from_url(_id)
+
             else:
                 return self.browser.get_video(_id)
 

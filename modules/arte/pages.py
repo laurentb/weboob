@@ -36,7 +36,7 @@ __all__ = ['IndexPage', 'VideoPage', 'ArteLivePage', 'ArteLiveCategorieVideoPage
 class ArteLiveVideoPage(BasePage):
     def get_video(self, video=None, lang='fr', quality='hd'):
         if not video:
-            video = ArteVideo(self.group_dict['id'])
+            video = ArteLiveVideo(self.group_dict['id'])
 
         urls = {}
         for url in self.document.xpath('//video')[0].getchildren():
@@ -214,3 +214,11 @@ class VideoPage(BasePage):
             video_url = urls.popitem()[1]
 
         return video_url
+
+
+class ArteLivePlayerPage(BasePage):
+    def retrieve_id(self):
+        player_url = self.document.xpath('//div[@class="flash"]/div/object/param')[0].attrib['value']
+        _id = re.match('(.*)&eventId=(\d*)&(.*)', player_url)
+        if _id:
+            return u'%s' % _id.group(2)
