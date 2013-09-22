@@ -28,7 +28,7 @@ __all__ = ['BNPEnterprise']
 class BNPEnterprise(BaseBrowser):
     DOMAIN = 'entreprisesplus.bnpparibas.net'
     PROTOCOL = 'https'
-    CERTHASH = '423f68a8162d1328bacb48269675d8b8577ebcc9d222860de8421792c4d222c1'
+    CERTHASH = '6789f1e08e18d6578dca88ce2e0354a99dbe7824736c01c9c4fa3b456d03b9e9'
 
     PAGES = {'%s://%s/NSAccess.*' % (PROTOCOL, DOMAIN): LoginPage,
              '%s://%s/UNE\?.*' % (PROTOCOL, DOMAIN): AccountsPage,
