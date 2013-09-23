@@ -213,7 +213,7 @@ def install_modules():
 
 class Options(object):
     hildon = False
-    qt = True
+    qt = False
     xdg = True
     deps = True
     modules = False
