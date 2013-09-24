@@ -25,7 +25,12 @@ from datetime import datetime, date, time
 
 import re
 
-__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage']
+__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'BillsPage', 'ErrorPage']
+
+
+class ErrorPage(BasePage):
+    def on_loaded(self):
+        pass
 
 
 class LoginPage(BasePage):
@@ -39,12 +44,16 @@ class LoginPage(BasePage):
             return False
 
     def login(self, login, password):
+        captcha = self.document.xpath('label[@class="label_captcha_input"]')
+        if captcha is not None:
+            return False
         # Form without name
         self.browser.select_form(predicate=self._predicate_form)
         self.browser.set_all_readonly(False)
         self.browser['login[username]'] = login.encode('iso-8859-1')
         self.browser['login[password]'] = password.encode('iso-8859-1')
         self.browser.submit(nologin=True)
+        return True
 
 
 class HomePage(BasePage):

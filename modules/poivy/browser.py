@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
-from .pages import HomePage, LoginPage, HistoryPage, BillsPage
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrowserBanned
+from .pages import HomePage, LoginPage, HistoryPage, BillsPage, ErrorPage
 
 __all__ = ['PoivyBrowser']
 
@@ -31,7 +31,8 @@ class PoivyBrowser(BaseBrowser):
     PAGES = {'.*login':                 LoginPage,
              '.*buy_credit.*':            HomePage,
              '.*/recent_calls':         HistoryPage,
-             '.*purchases':             BillsPage
+             '.*purchases':             BillsPage,
+             '.*warning.*':             ErrorPage
              }
 
     def __init__(self, *args, **kwargs):
@@ -50,9 +51,10 @@ class PoivyBrowser(BaseBrowser):
         if not self.is_on_page(LoginPage):
             self.location('/login')
 
-        self.page.login(self.username, self.password)
+        if not self.page.login(self.username, self.password):
+            raise BrowserBanned('Too many connections from you IP address: captcha enabled')
 
-        if self.is_on_page(LoginPage):
+        if self.is_on_page(LoginPage) or self.is_on_page(ErrorPage):
             raise BrowserIncorrectPassword()
 
     def get_subscription_list(self):
