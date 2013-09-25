@@ -44,8 +44,8 @@ class LoginPage(BasePage):
             return False
 
     def login(self, login, password):
-        captcha = self.document.xpath('label[@class="label_captcha_input"]')
-        if captcha is not None:
+        captcha = self.document.xpath('//label[@class="label_captcha_input"]')
+        if len(captcha) > 0:
             return False
         # Form without name
         self.browser.select_form(predicate=self._predicate_form)
