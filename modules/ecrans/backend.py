@@ -33,7 +33,7 @@ class NewspaperEcransBackend(GenericNewspaperBackend, ICapMessages):
     NAME = 'ecrans'
     DESCRIPTION = u'Écrans French news website'
     BROWSER = NewspaperEcransBrowser
-    RSS_FEED = 'http://www.ecrans.fr/spip.php?page=backend'
+    RSS_FEED = 'http://www.ecrans.fr/rss/53/spip.php?page=backend'
     RSSID = staticmethod(rssid)
     URL2ID = staticmethod(url2id)
     # RSS Size is actually 10, but some articles are not sorted by publication date

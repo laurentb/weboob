@@ -39,5 +39,6 @@ class NewspaperEcransBrowser(BaseBrowser):
 
     def get_content(self, _id):
         "return page article content"
-        self.location(_id)
-        return self.page.get_article(_id)
+        url = _id.replace('/rss/53', '')
+        self.location(url)
+        return self.page.get_article(url)
