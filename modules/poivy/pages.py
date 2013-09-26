@@ -20,7 +20,7 @@
 from weboob.tools.browser import BasePage
 from weboob.capabilities.base import Currency
 from weboob.capabilities.bill import Subscription, Detail
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, date, time
 
 import re
@@ -102,7 +102,10 @@ class HistoryPage(BasePage):
             detail = Detail()
             detail.datetime = datetime.combine(mydate, mytime)
             detail.label = u"%s from %s to %s - %s" % (tds[2].text, tds[3].text, tds[4].text, tds[5].text)
-            detail.price = Decimal(price)
+            try:
+                detail.price = Decimal(price)
+            except InvalidOperation:
+                detail.price = Decimal(0)  # free calls
             detail.currency = Currency.CUR_EUR
 
             yield detail
