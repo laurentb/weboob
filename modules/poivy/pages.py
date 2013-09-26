@@ -47,11 +47,18 @@ class LoginPage(BasePage):
         captcha = self.document.xpath('//label[@class="label_captcha_input"]')
         if len(captcha) > 0:
             return False
+
+        form_newsletter = self.document.xpath('//form[@id="newsletter_form"]')[0]
+        hidden_input = form_newsletter.xpath('./input[@type="hidden"]')[0]
+        hidden_id = hidden_input.attrib["value"]
+        hidden_name = hidden_input.attrib["name"]
+
         # Form without name
         self.browser.select_form(predicate=self._predicate_form)
         self.browser.set_all_readonly(False)
         self.browser['login[username]'] = login.encode('iso-8859-1')
         self.browser['login[password]'] = password.encode('iso-8859-1')
+        self.browser[hidden_name] = hidden_id
         self.browser.submit(nologin=True)
         return True
 
