@@ -252,7 +252,7 @@ class ComingPage(OperationsPage):
 class CardPage(OperationsPage):
     def get_history(self):
         index = 0
-        label = self.parser.select(self.document.getroot(), 'div.lister p.c', 1).text
+        label = self.parser.tocleanstring(self.parser.select(self.document.getroot(), 'div.lister p.c', 1))
         label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
         # use the trick of relativedelta to get the last day of month.
         debit_date = parse_french_date(label) + relativedelta(day=31)
