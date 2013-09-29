@@ -61,7 +61,11 @@ class TitreHistory(BasePage):
         pass
 
     def iter_history(self):
-        table = self.document.xpath('//table[@class="datas retour"]')[0]
+        try:
+            table = self.document.xpath('//table[@class="datas retour"]')[0]
+        except IndexError:
+            return # noop
+
         trs = table.xpath('tr')
         trs.pop(0)
         trs.pop(-1)
