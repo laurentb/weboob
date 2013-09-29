@@ -48,7 +48,10 @@ class AccountsList(BasePage):
                                 # ignore account
                                 break
                             account.label = self.parser.tocleanstring(span)
-                            account._link_id = td.xpath('.//a')[0].attrib['href']
+                            try:
+                                account._link_id = td.xpath('.//a')[0].attrib['href']
+                            except KeyError:
+                                pass
 
                         elif td.attrib.get('class', '') == 'account-more-actions':
                             for a in td.getiterator('a'):
