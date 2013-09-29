@@ -252,30 +252,43 @@ class ComingPage(OperationsPage):
 class CardPage(OperationsPage):
     def get_history(self):
         index = 0
-        label = self.parser.tocleanstring(self.parser.select(self.document.getroot(), 'div.lister p.c', 1))
-        label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
-        # use the trick of relativedelta to get the last day of month.
-        debit_date = parse_french_date(label) + relativedelta(day=31)
 
-        for tr in self.document.xpath('//table[@class="liste"]/tbody/tr'):
-            tds = tr.findall('td')[:4]
-            if len(tds) < 4:
-                continue
+        # Check if this is a multi-cards page
+        pages = []
+        for a in self.document.xpath('//table[@class="liste"]/tbody/tr/td/a'):
+            card_link = a.get('href')
+            history_url = 'https://%s/%s/fr/banque/%s' % (self.browser.DOMAIN, self.browser.currentSubBank, card_link)
+            page = self.browser.get_document(self.browser.openurl(history_url))
+            pages.append(page)
 
-            tr = Transaction(index)
+        if len(pages) == 0:
+            # If not, add this page as transactions list
+            pages.append(self.document)
 
-            parts = [txt.strip() for txt in list(tds[-3].itertext()) + list(tds[-2].itertext()) if len(txt.strip()) > 0]
+        for page in pages:
+            label = self.parser.tocleanstring(self.parser.select(page.getroot(), 'div.lister p.c', 1))
+            label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
+            # use the trick of relativedelta to get the last day of month.
+            debit_date = parse_french_date(label) + relativedelta(day=31)
 
-            tr.parse(date=tds[0].text.strip(' \xa0'),
-                     raw=u' '.join(parts))
-            tr.date = debit_date
-            tr.type = tr.TYPE_CARD
+            for tr in page.xpath('//table[@class="liste"]/tbody/tr'):
+                tds = tr.findall('td')[:4]
+                if len(tds) < 4:
+                    continue
 
-            # Don't take all of the content (with tocleanstring for example),
-            # because there is a span.aide.
-            tr.set_amount(tds[-1].text)
-            yield tr
+                tr = Transaction(index)
 
+                parts = [txt.strip() for txt in list(tds[-3].itertext()) + list(tds[-2].itertext()) if len(txt.strip()) > 0]
+
+                tr.parse(date=tds[0].text.strip(' \xa0'),
+                         raw=u' '.join(parts))
+                tr.date = debit_date
+                tr.type = tr.TYPE_CARD
+
+                # Don't take all of the content (with tocleanstring for example),
+                # because there is a span.aide.
+                tr.set_amount(tds[-1].text)
+                yield tr
 
 class NoOperationsPage(OperationsPage):
     def get_history(self):
