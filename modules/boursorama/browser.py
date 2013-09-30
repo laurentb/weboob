@@ -73,20 +73,6 @@ class Boursorama(BaseBrowser):
                     """ You will receive SMS code but are limited in request per day (around 15)"""
                 )
 
-    def login_mobile(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
-        data = {'login':    self.username.encode('utf-8'),
-                'password': self.password.encode('utf-8'),
-                'submit':   'OK',
-               }
-        r = self.openurl('https://www.boursorama.com/iphone/logunique.phtml', urllib.urlencode(data))
-
-        if 'error' in r.geturl():
-            raise BrowserIncorrectPassword()
-
-        self.save_response(r)
 
     def login(self):
         assert isinstance(self.device, basestring)
