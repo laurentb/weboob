@@ -32,7 +32,7 @@ class SearchPage(BasePage):
         re_id_title = re.compile('/offres-emploi-cadres/\d*_\d*_\d*_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?).html', re.DOTALL)
         divs = self.document.getroot().xpath("//div[@class='boxContent offre']") + self.document.getroot().xpath("//div[@class='boxContent offre even']")
         for div in divs:
-            a = self.parser.select(div, 'div/h3/a', 1, method='xpath')
+            a = self.parser.select(div, 'div/div/h3/a', 1, method='xpath')
             _id = u'%s/%s' % (re_id_title.search(a.attrib['href']).group(1), re_id_title.search(a.attrib['href']).group(9))
             advert = ApecJobAdvert(_id)
             advert.title = u'%s' % re_id_title.search(a.attrib['href']).group(9).replace('-', ' ')
