@@ -57,18 +57,44 @@ class MainWindow(QtMainWindow):
         self.ui.jobFrame.hide()
 
         self.connect(self.ui.actionBackends, SIGNAL("triggered()"), self.backendsConfig)
+
         self.connect(self.ui.searchEdit, SIGNAL('returnPressed()'), self.doSearch)
         self.connect(self.ui.jobList, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.jobSelected)
         self.connect(self.ui.searchButton, SIGNAL('clicked()'), self.doSearch)
 
+        self.connect(self.ui.refreshButton, SIGNAL('clicked()'), self.doAdvancedSearch)
+        self.connect(self.ui.queriesTabWidget, SIGNAL('currentChanged(int)'), self.tabChange)
+        self.connect(self.ui.jobListAdvancedSearch, SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'), self.jobSelected)
+
+        self.connect(self.ui.idEdit, SIGNAL('returnPressed()'), self.openJob)
+
         if self.weboob.count_backends() == 0:
             self.backendsConfig()
+
+    def tabChange(self, index):
+        if index == 1:
+            self.doAdvancedSearch()
+
+    def doAdvancedSearch(self):
+        self.ui.jobListAdvancedSearch.clear()
+        self.process = QtDo(self.weboob, self.addJobAdvancedSearch)
+        self.process.do('advanced_search_job')
 
     def doSearch(self):
         pattern = unicode(self.ui.searchEdit.text())
         self.ui.jobList.clear()
-        self.process = QtDo(self.weboob, self.addJob)
+        self.process = QtDo(self.weboob, self.addJobSearch)
         self.process.do('search_job', pattern)
+
+    def addJobSearch(self, backend, job):
+        item = self.addJob(backend, job)
+        if item:
+            self.ui.jobList.addItem(item)
+
+    def addJobAdvancedSearch(self, backend, job):
+        item = self.addJob(backend, job)
+        if item:
+            self.ui.jobListAdvancedSearch.addItem(item)
 
     def addJob(self, backend, job):
         if not backend:
@@ -80,7 +106,7 @@ class MainWindow(QtMainWindow):
 
         item = JobListWidgetItem(job)
         item.setAttrs(self.storage)
-        self.ui.jobList.addItem(item)
+        return item
 
     def closeEvent(self, event):
         QtMainWindow.closeEvent(self, event)
@@ -93,7 +119,7 @@ class MainWindow(QtMainWindow):
     def jobSelected(self, item, prev):
         if item is not None:
             job = item.job
-            self.ui.queriesFrame.setEnabled(False)
+            self.ui.queriesTabWidget.setEnabled(False)
 
             self.process = QtDo(self.weboob, self.gotJob)
             self.process.do('fillobj', job, backends=job.backend)
@@ -106,9 +132,24 @@ class MainWindow(QtMainWindow):
         if prev:
             prev.setAttrs(self.storage)
 
+    def openJob(self):
+        url = unicode(self.ui.idEdit.text())
+        if not url:
+            return
+
+        for backend in self.weboob.iter_backends():
+            job = backend.get_job_advert(url)
+            if job:
+                self.process = QtDo(self.weboob, self.gotJob)
+                self.process.do('fillobj', job, backends=job.backend)
+                break
+
+        self.setJob(job)
+        self.ui.idEdit.clear()
+
     def gotJob(self, backend, job):
         if not backend:
-            self.ui.queriesFrame.setEnabled(True)
+            self.ui.queriesTabWidget.setEnabled(True)
             self.process = None
             return
 
@@ -118,7 +159,7 @@ class MainWindow(QtMainWindow):
         if job:
             self.ui.descriptionEdit.setText("%s" % job.description)
             self.ui.titleLabel.setText("<h1>%s</h1>" % job.title)
-            self.ui.backendLabel.setText("%s" % job.backend)
+            self.ui.idLabel.setText("%s" % job.id)
             self.ui.jobNameLabel.setText("%s" % job.job_name)
             self.ui.publicationDateLabel.setText("%s" % job.publication_date)
             self.ui.societyNameLabel.setText("%s" % job.society_name)
