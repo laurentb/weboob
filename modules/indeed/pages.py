@@ -54,10 +54,10 @@ class SearchPage(BasePage):
             if number:
                 if 'heures' in date:
                     date = now - datetime.timedelta(hours=int(number.group(0)))
-                    advert.publication_date = date
+                    advert.publication_date = datetime.datetime.combine(date, datetime.time())
                 elif 'jour' in date:
                     date = now - datetime.timedelta(days=int(number.group(0)))
-                    advert.publication_date = date
+                    advert.publication_date = datetime.datetime.combine(date, datetime.time())
             return advert
         return None
 
