@@ -178,8 +178,11 @@ class CardsPage(BasePage):
         for i, line in enumerate(lines):
             is_balance = line.xpath('./td/@class="cel-texte cel-neg"')
 
-            [date, label, _, amount] = [self.parser.tocleanstring(td)
-                                        for td in line.xpath('./td')]
+            # It is possible to have three or four columns.
+            cols = [self.parser.tocleanstring(td) for td in line.xpath('./td')]
+            date = cols[0]
+            label = cols[1]
+            amount = cols[-1]
 
             t = Transaction(i)
             t.set_amount(amount)
