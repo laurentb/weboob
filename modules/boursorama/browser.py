@@ -20,8 +20,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages import LoginPage, AccountsList, AccountHistory, UpdateInfoPage, AuthenticationPage
