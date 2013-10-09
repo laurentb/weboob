@@ -23,7 +23,7 @@ from decimal import Decimal
 import re
 from mechanize import Cookie
 
-from weboob.tools.browser import BasePage, BrowserUnavailable, BrokenPageError
+from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -53,6 +53,11 @@ class WikipediaARC4(object):
             self.state[self.x], self.state[self.y] = self.state[self.y], self.state[self.x]
             output[i] = chr((ord(input[i]) ^ self.state[(self.state[self.x] + self.state[self.y]) & 0xFF]))
         return ''.join(output)
+
+
+class BasePage(_BasePage):
+    def get_token(self):
+        return self.parser.select(self.document.getroot(), '//form//input[@name="token"]', 1, 'xpath').attrib['value']
 
 
 class RedirectPage(BasePage):
