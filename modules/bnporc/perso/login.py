@@ -20,16 +20,15 @@
 
 import time
 import re
-from weboob.tools.mech import ClientForm
 import urllib
 
 from weboob.tools.browser import BasePage, BrowserUnavailable
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
 __all__ = ['LoginPage', 'ConfirmPage', 'ChangePasswordPage']
 
 
-class BNPVirtKeyboard(MappedVirtKeyboard):
+class BNPVirtKeyboard(VirtKeyboard):
     symbols={'0': '9cc4789a2cb223e8f2d5e676e90264b5',
              '1': 'e10b58fc085f9683052d5a63c96fc912',
              '2': '04ec647e7b3414bcc069f0c54eb55a4c',
@@ -46,19 +45,32 @@ class BNPVirtKeyboard(MappedVirtKeyboard):
 
     color=27
 
-    def __init__(self, basepage):
-        img=basepage.document.find("//img[@usemap='#MapGril']")
-        MappedVirtKeyboard.__init__(self, basepage.browser.openurl(self.url % time.time()), basepage.document, img, self.color, 'ondblclick')
-        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
+    def __init__(self, page):
+        coords = {}
+
+        size = 136
+        x, y, width, height = (0, 0, size/5, size/5)
+        for a in page.document.xpath('//div[@id="secret-nbr-keyboard"]/a'):
+            code = a.attrib['ondblclick']
+            coords[code] = (x+1, y+1, x+height-2, y+height-2)
+            if (x + width + 1) >= size:
+                y += height
+                x = 0
+            else:
+                x += width
+
+        VirtKeyboard.__init__(self, page.browser.openurl(self.url % time.time()), coords, self.color)
+
+        self.check_symbols(self.symbols, page.browser.responses_dirname)
 
     def get_symbol_code(self, md5sum):
-        code=MappedVirtKeyboard.get_symbol_code(self, md5sum)
-        return code[-4:-2]
+        code = VirtKeyboard.get_symbol_code(self, md5sum)
+        return re.sub(u'[^\d]', '', code)
 
     def get_string_code(self, string):
-        code=''
+        code = ''
         for c in string:
-            code+=self.get_symbol_code(self.symbols[c])
+            code += self.get_symbol_code(self.symbols[c])
         return code
 
 
@@ -78,14 +90,17 @@ class LoginPage(BasePage):
             self.logger.error("Error: %s"%err)
             return False
 
-        self.browser.select_form('logincanalnet')
-        # HACK because of fucking malformed HTML, the field isn't recognized by mechanize.
-        self.browser.controls.append(ClientForm.TextControl('text', 'ch1', {'value': ''}))
-        self.browser.set_all_readonly(False)
+        # Mechanize does not recognize the form..
+        form = self.document.xpath('//form[@name="logincanalnet"]')[0]
+        url = form.attrib['action']
+        params = {}
+        for ctrl in form.findall('input'):
+            params[ctrl.attrib['name']] = ctrl.attrib['value']
 
-        self.browser['ch1'] = login.encode('iso-8859-1')
-        self.browser['ch5'] = vk.get_string_code(password)
-        self.browser.submit()
+        params['ch1'] = login.encode('iso-8859-1')
+        params['ch5'] = vk.get_string_code(password)
+
+        self.browser.location(url, urllib.urlencode(params))
 
 
 class ConfirmPage(BasePage):
