@@ -110,7 +110,12 @@ class BanquePopulaire(BaseBrowser):
     def get_history(self, account):
         if not self.is_on_page(AccountsPage):
             account = self.get_account(account.id)
+
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
+        self.token = self.page.get_token()
+
+        if self.page.no_operations():
+            return
 
         # Sort by values dates (see comment in TransactionsPage.get_history)
         self.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')

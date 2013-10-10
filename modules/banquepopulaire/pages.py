@@ -320,3 +320,6 @@ class TransactionsPage(BasePage):
             t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate)
             t.set_amount(credit, debit)
             yield t
+
+    def no_operations(self):
+        return len(self.document.xpath('//table[@id="tbl1"]//td[@colspan]')) > 0
