@@ -210,6 +210,9 @@ class AccountsPage(BasePage):
 
         return False
 
+    def is_short_list(self):
+        return len(self.document.xpath('//script[contains(text(), "EQUIPEMENT_COMPLET")]')) > 0
+
     def get_list(self):
         account_type = Account.TYPE_UNKNOWN
 

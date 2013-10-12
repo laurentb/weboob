@@ -88,10 +88,11 @@ class BanquePopulaire(BaseBrowser):
         if self.page.is_error():
             raise BrokenPageError('Unable to go on the accounts list page')
 
-        self.select_form(nr=0)
-        self.set_all_readonly(False)
-        self['dialogActionPerformed'] = 'EQUIPEMENT_COMPLET'
-        self.submit()
+        if self.page.is_short_list():
+            self.select_form(nr=0)
+            self.set_all_readonly(False)
+            self['dialogActionPerformed'] = 'EQUIPEMENT_COMPLET'
+            self.submit()
 
         self.token = self.page.get_token()
 
