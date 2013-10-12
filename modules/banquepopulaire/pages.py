@@ -200,7 +200,10 @@ class HomePage(BasePage):
 
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Mes comptes d\'épargne':     Account.TYPE_SAVINGS,
+                     u'Mon épargne':                Account.TYPE_SAVINGS,
                      u'Mes comptes':                Account.TYPE_CHECKING,
+                     u'Mes emprunts':               Account.TYPE_LOAN,
+                     u'Mes services':               None,    # ignore this kind of accounts (no bank ones)
                     }
 
     def is_error(self):
@@ -223,6 +226,10 @@ class AccountsPage(BasePage):
         for div in self.document.xpath('//div[@class="btit"]'):
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
 
+            if account_type is None:
+                # ignore services accounts
+                continue
+
             for tr in div.getnext().xpath('.//tbody/tr'):
                 if not 'id' in tr.attrib:
                     continue
@@ -240,8 +247,12 @@ class AccountsPage(BasePage):
                                            u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
                 account.type = account_type
                 balance = u''.join([txt.strip() for txt in tds[3].itertext()])
+                if balance == u'':
+                    balance = '0.0'
                 account.balance = Decimal(FrenchTransaction.clean_amount(balance))
                 account.currency = account.get_currency(balance)
+                if account.type == account.TYPE_LOAN:
+                    account.balance = - abs(account.balance)
                 account._params = params.copy()
                 account._params['dialogActionPerformed'] = 'SOLDE'
                 account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
