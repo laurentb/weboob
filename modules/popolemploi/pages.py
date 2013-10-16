@@ -67,23 +67,37 @@ class AdvertPage(BasePage):
             advert.society_name = u'%s' % society_name[0].text
 
         advert.url = url
-        advert.place = u'%s' % self.parser.select(content,
-                                                  'ul/li/div[@class="value"]/ul/li[@itemprop="addressRegion"]',
-                                                  1, method='xpath').text.strip()
+        place = u'%s' % self.parser.select(content,
+                                           'ul/li/div[@class="value"]/ul/li[@itemprop="addressRegion"]',
+                                           1, method='xpath').text
+        if place:
+            advert.place = place.strip()
 
-        advert.contract_type = u'%s' % self.parser.select(content,
-                                                          'ul/li/div[@class="value"]/span[@itemprop="employmentType"]',
-                                                          1, method='xpath').text.strip()
+        contract_type = u'%s' % self.parser.select(content,
+                                                   'ul/li/div[@class="value"]/span[@itemprop="employmentType"]',
+                                                   1, method='xpath').text
 
-        advert.experience = u'%s' % self.parser.select(content,
-                                                       'ul/li/div[@class="value"]/span[@itemprop="experienceRequirements"]',
-                                                       1, method='xpath').text.strip()
+        if contract_type:
+            advert.contract_type = contract_type.strip()
 
-        advert.formation = u'%s' % self.parser.select(content,
-                                                      'ul/li/div[@class="value"]/span[@itemprop="qualifications"]',
-                                                      1, method='xpath').text.strip()
+        experience = u'%s' % self.parser.select(content,
+                                                'ul/li/div[@class="value"]/span[@itemprop="experienceRequirements"]',
+                                                1, method='xpath').text
 
-        advert.pay = u'%s' % self.parser.select(content,
-                                                'ul/li/div[@class="value"]/span[@itemprop="baseSalary"]',
-                                                1, method='xpath').text.strip()
+        if experience:
+            advert.experience = experience.strip()
+
+        formation = u'%s' % self.parser.select(content,
+                                               'ul/li/div[@class="value"]/span[@itemprop="qualifications"]',
+                                               1, method='xpath').text
+
+        if formation:
+            advert.formation = formation.strip()
+
+        pay = u'%s' % self.parser.select(content,
+                                         'ul/li/div[@class="value"]/span[@itemprop="baseSalary"]',
+                                         1, method='xpath').text
+        if pay:
+            advert.pay = pay.strip()
+
         return advert
