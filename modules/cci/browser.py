@@ -35,10 +35,10 @@ class CciBrowser(BaseBrowser):
         '%s://%s' % (PROTOCOL, DOMAIN): SearchPage,
     }
 
-    def search_job(self):
+    def search_job(self, pattern):
         self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))
         assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.page.iter_job_adverts(pattern)
 
     def get_job_advert(self, _id, advert):
         self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN))

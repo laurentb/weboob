@@ -38,10 +38,9 @@ class CciBackend(BaseBackend, ICapJob):
     BROWSER = CciBrowser
 
     def search_job(self, pattern=None):
-        if not pattern:
-            with self.browser:
-                for job_advert in self.browser.search_job():
-                    yield job_advert
+        with self.browser:
+            for job_advert in self.browser.search_job(pattern):
+                yield job_advert
 
     def advanced_search_job(self):
         return []

@@ -26,7 +26,7 @@ __all__ = ['SearchPage']
 
 
 class SearchPage(BasePage):
-    def iter_job_adverts(self):
+    def iter_job_adverts(self, pattern):
         trs = self.document.getroot().xpath("//tr[@class='texteCol2TableauClair']") \
             + self.document.getroot().xpath("//tr[@class='texteCol2TableauFonce']")
 
@@ -38,7 +38,11 @@ class SearchPage(BasePage):
             advert.society_name = u'CCI %s' % tds[3].text
             advert.place = u'%s' % tds[0].text
             advert.job_name = u'%s' % tds[1].text
-            yield advert
+            if pattern is not None:
+                if pattern in advert.title or pattern in advert.job_name:
+                    yield advert
+            else:
+                yield advert
 
     def get_job_advert(self, _id, advert):
         if advert is None:
