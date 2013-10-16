@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities import NotAvailable
@@ -47,6 +47,7 @@ class GroovesharkBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'html5.grooveshark.com'
     API_URL = 'https://html5.grooveshark.com/more.php'
+    IS_LOGGED = False
 
     #Setting the static header (country, session and uuid)
     HEADER = {}
@@ -65,10 +66,39 @@ class GroovesharkBrowser(BaseBrowser):
     GROOVESHARK_CONSTANTS = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
 
+    USER_ID = None
     VIDEOS_FROM_SONG_RESULTS = None
 
     def home(self):
+        self.login()
         self.get_communication_token()
+
+    def is_logged(self):
+        return self.USER_ID is not None and self.USER_ID != 0
+
+    def login(self):
+        if self.username and self.password:
+            method = 'authenticateUser'
+
+            parameters = {}
+            parameters['username'] = self.username
+            parameters['password'] = self.password
+
+            response = self.API_post(method, parameters, self.create_token(method))
+            self.USER_ID = response['result']['userID']
+
+            if not self.is_logged:
+                raise BrowserIncorrectPassword()
+
+    def get_all_user_playlists(self, split_path):
+        if self.is_logged():
+            method = 'userGetPlaylists'
+
+            parameters = {}
+            parameters['userID'] = self.USER_ID
+
+            response = self.API_post(method, parameters, self.create_token(method))
+            return self.create_collection_from_playlists_result(response['result']['Playlists'], split_path)
 
     def search_videos(self, pattern):
         method = 'getResultsFromSearch'
@@ -122,27 +152,40 @@ class GroovesharkBrowser(BaseBrowser):
         self.VIDEOS_FROM_SONG_RESULTS = []
         videos = list()
         for song in songs:
+            video = self.create_video(song)
+            if video:
+                self.VIDEOS_FROM_SONG_RESULTS.append(video)
+                videos.append(video)
+        return videos
+
+    def create_video(self, song):
+        if song['EstimateDuration']:
             video = GroovesharkVideo(song['SongID'])
             video.title = u'Song - %s' % song['Name'].encode('ascii', 'replace')
             video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
             video.description = u'%s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'))
             if song['CoverArtFilename']:
                 video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
-            if song['EstimateDuration']:
-                video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
+            video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.date = NotAvailable
-            self.VIDEOS_FROM_SONG_RESULTS.append(video)
-            videos.append(video)
-        return videos
+            return video
 
-    def create_video_from_playlist_result(self, playlists):
-        videos = []
+    def create_collection_from_playlists_result(self, playlists, split_path):
+        items = list()
         for playlist in playlists:
-            video = GroovesharkVideo(playlist['PlaylistID'])
-            video.title = u'Playlist - %s' % (playlist['Name'])
-            video.description = playlist['Artists']
-            videos.append(video)
-        return videos
+            path = copy.deepcopy(split_path)
+            path.append(u'%s' % playlist['PlaylistID'])
+            items.append(Collection(path, u'%s' % (playlist['Name'])))
+        return items
+
+    def get_all_songs_from_playlist(self, playlistID):
+        method = 'getPlaylistByID'
+
+        parameters = {}
+        parameters['playlistID'] = playlistID
+
+        response = self.API_post(method, parameters, self.create_token(method))
+        return self.create_video_from_album_result(response['result']['Songs'])
 
     def create_collection_from_albums_result(self, albums, split_path):
         items = list()
