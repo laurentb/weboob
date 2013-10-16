@@ -1,5 +1,5 @@
 1. Replace weboob egg file
 
 2. update settings.cmd
-	
+
 3. run create-exe-setup-weboob.bat
