@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+import re
 
 from weboob.tools.backend import BaseBackend
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
@@ -75,8 +75,13 @@ class VlilleBackend(BaseBackend, ICapGauge):
         return None
 
     def _get_sensor_by_id(self, id):
-        for gauge in self.browser.get_station_list():
-            for sensor in self.browser.get_station_infos(gauge):
-                if id == sensor.id:
-                    return sensor
+        reSensorId = re.search('(\d+)-((bikes|attach|status))', id, re.IGNORECASE)
+        if reSensorId:
+            gauge = reSensorId.group(1)
+            pattern = reSensorId.group(2)
+            sensor_generator = self.iter_sensors(gauge, pattern)
+            if sensor_generator:
+                return next(sensor_generator)
+            else:
+                return None
         return None
