@@ -47,7 +47,6 @@ class GroovesharkBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'html5.grooveshark.com'
     API_URL = 'https://html5.grooveshark.com/more.php'
-    IS_LOGGED = False
 
     #Setting the static header (country, session and uuid)
     HEADER = {}
@@ -66,7 +65,6 @@ class GroovesharkBrowser(BaseBrowser):
     GROOVESHARK_CONSTANTS = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
 
-    USER_ID = None
     VIDEOS_FROM_SONG_RESULTS = None
 
     def home(self):
@@ -74,7 +72,7 @@ class GroovesharkBrowser(BaseBrowser):
         self.get_communication_token()
 
     def is_logged(self):
-        return self.USER_ID is not None and self.USER_ID != 0
+        return self.user_id is not None and self.user_id != 0
 
     def login(self):
         if self.username and self.password:
@@ -85,7 +83,7 @@ class GroovesharkBrowser(BaseBrowser):
             parameters['password'] = self.password
 
             response = self.API_post(method, parameters, self.create_token(method))
-            self.USER_ID = response['result']['userID']
+            self.user_id = response['result']['userID']
 
             if not self.is_logged:
                 raise BrowserIncorrectPassword()
@@ -95,7 +93,7 @@ class GroovesharkBrowser(BaseBrowser):
             method = 'userGetPlaylists'
 
             parameters = {}
-            parameters['userID'] = self.USER_ID
+            parameters['userID'] = self.user_id
 
             response = self.API_post(method, parameters, self.create_token(method))
             return self.create_collection_from_playlists_result(response['result']['Playlists'], split_path)

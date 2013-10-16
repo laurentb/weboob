@@ -68,7 +68,7 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
                 collection = self.get_collection(objs, split_path)
                 if collection.path_level == 0:
                     yield Collection([u'albums'], u'Search for Albums')
-                    if self.browser.is_logged:
+                    if self.browser.is_logged():
                         yield Collection([u'playlists'], u'Grooveshark Playlists')
                 if collection.path_level == 1:
                     if collection.split_path[0] == u'playlists':
