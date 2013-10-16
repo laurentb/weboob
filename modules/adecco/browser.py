@@ -36,19 +36,20 @@ class AdeccoBrowser(BaseBrowser):
         '%s://%s/trouver-un-emploi/Pages/Details-de-l-Offre/(.*?)/(.*?).aspx\?IOF=(.*?)$' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
-    def search_job(self, pattern=None, publication_date=None, conty=None, region=None, job_category=None, activity_domain=None):
+    def search_job(self, pattern=None):
         self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?keywords=%s'
                       % (self.PROTOCOL, self.DOMAIN, pattern.replace(' ', '+')))
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 
-    def advanced_search_job(self, publication_date=None, conty=None, region=None, job_category=None, activity_domain=None):
+    def advanced_search_job(self, publication_date=None, contract_type=None, conty=None, region=None, job_category=None, activity_domain=None):
         data = {
             'publicationDate': publication_date,
             'department': conty,
             'region': region,
             'jobCategory': job_category,
             'activityDomain': activity_domain,
+            'contractTypes': contract_type,
         }
         self.location('%s://%s/trouver-un-emploi/Pages/Offres-d-emploi.aspx?%s'
                       % (self.PROTOCOL, self.DOMAIN, urllib.urlencode(data)))
