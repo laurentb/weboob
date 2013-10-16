@@ -36,7 +36,7 @@ class LolixBrowser(BaseBrowser):
         '%s://%s/offre.php\?id=(?P<id>.+)' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
-    def advanced_search_job(self, region=0, poste=0, contrat=0, limit_date=0):
+    def advanced_search_job(self, region=0, poste=0, contrat=0, limit_date=0, pattern=None):
         data = {
             'mode': 'find',
             'page': '0',
@@ -48,7 +48,7 @@ class LolixBrowser(BaseBrowser):
 
         self.location('%s://%s/search.php' % (self.PROTOCOL, self.DOMAIN), urllib.urlencode(data))
         assert self.is_on_page(SearchPage)
-        return self.page.iter_job_adverts()
+        return self.page.iter_job_adverts(pattern)
 
     @id2url(LolixJobAdvert.id2url)
     def get_job_advert(self, url, advert):

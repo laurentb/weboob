@@ -139,9 +139,8 @@ class LolixBackend(BaseBackend, ICapJob):
 
     def search_job(self, pattern=None):
         with self.browser:
-            if not pattern:
-                for job_advert in self.browser.advanced_search_job():
-                    yield job_advert
+            for job_advert in self.browser.advanced_search_job(pattern=pattern):
+                yield job_advert
 
     def advanced_search_job(self):
         for advert in self.browser.advanced_search_job(region=self.config['region'].get(),
