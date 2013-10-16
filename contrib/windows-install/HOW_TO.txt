@@ -2,4 +2,7 @@
 
 2. update settings.cmd
 
-3. run create-exe-setup-weboob.bat
+3. Download http://downloads.sourceforge.net/gnuwin32/wget-1.11.4-1-setup.exe
+   and http://www.f2ko.de/downloads/Bat_To_Exe_Converter.zip
+
+4. run create-exe-setup-weboob.bat
