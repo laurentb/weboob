@@ -340,4 +340,9 @@ class TransactionsPage(BasePage):
             yield t
 
     def no_operations(self):
-        return len(self.document.xpath('//table[@id="tbl1"]//td[@colspan]')) > 0
+        if len(self.document.xpath('//table[@id="tbl1"]//td[@colspan]')) > 0:
+            return True
+        if len(self.document.xpath(u'//div[contains(text(), "Accès à LineBourse")]')) > 0:
+            return True
+
+        return False
