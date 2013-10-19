@@ -112,6 +112,9 @@ class BanquePopulaire(BaseBrowser):
         if not self.is_on_page(AccountsPage):
             account = self.get_account(account.id)
 
+        if account._params is None:
+            return
+
         self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
         self.token = self.page.get_token()
 

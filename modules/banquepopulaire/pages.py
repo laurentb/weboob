@@ -246,16 +246,20 @@ class AccountsPage(BasePage):
                 account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
                                            u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
                 account.type = account_type
-                balance = u''.join([txt.strip() for txt in tds[3].itertext()])
-                if balance == u'':
-                    balance = '0.0'
-                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+
+                balance = FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[3].itertext()]))
+                account.balance = Decimal(balance or '0.0')
                 account.currency = account.get_currency(balance)
                 if account.type == account.TYPE_LOAN:
                     account.balance = - abs(account.balance)
-                account._params = params.copy()
-                account._params['dialogActionPerformed'] = 'SOLDE'
-                account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+
+                if balance == u'':
+                    # There is no detail
+                    account._params = None
+                else:
+                    account._params = params.copy()
+                    account._params['dialogActionPerformed'] = 'SOLDE'
+                    account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
                 yield account
 
         return
