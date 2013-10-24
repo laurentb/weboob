@@ -62,7 +62,10 @@ class ArteBrowser(BaseBrowser):
         result = simplejson.loads(response.read(), self.ENCODING)
         if video is None:
             video = ArteVideo(result['video']['VID'])
-        video.url = u'%s' % result['video']['VSR'][0]['VUR']
+            try:
+                video.url = u'%s' % result['video']['VSR'][0]['VUR']
+            except:
+                video.url = NotAvailable
         return video
 
     @id2url(ArteLiveVideo.id2url)
