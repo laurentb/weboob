@@ -115,16 +115,16 @@ class OperationsPage(BasePage):
             date = self.parser.tocleanstring(cols[0])
             raw = self.parser.tocleanstring(cols[1])
 
-            amount = self.parser.tocleanstring(cols[2])
-            if len(amount) > 0:
-                t = FrenchTransaction(0)
-                t.parse(date, raw)
-                t.set_amount('-' + amount)
-                yield t
-
             debit = self.parser.tocleanstring(cols[3])
             if len(debit) > 0:
                 t = FrenchTransaction(0)
                 t.parse(date, raw)
                 t.set_amount(debit)
+                yield t
+
+            amount = self.parser.tocleanstring(cols[2])
+            if len(amount) > 0:
+                t = FrenchTransaction(0)
+                t.parse(date, raw)
+                t.set_amount('-' + amount)
                 yield t
