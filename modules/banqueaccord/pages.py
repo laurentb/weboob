@@ -114,11 +114,13 @@ class OperationsPage(BasePage):
 
             date = self.parser.tocleanstring(cols[0])
             raw = self.parser.tocleanstring(cols[1])
+            label = re.sub(u' - traité le \d+/\d+', '', raw)
 
             debit = self.parser.tocleanstring(cols[3])
             if len(debit) > 0:
                 t = FrenchTransaction(0)
                 t.parse(date, raw)
+                t.label = label
                 t.set_amount(debit)
                 yield t
 
@@ -126,5 +128,6 @@ class OperationsPage(BasePage):
             if len(amount) > 0:
                 t = FrenchTransaction(0)
                 t.parse(date, raw)
+                t.label = label
                 t.set_amount('-' + amount)
                 yield t
