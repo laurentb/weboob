@@ -54,19 +54,33 @@ class ArteBrowser(BaseBrowser):
 
     @id2url(ArteVideo.id2url)
     def get_video(self, url, video=None):
+
+        result = self.get_video_by_quality(url, self.quality)
+
+        if video is None:
+            video = ArteVideo(result['video']['VID'])
+
+        try:
+            video.url = u'%s' % result['video']['VSR'][0]['VUR']
+        except:
+            video.url = self.get_default_url(url)
+
+        return video
+
+    def get_default_url(self, url):
+        result = self.get_video_by_quality(url, 'ALL')
+        try:
+            return u'%s' % result['video']['VSR'][0]['VUR']
+        except:
+            return NotAvailable
+
+    def get_video_by_quality(self, url, quality):
         _url = url \
-            + '/' + self.quality \
+            + '/' + quality \
             + '.json'
 
         response = self.openurl(_url)
-        result = simplejson.loads(response.read(), self.ENCODING)
-        if video is None:
-            video = ArteVideo(result['video']['VID'])
-            try:
-                video.url = u'%s' % result['video']['VSR'][0]['VUR']
-            except:
-                video.url = NotAvailable
-        return video
+        return simplejson.loads(response.read(), self.ENCODING)
 
     @id2url(ArteLiveVideo.id2url)
     def get_live_video(self, url, video=None):
