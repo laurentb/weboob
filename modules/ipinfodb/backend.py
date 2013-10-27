@@ -21,7 +21,7 @@
 
 from weboob.capabilities.geolocip import ICapGeolocIp, IpLocation
 from weboob.tools.backend import BaseBackend
-from weboob.tools.browser import BaseBrowser, BrowserUnavailable
+from weboob.tools.browser import StandardBrowser
 
 
 __all__ = ['IpinfodbBackend']
@@ -34,53 +34,48 @@ class IpinfodbBackend(BaseBackend, ICapGeolocIp):
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"IPInfoDB IP addresses geolocation service"
-    BROWSER = BaseBrowser
+    BROWSER = StandardBrowser
 
     def get_location(self, ipaddr):
-        with self.browser:
+        self.browser.location("http://ipinfodb.com/ip_locator.php")
+        self.browser.select_form(nr=0)
+        self.browser['ip'] = str(ipaddr)
+        response = self.browser.submit()
+        document = self.browser.get_document(response)
 
-            content = self.browser.readurl('http://ipinfodb.com/ip_locator.php?ip=%s' % str(ipaddr))
+        tab = {'City' : 'NA' ,
+                'Country name' : 'NA' ,
+                'Region' : 'NA' ,
+                'Latitude' : 'NA' ,
+                'Longitude' : 'NA' ,
+                'hostname' : 'NA' ,
+                'zipcode' : 'NA'}
+        for li in document.getiterator('li'):
+            txt = li.text_content()
+            if 'Country :' in txt:
+                tab['Country name'] = txt.split('Country : ')[1].split('<')[0]
+            elif "State/Province :" in txt:
+                tab['Region'] = txt.split('State/Province : ')[1].split('<')[0]
+            elif "City :" in txt:
+                tab['City'] = txt.split('City : ')[1].split('<')[0]
+            elif "Latitude :" in txt:
+                tab['Latitude'] = txt.split('Latitude : ')[1].split('<')[0]
+            elif "Longitude :" in txt:
+                tab['Longitude'] = txt.split('Longitude : ')[1].split('<')[0]
+            elif "Hostname :" in txt:
+                tab['hostname'] = txt.split('Hostname : ')[1].split('<')[0]
+        iploc = IpLocation(ipaddr)
+        iploc.city = unicode(tab['City'].decode('utf-8'))
+        iploc.region = unicode(tab['Region'])
+        iploc.zipcode = unicode(tab['zipcode'])
+        iploc.country = unicode(tab['Country name'])
+        try :
+            iploc.lt = float(tab['Latitude'])
+            iploc.lg = float(tab['Longitude'])
+        except ValueError:
+            pass
+        iploc.host = unicode(tab['hostname'])
+        iploc.tld = unicode(tab['hostname'].split('.')[-1])
+        #iploc.isp = 'NA'
 
-            if content is None:
-                raise BrowserUnavailable()
-
-            if 'Invalid IP or domain name' in content:
-                raise Exception('Bad parameter')
-            else:
-                tab = {'City' : 'NA' ,
-                        'Country name' : 'NA' ,
-                        'Region' : 'NA' ,
-                        'Latitude' : 'NA' ,
-                        'Longitude' : 'NA' ,
-                        'hostname' : 'NA' ,
-                        'zipcode' : 'NA'}
-                line = ''
-                for line in content.split('\n'):
-                    if '<li>' in line:
-                        if 'Country :' in line:
-                            tab['Country name'] = line.split('Country : ')[1].split('<')[0]
-                        elif "State/Province :" in line:
-                            tab['Region'] = line.split('State/Province : ')[1].split('<')[0]
-                        elif "City :" in line:
-                            tab['City'] = line.split('City : ')[1].split('<')[0]
-                        elif "Latitude :" in line:
-                            tab['Latitude'] = line.split('Latitude : ')[1].split('<')[0]
-                        elif "Longitude :" in line:
-                            tab['Longitude'] = line.split('Longitude : ')[1].split('<')[0]
-                        elif "Hostname :" in line:
-                            tab['hostname'] = line.split('Hostname : ')[1].split('<')[0]
-                iploc = IpLocation(ipaddr)
-                iploc.city = tab['City'].decode('utf-8')
-                iploc.region = tab['Region']
-                iploc.zipcode = tab['zipcode']
-                iploc.country = tab['Country name']
-                try :
-                    iploc.lt = float(tab['Latitude'])
-                    iploc.lg = float(tab['Longitude'])
-                except ValueError:
-                    pass
-                iploc.host = tab['hostname']
-                iploc.tld = tab['hostname'].split('.')[-1]
-                #iploc.isp = 'NA'
-
-                return iploc
+        return iploc
