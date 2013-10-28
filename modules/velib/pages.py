@@ -28,6 +28,7 @@ __all__ = ['InfoStationPage', 'ListStationsPage']
 
 AdresseStation = {}
 
+
 class InfoStationPage(BasePage):
     def _create_bikes_sensor(self, value, gauge_id, last_update, adresse):
         levelbikes = GaugeSensor(gauge_id + '-bikes')
@@ -83,7 +84,7 @@ class InfoStationPage(BasePage):
         sensors = []
 
         last_update = datetime.datetime.fromtimestamp(float(self.parser.select(self.document.getroot(), 'updated', 1).text))
-	adresse = AdresseStation[gauge_id]
+        adresse = AdresseStation[gauge_id]
 
         sensors.append(self._create_bikes_sensor(self.parser.select(self.document.getroot(), 'available', 1).text, gauge_id, last_update, adresse))
         sensors.append(self._create_attach_sensor(self.parser.select(self.document.getroot(), 'free', 1).text, gauge_id, last_update, adresse))
@@ -99,9 +100,9 @@ class ListStationsPage(BasePage):
             gauge = Gauge(int(marker.get('number')))
             gauge.name = unicode(marker.get('address')).rsplit('-', 1)[0]
             full_address = re.search(r'\d\d\d\d\d.*', unicode(marker.get('fulladdress')))
-	    if full_address:
-	       gauge.city = full_address.group()
+            if full_address:
+                gauge.city = full_address.group()
             gauge.object = u'velib'
             gauges.append(gauge)
-     	    AdresseStation[marker.get('number')] = marker.get('fulladdress')
+            AdresseStation[marker.get('number')] = marker.get('fulladdress')
         return gauges

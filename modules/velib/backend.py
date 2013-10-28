@@ -37,8 +37,7 @@ class VelibBackend(BaseBackend, ICapGauge):
     LICENSE = 'AGPLv3'
 
     BROWSER = VelibBrowser
-    STORAGE = {'boards' : {}}
-
+    STORAGE = {'boards': {}}
 
     def iter_gauges(self, pattern=None):
         if pattern is None:
@@ -80,14 +79,14 @@ class VelibBackend(BaseBackend, ICapGauge):
         return None
 
     def _get_sensor_by_id(self, id):
-	reSensorId = re.search ('(\d+)-((bikes|attach|status))', id, re.IGNORECASE)
-	if reSensorId:
-	    gauge = reSensorId.group(1)
-	    pattern = reSensorId.group(2)
-	    sensor_generator = self.iter_sensors(gauge, pattern)
-	    if sensor_generator:
-		return next(sensor_generator)
-	    else:
-       	    	return None
-	else:
-       	    return None
+        reSensorId = re.search('(\d+)-((bikes|attach|status))', id, re.IGNORECASE)
+        if reSensorId:
+            gauge = reSensorId.group(1)
+            pattern = reSensorId.group(2)
+            sensor_generator = self.iter_sensors(gauge, pattern)
+            if sensor_generator:
+                return next(sensor_generator)
+            else:
+                return None
+        else:
+            return None

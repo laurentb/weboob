@@ -44,4 +44,3 @@ class VelibBrowser(BaseBrowser):
     def get_station_infos(self, gauge):
         self.location('%s://%s/stationdetails/paris/%s' % (self.PROTOCOL, self.DOMAIN, gauge.id))
         return self.page.get_station_infos(gauge.id)
-
