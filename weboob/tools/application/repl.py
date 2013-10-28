@@ -242,12 +242,14 @@ class ReplApplication(Cmd, ConsoleApplication):
                 return obj
         return obj
 
-    def get_object_list(self, method=None):
+    def get_object_list(self, method=None, *args, **kwargs):
         # return cache if not empty
         if len(self.objects) > 0:
             return self.objects
         elif method is not None:
-            for backend, object in self.do(method):
+            fields = None
+            kwargs['backends'] = self.enabled_backends
+            for backend, object in self.weboob.do(self._do_complete, None, None, method, *args, **kwargs):
                 self.add_object(object)
             return self.objects
         # XXX: what can we do without method?
