@@ -113,6 +113,9 @@ François D. <franek@chicour.net>
 Christophe Gouiran <bechris13250@gmail.com>
         * EDF module maintainer.
 
+Hervé Werner <dud225@hotmail.com>
+        * Velib module maintainer.
+
 Thomas Lecavelier <thomas-weboob@lecavelier.name>
         * Patches on radioob.
         * nihonnooto module maintainer.
@@ -218,6 +221,9 @@ David Jeanneteau <david.jeanneteau@gmail.com>
 
 Juliette Stehlé <juliette.stehle@gmail.com>
         * Enable LDD and PEL accounts on Boursorama.
+
+Etienne Carriere <etienne.carriere@gmail.com>
+        * Fix on dailymotion
 
 Discover how to contribute to this great software:
 http://weboob.org/How_to_contribute
