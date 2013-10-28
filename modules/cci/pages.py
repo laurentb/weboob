@@ -59,25 +59,14 @@ class SearchPage(BasePage):
                     advert.job_name = u'%s' % first_div[1].text_content()
 
                     second_div = self.parser.select(item, 'div/fieldset', 2, method='xpath')
-                    description = ""
+
                     ps_1 = self.parser.select(second_div[0], 'p[@class="normal"]', method='xpath')
                     h2s_1 = self.parser.select(second_div[0], 'h2[@class="titreParagraphe"]', method='xpath')
+                    description = ""
                     if len(ps_1) == 5 and len(h2s_1) == 5:
                         for i in range(0, 5):
                             description += "\r\n-- %s --\r\n" % h2s_1[i].text
                             description += "%s\r\n" % ps_1[i].text_content()
-
-                    ps_2 = self.parser.select(second_div[1], 'p[@class="normal"]', method='xpath')
-                    h2s_2 = self.parser.select(second_div[1], 'h2[@class="titreParagraphe"]', method='xpath')
-                    if len(ps_2) == 3 and len(h2s_2) == 2:
-                        description += "\r\n-- %s --\r\n" % h2s_2[0].text
-                        a = self.parser.select(ps_2[0], 'a', 1, method='xpath')
-                        description += "%s\r\n" % a.text_content()
-
-                        description += "\r\n-- %s --\r\n" % h2s_2[1].text
-                        description += "%s\r\n" % ps_2[1].text_content()
-                        description += "%s\r\n" % ps_2[2].text_content()
-
                     advert.description = description
                     advert.url = self.url + '#' + advert.id
                     date = self.parser.select(item, 'div/fieldset/p[@class="dateOffre"]', 1, method='xpath')

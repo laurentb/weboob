@@ -29,7 +29,7 @@ __all__ = ['CciBrowser']
 class CciBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'www.cci.fr/web/recrutement/les-offres-d-emploi'
-    ENCODING = None
+    ENCODING = "UTF-8"
 
     PAGES = {
         '%s://%s' % (PROTOCOL, DOMAIN): SearchPage,
