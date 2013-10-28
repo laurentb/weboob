@@ -53,7 +53,7 @@ class GaugeMeasure(CapBaseObject):
 
     def __repr__(self):
         if self.level:
-            return "<GaugeMeasure level=%f alarm=%s>" % (self.level, self.alarm)
+            return "<GaugeMeasure level=%f alarm=%s date=%s>" % (self.level, self.alarm, self.date)
         else:
             return "<GaugeMeasure NotAvailable>"
 
