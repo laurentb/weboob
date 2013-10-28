@@ -75,10 +75,10 @@ class LoginPage(BasePage):
         self.browser.controls.append(ClientForm.TextControl('text', 'vk_op', {'value': 'auth'}))
         self.browser.set_all_readonly(False)
 
-        self.browser['codcli'] = login.encode(self.browser.ENCODING)
-        self.browser['user_id'] = login.encode(self.browser.ENCODING)
+        self.browser['codcli'] = login.encode('iso-8859-1')
+        self.browser['user_id'] = login.encode('iso-8859-1')
         self.browser['codsec'] = img.get_codes(password[:6])
-        self.browser['cryptocvcs'] = infos["crypto"].encode(self.browser.ENCODING)
+        self.browser['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
         self.browser.form.action = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
         self.browser.submit(nologin=True)
 
