@@ -33,7 +33,7 @@ class VelibBackend(BaseBackend, ICapGauge):
     DESCRIPTION = u'get Vélib\' information'
     MAINTAINER = u'Herve Werner'
     EMAIL = 'dud225@hotmail.com'
-    VERSION = '0.g'
+    VERSION = '0.h'
     LICENSE = 'AGPLv3'
 
     BROWSER = VelibBrowser
