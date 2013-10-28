@@ -247,7 +247,6 @@ class ReplApplication(Cmd, ConsoleApplication):
         if len(self.objects) > 0:
             return self.objects
         elif method is not None:
-            fields = None
             kwargs['backends'] = self.enabled_backends
             for backend, object in self.weboob.do(self._do_complete, None, None, method, *args, **kwargs):
                 self.add_object(object)
