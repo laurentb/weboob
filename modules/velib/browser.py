@@ -18,29 +18,49 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 from weboob.tools.browser import BaseBrowser
-
-from .pages import ListStationsPage, InfoStationPage
 
 
 __all__ = ['VelibBrowser']
 
 
 class VelibBrowser(BaseBrowser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.velib.paris.fr/service'
-    ENCODING = None
+    ENCODING = 'utf-8'
 
-    PAGES = {
-        '%s://%s/stationdetails/paris/.*' % (PROTOCOL, DOMAIN): InfoStationPage,
-        '%s://%s/carto' % (PROTOCOL, DOMAIN): ListStationsPage,
-    }
+    API_KEY = '2282a34b49cf45d8129cdf93d88762914cece88b'
+    BASE_URL = 'https://api.jcdecaux.com/vls/v1/'
 
-    def get_station_list(self):
-        if not self.is_on_page(ListStationsPage):
-            self.location(u'%s://%s/carto' % (self.PROTOCOL, self.DOMAIN))
-        return self.page.get_station_list()
+    def __init__(self, *a, **kw):
+        kw['parser'] = 'json'
+        BaseBrowser.__init__(self, *a, **kw)
+
+    def do_get(self, path, **query):
+        qs = '&'.join('%s=%s' % kv for kv in query.items())
+        if qs:
+            qs = '&' + qs
+        url = '%s%s?apiKey=%s%s' % (self.BASE_URL, path, self.API_KEY, qs)
+        return self.get_document(self.openurl(url))
+
+    def get_contracts_list(self):
+        return self.do_get('contracts')
+
+    def get_station_list(self, contract=None):
+        if contract:
+            doc = self.do_get('stations', contract=contract)
+        else:
+            doc = self.do_get('stations')
+        for jgauge in doc:
+            self._transform(jgauge)
+        return doc
 
     def get_station_infos(self, gauge):
-        self.location('%s://%s/stationdetails/paris/%s' % (self.PROTOCOL, self.DOMAIN, gauge.id))
-        return self.page.get_station_infos(gauge.id)
+        station_id, contract = gauge.split('.', 1)
+        doc = self.do_get('stations/%s' % station_id, contract=contract)
+        return self._transform(doc)
+
+    def _transform(self, jgauge):
+        jgauge['id'] = '%s.%s' % (jgauge['number'], jgauge['contract_name'])
+        jgauge['city'] = jgauge['contract_name']
+        jgauge['last_update'] = datetime.datetime.fromtimestamp(jgauge['last_update'] / 1000)
+        return jgauge

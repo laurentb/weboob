@@ -19,13 +19,19 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, SensorNotFound
+from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 
 from .browser import VelibBrowser
 
-import re
 
 __all__ = ['VelibBackend']
+
+SENSOR_TYPES = {u'available_bike_stands': u'Free stands', u'available_bikes': u'Available bikes', u'bike_stands': u'Total stands'}
+
+
+class BikeMeasure(GaugeMeasure):
+    def __repr__(self):
+        return '<GaugeMeasure level=%d>' % self.level
 
 
 class VelibBackend(BaseBackend, ICapGauge):
@@ -39,13 +45,55 @@ class VelibBackend(BaseBackend, ICapGauge):
     BROWSER = VelibBrowser
     STORAGE = {'boards': {}}
 
+    def __init__(self, *a, **kw):
+        super(VelibBackend, self).__init__(*a, **kw)
+        self.cities = None
+
+    def _make_gauge(self, info):
+        gauge = Gauge(info['id'])
+        gauge.name = unicode(info['name'])
+        gauge.city = unicode(info['city'])
+        gauge.object = u'bikes'
+        return gauge
+
+    def _make_sensor(self, sensor_type, info, gauge):
+        id = '%s.%s' % (sensor_type, gauge.id)
+        sensor = GaugeSensor(id)
+        sensor.gaugeid = gauge.id
+        sensor.name = SENSOR_TYPES[sensor_type]
+        sensor.address = unicode(info['address'])
+        sensor.history = []
+        return sensor
+
+    def _make_measure(self, sensor_type, info):
+        measure = BikeMeasure()
+        measure.date = info['last_update']
+        measure.level = float(info[sensor_type])
+        return measure
+
+    def _parse_gauge(self, info):
+        gauge = self._make_gauge(info)
+        gauge.sensors = []
+
+        for type in SENSOR_TYPES:
+            sensor = self._make_sensor(type, info, gauge)
+            measure = self._make_measure(type, info)
+            sensor.lastvalue = measure
+            gauge.sensors.append(sensor)
+
+        return gauge
+
     def iter_gauges(self, pattern=None):
         if pattern is None:
-            for gauge in self.browser.get_station_list():
-                yield gauge
+            for jgauge in self.browser.get_station_list():
+                yield self._parse_gauge(jgauge)
         else:
+            self._fetch_cities()
             lowpattern = pattern.lower()
-            for gauge in self.browser.get_station_list():
+
+            contract = self.cities.get(lowpattern)
+            for jgauge in self.browser.get_station_list(contract=contract):
+                gauge = self._parse_gauge(jgauge)
                 if lowpattern in gauge.name.lower() or lowpattern in gauge.city.lower():
                     yield gauge
 
@@ -55,7 +103,6 @@ class VelibBackend(BaseBackend, ICapGauge):
             if gauge is None:
                 raise SensorNotFound()
 
-        gauge.sensors = self.browser.get_station_infos(gauge)
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor
@@ -72,21 +119,28 @@ class VelibBackend(BaseBackend, ICapGauge):
             raise SensorNotFound()
         return sensor.lastvalue
 
-    def _get_gauge_by_id(self, id):
-        for gauge in self.browser.get_station_list():
-            if id == gauge.id:
-                return gauge
-        return None
+    def _fetch_cities(self):
+        if self.cities:
+            return
 
-    def _get_sensor_by_id(self, id):
-        reSensorId = re.search('(\d+)-((bikes|attach|status))', id, re.IGNORECASE)
-        if reSensorId:
-            gauge = reSensorId.group(1)
-            pattern = reSensorId.group(2)
-            sensor_generator = self.iter_sensors(gauge, pattern)
-            if sensor_generator:
-                return next(sensor_generator)
-            else:
-                return None
+        self.cities = {}
+        jcontract = self.browser.get_contracts_list()
+        for jcontract in jcontract:
+            for city in jcontract['cities']:
+                self.cities[city.lower()] = jcontract['name']
+
+    def _get_gauge_by_id(self, id):
+        jgauge = self.browser.get_station_infos(id)
+        if jgauge:
+            return self._parse_gauge(jgauge)
         else:
             return None
+
+    def _get_sensor_by_id(self, id):
+        _, gauge_id = id.split('.', 1)
+        gauge = self._get_gauge_by_id(gauge_id)
+        if not gauge:
+            raise SensorNotFound()
+        for sensor in gauge.sensors:
+            if sensor.id.lower() == id.lower():
+                return sensor
