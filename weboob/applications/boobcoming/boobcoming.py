@@ -283,7 +283,7 @@ class Boobcoming(ReplApplication):
             for backend, event in self.do('list_events', datetime.now(), None):
                 _ids.append(event.id)
         else:
-            _id = args.strip().split(' ')
+            _ids = args.strip().split(' ')
 
         for _id in _ids:
             event = self.get_object(_id, 'get_event')
@@ -352,14 +352,18 @@ class Boobcoming(ReplApplication):
         l = self.retrieve_events(args)
         is_attending = self.booleanize(attending)
 
+        if not is_attending:
+            print >> sys.stderr, "Cannot booleanize ambiguous value '%s'" % attending
+            return 2
+
         for event in l:
             self.do('attends_event', event, is_attending)
 
     def booleanize(self, value):
         """Return value as a boolean."""
 
-        true_values = ("yes", "true", "1")
-        false_values = ("no", "false", "0")
+        true_values = ("yes", "true")
+        false_values = ("no", "false")
 
         if isinstance(value, bool):
             return value
@@ -369,5 +373,3 @@ class Boobcoming(ReplApplication):
 
         elif value.lower() in false_values:
             return False
-
-        print >> sys.stderr, "Cannot booleanize ambiguous value '%s'" % value
