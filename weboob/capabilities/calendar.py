@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, IBaseCap, StringField, DateField, IntField
+from .base import CapBaseObject, IBaseCap, StringField, DateField, IntField, FloatField
 
 __all__ = ['BaseCalendarEvent', 'ICapCalendarEvent']
 
@@ -26,6 +26,9 @@ def enum(**enums):
     return type('Enum', (), enums)
 
 CATEGORIES = enum(CINE='Cinema', CONCERT='Concert', THEATRE='Theatre')
+
+#the following elements deal with ICalendar stantdards
+#see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
 TRANSP = enum(OPAQUE='OPAQUE', TRANSPARENT='TRANSPARENT')
 STATUS = enum(TENTATIVE='TENTATIVE', CONFIRMED='CONFIRMED', CANCELLED='CANCELLED')
 
@@ -41,11 +44,20 @@ class BaseCalendarEvent(CapBaseObject):
     summary = StringField('Title of the event')
     location = StringField('Location of the event')
     category = StringField('Category of the event')
-    status = StringField('Status of theevent') # (TENTATIVE, CONFIRMED, CANCELLED)
     description = StringField('Description of the event')
-    transp = StringField('Describes if event is available') # (OPAQUE, TRANSPARENT)
-    sequence = IntField('Nb of updates, the first is number 1')
-    price = StringField('Price of the event')
+    price = FloatField('Price of the event')
+    entry = IntField('Entry number')
+    max_entry = IntField('Max entry number')
+    event_planner = StringField('Name of the event planner')
+
+    #the following elements deal with ICalendar stantdards
+    #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
+    sequence = IntField('Number of updates, the first is number 1')
+
+    # (TENTATIVE, CONFIRMED, CANCELLED)
+    status = StringField('Status of theevent')
+    # (OPAQUE, TRANSPARENT)
+    transp = StringField('Describes if event is available')
 
     @classmethod
     def id2url(cls, _id):
@@ -88,3 +100,12 @@ class ICapCalendarEvent(IBaseCap):
         :rtype: :class:`BaseCalendarEvent` or None is fot found.
         """
         raise NotImplementedError()
+
+    def attends_event(self, event, is_attending=True):
+        """
+        Attends or not to an event
+        :param event : the event
+        :type event : BaseCalendarEvent
+        :param is_attending : is attending to the event or not
+        :type is_attending : bool
+        """
