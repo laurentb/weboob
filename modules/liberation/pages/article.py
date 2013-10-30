@@ -17,10 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.browser import BrokenPageError
 from weboob.tools.capabilities.messages.genericArticle import GenericNewsPage,\
-    try_drop_tree, clean_relativ_urls, NoBodyElement, NoAuthorElement,\
-    NoneMainDiv
+    NoBodyElement, NoAuthorElement, NoneMainDiv
 
 
 class ArticlePage(GenericNewsPage):

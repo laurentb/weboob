@@ -21,7 +21,7 @@ import re
 
 
 def url2id(url):
-    return url.split('0Dxtor')[0].split('0I')[-1]
+    return re.sub(u'[^\d]', '', url.split('0Dxtor')[0].split('0I')[-1])
 
 
 def rssid(entry):
