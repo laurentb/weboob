@@ -31,7 +31,7 @@ class ArticlePage(GenericNewsPage):
         self.element_body_selector = "div.article-body"
 
     def get_body(self):
-        if 'feuilletons.blogs.liberation.fr' in self.url:
+        if '.blogs.liberation.fr/' in self.url:
             self.element_body_selector = "div.entry-content"
         try:
             return self.parser.tostring(self.get_element_body())
