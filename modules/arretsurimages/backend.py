@@ -49,6 +49,8 @@ class ArretSurImagesBackend(BaseBackend, ICapVideo, ICapCollection):
 #        raise UserError('Search does not work on ASI website, use ls latest command')
 
     def get_video(self, _id):
+        if _id.startswith('http://') and not _id.startswith('http://www.arretsurimages.net'):
+            return None
         with self.browser:
             return self.browser.get_video(_id)
 
