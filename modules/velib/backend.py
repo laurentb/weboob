@@ -18,8 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
+from weboob.tools.value import Value
 
 from .browser import VelibBrowser
 
@@ -27,6 +28,12 @@ from .browser import VelibBrowser
 __all__ = ['VelibBackend']
 
 SENSOR_TYPES = {u'available_bike_stands': u'Free stands', u'available_bikes': u'Available bikes', u'bike_stands': u'Total stands'}
+
+CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
+    "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
+    "Ljubljana", "Seville", "Namur", "Nancy", "Creteil", "Bruxelles-Capitale",
+    "Cergy-Pontoise", "Vilnius", "Toyama", "Kazan", "Marseille", "Nantes",
+    "Besancon")
 
 
 class BikeMeasure(GaugeMeasure):
@@ -44,6 +51,9 @@ class VelibBackend(BaseBackend, ICapGauge):
 
     BROWSER = VelibBrowser
     STORAGE = {'boards': {}}
+
+    CONFIG = BackendConfig(Value('city', label='City', default='Paris',
+                                 choices=CITIES + ("ALL",)))
 
     def __init__(self, *a, **kw):
         super(VelibBackend, self).__init__(*a, **kw)
@@ -83,16 +93,19 @@ class VelibBackend(BaseBackend, ICapGauge):
 
         return gauge
 
+    def _contract(self):
+        contract = self.config.get('city').get()
+        if contract.lower() == 'all':
+            contract = None
+        return contract
+
     def iter_gauges(self, pattern=None):
         if pattern is None:
-            for jgauge in self.browser.get_station_list():
+            for jgauge in self.browser.get_station_list(contract=self._contract()):
                 yield self._parse_gauge(jgauge)
         else:
-            self._fetch_cities()
             lowpattern = pattern.lower()
-
-            contract = self.cities.get(lowpattern)
-            for jgauge in self.browser.get_station_list(contract=contract):
+            for jgauge in self.browser.get_station_list(contract=self._contract()):
                 gauge = self._parse_gauge(jgauge)
                 if lowpattern in gauge.name.lower() or lowpattern in gauge.city.lower():
                     yield gauge
