@@ -76,7 +76,7 @@ class GenericNewspaperBackend(BaseBackend, ICapMessages):
             date=thread.date,
             parent=None,
             content=content.body,
-            signature='URL: %s' % content.url,
+            signature='<a href="%s">URL</a> \n' % content.url,
             flags=flags,
             children=[])
         return thread
