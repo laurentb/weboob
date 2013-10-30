@@ -64,7 +64,12 @@ class ProgramPage(BasePage):
             event.end_date = datetime.combine(event.start_date, time.max)
 
             price = time_price[time_price.index('-') + 1:]
-            event.price = " ".join(price)
+            parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(price))
+
+            if parsed_price and len(parsed_price) > 0:
+                event.price = float(parsed_price[0])
+            else:
+                event.price = float(0)
 
             event.summary = u'%s' % self.parser.select(div, "div/div/div/a/strong", 1, method='xpath').text
 
@@ -116,7 +121,12 @@ class EventPage(BasePage):
         b = self.parser.select(div, "div/b", 1, method='xpath').text_content()
         splitted_b = b.split('-')
 
-        event.price = u'%s' % " ".join(parse_b(splitted_b[-1]))
+        parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(parse_b(splitted_b[-1])))
+
+        if parsed_price and len(parsed_price) > 0:
+            event.price = float(parsed_price[0])
+        else:
+            event.price = float(0)
 
         _date = date_util.parse_french_date(" ".join(parse_b(splitted_b[0])))
         start_time = self.parse_start_time("".join(parse_b(splitted_b[2])))
