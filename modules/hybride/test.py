@@ -21,6 +21,7 @@
 from weboob.tools.test import BackendTest
 from datetime import datetime
 
+
 class HybrideTest(BackendTest):
     BACKEND = 'hybride'
 
@@ -29,4 +30,3 @@ class HybrideTest(BackendTest):
         assert len(l)
         event = self.backend.get_event(l[0].id, None)
         self.assertTrue(event.url, 'URL for event "%s" not found: %s' % (event.id, event.url))
-

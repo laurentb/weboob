@@ -85,8 +85,17 @@ class EventPage(BasePage):
         summary = self.parser.select(header, "h2[@class='itemTitle']", 1, method='xpath')
         event.summary = u'%s' % summary.text_content().strip()
 
-        table_description = self.parser.select(div, "div[@class='itemBody']/div[@class='itemFullText']/table/tbody/tr/td",
-                                               1, method='xpath')
+        description = ''
 
-        event.description = u'%s' % table_description.text_content()
+        description_intro = self.parser.select(div, "div[@class='itemBody']/div[@class='itemIntroText']/table/tbody/tr/td",
+                                               method='xpath')
+        if description_intro and len(description_intro) > 0:
+            description += u'%s' % description_intro[0].text_content()
+
+        description_content = self.parser.select(div, "div[@class='itemBody']/div[@class='itemFullText']/table/tbody/tr/td",
+                                                 method='xpath')
+        if description_content and len(description_content) > 0:
+            description += u'%s' % description_content[0].text_content()
+
+        event.description = u'%s' % description
         return event
