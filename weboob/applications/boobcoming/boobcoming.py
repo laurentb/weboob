@@ -94,11 +94,22 @@ class UpcomingFormatter(IFormatter):
         if hasattr(obj, 'location') and not empty(obj.location):
             result += u'Location: %s\n' % obj.location
 
+        if hasattr(obj, 'event_planner') and not empty(obj.event_planner):
+            result += u'Event planner: %s/%s \n' % (obj.event_planner)
+
+        if hasattr(obj, 'entry') and not empty(obj.entry) and \
+           hasattr(obj, 'max_entry') and not empty(obj.max_entry):
+            result += u'Entry: %s/%s \n' % (obj.entry, obj.max_entry)
+        elif hasattr(obj, 'entry') and not empty(obj.entry):
+            result += u'Entry: %s \n' % (obj.entry)
+        elif hasattr(obj, 'max_entry') and not empty(obj.max_entry):
+            result += u'Max entries: %s \n' % (obj.max_entry)
+
         if hasattr(obj, 'description') and not empty(obj.description):
             result += u'Description:\n %s\n\n' % obj.description
 
         if hasattr(obj, 'price') and not empty(obj.price):
-            result += u'Price: %s\n' % obj.price
+            result += u'Price: %i\n' % obj.price
 
         if hasattr(obj, 'url') and not empty(obj.url):
             result += u'url: %s\n' % obj.url
@@ -226,37 +237,22 @@ class Boobcoming(ReplApplication):
 
     def do_export(self, line):
         """
-        export FILENAME ID1 [ID2 ID3 ...]
+        export FILENAME [ID1 ID2 ID3 ...]
 
-        id is the identifier of the event
+        ID is the identifier of the event. If no ID every events are exported
+
         FILENAME is where to write the file. If FILENAME is '-', the file is written to stdout.
 
         Export event in ICALENDAR format
         """
         if not line:
-            print >>sys.stderr, 'This command takes two arguments: %s' % self.get_command_help('export')
+            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('export')
             return 2
 
         _file, args = self.parse_command_args(line, 2, req_n=1)
 
-        if not args:
-            print >>sys.stderr, 'This command takes two arguments: %s' % self.get_command_help('export')
-            return 2
-
-        _ids = args.strip().split(' ')
-
-        buff = self.start_format()
-
-        for _id in _ids:
-            event = self.get_object(_id, 'get_event')
-
-            if not event:
-                print >>sys.stderr, 'Upcoming event not found: %s' % _id
-                return 3
-
-            buff += self.format_event(event)
-
-        buff += self.end_format()
+        l = self.retrieve_events(args)
+        buff = self.create_buffer(l)
 
         if _file == "-":
             print buff
@@ -268,6 +264,37 @@ class Boobcoming(ReplApplication):
             except IOError as e:
                 print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
                 return 1
+
+    def create_buffer(self, l):
+        buff = self.start_format()
+
+        for item in l:
+            buff += self.format_event(item)
+
+        buff += self.end_format()
+
+        return buff
+
+    def retrieve_events(self, args):
+        l = []
+
+        if not args:
+            _ids = []
+            for backend, event in self.do('list_events', datetime.now(), None):
+                _ids.append(event.id)
+        else:
+            _id = args.strip().split(' ')
+
+        for _id in _ids:
+            event = self.get_object(_id, 'get_event')
+
+            if not event:
+                print >>sys.stderr, 'Upcoming event not found: %s' % _id
+                return 3
+
+            l.append(event)
+
+        return l
 
     def check_file_ext(self, _file):
         splitted_file = _file.split('.')
@@ -305,3 +332,42 @@ class Boobcoming(ReplApplication):
 
         elif string.upper() == "TODAY":
             return date.today()
+
+    def do_attends(self, line):
+        """
+        attend IS_ATTENDING [ID1 ID2 ID3 ...]
+
+        ID is the identifier of the event. If no ID every events are exported
+
+        IS_ATTENDING is a booleanizable value that indicate if attending or not
+
+        Export event in ICALENDAR format
+        """
+        if not line:
+            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('export')
+            return 2
+
+        attending, args = self.parse_command_args(line, 2, req_n=1)
+
+        l = self.retrieve_events(args)
+        is_attending = self.booleanize(attending)
+
+        for event in l:
+            self.do('attends_event', event, is_attending)
+
+    def booleanize(self, value):
+        """Return value as a boolean."""
+
+        true_values = ("yes", "true", "1")
+        false_values = ("no", "false", "0")
+
+        if isinstance(value, bool):
+            return value
+
+        if value.lower() in true_values:
+            return True
+
+        elif value.lower() in false_values:
+            return False
+
+        print >> sys.stderr, "Cannot booleanize ambiguous value '%s'" % value
