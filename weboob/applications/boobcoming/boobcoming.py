@@ -29,6 +29,13 @@ from weboob.tools.application.repl import ReplApplication, defaultcount
 __all__ = ['Boobcoming']
 
 
+class UpcomingSimpleFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'start_date', 'category', 'summary')
+
+    def format_obj(self, obj, alias):
+        return u'%s - %s - %s - %s' % (obj.backend, obj.category, obj.start_date.strftime('%H:%M'), obj.summary)
+
+
 class ICalFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary')
 
@@ -126,7 +133,8 @@ class Boobcoming(ReplApplication):
     CAPS = ICapCalendarEvent
     EXTRA_FORMATTERS = {'upcoming_list': UpcomingListFormatter,
                         'upcoming': UpcomingFormatter,
-                        #'ical_formatter': ICalFormatter,
+                        'simple_upcoming': UpcomingSimpleFormatter,
+                        'ical_formatter': ICalFormatter,
                         }
     COMMANDS_FORMATTERS = {'list': 'upcoming_list',
                            'info': 'upcoming',
