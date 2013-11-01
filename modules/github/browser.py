@@ -63,6 +63,15 @@ class GithubBrowser(BaseBrowser):
         json = self.do_get('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
         return self.make_issue(_id, json, fetch_project)
 
+    def iter_project_issues(self, project_id):
+        base_url = 'https://api.github.com/repos/%s/issues' % project_id
+        for json in self._paginated(base_url):
+            for jissue in json:
+                issue_id = '%s/%s' % (project_id, jissue['number'])
+                yield self.make_issue(issue_id, jissue)
+            if len(json) < 100:
+                break
+
     def iter_issues(self, query):
         qsparts = ['repo:%s' % query.project]
         if query.assignee:

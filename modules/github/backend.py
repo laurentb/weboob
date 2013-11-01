@@ -55,7 +55,13 @@ class GithubBackend(BaseBackend, ICapBugTracker):
         return self.browser.get_issue(_id)
 
     def iter_issues(self, query):
-        for issue in self.browser.iter_issues(query):
+        if ((query.assignee, query.author, query.status, query.title) ==
+                                             (None, None, None, None)):
+            it = self.browser.iter_project_issues(query.project)
+        else:
+            it = self.browser.iter_issues(query)
+
+        for issue in it:
             yield issue
 
     def create_issue(self, project_id):
