@@ -83,16 +83,25 @@ class GithubBrowser(BaseBrowser):
                 break
 
     def post_issue(self, issue):
+        base_data = self._issue_post_body(issue)
+        url = 'https://api.github.com/repos/%s/issues' % issue.project.id
+        json = self.do_post(url, base_data)
+        issue_number = json['id']
+        return self._make_issue(issue.project.id, issue_number, json)
+
+    def edit_issue(self, issue, issue_number):
+        base_data = self._issue_post_body(issue)
+        url = 'https://api.github.com/repos/%s/issues/%s' % (issue.project.id, issue_number)
+        self.do_patch(url, base_data)
+        return issue
+
+    def _issue_post_body(self, issue):
         data = {'title': issue.title, 'body': issue.body}
         if issue.assignee:
             data['assignee'] = issue.assignee.id
         if issue.version:
             data['milestone'] = issue.version.id
-        base_data = json_module.dumps(data)
-        url = 'https://api.github.com/repos/%s/issues' % issue.project.id
-        json = self.do_post(url, base_data)
-        issue_number = json['id']
-        return self._make_issue(issue.project.id, issue_number, json)
+        return json_module.dumps(data)
 
     def post_comment(self, issue_id, comment):
         project_id, issue_number = issue_id.rsplit('/', 1)
@@ -168,6 +177,15 @@ class GithubBrowser(BaseBrowser):
         headers = self.auth_headers()
         headers.update({'Accept': 'application/vnd.github.preview'})
         req = self.request_class(url, data, headers=headers)
+        return self.get_document(self.openurl(req))
+
+    def do_patch(self, url, data):
+        class PatchRequest(self.request_class):
+            def get_method(self):
+                return 'PATCH'
+        headers = self.auth_headers()
+        headers.update({'Accept': 'application/vnd.github.preview'})
+        req = PatchRequest(url, data, headers=headers)
         return self.get_document(self.openurl(req))
 
     def auth_headers(self):

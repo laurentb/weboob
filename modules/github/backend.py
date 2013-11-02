@@ -64,7 +64,7 @@ class GithubBackend(BaseBackend, ICapBugTracker):
         return project
 
     def get_issue(self, _id):
-        project_id, issue_number = _id.rsplit('/', 1)
+        project_id, issue_number = self._extract_issue_id(_id)
         project = self.get_project(project_id)
 
         d = self.browser.get_issue(project_id, issue_number)
@@ -94,7 +94,11 @@ class GithubBackend(BaseBackend, ICapBugTracker):
 
     def post_issue(self, issue):
         assert not issue.attachments
-        self.browser.post_issue(issue)
+        if issue.id and issue.id != '0':
+            _, issue_number = self._extract_issue_id(issue.id)
+            self.browser.edit_issue(issue, issue_number)
+        else:
+            self.browser.post_issue(issue)
 
     def update_issue(self, issue_id, update):
         assert not update.attachments
@@ -111,7 +115,7 @@ class GithubBackend(BaseBackend, ICapBugTracker):
             yield Version(d['id'], d['name'])
 
     def _make_issue(self, d, project):
-        _id = '%s/%s' % (project.id, d['number'])
+        _id = self._build_issue_id(project.id, d['number'])
         issue = Issue(_id)
         issue.project = project
         issue.title = d['title']
@@ -163,3 +167,11 @@ class GithubBackend(BaseBackend, ICapBugTracker):
         u.changes = []
         u.attachments = [self._make_attachment(dattach) for dattach in d['attachments']]
         return u
+
+    @staticmethod
+    def _extract_issue_id(_id):
+        return _id.rsplit('/', 1)
+
+    @staticmethod
+    def _build_issue_id(project_id, issue_number):
+        return '%s/%s' % (project_id, issue_number)
