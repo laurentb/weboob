@@ -101,6 +101,8 @@ class GithubBrowser(BaseBrowser):
             data['assignee'] = issue.assignee.id
         if issue.version:
             data['milestone'] = issue.version.id
+        if issue.status:
+            data['state'] = issue.status.name # TODO improve if more statuses are implemented
         return json_module.dumps(data)
 
     def post_comment(self, issue_id, comment):
