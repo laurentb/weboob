@@ -112,10 +112,7 @@ class GithubBrowser(BaseBrowser):
             d['version'] = json['milestone']
         else:
             d['version'] = None
-        if json['comments'] > 0:
-            d['comments'] = list(self.get_comments(project_id, issue_number))
-        else:
-            d['comments'] = []
+        d['has_comments'] = (json['comments'] > 0)
         d['attachments'] = list(self._extract_attachments(d['body']))
 
         # TODO fetch other updates?
@@ -125,7 +122,7 @@ class GithubBrowser(BaseBrowser):
         for jmilestone in self.do_get('https://api.github.com/repos/%s/milestones' % project_id):
             yield {'id': jmilestone['number'], 'name': jmilestone['title']}
 
-    def get_comments(self, project_id, issue_number):
+    def iter_comments(self, project_id, issue_number):
         json = self.do_get('https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number))
         for jcomment in json:
             d = {'id': jcomment['id'], 'message': jcomment['body'], 'author': jcomment['user']['login'], 'date': parse_date(jcomment['created_at'])}

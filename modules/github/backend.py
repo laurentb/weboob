@@ -66,7 +66,14 @@ class GithubBackend(BaseBackend, ICapBugTracker):
     def get_issue(self, _id):
         project_id, issue_number = _id.rsplit('/', 1)
         project = self.get_project(project_id)
-        return self._make_issue(self.browser.get_issue(project_id, issue_number), project)
+
+        d = self.browser.get_issue(project_id, issue_number)
+
+        issue = self._make_issue(d, project)
+        if d['has_comments']:
+            self._fetch_comments(issue)
+
+        return issue
 
     def iter_issues(self, query):
         if ((query.assignee, query.author, query.status, query.title) ==
@@ -131,10 +138,13 @@ class GithubBackend(BaseBackend, ICapBugTracker):
 
         issue.attachments = [self._make_attachment(dattach) for dattach in d['attachments']]
 
-        issue.history = []
-        issue.history += [self._make_comment(dcomment, project) for dcomment in d['comments']]
-
         return issue
+
+    def _fetch_comments(self, issue):
+        project_id, issue_number = self._extract_issue_id(issue.id)
+        if not issue.history:
+            issue.history = []
+        issue.history += [self._make_comment(dcomment, issue.project) for dcomment in self.browser.iter_comments(project_id, issue_number)]
 
     def _make_attachment(self, d):
         a = Attachment(d['url'])
