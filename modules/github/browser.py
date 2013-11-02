@@ -19,7 +19,6 @@
 
 
 from weboob.tools.browser import BaseBrowser
-from weboob.capabilities.bugtracker import Issue, Project, User, Version, Status, Update, Attachment
 from weboob.tools.json import json as json_module
 from base64 import b64encode
 import datetime
@@ -31,9 +30,6 @@ from urllib import quote_plus
 __all__ = ['GithubBrowser']
 
 
-STATUSES = {'open': Status('open', u'Open', Status.VALUE_NEW),
-            'closed': Status('closed', u'closed', Status.VALUE_RESOLVED)}
-# TODO tentatively parse github "labels"?
 
 class GithubBrowser(BaseBrowser):
     PROTOCOL = 'https'
@@ -48,27 +44,20 @@ class GithubBrowser(BaseBrowser):
     def home(self):
         pass
 
-    def get_project(self, _id):
-        json = self.do_get('https://api.github.com/repos/%s' % _id)
+    def get_project(self, project_id):
+        json = self.do_get('https://api.github.com/repos/%s' % project_id)
+        return {'name': json['name'], 'id': project_id}
 
-        project = Project(_id, json['name'])
-        project.members = list(self.iter_members(_id))
-        project.statuses = list(STATUSES.values())
-        project.categories = []
-        project.versions = list(self._get_milestones(_id))
-        return project
-
-    def get_issue(self, _id, fetch_project=True):
-        project_id, issue_number = _id.rsplit('/', 1)
+    def get_issue(self, project_id, issue_number):
         json = self.do_get('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
-        return self.make_issue(_id, json, fetch_project)
+        return self._make_issue(project_id, issue_number, json)
 
     def iter_project_issues(self, project_id):
         base_url = 'https://api.github.com/repos/%s/issues' % project_id
         for json in self._paginated(base_url):
             for jissue in json:
-                issue_id = '%s/%s' % (project_id, jissue['number'])
-                yield self.make_issue(issue_id, jissue)
+                issue_number = jissue['number']
+                yield self._make_issue(project_id, issue_number, jissue)
             if len(json) < 100:
                 break
 
@@ -82,14 +71,14 @@ class GithubBrowser(BaseBrowser):
             qsparts.append('state:%s' % query.status)
         if query.title:
             qsparts.append('%s in:title' % query.title)
-        
+
         qs = quote_plus(' '.join(qsparts))
 
         base_url = 'https://api.github.com/search/issues?q=%s' % qs
         for json in self._paginated(base_url):
             for jissue in json['items']:
-                issue_id = '%s/%s' % (query.project, jissue['number'])
-                yield self.make_issue(issue_id, jissue)
+                issue_number = jissue['number']
+                yield self._make_issue(query.project, issue_number, jissue)
             if not len(json['items']):
                 break
 
@@ -102,8 +91,8 @@ class GithubBrowser(BaseBrowser):
         base_data = json_module.dumps(data)
         url = 'https://api.github.com/repos/%s/issues' % issue.project.id
         json = self.do_post(url, base_data)
-        issue_id = '%s/%s' % (issue.project.id, json['id'])
-        return self.make_issue(issue_id, json)
+        issue_number = json['id']
+        return self._make_issue(issue.project.id, issue_number, json)
 
     def post_comment(self, issue_id, comment):
         project_id, issue_number = issue_id.rsplit('/', 1)
@@ -112,56 +101,41 @@ class GithubBrowser(BaseBrowser):
         self.do_post(url, data)
 
     # helpers
-    def make_issue(self, _id, json, fetch_project=True):
-        project_id, issue_number = _id.rsplit('/', 1)
-        issue = Issue(_id)
-        issue.title = json['title']
-        issue.body = json['body']
-        issue.category = None
-        issue.creation = parse_date(json['created_at'])
-        issue.updated = parse_date(json['updated_at'])
-        issue.attachments = list(self._get_attachments(issue.body))
-        if fetch_project:
-            issue.project = self.get_project(project_id)
-        issue.author = self.get_user(json['user']['login'])
+    def _make_issue(self, project_id, issue_number, json):
+        d = {'number': issue_number, 'title': json['title'], 'body': json['body'], 'creation': parse_date(json['created_at']), 'updated': parse_date(json['updated_at']), 'author': json['user']['login'], 'status': json['state']}
+
         if json['assignee']:
-            issue.assignee = self.get_user(json['assignee']['login'])
+            d['assignee'] = json['assignee']['login']
         else:
-            issue.assignee = None
-        issue.status = STATUSES[json['state']]
+            d['assignee'] = None
         if json['milestone']:
-            issue.version = self.make_milestone(json['milestone'])
-        if json['comments'] > 0:
-            issue.history = [comment for comment in self.get_comments(project_id, issue_number)]
+            d['version'] = json['milestone']
         else:
-            issue.history = []
+            d['version'] = None
+        if json['comments'] > 0:
+            d['comments'] = list(self.get_comments(project_id, issue_number))
+        else:
+            d['comments'] = []
+        d['attachments'] = list(self._extract_attachments(d['body']))
+
         # TODO fetch other updates?
-        return issue
+        return d
 
-    def _get_milestones(self, project_id):
+    def iter_milestones(self, project_id):
         for jmilestone in self.do_get('https://api.github.com/repos/%s/milestones' % project_id):
-            yield self.make_milestone(jmilestone)
-
-    def make_milestone(self, json):
-        return Version(json['number'], json['title'])
+            yield {'id': jmilestone['number'], 'name': jmilestone['title']}
 
     def get_comments(self, project_id, issue_number):
         json = self.do_get('https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number))
         for jcomment in json:
-            comment = Update(jcomment['id'])
-            comment.message = jcomment['body']
-            comment.author = self.make_user(jcomment['user']['login'])
-            comment.date = parse_date(jcomment['created_at'])
-            comment.changes = []
-            comment.attachments = list(self._get_attachments(comment.message))
-            yield comment
+            d = {'id': jcomment['id'], 'message': jcomment['body'], 'author': jcomment['user']['login'], 'date': parse_date(jcomment['created_at'])}
+            d['attachments'] = list(self._extract_attachments(d['message']))
+            yield d
 
-    def _get_attachments(self, message):
+    def _extract_attachments(self, message):
         for attach_url in re.findall(r'https://f.cloud.github.com/assets/[\w/.-]+', message):
-            attach = Attachment(attach_url)
-            attach.url = attach_url
-            attach.filename = os.path.basename(attach_url)
-            yield attach
+            d = {'url': attach_url, 'filename': os.path.basename(attach_url)}
+            yield d
 
     def _paginated(self, url, start_at=1):
         while True:
@@ -178,16 +152,12 @@ class GithubBrowser(BaseBrowser):
             name = json['name']
         else:
             name = _id # wasted one request...
-        return User(_id, name)
-    
-    def make_user(self, name):
-        return User(name, name)
+        return {'id': _id, 'name': name}
 
     def iter_members(self, project_id):
         for json in self._paginated('https://api.github.com/repos/%s/assignees' % project_id):
             for jmember in json:
-                user = self.make_user(jmember['login']) # no request, no name
-                yield user
+                yield {'id': jmember['login'], 'name': jmember['login']}
             if len(json) < 100:
                 break
 
