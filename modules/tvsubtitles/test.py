@@ -35,3 +35,9 @@ class TvsubtitlesTest(BackendTest):
         if len(subtitles):
             subtitle = choice(subtitles)
             self.backend.get_subtitle_file(subtitle.id)
+
+    def test_get_subtitle(self):
+        subtitles = list(self.backend.iter_subtitles('fr', 'sopranos'))
+        assert (len(subtitles) > 0)
+        subtitle = choice(subtitles)
+        assert self.backend.get_subtitle(subtitle.id)
