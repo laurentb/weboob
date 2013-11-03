@@ -23,6 +23,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.browser import BasePage
 
 from datetime import datetime
+import re
 
 
 __all__ = ['PersonPage', 'MovieCrewPage', 'BiographyPage', 'FilmographyPage', 'ReleasePage']
@@ -33,11 +34,13 @@ class ReleasePage(BasePage):
     '''
     def get_movie_releases(self, country_filter):
         result = unicode()
-        links = self.parser.select(self.document.getroot(), 'b a')
+        links = self.parser.select(self.document.getroot(), 'table#release_dates a')
         for a in links:
             href = a.attrib.get('href', '')
+
+            # XXX: search() could raise an exception
             if href.strip('/').split('/')[0] == 'calendar' and\
-                    (country_filter is None or href.split('region=')[-1].lower() == country_filter):
+                    (country_filter is None or re.search('region=([a-zA-Z]+)&', href).group(1).lower() == country_filter):
                 country = a.text
                 td_date = self.parser.select(a.getparent().getparent().getparent(), 'td')[1]
                 date_links = self.parser.select(td_date, 'a')
@@ -74,14 +77,15 @@ class MovieCrewPage(BasePage):
     '''
     def iter_persons(self, role_filter=None):
         if (role_filter is None or (role_filter is not None and role_filter == 'actor')):
-            tables = self.parser.select(self.document.getroot(), 'table.cast')
+            tables = self.parser.select(self.document.getroot(), 'table.cast_list')
             if len(tables) > 0:
                 table = tables[0]
-                tds = self.parser.select(table, 'td.nm')
+                tds = self.parser.select(table, 'td.itemprop')
+
                 for td in tds:
-                    id = td.find('a').attrib.get('href', '').strip('/').split('/')[-1]
+                    id = td.find('a').attrib.get('href', '').strip('/').split('/')[1]
                     name = unicode(td.find('a').text)
-                    char_name = unicode(self.parser.select(td.getparent(), 'td.char', 1).text_content())
+                    char_name = unicode(self.parser.select(td.getparent(), 'td.character', 1).text_content())
                     person = Person(id, name)
                     person.short_description = char_name
                     person.real_name = NotLoaded
@@ -95,7 +99,7 @@ class MovieCrewPage(BasePage):
                     person.thumbnail_url = NotLoaded
                     yield person
 
-        for gloss_link in self.parser.select(self.document.getroot(), 'table[cellspacing=1] h5 a'):
+        for gloss_link in self.parser.select(self.document.getroot(), 'table[cellspacing="1"] h5 a'):
             role = gloss_link.attrib.get('name', '').rstrip('s')
             if (role_filter is None or (role_filter is not None and role == role_filter)):
                 tbody = gloss_link.getparent().getparent().getparent().getparent()
@@ -114,12 +118,12 @@ class MovieCrewPage(BasePage):
                             # yield self.browser.get_person(id)
 
     def iter_persons_ids(self):
-        tables = self.parser.select(self.document.getroot(), 'table.cast')
+        tables = self.parser.select(self.document.getroot(), 'table.cast_list')
         if len(tables) > 0:
             table = tables[0]
-            tds = self.parser.select(table, 'td.nm')
+            tds = self.parser.select(table, 'td.itemprop')
             for td in tds:
-                id = td.find('a').attrib.get('href', '').strip('/').split('/')[-1]
+                id = td.find('a').attrib.get('href', '').strip('/').split('/')[1]
                 yield id
 
 
@@ -152,7 +156,7 @@ class PersonPage(BasePage):
                     real_name = unicode(a.text.strip())
                 elif 'birth_place' in href:
                     birth_place = unicode(a.text.lower().strip())
-        names = self.parser.select(td_overview, 'h1[itemprop=name]')
+        names = self.parser.select(td_overview, 'h1 span[itemprop=name]')
         if len(names) > 0:
             name = unicode(names[0].text.strip())
         times = self.parser.select(td_overview, 'time[itemprop=birthDate]')
