@@ -118,7 +118,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
 
     def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
         YOUTUBE_MAX_RESULTS = 50
-        YOUTUBE_MAX_START_INDEX = 1000
+        YOUTUBE_MAX_START_INDEX = 500
         yt_service = gdata.youtube.service.YouTubeService()
         yt_service.ssl = True
 
@@ -134,8 +134,7 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
             query.racy = 'include' if nsfw else 'exclude'
 
             query.max_results = YOUTUBE_MAX_RESULTS
-
-            if start_index > YOUTUBE_MAX_START_INDEX:
+            if start_index >= YOUTUBE_MAX_START_INDEX:
                 return
             query.start_index = start_index
             start_index += YOUTUBE_MAX_RESULTS
@@ -147,7 +146,6 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
 
             if nb_yielded < YOUTUBE_MAX_RESULTS:
                 return
-
 
     def latest_videos(self):
         return self.search_videos(None, ICapVideo.SEARCH_DATE)

@@ -42,7 +42,11 @@ class YoutubeTest(BackendTest):
         v = self.backend.get_video('http://youtu.be/UxxajLWwzqY')
         self.backend.fillobj(v, ('url',))
         assert len(v.url)
-        self.backend.browser.openurl(v.url)
+
+        try:
+            self.backend.browser.openurl(v.url)
+        except:
+            self.fail('can\'t open url')
 
     def test_weirdchars(self):
         v = self.backend.get_video('https://www.youtube.com/watch?v=BaW_jenozKc')
