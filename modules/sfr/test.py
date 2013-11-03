@@ -17,12 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from weboob.tools.test import BackendTest
-
 
 class SFRTest(BackendTest):
     BACKEND = 'sfr'
 
     def test_sfr(self):
         pass
+
+    def test_create_default_browser(self):
+        connect = self.backend.create_default_browser()
+        assert connect
+
+    def test_get_account_status(self):
+        nbSms = self.backend.get_account_status()
+        assert nbSms
+        assert isinstance(nbSms[0].value, str);

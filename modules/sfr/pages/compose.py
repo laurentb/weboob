@@ -35,9 +35,8 @@ class ComposePage(BasePage):
     phone_regex = re.compile('^(\+33|0033|0)(6|7)(\d{8})$')
 
     def get_nb_remaining_free_sms(self):
-        remaining_regex = re.compile(u'Il vous reste (?P<nb>.+) Texto gratuits vers les numéros SFR à envoyer aujourd\'hui')
-        text = self.parser.select(self.document.getroot(), '#smsReminder', 1).text.strip()
-        return remaining_regex.match(text).groupdict().get('nb')
+        nbSms = self.parser.select(self.document.getroot(), '#freeSms',1).text.strip()
+        return nbSms
 
     def post_message(self, message):
         receiver = message.thread.id
