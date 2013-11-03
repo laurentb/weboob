@@ -18,12 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.browser import BaseBrowser
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
+from weboob.tools.browser import BaseBrowser
 from weboob.tools.json import json
-
+import base64
+import hashlib
 from datetime import datetime
+import time
+import urllib
+
 
 __all__ = ['AllocineBrowser']
 
@@ -32,10 +36,28 @@ class AllocineBrowser(BaseBrowser):
     DOMAIN = 'api.allocine.fr'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
-    USER_AGENT = BaseBrowser.USER_AGENTS['android']
+    USER_AGENT = 'Dalvik/1.6.0 (Linux; U; Android 4.2.2; Nexus 4 Build/JDQ39E)'
+
+    PARTNER_KEY = '100043982026'
+    SECRET_KEY = '29d185d98c984a359e6e6f26a0474269'
+
+    def __do_request(self, method, params):
+        params_encode = urllib.urlencode(params)
+
+        sed = time.strftime('%Y%m%d', time.localtime())
+        sig = base64.b64encode(hashlib.sha1(self.SECRET_KEY + params_encode + '&sed=' + sed).digest())
+
+        query_url = 'http://api.allocine.fr/rest/v3/' + method + '?' + params_encode + '&sed=' + sed + '&sig=' + sig
+
+        return self.readurl(query_url)
 
     def iter_movies(self, pattern):
-        res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=movie&q=%s&format=json' % pattern.encode('utf-8'))
+        params = [('partner', self.PARTNER_KEY),
+                  ('q', pattern.encode('utf-8')),
+                  ('format', 'json'),
+                  ('filter', 'movie')]
+
+        res = self.__do_request('search', params)
         jres = json.loads(res)
         if 'movie' not in jres['feed']:
             return
@@ -67,7 +89,12 @@ class AllocineBrowser(BaseBrowser):
             yield movie
 
     def iter_persons(self, pattern):
-        res = self.readurl('http://api.allocine.fr/rest/v3/search?partner=YW5kcm9pZC12M3M&filter=person&q=%s&format=json' % pattern.encode('utf-8'))
+        params = [('partner', self.PARTNER_KEY),
+                  ('q', pattern.encode('utf-8')),
+                  ('format', 'json'),
+                  ('filter', 'person')]
+
+        res = self.__do_request('search', params)
         jres = json.loads(res)
         if 'person' not in jres['feed']:
             return
@@ -95,8 +122,15 @@ class AllocineBrowser(BaseBrowser):
             yield person
 
     def get_movie(self, id):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', id),
+                  ('profile', 'large'),
+                  ('mediafmt', 'mp4-lc'),
+                  ('filter', 'movie'),
+                  ('striptags', 'synopsis,synopsisshort'),
+                  ('format', 'json')]
+
+        res = self.__do_request('movie', params)
         if res is not None:
             jres = json.loads(res)
             if 'movie' in jres:
@@ -169,8 +203,15 @@ class AllocineBrowser(BaseBrowser):
         return movie
 
     def get_person(self, id):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/person?partner=YW5kcm9pZC12M3M&profile=large&code=%s&mediafmt=mp4-lc&filter=movie&format=json&striptags=biography' % id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', id),
+                  ('profile', 'large'),
+                  ('mediafmt', 'mp4-lc'),
+                  ('filter', 'movie'),
+                  ('striptags', 'biography,biographyshort'),
+                  ('format', 'json')]
+
+        res = self.__do_request('person', params)
         if res is not None:
             jres = json.loads(res)
             if 'person' in jres:
@@ -250,8 +291,15 @@ class AllocineBrowser(BaseBrowser):
         return person
 
     def iter_movie_persons(self, movie_id, role_filter):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', movie_id),
+                  ('profile', 'large'),
+                  ('mediafmt', 'mp4-lc'),
+                  ('filter', 'movie'),
+                  ('striptags', 'synopsis,synopsisshort'),
+                  ('format', 'json')]
+
+        res = self.__do_request('movie', params)
         if res is not None:
             jres = json.loads(res)
             if 'movie' in jres:
@@ -285,8 +333,13 @@ class AllocineBrowser(BaseBrowser):
                     yield person
 
     def iter_person_movies(self, person_id, role_filter):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', person_id),
+                  ('profile', 'medium'),
+                  ('filter', 'movie'),
+                  ('format', 'json')]
+
+        res = self.__do_request('filmography', params)
         if res is not None:
             jres = json.loads(res)
             if 'person' in jres:
@@ -317,8 +370,13 @@ class AllocineBrowser(BaseBrowser):
                 yield movie
 
     def iter_person_movies_ids(self, person_id):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/filmography?partner=YW5kcm9pZC12M3M&profile=medium&code=%s&filter=movie&format=json' % person_id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', person_id),
+                  ('profile', 'medium'),
+                  ('filter', 'movie'),
+                  ('format', 'json')]
+
+        res = self.__do_request('filmography', params)
         if res is not None:
             jres = json.loads(res)
             if 'person' in jres:
@@ -331,8 +389,15 @@ class AllocineBrowser(BaseBrowser):
             yield unicode(m['movie']['code'])
 
     def iter_movie_persons_ids(self, movie_id):
-        res = self.readurl(
-                'http://api.allocine.fr/rest/v3/movie?partner=YW5kcm9pZC12M3M&code=%s&profile=large&mediafmt=mp4-lc&format=json&filter=movie&striptags=synopsis,synopsisshort' % movie_id)
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', movie_id),
+                  ('profile', 'large'),
+                  ('mediafmt', 'mp4-lc'),
+                  ('filter', 'movie'),
+                  ('striptags', 'synopsis,synopsisshort'),
+                  ('format', 'json')]
+
+        res = self.__do_request('movie', params)
         if res is not None:
             jres = json.loads(res)
             if 'movie' in jres:
@@ -347,3 +412,28 @@ class AllocineBrowser(BaseBrowser):
 
     def get_movie_releases(self, id, country):
         return
+
+    def get_person_biography(self, id):
+        params = [('partner', self.PARTNER_KEY),
+                  ('code', id),
+                  ('profile', 'large'),
+                  ('mediafmt', 'mp4-lc'),
+                  ('filter', 'movie'),
+                  ('striptags', 'biography,biographyshort'),
+                  ('format', 'json')]
+
+        res = self.__do_request('person', params)
+        if res is not None:
+            jres = json.loads(res)
+            if 'person' in jres:
+                jres = jres['person']
+            else:
+                return None
+        else:
+            return None
+
+        biography = NotAvailable
+        if 'biography' in jres:
+            biography = unicode(jres['biography'])
+
+        return biography
