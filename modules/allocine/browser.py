@@ -58,6 +58,8 @@ class AllocineBrowser(BaseBrowser):
                   ('filter', 'movie')]
 
         res = self.__do_request('search', params)
+        if res is None:
+            return
         jres = json.loads(res)
         if 'movie' not in jres['feed']:
             return
@@ -95,6 +97,8 @@ class AllocineBrowser(BaseBrowser):
                   ('filter', 'person')]
 
         res = self.__do_request('search', params)
+        if res is None:
+            return
         jres = json.loads(res)
         if 'person' not in jres['feed']:
             return
