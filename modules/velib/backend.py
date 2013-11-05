@@ -27,7 +27,9 @@ from .browser import VelibBrowser
 
 __all__ = ['VelibBackend']
 
-SENSOR_TYPES = {u'available_bike_stands': u'Free stands', u'available_bikes': u'Available bikes', u'bike_stands': u'Total stands'}
+SENSOR_TYPES = {u'available_bike_stands': u'Free stands',
+                u'available_bikes': u'Available bikes',
+                u'bike_stands': u'Total stands'}
 
 CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
     "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
@@ -43,7 +45,8 @@ class BikeMeasure(GaugeMeasure):
 
 class VelibBackend(BaseBackend, ICapGauge):
     NAME = 'velib'
-    DESCRIPTION = u'get Vélib\' information'
+    DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
+                   u', '.join(CITIES))
     MAINTAINER = u'Herve Werner'
     EMAIL = 'dud225@hotmail.com'
     VERSION = '0.h'
