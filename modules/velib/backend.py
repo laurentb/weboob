@@ -19,6 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.capabilities.base import StringField
 from weboob.capabilities.gauge import ICapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value
 
@@ -41,6 +42,11 @@ CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
 class BikeMeasure(GaugeMeasure):
     def __repr__(self):
         return '<GaugeMeasure level=%d>' % self.level
+
+
+class BikeSensor(GaugeSensor):
+    longitude = StringField('Longitude of the sensor')
+    latitude = StringField('Latitude of the sensor')
 
 
 class VelibBackend(BaseBackend, ICapGauge):
@@ -71,10 +77,12 @@ class VelibBackend(BaseBackend, ICapGauge):
 
     def _make_sensor(self, sensor_type, info, gauge):
         id = '%s.%s' % (sensor_type, gauge.id)
-        sensor = GaugeSensor(id)
+        sensor = BikeSensor(id)
         sensor.gaugeid = gauge.id
         sensor.name = SENSOR_TYPES[sensor_type]
         sensor.address = unicode(info['address'])
+        sensor.longitude = info['longitude']
+        sensor.latitude = info['latitude']
         sensor.history = []
         return sensor
 

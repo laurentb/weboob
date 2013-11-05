@@ -63,4 +63,7 @@ class VelibBrowser(BaseBrowser):
         jgauge['id'] = '%s.%s' % (jgauge['number'], jgauge['contract_name'])
         jgauge['city'] = jgauge['contract_name']
         jgauge['last_update'] = datetime.datetime.fromtimestamp(jgauge['last_update'] / 1000)
+        jgauge['latitude'] = str(jgauge['position']['lat'])
+        jgauge['longitude'] = str(jgauge['position']['lng'])
+        del jgauge['position']
         return jgauge
