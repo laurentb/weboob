@@ -36,10 +36,10 @@ class HybrideBrowser(BaseBrowser):
         '%s://%s/programme/item/(.*?)' % (PROTOCOL, DOMAIN): EventPage,
     }
 
-    def list_events(self, date_from, date_to=None):
+    def list_events(self, date_from, date_to=None, city=None, categories=None):
         self.location('%s://%s/programme.html' % (self.PROTOCOL, self.DOMAIN))
         assert self.is_on_page(ProgramPage)
-        return self.page.list_events(date_from, date_to)
+        return self.page.list_events(date_from, date_to, city, categories)
 
     @id2url(HybrideCalendarEvent.id2url)
     def get_event(self, url, event=None):

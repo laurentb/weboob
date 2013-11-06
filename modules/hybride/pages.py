@@ -33,15 +33,15 @@ def format_date(date):
 
 
 class ProgramPage(BasePage):
-    def list_events(self, date_from, date_to=None):
+    def list_events(self, date_from, date_to=None, city=None, categories=None):
         divs = self.document.getroot().xpath("//div[@class='catItemView groupLeading']")
         for div in divs:
             if(self.is_event_in_valid_period(div, date_from, date_to)):
-                event = self.create_event(div)
+                event = self.create_event(div, city, categories)
                 if event:
                     yield event
 
-    def create_event(self, div):
+    def create_event(self, div, city=None, categories=None):
         re_id = re.compile('/programme/item/(.*?).html', re.DOTALL)
         header = self.parser.select(div, "div[@class='catItemHeader']", 1, method='xpath')
         date = self.parser.select(header, "span[@class='catItemDateCreated']", 1, method='xpath')
@@ -52,7 +52,17 @@ class ProgramPage(BasePage):
             event.start_date = format_date(date.text)
             event.end_date = datetime.combine(event.start_date, time.max)
             event.summary = u'%s' % a_id.text_content().strip()
-            return event
+            if self.is_valid_event(event, city, categories):
+                return event
+
+    def is_valid_event(self, event, city, categories):
+        if city and city != '' and city.upper() != event.city.upper():
+            return False
+
+        if categories and len(categories) > 0 and event.category not in categories:
+            return False
+
+        return True
 
     def is_event_in_valid_period(self, div, date_from, date_to=None):
         header = self.parser.select(div, "div[@class='catItemHeader']", 1, method='xpath')

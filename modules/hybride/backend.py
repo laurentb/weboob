@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.calendar import ICapCalendarEvent
+from weboob.capabilities.calendar import ICapCalendarEvent, CATEGORIES
 
 from .browser import HybrideBrowser
 from .calendar import HybrideCalendarEvent
@@ -34,18 +34,27 @@ class HybrideBackend(BaseBackend, ICapCalendarEvent):
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
     VERSION = '0.h'
-
+    ASSOCIATED_CATEGORIES = [CATEGORIES.CINE]
     BROWSER = HybrideBrowser
+
+    def search_events(self, query):
+        if self.has_matching_categories(query):
+            with self.browser:
+                return self.browser.list_events(query.start_date,
+                                                query.end_date,
+                                                query.city,
+                                                query.categories)
 
     def list_events(self, date_from, date_to=None):
         with self.browser:
             return self.browser.list_events(date_from, date_to)
 
-    def get_event(self, _id, event=None):
+    def get_event(self, _id):
         with self.browser:
-            return self.browser.get_event(_id, event)
+            return self.browser.get_event(_id)
 
     def fill_obj(self, event, fields):
-        self.get_event(event.id, event)
+        with self.browser:
+            return self.browser.get_event(event.id, event)
 
     OBJECTS = {HybrideCalendarEvent: fill_obj}

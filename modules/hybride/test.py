@@ -28,5 +28,5 @@ class HybrideTest(BackendTest):
     def test_hybride_list(self):
         l = list(self.backend.list_events(datetime.now()))
         assert len(l)
-        event = self.backend.get_event(l[0].id, None)
+        event = self.backend.get_event(l[0].id)
         self.assertTrue(event.url, 'URL for event "%s" not found: %s' % (event.id, event.url))

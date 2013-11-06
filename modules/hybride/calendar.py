@@ -22,7 +22,8 @@ from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATE
 
 class HybrideCalendarEvent(BaseCalendarEvent):
 
-    location = '18 rue Gosselet 59014 LILLE CEDEX'
+    location = '18 rue Gosselet'
+    city = 'Lille'
     sequence = 1
     transp = TRANSP.TRANSPARENT
     status = STATUS.CONFIRMED
