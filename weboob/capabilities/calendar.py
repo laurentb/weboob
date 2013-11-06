@@ -17,15 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import CapBaseObject, IBaseCap, StringField, DateField, IntField, FloatField
+from .base import CapBaseObject, IBaseCap, StringField, DateField, IntField, FloatField, Field
 
 __all__ = ['BaseCalendarEvent', 'ICapCalendarEvent']
 
 
 def enum(**enums):
+    _values = enums.values()
+    _items = enums.items()
+    _index = dict((value, i) for i, value in enumerate(enums.values()))
+    enums['values'] = _values
+    enums['items'] = _items
+    enums['index'] = _index
     return type('Enum', (), enums)
 
-CATEGORIES = enum(CINE='Cinema', CONCERT='Concert', THEATRE='Theatre')
+CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre')
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
@@ -42,6 +48,7 @@ class BaseCalendarEvent(CapBaseObject):
     start_date = DateField('Start date of the event')
     end_date = DateField('End date of the event')
     summary = StringField('Title of the event')
+    city = StringField('Name of the city in witch event will take place')
     location = StringField('Location of the event')
     category = StringField('Category of the event')
     description = StringField('Description of the event')
@@ -72,10 +79,48 @@ class BaseCalendarEvent(CapBaseObject):
         return self.id2url(self.id)
 
 
+class Query(CapBaseObject):
+    """
+    Query to find events
+    """
+
+    start_date = DateField('Start date of the event')
+    end_date = DateField('End date of the event')
+    city = StringField('Name of the city in witch event will take place')
+    categories = Field('List of categories of the event', list, tuple)
+
+    def __init__(self):
+        CapBaseObject.__init__(self, '')
+        self.categories = []
+        for value in CATEGORIES.values:
+            self.categories.append(value)
+
+
 class ICapCalendarEvent(IBaseCap):
     """
     Capability of calendar event type sites
     """
+
+    ASSOCIATED_CATEGORIES = 'ALL'
+
+    def has_matching_categories(self, query):
+        if self.ASSOCIATED_CATEGORIES == 'ALL':
+            return True
+
+        for category in query.categories:
+            if category in self.ASSOCIATED_CATEGORIES:
+                return True
+        return False
+
+    def search_events(self, query):
+        """
+        Search event
+
+        :param query: search query
+        :type query: :class:`Query`
+        :rtype: iter[:class:`BaseCalendarEvent`]
+        """
+        raise NotImplementedError()
 
     def list_events(self, date_from, date_to=None):
         """
@@ -89,14 +134,12 @@ class ICapCalendarEvent(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_event(self, _id, event=None):
+    def get_event(self, _id):
         """
         Get an event from an ID.
 
         :param _id: id of the event
         :type _id: str
-        :param event : the event
-        :type event : BaseCalendarEvent
         :rtype: :class:`BaseCalendarEvent` or None is fot found.
         """
         raise NotImplementedError()
