@@ -23,7 +23,7 @@ from datetime import date, timedelta, time, datetime
 
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.capabilities.base import empty
-from weboob.capabilities.calendar import ICapCalendarEvent
+from weboob.capabilities.calendar import ICapCalendarEvent, Query, CATEGORIES
 from weboob.tools.application.repl import ReplApplication, defaultcount
 
 __all__ = ['Boobcoming']
@@ -49,8 +49,16 @@ class ICalFormatter(IFormatter):
         result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'SUMMARY:%s\n' % obj.summary
+
+        location = ''
         if hasattr(obj, 'location') and not empty(obj.location):
-            result += u'LOCATION:%s\n' % obj.location
+            location += obj.location + ' '
+
+        if hasattr(obj, 'city') and not empty(obj.city):
+            location += obj.city + ' '
+
+        if not empty(location):
+            result += u'LOCATION:%s\n' % location
 
         if hasattr(obj, 'categories') and not empty(obj.categories):
             result += u'CATEGORIES:%s\n' % obj.categories
@@ -101,6 +109,9 @@ class UpcomingFormatter(IFormatter):
         if hasattr(obj, 'location') and not empty(obj.location):
             result += u'Location: %s\n' % obj.location
 
+        if hasattr(obj, 'city') and not empty(obj.city):
+            result += u'City: %s\n' % obj.city
+
         if hasattr(obj, 'event_planner') and not empty(obj.event_planner):
             result += u'Event planner: %s/%s \n' % (obj.event_planner)
 
@@ -137,8 +148,8 @@ class Boobcoming(ReplApplication):
                         'ical_formatter': ICalFormatter,
                         }
     COMMANDS_FORMATTERS = {'list': 'upcoming_list',
+                           'search': 'upcoming_list',
                            'info': 'upcoming',
-                           #'export': 'ical_formatter',
                            }
 
     WEEK   = {'MONDAY': 0,
@@ -156,6 +167,59 @@ class Boobcoming(ReplApplication):
               'SAMEDI': 5,
               'DIMANCHE': 6,
               }
+
+    @defaultcount(10)
+    def do_search(self, line):
+        """
+        search
+
+        search for an event. Parameters interactively asked
+        """
+
+        query = Query()
+        r = 'notempty'
+        while r != '':
+            for category in CATEGORIES.values:
+                print '  %s%2d)%s [%s] %s' % (self.BOLD,
+                                              CATEGORIES.index[category] + 1,
+                                              self.NC,
+                                              'x' if category in query.categories else ' ', category)
+            r = self.ask('  Select category (or empty to stop)', regexp='(\d+|)', default='')
+            if not r.isdigit():
+                continue
+            r = int(r)
+            if r <= 0 or r > len(CATEGORIES.values):
+                continue
+            value = CATEGORIES.values[r - 1]
+            if value in query.categories:
+                query.categories.remove(value)
+            else:
+                query.categories.append(value)
+
+        if query.categories and len(query.categories) > 0:
+            query.city = self.ask('Enter a city', default='')
+
+            start_date = self.ask_date('Enter a start date', default='today')
+            end_date = self.ask_date('Enter a end date', default='')
+
+            if end_date:
+                if end_date == start_date:
+                    end_date = datetime.combine(start_date, time.max)
+                else:
+                    end_date = datetime.combine(end_date, time.max)
+
+            query.start_date = datetime.combine(start_date, time.min)
+            query.end_date = end_date
+
+            self.change_path([u'events'])
+            self.start_format()
+            for backend, event in self.do('search_events', query):
+                if event:
+                    self.cached_format(event)
+
+    def ask_date(self, txt, default=''):
+        r = self.ask(txt, default=default)
+        return self.parse_date(r)
 
     @defaultcount(10)
     def do_list(self, line):
