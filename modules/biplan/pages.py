@@ -36,44 +36,56 @@ def parse_b(b):
 
 
 class ProgramPage(BasePage):
-    def list_events(self, date_from, date_to=None, is_concert=None):
+    def list_events(self, date_from, date_to=None, city=None, categories=None, is_concert=True):
         divs = self.document.getroot().xpath("//div[@class='ligne']")
         for i in range(1, len(divs)):
-            event = self.create_event(divs[i], date_from, date_to, is_concert)
+            event = self.create_event(divs[i], date_from, date_to, city, categories, is_concert=is_concert)
             if event:
                 yield event
 
-    def create_event(self, div, date_from, date_to, is_concert):
+    def create_event(self, div, date_from, date_to, city=None, categories=None, is_concert=True):
         re_id = re.compile('/(.*?).html', re.DOTALL)
         a_id = self.parser.select(div, "div/a", 1, method='xpath')
         b = self.parser.select(div, "div/div/b", 2, method='xpath')
 
         _id = re_id.search(a_id.attrib['href']).group(1)
         date = self.parse_date(b[0].text_content())
+        time_price = parse_b(b[1].text_content())
 
-        if _id and self.is_event_in_valid_period(date, date_from, date_to):
+        start_time = self.parse_start_time(time_price)
+        start_date = datetime.combine(date, start_time)
+        end_date = datetime.combine(start_date, time.max)
+
+        if _id and self.is_event_in_valid_period(start_date, date_from, date_to):
             if is_concert:
                 event = BiplanCalendarEventConcert(_id)
             else:
                 event = BiplanCalendarEventTheatre(_id)
 
-            time_price = parse_b(b[1].text_content())
-
-            start_time = self.parse_start_time(time_price)
-            event.start_date = datetime.combine(date, start_time)
-            event.end_date = datetime.combine(event.start_date, time.max)
+            event.start_date = start_date
+            event.end_date = end_date
 
             price = time_price[time_price.index('-') + 1:]
             parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(price))
 
             if parsed_price and len(parsed_price) > 0:
-                event.price = float(parsed_price[0])
+                event.price = float(parsed_price[0].replace(',', '.'))
             else:
                 event.price = float(0)
 
             event.summary = u'%s' % self.parser.select(div, "div/div/div/a/strong", 1, method='xpath').text
 
-            return event
+            if self.is_valid_event(event, city, categories):
+                return event
+
+    def is_valid_event(self, event, city, categories):
+        if city and city != '' and city.upper() != event.city.upper():
+            return False
+
+        if categories and len(categories) > 0 and event.category not in categories:
+            return False
+
+        return True
 
     def is_event_in_valid_period(self, event_date, date_from, date_to):
         if event_date >= date_from:

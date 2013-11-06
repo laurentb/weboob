@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend
-from weboob.capabilities.calendar import ICapCalendarEvent
+from weboob.capabilities.calendar import ICapCalendarEvent, CATEGORIES
 import itertools
 
 from .browser import BiplanBrowser
@@ -35,19 +35,38 @@ class BiplanBackend(BaseBackend, ICapCalendarEvent):
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
     VERSION = '0.h'
-
+    ASSOCIATED_CATEGORIES = [CATEGORIES.CONCERT, CATEGORIES.THEATRE]
     BROWSER = BiplanBrowser
+
+    def search_events(self, query):
+        if self.has_matching_categories(query):
+            with self.browser:
+                theatre_events = []
+                concert_events = []
+                if CATEGORIES.CONCERT in query.categories:
+                    concert_events = self.browser.list_events_concert(query.start_date,
+                                                                      query.end_date,
+                                                                      query.city,
+                                                                      query.categories)
+                if CATEGORIES.THEATRE in query.categories:
+                    theatre_events = self.browser.list_events_theatre(query.start_date,
+                                                                      query.end_date,
+                                                                      query.city,
+                                                                      query.categories)
+
+                return itertools.chain(concert_events, theatre_events)
 
     def list_events(self, date_from, date_to=None):
         with self.browser:
             return itertools.chain(self.browser.list_events_concert(date_from, date_to),
                                    self.browser.list_events_theatre(date_from, date_to))
 
-    def get_event(self, _id, event=None):
+    def get_event(self, _id):
         with self.browser:
-            return self.browser.get_event(_id, event)
+            return self.browser.get_event(_id)
 
     def fill_obj(self, event, fields):
-        self.get_event(event.id, event)
+        with self.browser:
+            return self.browser.get_event(event.id, event)
 
     OBJECTS = {BiplanCalendarEvent: fill_obj}

@@ -38,15 +38,15 @@ class BiplanBrowser(BaseBrowser):
         '%s://%s/(.*?)' % (PROTOCOL, DOMAIN): EventPage,
     }
 
-    def list_events_concert(self, date_from, date_to=None):
+    def list_events_concert(self, date_from, date_to=None, city=None, categories=None):
         self.location('%s://%s/fr/biplan-prog-concert.php' % (self.PROTOCOL, self.DOMAIN))
         assert self.is_on_page(ProgramPage)
-        return self.page.list_events(date_from, date_to, is_concert=True)
+        return self.page.list_events(date_from, date_to, city, categories, is_concert=True)
 
-    def list_events_theatre(self, date_from, date_to=None):
+    def list_events_theatre(self, date_from, date_to=None, city=None, categories=None):
         self.location('%s://%s/fr/biplan-prog-theatre.php' % (self.PROTOCOL, self.DOMAIN))
         assert self.is_on_page(ProgramPage)
-        return self.page.list_events(date_from, date_to, is_concert=False)
+        return self.page.list_events(date_from, date_to, city, categories, is_concert=False)
 
     @id2url(BiplanCalendarEvent.id2url)
     def get_event(self, url, event=None):

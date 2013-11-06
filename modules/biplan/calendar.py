@@ -22,7 +22,8 @@ from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATE
 
 class BiplanCalendarEvent(BaseCalendarEvent):
 
-    location = '19, rue Colbert - 59000 LILLE'
+    city = 'LILLE'
+    location = '19, rue Colbert'
     sequence = 1
     transp = TRANSP.TRANSPARENT
     status = STATUS.CONFIRMED
