@@ -118,7 +118,7 @@ class LoginPage(BasePage):
             self.browser['agenceId'] = agency.encode('utf-8')
             self.browser['compteId'] = login.encode('utf-8')
         else:
-            self.browser['identifiant'] = login.encode('utf-8')
+            self.browser['identifiantIdForm'] = login.encode('utf-8')
         self.browser['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
         try:
             self.browser.submit(nologin=True)
