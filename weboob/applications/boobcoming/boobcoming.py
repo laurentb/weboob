@@ -49,6 +49,8 @@ class ICalFormatter(IFormatter):
         result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'SUMMARY:%s\n' % obj.summary
+        result += u'UID:%s\n' % obj.id
+        result += u'STATUS:%s\n' % obj.status
 
         location = ''
         if hasattr(obj, 'location') and not empty(obj.location):
@@ -63,11 +65,9 @@ class ICalFormatter(IFormatter):
         if hasattr(obj, 'categories') and not empty(obj.categories):
             result += u'CATEGORIES:%s\n' % obj.categories
 
-        if hasattr(obj, 'status') and not empty(obj.status):
-            result += u'STATUS:%s\n' % obj.status
-
         if hasattr(obj, 'description') and not empty(obj.description):
-            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n')
+            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n') \
+                                                           .replace(',', '\,')
 
         if hasattr(obj, 'transp') and not empty(obj.transp):
             result += u'TRANSP:%s\n' % obj.transp
@@ -277,9 +277,11 @@ class Boobcoming(ReplApplication):
 
     def format_event(self, obj):
         result = u'BEGIN:VEVENT\n'
+        result += u'UID:%s\n' % obj.id
         result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'SUMMARY:%s\n' % obj.summary
+        result += u'STATUS:%s\n' % obj.status
 
         location = ''
         if hasattr(obj, 'location') and not empty(obj.location):
@@ -294,11 +296,9 @@ class Boobcoming(ReplApplication):
         if hasattr(obj, 'categories') and not empty(obj.categories):
             result += u'CATEGORIES:%s\n' % obj.categories
 
-        if hasattr(obj, 'status') and not empty(obj.status):
-            result += u'STATUS:%s\n' % obj.status
-
         if hasattr(obj, 'description') and not empty(obj.description):
-            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n')
+            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n') \
+                                                           .replace(',', '\,')
 
         if hasattr(obj, 'transp') and not empty(obj.transp):
             result += u'TRANSP:%s\n' % obj.transp
