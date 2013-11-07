@@ -235,11 +235,13 @@ class ReplApplication(Cmd, ConsoleApplication):
         backend_names = (backend_name,) if backend_name is not None else self.enabled_backends
 
         # if backend's service returns several objects, try to find the one
-        # with wanted ID. If not found, get the last object.
+        # with wanted ID. If not found, get the last not None object.
         obj = None
-        for backend, obj in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
-            if obj and obj.id == _id:
-                return obj
+        for backend, objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
+            if objiter:
+                obj = objiter
+                if objiter.id == _id:
+                    return obj
         return obj
 
     def get_object_list(self, method=None, *args, **kwargs):
