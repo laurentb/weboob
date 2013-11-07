@@ -21,12 +21,13 @@
 import datetime
 import re
 import urllib
+from urlparse import urlsplit
 from weboob.tools.browser import BasePage
 from weboob.capabilities.messages import Message, Thread
 
 import ovsparse
 
-__all__ = ['PagePrivateThreadsList', 'PagePrivateThread', 'PageLogin', 'PageIndex', 'DummyPage', 'PagePostMessage', 'PageUserProfile']
+__all__ = ['PagePrivateThreadsList', 'PagePrivateThread', 'PageLogin', 'PageIndex', 'DummyPage', 'PagePostMessage', 'PageUserProfile', 'PageCityList']
 
 
 class OvsPage(BasePage):
@@ -170,6 +171,19 @@ class PageUserProfile(OvsPage):
         #~ self.browser['Titre'] = subject.encode(self.browser.ENCODING)
         #~ self.browser['Message'] = body.encode(self.browser.ENCODING)
         #~ self.browser.submit()
+
+
+class PageCityList(DummyPage):
+    def get_cities(self, master_domain='onvasortir.com'):
+        cities = {}
+        for home_a in self.document.findAll('a', href=re.compile(r'http://(.*)\.%s/?' % master_domain)):
+            hostname = urlsplit(home_a['href']).hostname
+            code = hostname.split('.')[0]
+            if code == 'www':
+                continue
+            name = home_a.text
+            cities[name] = {'code': code, 'hostname': hostname}
+        return cities
 
 
 def recode_dict(dict_, encoding):

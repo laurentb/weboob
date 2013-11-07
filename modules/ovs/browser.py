@@ -22,7 +22,7 @@ from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.parsers.iparser import IParser
 import BeautifulSoup
 
-from .pages import PagePrivateThreadsList, PagePrivateThread, PageLogin, PageIndex, DummyPage, PageUserProfile
+from .pages import PagePrivateThreadsList, PagePrivateThread, PageLogin, PageIndex, DummyPage, PageUserProfile, PageCityList
 
 
 __all__ = ['OvsBrowser']
@@ -57,6 +57,8 @@ class OvsBrowser(BaseBrowser):
             '%s://%s/message_action_envoi.php' % (self.PROTOCOL, self.DOMAIN): DummyPage,
 
             r'%s://%s/profil_read.php\?.+' % (self.PROTOCOL, self.DOMAIN): PageUserProfile,
+            'http://www.onvasortir.com/?': PageCityList,
+            'http://www.urbeez.com/?': PageCityList,
         }
 
         kw['parser'] = SoupParser()
@@ -100,3 +102,14 @@ class OvsBrowser(BaseBrowser):
         self.location('/profil_read.php?%s' % recipient.encode(self.ENCODING)) # FIXME
         assert self.is_on_page(PageUserProfile)
         self.page.create_thread(recipient, subject, body)
+
+    def get_french_cities(self):
+        self.location('http://www.onvasortir.com')
+        assert self.is_on_page(PageCityList)
+        return self.page.get_cities('onvasortir.com')
+
+    def get_world_cities(self):
+        self.location('http://www.urbeez.com')
+        assert self.is_on_page(PageCityList)
+        return self.page.get_cities('urbeez.com')
+
