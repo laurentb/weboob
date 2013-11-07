@@ -37,7 +37,7 @@ class UpcomingSimpleFormatter(IFormatter):
 
 
 class ICalFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary')
+    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'status')
 
     def start_format(self, **kwargs):
         self.output(u'BEGIN:VCALENDAR')
@@ -280,8 +280,16 @@ class Boobcoming(ReplApplication):
         result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
         result += u'SUMMARY:%s\n' % obj.summary
+
+        location = ''
         if hasattr(obj, 'location') and not empty(obj.location):
-            result += u'LOCATION:%s\n' % obj.location
+            location += obj.location + ' '
+
+        if hasattr(obj, 'city') and not empty(obj.city):
+            location += obj.city + ' '
+
+        if not empty(location):
+            result += u'LOCATION:%s\n' % location
 
         if hasattr(obj, 'categories') and not empty(obj.categories):
             result += u'CATEGORIES:%s\n' % obj.categories
