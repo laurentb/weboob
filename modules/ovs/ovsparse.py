@@ -19,7 +19,6 @@
 
 
 import BeautifulSoup
-import datetime
 
 
 def nearest_parent(node, expected):
@@ -38,15 +37,6 @@ def all_next_siblings(node):
         ret.append(node)
         node = node.nextSibling
     return ret
-
-def parse_date_from_site(sitedate):
-    parts = sitedate.split() # [d, m, Y, '-', 'H:M:S']
-    if len(parts[0]) == 1:
-        parts[0] = '0%s' % parts[0]
-    months = {'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06', 'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'}
-    parts[1] = months[parts[1].lower()]
-    del parts[3]
-    return datetime.datetime.strptime(' '.join(parts), '%d %m %Y %H:%M:%S')
 
 def image_to_text(src):
     smileys = {'chat/e/grin.gif': ':D',

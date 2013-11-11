@@ -63,6 +63,7 @@ class OvsBrowser(BaseBrowser):
 
         kw['parser'] = SoupParser()
         BaseBrowser.__init__(self, username, password, *a, **kw)
+        self.city = city
 
     def iter_threads_list(self):
         self.location('/vue_messages_recus.php')
@@ -102,6 +103,11 @@ class OvsBrowser(BaseBrowser):
         self.location('/profil_read.php?%s' % recipient.encode(self.ENCODING)) # FIXME
         assert self.is_on_page(PageUserProfile)
         self.page.create_thread(recipient, subject, body)
+
+    def get_contact(self, id):
+        self.location('/profil_read.php?%s' % id.encode(self.ENCODING)) # FIXME
+        assert self.is_on_page(PageUserProfile)
+        return self.page.get_contact()
 
     def get_french_cities(self):
         self.location('http://www.onvasortir.com')
