@@ -136,7 +136,7 @@ class EventPage(BasePage):
         parsed_price = re.findall(r"\d*\,\d+|\d+", " ".join(parse_b(splitted_b[-1])))
 
         if parsed_price and len(parsed_price) > 0:
-            event.price = float(parsed_price[0])
+            event.price = float(parsed_price[0].replace(',', '.'))
         else:
             event.price = float(0)
 
