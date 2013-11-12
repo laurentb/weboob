@@ -115,13 +115,13 @@ class UpcomingFormatter(IFormatter):
         if hasattr(obj, 'event_planner') and not empty(obj.event_planner):
             result += u'Event planner: %s/%s \n' % (obj.event_planner)
 
-        if hasattr(obj, 'entry') and not empty(obj.entry) and \
-           hasattr(obj, 'max_entry') and not empty(obj.max_entry):
-            result += u'Entry: %s/%s \n' % (obj.entry, obj.max_entry)
-        elif hasattr(obj, 'entry') and not empty(obj.entry):
-            result += u'Entry: %s \n' % (obj.entry)
-        elif hasattr(obj, 'max_entry') and not empty(obj.max_entry):
-            result += u'Max entries: %s \n' % (obj.max_entry)
+        if hasattr(obj, 'booked_entries') and not empty(obj.booked_entries) and \
+           hasattr(obj, 'max_entries') and not empty(obj.max_entries):
+            result += u'Entry: %s/%s \n' % (obj.booked_entries, obj.max_entries)
+        elif hasattr(obj, 'booked_entries') and not empty(obj.booked_entries):
+            result += u'Entry: %s \n' % (obj.booked_entries)
+        elif hasattr(obj, 'max_entries') and not empty(obj.max_entries):
+            result += u'Max entries: %s \n' % (obj.max_entries)
 
         if hasattr(obj, 'description') and not empty(obj.description):
             result += u'Description:\n %s\n\n' % obj.description

@@ -53,8 +53,8 @@ class BaseCalendarEvent(CapBaseObject):
     category = StringField('Category of the event')
     description = StringField('Description of the event')
     price = FloatField('Price of the event')
-    entry = IntField('Entry number')
-    max_entry = IntField('Max entry number')
+    booked_entries = IntField('Entry number')
+    max_entries = IntField('Max entry number')
     event_planner = StringField('Name of the event planner')
 
     #the following elements deal with ICalendar stantdards
