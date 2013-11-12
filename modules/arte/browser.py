@@ -58,8 +58,7 @@ class ArteBrowser(BaseBrowser):
         result = self.get_video_by_quality(url, self.quality)
 
         if video is None:
-            video = ArteVideo(result['video']['VID'])
-
+            video = self.create_video(result['video'])
         try:
             video.url = u'%s' % result['video']['VSR'][0]['VUR']
         except:
@@ -136,7 +135,8 @@ class ArteBrowser(BaseBrowser):
         video.thumbnail = Thumbnail(u'%s' % item['programImage'])
         video.duration = datetime.timedelta(seconds=int(item['videoDurationSeconds']))
         video.set_empty_fields(NotAvailable, ('url',))
-        video.description = u'%s' % item['VDE']
+        if 'VDE' in item:
+            video.description = u'%s' % item['VDE']
         m = re.match('(\d{2})\s(\d{2})\s(\d{4})(.*?)', item['VDA'])
         if m:
             dd = int(m.group(1))
