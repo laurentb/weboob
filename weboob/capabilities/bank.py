@@ -20,6 +20,7 @@
 
 from datetime import date, datetime
 from binascii import crc32
+import re
 
 from .base import CapBaseObject, Field, StringField, DateField, DecimalField, IntField, UserError, Currency
 from .collection import ICapCollection
@@ -112,7 +113,7 @@ class Transaction(CapBaseObject):
     def unique_id(self, seen=None, account_id=None):
         crc = crc32(str(self.date))
         crc = crc32(str(self.amount), crc)
-        crc = crc32(self.label.encode("utf-8"), crc)
+        crc = crc32(re.sub('[ ]+', ' ', self.raw.encode("utf-8")), crc)
 
         if account_id is not None:
             crc = crc32(str(account_id), crc)
