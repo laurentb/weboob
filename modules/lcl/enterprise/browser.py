@@ -31,7 +31,7 @@ __all__ = ['LCLEnterpriseBrowser']
 class LCLEnterpriseBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'entreprises.secure.lcl.fr'
-    CERTHASH = '04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9'
+    CERTHASH = ['04e3509c20ac8bdbdb3d0ed37bc34db2dde5ed4bc4c30a3605f63403413099a9', '5fcf4a9ceeec25e406a04dffe0c6eacbdf72d11d394cd049701bfbaba3d853d9']
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
 
