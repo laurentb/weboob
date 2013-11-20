@@ -121,9 +121,12 @@ class Videoob(ReplApplication):
                 return 1
             args = ('mimms', '-r', video.url, dest)
         else:
-            if not check_exec('wget'):
+            if check_exec('wget'):
+                args = ('wget', '-c', video.url, '-O', dest)
+            elif check_exec('curl'):
+                args = ('curl', '-C', '-', video.url, '-o', dest)
+            else:
                 return 1
-            args = ('wget', '-c', video.url, '-O', dest)
 
         os.spawnlp(os.P_WAIT, args[0], *args)
 
