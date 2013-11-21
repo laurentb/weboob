@@ -46,7 +46,7 @@ class IndexPage(BasePage):
             video.title = unicode(title.text.strip())
             for p in div.xpath('.//p[@class="bientot"]'):
                 video.title += ' - %s' % p.text.split('|')[0].strip()
-            video.date = None #parse_dt(div.find('span').attrib['data-date'])
+            video.date = parse_dt(div.find('span').attrib['data-date'])
             duration = div.xpath('.//span[@class="type-duree"]')[0].text.split('|')[1].strip()
             if duration[-1:] == "'":
                 t = [0, int(duration[:-1])]
