@@ -53,7 +53,7 @@ class PdfPage():
         txtfile = open(temptxt, 'r')
         txt = txtfile.read()
         txtfile.close()
-        #os.remove(temptxt)
+        os.remove(temptxt)
         return txt
 
     def get_details(self):
