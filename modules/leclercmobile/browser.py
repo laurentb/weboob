@@ -127,6 +127,8 @@ class Leclercmobile(BaseBrowser):
 
     def get_bill(self, id):
         assert isinstance(id, basestring)
+        if not self.is_on_page(HistoryPage):
+            self.location(self.conso)
         parentid = id[0:10]
         l = self.page.date_bills(parentid)
         for a in l:
