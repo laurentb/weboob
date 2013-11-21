@@ -53,7 +53,7 @@ class PdfPage():
         txtfile = open(temptxt, 'r')
         txt = txtfile.read()
         txtfile.close()
-        os.remove(temptxt)
+        #os.remove(temptxt)
         return txt
 
     def get_details(self):
@@ -119,30 +119,29 @@ class PdfPage():
             lines = page.split('\n')
             lines = [x for x in lines if len(x) > 0]  # Remove empty lines
             numitems = (len(lines) + 1) / 4  # Each line has five columns
-            lines.pop(0)
+            lines.pop(0)  # remove the extra € symbol
             modif = 0
             i = 0
             while i < numitems:
                 if modif != 0:
                     numitems = ((len(lines) + 1 + modif) / 4)
-                nature = i * 4 - modif
-                dateop = nature
-                corres = nature + 1
-                duree = corres + 1
-                price = duree + 1
-                if "Changement vers le Forfait" in lines[nature]:
+                base = i * 4 - modif
+                dateop = base
+                corres = base + 1
+                duree = base + 2
+                price = base + 3
+                if "Changement vers le Forfait" in lines[base]:
                     modif += 1
                     i += 1
                     continue
+                # Special case with 5 columns, the operation date is not in the first one
                 if len(re.split("(\d+\/\d+\/\d+)", lines[dateop])) < 2:
-                    lines[nature + 1] = lines[nature] + " " + lines[nature + 1]
-                    dateop = nature + 1
-                    corres = dateop + 1
-                    duree = corres + 1
-                    price = duree + 1
+                    lines[base + 1] = lines[base] + " " + lines[base + 1]
+                    dateop = base + 1
+                    corres = base + 2
+                    duree = base + 3
+                    price = base + 4
                     modif -= 1
-                if not lines[corres][0:3].isdigit() and not lines[corres][0:3] == "-":
-                    modif += 1
                 detail = Detail()
                 splits = re.split("(\d+\/\d+\/\d+)", lines[dateop])
                 mydate = date(*reversed([int(x) for x in splits[1].split("/")]))
@@ -159,6 +158,9 @@ class PdfPage():
                 try:
                     detail.price = Decimal(lines[price].replace(',', '.'))
                 except:
+                    # In some special cases, there are no price column. Try to detect it
+                    if "Inclus" not in lines[price]:
+                        modif += 1
                     detail.price = Decimal(0)
 
                 details.append(detail)
