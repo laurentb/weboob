@@ -176,7 +176,18 @@ class IndexPage(BasePage):
 
 class HomePage(BasePage):
     def get_token(self):
-        vary = self.group_dict['vary']
+        vary = None
+        if self.group_dict.get('vary', None) is not None:
+            vary = self.group_dict['vary']
+        else:
+            for script in self.document.xpath('//script'):
+                if script.text is None:
+                    continue
+
+                m = re.search("'vary', '([\d-]+)'\)", script.text)
+                if m:
+                    vary = m.group(1)
+                    break
 
         #r = self.browser.openurl(self.browser.request_class(self.browser.buildurl(self.browser.absurl("/portailinternet/_layouts/Ibp.Cyi.Application/GetuserInfo.ashx"), action='UInfo', vary=vary), None, {'Referer': self.url}))
         #print r.read()
