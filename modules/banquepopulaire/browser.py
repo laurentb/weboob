@@ -123,9 +123,10 @@ class BanquePopulaire(BaseBrowser):
             return
 
         # Sort by values dates (see comment in TransactionsPage.get_history)
-        self.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
-        self.form.action = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
-        self.submit()
+        if len(self.page.document.xpath('//a[@id="tcl4_srt"]')) > 0:
+            self.select_form(predicate=lambda form: form.attrs.get('id', '') == 'myForm')
+            self.form.action = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
+            self.submit()
 
         while True:
             assert self.is_on_page(TransactionsPage)
