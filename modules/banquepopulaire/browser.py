@@ -45,6 +45,7 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?':  HomePage,
              'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)':                  HomePage,
              'https://[^/]+/portailinternet/Pages/default.aspx':                                HomePage,
+             'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx':    HomePage,
             }
 
     def __init__(self, website, *args, **kwargs):

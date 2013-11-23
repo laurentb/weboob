@@ -21,7 +21,7 @@
 from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
-from mechanize import Cookie
+from mechanize import Cookie, FormNotFoundError
 
 from weboob.tools.browser import BasePage as _BasePage, BrowserUnavailable, BrokenPageError
 from weboob.capabilities.bank import Account
@@ -135,6 +135,13 @@ class RedirectPage(BasePage):
         if redirect_url is not None:
             self.browser.location(self.browser.request_class(self.browser.absurl(redirect_url), None, {'Referer': self.url}))
 
+        try:
+            self.browser.select_form(name="CyberIngtegrationPostForm")
+        except FormNotFoundError:
+            pass
+        else:
+            self.browser.submit(nologin=True)
+
 
 class UnavailablePage(BasePage):
     def on_loaded(self):
@@ -219,7 +226,9 @@ class AccountsPage(BasePage):
 
     def is_error(self):
         for script in self.document.xpath('//script'):
-            if script.text is not None and u"Le service est momentanément indisponible" in script.text:
+            if script.text is not None and \
+               (u"Le service est momentanément indisponible" in script.text or
+                u"Votre abonnement ne vous permet pas d'accéder à ces services" in script.text):
                 return True
 
         return False
