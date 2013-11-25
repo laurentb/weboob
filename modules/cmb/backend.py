@@ -177,8 +177,8 @@ class CmbBackend(BaseBackend, ICapBank):
             else:
                 raise BrokenPageError()
 
-        for tr in table[1].getiterator('tr'):
-            if tr.get('class') != 'LnTit' and tr.get('class') != 'LnTot':
+        for tr in tree.xpath('/html/body//table[contains(@class, "Tb")]/tr'):
+            if tr.get('class', None) not in ('LnTit', 'LnTot', 'LnMnTiers', None):
                 account = Account()
                 td = tr.xpath('td')
 
