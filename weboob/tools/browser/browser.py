@@ -439,6 +439,8 @@ class StandardBrowser(mechanize.Browser):
             return
 
     def lowsslcheck(self, domain, hsh):
+        if self.INSECURE:
+            return
         certhash = self._certhash(domain)
         if self.logger:
             self.logger.debug('Found %s as certificate hash' % certhash)
@@ -538,7 +540,7 @@ class BaseBrowser(StandardBrowser):
         self.username = username
         self.password = password
 
-        if not self.INSECURE and self.CERTHASH is not None and self.DOMAIN is not None:
+        if self.CERTHASH is not None and self.DOMAIN is not None:
             self.lowsslcheck(self.DOMAIN, self.CERTHASH)
 
         if self.password and get_home:
