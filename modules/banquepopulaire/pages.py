@@ -330,9 +330,9 @@ class TransactionsPage(BasePage):
 
     COL_COMPTA_DATE = 0
     COL_LABEL = 1
-    COL_REF = 2
-    COL_OP_DATE = 3
-    COL_VALUE_DATE = 4
+    COL_REF = 2 # optional
+    COL_OP_DATE = -4
+    COL_VALUE_DATE = -3
     COL_DEBIT = -2
     COL_CREDIT = -1
 
@@ -343,7 +343,7 @@ class TransactionsPage(BasePage):
             if len(tds) < 5:
                 continue
 
-            t = Transaction(tr.attrib['id'].split('_', 1)[1])
+            t = Transaction(tr.attrib.get('id', '0_0').split('_', 1)[1])
 
             # XXX We currently take the *value* date, but it will probably
             # necessary to use the *operation* one.
