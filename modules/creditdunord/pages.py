@@ -127,7 +127,7 @@ class ProAccountsPage(AccountsPage):
     COL_ID = 0
     COL_BALANCE = 1
 
-    ARGS = ['Banque', 'Agence', 'classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
+    ARGS = ['Banque', 'Agence', 'Classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
 
     def params_from_js(self, text):
         l = []
@@ -137,9 +137,14 @@ class ProAccountsPage(AccountsPage):
         kind = self.group_dict['kind']
         url = '/vos-comptes/IPT/appmanager/transac/' + kind + '?_nfpb=true&_windowLabel=portletInstance_18&_pageLabel=page_synthese_v1' + '&_cdnCltUrl=' + "/transacClippe/" + quote(l.pop(0))
         args = {}
+        for input in self.document.xpath('//form[@name="detail"]/input'):
+            args[input.attrib['name']] = input.attrib.get('value', '')
 
         for i, key in enumerate(self.ARGS):
             args[key] = unicode(l[self.ARGS.index(key)]).encode(self.browser.ENCODING)
+
+        args['PageDemandee'] = 1
+        args['PagePrecedente'] = 1
 
         return url, args
 
