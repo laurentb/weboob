@@ -173,7 +173,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^VIR(EMENT)?( INTERNET)?(\.| )?(DE)? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^PRLV (DE )?(?P<text>.*?)( Motif :.*)?$'),
+                (re.compile(r'^PRLV (SEPA )?(DE )?(?P<text>.*?)( Motif :.*)?$'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile(r'^CB (?P<text>.*) LE (?P<dd>\d{2})\.?(?P<mm>\d{2})$'),
                                                             FrenchTransaction.TYPE_CARD),
