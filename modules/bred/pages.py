@@ -66,7 +66,7 @@ class LoginResultPage(BasePage):
                     typeCompte = m.group(1)
                     tagName = m.group(3)
                     if tagName is not None:
-                        value = self.document.xpath('//input[@id="%s%s"]' % (m.group(3), m.group(4)))[0].attrib['value']
+                        value = self.document.xpath('//input[@name="%s"]' % m.group(3))[int(m.group(4))].attrib['value']
                     else:
                         value = typeCompte
                     accounts[value] = (typeCompte, tagName)
@@ -75,10 +75,11 @@ class LoginResultPage(BasePage):
                 typeCompte, tagName = accounts[self.browser.accnum]
                 value = self.browser.accnum
             except KeyError:
+                accnums = ', '.join(accounts.keys())
                 if self.browser.accnum != '00000000000':
-                    self.logger.warning(u'Unable to find account "%s". Available ones: %s' % (self.browser.accnum, ', '.join(accounts.keys())))
+                    self.logger.warning(u'Unable to find account "%s". Available ones: %s' % (self.browser.accnum, accnums))
                 elif len(accounts) > 1:
-                    self.logger.warning('There are several accounts, please use "accnum" backend parameter to force the one to use')
+                    self.logger.warning('There are several accounts, please use "accnum" backend parameter to force the one to use (%s)' % accnums)
                 value, (typeCompte, tagName) = accounts.popitem(last=False)
             self.browser['typeCompte'] = typeCompte
             if tagName is not None:
