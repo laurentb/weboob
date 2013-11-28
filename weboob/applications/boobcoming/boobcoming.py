@@ -40,9 +40,10 @@ class ICalFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'status')
 
     def start_format(self, **kwargs):
-        self.output(u'BEGIN:VCALENDAR')
-        self.output(u'VERSION:2.0')
-        self.output(u'PRODID:-//hacksw/handcal//NONSGML v1.0//EN')
+        result = u'BEGIN:VCALENDAR\n'
+        result += u'VERSION:2.0\n'
+        result += u'PRODID:-//hacksw/handcal//NONSGML v1.0//EN\n'
+        self.output(result)
 
     def format_obj(self, obj, alias):
         result = u'BEGIN:VEVENT\n'
@@ -78,7 +79,7 @@ class ICalFormatter(IFormatter):
         if hasattr(obj, 'url') and not empty(obj.url):
             result += u'URL:%s\n' % obj.url
 
-        result += u'END:VEVENT'
+        result += u'END:VEVENT\n'
         return result
 
     def flush(self, **kwargs):
@@ -150,6 +151,7 @@ class Boobcoming(ReplApplication):
     COMMANDS_FORMATTERS = {'list': 'upcoming_list',
                            'search': 'upcoming_list',
                            'info': 'upcoming',
+                           'export': 'ical_formatter'
                            }
 
     WEEK   = {'MONDAY': 0,
@@ -269,52 +271,6 @@ class Boobcoming(ReplApplication):
         self.start_format()
         self.format(event)
 
-    def start_format(self, **kwargs):
-        result = u'BEGIN:VCALENDAR\n'
-        result += u'VERSION:2.0\n'
-        result += u'PRODID:-//hacksw/handcal//NONSGML v1.0//EN\n'
-        return result
-
-    def format_event(self, obj):
-        result = u'BEGIN:VEVENT\n'
-        result += u'UID:%s\n' % obj.id
-        result += u'DTSTART:%s\n' % obj.start_date.strftime("%Y%m%dT%H%M%SZ")
-        result += u'DTEND:%s\n' % obj.end_date.strftime("%Y%m%dT%H%M%SZ")
-        result += u'SUMMARY:%s\n' % obj.summary
-        result += u'STATUS:%s\n' % obj.status
-
-        location = ''
-        if hasattr(obj, 'location') and not empty(obj.location):
-            location += obj.location + ' '
-
-        if hasattr(obj, 'city') and not empty(obj.city):
-            location += obj.city + ' '
-
-        if not empty(location):
-            result += u'LOCATION:%s\n' % location
-
-        if hasattr(obj, 'categories') and not empty(obj.categories):
-            result += u'CATEGORIES:%s\n' % obj.categories
-
-        if hasattr(obj, 'description') and not empty(obj.description):
-            result += u'DESCRIPTION:%s\n' % obj.description.replace('\r\n', '\\n') \
-                                                           .replace(',', '\,')
-
-        if hasattr(obj, 'transp') and not empty(obj.transp):
-            result += u'TRANSP:%s\n' % obj.transp
-
-        if hasattr(obj, 'sequence') and not empty(obj.sequence):
-            result += u'SEQUENCE:%s\n' % obj.sequence
-
-        if hasattr(obj, 'url') and not empty(obj.url):
-            result += u'URL:%s\n' % obj.url
-
-        result += u'END:VEVENT\n'
-        return result
-
-    def end_format(self):
-        return u'END:VCALENDAR'
-
     def do_export(self, line):
         """
         export FILENAME [ID1 ID2 ID3 ...]
@@ -331,29 +287,14 @@ class Boobcoming(ReplApplication):
 
         _file, args = self.parse_command_args(line, 2, req_n=1)
 
+        if not _file == "-":
+            dest = self.check_file_ext(_file)
+            self.formatter.outfile = dest
+
         l = self.retrieve_events(args)
-        buff = self.create_buffer(l)
-
-        if _file == "-":
-            print buff
-        else:
-            try:
-                dest = self.check_file_ext(_file)
-                with open(dest, 'w') as f:
-                    f.write(buff.encode('ascii', 'ignore'))
-            except IOError as e:
-                print >>sys.stderr, 'Unable to write bill in "%s": %s' % (dest, e)
-                return 1
-
-    def create_buffer(self, l):
-        buff = self.start_format()
-
+        self.formatter.start_format()
         for item in l:
-            buff += self.format_event(item)
-
-        buff += self.end_format()
-
-        return buff
+            self.format(item)
 
     def retrieve_events(self, args):
         l = []
@@ -415,41 +356,33 @@ class Boobcoming(ReplApplication):
 
     def do_attends(self, line):
         """
-        attend IS_ATTENDING [ID1 ID2 ID3 ...]
+        attends ID1 [ID2 ID3 ...]
 
-        ID is the identifier of the event. If no ID every events are exported
-
-        IS_ATTENDING is a booleanizable value that indicate if attending or not
-
-        Export event in ICALENDAR format
+        ID is the identifier of the event.
         """
         if not line:
-            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('export')
+            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('attends')
             return 2
 
-        attending, args = self.parse_command_args(line, 2, req_n=1)
+        args = self.parse_command_args(line, 1, req_n=1)
 
-        l = self.retrieve_events(args)
-        is_attending = self.booleanize(attending)
-
-        if not is_attending:
-            print >> sys.stderr, "Cannot booleanize ambiguous value '%s'" % attending
-            return 2
-
+        l = self.retrieve_events(args[0])
         for event in l:
-            self.do('attends_event', event, is_attending)
+            self.do('attends_event', event, True)
 
-    def booleanize(self, value):
-        """Return value as a boolean."""
+    def do_unattends(self, line):
+        """
+        unattends ID1 [ID2 ID3 ...]
 
-        true_values = ("yes", "true")
-        false_values = ("no", "false")
+        ID is the identifier of the event.
+        """
 
-        if isinstance(value, bool):
-            return value
+        if not line:
+            print >>sys.stderr, 'This command takes at leat one argument: %s' % self.get_command_help('unattends')
+            return 2
 
-        if value.lower() in true_values:
-            return True
+        args = self.parse_command_args(line, 1, req_n=1)
 
-        elif value.lower() in false_values:
-            return False
+        l = self.retrieve_events(args[0])
+        for event in l:
+            self.do('attends_event', event, False)
