@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
 import sys
-from datetime import date, timedelta, time, datetime
+from datetime import time, datetime
 
+from weboob.tools.date import parse_date
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.capabilities.base import empty
 from weboob.capabilities.calendar import ICapCalendarEvent, Query, CATEGORIES
@@ -154,22 +154,6 @@ class Boobcoming(ReplApplication):
                            'export': 'ical_formatter'
                            }
 
-    WEEK   = {'MONDAY': 0,
-              'TUESDAY': 1,
-              'WEDNESDAY': 2,
-              'THURSDAY': 3,
-              'FRIDAY': 4,
-              'SATURDAY': 5,
-              'SUNDAY': 6,
-              'LUNDI': 0,
-              'MARDI': 1,
-              'MERCREDI': 2,
-              'JEUDI': 3,
-              'VENDREDI': 4,
-              'SAMEDI': 5,
-              'DIMANCHE': 6,
-              }
-
     @defaultcount(10)
     def do_search(self, line):
         """
@@ -221,7 +205,7 @@ class Boobcoming(ReplApplication):
 
     def ask_date(self, txt, default=''):
         r = self.ask(txt, default=default)
-        return self.parse_date(r)
+        return parse_date(r)
 
     @defaultcount(10)
     def do_list(self, line):
@@ -232,7 +216,7 @@ class Boobcoming(ReplApplication):
 
         self.change_path([u'events'])
         if line:
-            _date = self.parse_date(line)
+            _date = parse_date(line)
             if not _date:
                 print >>sys.stderr, 'Invalid argument: %s' % self.get_command_help('list', short=True)
                 return 2
@@ -323,36 +307,6 @@ class Boobcoming(ReplApplication):
             return "%s.ics" % _file
         else:
             return _file
-
-    def get_date_from_day(self, day):
-        today = date.today()
-        today_day_number = today.weekday()
-
-        requested_day_number = self.WEEK[day.upper()]
-
-        if today_day_number < requested_day_number:
-            day_to_go = requested_day_number - today_day_number
-        else:
-            day_to_go = 7 - today_day_number + requested_day_number
-
-        requested_date = today + timedelta(day_to_go)
-        return date(requested_date.year, requested_date.month, requested_date.day)
-
-    def parse_date(self, string):
-        matches = re.search('\s*([012]?[0-9]|3[01])\s*/\s*(0?[1-9]|1[012])\s*/?(\d{2}|\d{4})?$', string)
-        if matches:
-            year = matches.group(3)
-            if not year:
-                year = date.today().year
-            elif len(year) == 2:
-                year = 2000 + int(year)
-            return date(int(year), int(matches.group(2)), int(matches.group(1)))
-
-        elif string.upper() in self.WEEK.keys():
-            return self.get_date_from_day(string)
-
-        elif string.upper() == "TODAY":
-            return date.today()
 
     def do_attends(self, line):
         """
