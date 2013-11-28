@@ -26,9 +26,11 @@ def enum(**enums):
     _values = enums.values()
     _items = enums.items()
     _index = dict((value, i) for i, value in enumerate(enums.values()))
+    _types = list((type(value) for value in enums.values()))
     enums['values'] = _values
     enums['items'] = _items
     enums['index'] = _index
+    enums['types'] = _types
     return type('Enum', (), enums)
 
 CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre')
@@ -50,7 +52,7 @@ class BaseCalendarEvent(CapBaseObject):
     summary = StringField('Title of the event')
     city = StringField('Name of the city in witch event will take place')
     location = StringField('Location of the event')
-    category = StringField('Category of the event')
+    category = Field('Category of the event', *CATEGORIES.types)
     description = StringField('Description of the event')
     price = FloatField('Price of the event')
     booked_entries = IntField('Entry number')
@@ -62,9 +64,9 @@ class BaseCalendarEvent(CapBaseObject):
     sequence = IntField('Number of updates, the first is number 1')
 
     # (TENTATIVE, CONFIRMED, CANCELLED)
-    status = StringField('Status of theevent')
+    status = Field('Status of theevent', *STATUS.types)
     # (OPAQUE, TRANSPARENT)
-    transp = StringField('Describes if event is available')
+    transp = Field('Describes if event is available', *TRANSP.types)
 
     @classmethod
     def id2url(cls, _id):
