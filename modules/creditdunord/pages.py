@@ -264,17 +264,11 @@ class TransactionsPage(CDNBasePage):
 
 class ProTransactionsPage(TransactionsPage):
     def get_next_args(self, args):
-        txt = self.get_from_js('myPage.setPiedPage(oNavSuivantPrec_1(', ')')
+        if len(self.document.xpath('//a[contains(text(), "Suivant")]')) > 0:
+            args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
+            return args
 
-        if txt is None:
-            return None
-
-        l = txt.split(',')
-        if int(l[4]) <= 40:
-            return None
-
-        args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
-        return args
+        return None
 
     def parse_transactions(self):
         transactions = {}
