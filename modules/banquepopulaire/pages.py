@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import datetime
 from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
@@ -28,7 +29,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'TransactionsPage', 'UnavailablePage', 'RedirectPage']
+__all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'CardsPage', 'TransactionsPage', 'UnavailablePage', 'RedirectPage']
 
 
 class WikipediaARC4(object):
@@ -236,7 +237,13 @@ class AccountsPage(BasePage):
     def is_short_list(self):
         return len(self.document.xpath('//script[contains(text(), "EQUIPEMENT_COMPLET")]')) > 0
 
-    def get_list(self):
+    COL_NUMBER = 0
+    COL_TYPE = 1
+    COL_LABEL = 2
+    COL_BALANCE = 3
+    COL_COMING = 4
+
+    def iter_accounts(self, next_pages):
         account_type = Account.TYPE_UNKNOWN
 
         params = {}
@@ -273,16 +280,81 @@ class AccountsPage(BasePage):
                 if account.type == account.TYPE_LOAN:
                     account.balance = - abs(account.balance)
 
-                if balance == u'':
-                    # There is no detail
-                    account._params = None
-                else:
+                account._prev_debit = None
+                account._next_debit = None
+                account._params = None
+                account._coming_params = None
+                if balance != u'':
                     account._params = params.copy()
                     account._params['dialogActionPerformed'] = 'SOLDE'
                     account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+
+                if len(tds) >= 5:
+                    _params = account._params.copy()
+                    _params['dialogActionPerformed'] = 'ENCOURS_COMPTE'
+                    next_pages.append(_params)
                 yield account
 
-        return
+
+class CardsPage(BasePage):
+    COL_ID = 0
+    COL_TYPE = 1
+    COL_LABEL = 2
+    COL_DATE = 3
+    COL_AMOUNT = 4
+
+    def iter_accounts(self):
+        params = {}
+        for field in self.document.xpath('//input'):
+            params[field.attrib['name']] = field.attrib.get('value', '')
+
+        account = None
+        for tr in self.document.xpath('//table[@id="TabCtes"]/tbody/tr'):
+            cols = tr.xpath('./td')
+
+            id = self.parser.tocleanstring(cols[self.COL_ID])
+            if len(id) > 0:
+                if account is not None:
+                    yield account
+                account = Account()
+                account.id = id
+                account.balance = account.coming = Decimal('0')
+                account._next_debit = datetime.date.today()
+                account._prev_debit = datetime.date(2000,1,1)
+                account.label = u' '.join([self.parser.tocleanstring(cols[self.COL_TYPE]),
+                                           self.parser.tocleanstring(cols[self.COL_LABEL])])
+                account._coming_params = params.copy()
+                account._coming_params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
+                account._coming_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+            elif account is None:
+                raise BrokenPageError('Unable to find accounts on cards page')
+            else:
+                account._params = params.copy()
+                account._params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
+                account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+
+            date_col = self.parser.tocleanstring(cols[self.COL_DATE])
+            m = re.search('(\d+)/(\d+)/(\d+)', date_col)
+            if not m:
+                self.logger.warning('Unable to parse date %r' % date_col)
+                continue
+
+            date = datetime.date(*reversed(map(int, m.groups())))
+            if date.year < 100:
+                date = date.replace(year=date.year+2000)
+
+            amount = Decimal(FrenchTransaction.clean_amount(self.parser.tocleanstring(cols[self.COL_AMOUNT])))
+
+            if not date_col.endswith('(1)'):
+                # debited
+                account.coming += - abs(amount)
+                account._next_debit = date
+            elif date > account._prev_debit:
+                account._prev_balance = - abs(amount)
+                account._prev_debit = date
+
+        if account is not None:
+            yield account
 
 
 class Transaction(FrenchTransaction):
@@ -314,7 +386,7 @@ class Transaction(FrenchTransaction):
 
 class TransactionsPage(BasePage):
     def get_next_params(self):
-        nxt = self.document.xpath('//li[@id="tbl1_nxt"]')
+        nxt = self.document.xpath('//li[contains(@id, "_nxt")]')
         if len(nxt) == 0 or nxt[0].attrib.get('class', '') == 'nxt-dis':
             return None
 
@@ -324,9 +396,17 @@ class TransactionsPage(BasePage):
 
         params['validationStrategy'] = 'NV'
         params['pagingDirection'] = 'NEXT'
-        params['pagerName'] = 'tbl1'
+        params['pagerName'] = nxt[0].attrib['id'].split('_', 1)[0]
 
         return params
+
+    def get_history(self, account, coming):
+        if len(self.document.xpath('//table[@id="tbl1"]')) > 0:
+            return self.get_account_history()
+        if len(self.document.xpath('//table[@id="TabFact"]')) > 0:
+            return self.get_card_history(account, coming)
+
+        raise BrokenPageError('Unable to find what kind of history it is.')
 
     COL_COMPTA_DATE = 0
     COL_LABEL = 1
@@ -336,7 +416,7 @@ class TransactionsPage(BasePage):
     COL_DEBIT = -2
     COL_CREDIT = -1
 
-    def get_history(self):
+    def get_account_history(self):
         for tr in self.document.xpath('//table[@id="tbl1"]/tbody/tr'):
             tds = tr.findall('td')
 
@@ -359,8 +439,40 @@ class TransactionsPage(BasePage):
             t.set_amount(credit, debit)
             yield t
 
+    COL_CARD_DATE = 0
+    COL_CARD_LABEL = 1
+    COL_CARD_AMOUNT = 2
+
+    def get_card_history(self, account, coming):
+        if coming:
+            debit_date = account._next_debit
+        else:
+            debit_date = account._prev_debit
+            if 'ContinueTask.do' in self.url:
+                t = Transaction(0)
+                t.parse(debit_date, 'RELEVE CARTE')
+                t.amount = -account._prev_balance
+                yield t
+
+        for i, tr in enumerate(self.document.xpath('//table[@id="TabFact"]/tbody/tr')):
+            tds = tr.findall('td')
+
+            if len(tds) < 3:
+                continue
+
+            t = Transaction(i)
+
+            date = self.parser.tocleanstring(tds[self.COL_CARD_DATE])
+            label = self.parser.tocleanstring(tds[self.COL_CARD_LABEL])
+            amount = '-' + self.parser.tocleanstring(tds[self.COL_CARD_AMOUNT])
+
+            t.parse(debit_date, re.sub(r'[ ]+', ' ', label))
+            t.set_amount(amount)
+            t.rdate = t.parse_date(date)
+            yield t
+
     def no_operations(self):
-        if len(self.document.xpath('//table[@id="tbl1"]//td[@colspan]')) > 0:
+        if len(self.document.xpath('//table[@id="tbl1" or @id="TabFact"]//td[@colspan]')) > 0:
             return True
         if len(self.document.xpath(u'//div[contains(text(), "Accès à LineBourse")]')) > 0:
             return True

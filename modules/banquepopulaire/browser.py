@@ -22,7 +22,8 @@ import urllib
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword, BrokenPageError
 
-from .pages import LoginPage, IndexPage, AccountsPage, TransactionsPage, UnavailablePage, RedirectPage, HomePage
+from .pages import LoginPage, IndexPage, AccountsPage, CardsPage, TransactionsPage, \
+                   UnavailablePage, RedirectPage, HomePage
 
 
 __all__ = ['BanquePopulaire']
@@ -37,6 +38,8 @@ class BanquePopulaire(BaseBrowser):
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*':     AccountsPage,
              'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueilSynthese.*':        AccountsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=EQUIPEMENT_COMPLET.*': AccountsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=ENCOURS_COMPTE.*': CardsPage,
+             'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*':   TransactionsPage,
              'https://[^/]+/cyber/internet/Page.do\?.*':                                        TransactionsPage,
              'https://[^/]+/cyber/internet/Sort.do\?.*':                                        TransactionsPage,
@@ -78,15 +81,14 @@ class BanquePopulaire(BaseBrowser):
 
         self.token = self.page.get_token()
 
-    def get_accounts_list(self):
-        self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptes', token=self.token))
-        if self.page.is_error():
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='mesComptesPRO', token=self.token))
-        if self.page.is_error():
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='maSyntheseGratuite', token=self.token))
-        if self.page.is_error():
-            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID='accueilSynthese', token=self.token))
-        if self.page.is_error():
+    ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese']
+    def go_on_accounts_list(self):
+        for taskInfoOID in self.ACCOUNT_URLS:
+            self.location(self.buildurl('/cyber/internet/StartTask.do', taskInfoOID=taskInfoOID, token=self.token))
+            if not self.page.is_error():
+                self.ACCOUNT_URLS = [taskInfoOID]
+                break
+        else:
             raise BrokenPageError('Unable to go on the accounts list page')
 
         if self.page.is_short_list():
@@ -95,28 +97,46 @@ class BanquePopulaire(BaseBrowser):
             self['dialogActionPerformed'] = 'EQUIPEMENT_COMPLET'
             self.submit()
 
+    def get_accounts_list(self):
+        self.go_on_accounts_list()
         self.token = self.page.get_token()
 
-        return self.page.get_list()
+        next_pages = []
+
+        for a in self.page.iter_accounts(next_pages):
+            yield a
+
+        for next_page in next_pages:
+            if not self.is_on_page(AccountsPage):
+                self.go_on_accounts_list()
+
+            self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(next_page))
+
+            for a in self.page.iter_accounts():
+                yield a
 
     def get_account(self, id):
         assert isinstance(id, basestring)
 
-        l = self.get_accounts_list()
-        for a in l:
+        for a in self.get_accounts_list():
             if a.id == id:
                 return a
 
         return None
 
-    def get_history(self, account):
+    def get_history(self, account, coming=False):
         if not self.is_on_page(AccountsPage):
             account = self.get_account(account.id)
 
-        if account._params is None:
+        if coming:
+            params = account._coming_params
+        else:
+            params = account._params
+
+        if params is None:
             return
 
-        self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(account._params))
+        self.location('/cyber/internet/ContinueTask.do', urllib.urlencode(params))
         self.token = self.page.get_token()
 
         if self.page.no_operations():
@@ -132,7 +152,7 @@ class BanquePopulaire(BaseBrowser):
             assert self.is_on_page(TransactionsPage)
             self.token = self.page.get_token()
 
-            for tr in self.page.get_history():
+            for tr in self.page.get_history(account, coming):
                 yield tr
 
             next_params = self.page.get_next_params()
