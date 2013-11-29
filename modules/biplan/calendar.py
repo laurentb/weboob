@@ -22,11 +22,13 @@ from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATE
 
 class BiplanCalendarEvent(BaseCalendarEvent):
 
-    city = 'LILLE'
-    location = '19, rue Colbert'
-    sequence = 1
-    transp = TRANSP.TRANSPARENT
-    status = STATUS.CONFIRMED
+    def __init__(self, _id):
+        BaseCalendarEvent.__init__(self, _id)
+        self.city = u'LILLE'
+        self.location = u'19, rue Colbert'
+        self.sequence = 1
+        self.transp = TRANSP.TRANSPARENT
+        self.status = STATUS.CONFIRMED
 
     @classmethod
     def id2url(cls, _id):
@@ -34,8 +36,12 @@ class BiplanCalendarEvent(BaseCalendarEvent):
 
 
 class BiplanCalendarEventConcert(BiplanCalendarEvent):
-    category = CATEGORIES.CONCERT
+    def __init__(self, _id):
+        BiplanCalendarEvent.__init__(self, _id)
+        self.category = CATEGORIES.CONCERT
 
 
 class BiplanCalendarEventTheatre(BiplanCalendarEvent):
-    category = CATEGORIES.THEATRE
+    def __init__(self, _id):
+        BiplanCalendarEvent.__init__(self, _id)
+        self.category = CATEGORIES.THEATRE

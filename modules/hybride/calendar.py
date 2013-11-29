@@ -21,13 +21,14 @@ from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATE
 
 
 class HybrideCalendarEvent(BaseCalendarEvent):
-
-    location = '18 rue Gosselet'
-    city = 'Lille'
-    sequence = 1
-    transp = TRANSP.TRANSPARENT
-    status = STATUS.CONFIRMED
-    category = CATEGORIES.CINE
+    def __init__(self, _id):
+        BaseCalendarEvent.__init__(self, _id)
+        self.location = u'18 rue Gosselet'
+        self.city = u'Lille'
+        self.sequence = 1
+        self.transp = TRANSP.TRANSPARENT
+        self.status = STATUS.CONFIRMED
+        self.category = CATEGORIES.CINE
 
     @classmethod
     def id2url(cls, _id):
