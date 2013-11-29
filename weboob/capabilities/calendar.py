@@ -37,8 +37,8 @@ CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre')
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
-TRANSP = enum(OPAQUE='OPAQUE', TRANSPARENT='TRANSPARENT')
-STATUS = enum(TENTATIVE='TENTATIVE', CONFIRMED='CONFIRMED', CANCELLED='CANCELLED')
+TRANSP = enum(OPAQUE=u'OPAQUE', TRANSPARENT=u'TRANSPARENT')
+STATUS = enum(TENTATIVE=u'TENTATIVE', CONFIRMED=u'CONFIRMED', CANCELLED=u'CANCELLED')
 
 
 class BaseCalendarEvent(CapBaseObject):
