@@ -21,26 +21,25 @@
 import urllib
 
 from weboob.tools.browser import BaseBrowser
+from weboob.tools.json import json as simplejson
+from weboob.capabilities.weather import City
 
-from .pages.meteo import WeatherPage, CityPage
+from .pages.meteo import WeatherPage
 
 
 __all__ = ['MeteofranceBrowser']
 
 
 class MeteofranceBrowser(BaseBrowser):
-    DOMAIN = 'france.meteofrance.com'
+    DOMAIN = 'www.meteofrance.com'
     PROTOCOL = 'http'
     ENCODING = 'utf-8'
     USER_AGENT = BaseBrowser.USER_AGENTS['wget']
-    WEATHER_URL = '{0}://{1}/france/meteo?PREVISIONS_PORTLET.path=previsionsville/{{cityid}}'.format(PROTOCOL, DOMAIN)
-    CITY_SEARCH_URL = '{0}://{1}/france/accueil/resultat?RECHERCHE_RESULTAT_PORTLET.path=rechercheresultat&' \
-        'query={{city_pattern}}&type=PREV_FRANCE&satellite=france'.format(PROTOCOL, DOMAIN)
+    WEATHER_URL = '{0}://{1}/previsions-meteo-france/{{city_name}}/{{city_id}}'.format(PROTOCOL, DOMAIN)
+    CITY_SEARCH_URL = '{0}://{1}/mf3-rpc-portlet/rest/lieu/facet/previsions/search/{{city_pattern}}'\
+                      .format(PROTOCOL, DOMAIN)
     PAGES = {
-        WEATHER_URL.format(cityid=".*"): WeatherPage,
-        CITY_SEARCH_URL.format(city_pattern=".*"): CityPage,
-        'http://france.meteofrance.com/france/accueil/resultat.*': CityPage,
-        'http://france.meteofrance.com/france/meteo.*': WeatherPage,
+        WEATHER_URL.format(city_id=".*", city_name=".*"): WeatherPage,
         }
 
     def __init__(self, *args, **kwargs):
@@ -48,24 +47,24 @@ class MeteofranceBrowser(BaseBrowser):
 
     def iter_city_search(self, pattern):
         searchurl = self.CITY_SEARCH_URL.format(city_pattern=urllib.quote_plus(pattern.encode('utf-8')))
-        self.location(searchurl)
+        response = self.openurl(searchurl)
+        return self.parse_cities_result(response)
 
-        if self.is_on_page(CityPage):
-            # Case 1: there are multiple results for the pattern:
-            return self.page.iter_city_search()
-        else:
-            # Case 2: there is only one result, and the website send directly
-            # the browser on the forecast page:
-            return [self.page.get_city()]
+    def parse_cities_result(self, datas):
+        cities = simplejson.loads(datas.read(), self.ENCODING)
+        for city in cities:
+            mcity = City(int(city['codePostal']), u'%s' % city['slug'])
+            yield mcity
 
     def iter_forecast(self, city_id):
-        self.location(self.WEATHER_URL.format(cityid=city_id))
-
+        mcity = self.iter_city_search(city_id).next()
+        self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
         assert self.is_on_page(WeatherPage)
+
         return self.page.iter_forecast()
 
     def get_current(self, city_id):
-        self.location(self.WEATHER_URL.format(cityid=city_id))
-
+        mcity = self.iter_city_search(city_id).next()
+        self.location(self.WEATHER_URL.format(city_id=mcity.id, city_name=mcity.name))
         assert self.is_on_page(WeatherPage)
         return self.page.get_current()
