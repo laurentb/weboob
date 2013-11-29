@@ -8,23 +8,27 @@ set/P HTTP_PROXY=Enter HTTP_PROXY if needed :
 set/P HTTPS_PROXY=Enter HTTPS_PROXY if needed :
 
 echo.
-echo 1.GNU/WGET Installation
-for %%i in (wget.exe) do set wget=%%~$PATH:i
-if not defined wget (
-	wget-1.11.4-1-setup.exe
-)
+echo 1.GNU/WGET Init
+
+set wget=wget-%ARCHITECTURE%.exe
 
 echo.
 echo 2.Check Python 2.7 Installation
 set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
 REG QUERY %KEY_NAME% > nul || 	(
 									echo 2.1 Download Python 2.7
-									wget -o python_donwload http://www.python.org/ftp/python/2.7.5/python-2.7.5.msi
+									if %ARCHITECTURE% == x64 (
+										set python_msi=python-2.7.5.amd64.msi								
+									) else (
+										set python_msi=python-2.7.5.msi
+									)							
+									
+									"%wget%" -o python_donwload http://www.python.org/ftp/python/2.7.5/%python_msi%
 									
 									echo 2.2 Setup Python 2.7
-									python-2.7.5.msi
+									%python_msi%
 									
-									del python-2.7.5.msi
+									del %python_msi%
 									del python_donwload
 								)
 								
@@ -38,12 +42,12 @@ for %%i in (pyuic4.bat) do set qt=%%~$PATH:i
 if not defined qt (
 
 	echo 3.1 Download PyQt4
-	wget -o qt_download http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.10.3/PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-x32.exe?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpyqt%2Ffiles%2FPyQt4%2FPyQt-4.10.3%2F&ts=1380890340&use_mirror=garr
+	"%wget%" -o qt_download http://heanet.dl.sourceforge.net/project/pyqt/PyQt4/PyQt-4.10.3/PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
 
 	echo 3.2 Setup PyQt4
-	PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-x32.exe
+	PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
 
-	del PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-x32.exe
+	del PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
 	del qt_download
 )
 
@@ -110,7 +114,6 @@ if exist "%StartupFolder%\Weboob" (
 )
 
 :CreateLauncher
-::for /f "delims=. tokens=1" %%i in ('dir /b "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\q*.png"') do (
 for %%i in (%LIST_APPLIQUATIONS_QT%) do ( 
 	echo Process %%i
 
