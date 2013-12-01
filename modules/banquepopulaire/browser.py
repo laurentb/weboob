@@ -125,8 +125,7 @@ class BanquePopulaire(BaseBrowser):
         return None
 
     def get_history(self, account, coming=False):
-        if not self.is_on_page(AccountsPage):
-            account = self.get_account(account.id)
+        account = self.get_account(account.id)
 
         if coming:
             params = account._coming_params

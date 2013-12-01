@@ -284,7 +284,7 @@ class AccountsPage(BasePage):
                 account._next_debit = None
                 account._params = None
                 account._coming_params = None
-                if balance != u'':
+                if balance != u'' and len(tds[3].xpath('.//a')) > 0:
                     account._params = params.copy()
                     account._params['dialogActionPerformed'] = 'SOLDE'
                     account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
