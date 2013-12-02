@@ -19,7 +19,7 @@
 
 from weboob.tools.browser.decorators import id2url
 from weboob.tools.browser import BaseBrowser
-
+import urllib
 from .pages import SearchPage, AdvertPage
 from .job import ApecJobAdvert
 
@@ -30,7 +30,7 @@ __all__ = ['ApecBrowser']
 class ApecBrowser(BaseBrowser):
     PROTOCOL = 'http'
     DOMAIN = 'www.apec.fr'
-    ENCODING = None
+    ENCODING = 'ISO-8859-1'
 
     PAGES = {
         'http://cadres.apec.fr/liste-offres-emploi-cadres/8_0___(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_(.*?)_offre-d-emploi.html': SearchPage,
@@ -40,7 +40,7 @@ class ApecBrowser(BaseBrowser):
 
     def search_job(self, pattern=None):
         self.location('http://cadres.apec.fr/MesOffres/RechercheOffres/ApecRechercheOffre.jsp?keywords=%s'
-                      % pattern.replace(' ', '+'))
+                      % urllib.quote_plus(pattern.encode(self.ENCODING)))
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
 
