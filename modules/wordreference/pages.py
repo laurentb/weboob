@@ -28,6 +28,11 @@ LAST_THING_IN_PARENTHESIS = re.compile("\([^)]\)$")
 
 class TranslatePage(BasePage):
     def get_translation(self):
+        trs = self.document.getroot().xpath("//table[@class='WRD']/tr[@class='even']")
+        if trs and len(trs) > 0:
+            # taking the first signification in the case several were found
+            return self.parser.select(trs[0], "td[@class='ToWrd']", 1, method='xpath').text
+        """
         # taking the first signification in the case several were found
         for tr in self.document.getiterator('tr'):
             prev_was_nums1 = False
@@ -57,3 +62,4 @@ class TranslatePage(BasePage):
                         return u''+td.text_content().split(';')[0].strip()
                     if td.attrib.get('class','') == 'roman1':
                         prev_was_roman1 = True
+        """
