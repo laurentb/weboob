@@ -66,7 +66,6 @@ class FrenchTransaction(Transaction):
         else:
             self.amount = Decimal('0')
 
-    @classmethod
     def parse_date(self, date):
         if date is None:
             return NotAvailable
