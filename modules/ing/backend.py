@@ -22,6 +22,7 @@ from weboob.capabilities.bank import ICapBank, AccountNotFound,\
         Account, Recipient
 from weboob.capabilities.bill import ICapBill, Bill, Subscription,\
         SubscriptionNotFound, BillNotFound
+from weboob.capabilities.base import UserError
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -89,6 +90,8 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
 
     def transfer(self, account, recipient, amount, reason):
         with self.browser:
+            if not reason:
+                raise UserError('Reason is mandatory to do a transfer on ING website')
             if not isinstance(account, Account):
                 account = self.get_account(account)
             if not isinstance(recipient, Recipient):
