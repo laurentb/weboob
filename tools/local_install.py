@@ -33,7 +33,7 @@ print "Installing weboob applications into ‘%s’." % dest
 
 subprocess.check_call(
     [sys.executable, 'setup.py',
-        'install', '--user', '--install-scripts', dest] + sys.argv[2:] + deps,
+        'install', '--user', '--install-scripts=%s' % dest] + sys.argv[2:] + deps,
     cwd=os.path.join(os.path.dirname(__file__), os.pardir))
 
 subprocess.check_call([sys.executable, os.path.join(dest, 'weboob-config'), 'update'])
