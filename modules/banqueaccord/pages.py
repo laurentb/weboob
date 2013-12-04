@@ -30,7 +30,7 @@ __all__ = ['LoginPage', 'IndexPage', 'AccountsPage', 'OperationsPage']
 
 
 class VirtKeyboard(MappedVirtKeyboard):
-    symbols={'0':('8664b9cdfa66b4c3a1ec99c35a2bf64b','9eb80c6e99410eaac32905b2c77e65e5'),
+    symbols={'0':('8664b9cdfa66b4c3a1ec99c35a2bf64b','9eb80c6e99410eaac32905b2c77e65e5','37717277dc2471c8a7bf37e2068a8f01'),
              '1':('1f36986f9d27dde54ce5b08e8e285476','9d0aa7a0a2bbab4f2c01ef1e820cb3f1'),
              '2':('b560b0cce2ca74d3d499d73775152ab7',),
              '3':('d16e426e71fc29b1b55d0fbded99a473',),
