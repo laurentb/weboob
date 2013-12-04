@@ -68,7 +68,7 @@ class Value(object):
         self.regexp = kwargs.get('regexp', None)
         self.choices = kwargs.get('choices', None)
         if isinstance(self.choices, (list, tuple)):
-            self.choices = dict(((v, v) for v in self.choices))
+            self.choices = OrderedDict(((v, v) for v in self.choices))
         self.tiny = kwargs.get('tiny', None)
         self.masked = kwargs.get('masked', False)
         self.required = kwargs.get('required', self.default is None)
