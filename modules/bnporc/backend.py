@@ -47,7 +47,7 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
             label='Password to set when the allowed uses are exhausted (6 digits)',
             regexp='^(\d{6}|)$'),
         Value('website', label='Website to use', default='pp',
-              choices={'pp': 'Particuliers/Profesionnels', 'ent': 'Entreprises'}))
+              choices={'pp': 'Particuliers/Professionnels', 'ent': 'Entreprises'}))
     STORAGE = {'seen': []}
 
     # Store the messages *list* for this duration
