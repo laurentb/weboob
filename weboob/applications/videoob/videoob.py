@@ -106,11 +106,17 @@ class Videoob(ReplApplication):
                     return False
             return True
 
-        if dest is None:
-            ext = video.ext
+        def video_to_file(_video):
+            ext = _video.ext
             if not ext:
                 ext = 'avi'
-            dest = '%s.%s' % (re.sub('[?:/]', '-', video.id), ext)
+            return '%s.%s' % (re.sub('[?:/]', '-', _video.id), ext)
+
+        if dest is not None and os.path.isdir(dest):
+            dest += '/%s' % video_to_file(video)
+
+        if dest is None:
+            dest = video_to_file(video)
 
         if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
