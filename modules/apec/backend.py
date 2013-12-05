@@ -38,7 +38,7 @@ class ApecBackend(BaseBackend, ICapJob):
     BROWSER = ApecBrowser
 
     places_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '00| ': u'-- Indifférent --',
+        '00|': u'-- Indifférent --',
         '01|700': u'Alsace',
         '02|701': u'Aquitaine',
         '03|702': u'Auvergne',
@@ -98,7 +98,7 @@ class ApecBackend(BaseBackend, ICapJob):
     }.iteritems())])
 
     fonction_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
-        '00| ': u'-- Indifférent --',
+        '00|': u'-- Indifférent --',
         '01|101828': u'Commercial, Marketing',
         '02|101782': u'.....Administration des ventes et SAV',
         '03|101783': u'.....Chargé d\'affaires, technico-commercial',
@@ -233,7 +233,11 @@ class ApecBackend(BaseBackend, ICapJob):
                 yield job_advert
 
     def decode_choice(self, choice):
-        return choice.split('|')[1]
+        splitted_choice = choice.split('|')
+	if len(splitted_choice) == 2:
+            return splitted_choice[1]
+        else:
+            return ''
 
     def advanced_search_job(self):
         for job_advert in self.browser.advanced_search_job(region=self.decode_choice(self.config['place'].get()),
