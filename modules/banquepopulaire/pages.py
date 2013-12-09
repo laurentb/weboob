@@ -289,7 +289,7 @@ class AccountsPage(BasePage):
                     account._params['dialogActionPerformed'] = 'SOLDE'
                     account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
 
-                if len(tds) >= 5:
+                if len(tds) >= 5 and len(tds[self.COL_COMING].xpath('.//a')) > 0:
                     _params = account._params.copy()
                     _params['dialogActionPerformed'] = 'ENCOURS_COMPTE'
                     next_pages.append(_params)
