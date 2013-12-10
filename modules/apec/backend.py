@@ -234,7 +234,7 @@ class ApecBackend(BaseBackend, ICapJob):
 
     def decode_choice(self, choice):
         splitted_choice = choice.split('|')
-	if len(splitted_choice) == 2:
+        if len(splitted_choice) == 2:
             return splitted_choice[1]
         else:
             return ''
