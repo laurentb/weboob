@@ -29,62 +29,43 @@ __all__ = ['PrixCarburantsBrowser']
 
 
 class PrixCarburantsBrowser(BaseBrowser):
+    TOKEN = None
     PROTOCOL = 'http'
     DOMAIN = 'www.prix-carburants.economie.gouv.fr'
     ENCODING = 'iso-8859-15'
     PAGES = {
-         'http://www\.prix-carburants\.economie\.gouv\.fr/index\.php': IndexPage,
-         'http://www\.prix-carburants\.economie\.gouv\.fr/index\.php\?module=dbgestion\&action=search': ComparisonResultsPage,
-         'http://www\.prix-carburants\.economie\.gouv\.fr/index\.php\?module=dbgestion\&action=getPopupInfo': ShopInfoPage,
-        }
+        'http://www.prix-carburants.economie.gouv.fr': IndexPage,
+        'http://www.prix-carburants.economie.gouv.fr/recherche/': ComparisonResultsPage,
+        'http://www.prix-carburants.economie.gouv.fr/itineraire/infos/\d+': ShopInfoPage, }
 
     def iter_products(self):
         if not self.is_on_page(IndexPage):
-            self.location('/index.php')
+            self.location("%s://%s" % (self.PROTOCOL, self.DOMAIN))
 
         assert self.is_on_page(IndexPage)
         return self.page.iter_products()
 
-    def iter_prices(self, zipcode, product):
-        data = {'aff_param_0_0':            '',
-                'aff_param_0_1':            'les points de vente',
-                'aff_param_0_2':            '',
-                'aff_param_0_3':            zipcode,
-                'changeNbPerPage':          'off',
-                'col*param*pdv_brand':      'Marque',
-                'col*param*pdv_city':       'Commune',
-                'col*param*pdv_name':       'Nom du point de vente',
-                'col*param*pdv_pop':        '',
-                'col*param*price_fuel_%s' % product.id:   'GPL',
-                'col*param*price_lmdate_%s' % product.id: 'Mise a jour GPL',
-                'critere_contrainte':       'letters',
-                'critere_info':             'pdv_city*0',
-                'critere_txt':              '',
-                'flag_contrainte':          'off',
-                'index_contrainte':         0,
-                'modeaffichage':            'list',
-                'nb_search_per_page':       100,
-                'orderBy':                  'price_fuel_%s' % product.id,
-                'orderType':                'ASC',
-                'req_param_0_0':            '',
-                'req_param_0_1':            'pdv_zipcode',
-                'req_param_0_2':            'ILIKE',
-                'req_param_0_3':            '%s%%' % zipcode,
-                'seeFuel':                  product.id,
-                'thisPageLetter':           'Tous',
-                'thisPageNumber':           1,
-                'toDelete':                 -1,
-               }
-        self.location('/index.php?module=dbgestion&action=search', urllib.urlencode(data))
+    def get_token(self):
+        if not self.is_on_page(IndexPage):
+            self.location("%s://%s" % (self.PROTOCOL, self.DOMAIN))
 
+        assert self.is_on_page(IndexPage)
+        self.TOKEN = self.page.get_token()
+
+    def iter_prices(self, zipcode, product):
+        if self.TOKEN is None:
+            self.get_token()
+
+        data = {
+            '_recherche_recherchertype[localisation]': '%s' % zipcode,
+            '_recherche_recherchertype[choix_carbu]': '%s' % product.id,
+            '_recherche_recherchertype[_token]': '%s' % self.TOKEN, }
+
+        self.location('%s://%s' % (self.PROTOCOL, self.DOMAIN), urllib.urlencode(data))
         assert self.is_on_page(ComparisonResultsPage)
         return self.page.iter_results(product)
 
     def get_shop_info(self, id):
-        data = {'pdv_id': id,
-                'module':   'dbgestion',
-                'action':   'getPopupInfo'}
-        self.location('/index.php?module=dbgestion&action=getPopupInfo', urllib.urlencode(data))
-
+        self.location('%s://%s/itineraire/infos/%s' % (self.PROTOCOL, self.DOMAIN, id))
         assert self.is_on_page(ShopInfoPage)
         return self.page.get_info()

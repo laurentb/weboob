@@ -19,9 +19,8 @@
 
 
 from decimal import Decimal
-import re
 
-from weboob.tools.browser import BasePage, BrokenPageError
+from weboob.tools.browser import BasePage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.pricecomparison import Product, Shop, Price
 
@@ -30,6 +29,11 @@ __all__ = ['IndexPage', 'ComparisonResultsPage', 'ShopInfoPage']
 
 
 class IndexPage(BasePage):
+
+    def get_token(self):
+        input = self.parser.select(self.document.getroot(), 'div#localisation input#recherche_recherchertype__token', 1)
+        return input.attrib['value']
+
     def iter_products(self):
         for li in self.parser.select(self.document.getroot(), 'div#choix_carbu ul li'):
             input = li.find('input')
@@ -47,30 +51,26 @@ class IndexPage(BasePage):
 
 class ComparisonResultsPage(BasePage):
     def get_product_name(self):
-        try:
-            div = self.parser.select(self.document.getroot(), 'div#moins_plus_ariane', 1)
-        except BrokenPageError:
-            return NotAvailable
-        else:
-            m = re.match('Carburant : ([\w\-]+) | .*', div.text)
-            return m.group(1)
+        th = self.document.getroot().cssselect('table#tab_resultat tr th')
+        if th and len(th) == 9:
+            return u'%s' % th[5].find('a').text
 
     def iter_results(self, product=None):
         price = None
         product.name = self.get_product_name()
         for tr in self.document.getroot().cssselect('table#tab_resultat tr'):
-            if tr.attrib.get('id', '').startswith('pdv'):
-                price = Price('%s.%s' % (product.id, tr.attrib['id'][3:]))
+            tds = self.parser.select(tr, 'td')
+            if tds and len(tds) == 9 and product is not None:
+                price = Price('%s.%s' % (product.id, tr.attrib['id']))
 
                 price.product = product
 
-                tds = tr.findall('td')
-                price.cost = Decimal(tds[4].text.replace(',', '.'))
+                price.cost = Decimal(tds[5].text.replace(',', '.'))
                 price.currency = u'€'
 
                 shop = Shop(price.id)
-                shop.name = unicode(tds[2].text.strip())
-                shop.location = unicode(tds[0].text.strip())
+                shop.name = unicode(tds[3].text.strip())
+                shop.location = unicode(tds[2].text.strip())
 
                 price.shop = shop
                 price.set_empty_fields(NotAvailable)
@@ -79,4 +79,4 @@ class ComparisonResultsPage(BasePage):
 
 class ShopInfoPage(BasePage):
     def get_info(self):
-        return self.parser.tostring(self.parser.select(self.document.getroot(), 'div.colg', 1))
+        return self.parser.tostring(self.parser.select(self.document.getroot(), 'div.infos', 1))
