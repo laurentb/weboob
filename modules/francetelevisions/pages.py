@@ -46,7 +46,11 @@ class IndexPage(BasePage):
             video.title = unicode(title.text.strip())
             for p in div.xpath('.//p[@class="bientot"]'):
                 video.title += ' - %s' % p.text.split('|')[0].strip()
-            video.date = parse_dt(div.find('span').attrib['data-date'])
+            date = div.xpath('.//p[@class="diffusion"]')[0].text.split('|')[0].strip()
+            pattern = re.compile(r'(\d{2}-\d{2}-\d{2})(.*?)(\d{2}:\d{2})')
+            match = pattern.search(date)
+            if match:
+                video.date = parse_dt("%s %s" % (match.group(1), match.group(3)))
             duration = div.xpath('.//span[@class="type-duree"]')[0].text.split('|')[1].strip()
             if duration[-1:] == "'":
                 t = [0, int(duration[:-1])]

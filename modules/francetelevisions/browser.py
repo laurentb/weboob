@@ -33,6 +33,7 @@ __all__ = ['PluzzBrowser']
 
 class PluzzBrowser(BaseBrowser):
     DOMAIN = 'pluzz.francetv.fr'
+    ENCODING = 'utf-8'
     PAGES = {r'http://[w\.]*pluzz.francetv.fr/replay/1': IndexPage,
              r'http://[w\.]*pluzz.francetv.fr/recherche.*': IndexPage,
              r'http://[w\.]*pluzz.francetv.fr/videos/(.+).html': VideoPage,
