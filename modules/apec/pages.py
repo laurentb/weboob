@@ -19,6 +19,7 @@
 
 
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import html2text
 import dateutil.parser
 import re
 
@@ -52,7 +53,8 @@ class AdvertPage(BasePage):
             advert = ApecJobAdvert(_id)
             advert.title = re_id_title.search(url).group(2).replace('-', ' ')
 
-        advert.description = self.document.getroot().xpath("//div[@class='contentWithDashedBorderTop marginTop boxContent']/div")[0].text_content()
+        description = self.document.getroot().xpath("//div[@class='contentWithDashedBorderTop marginTop boxContent']/div")[0]
+        advert.description = html2text(self.parser.tostring(description))
 
         advert.job_name = advert.title
 
