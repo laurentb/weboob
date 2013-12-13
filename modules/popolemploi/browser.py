@@ -39,7 +39,7 @@ class PopolemploiBrowser(BaseBrowser):
         'http://candidat.pole-emploi.fr/candidat/rechercheoffres/detail/(?P<id>.+)': AdvertPage,
     }
 
-    def search_job(self, pattern=None, metier=None, place=None, contrat=None):
+    def search_job(self, pattern=None):
         self.location('http://offre.pole-emploi.fr/resultat?offresPartenaires=true&libMetier=%s'
                       % pattern.replace(' ', '+'))
         assert self.is_on_page(SearchPage)
