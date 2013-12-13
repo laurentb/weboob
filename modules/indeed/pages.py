@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-from HTMLParser import HTMLParser
 import re
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import html2text
 from .job import IndeedJobAdvert
 
 __all__ = ['SearchPage', 'AdvertPage']
@@ -40,8 +40,7 @@ class SearchPage(BasePage):
         num_id = row.attrib['id'][2:]
         title = self.parser.select(row, 'h2/a', 1, method='xpath').attrib['title']
         society_name = self.parser.select(row, 'span[@class="company"]', 1, method='xpath').text_content().strip()
-        if num_id and title and society_name and advert_from and \
-           len(advert_from) > 0 and 'Indeed' in advert_from[0].text_content().strip():
+        if num_id and title and society_name and advert_from and len(advert_from) > 0:
 
             advert = IndeedJobAdvert(society_name + "|" + title + "|" + num_id)
             advert.title = u'%s' % title
@@ -73,7 +72,7 @@ class AdvertPage(BasePage):
 
         advert.place = u'%s' % self.parser.select(job_header, 'span[@class="location"]', 1, method='xpath').text_content()
         description_content = self.document.getroot().xpath('//span[@class="summary"]')[0]
-        advert.description = u'%s' % self.strip_tags(self.parser.tostring(description_content))
+        advert.description = html2text(self.parser.tostring(description_content))
         advert.job_name = u'%s' % self.parser.select(job_header, 'b[@class="jobtitle"]', 1, method='xpath').text_content()
         advert.url = url
 
@@ -89,20 +88,3 @@ class AdvertPage(BasePage):
                 advert.publication_date = date
 
         return advert
-
-    def strip_tags(self, html):
-        s = MLStripper()
-        s.feed(html)
-        return s.get_data()
-
-
-class MLStripper(HTMLParser):
-    def __init__(self):
-        self.reset()
-        self.fed = []
-
-    def handle_data(self, d):
-        self.fed.append(d)
-
-    def get_data(self):
-        return ''.join(self.fed)
