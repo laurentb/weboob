@@ -42,7 +42,7 @@ class TransilienBackend(BaseBackend, ICapTravel):
             if name.lower().find(pattern) >= 0:
                 yield Station(_id, name)
 
-    def iter_station_departures(self, station_id, arrival_id=None):
+    def iter_station_departures(self, station_id, arrival_id=None, date=None):
         with self.browser:
             for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
                 departure = Departure(i, d['type'], d['time'])

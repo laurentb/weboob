@@ -107,7 +107,7 @@ class ICapTravel(IBaseCap):
         """
         raise NotImplementedError()
 
-    def iter_station_departures(self, station_id, arrival_id=None):
+    def iter_station_departures(self, station_id, arrival_id=None, date=None):
         """
         Iterate on departures.
 
@@ -115,6 +115,8 @@ class ICapTravel(IBaseCap):
         :type station_id: str
         :param arrival_id: optionnal arrival station ID
         :type arrival_id: str
+        :param date: optional date
+        :type date: datetime.datetime
         :rtype: iter[:class:`Departure`]
         """
         raise NotImplementedError()

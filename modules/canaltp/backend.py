@@ -39,7 +39,7 @@ class CanalTPBackend(BaseBackend, ICapTravel):
         for _id, name in self.browser.iter_station_search(pattern):
             yield Station(_id, name)
 
-    def iter_station_departures(self, station_id, arrival_id=None):
+    def iter_station_departures(self, station_id, arrival_id=None, date=None):
         for i, d in enumerate(self.browser.iter_station_departures(station_id, arrival_id)):
             departure = Departure(i, d['type'], d['time'])
             departure.departure_station = d['departure']
