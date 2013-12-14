@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Julien Hébert
+# Copyright(C) 2010-2013 Romain Bignon, Julien Hébert
 #
 # This file is part of weboob.
 #
@@ -20,23 +20,57 @@
 
 import sys
 from datetime import datetime
-import logging
 
+from weboob.capabilities.base import Currency, empty
 from weboob.capabilities.travel import ICapTravel, RoadmapFilters
 from weboob.tools.application.repl import ReplApplication, defaultcount
+from weboob.tools.application.formatters.iformatter import PrettyFormatter
 
 
 __all__ = ['Traveloob']
 
 
+class DeparturesFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'type', 'departure_station', 'arrival_station', 'time')
+
+    def get_title(self, obj):
+        s = obj.type
+        if hasattr(obj, 'price') and not empty(obj.price):
+            s += u' %s %s' % (self.colored(u'—', 'cyan'), self.colored('%6.2f %s' % (obj.price, Currency.currency2txt(obj.currency)), 'green'))
+        return s
+
+    def get_description(self, obj):
+        if hasattr(obj, 'arrival_time') and not empty(obj.arrival_time):
+            s = '(%s)  %s\n\t(%s)  %s' % (self.colored(obj.time.strftime('%H:%M'), 'cyan'),
+                                          obj.departure_station,
+                                          self.colored(obj.arrival_time.strftime('%H:%M'), 'cyan'),
+                                          obj.arrival_station)
+        else:
+            s = '(%s)  %20s -> %s' % (self.colored(obj.time.strftime('%H:%M'), 'cyan'),
+                                      obj.departure_station, obj.arrival_station)
+
+        return s
+
+class StationsFormatter(PrettyFormatter):
+    MANDATORY_FIELDS = ('id', 'name')
+
+    def get_title(self, obj):
+        return obj.name
+
 class Traveloob(ReplApplication):
     APPNAME = 'traveloob'
     VERSION = '0.h'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2013 Romain Bignon'
     DESCRIPTION = "Console application allowing to search for train stations and get departure times."
     SHORT_DESCRIPTION = "search for train stations and departures"
     CAPS = ICapTravel
     DEFAULT_FORMATTER = 'table'
+    EXTRA_FORMATTERS = {'stations': StationsFormatter,
+                        'departures': DeparturesFormatter,
+                       }
+    COMMANDS_FORMATTERS = {'stations':     'stations',
+                           'departures':   'departures',
+                          }
 
     def add_application_options(self, group):
         group.add_option('--departure-time')
@@ -55,17 +89,17 @@ class Traveloob(ReplApplication):
     @defaultcount(10)
     def do_departures(self, line):
         """
-        departures STATION [ARRIVAL]
+        departures STATION [ARRIVAL [DATE]]]
 
         List all departures for a given station.
         """
-        station, arrival = self.parse_command_args(line, 2, 1)
+        station, arrival, date = self.parse_command_args(line, 3, 1)
 
         station_id, backend_name = self.parse_id(station)
         if arrival:
             arrival_id, backend_name2 = self.parse_id(arrival)
             if backend_name and backend_name2 and backend_name != backend_name2:
-                logging.error('Departure and arrival aren\'t on the same backend')
+                print >>sys.stderr, 'Departure and arrival aren\'t on the same backend'
                 return 1
         else:
             arrival_id = backend_name2 = None
@@ -77,7 +111,15 @@ class Traveloob(ReplApplication):
         else:
             backends = None
 
-        for backend, departure in self.do('iter_station_departures', station_id, arrival_id, backends=backends):
+        if date is not None:
+            try:
+                date = self.parse_datetime(date)
+            except ValueError as e:
+                print >>sys.stderr, 'Invalid datetime value: %s' % e
+                print >>sys.stderr, 'Please enter a datetime in form "yyyy-mm-dd HH:MM" or "HH:MM".'
+                return 1
+
+        for backend, departure in self.do('iter_station_departures', station_id, arrival_id, date, backends=backends):
             self.format(departure)
 
     def do_roadmap(self, line):
