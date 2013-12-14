@@ -36,6 +36,7 @@ class IndeedBrowser(BaseBrowser):
         '%s://%s/Emplois-(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
         '%s://%s/emplois(.*?)' % (PROTOCOL, DOMAIN): SearchPage,
         '%s://%s/cmp/(.*?)' % (PROTOCOL, DOMAIN): AdvertPage,
+        '%s://%s/voir-emploi\?(.*?)' % (PROTOCOL, DOMAIN): AdvertPage,
     }
 
     def search_job(self, pattern=None, metier=None, place=None, contrat=None):
