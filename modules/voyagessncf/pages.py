@@ -37,7 +37,7 @@ class CitiesPage(BasePage):
        return result['CITIES']
 
 class SearchPage(BasePage):
-    def search(self, departure, arrival, date):
+    def search(self, departure, arrival, date, age, card):
         self.browser.select_form(name='saisie')
         self.browser['ORIGIN_CITY'] = departure.encode(self.browser.ENCODING)
         self.browser['DESTINATION_CITY'] = arrival.encode(self.browser.ENCODING)
@@ -47,7 +47,8 @@ class SearchPage(BasePage):
 
         self.browser['OUTWARD_DATE'] = date.strftime('%d/%m/%y')
         self.browser['OUTWARD_TIME'] = [str(date.hour + 1)]
-        self.browser['PASSENGER_1'] = ['ADULT']
+        self.browser['PASSENGER_1'] = [age]
+        self.browser['PASSENGER_1_CARD'] = [card]
         self.browser.controls.append(ClientForm.TextControl('text', 'nbAnimalsForTravel', {'value': ''}))
         self.browser['nbAnimalsForTravel'] = '0'
         self.browser.submit()
@@ -65,8 +66,9 @@ class SearchInProgressPage(BasePage):
         self.browser.location(link.attrib['href'])
 
 class ResultsPage(BasePage):
-    def get_value(self, div, name):
-        p = div.cssselect(name)[0]
+    def get_value(self, div, name, last=False):
+        i = -1 if last else 0
+        p = div.cssselect(name)[i]
         sub = p.find('p')
         if sub is not None:
             txt = sub.tail.strip()
@@ -77,8 +79,8 @@ class ResultsPage(BasePage):
 
         return unicode(self.parser.tocleanstring(p))
 
-    def parse_hour(self, div, name):
-        txt = self.get_value(div, name)
+    def parse_hour(self, div, name, last=False):
+        txt = self.get_value(div, name, last)
         hour, minute = map(int, txt.split('h'))
         return time(hour, minute)
 
@@ -96,8 +98,8 @@ class ResultsPage(BasePage):
             yield {'type': self.get_value(div, 'div.transporteur-txt'),
                    'time': self.parse_hour(div, 'div.departure div.hour'),
                    'departure': self.get_value(div, 'div.departure div.station'),
-                   'arrival': self.get_value(div, 'div.arrival div.station'),
-                   'arrival_time': self.parse_hour(div, 'div.arrival div.hour'),
+                   'arrival': self.get_value(div, 'div.arrival div.station', last=True),
+                   'arrival_time': self.parse_hour(div, 'div.arrival div.hour', last=True),
                    'price': price,
                    'currency': currency,
                   }

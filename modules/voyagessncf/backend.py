@@ -18,7 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import BaseBackend
+from weboob.tools.backend import BaseBackend, BackendConfig
+from weboob.tools.ordereddict import OrderedDict
+from weboob.tools.value import Value
 from weboob.capabilities.travel import ICapTravel, Station, Departure
 from weboob.capabilities import UserError
 
@@ -35,6 +37,35 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
     EMAIL = 'romain@weboob.org'
     LICENSE = 'AGPLv3+'
     VERSION = '0.h'
+    CONFIG = BackendConfig(Value('age', label='Passenger age', default='ADULT',
+                                 choices=OrderedDict((('ADULT', '26-59 ans'),
+                                                      ('SENIOR', '60 et +'),
+                                                      ('YOUNG', '12-25 ans'),
+                                                      ('CHILD_UNDER_FOUR', '0-3 ans'),
+                                                      ('CHILDREN', '4-11 ans')))),
+                           Value('card', label='Passenger card', default='default',
+                                 choices=OrderedDict((('default', u'Pas de carte'),
+                                                      ('YOUNG', u'Carte 12-25 / 12-30'),
+                                                      ('YOUNGS', u'Carte Jeune'),
+                                                      ('ESCA', u'Carte Escapades'),
+                                                      ('WEEKE', u'Carte Week-end'),
+                                                      ('FQ2ND', u'Abo Fréquence 2e'),
+                                                      ('FQ1ST', u'Abo Fréquence 1e'),
+                                                      ('FF2ND', u'Abo Forfait 2e'),
+                                                      ('FF1ST', u'Abo Forfait 1e'),
+                                                      ('ACCWE', u'Accompagnant Carte Week-end'),
+                                                      ('ACCCHD', u'Accompagnant Carte Enfant+'),
+                                                      ('ENFAM', u'Carte Enfant Famille'),
+                                                      ('FAM30', u'Carte Familles Nombreuses 30%'),
+                                                      ('FAM40', u'Carte Familles Nombreuses 40%'),
+                                                      ('FAM50', u'Carte Familles Nombreuses 50%'),
+                                                      ('FAM75', u'Carte Familles Nombreuses 75%'),
+                                                      ('MI2ND', u'Carte Militaire 2e'),
+                                                      ('MI1ST', u'Carte Militaire 1e'),
+                                                      ('MIFAM', u'Carte Famille Militaire'),
+                                                      ('THBIZ', u'Thalys ThePass Business'),
+                                                      ('THPREM', u'Thalys ThePass Premium'),
+                                                      ('THWE', u'Thalys ThePass Weekend')))))
 
     BROWSER = VoyagesSNCFBrowser
     STATIONS = []
@@ -65,7 +96,9 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
             raise UserError('Unknown station')
 
         with self.browser:
-            for i, d in enumerate(self.browser.iter_departures(station, arrival, date)):
+            for i, d in enumerate(self.browser.iter_departures(station, arrival, date,
+                                                               self.config['age'].get(),
+                                                               self.config['card'].get())):
                 departure = Departure(i, d['type'], d['time'])
                 departure.departure_station = d['departure']
                 departure.arrival_station = d['arrival']
