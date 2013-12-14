@@ -21,7 +21,7 @@
 import datetime
 
 from .base import IBaseCap, CapBaseObject, StringField, TimeField, DeltaField, \
-                  DateField, UserError
+                  DateField, DecimalField, IntField, Currency, UserError
 
 
 __all__ = ['Station', 'Departure', 'RoadStep', 'RoadmapError', 'RoadmapFilters', 'ICapTravel']
@@ -46,12 +46,15 @@ class Departure(CapBaseObject):
     Describes a departure.
     """
     type =              StringField('Type of train')
-    time =              TimeField('When the train will leave')
+    time =              TimeField('Departure time')
     departure_station = StringField('Departure station')
     arrival_station =   StringField('Destination of the train')
+    arrival_time =      TimeField('Arrival time')
     late =              TimeField('Optional late', default=datetime.time())
     information =       StringField('Informations')
     plateform =         StringField('Where the train will leave')
+    price =             DecimalField('Price of ticket')
+    currency =          IntField('Currency', default=Currency.CUR_UNKNOWN)
 
     def __init__(self, id, _type, _time):
         CapBaseObject.__init__(self, id)
