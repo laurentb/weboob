@@ -34,14 +34,14 @@ class CreditCooperatifBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
     VERSION = '0.h'
-    DESCRIPTION = u'Crédit Coopératif French bank website'
+    DESCRIPTION = u'Crédit Coopératif'
     LICENSE = 'AGPLv3+'
     auth_type = {'particular': "Interface Particuliers",
                  'weak' : "Code confidentiel (pro)",
                  'strong': "Sesame (pro)"}
-    CONFIG = BackendConfig(Value('auth_type', label='Authentication type', choices=auth_type, default="particular"),
-                           ValueBackendPassword('login', label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password or one time pin'))
+    CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="particular"),
+                           ValueBackendPassword('login', label='Code utilisateur', masked=False),
+                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
 
     def create_default_browser(self):
         if self.config['auth_type'].get() == 'particular':

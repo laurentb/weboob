@@ -29,15 +29,15 @@ __all__ = ['ApivieBackend']
 
 class ApivieBackend(BaseBackend, ICapBank):
     NAME = 'apivie'
-    DESCRIPTION = u'apivie'
+    DESCRIPTION = u'Apivie'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
 
     BROWSER = ApivieBrowser
 
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'))
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),

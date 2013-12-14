@@ -37,10 +37,10 @@ class CICBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'CIC French bank website'
+    DESCRIPTION = u'CIC'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,13}\w$', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='^\d{1,13}\w$', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CICBrowser
 
     def create_default_browser(self):

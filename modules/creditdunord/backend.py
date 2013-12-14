@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -35,7 +35,7 @@ class CreditDuNordBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Tarneaud French bank website'
+    DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Tarneaud'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.credit-du-nord.fr':    u'Crédit du Nord',
@@ -43,9 +43,9 @@ class CreditDuNordBackend(BaseBackend, ICapBank):
         'www.banque-kolb.fr':       u'Banque Kolb',
         'www.tarneaud.fr':          u'Tarneaud',
         }.iteritems(), key=lambda (k, v): (v, k))])
-    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='www.credit-du-nord.fr'),
-                           ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.credit-du-nord.fr'),
+                           ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Code confidentiel'))
     BROWSER = CreditDuNordBrowser
 
     def create_default_browser(self):

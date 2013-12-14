@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -34,12 +34,12 @@ class BredBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'BRED French bank website'
+    DESCRIPTION = u'Bred'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'),
                            Value('accnum', label='Account number to force (optional)', default='', masked=False)
-                           )
+                          )
     BROWSER = BredBrowser
 
     def create_default_browser(self):

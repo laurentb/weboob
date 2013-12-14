@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -34,7 +34,7 @@ class BanquePopulaireBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'Banque Populaire French bank website'
+    DESCRIPTION = u'Banque Populaire'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.ibps.alpes.banquepopulaire.fr': u'Alpes',
@@ -57,9 +57,9 @@ class BanquePopulaireBackend(BaseBackend, ICapBank):
         'www.ibps.sud.banquepopulaire.fr': u'Sud',
         'www.ibps.valdefrance.banquepopulaire.fr': u'Val de France',
         }.iteritems(), key=lambda (k, v): (v, k))])
-    CONFIG = BackendConfig(Value('website',  label='Website to use', choices=website_choices),
-                           ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password'))
+    CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
+                           ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passee'))
     BROWSER = BanquePopulaire
 
     def create_default_browser(self):

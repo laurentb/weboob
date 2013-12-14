@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon
+# Copyright(C) 2010-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -39,14 +39,14 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'BNP Paribas French bank website'
+    DESCRIPTION = 'BNP Paribas'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login',      label='Account ID', masked=False),
-        ValueBackendPassword('password',   label='Password', regexp='^(\d{6}|)$'),
+        ValueBackendPassword('login',      label='Numéro client', masked=False),
+        ValueBackendPassword('password',   label='Code secret', regexp='^(\d{6}|)$'),
         ValueBackendPassword('rotating_password', default='',
             label='Password to set when the allowed uses are exhausted (6 digits)',
             regexp='^(\d{6}|)$'),
-        Value('website', label='Website to use', default='pp',
+        Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels', 'ent': 'Entreprises'}))
     STORAGE = {'seen': []}
 

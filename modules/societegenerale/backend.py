@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010-2011 Jocelyn Jaubert
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -35,11 +36,11 @@ class SocieteGeneraleBackend(BaseBackend, ICapBank):
     EMAIL = 'jocelyn.jaubert@gmail.com'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Société Générale French bank website'
+    DESCRIPTION = u'Société Générale'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login',      label='Account ID', masked=False),
-        ValueBackendPassword('password',   label='Password'),
-        Value('website', label='Website to use', default='par',
+        ValueBackendPassword('login',      label='Code client', masked=False),
+        ValueBackendPassword('password',   label='Code secret'),
+        Value('website', label='Type de compte', default='par',
               choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}))
 
     def create_default_browser(self):

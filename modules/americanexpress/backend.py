@@ -34,10 +34,10 @@ class AmericanExpressBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'American Express French bank website'
+    DESCRIPTION = u'American Express'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Code utilisateur', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = AmericanExpressBrowser
 
     def create_default_browser(self):

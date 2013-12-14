@@ -34,17 +34,17 @@ class FortuneoBackend(BaseBackend, ICapBank):
     EMAIL = 'gilles.quenot@gmail.com'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Fortuneo French bank website'
+    DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(
                 ValueBackendPassword(
                         'login',
-                        label='Account ID',
+                        label='Identifiant',
                         masked=False,
                         required=True
                 ),
                 ValueBackendPassword(
                         'password',
-                        label='Password',
+                        label='Mot de passe',
                         required=True
                 )
     )

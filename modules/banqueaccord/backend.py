@@ -35,8 +35,8 @@ class BanqueAccordBackend(BaseBackend, ICapBank):
     EMAIL = 'romain@weboob.org'
     LICENSE = 'AGPLv3+'
     VERSION = '0.h'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='\d+', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='\d+'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='\d+', masked=False),
+                           ValueBackendPassword('password', label=u"Code d'accès", regexp='\d+'))
 
     BROWSER = BanqueAccordBrowser
 

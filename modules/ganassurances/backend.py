@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -34,15 +34,15 @@ class GanAssurancesBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'Groupama Assurances French bank website'
+    DESCRIPTION = u'Groupama'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'espaceclient.groupama.fr':    u'Groupama Banque',
         'espaceclient.ganassurances.fr':   u'Gan Assurances',
         }.iteritems(), key=lambda (k, v): (v, k))])
-    CONFIG = BackendConfig(Value('website',  label='Which bank', choices=website_choices, default='espaceclient.ganassurances.fr'),
-                           ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
+                           ValueBackendPassword('login',    label=u'Numéro client', masked=False),
+                           ValueBackendPassword('password', label=u"Code d'accès"))
     BROWSER = GanAssurances
 
     def create_default_browser(self):

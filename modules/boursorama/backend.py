@@ -36,9 +36,9 @@ class BoursoramaBackend(BaseBackend, ICapBank):
     EMAIL = 'gabriel@kerneis.info'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Boursorama French bank website'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Account ID', masked=False),
-                           ValueBackendPassword('password',   label='Password'),
+    DESCRIPTION = u'Boursorama'
+    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
+                           ValueBackendPassword('password',   label='Mot de passe'),
                            ValueBool('enable_twofactors',     label='Send validation sms', default=False),
                            Value('device',                    label='Device name', regexp='\w*', default=''),
                           )

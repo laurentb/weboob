@@ -33,10 +33,10 @@ class CarrefourBanqueBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'Carrefour Banque French bank website'
+    DESCRIPTION = u'Carrefour Banque'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='\d+'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Référent client', masked=False),
+                           ValueBackendPassword('password', label=u"Code d'accès", regexp='\d+'))
     BROWSER = CarrefourBanque
 
     def create_default_browser(self):

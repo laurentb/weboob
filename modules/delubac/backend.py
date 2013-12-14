@@ -29,15 +29,15 @@ __all__ = ['DelubacBackend']
 
 class DelubacBackend(BaseBackend, ICapBank):
     NAME = 'delubac'
-    DESCRIPTION = u'Banque Delubac & Cie French banking website'
+    DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'
     EMAIL = 'nru@budget-insight.com'
     VERSION = '0.h'
 
     BROWSER = DelubacBrowser
 
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'))
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),

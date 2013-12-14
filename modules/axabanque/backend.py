@@ -33,10 +33,10 @@ class AXABanqueBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '0.h'
-    DESCRIPTION = u'AXA Banque French bank website'
+    DESCRIPTION = u'AXA Banque'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='\d+', masked=False),
-                           ValueBackendPassword('password', label='Password', regexp='\d+'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'N° de client', regexp='\d+', masked=False),
+                           ValueBackendPassword('password', label='Code', regexp='\d+'))
     BROWSER = AXABanque
 
     def create_default_browser(self):

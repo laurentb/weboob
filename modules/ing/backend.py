@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon, Florent Fourcot
+# Copyright(C) 2010-2013 Romain Bignon, Florent Fourcot
 #
 # This file is part of weboob.
 #
@@ -37,15 +37,15 @@ class INGBackend(BaseBackend, ICapBank, ICapBill):
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = 'ING Direct French bank website'
+    DESCRIPTION = 'ING Direct'
     CONFIG = BackendConfig(ValueBackendPassword('login',
-                                                label='Account ID',
+                                                label=u'Numéro client',
                                                 masked=False),
                            ValueBackendPassword('password',
-                                                label='Password',
+                                                label='Code secret',
                                                 regexp='^(\d{6}|)$'),
                            ValueBackendPassword('birthday',
-                                                label='Birthday',
+                                                label='Date de naissance',
                                                 regexp='^(\d{8}|)$',
                                                 masked=False)
                           )

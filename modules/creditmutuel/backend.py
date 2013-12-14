@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2012-2013 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -37,10 +38,10 @@ class CreditMutuelBackend(BaseBackend, ICapBank):
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
     VERSION = '0.h'
-    DESCRIPTION = u'Crédit Mutuel French bank website'
+    DESCRIPTION = u'Crédit Mutuel'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Account ID', regexp='^\d{1,13}\w$', masked=False),
-                           ValueBackendPassword('password', label='Password of account'))
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='^\d{1,13}\w$', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CreditMutuelBrowser
 
     def create_default_browser(self):
