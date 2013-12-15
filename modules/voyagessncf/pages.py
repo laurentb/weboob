@@ -37,7 +37,7 @@ class CitiesPage(BasePage):
        return result['CITIES']
 
 class SearchPage(BasePage):
-    def search(self, departure, arrival, date, age, card):
+    def search(self, departure, arrival, date, age, card, comfort_class):
         self.browser.select_form(name='saisie')
         self.browser['ORIGIN_CITY'] = departure.encode(self.browser.ENCODING)
         self.browser['DESTINATION_CITY'] = arrival.encode(self.browser.ENCODING)
@@ -51,6 +51,7 @@ class SearchPage(BasePage):
         self.browser['OUTWARD_TIME'] = [str(date.hour)]
         self.browser['PASSENGER_1'] = [age]
         self.browser['PASSENGER_1_CARD'] = [card]
+        self.browser['COMFORT_CLASS'] = [str(comfort_class)]
         self.browser.controls.append(ClientForm.TextControl('text', 'nbAnimalsForTravel', {'value': ''}))
         self.browser['nbAnimalsForTravel'] = '0'
         self.browser.submit()

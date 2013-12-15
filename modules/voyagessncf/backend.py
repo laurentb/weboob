@@ -65,7 +65,10 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
                                                       ('MIFAM', u'Carte Famille Militaire'),
                                                       ('THBIZ', u'Thalys ThePass Business'),
                                                       ('THPREM', u'Thalys ThePass Premium'),
-                                                      ('THWE', u'Thalys ThePass Weekend')))))
+                                                      ('THWE', u'Thalys ThePass Weekend')))),
+                           Value('class', label='Comfort class', default='2',
+                                 choices=OrderedDict((('1', u'1e classe'),
+                                                      ('2', u'2e classe')))))
 
     BROWSER = VoyagesSNCFBrowser
     STATIONS = []
@@ -106,7 +109,8 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
         with self.browser:
             for i, d in enumerate(self.browser.iter_departures(station, arrival, date,
                                                                self.config['age'].get(),
-                                                               self.config['card'].get())):
+                                                               self.config['card'].get(),
+                                                               self.config['class'].get())):
                 departure = Departure(i, d['type'], d['time'])
                 departure.departure_station = d['departure']
                 departure.arrival_station = d['arrival']

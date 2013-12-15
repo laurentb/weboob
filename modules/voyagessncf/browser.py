@@ -44,8 +44,8 @@ class VoyagesSNCFBrowser(BaseBrowser):
         self.location('/completion/VSC/FR/fr/cityList.js')
         return self.page.get_stations()
 
-    def iter_departures(self, departure, arrival, date, age, card):
+    def iter_departures(self, departure, arrival, date, age, card, comfort_class):
         self.location('/billet-train')
-        self.page.search(departure, arrival, date, age, card)
+        self.page.search(departure, arrival, date, age, card, comfort_class)
 
         return self.page.iter_results()
