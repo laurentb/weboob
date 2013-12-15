@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.radio import Radio, Stream, Emission
+from weboob.capabilities.radio import Radio
+from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 
 __all__ = ['LivePage', 'ProgramPage']
 
@@ -35,7 +36,12 @@ class LivePage(BasePage):
             index += 1
             mime_type  = unicode(el.attrib['type'])
             stream_url = unicode(el.attrib['src'])
-            stream = Stream(index)
+            stream = BaseAudioStream(index)
+            stream.bitrate=128
+            if ( mime_type == u'audio/mpeg' ):
+                stream.format=u'mp3'
+            elif ( mime_type == u'audio/ogg' ):
+                stream.format=u'vorbis'
             stream.title = radio.title + ' ' + mime_type
             stream.url = stream_url
             radio.streams.append(stream)
@@ -46,12 +52,12 @@ class LivePage(BasePage):
 
 class ProgramPage(BasePage):
     def get_current_emission(self):
-        current = Emission(0)
+        current = AudioStreamInfo(0)
         two_or_more = unicode(self.document.xpath('//p')[0].text).split('/////')[0].split(' - ')
         # Consider that if String(' - ') appears it'll be in title rather in the artist name
         if len(two_or_more) > 2:
-          current.artist = two_or_more.pop(0)
-          current.title = ' - '.join(two_or_more)
+          current.who = two_or_more.pop(0)
+          current.what = ' - '.join(two_or_more)
         else:
-          current.artist, current.title = two_or_more
+          current.who, current.what = two_or_more
         return current

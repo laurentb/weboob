@@ -57,3 +57,10 @@ class NihonNoOtoBackend(BaseBackend, ICapRadio, ICapCollection):
                if rad.id == radio:
                   return rad
         return None
+
+    def fill_radio(self, radio, fields):
+        if 'current' in fields:
+            return self.get_radio(radio.id)
+        return radio
+
+    OBJECTS = {Radio: fill_radio}
