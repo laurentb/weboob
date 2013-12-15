@@ -480,11 +480,6 @@ class ReplApplication(Cmd, ConsoleApplication):
 
         if self.options.condition:
             self.condition = ResultsCondition(self.options.condition)
-            # Enable infinite search by default is condition is set
-            # (count applies on the non-filtered result, and can be confusing for users)
-            if self._is_default_count:
-                self.options.count = None
-                self._is_default_count = False
         else:
             self.condition = None
 

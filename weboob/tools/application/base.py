@@ -34,12 +34,12 @@ from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import createColoredFormatter, getLogger
 from weboob.tools.misc import to_unicode
 
-
 __all__ = ['BaseApplication']
 
 
 class MoreResultsAvailable(Exception):
     pass
+
 
 class ApplicationStorage(object):
     def __init__(self, name, storage):
@@ -88,7 +88,7 @@ class BaseApplication(object):
     # Default storage tree
     STORAGE = {}
     # Synopsis
-    SYNOPSIS =  'Usage: %prog [-h] [-dqv] [-b backends] ...\n'
+    SYNOPSIS = 'Usage: %prog [-h] [-dqv] [-b backends] ...\n'
     SYNOPSIS += '       %prog [--help] [--version]'
     # Description
     DESCRIPTION = None
@@ -249,11 +249,15 @@ class BaseApplication(object):
         return obj
 
     def _do_complete_iter(self, backend, count, fields, res):
+        modif = 0
         for i, sub in enumerate(res):
-            if count and i == count:
-                raise MoreResultsAvailable()
-            sub = self._do_complete_obj(backend, fields, sub)
-            yield sub
+            if self.condition and not self.condition.is_valid(sub):
+                modif += 1
+            else:
+                if count and i - modif == count:
+                    raise MoreResultsAvailable()
+                sub = self._do_complete_obj(backend, fields, sub)
+                yield sub
 
     def _do_complete(self, backend, count, selected_fields, function, *args, **kwargs):
         assert count is None or count > 0
