@@ -101,7 +101,7 @@ class PagePrivateThread(OvsPage):
 
                 first_br = td.find('br')
                 assert first_br.nextSibling.name == 'br'
-                text_nodes = ovsparse.all_next_siblings(first_br.nextSibling.nextSibling) # TODO
+                text_nodes = ovsparse.all_next_siblings(first_br.nextSibling.nextSibling)  # TODO
                 #~ print text_nodes
 
             # date will be used as id

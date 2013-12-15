@@ -28,8 +28,10 @@ def nearest_parent(node, expected):
         node = node.parent
     return node
 
+
 def all_text_recursive(node):
     return ''.join(node.findAll(text=True))
+
 
 def all_next_siblings(node):
     ret = []
@@ -37,6 +39,7 @@ def all_next_siblings(node):
         ret.append(node)
         node = node.nextSibling
     return ret
+
 
 def image_to_text(src):
     smileys = {'chat/e/grin.gif': ':D',
@@ -60,6 +63,7 @@ def image_to_text(src):
 
     return smileys.get(src)
 
+
 def html_message_to_text(nodes):
     parts = []
 
@@ -77,6 +81,7 @@ def html_message_to_text(nodes):
 
     return ''.join(parts)
 
+
 def create_unique_id(proposed_id, used_ids):
     if proposed_id not in used_ids:
         return proposed_id
@@ -90,8 +95,8 @@ def create_unique_id(proposed_id, used_ids):
 
     return make_id(proposed_id, index)
 
-# public
 
+# public
 def private_message_form_fields(document):
     ret = {}
     form = document.find('form', attrs={'name': 'envoimail'})
@@ -106,6 +111,7 @@ def private_message_form_fields(document):
     set_if_present('Dest')
     set_if_present('Titre')
     return ret
+
 
 def is_logged(document):
     return (not document.find('form', attrs={'name': 'connection'}))

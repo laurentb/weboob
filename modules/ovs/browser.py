@@ -95,17 +95,17 @@ class OvsBrowser(BaseBrowser):
         return (self.is_on_page(DummyPage) or self.page.is_logged())
 
     def post_to_thread(self, thread_id, subject, body):
-        self.location('/message_read.php?Id=%s' % thread_id.encode(self.ENCODING)) # FIXME
+        self.location('/message_read.php?Id=%s' % thread_id.encode(self.ENCODING))  # FIXME
         assert self.is_on_page(PagePrivateThread)
         self.page.post_to_thread(thread_id, subject, body)
 
     def create_thread(self, recipient, subject, body):
-        self.location('/profil_read.php?%s' % recipient.encode(self.ENCODING)) # FIXME
+        self.location('/profil_read.php?%s' % recipient.encode(self.ENCODING))  # FIXME
         assert self.is_on_page(PageUserProfile)
         self.page.create_thread(recipient, subject, body)
 
     def get_contact(self, id):
-        self.location('/profil_read.php?%s' % id.encode(self.ENCODING)) # FIXME
+        self.location('/profil_read.php?%s' % id.encode(self.ENCODING))  # FIXME
         assert self.is_on_page(PageUserProfile)
         return self.page.get_contact()
 
@@ -118,4 +118,3 @@ class OvsBrowser(BaseBrowser):
         self.location('http://www.urbeez.com')
         assert self.is_on_page(PageCityList)
         return self.page.get_cities('urbeez.com')
-
