@@ -88,14 +88,16 @@ class ResultsPage(BasePage):
 
     def iter_results(self):
         for div in self.document.getroot().cssselect('div.train_info'):
+            info = None
             price = None
             currency = None
             for td in div.cssselect('td.price'):
                 txt = self.parser.tocleanstring(td)
                 p = Decimal(re.sub('([^\d\.]+)', '', txt))
-                currency = Currency.get_currency(txt)
                 if price is None or p < price:
+                    info = list(div.cssselect('strong.price_label')[0].itertext())[-1].strip().strip(':')
                     price = p
+                    currency = Currency.get_currency(txt)
 
             yield {'type': self.get_value(div, 'div.transporteur-txt'),
                    'time': self.parse_hour(div, 'div.departure div.hour'),
@@ -104,4 +106,5 @@ class ResultsPage(BasePage):
                    'arrival_time': self.parse_hour(div, 'div.arrival div.hour', last=True),
                    'price': price,
                    'currency': currency,
+                   'price_info': info,
                   }

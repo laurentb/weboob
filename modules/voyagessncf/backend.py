@@ -79,8 +79,16 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
         self._populate_stations()
 
         pattern = pattern.lower()
+        already = set()
+
+        # First stations whose name starts with pattern...
         for _id, name in enumerate(self.STATIONS):
             if name.lower().startswith(pattern):
+                already.add(_id)
+                yield Station(_id, unicode(name))
+        # ...then ones whose name contains pattern.
+        for _id, name in enumerate(self.STATIONS):
+            if pattern in name.lower() and not _id in already:
                 yield Station(_id, unicode(name))
 
     def iter_station_departures(self, station_id, arrival_id=None, date=None):
@@ -105,4 +113,5 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
                 departure.arrival_time = d['arrival_time']
                 departure.price = d['price']
                 departure.currency = d['currency']
+                departure.information = d['price_info']
                 yield departure
