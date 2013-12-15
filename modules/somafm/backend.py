@@ -19,7 +19,8 @@
 
 
 import lxml.etree
-from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
@@ -62,21 +63,30 @@ class SomaFMBackend(BaseBackend, ICapRadio, ICapCollection):
 
         document = self.browser.location(self.ALLINFO)
         for channel in document.iter('channel'):
-            radio = Radio(channel.get('id'))
+            id=channel.get('id')
+            radio = Radio(id)
             radio.title = channel.findtext('title')
             radio.description = channel.findtext('description')
 
             current_data = channel.findtext('lastPlaying')
-            current = Emission(0)
-            current.artist, current.title = self._parse_current(current_data)
+            current = AudioStreamInfo(0)
+            current.what, current.who = self._parse_current(current_data)
             radio.current = current
 
             radio.streams = []
             stream_id = 0
             for subtag in channel:
                 if subtag.tag.endswith('pls'):
-                    stream = Stream(stream_id)
-                    stream.title = '%s/%s' % (subtag.tag.replace('pls', ''), subtag.get('format'))
+                    stream = BaseAudioStream(stream_id)
+                    bitrate=subtag.text.replace('http://somafm.com/'+id,'').replace('.pls','')
+                    if(bitrate != ''):
+                        stream.bitrate=int(bitrate)
+                        bitrate+='Kbps'
+                    else:
+                        stream.bitrate=0
+                        bitrate=subtag.tag.replace('pls','')
+                    stream.format=subtag.get('format')
+                    stream.title = '%s/%s' % (bitrate, stream.format)
                     stream.url = subtag.text
                     radio.streams.append(stream)
                     stream_id += 1
@@ -110,10 +120,8 @@ class SomaFMBackend(BaseBackend, ICapRadio, ICapCollection):
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            if not radio.current:
-                radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.get_current(radio.id)
+            return self.get_radio(radio.id)
         return radio
 
-    #OBJECTS = {Radio: fill_radio}
+    OBJECTS = {Radio: fill_radio}
 
