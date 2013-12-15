@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 from weboob.capabilities.collection import ICapCollection, Collection
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
@@ -235,27 +236,40 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.description = radio_dict['description']
 
         artist, title = self.get_current(network,radioName)
-        current = Emission(0)
-        current.artist = artist
-        current.title = title
+        current = AudioStreamInfo(0)
+        current.who = artist
+        current.what = title
         radio.current = current
 
         radio.streams = []
-        name=self._get_stream_name(network,self.config['quality'].get())
-        stream = Stream(name)
-        stream.title = u'%s %skbps' %\
-                (self.NETWORKS[network]['streams'][name]['fmt'],
-                 self.NETWORKS[network]['streams'][name]['rate'])
+        defaultname=self._get_stream_name(network,self.config['quality'].get())
+        stream = BaseAudioStream(0)
+        stream.bitrate=self.NETWORKS[network]['streams'][defaultname]['rate']
+        stream.format=self.NETWORKS[network]['streams'][defaultname]['fmt']
+        stream.title = u'%s %skbps' % (stream.format,stream.bitrate)
         stream.url = 'http://listen.%s/%s/%s.pls'%\
-                (self.NETWORKS[network]['domain'],name,radioName)
+                (self.NETWORKS[network]['domain'],defaultname,radioName)
         radio.streams.append(stream)
+        i=1
+        for name in self.NETWORKS[network]['streams'].keys():
+            if name == defaultname:
+                continue
+            stream = BaseAudioStream(i)
+            stream.bitrate=self.NETWORKS[network]['streams'][name]['rate']
+            stream.format=self.NETWORKS[network]['streams'][name]['fmt']
+            stream.title = u'%s %skbps' % (stream.format,stream.bitrate)
+            stream.url = 'http://listen.%s/%s/%s.pls'%\
+                 (self.NETWORKS[network]['domain'],name,radioName)
+
+            radio.streams.append(stream)
+            i=i+1
         return radio
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
             radioName,network=radio.id.split('.',1)
-            radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.get_current(network,radioName)
+            radio.current = AudioStreamInfo(0)
+            radio.current.who, radio.current.what = self.get_current(network,radioName)
             return radio
 
     OBJECTS = {Radio: fill_radio}

@@ -35,8 +35,8 @@ class AudioAddictTest(BackendTest):
         radio = self.backend.get_radio('classicrock.RockRadio')
         self.assertTrue(radio.title)
         self.assertTrue(radio.description)
-        self.assertTrue(radio.current.title)
-        self.assertTrue(radio.current.artist)
+        self.assertTrue(radio.current.who)
+        self.assertTrue(radio.current.what)
         self.assertTrue(radio.streams[0].url)
         self.assertTrue(radio.streams[0].title)
 
