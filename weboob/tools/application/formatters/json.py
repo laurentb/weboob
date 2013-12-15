@@ -41,5 +41,27 @@ class Encoder(json.JSONEncoder):
 
 
 class JsonFormatter(IFormatter):
+    def __init__(self):
+        IFormatter.__init__(self)
+        self.queue = []
+
+    def flush(self):
+        if len(self.queue) == 0:
+            return
+        elif len(self.queue) == 1:
+            print self.queue[0]
+        else:
+            result = u""
+            first = False
+            result += u"["
+            for item in self.queue:
+                if not first:
+                    first = True
+                else:
+                    result += u","
+                result += item
+            result += "]"
+            print result
+
     def format_dict(self, item):
-        return json.dumps(item, cls=Encoder)
+        self.queue.append(json.dumps(item, cls=Encoder))
