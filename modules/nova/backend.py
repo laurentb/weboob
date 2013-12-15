@@ -20,7 +20,8 @@
 
 from cStringIO import StringIO
 
-from weboob.capabilities.radio import ICapRadio, Radio, Stream, Emission
+from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
@@ -69,12 +70,14 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.description = description
 
         artist, title = self.get_current()
-        current = Emission(0)
-        current.artist = artist
-        current.title = title
+        current = AudioStreamInfo(0)
+        current.who = artist
+        current.what = title
         radio.current = current
 
-        stream = Stream(0)
+        stream = BaseAudioStream(0)
+        stream.bitrate=128
+        stream.format=u'mp3'
         stream.title = u'128kbits/s'
         stream.url = url
         radio.streams = [stream]
@@ -92,8 +95,8 @@ class NovaBackend(BaseBackend, ICapRadio, ICapCollection):
     def fill_radio(self, radio, fields):
         if 'current' in fields:
             if not radio.current:
-                radio.current = Emission(0)
-            radio.current.artist, radio.current.title = self.get_current()
+                radio.current = AudioStreamInfo(0)
+            radio.current.who, radio.current.what = self.get_current()
         return radio
 
     OBJECTS = {Radio: fill_radio}
