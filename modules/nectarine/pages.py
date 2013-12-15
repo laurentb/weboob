@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.radio import Radio, Stream, Emission
+from weboob.capabilities.radio import Radio
+from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 
 __all__ = ['LivePage', 'StreamsPage']
 
@@ -34,11 +35,13 @@ class StreamsPage(BasePage):
         for el in self.document.xpath('//stream'):
             index += 1
             stream_url = unicode(el.findtext('url'))
-            bitrate = unicode(el.findtext('bitrate'))
+            bitrate = el.findtext('bitrate')
             encode = unicode(el.findtext('type'))
             country = unicode(el.findtext('country')).upper()
-            stream = Stream(index)
-            stream.title = ' '.join([radio.title, country, encode, bitrate, 'kbps'])
+            stream = BaseAudioStream(index)
+            stream.bitrate=int(bitrate)
+            stream.format=encode
+            stream.title = ' '.join([radio.title, country, encode, unicode(bitrate), 'kbps'])
             stream.url = stream_url
             radio.streams.append(stream)
 
@@ -48,7 +51,7 @@ class StreamsPage(BasePage):
 
 class LivePage(BasePage):
     def get_current_emission(self):
-        current = Emission(0)
-        current.artist = unicode(self.document.xpath('//playlist/now/entry/artist')[0].text)
-        current.title = unicode(self.document.xpath('//playlist/now/entry/song')[0].text)
+        current = AudioStreamInfo(0)
+        current.who = unicode(self.document.xpath('//playlist/now/entry/artist')[0].text)
+        current.what = unicode(self.document.xpath('//playlist/now/entry/song')[0].text)
         return current
