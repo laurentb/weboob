@@ -20,7 +20,7 @@
 
 import re
 from decimal import Decimal
-from datetime import time, datetime
+from datetime import time, datetime, timedelta
 
 from weboob.tools.browser import BasePage
 from weboob.tools.json import json
@@ -43,10 +43,12 @@ class SearchPage(BasePage):
         self.browser['DESTINATION_CITY'] = arrival.encode(self.browser.ENCODING)
 
         if date is None:
-            date = datetime.now()
+            date = datetime.now() + timedelta(hours=1)
+        elif date < datetime.now():
+            raise UserError("You cannot look for older departures")
 
         self.browser['OUTWARD_DATE'] = date.strftime('%d/%m/%y')
-        self.browser['OUTWARD_TIME'] = [str(date.hour + 1)]
+        self.browser['OUTWARD_TIME'] = [str(date.hour)]
         self.browser['PASSENGER_1'] = [age]
         self.browser['PASSENGER_1_CARD'] = [card]
         self.browser.controls.append(ClientForm.TextControl('text', 'nbAnimalsForTravel', {'value': ''}))
