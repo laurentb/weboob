@@ -164,28 +164,28 @@ def analyze_application(app, script_name):
                                         script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
     condition = """.SH CONDITION
-The -c and --condition is a flexible way to sort and get only interesting results. It supports condition on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
 The syntax of one expression is "\\fBfield operator value\\fR". The field to test is always the left member of the expression.
 .LP
 The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
-.SS The following opperators are supported:
+.SS The following operators are supported:
 .TP
 =
-Test if object.field is egal to value.
+Test if object.field is equal to the value.
 .TP
 !=
-Test if object.field is different to value.
+Test if object.field is not equal to the value.
 .TP
 >
-Test if object.field is superior to value. If object.field is date, return true if value is before that object.field.
+Test if object.field is greater than the value. If object.field is date, return true if value is before that object.field.
 .TP
 <
-Test if object.field is inferior value. If object.field is date, return true if value is after that object.field.
+Test if object.field is less than the value. If object.field is date, return true if value is after that object.field.
 .TP
 |
-This operator is available only for string fields. It works like the Unix standard \\fBgrep\\fR command, and return true if the pattern specified in value is in object.field.
-.SS Combination of expressions
-You can make a combination of expression with the keywords \\fB" AND "\\fR and \\fB" OR "\\fR.
+This operator is available only for string fields. It works like the Unix standard \\fBgrep\\fR command, and returns True if the pattern specified in the value is in object.field.
+.SS Expression combination
+You can make a expression combinations with the keywords \\fB" AND "\\fR and \\fB" OR "\\fR.
 
 .SS Examples:
 .nf
