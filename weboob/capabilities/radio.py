@@ -20,7 +20,7 @@
 
 
 from .base import IBaseCap, CapBaseObject, Field, StringField
-from .audiostream import AudioStreamInfo, ICapAudioStream, BaseAudioStream
+from .audiostream import AudioStreamInfo
 
 
 __all__ = ['Radio', 'ICapRadio']

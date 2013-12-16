@@ -20,7 +20,7 @@
 
 from datetime import timedelta
 
-from .base import IBaseCap, CapBaseObject, Field, StringField
+from .base import Field, StringField
 from .file import ICapFile, BaseFile
 
 

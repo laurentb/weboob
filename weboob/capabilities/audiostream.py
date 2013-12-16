@@ -18,9 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import timedelta
-
-from .base import IBaseCap, CapBaseObject, Field, StringField
+from .base import CapBaseObject, Field, StringField
 from .file import ICapFile
 from .audio import ICapAudio, BaseAudio
 
