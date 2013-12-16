@@ -95,7 +95,7 @@ class Boobill(ReplApplication):
         """
         subscriptions
 
-        List subscriptions
+        List all subscriptions.
         """
         self.start_format()
         for subscription in self.get_object_list('iter_subscription'):
@@ -106,7 +106,7 @@ class Boobill(ReplApplication):
         details [ID]
 
         Get details of subscriptions.
-        If no ID given, display all details of all backends
+        If no ID given, display all details of all backends.
         """
         l = []
         id, backend_name = self.parse_id(id)
@@ -136,10 +136,10 @@ class Boobill(ReplApplication):
 
     def do_balance(self, id):
         """
-        balance [Id]
+        balance [ID]
 
         Get balance of subscriptions.
-        If no ID given, display balance of all backends
+        If no ID given, display balance of all backends.
         """
 
         self.exec_method(id, 'get_balance')
@@ -147,17 +147,17 @@ class Boobill(ReplApplication):
     @defaultcount(10)
     def do_history(self, id):
         """
-        history [Id]
+        history [ID]
 
         Get the history of subscriptions.
-        If no ID given, display histories of all backends
+        If no ID given, display histories of all backends.
         """
         self.exec_method(id, 'iter_bills_history')
 
     @defaultcount(10)
     def do_bills(self, id):
         """
-        bills [Id]
+        bills [ID]
 
         Get the list of bills documents for subscriptions.
         If no ID given, display bills of all backends
@@ -166,19 +166,19 @@ class Boobill(ReplApplication):
 
     def do_download(self, line):
         """
-        download [Id | all] [FILENAME]
+        download [ID | all] [FILENAME]
 
-        download Id [FILENAME]
+        download ID [FILENAME]
 
         download the bill
         id is the identifier of the bill (hint: try bills command)
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
 
-        download all [Id]
+        download all [ID]
 
         You can use special word "all" and download all bills of
-        subscription identified by Id.
+        subscription identified by ID.
         If Id not given, download bills of all subscriptions.
         """
         id, dest = self.parse_command_args(line, 2, 1)
