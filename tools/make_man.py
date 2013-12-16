@@ -163,6 +163,51 @@ def analyze_application(app, script_name):
     header = '.TH %s 1 "%s" "%s %s"' % (script_name.upper(), time.strftime("%d %B %Y"),
                                         script_name, app.VERSION.replace('.', '\\&.'))
     name = ".SH NAME\n%s \- %s" % (script_name, application.SHORT_DESCRIPTION)
+    condition = """.SH CONDITION
+The -c and --condition is a flexible way to sort and get only interesting results. It supports condition on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The syntax of one expression is "\\fBfield operator value\\fR". The field to test is always the left member of the expression.
+.LP
+The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
+.SS The following opperators are supported:
+.TP
+=
+Test if object.field is egal to value.
+.TP
+!=
+Test if object.field is different to value.
+.TP
+>
+Test if object.field is superior to value. If object.field is date, return true if value is before that object.field.
+.TP
+<
+Test if object.field is inferior value. If object.field is date, return true if value is after that object.field.
+.TP
+|
+This operator is available only for string fields. It works like the Unix standard \\fBgrep\\fR command, and return true if the pattern specified in value is in object.field.
+.SS Combination of expressions
+You can make a combination of expression with the keywords \\fB" AND "\\fR and \\fB" OR "\\fR.
+
+.SS Examples:
+.nf
+.B boobank ls \-\-condition 'label=Livret A'
+.fi
+Display only the "Livret A" account.
+.PP
+.nf
+.B boobank ls \-\-condition 'balance>10000'
+.fi
+Display accounts with a lot of money.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'label|rewe'
+.fi
+Get transactions containing "rewe".
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.fi
+Get transactions betweens the 2th December and 8th December 2013.
+"""
     footer = """.SH COPYRIGHT
 %s
 .LP
@@ -177,7 +222,7 @@ For full COPYRIGHT see COPYING file with weboob package.
     # Skip internal applications.
     footer += "\n\n.SH SEE ALSO\nHome page: http://weboob.org/applications/%s" % application.APPNAME
 
-    mantext = u"%s\n%s\n%s\n%s\n%s" % (coding, header, name, helptext, footer)
+    mantext = u"%s\n%s\n%s\n%s\n%s\n%s" % (coding, header, name, helptext, condition, footer)
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
             manfile.write('%s\n' % line.lstrip().encode('utf-8'))

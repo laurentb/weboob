@@ -150,7 +150,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         self._parser.formatter = ReplOptionFormatter()
 
         results_options = OptionGroup(self._parser, 'Results Options')
-        results_options.add_option('-c', '--condition', help='filter result items to display given a boolean expression')
+        results_options.add_option('-c', '--condition', help='filter result items to display given a boolean expression. See CONDITION section for the syntax')
         results_options.add_option('-n', '--count', type='int',
                                    help='limit number of results (from each backends)')
         results_options.add_option('-s', '--select', help='select result item keys to display (comma separated)')
@@ -767,7 +767,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         """
         condition [EXPRESSION | off]
 
-        If an argument is given, set the condition expression used to filter the results.
+        If an argument is given, set the condition expression used to filter the results. See CONDITION section for more details and the expression.
         If the "off" value is given, conditional filtering is disabled.
 
         If no argument is given, print the current condition expression.
