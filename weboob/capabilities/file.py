@@ -21,7 +21,8 @@
 from .base import IBaseCap, CapBaseObject, NotAvailable, Field, StringField, DateField
 
 
-__all__ = ['BaseFile','ICapFile']
+__all__ = ['BaseFile', 'ICapFile']
+
 
 class BaseFile(CapBaseObject):
     """
@@ -49,6 +50,7 @@ class BaseFile(CapBaseObject):
         """
         return self.id2url(self.id)
 
+
 class ICapFile(IBaseCap):
     """
     Provide file download
@@ -58,7 +60,7 @@ class ICapFile(IBaseCap):
      SEARCH_VIEWS,
      SEARCH_DATE) = range(4)
 
-    def search_file(self,pattern,sortby=SEARCH_RELEVANCE):
+    def search_file(self, pattern, sortby=SEARCH_RELEVANCE):
         """
         :param pattern: pattern to search on
         :type pattern: str

@@ -20,11 +20,12 @@
 
 from datetime import timedelta
 
-from .base import IBaseCap, CapBaseObject,Field, StringField
+from .base import IBaseCap, CapBaseObject, Field, StringField
 from .file import ICapFile, BaseFile
 
 
-__all__ = ['BaseAudio','ICapAudio']
+__all__ = ['BaseAudio', 'ICapAudio']
+
 
 class BaseAudio(BaseFile):
     """
@@ -32,14 +33,15 @@ class BaseAudio(BaseFile):
     """
     ext =       StringField('Audio file extension')
     duration =  Field('Audio file duration', int, long, timedelta)
-    bitrate =   Field('Audio stream bit rate un Kbps',int)
+    bitrate =   Field('Audio stream bit rate un Kbps', int)
     format =    StringField('Audio stream format')
+
 
 class ICapAudio(ICapFile):
     """
     Audio file provider
     """
-    def search_audio(self,pattern,sortby=ICapFile.SEARCH_RELEVANCE):
+    def search_audio(self, pattern, sortby=ICapFile.SEARCH_RELEVANCE):
         """
         search for a audio file
 
@@ -48,7 +50,7 @@ class ICapAudio(ICapFile):
         :param sortby: sort by ...(use SEARCH_* constants)
         :rtype: iter[:class:`BaseAudio`]
         """
-        return self.search_file(pattern,sortby)
+        return self.search_file(pattern, sortby)
 
     def get_audio(self, id):
         """

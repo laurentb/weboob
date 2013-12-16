@@ -25,14 +25,15 @@ from .file import ICapFile
 from .audio import ICapAudio, BaseAudio
 
 
-__all__ = ['AudioStreamInfo','BaseAudioStream','ICapAudioStream']
+__all__ = ['AudioStreamInfo', 'BaseAudioStream', 'ICapAudioStream']
+
 
 class AudioStreamInfo(CapBaseObject):
     """
     AudioStream related information.
     """
-    who =    StringField('Who is currently on air')
-    what =     StringField('What is currently on air')
+    who = StringField('Who is currently on air')
+    what = StringField('What is currently on air')
 
     def __iscomplete__(self):
         # This volatile information may be reloaded everytimes.
@@ -49,13 +50,14 @@ class BaseAudioStream(BaseAudio):
     """
     Audio stream object
     """
-    current = Field('Information related to current broadcast',AudioStreamInfo)
+    current = Field('Information related to current broadcast', AudioStreamInfo)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.title, self.url)
 
     def __repr__(self):
         return self.__unicode__()
+
 
 class ICapAudioStream(ICapAudio):
     """
@@ -70,7 +72,7 @@ class ICapAudioStream(ICapAudio):
         :param sortby: sort by ... (use SEARCH_* constants)
         :rtype: iter[:class:`BaseAudioStream`]
         """
-        return self.search_audio(self,pattern,sortby)
+        return self.search_audio(self, pattern, sortby)
 
     def get_audiostream(self, id):
         """
@@ -81,4 +83,3 @@ class ICapAudioStream(ICapAudio):
         :rtype: :class:`BaseAudioStream`
         """
         return self.get_audio(self, id)
-
