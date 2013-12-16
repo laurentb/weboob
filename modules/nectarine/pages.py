@@ -23,6 +23,7 @@ from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
 
 __all__ = ['LivePage', 'StreamsPage']
 
+
 class StreamsPage(BasePage):
     def iter_radios_list(self):
         radio = Radio('necta')
@@ -39,14 +40,13 @@ class StreamsPage(BasePage):
             encode = unicode(el.findtext('type'))
             country = unicode(el.findtext('country')).upper()
             stream = BaseAudioStream(index)
-            stream.bitrate=int(bitrate)
-            stream.format=encode
+            stream.bitrate = int(bitrate)
+            stream.format = encode
             stream.title = ' '.join([radio.title, country, encode, unicode(bitrate), 'kbps'])
             stream.url = stream_url
             radio.streams.append(stream)
 
         yield radio
-
 
 
 class LivePage(BasePage):
