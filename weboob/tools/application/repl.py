@@ -1109,9 +1109,6 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def format(self, result, alias=None):
         fields = self.selected_fields
-        # Do not format objects if they not respect conditions
-        if self.condition and not self.condition.is_valid(result):
-            return
         if '$direct' in fields or '$full' in fields:
             fields = None
         try:
