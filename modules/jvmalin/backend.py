@@ -32,7 +32,7 @@ class JVMalinBackend(BaseBackend, ICapTravel):
     EMAIL = 'github@lissy.me'
     VERSION = '0.h'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = "Multimodal public transportation for whole Région Centre, France"
+    DESCRIPTION = u"Multimodal public transportation for whole Région Centre, France"
     BROWSER = JVMalin
 
     def iter_roadmap(self, departure, arrival, filters):
