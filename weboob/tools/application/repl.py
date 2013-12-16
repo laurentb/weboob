@@ -69,6 +69,7 @@ class ReplOptionFormatter(IndentedHelpFormatter):
                 s += '    %s\n' % c
         return s
 
+
 def defaultcount(default_count=10):
     def deco(f):
         def inner(self, *args, **kwargs):
@@ -87,6 +88,22 @@ def defaultcount(default_count=10):
 
         return inner
     return deco
+
+# First sort in alphabetical of backend
+# Second, first with ID
+def comp_object(obj1, obj2):
+    if obj1.backend == obj2.backend:
+        if obj1.id == obj2.id:
+            return 0
+        elif obj1.id > obj2.id:
+            return 1
+        else:
+            return -1
+    elif obj1.backend > obj2.backend:
+        return 1
+    else:
+        return -1
+
 
 class ReplApplication(Cmd, ConsoleApplication):
     """
@@ -937,17 +954,25 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def do_ls(self, line):
         """
-        ls [-d] [PATH]
+        ls [-d] [-s] [PATH]
 
         List objects in current path.
         If an argument is given, list the specified path.
+        Use -s option to sort deterministic sort of results.
         """
-        if line.strip().partition(' ')[0] == '-d':
+        # TODO: real parsing of options
+        path = line.strip()
+        only = False
+        sort = False
+
+        if '-s' in line.strip().partition(' '):
+            path = line.strip().partition(' ')[-1]
+            sort = True
+
+        if '-d' in line.strip().partition(' '):
             path = None
-            only = line.strip().partition(' ')[2]
-        else:
-            path = line.strip()
-            only = False
+            only = line.strip().partition(' ')[-1]
+
 
         if path:
             # We have an argument, let's ch to the directory before the ls
@@ -956,6 +981,10 @@ class ReplApplication(Cmd, ConsoleApplication):
         objects, collections = self._fetch_objects(objs=self.COLLECTION_OBJECTS)
 
         self.objects = []
+
+        if sort:
+            objects.sort(cmp=comp_object)
+            collections.sort(cmp=comp_object)
 
         self.start_format()
         for collection in collections:
