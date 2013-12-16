@@ -114,7 +114,7 @@ class UpcomingFormatter(IFormatter):
             result += u'City: %s\n' % obj.city
 
         if hasattr(obj, 'event_planner') and not empty(obj.event_planner):
-            result += u'Event planner: %s/%s \n' % (obj.event_planner)
+            result += u'Event planner: %s\n' % obj.event_planner
 
         if hasattr(obj, 'booked_entries') and not empty(obj.booked_entries) and \
            hasattr(obj, 'max_entries') and not empty(obj.max_entries):
