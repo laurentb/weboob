@@ -53,8 +53,7 @@ class LCLBackend(BaseBackend, ICapBank):
                                        self.config['password'].get())
         else:
             self.BROWSER = LCLBrowser
-            return self.create_browser(self.config['agency'].get(),
-                                       self.config['login'].get(),
+            return self.create_browser(self.config['login'].get(),
                                        self.config['password'].get())
 
     def deinit(self):

@@ -89,7 +89,7 @@ class LoginPage(BasePage):
             s+=chr(seed^ord(value[i]))
         return s
 
-    def login(self, login, passwd, agency):
+    def login(self, login, passwd):
         try:
             vk=LCLVirtKeyboard(self)
         except VirtKeyboardError as err:
@@ -114,11 +114,7 @@ class LoginPage(BasePage):
         self.browser.select_form(
             predicate=lambda x: x.attrs.get('id','')=='formAuthenticate')
         self.browser.form.set_all_readonly(False)
-        if len(agency) > 0:
-            self.browser['agenceId'] = agency.encode('utf-8')
-            self.browser['compteId'] = login.encode('utf-8')
-        else:
-            self.browser['identifiant'] = login.encode('utf-8')
+        self.browser['identifiant'] = login.encode('utf-8')
         self.browser['postClavierXor'] = base64.b64encode(self.myXOR(password,seed))
         try:
             self.browser.submit(nologin=True)

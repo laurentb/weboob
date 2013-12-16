@@ -52,10 +52,6 @@ class LCLBrowser(BaseBrowser):
         'https://particuliers.secure.lcl.fr/index.html': SkipPage
         }
 
-    def __init__(self, agency, *args, **kwargs):
-        self.agency = agency
-        BaseBrowser.__init__(self, *args, **kwargs)
-
     def is_logged(self):
         return not self.is_on_page(LoginPage)
 
@@ -69,7 +65,7 @@ class LCLBrowser(BaseBrowser):
                           % (self.PROTOCOL, self.DOMAIN),
                           no_login=True)
 
-        if not self.page.login(self.username, self.password, self.agency) or \
+        if not self.page.login(self.username, self.password) or \
            (self.is_on_page(LoginPage) and self.page.is_error()) :
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request\non the original web site.\nAutomatic renewal will be implemented later.")
         self.location('%s://%s/outil/UWSP/Synthese'
