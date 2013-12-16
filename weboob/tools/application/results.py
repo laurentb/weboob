@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import weboob.tools.date as date_utils
+from datetime import date
 
 __all__ = ['ResultsCondition', 'ResultsConditionError']
 
@@ -93,7 +95,10 @@ class ResultsCondition(IResultsCondition):
                     # We have to change the type of v, always gived as string by application
                     typed = type(d[condition.left])
                     try:
-                        tocompare = typed(condition.right)
+                        if isinstance(d[condition.left], date_utils.date):
+                            tocompare = date(*[int(x) for x in condition.right.split('-')])
+                        else:
+                            tocompare = typed(condition.right)
                         myeval = functions[condition.op](tocompare, d[condition.left])
                     except:
                         myeval = False
