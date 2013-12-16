@@ -147,7 +147,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
             del pkg_resources, sys.modules['pkg_resources']    # reload ok
             return _do_download(version, download_base, to_dir,
                                 download_delay)
-    except pkg_resources.DistributionNotFound:
+    except pkg_resources.DistributionNotFound:  # NOQA
         return _do_download(version, download_base, to_dir,
                             download_delay)
 
