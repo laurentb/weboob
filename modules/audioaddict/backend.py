@@ -28,6 +28,7 @@ import time
 
 __all__ = ['AudioAddictBackend']
 
+
 #
 # WARNING
 #
@@ -36,7 +37,6 @@ __all__ = ['AudioAddictBackend']
 # option to another player in the ~/.config/weboob/radioob config file:
 # [ROOT]
 # media_player = your_non_mplayer_player
-
 class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'audioaddict'
     MAINTAINER = u'Pierre Mazière'
@@ -51,7 +51,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         'DI': {
             'desc': 'Digitally Imported addictive electronic music',
             'domain': 'di.fm',
-            'streams': {'android_low':{'rate': 40, 'fmt': 'aac'},
+            'streams': {'android_low': {'rate': 40, 'fmt': 'aac'},
                         'android': {'rate': 64, 'fmt': 'aac'},
                         'android_high': {'rate': 96, 'fmt': 'aac'},
                         'android_premium_low': {'rate': 40, 'fmt': 'aac'},
@@ -110,15 +110,15 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                         'android_premium': {'rate': 128, 'fmt': 'aac'},
                         'android_premium_high': {'rate': 256, 'fmt': 'mp3'},
                         'public3': {'rate': 96, 'fmt': 'mp3'}
-                       }
+                        }
         }
     }
 
     CONFIG = BackendConfig(Value('networks',
-                                 label='Selected Networks [%s](space separated)'%\
+                                 label='Selected Networks [%s](space separated)' %
                                  ' '.join(NETWORKS.keys()), default=''),
                            Value('quality', label='Radio streaming quality',
-                                 choices={'h':'high','l':'low'},
+                                 choices={'h': 'high', 'l': 'low'},
                                  default='h')
                            )
 
@@ -129,41 +129,41 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
 
     def _get_tracks_history(self, network):
         self._fetch_radio_list(network)
-        domain=self.NETWORKS[network]['domain']
-        url='http://api.audioaddict.com/v1/%s/track_history' %\
-                (domain[:domain.rfind('.')])
+        domain = self.NETWORKS[network]['domain']
+        url = 'http://api.audioaddict.com/v1/%s/track_history' %\
+              (domain[:domain.rfind('.')])
         self.HISTORY[network] = self.browser.location(url)
         return self.HISTORY
 
     def create_default_browser(self):
         return self.create_browser(parser='json')
 
-    def _get_stream_name(self,network,quality):
-        streamName='public3'
+    def _get_stream_name(self, network, quality):
+        streamName = 'public3'
         for name in self.NETWORKS[network]['streams'].keys():
             if name.startswith('public') and \
-               self.NETWORKS[network]['streams'][name]['rate']>=64:
-                if quality=='h':
-                    streamName=name
+               self.NETWORKS[network]['streams'][name]['rate'] >= 64:
+                if quality == 'h':
+                    streamName = name
                     break
             else:
-                if quality=='l':
-                    streamName=name
+                if quality == 'l':
+                    streamName = name
                     break
         return streamName
 
-    def _fetch_radio_list(self,network=None):
-        quality=self.config['quality'].get()
+    def _fetch_radio_list(self, network=None):
+        quality = self.config['quality'].get()
         for selectedNetwork in self.config['networks'].get().split():
             if network is None or network == selectedNetwork:
-                streamName=self._get_stream_name(selectedNetwork,quality)
+                streamName = self._get_stream_name(selectedNetwork, quality)
                 if not self.RADIOS:
-                    self.RADIOS={}
+                    self.RADIOS = {}
                 if not selectedNetwork in self.RADIOS:
-                    document = self.browser.location('http://listen.%s/%s'%\
+                    document = self.browser.location('http://listen.%s/%s' %
                                                      (self.NETWORKS[selectedNetwork]['domain'],
                                                       streamName))
-                    self.RADIOS[selectedNetwork]={}
+                    self.RADIOS[selectedNetwork] = {}
                     for info in document:
                         radio = info['key']
                         self.RADIOS[selectedNetwork][radio] = {}
@@ -194,16 +194,16 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
                         yield self.get_radio(radio+"."+network)
                     return
             for network in self.config['networks'].get().split():
-                yield Collection([network],self.NETWORKS[network]['desc'])
+                yield Collection([network], self.NETWORKS[network]['desc'])
 
     def get_current(self, network, radio):
-        channel={}
+        channel = {}
         if not network in self.HISTORY:
             self._get_tracks_history(network)
-            channel=self.HISTORY[network].get(str(self.RADIOS[network][radio]['id']))
+            channel = self.HISTORY[network].get(str(self.RADIOS[network][radio]['id']))
         else:
             now=time.time()
-            channel=self.HISTORY[network].get(str(self.RADIOS[network][radio]['id']))
+            channel = self.HISTORY[network].get(str(self.RADIOS[network][radio]['id']))
             if channel is None:
                 return 'Unknown', 'Unknown'
             if (channel.get('started')+channel.get('duration')) < now:
@@ -213,9 +213,9 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         artist = u'' + (channel.get('artist', '') or 'Unknown')
         title = u''+(channel.get('title', '') or 'Unknown')
 
-        if artist == 'Unknown' :
-            track=u'' + (channel.get('track', '') or 'Unknown')
-            if track != 'Unknown' :
+        if artist == 'Unknown':
+            track = u'' + (channel.get('track', '') or 'Unknown')
+            if track != 'Unknown':
                 artist = track[:track.find(' - ')]
 
         return artist, title
@@ -224,7 +224,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         if not isinstance(radio, Radio):
             radio = Radio(radio)
 
-        radioName,network=radio.id.split('.',1)
+        radioName, network = radio.id.split('.', 1)
 
         self._fetch_radio_list(network)
 
@@ -235,42 +235,41 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.title = radio_dict['name']
         radio.description = radio_dict['description']
 
-        artist, title = self.get_current(network,radioName)
+        artist, title = self.get_current(network, radioName)
         current = AudioStreamInfo(0)
         current.who = artist
         current.what = title
         radio.current = current
 
         radio.streams = []
-        defaultname=self._get_stream_name(network,self.config['quality'].get())
+        defaultname = self._get_stream_name(network, self.config['quality'].get())
         stream = BaseAudioStream(0)
-        stream.bitrate=self.NETWORKS[network]['streams'][defaultname]['rate']
-        stream.format=self.NETWORKS[network]['streams'][defaultname]['fmt']
-        stream.title = u'%s %skbps' % (stream.format,stream.bitrate)
-        stream.url = 'http://listen.%s/%s/%s.pls'%\
-                (self.NETWORKS[network]['domain'],defaultname,radioName)
+        stream.bitrate = self.NETWORKS[network]['streams'][defaultname]['rate']
+        stream.format = self.NETWORKS[network]['streams'][defaultname]['fmt']
+        stream.title = u'%s %skbps' % (stream.format, stream.bitrate)
+        stream.url = 'http://listen.%s/%s/%s.pls' %\
+                     (self.NETWORKS[network]['domain'], defaultname, radioName)
         radio.streams.append(stream)
-        i=1
+        i = 1
         for name in self.NETWORKS[network]['streams'].keys():
             if name == defaultname:
                 continue
             stream = BaseAudioStream(i)
-            stream.bitrate=self.NETWORKS[network]['streams'][name]['rate']
-            stream.format=self.NETWORKS[network]['streams'][name]['fmt']
-            stream.title = u'%s %skbps' % (stream.format,stream.bitrate)
+            stream.bitrate = self.NETWORKS[network]['streams'][name]['rate']
+            stream.format = self.NETWORKS[network]['streams'][name]['fmt']
+            stream.title = u'%s %skbps' % (stream.format, stream.bitrate)
             stream.url = 'http://listen.%s/%s/%s.pls'%\
-                 (self.NETWORKS[network]['domain'],name,radioName)
+                         (self.NETWORKS[network]['domain'], name, radioName)
 
             radio.streams.append(stream)
-            i=i+1
+            i = i + 1
         return radio
 
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            radioName,network=radio.id.split('.',1)
+            radioName, network = radio.id.split('.', 1)
             radio.current = AudioStreamInfo(0)
-            radio.current.who, radio.current.what = self.get_current(network,radioName)
+            radio.current.who, radio.current.what = self.get_current(network, radioName)
             return radio
 
     OBJECTS = {Radio: fill_radio}
-
