@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
 from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDetailsPage, BillsPage
@@ -25,80 +26,66 @@ from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentDe
 __all__ = ['AmeliBrowser']
 
 
-class AmeliBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'assure.ameli.fr'
-    ENCODING = None
+class AmeliBrowser(LoginBrowser):
+    BASEURL = 'https://assure.ameli.fr'
 
-    PAGES = {'.*_pageLabel=as_login_page.*': LoginPage,
-             '.*_pageLabel=as_accueil_page.*': HomePage,
-             '.*_pageLabel=as_etat_civil_page.*': AccountPage,
-             '.*_pageLabel=as_revele_mensuel_presta_page.*': BillsPage,
-             '.*_pageLabel=as_dernier_paiement_page': LastPaymentsPage,
-             '.*_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements&paiements.*': PaymentDetailsPage
-             }
+    loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
+    homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
+    accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
+    billsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_revele_mensuel_presta_page', BillsPage)
+    paymentdetailsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_dernier_paiement_page&paiements_1_actionOverride=%2Fportlets%2Fpaiements%2Fdetailpaiements&paiements_1idPaiement=.*', PaymentDetailsPage)
+    lastpaymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_dernier_paiement_page$', LastPaymentsPage)
 
-    loginp = '/PortailAS/appmanager/PortailAS/assure?_somtc=true&_pageLabel=as_login_page'
-    homep = '/PortailAS/appmanager/PortailAS/assure?_nfpb=true&_pageLabel=as_accueil_page'
-    accountp = '/PortailAS/appmanager/PortailAS/assure?_nfpb=true&_pageLabel=as_etat_civil_page'
-    billsp = '/PortailAS/appmanager/PortailAS/assure?_nfpb=true&_pageLabel=as_revele_mensuel_presta_page'
-    lastpaymentsp = '/PortailAS/appmanager/PortailAS/assure?_nfpb=true&_pageLabel=as_dernier_paiement_page'
+    logged = False
 
-    is_logging = False
+    def do_login(self):
+        self.logger.debug('call Browser.do_login')
+        if self.logged:
+            return True
 
-    def home(self):
-        self.logger.debug('call Browser.home')
-        self.location(self.homep)
-        if ((not self.is_logged()) and (not self.is_logging)):
-            self.login()
+        self.loginp.stay_or_go()
+        if self.homep.is_here():
+            self.logged = True
+            return True
 
-    def is_logged(self):
-        self.logger.debug('call Browser.is_logged')
-        return self.page.is_logged()
-
-    def login(self):
-        self.logger.debug('call Browser.login')
-        # Do we really need to login?
-        if self.is_logged():
-            self.logger.debug('Already logged in')
-            return
-
-        if self.is_logging:
-            return
-
-        self.is_logging = True
-
-        self.location(self.loginp)
         self.page.login(self.username, self.password)
 
-        if not self.is_logged():
+        self.homep.stay_or_go() # Redirection not interpreted by browser. Mannually redirect on homep
+
+        if not self.homep.is_here():
             raise BrowserIncorrectPassword()
 
-        self.is_logging = False
+        self.logged = True
 
+    @need_login
     def iter_subscription_list(self):
-        if not self.is_on_page(AccountPage):
-            self.location(self.accountp)
+        self.logger.debug('call Browser.iter_subscription_list')
+        self.accountp.stay_or_go()
         return self.page.iter_subscription_list()
 
+    @need_login
     def get_subscription(self, id):
+        self.logger.debug('call Browser.get_subscription')
         assert isinstance(id, basestring)
         for sub in self.iter_subscription_list():
             if id == sub._id:
                 return sub
         return None
 
+    @need_login
     def iter_history(self, sub):
-        if not self.is_on_page(LastPaymentsPage):
-            self.location(self.lastpaymentsp)
+        self.logger.debug('call Browser.iter_history')
+        self.lastpaymentsp.stay_or_go()
         urls = self.page.iter_last_payments()
         for url in urls:
             self.location(url)
-            assert self.is_on_page(PaymentDetailsPage)
+            assert self.paymentdetailsp.is_here()
             for payment in self.page.iter_payment_details(sub):
                 yield payment
 
+    @need_login
     def iter_details(self, sub):
+        self.logger.debug('call Browser.iter_details')
         det = Detail()
         det.id = sub.id
         det.label = sub.label
@@ -106,17 +93,21 @@ class AmeliBrowser(Browser):
         det.price = Decimal('0.0')
         yield det
 
+    @need_login
     def iter_bills(self, sub):
+        self.logger.debug('call Browser.iter_bills')
         if not sub._id.isdigit():
             return []
-        if not self.is_on_page(BillsPage):
-            self.location(self.billsp)
-            return self.page.iter_bills(sub)
+        self.billsp.stay_or_go()
+        return self.page.iter_bills(sub)
 
+    @need_login
     def get_bill(self, id):
+        self.logger.debug('call Browser.get_bill')
         assert isinstance(id, basestring)
         subs = self.iter_subscription_list()
         for sub in subs:
             for b in self.iter_bills(sub):
                 if id == b.id:
                     return b
+        return False

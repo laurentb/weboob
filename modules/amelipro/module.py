@@ -17,14 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 from weboob.capabilities.bill import CapBill, SubscriptionNotFound, BillNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliProBrowser
 
 __all__ = ['AmeliProModule']
-
 
 class AmeliProModule(Module, CapBill):
     NAME = 'amelipro'
@@ -41,9 +39,9 @@ class AmeliProModule(Module, CapBill):
                                                 label='Password',
                                                 masked=True)
                            )
-    BROWSER = AmeliProBrowser
 
     def create_default_browser(self):
+        self.logger.settings['save_responses'] = False # Set to True to help debugging
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
 
@@ -53,8 +51,7 @@ class AmeliProModule(Module, CapBill):
     def get_subscription(self, _id):
         if not _id.isdigit():
             raise SubscriptionNotFound()
-        with self.browser:
-            subscription = self.browser.get_subscription(_id)
+        subscription = self.browser.get_subscription(_id)
         if not subscription:
             raise SubscriptionNotFound()
         else:
@@ -63,24 +60,20 @@ class AmeliProModule(Module, CapBill):
     def iter_bills_history(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.iter_history(subscription)
+        return self.browser.iter_history(subscription)
 
     def get_details(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.get_details(subscription)
+        return self.browser.get_details(subscription)
 
     def iter_bills(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
-        with self.browser:
-            return self.browser.iter_bills()
+        return self.browser.iter_bills()
 
     def get_bill(self, id):
-        with self.browser:
-            bill = self.browser.get_bill(id)
+        bill = self.browser.get_bill(id)
         if not bill:
             raise BillNotFound()
         else:
@@ -89,5 +82,4 @@ class AmeliProModule(Module, CapBill):
     def download_bill(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_bill(bill)
-        with self.browser:
-            return self.browser.readurl(bill._url, urllib.urlencode(bill._args))
+        return self.browser.download_bill(bill)

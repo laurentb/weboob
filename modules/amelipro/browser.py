@@ -18,65 +18,60 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
 from decimal import Decimal
-from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage
+from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage, SearchPage
 
 __all__ = ['AmeliProBrowser']
 
+class AmeliProBrowser(LoginBrowser):
+    BASEURL = 'https://espacepro.ameli.fr:443'
 
-class AmeliProBrowser(Browser):
-    PROTOCOL = 'https'
-    DOMAIN = 'espacepro.ameli.fr'
-    ENCODING = None
+    loginp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_login_page', LoginPage)
+    homep = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_accueil_page', HomePage)
+    accountp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_coordonnees_infos_perso_page', AccountPage)
+    billsp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_releves_mensuels_page', BillsPage)
+    searchp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_recherche_par_date_paiements_page', SearchPage)
+    historyp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_windowLabel=vp_recherche_paiement_tiers_payant_portlet_1&vp_recherche_paiement_tiers_payant_portlet_1_actionOverride=%2Fportlets%2Fpaiements%2Frecherche&_pageLabel=vp_recherche_par_date_paiements_page', HistoryPage)
 
-    PAGES = {'.*_pageLabel=vp_login_page.*':  LoginPage,
-             '.*_pageLabel=vp_accueil.*': HomePage,
-             '.*_pageLabel=vp_coordonnees_infos_perso_page.*': AccountPage,
-             '.*_pageLabel=vp_recherche_par_date_paiements_page.*': HistoryPage,
-             '.*_pageLabel=vp_releves_mensuels_page.*': BillsPage,
-             }
+    logged = False
 
-    loginp = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_pageLabel=vp_login_page'
-    homep = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_pageLabel=vp_accueil_book'
-    accountp = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_pageLabel=vp_coordonnees_infos_perso_page'
-    billsp = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_pageLabel=vp_releves_mensuels_page'
-    searchp = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_pageLabel=vp_recherche_par_date_paiements_page'
-    historyp = '/PortailPS/appmanager/portailps/professionnelsante?_nfpb=true&_windowLabel=vp_recherche_paiement_tiers_payant_portlet_1&vp_recherche_paiement_tiers_payant_portlet_1_actionOverride=%2Fportlets%2Fpaiements%2Frecherche&_pageLabel=vp_recherche_par_date_paiements_page'
+    def do_login(self):
+        self.logger.debug('call Browser.do_login')
+        if self.logged:
+            return True
 
-    def home(self):
-        self.location(self.homep)
+        self.loginp.stay_or_go()
+        if self.homep.is_here():
+            self.logged = True
+            return True
 
-    def is_logged(self):
-        if self.is_on_page(LoginPage):
-            return False
-        return True
-
-    def login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-        if not self.is_on_page(LoginPage):
-            self.location(self.loginp)
         self.page.login(self.username, self.password)
-        if self.is_on_page(LoginPage):
+
+        if not self.homep.is_here():
             raise BrowserIncorrectPassword()
 
-    def get_subscription_list(self):
-        if not self.is_on_page(AccountPage):
-            self.location(self.accountp)
-        return self.page.get_subscription_list()
+        self.logged = True
 
+    @need_login
+    def get_subscription_list(self):
+        self.logger.debug('call Browser.get_subscription_list')
+        self.accountp.stay_or_go()
+        return self.page.iter_subscription_list()
+
+    @need_login
     def get_subscription(self, id):
         assert isinstance(id, basestring)
         return self.get_subscription_list()
 
+    @need_login
     def iter_history(self, subscription):
-        if not self.is_on_page(HistoryPage):
-            self.location(self.searchp)
+        self.searchp.stay_or_go()
 
-        date_deb = self.page.document.xpath('//input[@name="vp_recherche_paiement_tiers_payant_portlet_1dateDebutRecherche"]')[0].value
-        date_fin = self.page.document.xpath('//input[@name="vp_recherche_paiement_tiers_payant_portlet_1dateFinRecherche"]')[0].value
+        date_deb = self.page.doc.xpath('//input[@name="vp_recherche_paiement_tiers_payant_portlet_1dateDebutRecherche"]')[0].value
+        date_fin = self.page.doc.xpath('//input[@name="vp_recherche_paiement_tiers_payant_portlet_1dateFinRecherche"]')[0].value
 
         data = {'vp_recherche_paiement_tiers_payant_portlet_1dateDebutRecherche': date_deb,
                 'vp_recherche_paiement_tiers_payant_portlet_1dateFinRecherche': date_fin,
@@ -85,9 +80,12 @@ class AmeliProBrowser(Browser):
                 'vp_recherche_paiement_tiers_payant_portlet_1codeRegime': '01',
                }
 
-        self.location(self.historyp, urllib.urlencode(data))
-        return self.page.iter_history()
+        self.session.headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
+        self.historyp.go(data=urllib.urlencode(data))
+        if self.historyp.is_here():
+            return self.page.iter_history()
 
+    @need_login
     def get_details(self, sub):
         det = Detail()
         det.id = sub.id
@@ -96,14 +94,20 @@ class AmeliProBrowser(Browser):
         det.price = Decimal('0.0')
         return det
 
+    @need_login
     def iter_bills(self):
-        if not self.is_on_page(BillsPage):
-            self.location(self.billsp)
+        self.billsp.stay_or_go()
         return self.page.iter_bills()
 
+    @need_login
     def get_bill(self, id):
         assert isinstance(id, basestring)
         for b in self.iter_bills():
             if id == b.id:
                 return b
         return None
+
+    @need_login
+    def download_bill(self, bill):
+        request = self.open(bill._url, data=bill._data, stream=True)
+        return request.content

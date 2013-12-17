@@ -19,10 +19,9 @@
 
 
 from datetime import datetime
-from decimal import Decimal
 import re
-import urllib
-from weboob.deprecated.browser import Page
+from decimal import Decimal
+from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 
@@ -30,25 +29,25 @@ from weboob.capabilities.bill import Subscription, Detail, Bill
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
 
-class LoginPage(Page):
+class LoginPage(HTMLPage):
     def login(self, login, password):
-        self.browser.select_form('connexionCompteForm')
-        self.browser["vp_connexion_portlet_1numPS"] = login.encode('utf8')
-        self.browser["vp_connexion_portlet_1password"] = password.encode('utf8')
-        self.browser.submit()
+        form = self.get_form('//form[@name="connexionCompteForm"]')
+        form['vp_connexion_portlet_1numPS'] = login.encode('utf8')
+        form['vp_connexion_portlet_1password'] = password.encode('utf8')
+        form.submit()
 
-
-class HomePage(Page):
-
+class HomePage(HTMLPage):
     def on_loaded(self):
         pass
 
+class SearchPage(HTMLPage):
+    def on_loaded(self):
+        pass
 
-class AccountPage(Page):
-
-    def get_subscription_list(self):
-        ident = self.document.xpath('//div[@id="identification"]')[0]
-        prof = self.document.xpath('//div[@id="profession"]')[0]
+class AccountPage(HTMLPage):
+    def iter_subscription_list(self):
+        ident = self.doc.xpath('//div[@id="identification"]')[0]
+        prof = self.doc.xpath('//div[@id="profession"]')[0]
         name = ident.xpath('//p/b')[0].text.replace('&nbsp;', ' ').strip()
         number = ident.xpath('//p')[1].text.replace('Cabinet', '').strip()
         label = prof.xpath('//div[@class="zoneTexte"]')[0].text.strip()
@@ -59,34 +58,38 @@ class AccountPage(Page):
         return sub
 
 
-class HistoryPage(Page):
-
+class HistoryPage(HTMLPage):
     def iter_history(self):
-        table = self.document.xpath('//table[contains(concat(" ", @class, " "), " cTableauTriable ")]')[0].xpath('.//tr')
-        for tr in table:
-            list_a = tr.xpath('.//a')
-            if len(list_a) == 0:
-                continue
-            date = tr.xpath('.//td')[0].text.strip()
-            lot = list_a[0].text
-            factures = tr.xpath('.//div[@class="cAlignGauche"]/a')
-            factures_lbl = ''
-            for a in factures:
-                factures_lbl = factures_lbl + a.text + ' '
-            montant = tr.xpath('.//div[@class="cAlignDroite"]')[0].text.strip()
-            det = Detail()
-            det.id = lot
-            det.label = lot
-            det.infos = factures_lbl
-            det.datetime = datetime.strptime(date, "%d/%m/%Y").date()
-            det.price = Decimal(montant.replace(',', '.'))
-            yield det
+        tables = self.doc.xpath('//table[contains(concat(" ", @class, " "), " cTableauTriable ")]')
+        if len(tables) > 0:
+            lines = tables[0].xpath('.//tr')
+            sno = 0
+            for tr in lines:
+                list_a = tr.xpath('.//a')
+                if len(list_a) == 0:
+                    continue
+                date = tr.xpath('.//td')[0].text.strip()
+                lot = list_a[0].text.replace('(*)', '').strip()
+                if lot == 'SNL':
+                    sno = sno + 1
+                    lot = lot + str(sno)
+                factures = tr.xpath('.//div[@class="cAlignGauche"]/a')
+                factures_lbl = ''
+                for a in factures:
+                    factures_lbl = factures_lbl + a.text.replace('(**)', '').strip() + ' '
+                montant = tr.xpath('.//div[@class="cAlignDroite"]')[0].text.strip()
+                det = Detail()
+                det.id = u''+lot
+                det.label = u''+lot
+                det.infos = u''+factures_lbl
+                det.datetime = datetime.strptime(date, "%d/%m/%Y").date()
+                det.price = Decimal(montant.replace(',', '.'))
+                yield det
 
 
-class BillsPage(Page):
-
+class BillsPage(HTMLPage):
     def iter_bills(self):
-        table = self.document.xpath('//table[@id="releveCompteMensuel"]')[0].xpath('.//tr')
+        table = self.doc.xpath('//table[@id="releveCompteMensuel"]')[0].xpath('.//tr')
         for tr in table:
             list_tds = tr.xpath('.//td')
             if len(list_tds) == 0:
@@ -96,19 +99,18 @@ class BillsPage(Page):
             month_str = date_str.split()[0]
             date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
             amount = tr.xpath('.//td[@class="cAlignDroite"]')[0].text
+            amount = re.sub('[^\d,-]+', '', amount)
             for format in ('CSV', 'PDF'):
                 bil = Bill()
                 bil.id = date.strftime("%Y%m") + format
                 bil.date = date
-                bil.label = u''+amount.strip()
+                bil.price = Decimal('-'+amount.strip().replace(',','.'))
+                bil.label = u''+date.strftime("%Y%m%d")
                 bil.format = u''+format
                 filedate = date.strftime("%m%Y")
                 bil._url = '/PortailPS/fichier.do'
-                bil._args = {'FICHIER.type': format.lower() + '.releveCompteMensuel',
-                             'dateReleve': filedate,
-                             'FICHIER.titre': '',
-                }
+                bil._data = {'FICHIER.type': format.lower()+'.releveCompteMensuel',
+                            'dateReleve': filedate,
+                            'FICHIER.titre': 'Releve' + filedate
+                            }
                 yield bil
-
-    def get_bill(self, bill):
-        self.location(bill._url, urllib.urlencode(bill._args))

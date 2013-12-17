@@ -24,9 +24,7 @@ from weboob.tools.value import ValueBackendPassword
 
 from .browser import Amazon
 
-
 __all__ = ['AmazonModule']
-
 
 class AmazonModule(Module, CapShop):
     NAME = 'amazon'
