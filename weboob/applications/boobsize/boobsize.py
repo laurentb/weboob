@@ -21,7 +21,7 @@
 from weboob.capabilities.base import empty
 from weboob.capabilities.gauge import ICapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
-from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.tools.application.formatters.iformatter import IFormatter
 
 import sys
 
@@ -45,9 +45,9 @@ class GaugeFormatter(IFormatter):
         # TODO: can happens ?
         if len(obj.sensors) == 0:
             return u' %s %s %s' %\
-                    (self.colored('%-27s' % name[:27], 'red'),
-                     self.colored('%-10s' % obj.object[:10], 'yellow'),
-                     self.colored('%-10s' % city[:10], 'yellow')
+                   (self.colored('%-27s' % name[:27], 'red'),
+                    self.colored('%-10s' % obj.object[:10], 'yellow'),
+                    self.colored('%-10s' % city[:10], 'yellow')
                     )
         else:
             first = True
@@ -63,27 +63,27 @@ class GaugeFormatter(IFormatter):
                     lastvalue += "%s" % sensor.unit
                 if first:
                     result = u' %s %s %s ' %\
-                              (self.colored('%-27s' % name[:27], 'red'),
-                               self.colored('%-10s' % obj.object[:10], 'yellow'),
-                               self.colored('%-10s' % city[:10], 'yellow'),
+                             (self.colored('%-27s' % name[:27], 'red'),
+                              self.colored('%-10s' % obj.object[:10], 'yellow'),
+                              self.colored('%-10s' % city[:10], 'yellow'),
                               )
                     if not empty(firstaddress):
                         result += u'%s' % self.colored('%-33s' % sensor.address[:33], 'yellow')
                     result += u'\n'
                     result += u' %s' % self.colored('%-47s' % obj.fullid[:47], 'blue')
                     result += u'   %s %s\n' %\
-                               (self.colored('%-20s' % sensorname[:20], 'magenta'),
-                                self.colored('%-13s' % lastvalue[:13], 'red')
+                              (self.colored('%-20s' % sensorname[:20], 'magenta'),
+                               self.colored('%-13s' % lastvalue[:13], 'red')
                                )
                     first = False
                 else:
                     result += u'                                                   %s %s\n' %\
-                               (self.colored('%-20s' % sensorname[:20], 'magenta'),
-                                self.colored('%-13s' % lastvalue[:13], 'red')
+                              (self.colored('%-20s' % sensorname[:20], 'magenta'),
+                               self.colored('%-13s' % lastvalue[:13], 'red')
                                )
                     if not empty(sensor.address) and sensor.address != firstaddress:
                         result += u'                                                   %s \n' %\
-                                   self.colored('%-33s' % sensor.address[:33], 'yellow')
+                                  self.colored('%-33s' % sensor.address[:33], 'yellow')
 
             return result
 
@@ -96,9 +96,9 @@ class Boobsize(ReplApplication):
     SHORT_DESCRIPTION = "display sensors and gauges values"
     CAPS = (ICapGauge)
     DEFAULT_FORMATTER = 'table'
-    EXTRA_FORMATTERS = {'gauge_list':   GaugeFormatter,}
+    EXTRA_FORMATTERS = {'gauge_list':   GaugeFormatter, }
     COMMANDS_FORMATTERS = {'search':    'gauge_list',
-                          }
+                           }
 
     def main(self, argv):
         self.load_config()
