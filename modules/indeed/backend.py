@@ -56,9 +56,21 @@ class IndeedBackend(BaseBackend, ICapJob):
         'last': u'depuis ma dernière visite',
     }.iteritems())])
 
+    radius_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
+        '0': u'uniquement à cet endroit',
+        '5': u'dans un rayon de 5 kilomètres',
+        '10': u'dans un rayon de 10 kilomètres',
+        '15': u'dans un rayon de 15 kilomètres',
+        '25': u'dans un rayon de 25 kilomètres',
+        '50': u'dans un rayon de 50 kilomètres',
+        '100': u'dans un rayon de 100 kilomètres',
+    }.iteritems())])
+
     CONFIG = BackendConfig(Value('metier', label=u'Job name', masked=False, default=''),
                            Value('limit_date', label=u'Date limite', choices=limit_date_choices, default=''),
-                           Value('contrat', label=u'Contract', choices=type_contrat_choices, default=''))
+                           Value('contrat', label=u'Contract', choices=type_contrat_choices, default=''),
+                           Value('place', label=u'Place', masked=False, default=''),
+                           Value('radius', label=u'Radius', choices=radius_choices, default=''))
 
     def search_job(self, pattern=None):
         with self.browser:
@@ -67,7 +79,9 @@ class IndeedBackend(BaseBackend, ICapJob):
     def advanced_search_job(self):
         return self.browser.advanced_search_job(metier=self.config['metier'].get(),
                                                 limit_date=self.config['limit_date'].get(),
-                                                contrat=self.config['contrat'].get(),)
+                                                contrat=self.config['contrat'].get(),
+                                                place=self.config['place'].get(),
+                                                radius=self.config['radius'].get())
 
     def get_job_advert(self, _id, advert=None):
         with self.browser:
