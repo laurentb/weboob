@@ -89,7 +89,7 @@ class GaugeFormatter(IFormatter):
 
 
 class Boobsize(ReplApplication):
-    APPNAME = 'Boosize'
+    APPNAME = 'Boobsize'
     VERSION = '0.h'
     COPYRIGHT = 'Copyright(C) 2013 Florent Fourcot'
     DESCRIPTION = "Console application allowing to display various sensors and gauges values."
