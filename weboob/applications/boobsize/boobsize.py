@@ -19,19 +19,12 @@
 
 
 from weboob.capabilities.gauge import ICapGauge, SensorNotFound
-from weboob.tools.application.repl import ReplApplication, defaultcount
+from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
 import sys
 
 __all__ = ['Boobsize']
-
-
-class CitiesFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'name')
-
-    def get_title(self, obj):
-        return obj.name
 
 
 class Boobsize(ReplApplication):
