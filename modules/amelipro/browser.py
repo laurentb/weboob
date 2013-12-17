@@ -103,7 +103,7 @@ class AmeliProBrowser(BaseBrowser):
 
     def get_bill(self, id):
         assert isinstance(id, basestring)
-        for b in self.get_bills():
+        for b in self.iter_bills():
             if id == b.id:
                 return b
         return None
