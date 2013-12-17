@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .backend import VelibBackend
+from .backend import jcvelauxBackend
 
 
-__all__ = ['VelibBackend']
+__all__ = ['jcvelauxBackend']

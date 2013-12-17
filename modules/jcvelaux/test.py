@@ -21,7 +21,7 @@ from weboob.tools.test import BackendTest
 
 
 class VelibTest(BackendTest):
-    BACKEND = 'velib'
+    BACKEND = 'jcvelaux'
 
     def test_velib(self):
         l = list(self.backend.iter_gauges())

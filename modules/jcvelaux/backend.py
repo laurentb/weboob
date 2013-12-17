@@ -26,17 +26,18 @@ from weboob.tools.value import Value
 from .browser import VelibBrowser
 
 
-__all__ = ['VelibBackend']
+__all__ = ['jcvelauxBackend']
+
 
 SENSOR_TYPES = {u'available_bike_stands': u'Free stands',
                 u'available_bikes': u'Available bikes',
                 u'bike_stands': u'Total stands'}
 
 CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
-    "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
-    "Ljubljana", "Seville", "Namur", "Nancy", "Creteil", "Bruxelles-Capitale",
-    "Cergy-Pontoise", "Vilnius", "Toyama", "Kazan", "Marseille", "Nantes",
-    "Besancon")
+          "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
+          "Ljubljana", "Seville", "Namur", "Nancy", "Creteil", "Bruxelles-Capitale",
+          "Cergy-Pontoise", "Vilnius", "Toyama", "Kazan", "Marseille", "Nantes",
+          "Besancon")
 
 
 class BikeMeasure(GaugeMeasure):
@@ -49,8 +50,8 @@ class BikeSensor(GaugeSensor):
     latitude = StringField('Latitude of the sensor')
 
 
-class VelibBackend(BaseBackend, ICapGauge):
-    NAME = 'velib'
+class jcvelauxBackend(BaseBackend, ICapGauge):
+    NAME = 'jcvelaux'
     DESCRIPTION = (u'City bike renting availability information.\nCities: %s' %
                    u', '.join(CITIES))
     MAINTAINER = u'Herve Werner'
@@ -65,7 +66,7 @@ class VelibBackend(BaseBackend, ICapGauge):
                                  choices=CITIES + ("ALL",)))
 
     def __init__(self, *a, **kw):
-        super(VelibBackend, self).__init__(*a, **kw)
+        super(jcvelauxBackend, self).__init__(*a, **kw)
         self.cities = None
 
     def _make_gauge(self, info):
