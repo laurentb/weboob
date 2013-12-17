@@ -211,7 +211,7 @@ class Boobcoming(ReplApplication):
     def do_list(self, line):
         """
         list [PATTERN]
-        List upcoming events, pattern can be an english or french  week day, 'today' or a date
+        List upcoming events, pattern can be an english or french  week day, 'today' or a date (dd/mm/yy[yy])
         """
 
         self.change_path([u'events'])
