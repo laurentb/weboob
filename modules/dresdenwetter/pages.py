@@ -39,7 +39,7 @@ class StartPage(BasePage):
             sensor.unit = self.unit[i]
             sensor.forecast = NotAvailable
             sensor.history = NotAvailable
-            sensor.gaugeid = u"private-dresden"
+            sensor.gaugeid = u"wetter"
             paraph = paraphs[i]
             lastvalue = GaugeMeasure()
             lastvalue.alarm = NotAvailable

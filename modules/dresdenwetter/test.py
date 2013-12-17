@@ -49,7 +49,7 @@ class DresdenWetterTest(BackendTest):
         """
         test the first sensor return by module"
         """
-        temperature = list(self.backend.iter_sensors("private-dresden", "Temperatur"))
+        temperature = list(self.backend.iter_sensors("wetter", "Temperatur"))
         assert temperature[0].name == u"Temperatur"
         assert temperature[0].unit == u"°C"
 
@@ -57,5 +57,5 @@ class DresdenWetterTest(BackendTest):
         """
         Test the last sensor return by module"
         """
-        sensor = list(self.backend.iter_sensors("private-dresden", "Globalstrahlung"))
+        sensor = list(self.backend.iter_sensors("wetter", "Globalstrahlung"))
         assert sensor[0].unit == u"W/m²"
