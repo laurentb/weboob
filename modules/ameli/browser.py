@@ -65,7 +65,7 @@ class AmeliBrowser(BaseBrowser):
 
         if self.is_logging:
             return
-            
+
         self.is_logging = True
 
         self.location(self.loginp)
@@ -73,9 +73,9 @@ class AmeliBrowser(BaseBrowser):
 
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-            
-        self.is_logging = False         
-            
+
+        self.is_logging = False
+
     def iter_subscription_list(self):
         if not self.is_on_page(AccountPage):
             self.location(self.accountp)
