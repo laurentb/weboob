@@ -63,7 +63,6 @@ class PdfPage():
         lines = [x for x in lines if len(x) > 0]  # Remove empty lines
         details = []
         detail = None
-        lines.pop(0)  # MENSUELLE
         lines.pop(-1)  # Line to describes pictures
         twolines = False
         for line in lines:
