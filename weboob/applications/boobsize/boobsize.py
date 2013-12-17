@@ -72,14 +72,14 @@ class GaugeFormatter(IFormatter):
                     result += u'\n'
                     result += u' %s' % self.colored('%-47s' % obj.fullid[:47], 'blue')
                     result += u'   %s %s\n' %\
-                               (self.colored('%-20s' % sensorname[:20], 'red'),
-                                self.colored('%-13s' % lastvalue[:13], 'magenta')
+                               (self.colored('%-20s' % sensorname[:20], 'magenta'),
+                                self.colored('%-13s' % lastvalue[:13], 'red')
                                )
                     first = False
                 else:
                     result += u'                                                   %s %s\n' %\
-                               (self.colored('%-20s' % sensorname[:20], 'red'),
-                                self.colored('%-13s' % lastvalue[:13], 'magenta')
+                               (self.colored('%-20s' % sensorname[:20], 'magenta'),
+                                self.colored('%-13s' % lastvalue[:13], 'red')
                                )
                     if not empty(sensor.address) and sensor.address != firstaddress:
                         result += u'                                                   %s \n' %\
