@@ -52,8 +52,8 @@ class AccountsList(BasePage):
                 account = Account()
                 account.label = u''+compte['libellePersoProduit']
                 account.currency = account.get_currency(compte['devise'])
-                account.balance = Decimal(compte['soldeDispo'])
-                account.coming = Decimal(compte['soldeAVenir'])
+                account.balance = Decimal(str(compte['soldeDispo']))
+                account.coming = Decimal(str(compte['soldeAVenir']))
                 account.type = self.ACCOUNT_TYPES.get(id_famille, Account.TYPE_UNKNOWN)
                 account.id = 0
                 account._link_id = 'KEY'+compte['key']
