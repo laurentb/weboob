@@ -58,7 +58,7 @@ class GaugeFormatter(IFormatter):
                 if int(sensor.lastvalue.level) == sensor.lastvalue.level:
                     lastvalue = "%d " % sensor.lastvalue.level
                 else:
-                    lastvalue = "%f " % sensor.lastvalue.level
+                    lastvalue = "%r " % sensor.lastvalue.level
                 if not empty(sensor.unit):
                     lastvalue += "%s" % sensor.unit
                 if first:
