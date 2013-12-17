@@ -21,9 +21,10 @@
 from weboob.tools.browser import BasePage
 from weboob.tools.date import parse_french_date
 import re
+from urlparse import urljoin
 
 
-__all__ = ['PageCity', 'PageConcert', 'PageCityList']
+__all__ = ['PageCity', 'PageConcert', 'PageCityList', 'PageDate', 'PageDates']
 
 
 class PageWithConcerts(BasePage):
@@ -58,7 +59,13 @@ class PageWithConcerts(BasePage):
         return re.search(r'c=(\d+)', url).group(1)
 
     def extract_city_from_url(self, url):
-        re.search('metal-(.+).htm$', url).group(1)
+        return re.search('metal-(.+).htm$', url).group(1)
+
+    def extract_concert_link(self, concert_table, d):
+        infos_a = concert_table.xpath('.//a[starts-with(@href, "detail-concert-metal.php")]')[0]
+        infos_a = concert_table.xpath('.//a[starts-with(@href, "detail-concert-metal.php")]')[0]
+        d['id'] = self.extract_id_from_url(infos_a.get('href'))
+        d['url'] = 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % d['id']
 
 
 class PageCity(PageWithConcerts):
@@ -68,10 +75,21 @@ class PageCity(PageWithConcerts):
 
     def extract_concert(self, concert_table):
         d = PageWithConcerts.extract_concert(self, concert_table)
-        infos_a = concert_table.xpath('.//a[starts-with(@href, "detail-concert-metal.php")]')[0]
-        d['id'] = self.extract_id_from_url(infos_a.get('href'))
-        d['url'] = 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % d['id']
+        self.extract_concert_link(concert_table, d)
         d['city_id'] = self.extract_city_from_url(self.url)
+        return d
+
+
+class PageDate(PageWithConcerts):
+    def get_concerts(self):
+        for concert_table in self.document.xpath('//div[@id="centre-page"]//div/table'):
+            yield self.extract_concert(concert_table)
+
+    def extract_concert(self, concert_table):
+        d = PageWithConcerts.extract_concert(self, concert_table)
+        self.extract_concert_link(concert_table, d)
+        city_a = concert_table.xpath('.//a[starts-with(@href, "ville-metal-")]')[0]
+        d['city_id'] = self.extract_city_from_url(city_a.get('href'))
         return d
 
 
@@ -122,3 +140,19 @@ class PageCityList(BasePage):
 
             cities[d['name']] = d
         return cities
+
+
+class PageDates(BasePage):
+    def get_dates(self):
+        for a in self.document.xpath('//div[@id="dateconcerts"]//a'):
+            d = {}
+            d['date'] = parse_french_date(a.text.strip())
+            d['url'] = urljoin(self.url, a.get('href'))
+            yield d
+
+    def get_dates_filtered(self, date_from=None, date_end=None):
+        for d in self.get_dates():
+            date = d['date']
+            if (not date_from or date_from <= date) and \
+               (not date_end or date <= date_end):
+                yield d

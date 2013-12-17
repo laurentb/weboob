@@ -50,6 +50,10 @@ class SueurDeMetalBackend(BaseBackend, ICapCalendarEvent):
         super(SueurDeMetalBackend, self).__init__(*a, **kw)
         self.cities = {}
 
+    def list_events(self, from_date, to_date=None):
+        for d in self.browser.get_concerts_date(from_date):
+            yield self._make_event(d)
+
     def search_events(self, query):
         city_id = self.find_city_id(query.city)
         for d in self.browser.get_concerts_city(city_id):
