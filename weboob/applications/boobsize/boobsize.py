@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.base import empty
 from weboob.capabilities.gauge import ICapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -25,6 +26,66 @@ from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFor
 import sys
 
 __all__ = ['Boobsize']
+
+
+class GaugeFormatter(IFormatter):
+    MANDATORY_FIELDS = ('name', 'object', 'sensors')
+
+    def start_format(self, **kwargs):
+        # Name = 27   Object = 10   City = 10  Sensors = 33
+        self.output(' Name and ID                  Object     City       Sensors                         ')
+        self.output('----------------------------+----------+----------+---------------------------------')
+
+    def format_obj(self, obj, alias):
+        name = obj.name
+        city = u""
+        if not empty(obj.city):
+            city = obj.city
+
+        # TODO: can happens ?
+        if len(obj.sensors) == 0:
+            return u' %s %s %s' %\
+                    (self.colored('%-27s' % name[:27], 'red'),
+                     self.colored('%-10s' % obj.object[:10], 'yellow'),
+                     self.colored('%-10s' % city[:10], 'yellow')
+                    )
+        else:
+            first = True
+            firstaddress = obj.sensors[0].address
+            for sensor in obj.sensors:
+                sensorname = sensor.name
+                # This is a int value, do not display it as a float
+                if int(sensor.lastvalue.level) == sensor.lastvalue.level:
+                    lastvalue = "%d " % sensor.lastvalue.level
+                else:
+                    lastvalue = "%f " % sensor.lastvalue.level
+                if not empty(sensor.unit):
+                    lastvalue += "%s" % sensor.unit
+                if first:
+                    result = u' %s %s %s ' %\
+                              (self.colored('%-27s' % name[:27], 'red'),
+                               self.colored('%-10s' % obj.object[:10], 'yellow'),
+                               self.colored('%-10s' % city[:10], 'yellow'),
+                              )
+                    if not empty(firstaddress):
+                        result += u'%s' % self.colored('%-33s' % sensor.address[:33], 'yellow')
+                    result += u'\n'
+                    result += u' %s' % self.colored('%-47s' % obj.fullid[:47], 'blue')
+                    result += u'   %s %s\n' %\
+                               (self.colored('%-20s' % sensorname[:20], 'red'),
+                                self.colored('%-13s' % lastvalue[:13], 'magenta')
+                               )
+                    first = False
+                else:
+                    result += u'                                                   %s %s\n' %\
+                               (self.colored('%-20s' % sensorname[:20], 'red'),
+                                self.colored('%-13s' % lastvalue[:13], 'magenta')
+                               )
+                    if not empty(sensor.address) and sensor.address != firstaddress:
+                        result += u'                                                   %s \n' %\
+                                   self.colored('%-33s' % sensor.address[:33], 'yellow')
+
+            return result
 
 
 class Boobsize(ReplApplication):
@@ -35,6 +96,9 @@ class Boobsize(ReplApplication):
     SHORT_DESCRIPTION = "display sensors and gauges values"
     CAPS = (ICapGauge)
     DEFAULT_FORMATTER = 'table'
+    EXTRA_FORMATTERS = {'gauge_list':   GaugeFormatter,}
+    COMMANDS_FORMATTERS = {'search':    'gauge_list',
+                          }
 
     def main(self, argv):
         self.load_config()
