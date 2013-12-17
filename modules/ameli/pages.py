@@ -22,7 +22,7 @@ from datetime import datetime
 import re
 import urllib
 from decimal import Decimal
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage,BrokenPageError
 from weboob.capabilities.bill import Subscription, Detail, Bill
 
 
@@ -31,11 +31,16 @@ __all__ = ['AmeliBasePage', 'LoginPage', 'HomePage', 'AccountPage', 'LastPayment
 # Ugly array to avoid the use of french locale
 FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
 
-
 class AmeliBasePage(BasePage):
     def is_logged(self):
-        return len(self.document.xpath('//a[@id="logout"]')) > 0
-
+        try:
+            self.parser.select(self.document.getroot(), 'a.logout', 1)
+        except BrokenPageError:
+            logged = False
+        else:
+            logged = True
+        self.logger.debug('logged: %s' % (logged))
+        return logged
 
 class LoginPage(AmeliBasePage):
     def login(self, login, password):
@@ -44,22 +49,18 @@ class LoginPage(AmeliBasePage):
         self.browser["connexioncompte_2codeConfidentiel"] = password.encode('utf8')
         self.browser.submit()
 
-
 class HomePage(AmeliBasePage):
-    def on_loaded(self):
-        pass
-
+    pass
 
 class AccountPage(AmeliBasePage):
-
     def iter_subscription_list(self):
         idents = self.document.xpath('//div[contains(@class, "blocfond")]')
         enfants = 0
         for ident in idents:
-            if len(ident.xpath('.//h4')) == 0:
+            if len(ident.xpath('.//h3')) == 0:
                 continue
 
-            name = self.parser.tocleanstring(ident.xpath('.//h4')[0])
+            name = self.parser.tocleanstring(ident.xpath('.//h3')[0])
             lis = ident.xpath('.//li')
             if len(lis) > 3:
                 number = re.sub('[^\d]+', '', ident.xpath('.//li')[3].text)
@@ -75,7 +76,7 @@ class AccountPage(AmeliBasePage):
 
 class LastPaymentsPage(AmeliBasePage):
     def iter_last_payments(self):
-        list_table = self.document.xpath('//table[@id="ligneTabDerniersPaiements"]')
+        list_table = self.document.xpath('//table[@id="tabDerniersPaiements"]')
         if len(list_table) > 0:
             table = list_table[0].xpath('.//tr')
             for tr in table:
@@ -91,14 +92,14 @@ class PaymentDetailsPage(AmeliBasePage):
             idx = 0
         else:
             idx = sub._id.replace('AFFILIE', '')
-        if len(self.document.xpath('//div[@class="centrepage"]/h3')) > idx or self.document.xpath('//table[@id="DetailPaiement3"]') > idx:
-            id_str = self.document.xpath('//div[@class="centrepage"]/h3')[idx].text.strip()
+        if len(self.document.xpath('//div[@class="centrepage"]/h2')) > idx or self.document.xpath('//table[@id="DetailPaiement3"]') > idx:
+            id_str = self.document.xpath('//div[@class="centrepage"]/h2')[idx].text.strip()
             m = re.match('.*le (.*) pour un montant de.*', id_str)
             if m:
                 id_str = m.group(1)
                 id_date = datetime.strptime(id_str, '%d/%m/%Y').date()
                 id = sub._id + "." + datetime.strftime(id_date, "%Y%m%d")
-                table = self.document.xpath('//table[@id="DetailPaiement3"]')[idx].xpath('.//tr')
+                table = self.document.xpath('//table[@class="tableau"]')[idx].xpath('.//tr')
                 line = 1
                 last_date = None
                 for tr in table:

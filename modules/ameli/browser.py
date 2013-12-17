@@ -47,31 +47,35 @@ class AmeliBrowser(BaseBrowser):
     is_logging = False
 
     def home(self):
-        if not self.is_logged():
-            self.login()
+        self.logger.debug('call Browser.home')
         self.location(self.homep)
+        if ((not self.is_logged()) and (not self.is_logging)):
+            self.login()
 
     def is_logged(self):
-        logged = self.page and self.page.is_logged() or self.is_logging
-        self.logger.debug('logged: %s' % (logged))
-        return logged
+        self.logger.debug('call Browser.is_logged')
+        return self.page.is_logged()
 
     def login(self):
+        self.logger.debug('call Browser.login')
         # Do we really need to login?
         if self.is_logged():
             self.logger.debug('Already logged in')
             return
 
+        if self.is_logging:
+            return
+            
         self.is_logging = True
 
         self.location(self.loginp)
         self.page.login(self.username, self.password)
 
-        self.is_logging = False
-
         if not self.is_logged():
             raise BrowserIncorrectPassword()
-
+            
+        self.is_logging = False         
+            
     def iter_subscription_list(self):
         if not self.is_on_page(AccountPage):
             self.location(self.accountp)
