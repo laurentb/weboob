@@ -954,20 +954,20 @@ class ReplApplication(Cmd, ConsoleApplication):
 
     def do_ls(self, line):
         """
-        ls [-d] [-s] [PATH]
+        ls [-d] [-U] [PATH]
 
         List objects in current path.
         If an argument is given, list the specified path.
-        Use -s option to sort deterministic sort of results.
+        Use -U option to not sort results.
         """
         # TODO: real parsing of options
         path = line.strip()
         only = False
-        sort = False
+        sort = True
 
-        if '-s' in line.strip().partition(' '):
+        if '-U' in line.strip().partition(' '):
             path = line.strip().partition(' ')[-1]
-            sort = True
+            sort = False
 
         if '-d' in line.strip().partition(' '):
             path = None

@@ -241,10 +241,10 @@ class Boobank(ReplApplication):
 
     def do_list(self, line):
         """
-        list [-s]
+        list [-U]
 
         List accounts.
-        Use -s option to display accounts in alphabetical order.
+        Use -U to disable sorting of results.
         """
         return self.do_ls(line)
 
