@@ -109,3 +109,10 @@ class SueurDeMetalBackend(BaseBackend, ICapCalendarEvent):
         for c in self.cities.values():
             if c['id'] == _id:
                 return c['name']
+
+    def fill_concert(self, obj, fields):
+        if set(fields) & set(('price', 'location', 'description')):
+            return self.get_event(obj.id)
+        return obj
+
+    OBJECTS = {Concert: fill_concert}
