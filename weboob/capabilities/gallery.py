@@ -132,3 +132,12 @@ class ICapGallery(IBaseCap):
         :rtype: :class:`Gallery`
         """
         raise NotImplementedError()
+
+    def iter_gallery_images(self, gallery):
+        """
+        Iterate images from a Gallery.
+
+        :type gallery: BaseGallery
+        :rtype: iter(BaseImage)
+        """
+        raise NotImplementedError()
