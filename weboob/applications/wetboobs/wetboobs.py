@@ -158,6 +158,7 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapGauge):
             self.cached_format(gauge)
+        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
 
     def complete_gauge(self, text, line, *ignored):
         args = line.split(' ')
@@ -176,6 +177,7 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
+        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
 
     def complete_last_sensor_measure(self, text, line, *ignored):
         args = line.split(' ')
@@ -194,6 +196,7 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
             self.format(measure)
+        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
 
     def do_sensors(self, line):
         """
@@ -207,3 +210,4 @@ class WetBoobs(ReplApplication):
         self.start_format()
         for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=ICapGauge):
             self.format(sensor)
+        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
