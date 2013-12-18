@@ -97,10 +97,16 @@ class InfoStationPage(BasePage):
 class ListStationsPage(BasePage):
     def get_station_list(self):
         gauges = []
-        for marker in self.parser.select(self.document.getroot(), 'marker'):
-            gauge = Gauge(int(marker.get('id')))
-            gauge.name = unicode(marker.get('name'))
-            gauge.city = u"Lille"
-            gauge.object = u'vLille'
-            gauges.append(gauge)
+
+        trs = self.document.getroot().xpath('//table[@id="ctl00_Contenu_ListeStations1_ListViewStations_itemPlaceholderContainer"]/tr')
+
+        for tr in trs:
+            if not ('id' in tr.attrib):
+                tds = self.parser.select(tr, 'td/span', method='xpath')
+                if len(tds) > 4:
+                    gauge = Gauge(int(tds[0].text))
+                    gauge.name = u'%s' % tds[1].text
+                    gauge.city = u'%s' % tds[3].text
+                    gauge.object = u'vLille'
+                    gauges.append(gauge)
         return gauges

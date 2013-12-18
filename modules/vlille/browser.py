@@ -32,13 +32,15 @@ class VlilleBrowser(BaseBrowser):
     ENCODING = None
 
     PAGES = {
+        '%s://%s/les-stations-vlille.aspx' % (PROTOCOL, DOMAIN): ListStationsPage,
         '%s://%s/xml-station.aspx\?borne=.*' % (PROTOCOL, DOMAIN): InfoStationPage,
         '%s://%s/xml-stations.aspx' % (PROTOCOL, DOMAIN): ListStationsPage,
     }
 
     def get_station_list(self):
         if not self.is_on_page(ListStationsPage):
-            self.location(u'%s://%s/xml-stations.aspx' % (self.PROTOCOL, self.DOMAIN))
+            self.location('%s://%s/les-stations-vlille.aspx' % (self.PROTOCOL, self.DOMAIN))
+            #self.location(u'%s://%s/xml-stations.aspx' % (self.PROTOCOL, self.DOMAIN))
         return self.page.get_station_list()
 
     def get_station_infos(self, gauge):
