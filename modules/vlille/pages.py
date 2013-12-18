@@ -100,7 +100,7 @@ class ListStationsPage(BasePage):
         for marker in self.parser.select(self.document.getroot(), 'marker'):
             gauge = Gauge(int(marker.get('id')))
             gauge.name = unicode(marker.get('name'))
-            gauge.city = gauge.name
+            gauge.city = u"Lille"
             gauge.object = u'vLille'
             gauges.append(gauge)
         return gauges
