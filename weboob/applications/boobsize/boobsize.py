@@ -42,13 +42,13 @@ class GaugeFormatter(IFormatter):
         if not empty(obj.city):
             city = obj.city
 
-        # TODO: can happens ?
-        if len(obj.sensors) == 0:
-            return u' %s %s %s' %\
+        if not obj.sensors or (len(obj.sensors) == 0):
+            result = u' %s %s %s \n' %\
                    (self.colored('%-27s' % name[:27], 'red'),
                     self.colored('%-10s' % obj.object[:10], 'yellow'),
                     self.colored('%-10s' % city[:10], 'yellow')
                     )
+            result += u' %s \n' % self.colored('%-47s' % obj.fullid[:47], 'blue')
         else:
             first = True
             firstaddress = obj.sensors[0].address
@@ -88,7 +88,7 @@ class GaugeFormatter(IFormatter):
                         result += u'                                                   %s \n' %\
                                   self.colored('%-33s' % sensor.address[:33], 'yellow')
 
-            return result
+        return result
 
 
 class Boobsize(ReplApplication):
