@@ -75,7 +75,7 @@ class AdvertPage(BasePage):
             advert.publication_date = datetime.date(yyyy, mm, dd)
 
         title = self.parser.select(div, "h1", 1, method='xpath').text_content().strip()
-        town = self.parser.select(div, "h1/span[@class='town']", 1, method='xpath').text_content()
+        town = self.parser.select(div, "h1/span/span[@class='town']", 1, method='xpath').text_content()
         page_title = self.parser.select(div, "h1/span[@class='pageTitle']", 1, method='xpath').text_content()
         advert.title = u'%s' % title.replace(town, '').replace(page_title, '')
 
