@@ -20,9 +20,7 @@
 
 from weboob.capabilities.video import BaseVideo
 
-
 __all__ = ['NolifeTVVideo']
-
 
 class NolifeTVVideo(BaseVideo):
     def __init__(self, *args, **kwargs):
@@ -31,4 +29,4 @@ class NolifeTVVideo(BaseVideo):
 
     @classmethod
     def id2url(cls, _id):
-        return 'http://online.nolife-tv.com/emission-%s/' % _id
+        return u'http://mobile.nolife-tv.com/online/emission-%s/' % _id

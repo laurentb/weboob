@@ -18,73 +18,90 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
+
 import urllib
 
-from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.browser.decorators import id2url
-
-from .pages.index import IndexPage
-from .pages.video import VideoPage
 from .video import NolifeTVVideo
-
+from .pages import VideoPage, VideoListPage, FamilyPage, AboPage, LoginPage, HomePage
 
 __all__ = ['NolifeTVBrowser']
 
-
 class NolifeTVBrowser(BaseBrowser):
-    DOMAIN = 'online.nolife-tv.com'
-    ENCODING = 'utf-8'
-    PAGES = {r'http://online.nolife-tv.com/index.php\??': IndexPage,
-             r'http://online.nolife-tv.com/': IndexPage,
-             r'http://online.nolife-tv.com/do.php': IndexPage,
-             r'http://online.nolife-tv.com/emission-(?P<id>[^/]+)/?.*': VideoPage}
+    USER_AGENT = BaseBrowser.USER_AGENTS['desktop_firefox']
+    DOMAIN = 'mobile.nolife-tv.com'
+    PROTOCOL = 'http'
+    PAGES = { r'http://mobile.nolife-tv.com/online/familles-\w+/': FamilyPage,
+              r'http://mobile.nolife-tv.com/online/emission-(?P<id>\d+)/': VideoPage,
+              'http://mobile.nolife-tv.com/do.php': VideoListPage,
+              'http://mobile.nolife-tv.com/online/': VideoListPage,
+              'http://mobile.nolife-tv.com/abonnement/': AboPage,
+              'http://mobile.nolife-tv.com/login': LoginPage,
+              'http://mobile.nolife-tv.com/': HomePage,
+              }
+    AVAILABLE_VIDEOS = ['[Gratuit]']
 
     def is_logged(self):
-        if self.password is None:
-            return True
-
-        if not self.page:
-            return False
-
-        l = self.page.document.xpath('//form[@name="login"]')
-        return len(l) == 0
+        return not self.is_on_page(HomePage) or self.page.is_logged()
 
     def login(self):
-        if self.password is None:
-            return
+        if not self.is_on_page(LoginPage):
+            self.location('/login', no_login=True)
 
-        params = {'cookieuser':  1,
-                  'login':       1,
-                  'username':    self.username,
-                  'password':    self.password,
-                 }
+        self.page.login(self.username, self.password)
 
-        self.readurl('http://online.nolife-tv.com/login', urllib.urlencode(params))
-
-        self.location('/', no_login=True)
-
-        if not self.is_logged():
+        if self.is_on_page(LoginPage):
             raise BrowserIncorrectPassword()
+
+        self.location('/abonnement/', no_login=True)
+        assert self.is_on_page(AboPage)
+
+        self.AVAILABLE_VIDEOS = self.page.get_available_videos()
 
     @id2url(NolifeTVVideo.id2url)
     def get_video(self, url, video=None):
         self.location(url)
-        assert self.is_on_page(VideoPage), 'Should be on video page.'
+        assert self.is_on_page(VideoPage)
+
         return self.page.get_video(video)
 
+    def iter_family(self, type, sub):
+        self.location('/online/familles-%s/' % type)
+        assert self.is_on_page(FamilyPage)
+
+        return self.page.iter_family(sub)
+
+    def iter_category(self, type):
+        self.location('/online/familles-%s/' % type)
+        assert self.is_on_page(FamilyPage)
+
+        return self.page.iter_category()
+
+    def iter_video(self, family):
+        data = { 'a': 'ge',
+                 'famille': family,
+                 'emissions': 0 }
+
+        while True:
+            self.location('/do.php', urllib.urlencode(data))
+            assert self.is_on_page(VideoListPage)
+
+            if self.page.is_list_empty():
+                break
+
+            for vid in self.page.iter_video(self.AVAILABLE_VIDEOS):
+                yield vid
+            data['emissions'] = data['emissions'] + 1
+
+    def get_latest(self):
+        return self.iter_video(0)
+
     def search_videos(self, pattern):
-        data = {'a':        'search',
-                'search':   pattern.encode('utf-8'),
-                'vu':       'all',
-               }
-        self.openurl('/do.php', urllib.urlencode(data))
-        self.location('/do.php', 'a=em')
+        data = { 'search': pattern,
+                 'submit': 'Rechercher' }
+        self.location('/online/', urllib.urlencode(data))
+        assert self.is_on_page(VideoListPage)
 
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
-
-    def latest_videos(self):
-        self.location('/do.php', 'a=em')
-
-        assert self.is_on_page(IndexPage)
-        return self.page.iter_videos()
+        for vid in self.page.iter_video(self.AVAILABLE_VIDEOS):
+            yield vid
