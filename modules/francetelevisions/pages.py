@@ -22,7 +22,7 @@ import re
 from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities import UserError
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.browser import BasePage, BrokenPageError
 
 
@@ -59,7 +59,8 @@ class IndexPage(BasePage):
             video.duration = datetime.timedelta(hours=t[0], minutes=t[1])
 
             url = self.parser.select(div, 'a.vignette img', 1).attrib['src']
-            video.thumbnail = Thumbnail(url)
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url = video.thumbnail.id
 
             yield video
 
