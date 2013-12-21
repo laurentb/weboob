@@ -22,7 +22,7 @@ import datetime
 import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 
 from ..video import InaVideo
 
@@ -44,7 +44,9 @@ class SearchPage(BasePage):
 
             video = InaVideo('boutique.%s' % id)
 
-            video.thumbnail = Thumbnail(u'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src'])
+            url = u'http://boutique.ina.fr%s' % li.find('a').find('img').attrib['src']
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url = video.thumbnail.id
 
             video.title = unicode(self.parser.select(li, 'p.titre', 1).text)
 
