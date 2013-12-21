@@ -20,8 +20,8 @@
 import re
 
 from weboob.capabilities.base import UserError
+from weboob.capabilities.image import BaseImage
 from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities import NotAvailable
 
 
@@ -46,7 +46,9 @@ class IndexPage(BasePage):
             video.rating_max = None
 
             thumb = self.parser.select(div, 'img', 1)
-            video.thumbnail = Thumbnail(u'http://www.arretsurimages.net' + thumb.attrib['src'])
+            url = u'http://www.arretsurimages.net' + thumb.attrib['src']
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url = video.thumbnail.id
 
             yield video
 
