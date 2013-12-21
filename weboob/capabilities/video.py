@@ -20,7 +20,6 @@
 
 from datetime import timedelta
 
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from .base import StringField, Field
 from .image import ICapImage, BaseImage
 from .audio import BaseAudio
@@ -36,7 +35,6 @@ class BaseVideo(BaseImage):
     """
     duration =  Field('file duration', int, long, timedelta)
 
-    thumbnail =     Field('Thumbnail of video', Thumbnail)
 class ICapVideo(ICapImage):
     """
     Video file provider.
