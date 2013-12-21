@@ -30,9 +30,9 @@ import re
 import urllib
 
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.misc import to_unicode
 from weboob.tools.value import ValueBackendPassword, Value
@@ -71,7 +71,8 @@ class YoutubeBackend(BaseBackend, ICapVideo, ICapCollection):
         video = YoutubeVideo(to_unicode(entry.id.text.split('/')[-1].strip()))
         video.title = to_unicode(entry.media.title.text.strip())
         video.duration = datetime.timedelta(seconds=int(entry.media.duration.seconds.strip()))
-        video.thumbnail = Thumbnail(to_unicode(entry.media.thumbnail[0].url.strip()))
+        video.thumbnail = BaseImage(entry.media.thumbnail[0].url.strip())
+        video.thumbnail.url = to_unicode(video.thumbnail.id)
 
         if entry.author[0].name.text:
             video.author = to_unicode(entry.author[0].name.text.strip())
