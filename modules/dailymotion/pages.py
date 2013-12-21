@@ -21,8 +21,8 @@ from weboob.tools.json import json
 import datetime
 import re
 
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities import NotAvailable
+from weboob.capabilities.image import BaseImage
 from weboob.tools.misc import html2text
 from weboob.tools.browser import BasePage, BrokenPageError
 
@@ -66,7 +66,8 @@ class IndexPage(BasePage):
             url = unicode(self.parser.select(div, 'img.preview', 1).attrib['data-src'])
             # remove the useless anti-caching
             url = re.sub('\?\d+', '', url)
-            video.thumbnail = Thumbnail(unicode(url))
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url = video.thumbnail.id
 
             video.set_empty_fields(NotAvailable, ('url',))
             yield video
