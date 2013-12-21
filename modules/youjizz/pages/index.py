@@ -22,7 +22,7 @@ import datetime
 import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.misc import to_unicode
 
 from ..video import YoujizzVideo
@@ -41,7 +41,8 @@ class IndexPage(BasePage):
 
             video = YoujizzVideo(_id)
 
-            video.thumbnail = Thumbnail(unicode(span.find('.//img').attrib['src']))
+            video.thumbnail = BaseImage(span.find('.//img').attrib['src'])
+            video.thumbnail.url = video.thumbnail.id
 
             title_el = self.parser.select(span, 'span#title1', 1)
             video.title = to_unicode(title_el.text.strip())
