@@ -27,8 +27,8 @@
 import datetime
 from weboob.capabilities.base import UserError, StringField
 from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.image import BaseImage
 from weboob.tools.backend import BaseBackend
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.tools.misc import to_unicode
 
 from quvi import LibQuvi, QuviError
@@ -70,9 +70,9 @@ class QuviBackend(BaseBackend, ICapVideo):
         if duration:
             video.duration = datetime.timedelta(milliseconds=duration)
         if info.get('thumbnail'):
-            video.thumbnail = Thumbnail(info.get('thumbnail'))
+            video.thumbnail = BaseImage(info.get('thumbnail'))
+            video.thumbnail.url = video.thumbnail.id
         return video
-
 
 class QuviVideo(BaseVideo):
     BACKENDS = {
