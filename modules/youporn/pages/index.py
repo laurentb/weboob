@@ -21,7 +21,7 @@
 import datetime
 
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 
 from .base import PornPage
 from ..video import YoupornVideo
@@ -47,7 +47,8 @@ class IndexPage(PornPage):
 
             video = YoupornVideo(int(_id))
             video.title = unicode(a.text.strip())
-            video.thumbnail = Thumbnail(unicode(thumbnail_url))
+            video.thumbnail = BaseImage(thumbnail_url)
+            video.thumbnail.url = video.thumbnail.id
 
             hours = minutes = seconds = 0
             div = li.cssselect('div.duration')
