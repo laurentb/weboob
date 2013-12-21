@@ -20,7 +20,7 @@
 import datetime
 import re
 
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.browser import BasePage, BrokenPageError
 
 
@@ -50,7 +50,8 @@ class IndexPage(BasePage):
             video.rating = len(stars)
             video.rating_max = 5
 
-            video.thumbnail = Thumbnail ( unicode ( 'http://www.trictrac.tv/%s' % url ) )
+            video.thumbnail = BaseImage('http://www.trictrac.tv/%s' % url)
+            video.thumbnail.url = video.thumbnail.id
 
             yield video
 
