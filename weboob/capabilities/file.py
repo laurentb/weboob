@@ -30,6 +30,7 @@ class BaseFile(CapBaseObject):
     """
     title =         StringField('File title')
     url =           StringField('File URL')
+    ext =           StringField('File extension')
     author =        StringField('File author')
     description =   StringField('File description')
     date =          DateField('File publication date')

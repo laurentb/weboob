@@ -31,7 +31,6 @@ class BaseAudio(BaseFile):
     """
     Represent an audio file
     """
-    ext =       StringField('Audio file extension')
     duration =  Field('Audio file duration', int, long, timedelta)
     bitrate =   Field('Audio stream bit rate un Kbps', int)
     format =    StringField('Audio stream format')
