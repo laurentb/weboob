@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2012 Romain Bignon, Christophe Benz
+# Copyright(C) 2010-2013 Romain Bignon, Christophe Benz
+# Copyright(C) 2013 Pierre Mazière
 #
 # This file is part of weboob.
 #
@@ -17,60 +18,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from datetime import timedelta
 
-from .base import IBaseCap, CapBaseObject, NotAvailable, StringField, Field, DateField
 from weboob.tools.capabilities.thumbnail import Thumbnail
-
+from .base import StringField, Field
+from .image import ICapImage, BaseImage
+from .audio import BaseAudio
 
 __all__ = ['BaseVideo', 'ICapVideo']
 
 
-class BaseVideo(CapBaseObject):
+class BaseVideo(BaseImage):
     """
     Represents a video.
 
     This object has to be inherited to specify how to calculate the URL of the video from its ID.
     """
+    duration =  Field('file duration', int, long, timedelta)
 
-    title =         StringField('Title of video')
-    url =           StringField('URL to the video file')
-    ext =           StringField('Extension of video')
-    author =        StringField('Author of video')
-    description =   StringField('Description of video')
-    duration =      Field('Duration of video', int, long, timedelta)
-    date =          DateField('Date when the video has been published')
-    rating =        Field('Rating of video', int, long, float, default=NotAvailable)
-    rating_max =    Field('Max rating', int, long, float, default=NotAvailable)
     thumbnail =     Field('Thumbnail of video', Thumbnail)
-    nsfw =          Field('Is this video Not Safe For Work', bool, default=False)
-
-    @classmethod
-    def id2url(cls, _id):
-        """Overloaded in child classes provided by backends."""
-        raise NotImplementedError()
-
-    @property
-    def page_url(self):
-        """
-        Get page URL of the video.
-        """
-        return self.id2url(self.id)
-
-
-class ICapVideo(IBaseCap):
+class ICapVideo(ICapImage):
     """
-    This capability represents the ability for a website backend to provide videos.
+    Video file provider.
     """
-    (SEARCH_RELEVANCE,
-     SEARCH_RATING,
-     SEARCH_VIEWS,
-     SEARCH_DATE) = range(4)
 
-    def search_videos(self, pattern, sortby=SEARCH_RELEVANCE, nsfw=False):
+    def search_videos(self, pattern, sortby=ICapImage.SEARCH_RELEVANCE, nsfw=False):
         """
-        Iter results of a search on a pattern.
+        search for a video file
 
         :param pattern: pattern to search on
         :type pattern: str
@@ -79,14 +53,14 @@ class ICapVideo(IBaseCap):
         :type nsfw: bool
         :rtype: iter[:class:`BaseVideo`]
         """
-        raise NotImplementedError()
+        return self.search_image(pattern, sortby, nsfw)
 
-    def get_video(self, _id):
+    def get_video(self, id):
         """
-        Get a Video from an ID.
+        Get a video file from an ID.
 
-        :param _id: the video id. It can be a numeric ID, or a page url
+        :param _id: video file ID
         :type _id: str
         :rtype: :class:`BaseVideo` or None is fot found.
         """
-        raise NotImplementedError()
+        return self.get_image(id)
