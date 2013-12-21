@@ -94,6 +94,9 @@ class AdvertPage(BasePage):
         if len(formation) != 0:
             advert.formation = u'%s' % formation[0].text
 
-        advert.experience = u'%s' % self.parser.select(jobsummary, 'dl/dd/span[@itemprop="qualifications"]', 1, method='xpath').text
+        experience = u'%s' % self.parser.select(jobsummary, 'dl/dd/span[@itemprop="qualifications"]', method='xpath')
+        if len(experience) != 0:
+            advert.experience = experience
+
         advert.url = url
         return advert
