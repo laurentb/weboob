@@ -29,7 +29,7 @@ import datetime
 from dateutil.parser import parse as parse_dt
 
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.browser import BrokenPageError
 
 #HACK
@@ -70,7 +70,8 @@ class IndexPage(BasePage):
             # get thumbnail
             img = self.parser.select(a, 'div.featured_image img', 1)
             if img is not None:
-                video.thumbnail = Thumbnail(unicode(img.attrib['src']))
+                video.thumbnail = BaseImage(img.attrib['src'])
+                video.thumbnail.url = video.thumbnail.id
             else:
                 video.thumbnail = NotAvailable
 
