@@ -24,7 +24,7 @@ from dateutil.parser import parse as parse_dt
 import urllib
 
 from weboob.capabilities.base import NotAvailable, UserError
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.misc import to_unicode
 
@@ -67,7 +67,8 @@ class VideoPage(BasePage):
 
         meta = self.parser.select(self.document.getroot(), 'meta[property="og:image"]', 1)
         try:
-            video.thumbnail = Thumbnail(unicode(meta.attrib['content']))
+            video.thumbnail = BaseImage(meta.attrib['content'])
+            video.thumbnail.url = video.thumbnail.id
         except BrokenPageError:
             video.thumbnail = NotAvailable
 

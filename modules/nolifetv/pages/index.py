@@ -22,8 +22,8 @@ from datetime import datetime
 import re
 
 from weboob.tools.browser import BasePage, BrokenPageError
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.image import BaseImage
 
 from ..video import NolifeTVVideo
 
@@ -47,7 +47,9 @@ class IndexPage(BasePage):
             except IndexError:
                 video.description = NotAvailable
 
-            video.thumbnail = Thumbnail(unicode(img.attrib['src']))
+            url = img.attrib['src']
+            video.thumbnail = BaseImage(url)
+            video.thumbnail.url = video.thumbnail.id
             try:
                 dparts = self.parser.select(div, 'span.date_emission', 1).text.strip().split('/')
                 hparts = self.parser.select(div, 'span.hour_emission', 1).text.strip().split('h')
