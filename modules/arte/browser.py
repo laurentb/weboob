@@ -22,7 +22,7 @@ import datetime
 import urllib
 
 from weboob.capabilities import NotAvailable
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
 from weboob.tools.json import json as simplejson
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
@@ -132,7 +132,9 @@ class ArteBrowser(BaseBrowser):
         else:
             video.title = u'%s' % (item['VTI'])
         video.rating = int(item['VRT'])
-        video.thumbnail = Thumbnail(u'%s' % item['programImage'])
+        url = u'%s' % item['programImage']
+        video.thumbnail = BaseImage(url)
+        video.thumbnail.url=video.thumbnail.id
         video.duration = datetime.timedelta(seconds=int(item['videoDurationSeconds']))
         video.set_empty_fields(NotAvailable, ('url',))
         if 'VDE' in item:
