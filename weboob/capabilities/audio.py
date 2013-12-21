@@ -59,4 +59,4 @@ class ICapAudio(ICapFile):
         :type id: str
         :rtype: :class:`BaseAudio`]
         """
-        return self.get_file(self, id)
+        return self.get_file(id)

@@ -70,7 +70,7 @@ class ICapAudioStream(ICapAudio):
         :param sortby: sort by ... (use SEARCH_* constants)
         :rtype: iter[:class:`BaseAudioStream`]
         """
-        return self.search_audio(self, pattern, sortby)
+        return self.search_audio(pattern, sortby)
 
     def get_audiostream(self, id):
         """
@@ -80,4 +80,4 @@ class ICapAudioStream(ICapAudio):
         :type id: str
         :rtype: :class:`BaseAudioStream`
         """
-        return self.get_audio(self, id)
+        return self.get_audio(id)
