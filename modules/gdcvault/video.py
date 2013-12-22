@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.image import BaseImage
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.capabilities.thumbnail import Thumbnail
 
 import re
 from dateutil.parser import parse as parse_dt
@@ -77,7 +77,8 @@ class GDCVaultVideo(BaseVideo):
             video.description = unicode(data.get('description', ''))
 
         if 'image' in data:
-            video.thumbnail = Thumbnail(unicode(data['image']))
+            video.thumbnail = BaseImage(data['image'])
+            video.thumbnail.url = video.thumbnail.id
 
         if 'speakers_name' in data:
             video.author = unicode(", ".join(data['speakers_name']))
