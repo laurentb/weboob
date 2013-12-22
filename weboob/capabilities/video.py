@@ -20,9 +20,9 @@
 
 from datetime import timedelta
 
-from .base import StringField, Field
+from .base import Field
 from .image import ICapImage, BaseImage
-from .audio import BaseAudio
+
 
 __all__ = ['BaseVideo', 'ICapVideo']
 

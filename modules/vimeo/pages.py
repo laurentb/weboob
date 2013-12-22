@@ -64,7 +64,7 @@ class VideoPage(BasePage):
 
         obj = self.parser.select(self.document.getroot(), 'meta[itemprop=thumbnailUrl]')
         if len(obj) > 0:
-            v.thumbnail = BaseIamge(obj[0].attrib['content'])
+            v.thumbnail = BaseImage(obj[0].attrib['content'])
             v.thumbnail.url = v.thumbnail.id
 
         data = None
@@ -89,7 +89,8 @@ class VideoPage(BasePage):
         if v.title is None:
             v.title = unicode(data['video']['title'])
         if v.thumbnail is None:
-            v.thumbnail = Thumbnail(unicode(data['video']['thumbnail']))
+            v.thumbnail = BaseImage(data['video']['thumbnail'])
+            v.thumbnail.url = v.thumbnail.id
         v.author = data['video']['owner']['name']
         v.duration = datetime.timedelta(seconds=int(data['video']['duration']))
 
