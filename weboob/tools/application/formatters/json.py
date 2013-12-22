@@ -36,7 +36,7 @@ class Encoder(json.JSONEncoder):
                 dct = obj.to_dict()
             except AttributeError:
                 return str(obj)
-            for z in dct:
+            for z in dct.itervalues():
                 return z
 
 
