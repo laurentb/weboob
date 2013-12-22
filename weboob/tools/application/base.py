@@ -138,6 +138,7 @@ class BaseApplication(object):
             self.CONFDIR = self.weboob.workdir
         self.config = None
         self.options = None
+        self.condition = None
         if option_parser is None:
             self._parser = OptionParser(self.SYNOPSIS, version=self._get_optparse_version())
         else:
