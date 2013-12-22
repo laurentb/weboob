@@ -41,7 +41,7 @@ class IndexPage(BasePage):
 
             video = YoujizzVideo(_id)
 
-            video.thumbnail = BaseImage(span.find('.//img').attrib['src'])
+            video.thumbnail = BaseImage(span.find('.//img').attrib['data-original'])
             video.thumbnail.url = video.thumbnail.id
 
             title_el = self.parser.select(span, 'span#title1', 1)
