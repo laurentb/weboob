@@ -19,10 +19,11 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
-from weboob.capabilities.video import BaseVideo
 from weboob.capabilities import NotAvailable
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
+from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.collection import Collection
+
 import hashlib
 import copy
 import uuid
@@ -136,7 +137,8 @@ class GroovesharkBrowser(BaseBrowser):
             video.title = u'Song - %s' % song['SongName'].encode('ascii', 'replace')
             video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
             video.description = u'%s - %s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'), song['Year'].encode('ascii', 'replace'))
-            video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+            video.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+            video.thumbnail.url = video.thumbnail.id
             video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.rating = float(song['AvgRating'])
             try:
@@ -163,7 +165,8 @@ class GroovesharkBrowser(BaseBrowser):
             video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
             video.description = u'%s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'))
             if song['CoverArtFilename']:
-                video.thumbnail = Thumbnail(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+                video.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+                video.thumbnail.url = video.thumbnail.id
             video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
             video.date = NotAvailable
             return video
