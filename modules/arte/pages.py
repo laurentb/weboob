@@ -22,8 +22,8 @@ import re
 import HTMLParser
 
 from weboob.tools.browser import BasePage
-from weboob.tools.capabilities.thumbnail import Thumbnail
 from weboob.capabilities import NotAvailable
+from weboob.capabilities.image import BaseImage
 
 from .video import ArteLiveVideo
 from .collection import ArteLiveCollection
@@ -63,7 +63,8 @@ class ArteLiveCategorieVideoPage(BasePage):
                 video.description = parsed_element['pitch']
                 video.author = parsed_element['author']
                 if parsed_element['pict']:
-                    video.thumbnail = Thumbnail(parsed_element['pict'])
+                    video.thumbnail = BaseImage(parsed_element['pict'])
+                    video.thumbnail.url = video.thumbnail.id
                 video.set_empty_fields(NotAvailable, ('url',))
                 videos.append(video)
         return videos
