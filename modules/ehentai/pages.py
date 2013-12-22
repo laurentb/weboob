@@ -17,13 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from weboob.tools.browser import BasePage
 from weboob.tools.misc import html2text
-from weboob.tools.capabilities.thumbnail import Thumbnail
+from weboob.capabilities.image import BaseImage
+
 from datetime import datetime
 import re
 
 from .gallery import EHentaiGallery
+
 
 __all__ = ['GalleryPage', 'ImagePage', 'IndexPage', 'HomePage', 'LoginPage']
 
@@ -93,7 +96,8 @@ class GalleryPage(BasePage):
             thumbnail_style = self.document.xpath("//div[@class='gdtm']/div/attribute::style")[0]
             thumbnail_url = re.search(r"background:[^;]+url\((.+?)\)", thumbnail_style).group(1)
 
-        gallery.thumbnail = Thumbnail(unicode(thumbnail_url))
+        gallery.thumbnail = BaseImage(thumbnail_url)
+        gallery.thumbnail.url = gallery.thumbnail.id
 
 
 class ImagePage(BasePage):
