@@ -121,11 +121,17 @@ Thomas Lecavelier <thomas-weboob@lecavelier.name>
         * Patches on radioob.
         * nihonnooto module maintainer.
 
+Clément Calmels <cboulte@gmail.com>
+        * Patches on NoLifeTV.
+
 Gabriel Serme <gabriel@serme.net>
         * Support of two-factor authentication for Boursorama.
 
 Jean-Philippe Dutrève <jdutreve@winancial.com>
         * Fixes on bank modules.
+
+Vincent Texier <vit@free.fr>
+        * Fixes on YouJizz.
 
 Mathieu Lordon <mathieu.lordon@gmail.com>
         * Fixes on bank modules.
@@ -225,6 +231,9 @@ Juliette Stehlé <juliette.stehle@gmail.com>
 
 Etienne Carriere <etienne.carriere@gmail.com>
         * Fix on dailymotion
+
+Simon Murail <simurail@yahoo.fr>
+        * Contribution to bank capability.
 
 Alexandre Bonhomme <alexandre.bonhomme@etudiant.univ-lille1.fr>
         * Fix and tests on several modules
