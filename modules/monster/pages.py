@@ -67,36 +67,62 @@ class AdvertPage(BasePage):
             _id = u'%s' % re_id.search(url).group(1)
             advert = MonsterJobAdvert(_id)
 
-        div = self.document.getroot().xpath('//div[@id="jobcopy"]')[0]
+        advert.url = url
+
+        div_normal = self.document.getroot().xpath('//div[@id="jobcopy"]')
+        div_special = self.document.getroot().xpath('//div[@id="divtxt"]')
+        if len(div_normal) > 0:
+            return self.fill_normal_advert(advert, div_normal[0])
+
+        elif len(div_special) > 0:
+            return self.fill_special_advert(advert, div_special[0])
+
+        else:
+            return advert
+
+    def fill_special_advert(self, advert, div):
+        advert.title = u'%s' % self.parser.select(div, 'div[@class="poste"]', 1, method='xpath').text
+        description = self.parser.select(div, 'div[@id="jobBodyContent"]', 1, method='xpath')
+        advert.description = html2text(self.parser.tostring(description))
+
+        titresmenuG = self.document.getroot().xpath('//div[@id="divmenuGauche"]')[0]
+        contract_type = self.parser.select(titresmenuG, '//span[@itemprop="employmentType"]', method='xpath')
+        if len(contract_type) != 0:
+            advert.contract_type = u'%s' % contract_type[0].text_content()
+
+        return self.fill_advert(advert, titresmenuG)
+
+    def fill_normal_advert(self, advert, div):
         advert.title = u'%s' % self.parser.select(div, 'h1', 1, method='xpath').text
         description = self.parser.select(div, 'div[@id="jobBodyContent"]', 1, method='xpath')
         advert.description = html2text(self.parser.tostring(description))
 
         jobsummary = self.document.getroot().xpath('//div[@id="jobsummary_content"]')[0]
-
-        society_name = self.parser.select(jobsummary, 'dl/dd/span[@itemprop="name"]', method='xpath')
-        if len(society_name) != 0:
-            advert.society_name = u'%s' % society_name[0].text
-
-        place = self.parser.select(jobsummary, 'dl/dd/span[@itemprop="jobLocation"]', method='xpath')
-        if len(place) != 0:
-            advert.place = u'%s' % place[0].text
-
         contract_type = self.parser.select(jobsummary, 'dl/dd[@class="multipleddlast"]/span', method='xpath')
         if len(contract_type) != 0:
-            advert.contract_type = u'%s' % contract_type[0].text
+            advert.contract_type = u'%s' % contract_type[0].text_content()
 
-        pay = self.parser.select(jobsummary, 'dl/dd/span[@itemprop="baseSalary"]', method='xpath')
+        society_name = self.parser.select(jobsummary, '//span[@itemprop="name"]', method='xpath')
+        if len(society_name) != 0:
+            advert.society_name = u'%s' % society_name[0].text_content()
+
+        return self.fill_advert(advert, jobsummary)
+
+    def fill_advert(self, advert, jobsummary):
+        place = self.parser.select(jobsummary, '//span[@itemprop="jobLocation"]', method='xpath')
+        if len(place) != 0:
+            advert.place = u'%s' % place[0].text_content()
+
+        pay = self.parser.select(jobsummary, '//span[@itemprop="baseSalary"]', method='xpath')
         if len(pay) != 0:
-            advert.pay = u'%s' % pay[0].text
+            advert.pay = u'%s' % pay[0].text_content()
 
-        formation = self.parser.select(jobsummary, 'dl/dd/span[@itemprop="educationRequirements"]', method='xpath')
+        formation = self.parser.select(jobsummary, '//span[@itemprop="educationRequirements"]', method='xpath')
         if len(formation) != 0:
-            advert.formation = u'%s' % formation[0].text
+            advert.formation = u'%s' % formation[0].text_content()
 
-        experience = u'%s' % self.parser.select(jobsummary, 'dl/dd/span[@itemprop="qualifications"]', method='xpath')
+        experience = self.parser.select(jobsummary, '//span[@itemprop="qualifications"]', method='xpath')
         if len(experience) != 0:
-            advert.experience = experience
+            advert.experience = u'%s' % experience[0].text_content()
 
-        advert.url = url
         return advert
