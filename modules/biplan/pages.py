@@ -50,11 +50,21 @@ class ProgramPage(BasePage):
 
         _id = re_id.search(a_id.attrib['href']).group(1)
         date = self.parse_date(b[0].text_content())
-        time_price = parse_b(b[1].text_content())
 
-        start_time = self.parse_start_time(time_price)
-        start_date = datetime.combine(date, start_time)
-        end_date = datetime.combine(start_date, time.max)
+        re_time = re.compile('(\d{1,2}h[\d{1,2}]?)', re.DOTALL)
+        start_end_date = re_time.findall(b[1].text_content().split('-')[0].strip())
+
+        if start_end_date:
+            time_price = parse_b(b[1].text_content())
+
+            start_time = self.parse_start_time(start_end_date[0])
+            start_date = datetime.combine(date, start_time)
+
+            if len(start_end_date) > 1:
+                end_time = self.parse_start_time(start_end_date[1])
+                end_date = datetime.combine(start_date, end_time)
+            else:
+                end_date = datetime.combine(start_date, time.max)
 
         if _id and self.is_event_in_valid_period(start_date, date_from, date_to):
             if is_concert:
@@ -96,8 +106,8 @@ class ProgramPage(BasePage):
                     return True
         return False
 
-    def parse_start_time(self, time_price):
-        start_time = "".join(time_price[:time_price.index('-')]).split('h')
+    def parse_start_time(self, _time):
+        start_time = _time.split('h')
         time_hour = start_time[0]
         time_minutes = 0
         if len(start_time) > 1 and start_time[1]:
