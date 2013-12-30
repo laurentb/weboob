@@ -16,8 +16,11 @@ wd = os.path.join(project, 'localconfig')
 if not os.path.isdir(wd):
     os.makedirs(wd)
 
+paths = os.getenv('PYTHONPATH', '').split(':')
+if project not in paths:
+    paths.insert(0, project)
 env = os.environ.copy()
-env['PYTHONPATH'] = project
+env['PYTHONPATH'] = ':'.join(p for p in paths if p)
 env['WEBOOB_WORKDIR'] = wd
 env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
                                    os.getenv('WEBOOB_BACKENDS',
