@@ -57,6 +57,7 @@ def build_qt():
          'all',
          'PYUIC=%s%s' % (pyuic4, ' WIN32=1' if sys.platform == 'win32' else '')])
 
+
 def install_weboob():
     scripts = set(os.listdir('scripts'))
     packages = set(find_packages(exclude=['modules']))
@@ -109,7 +110,6 @@ def install_weboob():
             ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
         ])
 
-
     # Do not put PyQt, it does not work properly.
     requirements = [
         'lxml',
@@ -124,10 +124,11 @@ def install_weboob():
     except ImportError:
         requirements.append('Pillow')
     else:
-        if 'PILcompat' not in Image.__file__:
-            requirements.append('PIL')
-        else:
+        # detect Pillow-only feature, or weird Debian stuff
+        if hasattr(Image, 'alpha_composite') or 'PILcompat' in Image.__file__:
             requirements.append('Pillow')
+        else:
+            requirements.append('PIL')
 
     if sys.version_info[0] > 2:
         print >>sys.stderr, 'Python 3 is not supported.'
@@ -167,6 +168,7 @@ def install_weboob():
 
         install_requires=requirements,
     )
+
 
 class Options(object):
     hildon = False
