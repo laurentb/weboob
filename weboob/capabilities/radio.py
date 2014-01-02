@@ -20,7 +20,7 @@
 
 
 from .base import IBaseCap, CapBaseObject, Field, StringField
-from .audiostream import AudioStreamInfo
+from weboob.tools.capabilities.streaminfo import StreamInfo
 
 
 __all__ = ['Radio', 'ICapRadio']
@@ -32,7 +32,7 @@ class Radio(CapBaseObject):
     """
     title =         StringField('Title of radio')
     description =   StringField('Description of radio')
-    current =       Field('Current emission', AudioStreamInfo)
+    current =       Field('Current emission', StreamInfo)
     streams =       Field('List of streams', list)
 
 class ICapRadio(IBaseCap):

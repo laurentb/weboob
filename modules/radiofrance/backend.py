@@ -22,7 +22,8 @@
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.video import ICapVideo
 from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
+from weboob.capabilities.audiostream import BaseAudioStream
+from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import ICapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import BaseBackend
 
@@ -180,7 +181,7 @@ class RadioFranceBackend(BaseBackend, ICapRadio, ICapCollection, ICapVideo):
                 title = self.browser.get_current_rss(radio.id)
             if title:
                 if not radio.current or radio.current is NotLoaded:
-                    radio.current = AudioStreamInfo(0)
+                    radio.current = StreamInfo(0)
                 radio.current.what = title
                 radio.current.who = artist
         return radio

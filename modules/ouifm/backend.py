@@ -19,7 +19,8 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
+from weboob.capabilities.audiostream import BaseAudioStream
+from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import ICapCollection
 from weboob.tools.backend import BaseBackend
 from weboob.tools.browser import StandardBrowser
@@ -86,7 +87,7 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.description = description
 
         artist, title = self.get_current(radio.id)
-        current = AudioStreamInfo(0)
+        current = StreamInfo(0)
         current.who = artist
         current.what = title
         radio.current = current
@@ -102,7 +103,7 @@ class OuiFMBackend(BaseBackend, ICapRadio, ICapCollection):
     def fill_radio(self, radio, fields):
         if 'current' in fields:
             if not radio.current:
-                radio.current = AudioStreamInfo(0)
+                radio.current = StreamInfo(0)
             radio.current.who, radio.current.what = self.get_current(radio.id)
         return radio
 

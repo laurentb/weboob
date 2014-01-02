@@ -19,7 +19,8 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.radio import Radio
-from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
+from weboob.capabilities.audiostream import BaseAudioStream
+from weboob.tools.capabilities.streaminfo import StreamInfo
 
 __all__ = ['LivePage', 'ProgramPage']
 
@@ -52,7 +53,7 @@ class LivePage(BasePage):
 
 class ProgramPage(BasePage):
     def get_current_emission(self):
-        current = AudioStreamInfo(0)
+        current = StreamInfo(0)
         two_or_more = unicode(self.document.xpath('//p')[0].text).split('/////')[0].split(' - ')
         # Consider that if String(' - ') appears it'll be in title rather in the artist name
         if len(two_or_more) > 2:

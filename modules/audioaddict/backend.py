@@ -19,7 +19,8 @@
 
 
 from weboob.capabilities.radio import ICapRadio, Radio
-from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
+from weboob.capabilities.audiostream import BaseAudioStream
+from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import ICapCollection, Collection
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import Value
@@ -236,7 +237,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
         radio.description = radio_dict['description']
 
         artist, title = self.get_current(network, radioName)
-        current = AudioStreamInfo(0)
+        current = StreamInfo(0)
         current.who = artist
         current.what = title
         radio.current = current
@@ -268,7 +269,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     def fill_radio(self, radio, fields):
         if 'current' in fields:
             radioName, network = radio.id.split('.', 1)
-            radio.current = AudioStreamInfo(0)
+            radio.current = StreamInfo(0)
             radio.current.who, radio.current.what = self.get_current(network, radioName)
             return radio
 

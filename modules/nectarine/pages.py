@@ -19,7 +19,8 @@
 
 from weboob.tools.browser import BasePage
 from weboob.capabilities.radio import Radio
-from weboob.capabilities.audiostream import BaseAudioStream, AudioStreamInfo
+from weboob.capabilities.audiostream import BaseAudioStream
+from weboob.tools.capabilities.streaminfo import StreamInfo
 
 __all__ = ['LivePage', 'StreamsPage']
 
@@ -51,7 +52,7 @@ class StreamsPage(BasePage):
 
 class LivePage(BasePage):
     def get_current_emission(self):
-        current = AudioStreamInfo(0)
+        current = StreamInfo(0)
         current.who = unicode(self.document.xpath('//playlist/now/entry/artist')[0].text)
         current.what = unicode(self.document.xpath('//playlist/now/entry/song')[0].text)
         return current
