@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from nose.plugins.skip import SkipTest
 from weboob.tools.test import BackendTest
 from weboob.capabilities.audio import BaseAudio
 
@@ -29,11 +29,16 @@ class GroovesharkTest(BackendTest):
         result = list(self.backend.search_audio("Loic Lantoine"))
         self.assertTrue(len(result) > 0)
 
-    def test_grooveshark_user_playlist(self):
+    def test_grooveshark_user_playlist_not_logged(self):
+        if self.backend.browser.is_logged():
+            raise SkipTest("User credentials defined")
         l1 = list(self.backend.iter_resources([BaseAudio], [u'playlists']))
-        if(not self.backend.browser.is_logged()):
-            assert len(l1)==0
-            return
+        assert len(l1)==0
+
+    def test_grooveshark_user_playlist_logged(self):
+        if not self.backend.browser.is_logged():
+            raise SkipTest("User credentials not defined")
+        l1 = list(self.backend.iter_resources([BaseAudio], [u'playlists']))
         assert len(l1)
         c = l1[0]
         l2 = list(self.backend.iter_resources([BaseAudio], c.split_path))
