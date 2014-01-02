@@ -68,6 +68,8 @@ class GroovesharkBrowser(BaseBrowser):
 
     AUDIOS_FROM_SONG_RESULTS = None
 
+    user_id = None
+
     def home(self):
         self.login()
         self.get_communication_token()
