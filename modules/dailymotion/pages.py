@@ -88,10 +88,10 @@ class VideoPage(BasePage):
 
         div = self.parser.select(self.document.getroot(), 'div#content', 1)
 
-        video.title = unicode(self.parser.select(div, 'span.title', 1).text).strip()
-        video.author = unicode(self.parser.select(div, 'a.name, span.name, a[rel=author]', 1).text).strip()
+        video.title = unicode(self.parser.select(div, 'div, meta[itemprop=name]', 1).get("content")).strip()
+        video.author = unicode(self.parser.select(div, 'div, meta[itemprop=author]', 1).get("content")).strip()
         try:
-            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div#video_description', 1))).strip() or unicode()
+            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div, meta[itemprop=description]', 1))).strip() or unicode()
         except BrokenPageError:
             video.description = u''
 
@@ -110,6 +110,7 @@ class VideoPage(BasePage):
                 break
         else:
             raise BrokenPageError(u'Unable to extract video URL')
+
         video.url = info[max_quality]
 
         video.set_empty_fields(NotAvailable)
