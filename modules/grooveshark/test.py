@@ -26,7 +26,7 @@ class GroovesharkTest(BackendTest):
     BACKEND = 'grooveshark'
 
     def test_grooveshark_audio_search(self):
-        result = list(self.backend.search_audios("Loic Lantoine"))
+        result = list(self.backend.search_audio("Loic Lantoine"))
         self.assertTrue(len(result) > 0)
 
     def test_grooveshark_user_playlist(self):
