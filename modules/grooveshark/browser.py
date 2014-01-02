@@ -100,6 +100,7 @@ class GroovesharkBrowser(BaseBrowser):
 
             response = self.API_post(method, parameters, self.create_token(method))
             return self.create_collection_from_playlists_result(response['result']['Playlists'], split_path)
+        return []
 
     def search_audio(self, pattern):
         method = 'getResultsFromSearch'
