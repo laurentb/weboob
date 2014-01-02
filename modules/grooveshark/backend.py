@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.video import ICapVideo, BaseVideo
+from weboob.capabilities.audio import ICapAudio, BaseAudio
 from weboob.capabilities.collection import ICapCollection, Collection, CollectionNotFound
 from .browser import GroovesharkBrowser
 from weboob.tools.value import ValueBackendPassword, Value
@@ -27,7 +27,7 @@ from weboob.tools.value import ValueBackendPassword, Value
 __all__ = ['GroovesharkBackend']
 
 
-class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
+class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
     NAME = 'grooveshark'
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'
@@ -46,25 +46,25 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
             password = self.config['password'].get()
         return self.create_browser(username, password)
 
-    def fill_video(self, video, fields):
+    def fill_audio(self, audio, fields):
         if 'url' in fields:
             with self.browser:
-                video.url = unicode(self.browser.get_stream_url_from_song_id(video.id))
-        if 'thumbnail' in fields and video.thumbnail:
+                audio.url = unicode(self.browser.get_stream_url_from_song_id(audio.id))
+        if 'thumbnail' in fields and audio.thumbnail:
             with self.browser:
-                video.thumbnail.data = self.browser.readurl(video.thumbnail.url)
+                audio.thumbnail.data = self.browser.readurl(audio.thumbnail.url)
 
-    def search_videos(self, pattern, sortby=ICapVideo.SEARCH_RELEVANCE, nsfw=False):
+    def search_audio(self, pattern, sortby=ICapAudio.SEARCH_RELEVANCE):
         with self.browser:
-            return self.browser.search_videos(pattern)
+            return self.browser.search_audio(pattern)
 
-    def get_video(self, _id):
+    def get_audio(self, _id):
         with self.browser:
-            return self.browser.get_video_from_song_id(_id)
+            return self.browser.get_audio_from_song_id(_id)
 
     def iter_resources(self, objs, split_path):
         with self.browser:
-            if BaseVideo in objs:
+            if BaseAudio in objs:
                 collection = self.get_collection(objs, split_path)
                 if collection.path_level == 0:
                     yield Collection([u'albums'], u'Search for Albums')
@@ -81,20 +81,20 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
                         for item in self.browser.search_albums(collection.split_path):
                             yield item
                     if collection.split_path[0] == u'playlists':
-                        for video in self.browser.get_all_songs_from_playlist(collection.split_path[1]):
-                            yield video
+                        for audio in self.browser.get_all_songs_from_playlist(collection.split_path[1]):
+                            yield audio
                 if collection.path_level == 3 and collection.split_path[0] == u'albums':
-                    for video in self.browser.get_all_songs_from_album(collection.split_path[2]):
-                        yield video
+                    for audio in self.browser.get_all_songs_from_album(collection.split_path[2]):
+                        yield audio
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
 
-        if BaseVideo in objs and (collection.split_path == [u'albums'] or collection.split_path == [u'playlists']):
+        if BaseAudio in objs and (collection.split_path == [u'albums'] or collection.split_path == [u'playlists']):
             return
 
-        if BaseVideo in objs and collection.path_level == 2 and \
+        if BaseAudio in objs and collection.path_level == 2 and \
                 (collection.split_path[0] == u'albums' or collection.split_path[0] == u'playlists'):
             if collection.split_path[0] == u'playlists':
                 try:
@@ -104,7 +104,7 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
 
             return
 
-        if BaseVideo in objs and collection.path_level == 3 and \
+        if BaseAudio in objs and collection.path_level == 3 and \
                 (collection.split_path[0] == u'albums'):
             try:
                 int(collection.split_path[2])
@@ -114,4 +114,4 @@ class GroovesharkBackend(BaseBackend, ICapVideo, ICapCollection):
 
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {BaseVideo: fill_video}
+    OBJECTS = {BaseAudio: fill_audio}

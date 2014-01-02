@@ -19,9 +19,9 @@
 
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 from weboob.tools.json import json as simplejson
-from weboob.capabilities import NotAvailable
+from weboob.capabilities.audio import BaseAudio
 from weboob.capabilities.image import BaseImage
-from weboob.capabilities.video import BaseVideo
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.collection import Collection
 
 import hashlib
@@ -34,9 +34,9 @@ import datetime
 __all__ = ['GroovesharkBrowser']
 
 
-class GroovesharkVideo(BaseVideo):
+class GroovesharkAudio(BaseAudio):
     def __init__(self, *args, **kwargs):
-        BaseVideo.__init__(self, *args, **kwargs)
+        BaseAudio.__init__(self, *args, **kwargs)
         self.ext = u'mp3'
 
 
@@ -66,7 +66,7 @@ class GroovesharkBrowser(BaseBrowser):
     GROOVESHARK_CONSTANTS = ('mobileshark', '20120830', 'gooeyFlubber')
     COMMUNICATION_TOKEN = None
 
-    VIDEOS_FROM_SONG_RESULTS = None
+    AUDIOS_FROM_SONG_RESULTS = None
 
     def home(self):
         self.login()
@@ -99,7 +99,7 @@ class GroovesharkBrowser(BaseBrowser):
             response = self.API_post(method, parameters, self.create_token(method))
             return self.create_collection_from_playlists_result(response['result']['Playlists'], split_path)
 
-    def search_videos(self, pattern):
+    def search_audio(self, pattern):
         method = 'getResultsFromSearch'
 
         parameters = {}
@@ -110,7 +110,7 @@ class GroovesharkBrowser(BaseBrowser):
 
         response = self.API_post(method, parameters, self.create_token(method))
 
-        songs = self.create_video_from_songs_result(response['result']['result']['Songs'])
+        songs = self.create_audio_from_songs_result(response['result']['result']['Songs'])
 
         return songs
 
@@ -129,47 +129,47 @@ class GroovesharkBrowser(BaseBrowser):
 
         return self.create_collection_from_albums_result(response['result']['result']['Albums'], split_path)
 
-    def create_video_from_songs_result(self, songs):
-        self.VIDEOS_FROM_SONG_RESULTS = []
+    def create_audio_from_songs_result(self, songs):
+        self.AUDIOS_FROM_SONG_RESULTS = []
 
         for song in songs:
-            video = GroovesharkVideo(song['SongID'])
-            video.title = u'Song - %s' % song['SongName'].encode('ascii', 'replace')
-            video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
-            video.description = u'%s - %s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'), song['Year'].encode('ascii', 'replace'))
-            video.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
-            video.thumbnail.url = video.thumbnail.id
-            video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
-            video.rating = float(song['AvgRating'])
+            audio = GroovesharkAudio(song['SongID'])
+            audio.title = u'Song - %s' % song['SongName'].encode('ascii', 'replace')
+            audio.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
+            audio.description = u'%s - %s - %s' % (audio.author, song['AlbumName'].encode('ascii', 'replace'), song['Year'].encode('ascii', 'replace'))
+            audio.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+            audio.thumbnail.url = audio.thumbnail.id
+            audio.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
+            audio.rating = float(song['AvgRating'])
             try:
-                video.date = datetime.date(year=int(song['Year']), month=1, day=1)
+                audio.date = datetime.date(year=int(song['Year']), month=1, day=1)
             except ValueError:
-                video.date = NotAvailable
-            self.VIDEOS_FROM_SONG_RESULTS.append(video)
-            yield video
+                audio.date = NotAvailable
+            self.AUDIOS_FROM_SONG_RESULTS.append(audio)
+            yield audio
 
-    def create_video_from_album_result(self, songs):
-        self.VIDEOS_FROM_SONG_RESULTS = []
-        videos = list()
+    def create_audio_from_album_result(self, songs):
+        self.AUDIOS_FROM_SONG_RESULTS = []
+        audios = list()
         for song in songs:
-            video = self.create_video(song)
-            if video:
-                self.VIDEOS_FROM_SONG_RESULTS.append(video)
-                videos.append(video)
-        return videos
+            audio = self.create_audio(song)
+            if audio:
+                self.AUDIOS_FROM_SONG_RESULTS.append(audio)
+                audios.append(audio)
+        return audios
 
-    def create_video(self, song):
+    def create_audio(self, song):
         if song['EstimateDuration']:
-            video = GroovesharkVideo(song['SongID'])
-            video.title = u'Song - %s' % song['Name'].encode('ascii', 'replace')
-            video.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
-            video.description = u'%s - %s' % (video.author, song['AlbumName'].encode('ascii', 'replace'))
+            audio = GroovesharkAudio(song['SongID'])
+            audio.title = u'Song - %s' % song['Name'].encode('ascii', 'replace')
+            audio.author = u'%s' % song['ArtistName'].encode('ascii', 'replace')
+            audio.description = u'%s - %s' % (audio.author, song['AlbumName'].encode('ascii', 'replace'))
             if song['CoverArtFilename']:
-                video.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
-                video.thumbnail.url = video.thumbnail.id
-            video.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
-            video.date = NotAvailable
-            return video
+                audio.thumbnail = BaseImage(u'http://images.gs-cdn.net/static/albums/40_' + song['CoverArtFilename'])
+                audio.thumbnail.url = audio.thumbnail.id
+            audio.duration = datetime.timedelta(seconds=int(float(song['EstimateDuration'])))
+            audio.date = NotAvailable
+            return audio
 
     def create_collection_from_playlists_result(self, playlists, split_path):
         items = list()
@@ -186,7 +186,7 @@ class GroovesharkBrowser(BaseBrowser):
         parameters['playlistID'] = playlistID
 
         response = self.API_post(method, parameters, self.create_token(method))
-        return self.create_video_from_album_result(response['result']['Songs'])
+        return self.create_audio_from_album_result(response['result']['Songs'])
 
     def create_collection_from_albums_result(self, albums, split_path):
         items = list()
@@ -206,7 +206,7 @@ class GroovesharkBrowser(BaseBrowser):
         parameters['country'] = self.HEADER['country']
 
         response = self.API_post(method, parameters, self.create_token(method))
-        return self.create_video_from_album_result(response['result'])
+        return self.create_audio_from_album_result(response['result'])
 
     def get_communication_token(self):
         parameters = {'secretKey': hashlib.md5(self.HEADER["session"]).hexdigest()}
@@ -220,12 +220,12 @@ class GroovesharkBrowser(BaseBrowser):
         rnd = (''.join(random.choice(string.hexdigits) for x in range(6)))
         return rnd + hashlib.sha1('%s:%s:%s:%s' % (method, self.COMMUNICATION_TOKEN, self.GROOVESHARK_CONSTANTS[2], rnd)).hexdigest()
 
-    def get_video_from_song_id(self, song_id):
-        if self.VIDEOS_FROM_SONG_RESULTS:
-            for video in self.VIDEOS_FROM_SONG_RESULTS:
-                if video.id == song_id:
-                    video.url = self.get_stream_url_from_song_id(song_id)
-                    return video
+    def get_audio_from_song_id(self, song_id):
+        if self.AUDIOS_FROM_SONG_RESULTS:
+            for audio in self.AUDIOS_FROM_SONG_RESULTS:
+                if audio.id == song_id:
+                    audio.url = self.get_stream_url_from_song_id(song_id)
+                    return audio
 
     def get_stream_url_from_song_id(self, song_id):
         method = 'getStreamKeyFromSongIDEx'
