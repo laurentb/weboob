@@ -60,6 +60,7 @@ class Radioob(ReplApplication):
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
     COMMANDS_FORMATTERS = {'ls':     'radio_list',
                            'search': 'radio_list',
+                           'playlist': 'radio_list',
                           }
     COLLECTION_OBJECTS = (Radio, BaseAudio, )
     PLAYLIST = []
@@ -179,6 +180,73 @@ class Radioob(ReplApplication):
             self.player.play(stream, player_name=player_name, player_args=media_player_args)
         except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
             print '%s\nRadio URL: %s' % (e, stream.url)
+
+    def do_playlist(self, line):
+        """
+        playlist cmd [args]
+        playlist add ID [ID2 ID3 ...]
+        playlist remove ID [ID2 ID3 ...]
+        playlist export [FILENAME]
+        playlist display
+        """
+
+        if not line:
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('playlist')
+            return 2
+
+        cmd, args = self.parse_command_args(line, 2, req_n=1)
+        if cmd == "add":
+            _ids = args.strip().split(' ')
+            for _id in _ids:
+                audio = self.get_object(_id, 'get_audio')
+
+                if not audio:
+                    print >>sys.stderr, 'Audio file not found: %s' % _id
+                    return 3
+
+                if not audio.url:
+                    print >>sys.stderr, 'Error: the direct URL is not available.'
+                    return 4
+
+                self.PLAYLIST.append(audio)
+
+        elif cmd == "remove":
+            _ids = args.strip().split(' ')
+            for _id in _ids:
+
+                audio_to_remove = self.get_object(_id, 'get_audio')
+
+                if not audio_to_remove:
+                    print >>sys.stderr, 'Audio file not found: %s' % _id
+                    return 3
+
+                if not audio_to_remove.url:
+                    print >>sys.stderr, 'Error: the direct URL is not available.'
+                    return 4
+
+                for audio in self.PLAYLIST:
+                    if audio.id == audio_to_remove.id:
+                        self.PLAYLIST.remove(audio)
+                        break
+
+        elif cmd == "export":
+            filename = "playlist.m3u"
+            if args:
+                filename = args
+
+            file = open(filename, 'w')
+            for audio in self.PLAYLIST:
+                file.write('%s\r\n' % audio.url)
+            file.close()
+
+        elif cmd == "display":
+            for audio in self.PLAYLIST:
+                self.cached_format(audio)
+
+        else:
+            print >>sys.stderr, 'Playlist command only support "add", "remove", "display" and "export" arguments.'
+            return 2
+
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
