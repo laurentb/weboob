@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import subprocess
 import sys
+import os
+import re
 
 from weboob.capabilities.radio import ICapRadio, Radio
+from weboob.capabilities.audio import ICapAudio, BaseAudio
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.media_player import InvalidMediaPlayer, MediaPlayer, MediaPlayerNotFound
@@ -53,12 +56,13 @@ class Radioob(ReplApplication):
     DESCRIPTION = "Console application allowing to search for web radio stations, listen to them and get information " \
                   "like the current song."
     SHORT_DESCRIPTION = "search, show or listen to radio stations"
-    CAPS = ICapRadio
+    CAPS = (ICapRadio, ICapAudio)
     EXTRA_FORMATTERS = {'radio_list': RadioListFormatter}
     COMMANDS_FORMATTERS = {'ls':     'radio_list',
                            'search': 'radio_list',
                           }
-    COLLECTION_OBJECTS = (Radio, )
+    COLLECTION_OBJECTS = (Radio, BaseAudio, )
+    PLAYLIST = []
 
     def __init__(self, *args, **kwargs):
         ReplApplication.__init__(self, *args, **kwargs)
@@ -67,6 +71,67 @@ class Radioob(ReplApplication):
     def main(self, argv):
         self.load_config()
         return ReplApplication.main(self, argv)
+
+    def complete_download(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+    def do_download(self, line):
+        """
+        download ID [FILENAME]
+
+        Download an audio file
+        """
+        _id, dest = self.parse_command_args(line, 2, 1)
+        audio = self.get_object(_id, 'get_audio', ['url'])
+        if not audio:
+            print >>sys.stderr, 'Audio file not found: %s' % _id
+            return 3
+
+        if not audio.url:
+            print >>sys.stderr, 'Error: the direct URL is not available.'
+            return 4
+
+        def check_exec(executable):
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(['which', executable], stdout=devnull)
+                if process.wait() != 0:
+                    print >>sys.stderr, 'Please install "%s"' % executable
+                    return False
+            return True
+
+        def audio_to_file(_audio):
+            ext = _audio.ext
+            if not ext:
+                ext = 'audiofile'
+            return '%s.%s' % (re.sub('[?:/]', '-', _audio.id), ext)
+
+        if dest is not None and os.path.isdir(dest):
+            dest += '/%s' % audio_to_file(audio)
+
+        if dest is None:
+            dest = audio_to_file(audio)
+
+        if audio.url.startswith('rtmp'):
+            if not check_exec('rtmpdump'):
+                return 1
+            args = ('rtmpdump', '-e', '-r', audio.url, '-o', dest)
+        elif audio.url.startswith('mms'):
+            if not check_exec('mimms'):
+                return 1
+            args = ('mimms', '-r', audio.url, dest)
+        else:
+            if check_exec('wget'):
+                args = ('wget', '-c', audio.url, '-O', dest)
+            elif check_exec('curl'):
+                args = ('curl', '-C', '-', audio.url, '-o', dest)
+            else:
+                return 1
+
+        os.spawnlp(os.P_WAIT, args[0], *args)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
@@ -77,7 +142,7 @@ class Radioob(ReplApplication):
         """
         play ID [stream_id]
 
-        Play a radio with a found player (optionnaly specify the wanted stream).
+        Play a radio or a audio file with a found player (optionnaly specify the wanted stream).
         """
         _id, stream_id = self.parse_command_args(line, 2, 1)
         if not _id:
@@ -89,16 +154,21 @@ class Radioob(ReplApplication):
         except (ValueError,TypeError):
             stream_id = 0
 
-        radio = self.get_object(_id, 'get_radio', ['streams'])
-        if not radio:
-            print >>sys.stderr, 'Radio not found:', _id
-            return 1
+        radio = self.get_object(_id, 'get_radio')
+        audio = self.get_object(_id, 'get_audio')
 
-        try:
-            stream = radio.streams[stream_id]
-        except IndexError:
-            print >>sys.stderr, 'Stream #%d not found' % stream_id
-            return 1
+        if radio is None and audio is None:
+            print >>sys.stderr, 'Radio or Audio file not found:', _id
+            return 3
+
+        if audio is None:
+            try:
+                stream = radio.streams[stream_id]
+            except IndexError:
+                print >>sys.stderr, 'Stream #%d not found' % stream_id
+                return 1
+        else:
+            stream = audio
 
         try:
             player_name = self.config.get('media_player')
@@ -119,17 +189,22 @@ class Radioob(ReplApplication):
         """
         info ID
 
-        Get information about a radio.
+        Get information about a radio or an audio file.
         """
         if not _id:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        radio = self.get_object(_id, 'get_radio', ['streams', 'current'])
-        if not radio:
-            print >>sys.stderr, 'Radio not found:', _id
+        radio = self.get_object(_id, 'get_radio')
+        audio = self.get_object(_id, 'get_audio')
+        if radio is None and audio is None:
+            print >>sys.stderr, 'Radio or Audio file not found:', _id
             return 3
-        self.format(radio)
+
+        if audio is None:
+            self.format(radio)
+        else:
+            self.format(audio)
 
     @defaultcount(10)
     def do_search(self, pattern=None):
