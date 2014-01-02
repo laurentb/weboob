@@ -261,6 +261,14 @@ class ReplApplication(Cmd, ConsoleApplication):
         # if backend's service returns several objects, try to find the one
         # with wanted ID. If not found, get the last not None object.
         obj = None
+
+        # remove backends that do not have the required method
+        new_backend_names=[]
+        for backend in backend_names:
+            actual_backend = self.weboob.get_backend(backend)
+            if getattr(actual_backend, method, None) is not None:
+                new_backend_names.append(backend)
+        backend_names = tuple(new_backend_names)
         for backend, objiter in self.do(method, _id, backends=backend_names, fields=fields, **kargs):
             if objiter:
                 obj = objiter
