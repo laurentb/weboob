@@ -19,28 +19,28 @@
 
 
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from weboob.tools.log import getLogger
-
 
 __all__ = ['InvalidMediaPlayer', 'MediaPlayer', 'MediaPlayerNotFound']
 
 
 PLAYERS = (
+    ('mpv',      '-'),
     ('mplayer2', '-'),
-    ('mplayer', '-'),
-    ('vlc',     '-'),
-    ('parole',  'fd://0'),
-    ('totem',   'fd://0'),
-    ('xine',    'stdin:/'),
+    ('mplayer',  '-'),
+    ('vlc',      '-'),
+    ('parole',   'fd://0'),
+    ('totem',    'fd://0'),
+    ('xine',     'stdin:/'),
 )
 
 
 class MediaPlayerNotFound(Exception):
     def __init__(self):
         Exception.__init__(self, u'No media player found on this system. Please install one of them: %s.' %
-            ', '.join(player[0] for player in PLAYERS))
+                           ', '.join(player[0] for player in PLAYERS))
 
 
 class InvalidMediaPlayer(Exception):
@@ -76,7 +76,7 @@ class MediaPlayer(object):
         player_names = [player[0] for player in PLAYERS]
         if not player_name:
             self.logger.debug(u'No media player given. Using the first available from: %s.' %
-                ', '.join(player_names))
+                              ', '.join(player_names))
             player_name = self.guess_player_name()
             if player_name is None:
                 raise MediaPlayerNotFound()
