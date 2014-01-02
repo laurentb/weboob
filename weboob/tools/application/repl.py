@@ -237,11 +237,18 @@ class ReplApplication(Cmd, ConsoleApplication):
             try:
                 obj = self.objects[int(_id) - 1]
             except (IndexError, ValueError):
-                pass
+                return None
             else:
                 try:
                     backend = self.weboob.get_backend(obj.backend)
-                    return backend.fillobj(obj, fields)
+                    actual_method = getattr(backend,method,None)
+                    if actual_method is None:
+                        return None
+                    else:
+                        if callable(actual_method):
+                            return backend.fillobj(obj, fields)
+                        else:
+                            return None
                 except UserError as e:
                     self.bcall_error_handler(backend, e, '')
 
