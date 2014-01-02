@@ -31,6 +31,9 @@ class GroovesharkTest(BackendTest):
 
     def test_grooveshark_user_playlist(self):
         l1 = list(self.backend.iter_resources([BaseAudio], [u'playlists']))
+        if(not self.backend.browser.is_logged()):
+            assert len(l1)==0
+            return
         assert len(l1)
         c = l1[0]
         l2 = list(self.backend.iter_resources([BaseAudio], c.split_path))
