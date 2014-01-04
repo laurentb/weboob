@@ -265,7 +265,10 @@ class ReplApplication(Cmd, ConsoleApplication):
         # remove backends that do not have the required method
         new_backend_names=[]
         for backend in backend_names:
-            actual_backend = self.weboob.get_backend(backend)
+            if isinstance(backend,str):
+                actual_backend = self.weboob.get_backend(backend)
+            else:
+                actual_backend = backend
             if getattr(actual_backend, method, None) is not None:
                 new_backend_names.append(backend)
         backend_names = tuple(new_backend_names)
