@@ -133,6 +133,9 @@ Jean-Philippe Dutrève <jdutreve@winancial.com>
 Vincent Texier <vit@free.fr>
         * Fixes on YouJizz and Dailymotion.
 
+John Morrow <caramdache@gmail.com>
+        * OFX formatter in boobank.
+
 Mathieu Lordon <mathieu.lordon@gmail.com>
         * Fixes on bank modules.
 
@@ -222,6 +225,9 @@ Philippe Fremy <phil@freehackers.org>
 
 Antoine <antoine.underlinux@orange.fr>
         * QVideoob fixes.
+
+Ryan Nowakowski <tubaman@fattuba.com>
+        * Import error.
 
 David Jeanneteau <david.jeanneteau@gmail.com>
         * Fix on ING and icon of ING.
