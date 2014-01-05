@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
+import datetime, uuid
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as parse_date
 from decimal import Decimal, InvalidOperation
@@ -32,6 +32,73 @@ from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFor
 
 __all__ = ['Boobank']
 
+
+class OfxFormatter(IFormatter):
+    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
+    TYPES_ACCTS = ['', 'CHECKING', 'SAVINGS', 'DEPOSIT', 'LOAN', 'MARKET', 'JOINT']
+    TYPES_TRANS = ['', 'DIRECTDEP', 'PAYMENT', 'CHECK', 'DEP', 'OTHER', 'ATM', 'POS', 'INT', 'FEE']
+    TYPES_CURRS = ['', 'EUR', 'CHF', 'USD']
+
+    balance = Decimal(0)
+    coming = Decimal(0)
+
+    def start_format(self, **kwargs):
+        account = kwargs['account']
+        self.balance = account.balance
+        self.coming = account.coming
+
+        self.output(u'OFXHEADER:100')
+        self.output(u'DATA:OFXSGML')
+        self.output(u'VERSION:102')
+        self.output(u'SECURITY:NONE')
+        self.output(u'ENCODING:USASCII')
+        self.output(u'CHARSET:1252')
+        self.output(u'COMPRESSION:NONE')
+        self.output(u'OLDFILEUID:NONE')
+        self.output(u'NEWFILEUID:%s\n' % uuid.uuid1())
+        self.output(u'<OFX><SIGNONMSGSRSV1><SONRS><STATUS><CODE>0<SEVERITY>INFO</STATUS>')
+        self.output(u'<DTSERVER>%s113942<LANGUAGE>ENG</SONRS></SIGNONMSGSRSV1>' % datetime.date.today().strftime('%Y%m%d'))
+        self.output(u'<BANKMSGSRSV1><STMTTRNRS><TRNUID>%s' % uuid.uuid1())
+        self.output(u'<STATUS><CODE>0<SEVERITY>INFO</STATUS><CLTCOOKIE>null<STMTRS>')
+        self.output(u'<CURDEF>%s<BANKACCTFROM>' % 'EUR') #account.currency_text)
+        self.output(u'<BANKID>null')
+        self.output(u'<BRANCHID>null')
+        self.output(u'<ACCTID>%s' % account.id)
+        self.output(u'<ACCTTYPE>%s' % (self.TYPES_ACCTS[account.type] or 'CHECKING'))
+        self.output(u'<ACCTKEY>null</BANKACCTFROM>')
+        self.output(u'<BANKTRANLIST>')
+        self.output(u'<DTSTART>%s' % datetime.date.today().strftime('%Y%m%d'))
+        self.output(u'<DTEND>%s' % datetime.date.today().strftime('%Y%m%d'))
+
+    def format_obj(self, obj, alias):
+        if obj.type != 0:
+            result = u'<STMTTRN><TRNTYPE>%s\n' % self.TYPES_TRANS[obj.type]
+        else:
+            result = u'<STMTTRN><TRNTYPE>%s\n' % ('DEBIT' if obj.amount < 0 else 'CREDIT')
+
+        result += u'<DTPOSTED>%s\n' % obj.date.strftime('%Y%m%d')
+        result += u'<TRNAMT>%s\n' % obj.amount
+        result += u'<FITID>%s\n' % obj.unique_id()
+
+        if hasattr(obj, 'label') and not empty(obj.label):
+            result += u'<NAME>%s</STMTTRN>' % obj.label.replace('&', '&amp;')
+        else:
+            result += u'<NAME>%s</STMTTRN>' % obj.raw.replace('&', '&amp;')
+
+        return result
+
+    def flush(self):
+        self.output(u'</BANKTRANLIST>')
+        self.output(u'<LEDGERBAL><BALAMT>%s' % self.balance)
+        self.output(u'<DTASOF>%s</LEDGERBAL>' % datetime.date.today().strftime('%Y%m%d'))
+
+        try:
+            self.output(u'<AVAILBAL><BALAMT>%s' % (self.balance + self.coming))
+        except TypeError:
+            self.output(u'<AVAILBAL><BALAMT>%s' % self.balance)
+
+        self.output(u'<DTASOF>%s</AVAILBAL>' % datetime.date.today().strftime('%Y%m%d'))
+        self.output(u'</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>')
 
 class QifFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount')
@@ -220,6 +287,7 @@ class Boobank(ReplApplication):
                         'transfer':       TransferFormatter,
                         'qif':            QifFormatter,
                         'pretty_qif':     PrettyQifFormatter,
+                        'ofx':            OfxFormatter,
                         'ops_list':       TransactionsFormatter,
                         'investment_list': InvestmentFormatter,
                        }
@@ -266,7 +334,7 @@ class Boobank(ReplApplication):
             old_count = self.options.count
             self.options.count = None
 
-        self.start_format()
+        self.start_format(account=account)
         for backend, transaction in self.do(command, account, backends=account.backend):
             if end_date is not None and transaction.date < end_date:
                 break
