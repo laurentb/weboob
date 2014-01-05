@@ -184,10 +184,10 @@ class Field(object):
         self.doc = doc
 
         for arg in args:
-            if isinstance(arg, type):
+            if isinstance(arg, type) or isinstance(arg,str):
                 self.types += (arg,)
             else:
-                raise TypeError('Arguments must be types')
+                raise TypeError('Arguments must be types or strings of type name')
 
         self._creation_counter = Field._creation_counter
         Field._creation_counter += 1
@@ -278,7 +278,7 @@ class _BaseObjectMeta(type):
         if new_class.__doc__ is None:
             new_class.__doc__ = ''
         for name, field in fields:
-            doc = '(%s) %s' % (', '.join([':class:`%s`' % v.__name__ for v in field.types]), field.doc)
+            doc = '(%s) %s' % (', '.join([':class:`%s`' % v.__name__ if isinstance(v,type) else v for v in field.types]), field.doc)
             if field.value is not NotLoaded:
                 doc += ' (default: %s)' % field.value
             new_class.__doc__ += '\n:var %s: %s' % (name, doc)
@@ -412,11 +412,35 @@ class BaseObject(object):
                     # match the wanted following types, so we'll
                     # raise ValueError.
                     pass
+            from collections import deque
+            actual_types=()
+            for v in attr.types:
+                if isinstance(v,str):
+                    # the following is a (almost) copy/paste from
+                    # https://stackoverflow.com/questions/11775460/lexical-cast-from-string-to-type
+                    q=deque([object])
+                    while q:
+                        t=q.popleft()
+                        if t.__name__ == v:
+                            actual_types+=(t,)
+                        else:
+                            try:
+                                # keep looking!
+                                q.extend(t.__subclasses__())
+                            except TypeError:
+                                # type.__subclasses__ needs an argument for
+                                # whatever reason.
+                                if t is type:
+                                    continue
+                                else:
+                                    raise
+                else:
+                    actual_types+=(v,)
 
-            if not isinstance(value, attr.types) and not empty(value):
+            if not isinstance(value, actual_types) and not empty(value):
                 raise ValueError(
                     'Value for "%s" needs to be of type %r, not %r' % (
-                        name, attr.types, type(value)))
+                        name, actual_types, type(value)))
             attr.value = value
 
     def __delattr__(self, name):
