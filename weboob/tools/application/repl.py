@@ -265,7 +265,7 @@ class ReplApplication(Cmd, ConsoleApplication):
         # remove backends that do not have the required method
         new_backend_names = []
         for backend in backend_names:
-            if isinstance(backend, str) or isinstance(backend, unicode):
+            if isinstance(backend, (str, unicode)):
                 actual_backend = self.weboob.get_backend(backend)
             else:
                 actual_backend = backend
