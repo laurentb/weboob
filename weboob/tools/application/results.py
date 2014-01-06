@@ -18,16 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import weboob.tools.date as date_utils
+from weboob.capabilities import UserError
 from datetime import date
 
+
 __all__ = ['ResultsCondition', 'ResultsConditionError']
+
 
 class IResultsCondition(object):
     def is_valid(self, obj):
         raise NotImplementedError()
 
 
-class ResultsConditionError(Exception):
+class ResultsConditionError(UserError):
     pass
 
 
@@ -79,7 +82,10 @@ class ResultsCondition(IResultsCondition):
                         break
                 if operator is None:
                     raise ResultsConditionError(u'Could not find a valid operator in sub-expression "%s"' % _and)
-                l, r = _and.split(operator)
+                try:
+                    l, r = _and.split(operator)
+                except ValueError:
+                    raise ResultsConditionError(u'Syntax error in the condition expression, please check documentation')
                 and_list.append(Condition(l, operator, r))
             or_list.append(and_list)
         self.condition = or_list

@@ -33,6 +33,7 @@ from weboob.core.backendscfg import BackendsConfig
 from weboob.tools.config.iconfig import ConfigError
 from weboob.tools.log import createColoredFormatter, getLogger
 from weboob.tools.misc import to_unicode
+from .results import ResultsConditionError
 
 __all__ = ['BaseApplication']
 
@@ -438,6 +439,9 @@ class BaseApplication(object):
                 sys.exit(1)
             except CallErrors as e:
                 app.bcall_errors_handler(e)
+                sys.exit(1)
+            except ResultsConditionError as e:
+                print >>sys.stderr, '%s' % e
                 sys.exit(1)
         finally:
             app.deinit()
