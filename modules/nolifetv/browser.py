@@ -43,9 +43,12 @@ class NolifeTVBrowser(BaseBrowser):
     AVAILABLE_VIDEOS = ['[Gratuit]']
 
     def is_logged(self):
-        return not self.is_on_page(HomePage) or self.page.is_logged()
+        return (self.username is None or (not self.is_on_page(HomePage)) or self.page.is_logged())
 
     def login(self):
+        if self.username is None:
+            return
+
         if not self.is_on_page(LoginPage):
             self.location('/login', no_login=True)
 

@@ -46,7 +46,12 @@ class NolifeTVBackend(BaseBackend, ICapVideo, ICapCollection):
                                  default = '5' ))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+        username = self.config['username'].get()
+        if username:
+            password = self.config['password'].get()
+        else:
+            password = None
+        return self.create_browser(username, password)
 
     def iter_resources(self, objs, split_path):
         with self.browser:
