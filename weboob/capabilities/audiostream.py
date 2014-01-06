@@ -19,7 +19,7 @@
 
 
 from weboob.tools.capabilities.streaminfo import StreamInfo
-from .base import CapBaseObject, Field
+from .base import Field
 from .file import ICapFile
 from .audio import ICapAudio, BaseAudio
 
