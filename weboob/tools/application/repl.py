@@ -970,6 +970,7 @@ class ReplApplication(Cmd, ConsoleApplication):
             page = Page(core=browser, data=data, uri=browser._response.geturl())
             browser = Browser(view=page.view)
 
+    @defaultcount(40)
     def do_ls(self, line):
         """
         ls [-d] [-U] [PATH]
