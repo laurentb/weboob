@@ -81,7 +81,7 @@ class ResultsCondition(IResultsCondition):
                         operator = op
                         break
                 if operator is None:
-                    raise ResultsConditionError(u'Could not find a valid operator in sub-expression "%s"' % _and)
+                    raise ResultsConditionError(u'Could not find a valid operator in sub-expression "%s". Protect the complete condition expression with quotes, or read the documentation in the man manual.' % _and)
                 try:
                     l, r = _and.split(operator)
                 except ValueError:
