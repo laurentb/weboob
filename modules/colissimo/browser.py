@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.tools.browser import BaseBrowser
+from weboob.tools.browser import BaseBrowser, BrowserBanned
 
 
 __all__ = ['ColissimoBrowser']
@@ -34,4 +34,6 @@ class ColissimoBrowser(BaseBrowser):
 
     def get_tracking_info(self, _id):
         json_data = self.readurl('/outilsuivi/web/suiviInterMetiers.php?key=%s&method=json&code=%s' % (self.api_key, _id))
+        if json_data is None:
+            raise BrowserBanned('You are banned of the colissimo API (too many requests from your IP)')
         return json.loads(json_data)
