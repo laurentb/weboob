@@ -832,8 +832,8 @@ class ReplApplication(Cmd, ConsoleApplication):
                         self.options.count = count
                         self._is_default_count = False
                     else:
-                        print >>sys.stderr, 'Number must be at least 1.'
-                        return 2
+                        self.options.count = None
+                        self._is_default_count = False
         else:
             if self.options.count is None:
                 print 'Counting disabled.'
