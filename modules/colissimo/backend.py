@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.parcel import ICapParcel, Parcel, Event
+from weboob.capabilities.base import UserError
 from weboob.tools.backend import BaseBackend
 
 from .browser import ColissimoBrowser
@@ -36,12 +37,14 @@ class ColissimoBackend(BaseBackend, ICapParcel):
     BROWSER = ColissimoBrowser
 
     def get_parcel_tracking(self, _id):
+        # 13 is the magic length of colissimo tracking ids
+        if len(_id) != 13:
+            raise UserError(u"Colissimo ID's must have 13 print character")
         data = self.browser.get_tracking_info(_id)
         p = Parcel(_id)
         label = data['message']
         if data['error']:
-            p.info = label
-            return p
+            raise UserError(u"label")
         p.info = label
         # TODO, need to know the delivery message
         if u"remis au gardien ou" in label or u"Votre colis est livré" in label:
