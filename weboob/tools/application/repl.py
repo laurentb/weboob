@@ -237,11 +237,11 @@ class ReplApplication(Cmd, ConsoleApplication):
             try:
                 obj = self.objects[int(_id) - 1]
             except (IndexError, ValueError):
-                return None
+                pass
             else:
                 try:
                     backend = self.weboob.get_backend(obj.backend)
-                    actual_method = getattr(backend,method,None)
+                    actual_method = getattr(backend, method, None)
                     if actual_method is None:
                         return None
                     else:
