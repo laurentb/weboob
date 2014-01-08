@@ -55,7 +55,7 @@ class ICapAudioStream(ICapAudio):
         """
         return self.search_audio(pattern, sortby)
 
-    def get_audiostream(self, id):
+    def get_audiostream(self, _id):
         """
         Get an audio stream
 
@@ -63,4 +63,4 @@ class ICapAudioStream(ICapAudio):
         :type id: str
         :rtype: :class:`BaseAudioStream`
         """
-        return self.get_audio(id)
+        return self.get_audio(_id)
