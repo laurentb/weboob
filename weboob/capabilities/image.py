@@ -64,7 +64,7 @@ class ICapImage(ICapFile):
         """
         return self.search_file(pattern, sortby)
 
-    def get_image(self, id):
+    def get_image(self, _id):
         """
         Get an image file from an ID.
 
@@ -72,5 +72,5 @@ class ICapImage(ICapFile):
         :type id: str
         :rtype: :class:`BaseImage`]
         """
-        return self.get_file(id)
+        return self.get_file(_id)
 

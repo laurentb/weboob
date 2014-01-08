@@ -71,7 +71,7 @@ class ICapFile(IBaseCap):
         """
         raise NotImplementedError()
 
-    def get_file(self, id):
+    def get_file(self, _id):
         """
         Get a file from an ID
 

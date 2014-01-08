@@ -53,7 +53,7 @@ class ICapVideo(ICapImage):
         """
         return self.search_image(pattern, sortby, nsfw)
 
-    def get_video(self, id):
+    def get_video(self, _id):
         """
         Get a video file from an ID.
 
@@ -61,4 +61,4 @@ class ICapVideo(ICapImage):
         :type _id: str
         :rtype: :class:`BaseVideo` or None is fot found.
         """
-        return self.get_image(id)
+        return self.get_image(_id)

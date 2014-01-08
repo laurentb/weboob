@@ -53,7 +53,7 @@ class ICapAudio(ICapFile):
         """
         return self.search_file(pattern, sortby)
 
-    def get_audio(self, id):
+    def get_audio(self, _id):
         """
         Get an audio file from an ID.
 
@@ -61,4 +61,4 @@ class ICapAudio(ICapFile):
         :type id: str
         :rtype: :class:`BaseAudio`]
         """
-        return self.get_file(id)
+        return self.get_file(_id)
