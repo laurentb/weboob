@@ -34,6 +34,7 @@ class BaseFile(CapBaseObject):
     author =        StringField('File author')
     description =   StringField('File description')
     date =          DateField('File publication date')
+    size =          Field('File size in bytes',int,long, default=NotAvailable)
     rating =        Field('Rating', int, long, float, default=NotAvailable)
     rating_max =    Field('Maximum rating', int, long, float, default=NotAvailable)
 
