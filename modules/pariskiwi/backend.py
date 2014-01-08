@@ -34,7 +34,7 @@ class ParisKiwiBackend(BaseBackend, ICapCalendarEvent):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.h'
+    VERSION = '0.i'
 
     BROWSER = ParisKiwiBrowser
 

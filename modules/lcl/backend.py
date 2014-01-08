@@ -35,7 +35,7 @@ class LCLBackend(BaseBackend, ICapBank):
     NAME = 'lcl'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = u'LCL'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

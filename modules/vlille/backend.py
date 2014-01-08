@@ -31,7 +31,7 @@ class VlilleBackend(BaseBackend, ICapGauge):
     DESCRIPTION = u'access to vlille datas'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
 
     BROWSER = VlilleBrowser
 

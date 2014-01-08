@@ -42,7 +42,7 @@ class AudioAddictBackend(BaseBackend, ICapRadio, ICapCollection):
     NAME = 'audioaddict'
     MAINTAINER = u'Pierre Mazière'
     EMAIL = 'pierre.maziere@gmx.com'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = u'Internet radios powered by audioaddict.com services'
     LICENSE = 'AGPLv3+'
     BROWSER = StandardBrowser

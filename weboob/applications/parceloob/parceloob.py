@@ -79,7 +79,7 @@ class StatusFormatter(IFormatter):
 
 class Parceloob(ReplApplication):
     APPNAME = 'parceloob'
-    VERSION = '0.h'
+    VERSION = '0.i'
     COPYRIGHT = 'Copyright(C) 2013 Romain Bignon'
     CAPS = ICapParcel
     DESCRIPTION = "Console application to track your parcels."

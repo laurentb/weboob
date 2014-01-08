@@ -30,7 +30,7 @@ class JVMalinBackend(BaseBackend, ICapTravel):
     NAME = 'jvmalin'
     MAINTAINER = u'Alexandre Lissy'
     EMAIL = 'github@lissy.me'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Multimodal public transportation for whole Région Centre, France"
     BROWSER = JVMalin

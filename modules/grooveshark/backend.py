@@ -32,7 +32,7 @@ class GroovesharkBackend(BaseBackend, ICapAudio, ICapCollection):
     DESCRIPTION = u'Grooveshark music streaming website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3+'
 
     BROWSER = GroovesharkBrowser

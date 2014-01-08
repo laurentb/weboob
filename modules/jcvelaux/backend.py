@@ -57,7 +57,7 @@ class jcvelauxBackend(BaseBackend, ICapGauge):
                    u', '.join(CITIES))
     MAINTAINER = u'Herve Werner'
     EMAIL = 'dud225@hotmail.com'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3'
 
     BROWSER = VelibBrowser

@@ -61,7 +61,7 @@ class CitiesFormatter(PrettyFormatter):
 
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
-    VERSION = '0.h'
+    VERSION = '0.i'
     COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
     DESCRIPTION = "Console application allowing to display weather and forecasts in your city."
     SHORT_DESCRIPTION = "display weather and forecasts"

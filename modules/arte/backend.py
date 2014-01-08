@@ -36,7 +36,7 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'arte'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Arte French and German TV'
     LICENSE = 'AGPLv3+'
 

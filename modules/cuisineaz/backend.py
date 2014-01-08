@@ -34,7 +34,7 @@ class CuisineazBackend(BaseBackend, ICapRecipe):
     NAME = 'cuisineaz'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = u'Cuisine AZ French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = CuisineazBrowser

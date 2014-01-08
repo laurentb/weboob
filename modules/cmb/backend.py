@@ -49,7 +49,7 @@ class CmbBackend(BaseBackend, ICapBank):
     NAME = 'cmb'
     MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3+'
     AUTH_CERT = os.path.dirname(__file__)
     AUTH_CERT += '/Verisign_Class_3_Public_Primary_Certification_Authority.pem'

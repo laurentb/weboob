@@ -39,7 +39,7 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     NAME = 'redmine'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'The Redmine project management web application'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('url',      label='URL of the Redmine website', regexp=r'https?://.*'),

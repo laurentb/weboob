@@ -31,7 +31,7 @@ class TvsubtitlesBackend(BaseBackend, ICapSubtitle):
     NAME = 'tvsubtitles'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Tvsubtitles subtitle website'
     LICENSE = 'AGPLv3+'
     BROWSER = TvsubtitlesBrowser

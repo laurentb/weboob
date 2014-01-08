@@ -32,7 +32,7 @@ class FortuneoBackend(BaseBackend, ICapBank):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(

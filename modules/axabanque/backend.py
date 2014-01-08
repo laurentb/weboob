@@ -32,7 +32,7 @@ class AXABanqueBackend(BaseBackend, ICapBank):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = u'AXA Banque'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'N° de client', regexp='\d+', masked=False),

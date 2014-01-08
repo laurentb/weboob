@@ -48,7 +48,7 @@ class EventListFormatter(PrettyFormatter):
 
 class HaveDate(Boobmsg):
     APPNAME = 'havedate'
-    VERSION = '0.h'
+    VERSION = '0.i'
     COPYRIGHT = 'Copyright(C) 2010-2012 Romain Bignon'
     DESCRIPTION = "Console application allowing to interact with various dating websites " \
                   "and to optimize seduction algorithmically."

@@ -34,7 +34,7 @@ class PopolemploiBackend(BaseBackend, ICapJob):
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
 
     BROWSER = PopolemploiBrowser
 

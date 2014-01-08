@@ -33,7 +33,7 @@ class HSBCBackend(BaseBackend, ICapBank):
     NAME = 'hsbc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '0.h'
+    VERSION = '0.i'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'HSBC France'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

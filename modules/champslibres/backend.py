@@ -32,7 +32,7 @@ class ChampslibresBackend(BaseBackend, ICapBook):
     NAME = 'champslibres'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Champs Libres (Rennes) Library'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Account ID', regexp='^\d{1,15}|$'),

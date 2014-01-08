@@ -36,7 +36,7 @@ class EuroparlBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'europarl'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Europarl parliamentary video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = EuroparlBrowser

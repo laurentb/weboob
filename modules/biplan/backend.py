@@ -34,7 +34,7 @@ class BiplanBackend(BaseBackend, ICapCalendarEvent):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '0.h'
+    VERSION = '0.i'
     ASSOCIATED_CATEGORIES = [CATEGORIES.CONCERT, CATEGORIES.THEATRE]
     BROWSER = BiplanBrowser
 

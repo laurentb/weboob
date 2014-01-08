@@ -32,7 +32,7 @@ class JacquieEtMichelBackend(BaseBackend, ICapVideo, ICapCollection):
     NAME = 'jacquieetmichel'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '0.h'
+    VERSION = '0.i'
     DESCRIPTION = 'Jacquie et Michel TV'
     LICENSE = 'AGPLv3+'
     BROWSER = JacquieEtMichelBrowser

@@ -33,7 +33,7 @@ class AdeccoBackend(BaseBackend, ICapJob):
     DESCRIPTION = u'adecco website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '0.h'
+    VERSION = '0.i'
 
     BROWSER = AdeccoBrowser
 
