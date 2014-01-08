@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH QVIDEOOB 1 "03 August 2013" "qvideoob 0\&.g"
+.TH QVIDEOOB 1 "08 January 2014" "qvideoob 0\&.h"
 .SH NAME
 qvideoob \- search and play videos
 .SH SYNOPSIS
@@ -31,11 +31,13 @@ Qt application allowing to search videos on various websites and play them.
 .br
 * gdcvault (Game Developers Conferences Vault video streaming website)
 .br
-* grooveshark (grooveshark website)
-.br
 * ina (INA French TV video archives)
 .br
+* jacquieetmichel (Jacquie et Michel TV)
+.br
 * nolifetv (NolifeTV French video streaming website)
+.br
+* quvi (Multi\-website video helper with quvi. Handles Youtube, BBC, and a lot more)
 .br
 * radiofrance (Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv')
 .br
@@ -81,6 +83,51 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+
+.SH CONDITION
+The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
+.LP
+The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
+.SS The following operators are supported:
+.TP
+=
+Test if object.field is equal to the value.
+.TP
+!=
+Test if object.field is not equal to the value.
+.TP
+>
+Test if object.field is greater than the value. If object.field is date, return true if value is before that object.field.
+.TP
+<
+Test if object.field is less than the value. If object.field is date, return true if value is after that object.field.
+.TP
+|
+This operator is available only for string fields. It works like the Unix standard \fBgrep\fR command, and returns True if the pattern specified in the value is in object.field.
+.SS Expression combination
+You can make a expression combinations with the keywords \fB" AND "\fR and \fB" OR "\fR.
+
+.SS Examples:
+.nf
+.B boobank ls \-\-condition 'label=Livret A'
+.fi
+Display only the "Livret A" account.
+.PP
+.nf
+.B boobank ls \-\-condition 'balance>10000'
+.fi
+Display accounts with a lot of money.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'label|rewe'
+.fi
+Get transactions containing "rewe".
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.fi
+Get transactions betweens the 2th December and 8th December 2013.
 
 .SH COPYRIGHT
 Copyright(C) 2010-2011 Romain Bignon

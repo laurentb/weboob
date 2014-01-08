@@ -1,3 +1,365 @@
+Weboob 0.h (2014-01-08)
+
+	General
+	* New application: boobcoming
+	* New application: boobsize
+	* New capability: CapCalendarEvent
+	* New capability: CapFile
+	* New capability: CapAudio
+	* New capability: CapAudioStream
+	* New capability: CapImage
+	* New module: Apivie (CapBank)
+	* New module: Audioaddict (CapRadio)
+	* New module: Banqueaccord (CapBank)
+	* New module: Biplan (CapCalendarEvent)
+	* New module: CCI (CapJob)
+	* New module: Collisimo (CapParcel)
+	* New module: EDF (CapBill) (#1296)
+	* New module: GitHub (CapBugTracker)
+	* New module: Indeed (CapJob)
+	* New module: Jacquieetmichel (CapVideo)
+	* New module: jcvelaux (CapGauge) (#376)
+	* New module: JVMalin.fr (CapTravel)
+	* New module: Liberation (CapMessage)
+	* New module: lhybride.org (CapCalendarEvent)
+	* New module: Monster (CapJob)
+	* New module: Nectarine Demoscene Music (CapRadio)
+	* New module: Nihon no Oto (CapRadio)
+	* New module: OVS (CapMessage, CapContact)
+	* New module: Pariskiwi (CapCalendarEvent)
+	* New module: Poivy (CapBill)
+	* New module: Quvi (CapVideo)
+	* New module: RegionsJob (CapJob)
+	* New module: Somafm (CapRadio)
+	* New module: Sueurdemetal (CapCalendarEvent)
+	* New module: VoyagesSNCF (CapTravel)
+	* Removed module: ecrans (see new liberation module)
+	* Removed module: Isohunt (site closed)
+
+	Core
+	* Add class WebNip (Web [in] Non Interactive Programs)
+	* Modify/factorize/add CapVideo, CapAudio, CapImage, CapFile
+
+	Core: application
+	* The "condition" system has been rewritten (and moved from bcall to reply applications) (#1289) (#1288)
+	* repl: add <,> and | operators in conditions
+	* repl: support date in conditions (#1308)
+	* repl: catch error in condition evaluation
+	* repl: sort results of "ls"
+	* repl: add -U option to not sort result with "ls"
+	* repl: add documentation for conditions in manpages
+	* repl: exclude backends which does not implement 'method' in get_object
+	* repl: restrict to 40 results in ls by default
+	* repl: accept 0 and negative values for count in interactive mode
+	* Base: hide FormFieldConversionWarning
+	* JSON: fix export format (#1294)
+	* JSON: encode all subobjects
+
+	CapBank
+	* Add Invstment in __all__
+	* Use raw label to calculate unique_id
+
+	CapGallery
+	* Add iter_gallery_images method
+
+	CapJob
+	* Change API: add advanced_search_job
+
+	CapTravel
+	* Add parameter 'date' to ICapTravel.iter_station_departures
+	* Add fields to Departure (arrival_time, price, currency)
+
+	CapVideo
+	* Inherit from CapImage
+
+	CapWeather
+	* Fix htmltable display for wetboobs forecast command (#1318)
+
+	Application: boobank
+	* Truncate label in formatter 'account_list'
+	* Add OFX export
+
+	Application: boobill
+	* Catch some errors (#1303)
+	* Fix: documentation erros
+
+	Application: handjoob
+	* Fix: display of results
+	* Better ls command
+
+	Application: Qhandjoob
+	* Adapt to ICapJob update
+
+	Application: parceloob
+	* Do not show "None", but an empty string
+
+	Application: pastoob
+	* Add help for "infinite" max_age
+
+	Application: radioob
+	* Let user choose his Stream to use from Radio instance (#1291)
+	* Use CapRadio
+	* Add support for download and streaming of BaseAudio objects
+	* Add support for playlist of BaseAudio objects
+
+	Application: traveloob
+	* Add (colored) formatters
+
+	Application: videoob
+	* Add playlist support
+	* Sanitize default download filename
+	* Fix: do not return None objects on get_object
+	* Support curl for downloading
+	* Allow to download in a folder with generated filename
+
+	Application: wetboobs
+	* Depreciate ICapGauge commands (#1284)
+
+	Tools: Application
+	* Add mpv to default players
+
+	Tools: GenericBackend
+	* Make a real link in signature
+
+	Tools: Browser
+	* Move the test on self.insecure to catch direct calls
+
+	Tools: Value
+	* Order Choices
+
+	Module: adecco
+	* Fix: site changed
+
+	Module: allocine
+	* Implementation of the new API mechanism
+
+	Module: ameli
+	* Fix: site changes
+	* Better handle of login
+
+	Module: amelipro
+	* Fix listing of bills
+
+	Module: apec
+	* Fix: site changed (get job offers)
+	* Use html2text to fill description content
+
+	Module: arte
+	* Add liveweb.arte.tv url management
+	* Update to use arte API
+	* Fix: fully fill Artevideo in get_video method (#1312)
+
+	Module: arretsurimage
+	* Prevent to catch all urls
+
+	Module: Banquepopulaire
+	* Get list of all accounts
+	* Fix: do not crash if there is no operations
+	* Fix: do not crash when there is no full list page
+	* Support loan accounts
+	* Support accounts with empty balance
+	* Fix: do not crash with market accounts
+	* Fix: new authentication
+	* Fix: sometimes it is not possible to sort by value date in history
+	* Fix: crash on special account histories
+	* Support defered cards
+	* Fix: getting history on some special workflow
+	* Fix: crash when there is the coming column with empty value
+
+	Module: Barclays
+	* New favicon
+
+	Module: Bnporc
+	* Fix: update BNP certificate fingerprint
+	* Add transaction patterns
+	* Support new virtual keyboard
+	* Fix: typo in label, s/Profesionnels/Professionnels
+
+	Module: Boursorama
+	* Fix: crash when there is no link on an opening account
+	* Remove dead code
+
+	Module: BP
+	* New Virtualkeyboard
+
+	Module: Bred
+	* New configuration option: force the selection of account
+	* Fix: selection of accounts when there are both personal and enterprise ones
+	* Fix: set the right debit date on card transactions
+	* Fix: crash on page to select account
+
+	Module: Caissedepargne
+	* New certificat
+
+	Module: Carrefourbannque
+	* Removed broken regexp for login parameter.
+
+	Module: CIC and Creditmutuel
+	* Backport fixes from creditmutuel
+	* Correctly get the accounting amount
+	* Support coming transactions
+	* Do not try to find coming transactions for inappropriate account
+	* Set the right debit date on card transactions
+	* Fix parsing card debit date when there is a link in text
+	* Support multi-cards pages
+
+	Module: CMB
+	* Fix: parsing accounts when there are mandated ones
+
+	Module: Citelis
+	* New certificate
+
+	Module: Chronopost
+	* Do not set location to "None" if empty
+
+	Module: Cragr
+	* Do not follow spam links
+	* Fix: parsing of card accounts in particular cases
+	* Fix: correctly set cards' Transaction.date to the debit date
+	* Fix: crash when there are only three columns in card transactions listi
+	* Fix: account IDs can contain anything else than digits
+
+	Module: CreditCooperatif
+	* New favicon
+
+	Module: Creditdunord
+	* Support enterprise accounts
+	* Fix: parameters on request to get professionnal accounts history
+	* Support SEPA Order parsing
+	* Fix: pagination on professional website
+
+	Module: Dailymotion
+	* Fix: dailymotion thumbmail retrieving (#1310)
+	* Fix: found the video URL
+	* Fix: try to get the full JSON data
+	* Fix: bugs in video pages (#1320)
+
+	Module: Delubac
+	* New favicon
+
+	Module: Dresdenwetter
+	* New favicon
+
+	Module: francetelevisions
+	* Fix: downloading in non-interactive mode
+	* Fix: KeyError: 'data-date' (site changed) (#1282)
+
+	Module: Grooveshark
+	* Force mp3 extension
+	* Many code style fixes
+	* Manage albums search
+	* Add user playlist management
+	* Declare user_id as an instance variable
+	* Fix: unitialized property user_id
+	* Fix: NoneType return value when user is not logged
+	* Fix: typo in test
+	* Adapt test for logged and non logged users
+
+	Module: hellobank
+	* Fix decimal parsing of account values
+
+	Module: Imdb
+	* Fix: site changed
+	* Add some tests
+
+	Module: Leclercmobile
+	* New favicon
+
+	Module: Mangago
+	* Fix: GenericComicReaderTest import path
+
+	Module: MeteoFrance
+	* Fix: parsing of pages, site changed
+
+	Module: LCL
+	* Fix: detection of authentication errors
+	* Support new contracts selection page
+	* New certificate
+	* Fix: remove all of the agency parameter (#1313)
+
+	Module: Leclercmobile
+	* Better balance information
+	* Remove "votre solde" in history
+	* Strip labels
+
+	Module: Lolix
+	* Fill search job method in lolix to avoid error message
+
+	Module: Nettokom
+	* Add get_balance method
+	* Fix: encoding warnings
+
+	Module: NolifeTV
+	* Use mobile.nolife-tv.com instead of online.nolife-tv.com
+	* Add theme/type entries
+	* Allow anonymous surfing
+
+	Module: popolemploi
+	* Improve deep search
+
+	Module: Prixcarburant
+	* Fix sites changes (#1031)
+
+	Module: ING
+	* Use raw parser for TitrePage
+	* Add LDD support
+	* Get history of titre account
+	* Do not crash if there is no operation
+	* Raise UseError on empty reason for transfer (#1315)
+
+	Module: ipinfodb
+	* Fix: form changed from GET to POST
+
+	Module: SFR
+	* Fix: site changed
+	* Add some tests
+
+	Module: Societegenerale
+	* Fix: parsing of cards with undefined payment date
+	* Add transaction patterns
+	* Fix: conversion warnings (#1304)
+	* Fix: support new authentication system
+
+	Module: TVSubtitles
+	* Add some tests
+
+	Module: Vlille
+	* Improve method _get_sensor_by_id
+	* Scrap webpage instead of provided xml (get more informations)
+
+	Module: Wordreference
+	* Fix: site changed
+
+	Module: Youjizz
+	* Fix: get real thumbnail
+
+	Module: Youtube
+	* Add a new YouTube video URL
+	* Set YOUTUBE_MAX_START_INDEX to 500
+
+	Contrib: downloadboob
+	* Fix: call to ICapVideo.search_videos (API changed) (#1301)
+	* Fix: print help instead of crash
+
+	Contrib: generic-munin
+	* Add get_object_list command
+	* Fix: do not crash if one value is NotAvailable
+
+	Contrib: kmymoney
+	* Fix dead lock with krosspython > 4.8
+	* Add a Weboob configuration tab in account configuration window
+	* Restrict download to N transactions by updating the history
+
+	Misc: packaging
+	* Get absolute path without readlink (compatibility with BSD systems)
+	* Add windows installer
+	* Use more common syntax (refs #1299)
+	* Better detection of Pillow
+
+	Misc: tools
+	* local_run: do not erase existing PYTHONPATH 
+
+
 Weboob 0.g (2013-08-03)
 
 	General

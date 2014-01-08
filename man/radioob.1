@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH RADIOOB 1 "03 August 2013" "radioob 0\&.g"
+.TH RADIOOB 1 "08 January 2014" "radioob 0\&.h"
 .SH NAME
 radioob \- search, show or listen to radio stations
 .SH SYNOPSIS
@@ -14,21 +14,27 @@ radioob \- search, show or listen to radio stations
 
 Console application allowing to search for web radio stations, listen to them and get information like the current song.
 
-.SS Supported websites:
-* nova (Nova French radio)
-.br
-* ouifm (Ouï FM French radio)
-.br
-* radiofrance (Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv')
 .SH RADIOOB COMMANDS
+.TP
+\fBdownload\fR \fIID\fR [\fIFILENAME\fR]
+.br
+Download an audio file
 .TP
 \fBinfo\fR \fIID\fR
 .br
-Get information about a radio.
+Get information about a radio or an audio file.
 .TP
-\fBplay\fR \fIID\fR
+\fBplay\fR \fIID\fR [stream\fI_\fRid]
 .br
-Play a radio with a found player.
+Play a radio or a audio file with a found player (optionnaly specify the wanted stream).
+.TP
+\fBplaylist\fR cmd [args]playlist add ID [ID2 ID3 ...]
+.br
+playlist remove ID [ID2 ID3 ...]
+.br
+playlist export [FILENAME]
+.br
+playlist display
 .TP
 \fBsearch\fR \fIPATTERN\fR
 .br
@@ -79,7 +85,7 @@ Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
-If an argument is given, set the condition expression used to filter the results.
+If an argument is given, set the condition expression used to filter the results. See CONDITION section for more details and the expression.
 .br
 If the "off" value is given, conditional filtering is disabled.
 .br
@@ -202,7 +208,8 @@ save every response
 .SH RESULTS OPTIONS
 .TP
 \fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
-filter result items to display given a boolean expression
+filter result items to display given a boolean expression. See CONDITION section
+for the syntax
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
 limit number of results (from each backends)
@@ -225,8 +232,54 @@ do not display item keys
 \fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
 file to export result
 
+.SH CONDITION
+The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
+.LP
+The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
+.SS The following operators are supported:
+.TP
+=
+Test if object.field is equal to the value.
+.TP
+!=
+Test if object.field is not equal to the value.
+.TP
+>
+Test if object.field is greater than the value. If object.field is date, return true if value is before that object.field.
+.TP
+<
+Test if object.field is less than the value. If object.field is date, return true if value is after that object.field.
+.TP
+|
+This operator is available only for string fields. It works like the Unix standard \fBgrep\fR command, and returns True if the pattern specified in the value is in object.field.
+.SS Expression combination
+You can make a expression combinations with the keywords \fB" AND "\fR and \fB" OR "\fR.
+
+.SS Examples:
+.nf
+.B boobank ls \-\-condition 'label=Livret A'
+.fi
+Display only the "Livret A" account.
+.PP
+.nf
+.B boobank ls \-\-condition 'balance>10000'
+.fi
+Display accounts with a lot of money.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'label|rewe'
+.fi
+Get transactions containing "rewe".
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.fi
+Get transactions betweens the 2th December and 8th December 2013.
+
 .SH COPYRIGHT
-Copyright(C) 2010-2012 Romain Bignon
+Copyright(C) 2010-2013 Romain Bignon
+Copyright(C) 2013 Pierre Maziere
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP

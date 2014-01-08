@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH BOOBILL 1 "03 August 2013" "boobill 0\&.g"
+.TH BOOBILL 1 "08 January 2014" "boobill 0\&.h"
 .SH NAME
 boobill \- get and download bills
 .SH SYNOPSIS
@@ -19,24 +19,28 @@ Console application allowing to get and download bills.
 .br
 * amelipro (Ameli website: French Health Insurance for Professionals)
 .br
+* edf (Edf website: French power provider)
+.br
 * freemobile (Free Mobile website)
 .br
-* gdfsuez (GdF\-Suez website)
+* gdfsuez (GDF\-Suez French energy provider)
 .br
-* ing (ING Direct French bank website)
+* ing (ING Direct)
 .br
 * leclercmobile (Leclerc Mobile website)
 .br
 * nettokom (Nettokom website)
+.br
+* poivy (Poivy website)
 .SH BOOBILL COMMANDS
 .TP
-\fBbalance\fR [\fII\fRd]
+\fBbalance\fR [\fIID\fR]
 .br
 Get balance of subscriptions.
 .br
-If no ID given, display balance of all backends
+If no ID given, display balance of all backends.
 .TP
-\fBbills\fR [\fII\fRd]
+\fBbills\fR [\fIID\fR]
 .br
 Get the list of bills documents for subscriptions.
 .br
@@ -50,11 +54,11 @@ Default is limited to 10 results.
 .br
 Get details of subscriptions.
 .br
-If no ID given, display all details of all backends
+If no ID given, display all details of all backends.
 .TP
-\fBdownload\fR [\fII\fRd | all] [\fIFILENAME\fR]
+\fBdownload\fR [\fIID\fR | all] [\fIFILENAME\fR]
 .br
-download Id [FILENAME]
+download ID [FILENAME]
 .br
 
 .br
@@ -68,21 +72,21 @@ the file is written to stdout.
 .br
 
 .br
-download all [Id]
+download all [ID]
 .br
 
 .br
 You can use special word "all" and download all bills of
 .br
-subscription identified by Id.
+subscription identified by ID.
 .br
 If Id not given, download bills of all subscriptions.
 .TP
-\fBhistory\fR [\fII\fRd]
+\fBhistory\fR [\fIID\fR]
 .br
 Get the history of subscriptions.
 .br
-If no ID given, display histories of all backends
+If no ID given, display histories of all backends.
 .br
 
 .br
@@ -90,7 +94,7 @@ Default is limited to 10 results.
 .TP
 \fBsubscriptions\fR
 .br
-List subscriptions
+List all subscriptions.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -129,7 +133,7 @@ Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
-If an argument is given, set the condition expression used to filter the results.
+If an argument is given, set the condition expression used to filter the results. See CONDITION section for more details and the expression.
 .br
 If the "off" value is given, conditional filtering is disabled.
 .br
@@ -195,11 +199,17 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR [\-d] [\fIPATH\fR]
+\fBls\fR [\-d] [\-\fIU\fR] [\fIPATH\fR]
 .br
 List objects in current path.
 .br
 If an argument is given, list the specified path.
+.br
+Use \-U option to not sort results.
+.br
+
+.br
+Default is limited to 40 results.
 .TP
 \fBquit\fR
 .br
@@ -254,7 +264,8 @@ save every response
 .SH RESULTS OPTIONS
 .TP
 \fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
-filter result items to display given a boolean expression
+filter result items to display given a boolean expression. See CONDITION section
+for the syntax
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
 limit number of results (from each backends)
@@ -276,6 +287,51 @@ do not display item keys
 .TP
 \fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
 file to export result
+
+.SH CONDITION
+The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
+.LP
+The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
+.SS The following operators are supported:
+.TP
+=
+Test if object.field is equal to the value.
+.TP
+!=
+Test if object.field is not equal to the value.
+.TP
+>
+Test if object.field is greater than the value. If object.field is date, return true if value is before that object.field.
+.TP
+<
+Test if object.field is less than the value. If object.field is date, return true if value is after that object.field.
+.TP
+|
+This operator is available only for string fields. It works like the Unix standard \fBgrep\fR command, and returns True if the pattern specified in the value is in object.field.
+.SS Expression combination
+You can make a expression combinations with the keywords \fB" AND "\fR and \fB" OR "\fR.
+
+.SS Examples:
+.nf
+.B boobank ls \-\-condition 'label=Livret A'
+.fi
+Display only the "Livret A" account.
+.PP
+.nf
+.B boobank ls \-\-condition 'balance>10000'
+.fi
+Display accounts with a lot of money.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'label|rewe'
+.fi
+Get transactions containing "rewe".
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.fi
+Get transactions betweens the 2th December and 8th December 2013.
 
 .SH COPYRIGHT
 Copyright(C) 2012 Florent Fourcot

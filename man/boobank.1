@@ -1,5 +1,5 @@
 .\" -*- coding: utf-8 -*-
-.TH BOOBANK 1 "03 August 2013" "boobank 0\&.g"
+.TH BOOBANK 1 "08 January 2014" "boobank 0\&.h"
 .SH NAME
 boobank \- manage bank accounts
 .SH SYNOPSIS
@@ -15,59 +15,63 @@ boobank \- manage bank accounts
 Console application allowing to list your bank accounts and get their balance, display accounts history and coming bank operations, and transfer money from an account to another (if available).
 
 .SS Supported websites:
-* americanexpress (American Express French bank website)
+* americanexpress (American Express)
 .br
-* axabanque (AXA Banque French bank website)
+* apivie (Apivie)
 .br
-* banquepopulaire (Banque Populaire French bank website)
+* axabanque (AXA Banque)
 .br
-* barclays (Barclays French bank website)
+* banqueaccord (Banque Accord)
 .br
-* bnporc (BNP Paribas French bank website)
+* banquepopulaire (Banque Populaire)
 .br
-* boursorama (Boursorama French bank website)
+* barclays (Barclays)
 .br
-* bp (La Banque Postale French bank website)
+* bnporc (BNP Paribas)
 .br
-* bred (BRED French bank website)
+* boursorama (Boursorama)
 .br
-* caissedepargne (Caisse d'Épargne French bank website)
+* bp (La Banque Postale)
 .br
-* carrefourbanque (Carrefour Banque French bank website)
+* bred (Bred)
 .br
-* cic (CIC French bank website)
+* caissedepargne (Caisse d'Épargne)
 .br
-* citelis (citelis website)
+* carrefourbanque (Carrefour Banque)
 .br
-* cmb (Crédit Mutuel de Bretagne French bank website)
+* cic (CIC)
 .br
-* cmso (Crédit Mutuel Sud\-Ouest French bank website)
+* citelis (Citélis)
 .br
-* cragr (Crédit Agricole French bank website)
+* cmb (Crédit Mutuel de Bretagne)
 .br
-* creditcooperatif (Crédit Coopératif French bank website)
+* cmso (Crédit Mutuel Sud\-Ouest)
 .br
-* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Tarneaud French bank website)
+* cragr (Crédit Agricole)
 .br
-* creditmutuel (Crédit Mutuel French bank website)
+* creditcooperatif (Crédit Coopératif)
+.br
+* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Tarneaud)
+.br
+* creditmutuel (Crédit Mutuel)
 .br
 * delubac (Banque Delubac & Cie)
 .br
-* fortuneo (Fortuneo French bank website)
+* fortuneo (Fortuneo)
 .br
-* ganassurances (Groupama Assurances French bank website)
+* ganassurances (Groupama)
 .br
-* hellobank (Hello Bank ! website)
+* hellobank (Hello Bank!)
 .br
-* hsbc (HSBC France bank website)
+* hsbc (HSBC France)
 .br
-* ing (ING Direct French bank website)
+* ing (ING Direct)
 .br
-* lcl (Le Crédit Lyonnais French bank website)
+* lcl (LCL)
 .br
-* paypal (PayPal money transfer website)
+* paypal (PayPal)
 .br
-* societegenerale (Société Générale French bank website)
+* societegenerale (Société Générale)
 .SH BOOBANK COMMANDS
 .TP
 \fBcoming\fR \fIID\fR [\fIEND_DATE\fR]
@@ -98,9 +102,11 @@ Default is limited to 10 results.
 .br
 Display investments of an account.
 .TP
-\fBlist\fR
+\fBlist\fR [\-\fIU\fR]
 .br
 List accounts.
+.br
+Use \-U to disable sorting of results.
 .TP
 \fBtransfer\fR \fIACCOUNT\fR [\fIRECIPIENT\fR \fIAMOUNT\fR [\fIREASON\fR]]
 .br
@@ -157,7 +163,7 @@ Follow a path.
 .TP
 \fBcondition\fR [\fIEXPRESSION\fR | off]
 .br
-If an argument is given, set the condition expression used to filter the results.
+If an argument is given, set the condition expression used to filter the results. See CONDITION section for more details and the expression.
 .br
 If the "off" value is given, conditional filtering is disabled.
 .br
@@ -223,11 +229,17 @@ Availables: debug, info, warning, error.
 .br
 * default is an alias for warning
 .TP
-\fBls\fR [\-d] [\fIPATH\fR]
+\fBls\fR [\-d] [\-\fIU\fR] [\fIPATH\fR]
 .br
 List objects in current path.
 .br
 If an argument is given, list the specified path.
+.br
+Use \-U option to not sort results.
+.br
+
+.br
+Default is limited to 40 results.
 .TP
 \fBquit\fR
 .br
@@ -282,7 +294,8 @@ save every response
 .SH RESULTS OPTIONS
 .TP
 \fB\-c CONDITION\fR, \fB\-\-condition=CONDITION\fR
-filter result items to display given a boolean expression
+filter result items to display given a boolean expression. See CONDITION section
+for the syntax
 .TP
 \fB\-n COUNT\fR, \fB\-\-count=COUNT\fR
 limit number of results (from each backends)
@@ -294,8 +307,8 @@ select result item keys to display (comma separated)
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
 select output formatter (account_list, csv, htmltable, investment_list, json,
-multiline, ops_list, pretty_qif, qif, recipient_list, simple, table, transfer,
-webkit)
+multiline, ofx, ops_list, pretty_qif, qif, recipient_list, simple, table,
+transfer, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -305,6 +318,51 @@ do not display item keys
 .TP
 \fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
 file to export result
+
+.SH CONDITION
+The -c and --condition is a flexible way to sort and get only interesting results. It supports conditions on numerical values, dates, and strings. Dates are given in YYYY-MM-DD format.
+The syntax of one expression is "\fBfield operator value\fR". The field to test is always the left member of the expression.
+.LP
+The field is a member of the objects returned by the command. For example, a bank account has "balance", "coming" or "label" fields.
+.SS The following operators are supported:
+.TP
+=
+Test if object.field is equal to the value.
+.TP
+!=
+Test if object.field is not equal to the value.
+.TP
+>
+Test if object.field is greater than the value. If object.field is date, return true if value is before that object.field.
+.TP
+<
+Test if object.field is less than the value. If object.field is date, return true if value is after that object.field.
+.TP
+|
+This operator is available only for string fields. It works like the Unix standard \fBgrep\fR command, and returns True if the pattern specified in the value is in object.field.
+.SS Expression combination
+You can make a expression combinations with the keywords \fB" AND "\fR and \fB" OR "\fR.
+
+.SS Examples:
+.nf
+.B boobank ls \-\-condition 'label=Livret A'
+.fi
+Display only the "Livret A" account.
+.PP
+.nf
+.B boobank ls \-\-condition 'balance>10000'
+.fi
+Display accounts with a lot of money.
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'label|rewe'
+.fi
+Get transactions containing "rewe".
+.PP
+.nf
+.B boobank history account@backend \-\-condition 'date>2013-12-01 AND date<2013-12-09'
+.fi
+Get transactions betweens the 2th December and 8th December 2013.
 
 .SH COPYRIGHT
 Copyright(C) 2010-2011 Romain Bignon, Christophe Benz

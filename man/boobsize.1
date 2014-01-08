@@ -1,42 +1,45 @@
 .\" -*- coding: utf-8 -*-
-.TH WEBCONTENTEDIT 1 "08 January 2014" "webcontentedit 0\&.h"
+.TH BOOBSIZE 1 "08 January 2014" "boobsize 0\&.h"
 .SH NAME
-webcontentedit \- manage websites content
+boobsize \- display sensors and gauges values
 .SH SYNOPSIS
-.B webcontentedit
+.B boobsize
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B webcontentedit
+.B boobsize
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display and edit contents on various websites.
+Console application allowing to display various sensors and gauges values.
 
 .SS Supported websites:
-* dlfp (Da Linux French Page news website)
+* dresdenwetter (Private wetter station Dresden)
 .br
-* mediawiki (Wikis running MediaWiki, like Wikipedia)
+* jcvelaux (City bike renting availability information.
+Cities: Paris, Rouen, Toulouse, Luxembourg, Valence, Stockholm, Goteborg, Santander, Amiens, Lillestrom, Mulhouse, Lyon, Ljubljana, Seville, Namur, Nancy, Creteil, Bruxelles\-Capitale, Cergy\-Pontoise, Vilnius, Toyama, Kazan, Marseille, Nantes, Besancon)
 .br
-* redmine (The Redmine project management web application)
-.SH WEBCONTENTEDIT COMMANDS
+* sachsen (Level of Sachsen river)
+.br
+* vlille (access to vlille datas)
+.SH BOOBSIZE COMMANDS
 .TP
-\fBedit\fR \fIID\fR [\fIID\fR...]
+\fBdetails\fR \fIGAUGE_ID\fR
 .br
-Edit a content with $EDITOR, then push it on the website.
+Display details of all sensors of the gauge.
 .TP
-\fBget\fR \fIID\fR [revision]
+\fBhistory\fR \fISENSOR_ID\fR
 .br
-Get page contents
+Get history of a specific sensor (use 'search' to find a gauge, and sensors GAUGE_ID to list sensors attached to the gauge).
 .TP
-\fBlog\fR \fIID\fR
+\fBlast_sensor_measure\fR \fISENSOR_ID\fR
 .br
-Display log of a page
+Get last measure of a sensor.
+.TP
+\fBsearch\fR [\fIPATTERN\fR]
 .br
-
-.br
-Default is limited to 10 results.
+Display all gauges. If PATTERN is specified, search on a pattern.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -218,7 +221,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, multiline, simple, table, webkit)
+select output formatter (csv, gauge_list, htmltable, json, multiline, simple,
+table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -275,7 +279,7 @@ Get transactions containing "rewe".
 Get transactions betweens the 2th December and 8th December 2013.
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2013 Florent Fourcot
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -284,4 +288,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/webcontentedit
+Home page: http://weboob.org/applications/Boobsize

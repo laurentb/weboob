@@ -1,42 +1,66 @@
 .\" -*- coding: utf-8 -*-
-.TH WEBCONTENTEDIT 1 "08 January 2014" "webcontentedit 0\&.h"
+.TH BOOBCOMING 1 "08 January 2014" "boobcoming 0\&.h"
 .SH NAME
-webcontentedit \- manage websites content
+boobcoming \- see upcoming events
 .SH SYNOPSIS
-.B webcontentedit
+.B boobcoming
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B webcontentedit
+.B boobcoming
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to display and edit contents on various websites.
+Console application to see upcoming events.
 
 .SS Supported websites:
-* dlfp (Da Linux French Page news website)
+* biplan (lebiplan.org website)
 .br
-* mediawiki (Wikis running MediaWiki, like Wikipedia)
+* hybride (hybride website)
 .br
-* redmine (The Redmine project management web application)
-.SH WEBCONTENTEDIT COMMANDS
+* pariskiwi (ParisKiwi website)
+.br
+* sueurdemetal (SueurDeMetal French concerts list website)
+.SH BOOBCOMING COMMANDS
 .TP
-\fBedit\fR \fIID\fR [\fIID\fR...]
+\fBattends\fR \fIID\fR1 [\fIID\fR2 \fIID\fR3 ...]
 .br
-Edit a content with $EDITOR, then push it on the website.
+ID is the identifier of the event.
 .TP
-\fBget\fR \fIID\fR [revision]
+\fBexport\fR \fIFILENAME\fR [\fIID\fR1 \fIID\fR2 \fIID\fR3 ...]
 .br
-Get page contents
+ID is the identifier of the event. If no ID every events are exported
+.br
+
+.br
+FILENAME is where to write the file. If FILENAME is '\-', the file is written to stdout.
+.br
+
+.br
+Export event in ICALENDAR format
 .TP
-\fBlog\fR \fIID\fR
+\fBinfo\fR \fIID\fR
 .br
-Display log of a page
+Get information about an event.
+.TP
+\fBlist\fR [\fIPATTERN\fR]List upcoming events, pattern can be an english or french  week day, 'today' or a date (dd/mm/yy[yy])
 .br
 
 .br
 Default is limited to 10 results.
+.TP
+\fBsearch\fR
+.br
+search for an event. Parameters interactively asked
+.br
+
+.br
+Default is limited to 10 results.
+.TP
+\fBunattends\fR \fIID\fR1 [\fIID\fR2 \fIID\fR3 ...]
+.br
+ID is the identifier of the event.
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -218,7 +242,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, multiline, simple, table, webkit)
+select output formatter (csv, htmltable, ical_formatter, json, multiline,
+simple, simple_upcoming, table, upcoming, upcoming_list, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -275,7 +300,7 @@ Get transactions containing "rewe".
 Get transactions betweens the 2th December and 8th December 2013.
 
 .SH COPYRIGHT
-Copyright(C) 2010-2011 Romain Bignon
+Copyright(C) 2012 Bezleputh
 .LP
 For full COPYRIGHT see COPYING file with weboob package.
 .LP
@@ -284,4 +309,4 @@ For full COPYRIGHT see COPYING file with weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/webcontentedit
+Home page: http://weboob.org/applications/boobcoming
