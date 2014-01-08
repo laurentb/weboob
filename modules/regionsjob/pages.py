@@ -35,8 +35,12 @@ class SearchPage(BasePage):
             _id = u'%s|%s' % (website, re_id.search(a.attrib['href']).group(2))
             advert = RegionsJobAdvert(_id)
             advert.title = u'%s' % a.text
-            advert.society_name = u'%s' % self.parser.select(li, 'div/span[@class="offres_entreprise"]/span/a',
-                                                             1, method='xpath').text
+
+            society_name = self.parser.select(li, 'div/span[@class="offres_entreprise"]/span/a',
+                                              method='xpath')
+            if len(society_name) > 0:
+                advert.society_name = u'%s' % society_name[0].text
+
             advert.place = u'%s' % self.parser.select(li, 'div/span[@class="offres_ville"]/span/span/span',
                                                       1, method='xpath').text.strip()
             _date = u'%s' % self.parser.select(li, 'div/span[@class="offres_date"]',
@@ -84,10 +88,18 @@ class AdvertPage(BasePage):
 
             elif 'class' in p.attrib:
                 if p.attrib['class'] == 'contrat_loc':
-                    contrat_loc = self.parser.select(div, 'p[@class="contrat_loc"]/strong', 3, method='xpath')
-                    advert.society_name = u'%s' % contrat_loc[0].text
-                    advert.contract_type = u'%s' % contrat_loc[1].text
-                    advert.place = u'%s' % contrat_loc[2].text
+                    _p = self.parser.select(div, 'p[@class="contrat_loc"]', 1, method='xpath')
+                    content_p = _p.text_content().strip().split('\r\n')
+                    for el in content_p:
+                        splitted_el = el.split(':')
+                        if len(splitted_el) == 2:
+                            if splitted_el[0] == 'Entreprise':
+                                advert.society_name = splitted_el[1]
+                            elif splitted_el[0] == 'Contrat':
+                                advert.contract_type = splitted_el[1]
+                            elif splitted_el[0] == 'Localisation':
+                                advert.place = splitted_el[1]
+
                 elif p.attrib['class'] == 'date_ref':
                     next_is_date = True
 
