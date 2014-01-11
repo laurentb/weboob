@@ -1,4 +1,5 @@
 @echo off
+setlocal enableextensions enabledelayedexpansion
 
 call settings.cmd
 
@@ -10,25 +11,24 @@ set/P HTTPS_PROXY=Enter HTTPS_PROXY if needed :
 echo.
 echo 1.GNU/WGET Init
 
-set wget=wget-%ARCHITECTURE%.exe
+set WGET=wget-%ARCHITECTURE%.exe
 
 echo.
 echo 2.Check Python 2.7 Installation
 set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
 REG QUERY %KEY_NAME% > nul || 	(
-									echo 2.1 Download Python 2.7
+									set PYTHON_MSI=python-2.7.5.msi
 									if %ARCHITECTURE% == x64 (
-										set python_msi=python-2.7.5.amd64.msi								
-									) else (
-										set python_msi=python-2.7.5.msi
-									)							
+										set PYTHON_MSI=python-2.7.5.amd64.msi								
+									)
 									
-									"%wget%" -o python_donwload http://www.python.org/ftp/python/2.7.5/%python_msi%
+									echo 2.1 Download !PYTHON_MSI!
+									"%WGET%" -o python_donwload "http://www.python.org/ftp/python/2.7.5/!PYTHON_MSI!"
 									
-									echo 2.2 Setup Python 2.7
-									%python_msi%
+									echo 2.2 Setup !PYTHON_MSI!
+									!PYTHON_MSI!
 									
-									del %python_msi%
+									del !PYTHON_MSI!
 									del python_donwload
 								)
 								
@@ -38,11 +38,11 @@ for /F "tokens=4" %%A IN ('REG QUERY %KEY_NAME%') do (
 
 echo.
 echo 3.Check PyQt4 Installation
-for %%i in (pyuic4.bat) do set qt=%%~$PATH:i
-if not defined qt (
+set KEY_NAME=HKLM\Software\PyQt4\Py2.7\InstallPath
+REG QUERY %KEY_NAME% > nul || 	(
 
 	echo 3.1 Download PyQt4
-	"%wget%" -o qt_download http://heanet.dl.sourceforge.net/project/pyqt/PyQt4/PyQt-4.10.3/PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
+	"%WGET%" -o qt_download http://heanet.dl.sourceforge.net/project/pyqt/PyQt4/PyQt-4.10.3/PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
 
 	echo 3.2 Setup PyQt4
 	PyQt4-4.10.3-gpl-Py2.7-Qt4.8.5-%ARCHITECTURE%.exe
@@ -73,7 +73,7 @@ echo -- cssselect
 %PythonPath%Scripts\easy_install.exe cssselect || goto :InstallFailed
 echo.
 echo -- lxml
-%PythonPath%Scripts\easy_install.exe lxml || goto :InstallFailed
+%PythonPath%Scripts\easy_install.exe lxml==3.2.5 || goto :InstallFailed
 echo.
 echo -- dateutils
 %PythonPath%Scripts\easy_install.exe dateutils || goto :InstallFailed
@@ -90,8 +90,11 @@ echo.
 echo -- gdata
 %PythonPath%Scripts\easy_install.exe gdata || goto :InstallFailed
 echo.
+echo -- feedparser
+%PythonPath%Scripts\easy_install.exe feedparser || goto :InstallFailed
+echo.
 echo -- pillow
-%PythonPath%Scripts\easy_install.exe pillow || goto :InstallFailed
+%PythonPath%Scripts\easy_install.exe pillow==2.3.0 || goto :InstallFailed
 
 echo.
 echo 6.Install WeBoob
