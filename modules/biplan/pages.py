@@ -151,9 +151,20 @@ class EventPage(BasePage):
             event.price = float(0)
 
         _date = date_util.parse_french_date(" ".join(parse_b(splitted_b[0])))
-        start_time = self.parse_start_time("".join(parse_b(splitted_b[2])))
+
+        re_time = re.compile('(\d{1,2}h[\d{1,2}]?)', re.DOTALL)
+        start_end_date = re_time.findall(splitted_b[2])
+
+        if start_end_date:
+            start_time = self.parse_start_time(start_end_date[0])
+
+            if len(start_end_date) > 1:
+                end_time = self.parse_start_time(start_end_date[1])
+            else:
+                end_time = time.max
+
         event.start_date = datetime.combine(_date, start_time)
-        event.end_date = datetime.combine(_date, time.max)
+        event.end_date = datetime.combine(_date, end_time)
 
         event.url = url
 
