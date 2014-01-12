@@ -86,12 +86,37 @@ class VideoPage(BasePage):
         if video is None:
             video = DailymotionVideo(self.group_dict['id'])
 
-        div = self.parser.select(self.document.getroot(), 'div#content', 1)
+        head = self.parser.select(self.document.getroot(), 'head', 1)
 
-        video.title = unicode(self.parser.select(div, 'div, meta[itemprop=name]', 1).get("content")).strip()
-        video.author = unicode(self.parser.select(div, 'div, meta[itemprop=author]', 1).get("content")).strip()
+        video.title = unicode(self.parser.select(head, 'meta[property="og:title"]', 1).get("content")).strip()
+        video.author = unicode(self.parser.select(head, 'meta[name="author"]', 1).get("content")).strip()
+
+        url = unicode(self.parser.select(head, 'meta[property="og:image"]', 1).get("content")).strip()
+        # remove the useless anti-caching
+        url = re.sub('\?\d+', '', url)
+        video.thumbnail = BaseImage(url)
+        video.thumbnail.url = video.thumbnail.id
+
         try:
-            video.description = html2text(self.parser.tostring(self.parser.select(div, 'div, meta[itemprop=description]', 1))).strip() or unicode()
+            parts = self.parser.select(head, 'meta[property="video:duration"]', 1).get("content").strip().split(':')
+        except BrokenPageError:
+            # it's probably a live, np.
+            video.duration = NotAvailable
+        else:
+            if len(parts) == 1:
+                seconds = parts[0]
+                hours = minutes = 0
+            elif len(parts) == 2:
+                minutes, seconds = parts
+                hours = 0
+            elif len(parts) == 3:
+                hours, minutes, seconds = parts
+            else:
+                raise BrokenPageError('Unable to parse duration %r' % parts)
+            video.duration = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds))
+
+        try:
+            video.description = html2text(self.parser.select(head, 'meta[property="og:description"]', 1).get("content")).strip() or unicode()
         except BrokenPageError:
             video.description = u''
 
