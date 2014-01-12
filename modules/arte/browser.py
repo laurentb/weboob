@@ -155,7 +155,7 @@ class ArteBrowser(BaseBrowser):
             + '/' + level
 
         if pattern:
-            url += '/' + urllib.quote(pattern)
+            url += '/' + urllib.quote(pattern.encode('utf-8'))
 
         url += '/' + channel \
             + '/' + cluster \
