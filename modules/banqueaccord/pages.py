@@ -129,5 +129,6 @@ class OperationsPage(BasePage):
                 t = FrenchTransaction(0)
                 t.parse(date, raw)
                 t.label = label
-                t.set_amount('-' + amount)
+                t.set_amount(amount)
+                t.amount = - t.amount
                 yield t
