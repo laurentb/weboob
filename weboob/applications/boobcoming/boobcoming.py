@@ -211,14 +211,14 @@ class Boobcoming(ReplApplication):
     def do_list(self, line):
         """
         list [PATTERN]
-        List upcoming events, pattern can be an english or french  week day, 'today' or a date (dd/mm/yy[yy])
+        List upcoming events, pattern can be an english or french week day, 'today' or a date (dd/mm/yy[yy])
         """
 
         self.change_path([u'events'])
         if line:
             _date = parse_date(line)
             if not _date:
-                print >>sys.stderr, 'Invalid argument: %s' % self.get_command_help('list', short=True)
+                print >>sys.stderr, 'Invalid argument: %s' % self.get_command_help('list')
                 return 2
 
             date_from = datetime.combine(_date, time.min)
@@ -312,6 +312,7 @@ class Boobcoming(ReplApplication):
         """
         attends ID1 [ID2 ID3 ...]
 
+        Register as participant of an event.
         ID is the identifier of the event.
         """
         if not line:
@@ -328,6 +329,7 @@ class Boobcoming(ReplApplication):
         """
         unattends ID1 [ID2 ID3 ...]
 
+        Unregister you participation for an event.
         ID is the identifier of the event.
         """
 
