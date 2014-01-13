@@ -154,3 +154,4 @@ class ICapCalendarEvent(IBaseCap):
         :param is_attending : is attending to the event or not
         :type is_attending : bool
         """
+        raise NotImplementedError()
