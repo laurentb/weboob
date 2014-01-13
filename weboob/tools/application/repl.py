@@ -342,7 +342,15 @@ class ReplApplication(Cmd, ConsoleApplication):
         Call Weboob.do(), passing count and selected fields given by user.
         """
         backends = kwargs.pop('backends', None)
-        kwargs['backends'] = self.enabled_backends if backends is None else backends
+        if backends is None:
+            kwargs['backends'] = []
+            for backend in self.enabled_backends:
+                actual_function = getattr(backend, function, None)
+                if actual_function is not None and callable(actual_function):
+                    kwargs['backends'].append(backend)
+        else:
+            kwargs['backends'] = backends
+
         fields = kwargs.pop('fields', self.selected_fields) or self.selected_fields
         if '$direct' in fields:
             fields = []
