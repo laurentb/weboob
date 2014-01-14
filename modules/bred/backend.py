@@ -38,12 +38,15 @@ class BredBackend(BaseBackend, ICapBank):
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),
+                           Value('website', label="Site d'accès", default='bred',
+                                 choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
                            Value('accnum', label='Account number to force (optional)', default='', masked=False)
                           )
     BROWSER = BredBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['accnum'].get(),
+        return self.create_browser(self.config['website'].get(),
+                                   self.config['accnum'].get(),
                                    self.config['login'].get(),
                                    self.config['password'].get())
 

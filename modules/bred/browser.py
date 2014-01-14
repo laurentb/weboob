@@ -31,18 +31,29 @@ __all__ = ['BredBrowser']
 class BredBrowser(BaseBrowser):
     PROTOCOL = 'https'
     DOMAIN = 'www.bred.fr'
-    CERTHASH = '375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0'
+    CERTHASH = ['375f1fed165d34aacaaf71674ab14ca6c1b38404cf748278714fde3c58385ff0', '0853a056453b56aea6a29085ef3f3721b18db2052aa8e84220720d44e0eb22af']
     ENCODING = 'iso-8859-15'
-    PAGES = {'https://www.bred.fr/mylittleform.*':                      LoginPage,
-             'https://www.bred.fr/Andromede/MainAuth.*':                LoginResultPage,
-             'https://www.bred.fr/Andromede/Main':                      AccountsPage,
-             'https://www.bred.fr/Andromede/Ecriture':                  TransactionsPage,
-             'https://www.bred.fr/Andromede/applications/index.jsp':    EmptyPage,
-             'https://www.bred.fr/':                                    EmptyPage,
+    PAGES = {'https://www.\w+.fr/mylittleform.*':                      LoginPage,
+             'https://www.\w+.fr/Andromede/MainAuth.*':                LoginResultPage,
+             'https://www.\w+.fr/Andromede/Main':                      AccountsPage,
+             'https://www.\w+.fr/Andromede/Ecriture':                  TransactionsPage,
+             'https://www.\w+.fr/Andromede/applications/index.jsp':    EmptyPage,
+             'https://www.bred.fr/':                                   EmptyPage,
+             'https://www.dispobank.fr/?':                             LoginPage,
             }
 
-    def __init__(self, accnum, *args, **kwargs):
+    URLS = {'bred': {'home': 'https://www.bred.fr/Andromede/Main',
+                     'login': 'https://www.bred.fr/mylittleform?type=1',
+                    },
+            'dispobank': {'home': 'https://www.dispobank.fr',
+                          'login': 'https://www.dispobank.fr',
+                         }
+           }
+
+    def __init__(self, website, accnum, *args, **kwargs):
         self.accnum = accnum.zfill(11)
+        self.DOMAIN = 'www.%s.fr' % website
+        self.website = website
         BaseBrowser.__init__(self, *args, **kwargs)
 
     def is_logged(self):
@@ -52,14 +63,14 @@ class BredBrowser(BaseBrowser):
         if not self.is_logged():
             self.login()
         else:
-            self.location('https://www.bred.fr/Andromede/Main')
+            self.location(self.URLS[self.website]['home'])
 
     def login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
         if not self.is_on_page(LoginPage):
-            self.location('https://www.bred.fr/mylittleform?type=1', no_login=True)
+            self.location(self.URLS[self.website]['login'], no_login=True)
 
         self.page.login(self.username, self.password)
 
@@ -74,7 +85,7 @@ class BredBrowser(BaseBrowser):
 
     def get_accounts_list(self):
         if not self.is_on_page(AccountsPage):
-            self.location('https://www.bred.fr/Andromede/Main')
+            self.location('https://www.%s.fr/Andromede/Main' % self.website)
         return self.page.get_list()
 
     def get_account(self, id):
@@ -99,7 +110,7 @@ class BredBrowser(BaseBrowser):
                 'monnaie':          'EUR',
                 'index_hist':       4
                }
-        self.location('https://www.bred.fr/Andromede/Ecriture', urllib.urlencode(data))
+        self.location('https://www.%s.fr/Andromede/Ecriture' % self.website, urllib.urlencode(data))
 
         assert self.is_on_page(TransactionsPage)
         return self.page.get_history(is_coming)

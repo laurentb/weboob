@@ -19,6 +19,9 @@
 
 
 from mechanize import FormNotFoundError
+from weboob.tools.mech import ClientForm
+ControlNotFoundError = ClientForm.ControlNotFoundError
+
 from decimal import Decimal, InvalidOperation
 import re
 
@@ -35,8 +38,12 @@ __all__ = ['LoginPage', 'LoginResultPage', 'AccountsPage', 'TransactionsPage', '
 class LoginPage(BasePage):
     def login(self, login, passwd):
         self.browser.select_form(name='authen')
-        self.browser['id'] = login.encode(self.browser.ENCODING)
-        self.browser['pass'] = passwd.encode(self.browser.ENCODING)
+        try:
+            self.browser['id'] = login.encode(self.browser.ENCODING)
+            self.browser['pass'] = passwd.encode(self.browser.ENCODING)
+        except ControlNotFoundError:
+            self.browser.controls.append(ClientForm.TextControl('text', 'id', {'value': login.encode(self.browser.ENCODING)}))
+            self.browser.controls.append(ClientForm.TextControl('text', 'pass', {'value': passwd.encode(self.browser.ENCODING)}))
         self.browser.submit(nologin=True)
 
 
