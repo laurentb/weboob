@@ -104,7 +104,11 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
             station = self.STATIONS[int(station_id)]
             arrival = self.STATIONS[int(arrival_id)]
         except (IndexError, ValueError):
-            raise UserError('Unknown station')
+            try:
+                station = list(self.iter_station_search(station_id))[0].name
+                arrival = list(self.iter_station_search(arrival_id))[0].name
+            except IndexError:
+                raise UserError('Unknown station')
 
         with self.browser:
             for i, d in enumerate(self.browser.iter_departures(station, arrival, date,
