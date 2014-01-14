@@ -208,15 +208,15 @@ class TransactionsPage(BasePage):
         last_debit = None
         transactions = []
 
+        # check if it's a card page, so by default transactions are not yet debited.
+        if len(self.document.xpath('//div[@class="scrollTbody"]/table//th')) == 6 and is_coming is None:
+            is_coming = True
+
         for tr in self.document.xpath('//div[@class="scrollTbody"]/table//tr'):
             cols = tr.findall('td')
 
             if len(cols) < 4:
                 continue
-
-            # check if it's a card page, so by default transactions are not yet debited.
-            if len(cols) == 6 and is_coming is None:
-                is_coming = True
 
             col_label = cols[1]
             if col_label.find('a') is not None:
