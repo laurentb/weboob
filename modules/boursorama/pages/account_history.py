@@ -60,7 +60,7 @@ class AccountHistory(BasePage):
 
                 try:
                     _id = tr.xpath('.//input[@type="hidden"]')[0].attrib['id'].split('_')[1]
-                except KeyError:
+                except (KeyError,IndexError):
                     _id = 0
 
                 operation = Transaction(_id)
