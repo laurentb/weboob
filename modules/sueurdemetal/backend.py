@@ -55,9 +55,17 @@ class SueurDeMetalBackend(BaseBackend, ICapCalendarEvent):
             yield self._make_event(d)
 
     def search_events(self, query):
-        city_id = self.find_city_id(query.city)
-        for d in self.browser.get_concerts_city(city_id):
-            yield self._make_event(d)
+        if not self.has_matching_categories(query):
+            raise StopIteration()
+
+        if query.city:
+            city_id = self.find_city_id(query.city)
+            for d in self.browser.get_concerts_city(city_id):
+                if self._date_matches(d['date'], query):
+                    yield self._make_event(d)
+        else:
+            for e in self.list_events(query.start_date, query.end_date):
+                yield e
 
     def get_event(self, _id):
         d = self.browser.get_concert(_id)
@@ -109,6 +117,10 @@ class SueurDeMetalBackend(BaseBackend, ICapCalendarEvent):
         for c in self.cities.values():
             if c['id'] == _id:
                 return c['name']
+
+    def _date_matches(self, date, query):
+        return ((not query.start_date or query.start_date <= date) and
+                (not query.end_date or date <= query.end_date))
 
     def fill_concert(self, obj, fields):
         if set(fields) & set(('price', 'location', 'description')):

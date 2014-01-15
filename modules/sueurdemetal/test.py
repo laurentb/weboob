@@ -19,15 +19,29 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.calendar import Query
+from weboob.capabilities.calendar import Query, CATEGORIES
+from datetime import datetime, timedelta
 
 class SueurDeMetalTest(BackendTest):
     BACKEND = 'sueurdemetal'
 
     def test_sueurdemetal_searchcity(self):
         q = Query()
-        q.city = 'paris'
+        q.city = u'paris'
         self.assertTrue(len(list(self.backend.search_events(q))) > 0)
 
         ev = self.backend.search_events(q).next()
         self.assertTrue(self.backend.get_event(ev.id))
+
+    def test_sueurdemetal_datefrom(self):
+        q = Query()
+        later = (datetime.now() + timedelta(days=31))
+        q.start_date = later
+
+        ev = self.backend.search_events(q).next()
+        self.assertTrue(later.date() <= ev.start_date.date())
+
+    def test_sueurdemetal_nocategory(self):
+        q = Query()
+        q.categories = [CATEGORIES.CINE]
+        self.assertTrue(len(list(self.backend.search_events(q))) == 0)
