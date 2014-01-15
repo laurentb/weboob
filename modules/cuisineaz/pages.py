@@ -98,10 +98,10 @@ class RecipePage(BasePage):
 
         l_spanprep = self.parser.select(main, 'span.preptime')
         if len(l_spanprep) > 0:
-            preparation_time = int(l_spanprep[0].text.split()[0])
+            preparation_time = int(self.parser.tocleanstring(l_spanprep[0]).split()[0])
         l_cooktime = self.parser.select(main, 'span.cooktime')
         if len(l_cooktime) > 0:
-            cooking_time = int(l_cooktime[0].text.split()[0])
+            cooking_time = int(self.parser.tocleanstring(l_cooktime[0]).split()[0])
         l_nbpers = self.parser.select(main, 'td#recipeQuantity span')
         if len(l_nbpers) > 0:
             rawnb = l_nbpers[0].text.split()[0]
