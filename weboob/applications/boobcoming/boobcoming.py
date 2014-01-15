@@ -25,6 +25,9 @@ from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFor
 from weboob.capabilities.base import empty
 from weboob.capabilities.calendar import ICapCalendarEvent, Query, CATEGORIES
 from weboob.tools.application.repl import ReplApplication, defaultcount
+from weboob.capabilities.collection import Collection, CollectionNotFound
+
+from weboob.core import CallErrors
 
 __all__ = ['Boobcoming']
 
@@ -150,6 +153,7 @@ class Boobcoming(ReplApplication):
                         }
     COMMANDS_FORMATTERS = {'list': 'upcoming_list',
                            'search': 'upcoming_list',
+                           'ls': 'upcoming_list',
                            'info': 'upcoming',
                            'export': 'ical_formatter'
                            }
@@ -342,3 +346,58 @@ class Boobcoming(ReplApplication):
         l = self.retrieve_events(args[0])
         for event in l:
             self.do('attends_event', event, False)
+
+    def _fetch_objects(self, objs):
+        objects = []
+        collections = []
+        split_path = self.working_path.get()
+        try:
+            if len(split_path) == 0:
+                for category in CATEGORIES.values:
+                    collection = Collection([category], category)
+                    collection.backend = u'boobcoming'
+                    collections.append(collection)
+            elif len(split_path) == 1 and split_path[0] in CATEGORIES.values:
+                query = Query()
+                query.categories = split_path
+                query.start_date = datetime.combine(parse_date('today'), time.min)
+                query.end_date = parse_date('')
+                query.city = ''
+                for backend, event in self.do('search_events', query):
+                    if event:
+                        objects.append(event)
+        except CallErrors as errors:
+            self.bcall_errors_handler(errors, CollectionNotFound)
+
+        return (objects, collections)
+
+    def do_cd(self, line):
+        """
+        cd [PATH]
+
+        Follow a path.
+        ".." is a special case and goes up one directory.
+        "" is a special case and goes home.
+        """
+        if not len(line.strip()):
+            self.working_path.home()
+        elif line.strip() == '..':
+            self.working_path.up()
+        else:
+            self.working_path.cd1(line)
+
+        split_path = self.working_path.get()
+
+        collections = []
+        if len(split_path) == 0 or (len(split_path) == 1 and split_path[0] in CATEGORIES.values):
+            collection = Collection(self.working_path.get(), None)
+            collections.append(collection)
+
+        if len(collections):
+            if len(collections) == 1:
+                self.working_path.split_path = collections[0].split_path
+            self._change_prompt()
+        else:
+            print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
+            self.working_path.restore()
+            return 1
