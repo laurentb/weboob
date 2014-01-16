@@ -288,6 +288,10 @@ class Radioob(ReplApplication):
         for backend, radio in self.do('iter_radios_search', pattern=pattern):
             self.add_object(radio)
             self.format(radio)
+        for backend, audio in self.do('search_audio', pattern=pattern):
+            self.add_object(audio)
+            self.format(audio)
+
 
     def do_ls(self, line):
         """
