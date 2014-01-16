@@ -46,14 +46,26 @@ class Pastoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def do_get(self, _id):
+    def do_get(self, line):
         """
         get ID
 
         Get a paste contents.
         """
+        return self._get_op(line, binary=False, command='get')
+
+    def do_get_bin(self, line):
+        """
+        get_bin ID
+
+        Get a paste contents.
+        File will be downloaded from binary services.
+        """
+        return self._get_op(line, binary=True, command='get_bin')
+
+    def _get_op(self, _id, binary, command='get'):
         if not _id:
-            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('get', short=True)
+            print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help(command, short=True)
             return 2
 
         try:
@@ -64,33 +76,67 @@ class Pastoob(ReplApplication):
         if not paste:
             print >>sys.stderr, 'Unable to handle paste: %s' % _id
             return 1
-        output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
-        output.write(paste.contents)
-        # add a newline unless we are writing
-        # in a file or in a pipe
-        if os.isatty(output.fileno()):
-            output.write('\n')
 
-    def do_post(self, filename):
+        if binary:
+            if self.interactive:
+                if not self.ask('The console may become messed up. Are you sure you want to show a binary file on your terminal?', default=False):
+                    print >>sys.stderr, 'Aborting.'
+                    return 1
+            output = sys.stdout
+            output.write(paste.contents.decode('base64'))
+        else:
+            output = codecs.getwriter(sys.stdout.encoding or locale.getpreferredencoding())(sys.stdout)
+            output.write(paste.contents)
+            # add a newline unless we are writing
+            # in a file or in a pipe
+            if os.isatty(output.fileno()):
+                output.write('\n')
+
+    def do_post(self, line):
         """
         post [FILENAME]
 
         Submit a new paste.
         The filename can be '-' for reading standard input (pipe).
+        If 'bin' is passed, file will be uploaded to binary services.
         """
-        if not filename or filename == '-':
-            contents = self.acquire_input()
+        return self._post(line, binary=False)
+
+    def do_post_bin(self, line):
+        """
+        post_bin [FILENAME]
+
+        Submit a new paste.
+        The filename can be '-' for reading standard input (pipe).
+        File will be uploaded to binary services.
+        """
+        return self._post(line, binary=True)
+
+    def _post(self, filename, binary):
+        use_stdin = (not filename or filename == '-')
+        if use_stdin:
+            if binary:
+                contents = sys.stdin.read()
+            else:
+                contents = self.acquire_input()
             if not len(contents):
                 print >>sys.stderr, 'Empty paste, aborting.'
                 return 1
 
         else:
             try:
-                with codecs.open(filename, encoding=locale.getpreferredencoding()) as fp:
+                if binary:
+                    m = open(filename)
+                else:
+                    m = codecs.open(filename, encoding=locale.getpreferredencoding())
+                with m as fp:
                     contents = fp.read()
             except IOError as e:
                 print >>sys.stderr, 'Unable to open file "%s": %s' % (filename, e.strerror)
                 return 1
+
+        if binary:
+            contents = contents.encode('base64')
 
         # get and sort the backends able to satisfy our requirements
         params = self.get_params()
