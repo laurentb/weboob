@@ -22,7 +22,6 @@
 import subprocess
 import sys
 import os
-import re
 
 from weboob.capabilities.video import ICapVideo, BaseVideo
 from weboob.capabilities.base import empty
@@ -75,22 +74,6 @@ class Videoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def obj_to_filename(self, obj, dest, default=None):
-        if default is None:
-            default = '{id}-{title}.{ext}'
-        if dest is None:
-            dest = '.'
-        if os.path.isdir(dest):
-            dest = os.path.join(dest, default)
-
-        def repl(m):
-            field = m.group(1)
-            if hasattr(obj, field):
-                return re.sub('[?:/]', '-', '%s' % getattr(obj, field))
-            else:
-                return m.group(0)
-        return re.sub(r'\{(.+?)\}', repl, dest)
-
     def download(self, video, dest, default=None):
         if not video.url:
             print >>sys.stderr, 'Error: the direct URL is not available.'
@@ -123,7 +106,6 @@ class Videoob(ReplApplication):
                 return 1
 
         os.spawnlp(os.P_WAIT, args[0], *args)
-
 
     def complete_download(self, text, line, *ignored):
         args = line.split(' ')

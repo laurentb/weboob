@@ -22,6 +22,7 @@ import atexit
 from cmd import Cmd
 import logging
 import locale
+import re
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 import os
 import sys
@@ -1096,6 +1097,37 @@ class ReplApplication(Cmd, ConsoleApplication):
         """
         obj_collections = [obj for obj in self.objects if isinstance(obj, BaseCollection)]
         return obj_collections + self.collections
+
+    def obj_to_filename(self, obj, dest=None, default=None):
+        """
+        This method can be used to get a filename from an object, using a mask
+        filled by information of this object.
+
+        All patterns are braces-enclosed, and are name of available fields in
+        the object.
+
+        :param obj: object
+        :type obj: CapBaseObject
+        :param dest: dest given by user (default None)
+        :type dest: str
+        :param default: default file mask (if not given, this is '{id}-{title}.{ext}')
+        :type default: str
+        :rtype: str
+        """
+        if default is None:
+            default = '{id}-{title}.{ext}'
+        if dest is None:
+            dest = '.'
+        if os.path.isdir(dest):
+            dest = os.path.join(dest, default)
+
+        def repl(m):
+            field = m.group(1)
+            if hasattr(obj, field):
+                return re.sub('[?:/]', '-', '%s' % getattr(obj, field))
+            else:
+                return m.group(0)
+        return re.sub(r'\{(.+?)\}', repl, dest)
 
     # for cd & ls
     def complete_path(self, text, line, begidx, endidx):

@@ -140,13 +140,15 @@ class Weboorrents(ReplApplication):
         """
         id, dest = self.parse_command_args(line, 2, 1)
 
-        _id, backend_name = self.parse_id(id)
+        torrent = self.get_object(id, 'get_torrent', ('description', 'files'))
+        if not torrent:
+            print >>sys.stderr, 'Torrent not found: %s' % id
+            return 3
 
-        if dest is None:
-            dest = '%s.torrent' % _id
+        dest = self.obj_to_filename(torrent, dest, '{id}-{name}.torrent')
 
         try:
-            for backend, buf in self.do('get_torrent_file', _id, backends=backend_name):
+            for backend, buf in self.do('get_torrent_file', torrent.id, backends=torrent.backend):
                 if buf:
                     if dest == '-':
                         print buf
