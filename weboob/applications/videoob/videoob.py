@@ -87,6 +87,11 @@ class Videoob(ReplApplication):
         download ID [FILENAME]
 
         Download a video
+
+        Braces-enclosed tags are replaced with data fields. Use the 'info'
+        command to see what fields are available on a given video.
+
+        Example: download KdRRge4XYIo@youtube '{title}.{ext}'
         """
         _id, dest = self.parse_command_args(line, 2, 1)
         video = self.get_object(_id, 'get_video', ['url'])
@@ -117,6 +122,16 @@ class Videoob(ReplApplication):
 
         if dest is None:
             dest = video_to_file(video)
+        else:
+            fields = video.to_dict()
+            def repl(m):
+                field = m.group(1)
+                if field in fields:
+                    return fields[field]
+                else:
+                    return m.group(0)
+
+            dest = re.sub(r'\{(.+?)\}', repl, dest)
 
         if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
