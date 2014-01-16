@@ -153,58 +153,65 @@ class Videoob(ReplApplication):
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
-        if len(args) == 2:
+        if len(args) >= 2:
             return self._complete_object()
 
-    def do_play(self, _id):
+    def do_play(self, line):
         """
         play ID
 
         Play a video with a found player.
         """
-        if not _id:
+        if not line:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('play', short=True)
             return 2
 
-        video = self.get_object(_id, 'get_video', ['url'])
-        if not video:
-            print >>sys.stderr, 'Video not found: %s' % _id
-            return 3
-        if not video.url:
-            print >>sys.stderr, 'Error: the direct URL is not available.'
-            return 4
-        try:
-            player_name = self.config.get('media_player')
-            media_player_args = self.config.get('media_player_args')
-            if not player_name:
-                self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
-                                  'configuration file.')
-            self.player.play(video, player_name=player_name, player_args=media_player_args)
-        except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
-            print '%s\nVideo URL: %s' % (e, video.url)
+        ret = 0
+        for _id in line.split(' '):
+            video = self.get_object(_id, 'get_video', ['url'])
+            if not video:
+                print >>sys.stderr, 'Video not found: %s' % _id
+                ret = 3
+                continue
+            if not video.url:
+                print >>sys.stderr, 'Error: the direct URL is not available.'
+                ret = 4
+                continue
+            try:
+                player_name = self.config.get('media_player')
+                media_player_args = self.config.get('media_player_args')
+                if not player_name:
+                    self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
+                                      'configuration file.')
+                self.player.play(video, player_name=player_name, player_args=media_player_args)
+            except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
+                print '%s\nVideo URL: %s' % (e, video.url)
+
+        return ret
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
-        if len(args) == 2:
+        if len(args) >= 2:
             return self._complete_object()
 
-    def do_info(self, _id):
+    def do_info(self, line):
         """
-        info ID
+        info ID [ID2 [...]]
 
         Get information about a video.
         """
-        if not _id:
+        if not line:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('info', short=True)
             return 2
 
-        video = self.get_object(_id, 'get_video')
-        if not video:
-            print >>sys.stderr, 'Video not found: %s' % _id
-            return 3
-
         self.start_format()
-        self.format(video)
+        for _id in line.split(' '):
+            video = self.get_object(_id, 'get_video')
+            if not video:
+                print >>sys.stderr, 'Video not found: %s' % _id
+                return 3
+
+            self.format(video)
 
     def do_playlist(self, line):
         """
