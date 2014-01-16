@@ -21,7 +21,7 @@
 from weboob.tools.browser import BaseBrowser
 
 from .pages import CitiesPage, SearchPage, SearchErrorPage, \
-                   SearchInProgressPage, ResultsPage
+                   SearchInProgressPage, ResultsPage, ForeignPage
 
 
 __all__ = ['VoyagesSNCFBrowser']
@@ -38,6 +38,7 @@ class VoyagesSNCFBrowser(BaseBrowser):
         'http://www.voyages-sncf.com/billet-train\?.+':                     SearchErrorPage,
         'http://www.voyages-sncf.com/billet-train/recherche-en-cours.*':    SearchInProgressPage,
         'http://www.voyages-sncf.com/billet-train/resultat.*':              ResultsPage,
+        'http://(?P<country>\w{2})\.voyages-sncf.com/\w{2}/.*':             ForeignPage,
     }
 
     def get_stations(self):
