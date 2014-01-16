@@ -75,30 +75,23 @@ class Videoob(ReplApplication):
         self.load_config()
         return ReplApplication.main(self, argv)
 
-    def complete_download(self, text, line, *ignored):
-        args = line.split(' ')
-        if len(args) == 2:
-            return self._complete_object()
-        elif len(args) >= 3:
-            return self.path_completer(args[2])
+    def obj_to_filename(self, obj, dest, default=None):
+        if default is None:
+            default = '{id}-{title}.{ext}'
+        if dest is None:
+            dest = '.'
+        if os.path.isdir(dest):
+            dest = os.path.join(dest, default)
 
-    def do_download(self, line):
-        """
-        download ID [FILENAME]
+        def repl(m):
+            field = m.group(1)
+            if hasattr(obj, field):
+                return re.sub('[?:/]', '-', '%s' % getattr(obj, field))
+            else:
+                return m.group(0)
+        return re.sub(r'\{(.+?)\}', repl, dest)
 
-        Download a video
-
-        Braces-enclosed tags are replaced with data fields. Use the 'info'
-        command to see what fields are available on a given video.
-
-        Example: download KdRRge4XYIo@youtube '{title}.{ext}'
-        """
-        _id, dest = self.parse_command_args(line, 2, 1)
-        video = self.get_object(_id, 'get_video', ['url'])
-        if not video:
-            print >>sys.stderr, 'Video not found: %s' % _id
-            return 3
-
+    def download(self, video, dest, default=None):
         if not video.url:
             print >>sys.stderr, 'Error: the direct URL is not available.'
             return 4
@@ -111,27 +104,7 @@ class Videoob(ReplApplication):
                     return False
             return True
 
-        def video_to_file(_video):
-            ext = _video.ext
-            if not ext:
-                ext = 'avi'
-            return '%s.%s' % (re.sub('[?:/]', '-', _video.id), ext)
-
-        if dest is not None and os.path.isdir(dest):
-            dest += '/%s' % video_to_file(video)
-
-        if dest is None:
-            dest = video_to_file(video)
-        else:
-            fields = video.to_dict()
-            def repl(m):
-                field = m.group(1)
-                if field in fields:
-                    return fields[field]
-                else:
-                    return m.group(0)
-
-            dest = re.sub(r'\{(.+?)\}', repl, dest)
+        dest = self.obj_to_filename(video, dest, default)
 
         if video.url.startswith('rtmp'):
             if not check_exec('rtmpdump'):
@@ -150,6 +123,34 @@ class Videoob(ReplApplication):
                 return 1
 
         os.spawnlp(os.P_WAIT, args[0], *args)
+
+
+    def complete_download(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+        elif len(args) >= 3:
+            return self.path_completer(args[2])
+
+
+    def do_download(self, line):
+        """
+        download ID [FILENAME]
+
+        Download a video
+
+        Braces-enclosed tags are replaced with data fields. Use the 'info'
+        command to see what fields are available on a given video.
+
+        Example: download KdRRge4XYIo@youtube '{title}.{ext}'
+        """
+        _id, dest = self.parse_command_args(line, 2, 1)
+        video = self.get_object(_id, 'get_video', ['url'])
+        if not video:
+            print >>sys.stderr, 'Video not found: %s' % _id
+            return 3
+
+        return self.download(video, dest)
 
     def complete_play(self, text, line, *ignored):
         args = line.split(' ')
@@ -213,14 +214,30 @@ class Videoob(ReplApplication):
 
             self.format(video)
 
+    def complete_playlist(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return ['cmd', 'add', 'remove', 'export', 'display', 'download']
+        if len(args) >= 3:
+            if args[1] in ('export', 'download'):
+                return self.path_completer(args[2])
+            if args[1] in ('add', 'remove'):
+                return self._complete_object()
+
     def do_playlist(self, line):
         """
         playlist cmd [args]
+
         playlist add ID [ID2 ID3 ...]
         playlist remove ID [ID2 ID3 ...]
         playlist export [FILENAME]
         playlist display
+        playlist download [PATH]
         """
+
+        if not self.interactive:
+            print >>sys.stderr, 'This command can be used only in interactive mode.'
+            return 1
 
         if not line:
             print >>sys.stderr, 'This command takes an argument: %s' % self.get_command_help('playlist')
@@ -241,11 +258,9 @@ class Videoob(ReplApplication):
                     return 4
 
                 self.PLAYLIST.append(video)
-
         elif cmd == "remove":
             _ids = args.strip().split(' ')
             for _id in _ids:
-
                 video_to_remove = self.get_object(_id, 'get_video')
 
                 if not video_to_remove:
@@ -260,7 +275,6 @@ class Videoob(ReplApplication):
                     if video.id == video_to_remove.id:
                         self.PLAYLIST.remove(video)
                         break
-
         elif cmd == "export":
             filename = "playlist.m3u"
             if args:
@@ -270,13 +284,14 @@ class Videoob(ReplApplication):
             for video in self.PLAYLIST:
                 file.write('%s\r\n' % video.url)
             file.close()
-
         elif cmd == "display":
             for video in self.PLAYLIST:
                 self.cached_format(video)
-
+        elif cmd == "download":
+            for i, video in enumerate(self.PLAYLIST):
+                self.download(video, args, '%02d-{id}-{title}.{ext}' % (i+1))
         else:
-            print >>sys.stderr, 'Playlist command only support "add", "remove", "display" and "export" arguments.'
+            print >>sys.stderr, 'Playlist command only support "add", "remove", "display", "download" and "export" arguments.'
             return 2
 
     def complete_nsfw(self, text, line, begidx, endidx):
