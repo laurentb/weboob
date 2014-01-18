@@ -19,6 +19,7 @@
 
 
 import re
+import subprocess
 from .ordereddict import OrderedDict
 from .misc import to_unicode
 
@@ -174,6 +175,15 @@ class ValueBackendPassword(Value):
             return ''
 
     def get(self):
+        passwd = self._value
+        if passwd.startswith(u'`') and passwd.endswith(u'`'):
+            cmd = passwd[1:-1]
+            try:
+                passwd = subprocess.check_output(cmd,shell=True)
+            except subprocess.CalledProcessError:
+                passwd = ''
+
+        self._value = passwd
         if self._value != '' or self._domain is None:
             return self._value
 
