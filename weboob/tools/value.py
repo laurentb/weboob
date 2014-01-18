@@ -20,6 +20,7 @@
 
 import re
 import subprocess
+import sys
 from .ordereddict import OrderedDict
 from .misc import to_unicode
 
@@ -180,7 +181,8 @@ class ValueBackendPassword(Value):
             cmd = passwd[1:-1]
             try:
                 passwd = subprocess.check_output(cmd,shell=True)
-            except subprocess.CalledProcessError:
+            except subprocess.CalledProcessError as e:
+                print >>sys.stderr, u'The call to the external tool failed: %s' % e
                 passwd = ''
 
         self._value = passwd
