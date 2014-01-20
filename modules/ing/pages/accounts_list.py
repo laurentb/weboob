@@ -36,8 +36,9 @@ __all__ = ['AccountsList']
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^retrait dab (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^carte (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), Transaction.TYPE_CARD),
-                (re.compile(u'^virement ((sepa emis vers|emis vers|recu|emis)?) (?P<text>.*)'), Transaction.TYPE_TRANSFER),
+                (re.compile(u'^virement ((sepa emis vers|emis vers|recu|sepa recu|emis)?) (?P<text>.*)'), Transaction.TYPE_TRANSFER),
                 (re.compile(u'^prelevement (?P<text>.*)'), Transaction.TYPE_ORDER),
+                (re.compile(u'^prélèvement sepa en faveur de (?P<text>.*)'), Transaction.TYPE_ORDER),
                 ]
 
 
@@ -52,7 +53,7 @@ class AccountsList(BasePage):
     catvalue = {u'virt': u"Virement", u'autre': u"Autre",
             u'plvt': u'Prélèvement', u'cb_ret': u"Carte retrait",
             u'cb_ach': u'Carte achat', u'chq': u'Chèque',
-            u'frais': u'Frais bancaire'}
+            u'frais': u'Frais bancaire', u'sepaplvt': u'Prélèvement'}
 
     def get_list(self):
         # TODO: no idea abount how proxy account are displayed
