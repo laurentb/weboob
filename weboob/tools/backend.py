@@ -264,7 +264,7 @@ class BaseBackend(object):
         return u"<Backend %r>" % self.name
 
     def __init__(self, weboob, name, config=None, storage=None, logger=None):
-        self.logger = getLogger(name, parent=logger)
+        self.logger = getLogger(name + u"-" + self.VERSION, parent=logger)
         self.weboob = weboob
         self.name = name
         self.lock = RLock()

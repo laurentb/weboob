@@ -133,7 +133,7 @@ class BaseApplication(object):
     # ------ BaseApplication methods -------------------------------
 
     def __init__(self, option_parser=None):
-        self.logger = getLogger(self.APPNAME)
+        self.logger = getLogger(self.APPNAME + u"-" + self.VERSION)
         self.weboob = self.create_weboob()
         if self.CONFDIR is None:
             self.CONFDIR = self.weboob.workdir
