@@ -133,7 +133,7 @@ class BaseApplication(object):
     # ------ BaseApplication methods -------------------------------
 
     def __init__(self, option_parser=None):
-        self.logger = getLogger(self.APPNAME + u"-" + self.VERSION)
+        self.logger = getLogger(self.APPNAME)
         self.weboob = self.create_weboob()
         if self.CONFDIR is None:
             self.CONFDIR = self.weboob.workdir
@@ -372,7 +372,8 @@ class BaseApplication(object):
     @classmethod
     def create_default_logger(klass):
         # stdout logger
-        format = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s %(message)s'
+        format = '%(asctime)s:%(levelname)s:%(name)s:' + klass.VERSION +\
+                 ':%(filename)s:%(lineno)d:%(funcName)s %(message)s'
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(createColoredFormatter(sys.stdout, format))
         return handler
@@ -392,7 +393,8 @@ class BaseApplication(object):
             self.logger.error('Unable to create the logging file: %s' % e)
             sys.exit(1)
         else:
-            format = '%(asctime)s:%(levelname)s:%(name)s:%(pathname)s:%(lineno)d:%(funcName)s %(message)s'
+            format = '%(asctime)s:%(levelname)s:%(name)s:' + self.VERSION +\
+                     ':%(filename)s:%(lineno)d:%(funcName)s %(message)s'
             handler = logging.StreamHandler(stream)
             handler.setFormatter(logging.Formatter(format))
             return handler
