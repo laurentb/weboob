@@ -125,6 +125,14 @@ class Value(object):
         """
         return self._value
 
+    def is_command(self, v):
+        """
+        Test if a value begin with ` and end with `
+        (`command` is used to call external programms)
+        """
+        return (v.startswith(u'`') and v.endswith(u'`'))
+
+
 
 class ValueBackendPassword(Value):
     _domain = None
@@ -137,6 +145,12 @@ class ValueBackendPassword(Value):
         Value.__init__(self, *args, **kwargs)
 
     def load(self, domain, password, callbacks):
+        if self.is_command(password):
+            cmd = password[1:-1]
+            try:
+                password = subprocess.check_output(cmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                raise ValueError(u'The call to the external tool failed: %s' % e)
         self.check_valid(password)
         self._domain = domain
         self._value = to_unicode(password)
@@ -176,16 +190,6 @@ class ValueBackendPassword(Value):
             return ''
 
     def get(self):
-        passwd = self._value
-        if passwd.startswith(u'`') and passwd.endswith(u'`'):
-            cmd = passwd[1:-1]
-            try:
-                passwd = subprocess.check_output(cmd,shell=True)
-            except subprocess.CalledProcessError as e:
-                print >>sys.stderr, u'The call to the external tool failed: %s' % e
-                passwd = ''
-
-        self._value = passwd
         if self._value != '' or self._domain is None:
             return self._value
 
