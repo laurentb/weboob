@@ -114,7 +114,6 @@ class Videoob(ReplApplication):
         elif len(args) >= 3:
             return self.path_completer(args[2])
 
-
     def do_download(self, line):
         """
         download ID [FILENAME]
@@ -152,25 +151,28 @@ class Videoob(ReplApplication):
         ret = 0
         for _id in line.split(' '):
             video = self.get_object(_id, 'get_video', ['url'])
-            if not video:
-                print >>sys.stderr, 'Video not found: %s' % _id
-                ret = 3
-                continue
-            if not video.url:
-                print >>sys.stderr, 'Error: the direct URL is not available.'
-                ret = 4
-                continue
-            try:
-                player_name = self.config.get('media_player')
-                media_player_args = self.config.get('media_player_args')
-                if not player_name:
-                    self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
-                                      'configuration file.')
-                self.player.play(video, player_name=player_name, player_args=media_player_args)
-            except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
-                print '%s\nVideo URL: %s' % (e, video.url)
+            error = self.play(video, _id)
+            if error is not None:
+                ret = error
 
         return ret
+
+    def play(self, video, _id):
+        if not video:
+            print >>sys.stderr, 'Video not found: %s' % _id
+            return 3
+        if not video.url:
+            print >>sys.stderr, 'Error: the direct URL is not available.'
+            return 4
+        try:
+            player_name = self.config.get('media_player')
+            media_player_args = self.config.get('media_player_args')
+            if not player_name:
+                self.logger.info(u'You can set the media_player key to the player you prefer in the videoob '
+                                 'configuration file.')
+            self.player.play(video, player_name=player_name, player_args=media_player_args)
+        except (InvalidMediaPlayer, MediaPlayerNotFound) as e:
+            print '%s\nVideo URL: %s' % (e, video.url)
 
     def complete_info(self, text, line, *ignored):
         args = line.split(' ')
@@ -199,7 +201,7 @@ class Videoob(ReplApplication):
     def complete_playlist(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
-            return ['cmd', 'add', 'remove', 'export', 'display', 'download']
+            return ['play', 'add', 'remove', 'export', 'display', 'download']
         if len(args) >= 3:
             if args[1] in ('export', 'download'):
                 return self.path_completer(args[2])
@@ -215,6 +217,7 @@ class Videoob(ReplApplication):
         playlist export [FILENAME]
         playlist display
         playlist download [PATH]
+        playlist play
         """
 
         if not self.interactive:
@@ -272,6 +275,9 @@ class Videoob(ReplApplication):
         elif cmd == "download":
             for i, video in enumerate(self.PLAYLIST):
                 self.download(video, args, '%02d-{id}-{title}.{ext}' % (i+1))
+        elif cmd == "play":
+            for video in self.PLAYLIST:
+                self.play(video, video.id)
         else:
             print >>sys.stderr, 'Playlist command only support "add", "remove", "display", "download" and "export" arguments.'
             return 2
