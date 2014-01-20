@@ -1053,25 +1053,26 @@ class ReplApplication(Cmd, ConsoleApplication):
         else:
             self.working_path.cd1(line)
 
-        collections = []
-        try:
-            for backend, res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
-                                                          split_path=self.working_path.get(),
-                                                          caps=ICapCollection):
-                if res:
-                    collections.append(res)
-        except CallErrors as errors:
-            self.bcall_errors_handler(errors, CollectionNotFound)
+            collections = []
+            try:
+                for backend, res in self.do('get_collection', objs=self.COLLECTION_OBJECTS,
+                                            split_path=self.working_path.get(),
+                                            caps=ICapCollection):
+                    if res:
+                        collections.append(res)
+            except CallErrors as errors:
+                self.bcall_errors_handler(errors, CollectionNotFound)
 
-        if len(collections):
-            # update the path from the collection if possible
-            if len(collections) == 1:
-                self.working_path.split_path = collections[0].split_path
-            self._change_prompt()
-        else:
-            print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
-            self.working_path.restore()
-            return 1
+            if len(collections):
+                # update the path from the collection if possible
+                if len(collections) == 1:
+                    self.working_path.split_path = collections[0].split_path
+            else:
+                print >>sys.stderr, u"Path: %s not found" % unicode(self.working_path)
+                self.working_path.restore()
+                return 1
+
+        self._change_prompt()
 
     def _fetch_objects(self, objs):
         objects = []
