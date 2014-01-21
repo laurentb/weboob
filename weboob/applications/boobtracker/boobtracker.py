@@ -21,6 +21,7 @@
 from datetime import timedelta
 import sys
 
+from weboob.capabilities.base import empty, CapBaseObject
 from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -33,30 +34,52 @@ __all__ = ['BoobTracker']
 class IssueFormatter(IFormatter):
     MANDATORY_FIELDS = ('id', 'project', 'title', 'body', 'author')
 
+    def format_attr(self, obj, attr):
+        if not hasattr(obj, attr) or empty(getattr(obj, attr)):
+            return u''
+
+        value = getattr(obj, attr)
+        if isinstance(value, CapBaseObject):
+            value = value.name
+
+        return self.format_key(attr.capitalize(), value)
+
+    def format_key(self, key, value):
+        return '%s %s\n' % (self.colored('%s:' % key, 'green'),
+                            value)
+
     def format_obj(self, obj, alias):
-        result = u'%s%s - #%s - %s%s\n' % (self.BOLD, obj.project.name, obj.fullid, obj.title, self.NC)
+        result = u'%s %s %s %s %s\n' % (self.colored(obj.project.name, 'blue', 'bold'),
+                                        self.colored(u'—', 'cyan', 'bold'),
+                                        self.colored(obj.fullid, 'red', 'bold'),
+                                        self.colored(u'—', 'cyan', 'bold'),
+                                        self.colored(obj.title, 'yellow', 'bold'))
         result += '\n%s\n\n' % obj.body
-        result += 'Author: %s (%s)\n' % (obj.author.name, obj.creation)
-        if hasattr(obj, 'status') and obj.status:
-            result += 'Status: %s\n' % obj.status.name
-        if hasattr(obj, 'version') and obj.version:
-            result += 'Version: %s\n' % obj.version.name
-        if hasattr(obj, 'category') and obj.category:
-            result += 'Category: %s\n' % obj.category
-        if hasattr(obj, 'assignee') and obj.assignee:
-            result += 'Assignee: %s\n' % (obj.assignee.name)
+        result += self.format_key('Author', '%s (%s)' % (obj.author.name, obj.creation))
+        result += self.format_attr(obj, 'status')
+        result += self.format_attr(obj, 'version')
+        result += self.format_attr(obj, 'category')
+        result += self.format_attr(obj, 'assignee')
+        if hasattr(obj, 'fields') and not empty(obj.fields):
+            for key, value in obj.fields.iteritems():
+                result += self.format_key(key.capitalize(), value)
         if hasattr(obj, 'attachments') and obj.attachments:
-            result += '\nAttachments:\n'
+            result += '\n%s\n' % self.colored('Attachments:', 'green')
             for a in obj.attachments:
                 result += '* %s%s%s <%s>\n' % (self.BOLD, a.filename, self.NC, a.url)
         if hasattr(obj, 'history') and obj.history:
-            result += '\nHistory:\n'
+            result += '\n%s\n' % self.colored('History:', 'green')
             for u in obj.history:
-                result += '* %s%s - %s%s\n' % (self.BOLD, u.date, u.author.name, self.NC)
+                result += '%s %s %s %s\n' % (self.colored('*', 'red', 'bold'),
+                                             self.colored(u.date, 'yellow', 'bold'),
+                                             self.colored(u'—', 'cyan', 'bold'),
+                                             self.colored(u.author.name, 'blue', 'bold'))
                 for change in u.changes:
-                    result += '  - %s%s%s: %s -> %s\n' % (self.BOLD, change.field, self.NC, change.last, change.new)
+                    result += '  - %s %s %s %s\n' % (self.colored(change.field, 'green'),
+                                                     change.last,
+                                                     self.colored('->', 'magenta'), change.new)
                 if u.message:
-                    result += html2text(u.message)
+                    result += '    %s\n' % html2text(u.message).strip().replace('\n', '\n    ')
         return result
 
 
