@@ -81,6 +81,12 @@ class BaseIssuePage(BasePage):
         token = tokens[0].attrib['value']
         return token
 
+    def get_errors(self):
+        errors = []
+        for li in self.document.xpath('//div[@id="errorExplanation"]//li'):
+            errors.append(li.text.strip())
+        return ', '.join(errors)
+
 
 class IssuesPage(BaseIssuePage):
     PROJECT_FIELDS = {'members':    'values_assigned_to_id',
@@ -139,6 +145,11 @@ class NewIssuePage(BaseIssuePage):
                       'statuses':   'issue_status_id',
                      }
 
+    def iter_custom_fields(self):
+        for div in self.document.xpath('//form//input[starts-with(@id, "issue_custom_field")]'):
+            label = self.document.xpath('//label[@for="%s"]' % div.attrib['id'])[0]
+            yield label.text.strip(), div
+
     def set_title(self, title):
         self.browser['issue[subject]'] = title.encode('utf-8')
 
@@ -177,6 +188,13 @@ class NewIssuePage(BaseIssuePage):
 
     def set_note(self, message):
         self.browser['notes'] = message.encode('utf-8')
+
+    def set_fields(self, fields):
+        for key, div in self.iter_custom_fields():
+            try:
+                self.browser[div.attrib['name']] = fields[key]
+            except KeyError:
+                continue
 
     def fill_form(self, **kwargs):
         self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'issue-form')
@@ -229,6 +247,11 @@ class IssuePage(NewIssuePage):
         params['assignee'] = self._parse_selection('issue_assigned_to_id')
         params['category'] = self._parse_selection('issue_category_id')
         params['version'] = self._parse_selection('issue_fixed_version_id')
+
+        params['fields'] = {}
+        for key, div in self.iter_custom_fields():
+            value = div.attrib['value']
+            params['fields'][key] = value
 
         params['attachments'] = []
         try:

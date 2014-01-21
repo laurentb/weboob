@@ -22,6 +22,7 @@ from urlparse import urlsplit
 import urllib
 import lxml.html
 
+from weboob.capabilities.bugtracker import IssueError
 from weboob.tools.browser import BaseBrowser, BrowserIncorrectPassword
 
 from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
@@ -147,6 +148,12 @@ class RedmineBrowser(BaseBrowser):
                 'iter':    self.page.iter_issues(),
                }
 
+    def get_project(self, project):
+        self.location('/projects/%s/issues/new' % project)
+        assert self.is_on_page(NewIssuePage)
+
+        return self.page.get_project(project)
+
     def get_issue(self, id):
         self.location('/issues/%s' % id)
 
@@ -165,11 +172,25 @@ class RedmineBrowser(BaseBrowser):
         assert self.is_on_page(IssuePage)
         self.page.fill_form(note=message)
 
+    def get_custom_fields(self, project):
+        self.location('/projects/%s/issues/new' % project)
+        assert self.is_on_page(NewIssuePage)
+
+        fields = {}
+        for key, div in self.page.iter_custom_fields():
+            fields[key] = div.attrib['value']
+
+        return fields
+
     def create_issue(self, project, **kwargs):
         self.location('/projects/%s/issues/new' % project)
 
         assert self.is_on_page(NewIssuePage)
         self.page.fill_form(**kwargs)
+
+        error = self.page.get_errors()
+        if len(error) > 0:
+            raise IssueError(error)
 
         assert self.is_on_page(IssuePage)
         return int(self.page.groups[0])

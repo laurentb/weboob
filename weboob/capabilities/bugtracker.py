@@ -206,6 +206,7 @@ class Issue(CapBaseObject):
     category =      StringField('Name of the category')
     version =       Field('Target version of this issue', Version)
     status =        Field('Status of this issue', Status)
+    fields =        Field('Custom fields (key,value)', dict)
 
 
 class Query(CapBaseObject):
