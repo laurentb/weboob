@@ -453,15 +453,19 @@ class ConsoleApplication(BaseApplication):
 
         return v.get()
 
-    def acquire_input(self, content=None):
+    def acquire_input(self, content=None, editor_params=None):
         editor = os.getenv('EDITOR', 'vi')
         if sys.stdin.isatty() and editor:
             with NamedTemporaryFile() as f:
                 filename = f.name
                 if content is not None:
+                    if isinstance(content, unicode):
+                        content = content.encode(sys.stdin.encoding or locale.getpreferredencoding())
                     f.write(content)
                     f.flush()
-                os.system("%s %s" % (editor, filename))
+                if editor_params is not None and editor in editor_params:
+                    params = editor_params[editor]
+                os.system("%s %s %s" % (editor, params, filename))
                 f.seek(0)
                 text = f.read()
         else:

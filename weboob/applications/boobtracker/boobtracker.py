@@ -19,10 +19,16 @@
 
 
 from datetime import timedelta
+from email import message_from_string, message_from_file
+from email.Header import decode_header
+from email.mime.text import MIMEText
+from smtplib import SMTP
 import sys
+import os
+import re
 
 from weboob.capabilities.base import empty, CapBaseObject
-from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue
+from weboob.capabilities.bugtracker import ICapBugTracker, Query, Update, Project, Issue, IssueError
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.misc import html2text
@@ -223,6 +229,11 @@ class BoobTracker(ReplApplication):
 
         self.do('update_issue', id, update, backends=backend_name).wait()
 
+    def complete_remove(self, text, line, *ignored):
+        args = line.split(' ')
+        if len(args) == 2:
+            return self._complete_object()
+
     def do_remove(self, line):
         """
         remove ISSUE
@@ -246,63 +257,154 @@ class BoobTracker(ReplApplication):
         for obj in objects_list:
             if obj.name.lower() == name.lower():
                 return obj
-        print 'Error: "%s" is not found' % name
-        return None
 
-    def prompt_issue(self, issue, requested_key=None, requested_value=None):
+        if not name:
+            return None
+
+        raise ValueError('"%s" is not found' % name)
+
+    def issue2text(self, issue, backend=None):
+        if backend is not None and 'username' in backend.config:
+            sender = backend.config['username'].get()
+        else:
+            sender = os.environ.get('USERNAME', 'boobtracker')
+        output = u'From: %s\n' % sender
         for key, (list_name, is_list_object) in self.ISSUE_FIELDS:
-            if requested_key and requested_key != key:
+            if not self.interactive:
+                value = getattr(self.options, key)
+            if not value:
+                value = getattr(issue, key)
+            if not value:
+                value = ''
+            elif hasattr(value, 'name'):
+                value = value.name
+
+            if list_name is not None:
+                objects_list = getattr(issue.project, list_name)
+                if len(objects_list) == 0:
+                    continue
+
+            output += '%s: %s\n' % (key.capitalize(), value)
+            if list_name is not None:
+                availables = ', '.join(['<%s>' % (o if isinstance(o, basestring) else o.name)
+                                        for o in objects_list])
+                output += 'X-Available-%s: %s\n' % (key.capitalize(), availables)
+
+        for key, value in issue.fields.iteritems():
+            output += '%s: %s\n' % (key, value or '')
+
+        output += '\n%s' % (issue.body or 'Please write your bug report here.')
+        return output
+
+    def text2issue(self, issue, m):
+        # XXX HACK to support real incoming emails
+        if 'Subject' in m:
+            m['Title'] = m['Subject']
+
+        for key, (list_name, is_list_object) in self.ISSUE_FIELDS:
+            value = m.get(key)
+            if value is None:
                 continue
 
-            if requested_value:
-                value = requested_value
-            elif not self.interactive:
-                value = getattr(self.options, key)
-            else:
-                value = None
-
-            if sys.stdin.isatty():
-                default = getattr(issue, key)
-                if not default:
-                    default = None
-                elif 'name' in dir(default):
-                    default = default.name
-                if list_name is None:
-                    if value is not None:
-                        setattr(issue, key, value)
-                        print '%s: %s' % (key.capitalize(), value)
-                        continue
-                    setattr(issue, key, self.ask(key.capitalize(), default=default))
+            new_value = u''
+            for part in decode_header(value):
+                if part[1]:
+                    new_value += unicode(part[0], part[1])
                 else:
-                    objects_list = getattr(issue.project, list_name)
-                    if len(objects_list) == 0:
+                    new_value += unicode(part[0])
+            value = new_value
+
+            if is_list_object:
+                objects_list = getattr(issue.project, list_name)
+                value = self.get_list_item(objects_list, value)
+
+            setattr(issue, key, value)
+
+        for key in issue.fields.keys():
+            value = m.get(key)
+            if value is not None:
+                issue.fields[key] = value.decode('utf-8')
+
+        content = u''
+        for part in m.walk():
+            if part.get_content_type() == 'text/plain':
+                s = part.get_payload(decode=True)
+                charsets = part.get_charsets() + m.get_charsets()
+                for charset in charsets:
+                    try:
+                        if charset is not None:
+                            content += unicode(s, charset)
+                        else:
+                            content += unicode(s)
+                    except UnicodeError as e:
+                        self.logger.warning('Unicode error: %s' % e)
                         continue
+                    except Exception as e:
+                        self.logger.exception(e)
+                        continue
+                    else:
+                        break
 
-                    print '----------'
-                    if value is not None:
-                        if is_list_object:
-                            value = self.get_list_item(objects_list, value)
-                        if value is not None:
-                            setattr(issue, key, value)
-                            print '%s: %s' % (key.capitalize(), value.name)
-                            continue
+        issue.body = content
 
-                    while value is None:
-                        print 'Availables:', ', '.join([(o if isinstance(o, basestring) else o.name) for o in objects_list])
-                        if is_list_object and getattr(issue, key):
-                            default = getattr(issue, key).name
-                        else:
-                            default = getattr(issue, key) or ''
-                        text = self.ask(key.capitalize(), default=default)
-                        if not text:
-                            break
-                        if is_list_object:
-                            value = self.get_list_item(objects_list, text)
-                        else:
-                            value = text
+        emails = re.findall('<(.*@.*)>', m['From'] or '')
+        if len(emails) > 0:
+            return emails[0]
 
-                    if value is not None:
-                        setattr(issue, key, value)
+    def edit_issue(self, issue, edit=True):
+        backend = self.weboob.get_backend(issue.backend)
+        content = self.issue2text(issue, backend)
+        while True:
+            if sys.stdin.isatty():
+                content = self.acquire_input(content, {'vim': "-c 'set ft=mail'"})
+                m = message_from_string(content.encode('utf-8'))
+            else:
+                m = message_from_file(sys.stdin)
+
+            try:
+                email_to = self.text2issue(issue, m)
+            except ValueError as e:
+                if not sys.stdin.isatty():
+                    raise
+                raw_input("%s -- Press Enter to continue..." % e)
+                continue
+
+            try:
+                issue = backend.post_issue(issue)
+                print 'Issue %s %s' % (self.formatter.colored(issue.fullid, 'red', 'bold'),
+                                       'updated' if edit else 'created')
+                if edit:
+                    self.format(issue)
+                elif email_to:
+                    self.send_notification(email_to, issue)
+                return 0
+            except IssueError as e:
+                if not sys.stdin.isatty():
+                    raise
+                raw_input("%s -- Press Enter to continue..." % e)
+
+    def send_notification(self, email_to, issue):
+        text = """Hi,
+
+You have successfuly created this ticket on the Weboob tracker:
+
+%s
+
+You can follow your bug report on this page:
+
+https://symlink.me/issues/%s
+
+Regards,
+
+Weboob Team
+""" % (issue.title, issue.id)
+        msg = MIMEText(text)
+        msg['Subject'] = 'Issue #%s reported' % issue.id
+        msg['From'] = 'Weboob <weboob@weboob.org>'
+        msg['To'] = email_to
+        s = SMTP('localhost')
+        s.sendmail('weboob@weboob.org', [email_to], msg.as_string())
+        s.quit()
 
     def do_post(self, line):
         """
@@ -324,19 +426,13 @@ class BoobTracker(ReplApplication):
         project, backend_name = self.parse_id(line, unique_backend=True)
 
         backend = self.weboob.get_backend(backend_name)
+
         issue = backend.create_issue(project)
+        issue.backend = backend.name
 
-        self.prompt_issue(issue)
-        if sys.stdin.isatty():
-            print '----------'
-            print 'Please enter the content of this new issue.'
-        issue.body = self.acquire_input()
+        return self.edit_issue(issue, edit=False)
 
-        for backend, issue in self.weboob.do('post_issue', issue, backends=backend):
-            if issue:
-                print 'Issue %s%s@%s%s created' % (self.BOLD, issue.id, issue.backend, self.NC)
-
-    def complete_remove(self, text, line, *ignored):
+    def complete_edit(self, text, line, *ignored):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
@@ -361,12 +457,7 @@ class BoobTracker(ReplApplication):
             print >>sys.stderr, 'Issue not found: %s' % _id
             return 3
 
-        self.prompt_issue(issue, key, value)
-
-        for backend, i in self.weboob.do('post_issue', issue, backends=issue.backend):
-            if i:
-                print 'Issue %s%s@%s%s updated' % (self.BOLD, issue.id, issue.backend, self.NC)
-                self.format(i)
+        return self.edit_issue(issue, edit=True)
 
     def complete_attach(self, text, line, *ignored):
         args = line.split(' ')
