@@ -20,11 +20,12 @@
 
 from weboob.tools.browser import BasePage
 import dateutil.parser
+import re
 
 from .job import PopolemploiJobAdvert
 
 
-__all__ = ['SearchPage', 'AdvertPage']
+__all__ = ['SearchPage', 'AdvertPage', 'ChangeLocationPage', 'ChangeLocationReturnPage']
 
 
 class SearchPage(BasePage):
@@ -36,9 +37,10 @@ class SearchPage(BasePage):
                 yield advert
 
     def create_job_advert(self, row):
+        re_id = re.compile('../resultats.tableauresultatrechercheoffre:detailOffre/(.*?)\?(.*?)', re.DOTALL)
         a = self.parser.select(row, 'td[@headers="offre"]/a', 1, method='xpath')
-        _id = u'%s' % (a.attrib['href'][-7:])
-        if _id:
+        if re_id.match(a.attrib['href']):
+            _id = u'%s' % (re_id.search(a.attrib['href']).group(1))
             advert = PopolemploiJobAdvert(_id)
             advert.contract_type = u'%s' % self.parser.select(row, 'td[@headers="contrat"]', 1, method='xpath').text
             advert.title = u'%s' % a.text_content().strip()
@@ -53,9 +55,9 @@ class SearchPage(BasePage):
 
 class AdvertPage(BasePage):
     def get_job_advert(self, url, advert):
-        content = self.document.getroot().xpath('//div[@class="block-content"]/div')[0]
+        content = self.document.getroot().xpath('//div[@id="offre-body"]')[0]
         if not advert:
-            _id = self.parser.select(content, 'ul/li/ul/li/div[@class="value"]/span', 1, method='xpath').text
+            _id = self.parser.select(content, 'div/div/ul/li/div[@class="value"]/span', 1, method='xpath').text
             advert = PopolemploiJobAdvert(_id)
 
         advert.title = u'%s' % self.parser.select(content, 'h4', 1, method='xpath').text.strip()
@@ -101,3 +103,11 @@ class AdvertPage(BasePage):
             advert.pay = pay.strip()
 
         return advert
+
+
+class ChangeLocationReturnPage(BasePage):
+    pass
+
+
+class ChangeLocationPage(BasePage):
+    pass

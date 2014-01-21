@@ -19,10 +19,11 @@
 
 from weboob.tools.browser.decorators import id2url
 from weboob.tools.browser import BaseBrowser
+import re
 import urllib
 import copy
 
-from .pages import SearchPage, AdvertPage
+from .pages import SearchPage, AdvertPage, ChangeLocationReturnPage, ChangeLocationPage
 from .job import PopolemploiJobAdvert
 
 
@@ -35,6 +36,8 @@ class PopolemploiBrowser(BaseBrowser):
     ENCODING = None
 
     PAGES = {
+        'http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee.recherche': ChangeLocationPage,
+        'http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee/(.*?)': ChangeLocationReturnPage,
         'http://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats(.*?)': SearchPage,
         'http://candidat.pole-emploi.fr/candidat/rechercheoffres/detail/(?P<id>.+)': AdvertPage,
     }
@@ -47,8 +50,6 @@ class PopolemploiBrowser(BaseBrowser):
 
     def advanced_search_job(self, metier=None, place=None, contrat=None, salary=None,
                             qualification=None, limit_date=None, domain=None):
-
-        self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/rechercheavanceeparparametres')
 
         data = {
             't:formdata': 'H4sIAAAAAAAAALVYz2/cRBj9sqilZFtafkkICSQgvSEn67YQkqZlu9lWgNNEXcolBzTr/XYzxfaYmfGue4ETR5A4I3HiiCoB9x7oASkHDvwH/AGckDiBxIxnbSfbJu16TKREyvM3b957M54Zzw9/wonJKrzN0d9Drn7ZcMhRLLfHJPIR10gQIB8jFwEpSgQN44AOKaLgsDPkToxO6Ds+C8MkciSJUUh+16F7ocZiFmEkhePR6NNe0g+pbI/R77BIYipxaYczH4XInghBWXT7yx/vbTRff7UBjV142jd1El7Y9e6QMVkOSDRa3u7fQV+ue9DEAENFf5OEKOH5AyU9yWk0Wk85nNOgo0HHtIPyJ41jCa9lJj9WJj1yKzfZK0xOrsDlo+IpcGKAzK8gkXQ4GVA24iyJVUirjI8cEhNVWORzSYXDMaD9gyHd0q1u6FZLPZRJ/M3K/bd+fvavXxqwoMzqMDgLtNnP4HNopPrvUxIWy85qEHuxgtjWfrq//1Pv3/sNlWmmarIGq/MLEShbKy0l4tKxIvpEoNPuK5D48jrFYGDiOn/7QfOPl3795/i4TppeLBW251X40Ex/cG9wcfj3d7/ZZ+YqRZqhacy5FuZUW810dvIeXJmfYMRJNBiwkNAIc0WnM3DTgPa0Rt1N8OxolqYrh8iWJDWenWMXspCmNBJO1zQy69jDI/rtF199/f327u9q7fLglB9QVfv+IJt85Vqm/13I5+KhcOLJVdioMGosETOZNzWWR25LahJ/F96Zn0XuqbxyUSey/yyIjJAb0K3YfmbMNd2Luax40oH2/LzTiGLCD1k9O8V3CP8oM10HubFfaTSjJETOTHk+RQy2rTFrUoslI2QDvc1y9bIkmTZQW/LpHPUUWk2dvBtjtgMQWVjWWMdg1qTG8hZ8aMXy6Cl5UGg8uQxrFd5fRezLT1Zy76dywI7OuO5CZ36KIUs0LiUKEhBazsTnyic986SmDoxYG7+t2fhadnQWivYw4RiStFCUAVsktaMziiqdGjGNkastzjcjeVIdREvIllIzLk424dr8JGMSaHOH1anEzpkH3VJjLfQWCSYRlThQZIXGxQza1JAtpdHVhqsVNh7dHqeHmlzamQztTtEaiC1OckK9TWoQ1NmajpVftYByjDkVWLywr0xL2tOSbllSd5f/hw/38T7curu0Xy7d2eXStaOzV3RhVtEFOzoLRfoGIkFRbik5YEdn8ZpHdIwkMUSFrDMG9QxaA7F9ZO5sZBWnVd66psjcR0bm1kBsBG7AeoWzpfrCHOr7hlzcMwViSWhEefBBhful4upQcqqWn5BJ4Qfq03mq8eWioGcKtlRBRxXU251xcB7ePIpSf2lhlJ1Ni2+GA9gTNjXdLMEbj1XOBYfrT3qBeo0lkkVHXT2U16YLh69FZ24Ki67/A14oWbX6FQAA',
@@ -80,21 +81,26 @@ class PopolemploiBrowser(BaseBrowser):
         }
 
         if place.split('|')[1] == 'DEPARTEMENT':
-            self.choose_departement(place.split('|')[2], copy.deepcopy(data))
+            place_type, place_number = self.choose_departement(place.split('|')[2], copy.deepcopy(data))
 
         elif place.split('|')[1] == 'REGION':
-            self.choose_region(place.split('|')[2], copy.deepcopy(data))
+            place_type, place_number = self.choose_region(place.split('|')[2], copy.deepcopy(data))
 
         else:
-            data['select'] = u'10'
-            data['radiogroup_0'] = 'FRANCE'
+            place_type = 'FRANCE'
+            place_number = '01'
 
-        data['rechercher'] = u''
-        data['partenaires'] = u'on'
-        data['rechercher:hiddenelementSubmit'] = u'rechercher:hiddenelementSubmit'
+        params = 'A_%s_%s_%s__%s_P_%s_%s_%s_______INDIFFERENT______________%s' % (metier,
+                                                                                  place_type,
+                                                                                  place_number,
+                                                                                  contrat,
+                                                                                  domain,
+                                                                                  salary,
+                                                                                  qualification,
+                                                                                  limit_date
+                                                                                  )
 
-        self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee.recherche',
-                      urllib.urlencode(data))
+        self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/resultats/%s' % params)
 
         assert self.is_on_page(SearchPage)
         return self.page.iter_job_adverts()
@@ -117,6 +123,15 @@ class PopolemploiBrowser(BaseBrowser):
         self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee/choisirlesregions.choisirdeslieux',
                       urllib.urlencode(data2))
 
+        return self.decode_place(self.page.url)
+
+    def decode_place(self, url):
+        re_url = re.compile('http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee/A_(.*?)_(.*?)_(.*?)__(.*?)_P_(.*?)_(.*?)_(.*?)_______INDIFFERENT______________(.*?)', re.DOTALL)
+        if re_url.match(url):
+            return re_url.search(url).group(2), re_url.search(url).group(3)
+        else:
+            return 'FRANCE', '01'
+
     def choose_departement(self, place, data):
 
         data['select'] = u'10'
@@ -136,6 +151,8 @@ class PopolemploiBrowser(BaseBrowser):
 
         self.location('http://candidat.pole-emploi.fr/candidat/rechercheoffres/avancee/choisirlesdepartements.choisirdeslieux',
                       urllib.urlencode(data2))
+
+        return self.decode_place(self.page.url)
 
     @id2url(PopolemploiJobAdvert.id2url)
     def get_job_advert(self, url, advert):
