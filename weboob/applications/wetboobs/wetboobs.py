@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011  Romain Bignon
+# Copyright(C) 2010-2014  Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -19,11 +19,9 @@
 
 
 from weboob.capabilities.weather import ICapWeather
-from weboob.capabilities.gauge import ICapGauge, SensorNotFound
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
-import sys
 
 __all__ = ['WetBoobs']
 
@@ -62,10 +60,10 @@ class CitiesFormatter(PrettyFormatter):
 class WetBoobs(ReplApplication):
     APPNAME = 'wetboobs'
     VERSION = '0.i'
-    COPYRIGHT = 'Copyright(C) 2010-2011 Romain Bignon'
+    COPYRIGHT = 'Copyright(C) 2010-2014 Romain Bignon'
     DESCRIPTION = "Console application allowing to display weather and forecasts in your city."
     SHORT_DESCRIPTION = "display weather and forecasts"
-    CAPS = (ICapWeather, ICapGauge)
+    CAPS = ICapWeather
     DEFAULT_FORMATTER = 'table'
     EXTRA_FORMATTERS = {'cities':    CitiesFormatter,
                         'current':   CurrentFormatter,
@@ -96,13 +94,6 @@ class WetBoobs(ReplApplication):
         args = line.split(' ')
         if len(args) == 2:
             return self._complete_object()
-
-    def bcall_error_handler(self, backend, error, backtrace):
-        if isinstance(error, SensorNotFound):
-            msg = unicode(error) or 'Sensor not found (hint: try sensors command)'
-            print >>sys.stderr, 'Error(%s): %s' % (backend.name, msg)
-        else:
-            return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
 
     def do_current(self, line):
         """
@@ -147,67 +138,3 @@ class WetBoobs(ReplApplication):
 
         for backend, forecast in self.do('iter_forecast', _id, backends=backend_name, caps=ICapWeather):
             self.format(forecast)
-
-    def do_gauges(self, pattern):
-        """
-        gauges [PATTERN]
-
-        List all rivers. If PATTERN is specified, search on a pattern.
-        """
-        self.change_path([u'gauges'])
-        self.start_format()
-        for backend, gauge in self.do('iter_gauges', pattern or None, caps=ICapGauge):
-            self.cached_format(gauge)
-        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
-
-    def complete_gauge(self, text, line, *ignored):
-        args = line.split(' ')
-        if len(args) == 2:
-            return self._complete_object()
-
-    def do_gauge(self, line):
-        """
-        gauge GAUGE_ID
-
-        Get history of a specific gauge (use 'gauges' to find them).
-        """
-        gauge, = self.parse_command_args(line, 1, 1)
-        _id, backend_name = self.parse_id(gauge)
-
-        self.start_format()
-        for backend, measure in self.do('iter_gauge_history', _id, backends=backend_name, caps=ICapGauge):
-            self.format(measure)
-        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
-
-    def complete_last_sensor_measure(self, text, line, *ignored):
-        args = line.split(' ')
-        if len(args) == 2:
-            return self._complete_object()
-
-    def do_last_sensor_measure(self, line):
-        """
-        last_sensor_measure GAUGE_ID
-
-        Get last measure of a sensor.
-        """
-        gauge, = self.parse_command_args(line, 1, 1)
-        _id, backend_name = self.parse_id(gauge)
-
-        self.start_format()
-        for backend, measure in self.do('get_last_measure', _id, backends=backend_name, caps=ICapGauge):
-            self.format(measure)
-        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
-
-    def do_sensors(self, line):
-        """
-        sensors GAUGE_ID
-
-        Iter sensors of a gauge.
-        """
-        gauge, pattern = self.parse_command_args(line, 2, 1)
-        _id, backend_name = self.parse_id(gauge)
-
-        self.start_format()
-        for backend, sensor in self.do('iter_sensors', _id, pattern=pattern, backends=backend_name, caps=ICapGauge):
-            self.format(sensor)
-        print >>sys.stderr, 'This command is deprecated and will be removed in the next release. You should use boobsize application.\n'
