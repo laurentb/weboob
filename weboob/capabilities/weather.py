@@ -56,7 +56,7 @@ class Temperature(CapBaseObject):
             return u'%s°C' % int(round((self.value - 32.0) * 5.0 / 9.0))
 
     def __repr__(self):
-        if self.value and self.unit:
+        if self.value is not None and self.unit:
             return u'%s %s' % (self.value, self.unit)
 
 
