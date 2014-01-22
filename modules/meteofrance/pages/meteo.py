@@ -46,7 +46,7 @@ class WeatherPage(BasePage):
                 low = self.get_temp_without_unit(temp.split('|')[0])
                 high = self.get_temp_without_unit(temp.split('|')[1])
                 broad = self.parser.select(div, 'div/div/div[@class="day-summary-broad"]',
-                                           1, method='xpath').text_content()
+                                           1, method='xpath').text_content().strip()
                 uvs = self.parser.select(div, 'div/div/div[@class="day-summary-uv"]',
                                          method='xpath')
                 uv = u''
