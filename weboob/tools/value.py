@@ -163,6 +163,10 @@ class ValueBackendPassword(Value):
         return Value.check_valid(self, passwd)
 
     def set(self, passwd):
+        if self.is_command(passwd):
+            self._value = passwd
+            return
+
         self.check_valid(passwd)
         if passwd is None:
             # no change
