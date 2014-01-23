@@ -36,7 +36,7 @@ __all__ = ['BPBrowser']
 class BPBrowser(BaseBrowser):
     DOMAIN = 'voscomptesenligne.labanquepostale.fr'
     PROTOCOL = 'https'
-    CERTHASH = 'd10d09246853237892d5fb44685826ea99bfdeaaf29fac6dd236dae8cb103c39'
+    CERTHASH = ['d10d09246853237892d5fb44685826ea99bfdeaaf29fac6dd236dae8cb103c39', 'ccdf2885f1d6df19e15d098dd52fd486609d891ebd2724970a5cfcb9254b6fa5']
     ENCODING = 'iso-8859-1'
     PAGES = {r'.*wsost/OstBrokerWeb/loginform.*'                                         : LoginPage,
              r'.*authentification/repositionnerCheminCourant-identif.ea'                 : repositionnerCheminCourant,
