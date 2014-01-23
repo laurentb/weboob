@@ -79,8 +79,8 @@ class CragrBackend(BaseBackend, ICapBank):
         'm.lefil.com': u'Pyrénées Gascogne',
         }.iteritems())])
     CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
-                           ValueBackendPassword('login',    label='N° de compte', masked=False),
-                           ValueBackendPassword('password', label='Code personnel'))
+                           ValueBackendPassword('login',    label=u'N° de compte', masked=False),
+                           ValueBackendPassword('password', label=u'Code personnel'))
     BROWSER = Cragr
 
     def create_default_browser(self):
