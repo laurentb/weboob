@@ -22,6 +22,7 @@
 from copy import copy
 import getpass
 import logging
+import subprocess
 import sys
 import os
 import locale
@@ -34,8 +35,9 @@ from weboob.core.backendscfg import BackendAlreadyExists
 from weboob.core.modules import ModuleLoadError
 from weboob.core.repositories import ModuleInstallError
 from weboob.tools.browser import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden
-from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt
+from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
+from weboob.tools.ordereddict import OrderedDict
 
 from .base import BaseApplication, MoreResultsAvailable
 
@@ -345,7 +347,7 @@ class ConsoleApplication(BaseApplication):
                     continue
                 config[key].set(value)
             config.save(edit=edit)
-            print 'Backend "%s" successfully added.' % name
+            print 'Backend "%s" successfully %s.' % (name, 'edited' if edit else 'added')
             return name
         except BackendAlreadyExists:
             print >>sys.stderr, 'Backend "%s" already exists.' % name
@@ -366,15 +368,14 @@ class ConsoleApplication(BaseApplication):
 
         if isinstance(question, Value):
             v = copy(question)
-            if default:
+            if default is not None:
                 v.default = default
-            if masked:
-                v.masked = masked
-            if regexp:
+            v.masked = masked
+            if regexp is not None:
                 v.regexp = regexp
-            if choices:
+            if choices is not None:
                 v.choices = choices
-            if tiny:
+            if tiny is not None:
                 v.tiny = tiny
         else:
             if isinstance(default, bool):
@@ -391,6 +392,38 @@ class ConsoleApplication(BaseApplication):
         question = v.label
         if v.id:
             question = u'[%s] %s' % (v.id, question)
+
+        if isinstance(v, ValueBackendPassword):
+            choices = OrderedDict()
+            choices['c'] = 'Run an external tool during backend load'
+            if not v.noprompt:
+                choices['p'] = 'Prompt value when needed (do not store it)'
+            choices['s'] = 'Store value in config'
+
+            if v.is_command(v.default):
+                d = 'c'
+            elif v.default == '' and not v.noprompt:
+                d = 'p'
+            else:
+                d = 's'
+
+            r = self.ask('%s: How do you want to store it?' % question, choices=choices, tiny=True, default=d)
+            if r == 'p':
+                return ''
+            if r == 'c':
+                print 'Enter the shell command that will print the required value on the standard output'
+                if v.is_command(v.default):
+                    print ': %s' % v.default[1:-1]
+                else:
+                    d = None
+                while True:
+                    cmd = self.ask('')
+                    try:
+                        subprocess.check_output(cmd, shell=True)
+                    except subprocess.CalledProcessError as e:
+                        print '%s' % e
+                    else:
+                        return '`%s`' % cmd
 
         aliases = {}
         if isinstance(v, ValueBool):
@@ -413,11 +446,11 @@ class ConsoleApplication(BaseApplication):
                     print '%s%2d)%s %s' % (self.BOLD, n + 1, self.NC, value)
                     aliases[str(n + 1)] = key
                 question = u'%s (choose in list)' % question
-        elif default not in (None, '') and not v.masked:
-            question = u'%s [%s]' % (question, v.default)
-
         if v.masked:
             question = u'%s (hidden input)' % question
+
+        if not isinstance(v, ValueBool) and not v.tiny and v.default not in (None, ''):
+            question = u'%s [%s]' % (question, '*******' if v.masked else v.default)
 
         question += ': '
 
@@ -451,6 +484,7 @@ class ConsoleApplication(BaseApplication):
             else:
                 break
 
+        v.noprompt = True
         return v.get()
 
     def acquire_input(self, content=None, editor_params=None):

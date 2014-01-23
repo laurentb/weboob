@@ -20,7 +20,6 @@
 
 import re
 import subprocess
-import sys
 from .ordereddict import OrderedDict
 from .misc import to_unicode
 
@@ -130,7 +129,7 @@ class Value(object):
         Test if a value begin with ` and end with `
         (`command` is used to call external programms)
         """
-        return (v.startswith(u'`') and v.endswith(u'`'))
+        return isinstance(v, basestring) and v.startswith(u'`') and v.endswith(u'`')
 
 
 
