@@ -497,9 +497,9 @@ class ConsoleApplication(BaseApplication):
                         content = content.encode(sys.stdin.encoding or locale.getpreferredencoding())
                     f.write(content)
                     f.flush()
-                if editor_params is not None and os.path.basename(editor) in editor_params:
+                try:
                     params = editor_params[os.path.basename(editor)]
-                else:
+                except (KeyError,TypeError):
                     params = ''
                 os.system("%s %s %s" % (editor, params, filename))
                 f.seek(0)
