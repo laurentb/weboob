@@ -76,13 +76,13 @@ class YahooBackend(BaseBackend, ICapWeather):
     def get_current(self, city_id):
         dom = self._get_weather_dom(city_id)
         current = dom.getElementsByTagName('yweather:condition')[0]
-        return Current(parse_dt(current.getAttribute('date')),
+        return Current(parse_dt(current.getAttribute('date')).date(),
                        float(current.getAttribute('temp')), unicode(current.getAttribute('text')), u'C')
 
     def iter_forecast(self, city_id):
         dom = self._get_weather_dom(city_id)
         for forecast in dom.getElementsByTagName('yweather:forecast'):
-            yield Forecast(parse_dt(forecast.getAttribute('date')),
+            yield Forecast(parse_dt(forecast.getAttribute('date')).date(),
                            float(forecast.getAttribute('low')),
                            float(forecast.getAttribute('high')),
                            unicode(forecast.getAttribute('text')),
