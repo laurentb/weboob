@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime
+from datetime import datetime, date
 
 from .base import IBaseCap, CapBaseObject, Field, DateField, FloatField, \
                   StringField, UserError
@@ -64,7 +64,7 @@ class Forecast(CapBaseObject):
     """
     Weather forecast.
     """
-    date =      Field('Date for the forecast', datetime, basestring)
+    date =      Field('Date for the forecast', datetime, date, basestring)
     low =       Field('Low temperature', Temperature)
     high =      Field('High temperature', Temperature)
     text =      StringField('Comment on forecast')
