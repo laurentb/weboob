@@ -53,7 +53,7 @@ class ForecastPage(BasePage):
     def iter_forecast(self):
         divs = self.document.findall('//div[@class="wx-daypart"]')
 
-        for day in range (0, 10):
+        for day in range (0, len(divs)):
             div = divs[day].find('div[@class="wx-conditions"]')
             text = unicode(div.find('p[@class="wx-phrase"]').text_content().strip())
             try:
