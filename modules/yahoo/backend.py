@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Romain Bignon
+# Copyright(C) 2010-2014 Romain Bignon
 #
 # This file is part of weboob.
 #
@@ -17,15 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
 import urllib2
 from xml.dom import minidom
 from dateutil.parser import parse as parse_dt
 
-# TODO store datetime objects instead of strings
-# from datetime import datetime
 
 from weboob.capabilities.weather import ICapWeather, CityNotFound, Current, Forecast, City
 from weboob.tools.backend import BaseBackend
@@ -52,12 +47,12 @@ class YahooBackend(BaseBackend, ICapWeather):
         args = {'q':  'select line1, line2, line3, line4, city, uzip, statecode, countrycode, latitude, longitude, '
                       'country, woeid, quality, house, street, state from locdrop.placefinder '
                       'where text="%s" and locale="fr-FR" and gflags="f"' % pattern.encode('utf-8'),
-                'format': 'json',
-               }
+                      'format': 'json',
+                }
         doc = self.browser.location(self.browser.buildurl('http://locdrop.query.yahoo.com/v1/public/yql', **args))
 
         cities = doc['query']['results']['Result']
-        if not isinstance(cities, (tuple,list)):
+        if not isinstance(cities, (tuple, list)):
             cities = [cities]
 
         for result in cities:
