@@ -121,6 +121,7 @@ class WeboobRepos(ReplApplication):
                     keypath = os.path.join(source_path, r.KEYDIR, keyfile)
                     subprocess.check_call([
                         gpg,
+                        '--no-options',
                         '--quiet',
                         '--no-default-keyring',
                         '--keyring', os.path.realpath(krname),
@@ -163,6 +164,7 @@ class WeboobRepos(ReplApplication):
                             for gpgline
                             in subprocess.Popen([
                                 gpg,
+                                '--no-options',
                                 '--with-fingerprint', '--with-colons',
                                 '--list-public-keys',
                                 '--no-default-keyring',
@@ -174,6 +176,7 @@ class WeboobRepos(ReplApplication):
             for fingerprint in fingerprints:
                 proc = subprocess.Popen([
                     gpg,
+                    '--no-options',
                     '--list-secret-keys', fingerprint],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
@@ -198,6 +201,7 @@ class WeboobRepos(ReplApplication):
                         os.remove(sigpath)
                     subprocess.check_call([
                         gpg,
+                        '--no-options',
                         '--quiet',
                         '--local-user', secret_fingerprint,
                         '--detach-sign',
