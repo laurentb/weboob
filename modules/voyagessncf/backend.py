@@ -45,7 +45,6 @@ class VoyagesSNCFBackend(BaseBackend, ICapTravel):
                                                       ('CHILDREN', '4-11 ans')))),
                            Value('card', label='Passenger card', default='default',
                                  choices=OrderedDict((('default', u'Pas de carte'),
-                                                      ('YOUNG', u'Carte 12-25 / 12-30'),
                                                       ('YOUNGS', u'Carte Jeune'),
                                                       ('ESCA', u'Carte Escapades'),
                                                       ('WEEKE', u'Carte Week-end'),
