@@ -3,20 +3,14 @@
 from datetime import datetime, timedelta
 from urlparse import urlparse, parse_qs
 
+from weboob.tools.misc import get_bytes_size
 from weboob.tools.browser import BasePage,BrokenPageError
 from weboob.capabilities.torrent import Torrent, MagnetOnly
 from weboob.capabilities.base import NotAvailable
 
+
 __all__ = ['TorrentsPage', 'TorrentPage']
 
-def fullsize(n, u):
-    m = {'B': 1,
-         'KB': 1024,
-         'MB': 1024 * 1024,
-         'GB': 1024 * 1024 * 1024,
-         'TB': 1024 * 1024 * 1024 * 1024,
-        }
-    return float(n * m[u])
 
 class TorrentsPage(BasePage):
 
@@ -50,7 +44,7 @@ class TorrentsPage(BasePage):
 
             torrent = Torrent(ih, name)
             torrent.url = url
-            torrent.size = fullsize(float(value), unit)
+            torrent.size = get_bytes_size(float(value), unit)
             torrent.magnet = magnet
             torrent.seeders = NotAvailable
             torrent.leechers = NotAvailable
@@ -87,7 +81,7 @@ class TorrentPage(BasePage):
 
         torrent = Torrent(ih, name)
         torrent.url = unicode(self.url)
-        torrent.size = fullsize(float(value), unit)
+        torrent.size = get_bytes_size(float(value), unit)
         torrent.magnet = magnet
         torrent.seeders = NotAvailable
         torrent.leechers = NotAvailable
