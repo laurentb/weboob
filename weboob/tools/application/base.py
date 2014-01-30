@@ -440,7 +440,10 @@ class BaseApplication(object):
                 print >>sys.stderr, 'Configuration error: %s' % e
                 sys.exit(1)
             except CallErrors as e:
-                app.bcall_errors_handler(e)
+                try:
+                    app.bcall_errors_handler(e)
+                except KeyboardInterrupt:
+                    pass
                 sys.exit(1)
             except ResultsConditionError as e:
                 print >>sys.stderr, '%s' % e
