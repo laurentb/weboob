@@ -44,7 +44,7 @@ class Project(CapBaseObject):
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.name = name
+        self.name = unicode(name)
 
     def __repr__(self):
         return '<Project %r>' % self.name
@@ -111,7 +111,7 @@ class User(CapBaseObject):
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.name = name
+        self.name = unicode(name)
 
     def __repr__(self):
         return '<User %r>' % self.name
@@ -125,7 +125,7 @@ class Version(CapBaseObject):
 
     def __init__(self, id, name):
         CapBaseObject.__init__(self, id)
-        self.name = name
+        self.name = unicode(name)
 
     def __repr__(self):
         return '<Version %r>' % self.name
@@ -148,7 +148,7 @@ class Status(CapBaseObject):
 
     def __init__(self, id, name, value):
         CapBaseObject.__init__(self, id)
-        self.name = name
+        self.name = unicode(name)
         self.value = value
 
     def __repr__(self):
