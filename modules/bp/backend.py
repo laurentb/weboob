@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import ICapBank
+from weboob.capabilities.bank import ICapBank, Account
 from weboob.tools.backend import BaseBackend, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -49,6 +49,8 @@ class BPBackend(BaseBackend, ICapBank):
         return self.browser.get_account(_id)
 
     def iter_history(self, account):
+        if account.type != Account.TYPE_MARKET:
+            raise NotImplementedError()
         for tr in self.browser.get_history(account):
             if not tr._coming:
                 yield tr
