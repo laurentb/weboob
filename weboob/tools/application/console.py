@@ -353,7 +353,7 @@ class ConsoleApplication(BaseApplication):
             print >>sys.stderr, 'Backend "%s" already exists.' % name
             return 1
 
-    def ask(self, question, default=None, masked=False, regexp=None, choices=None, tiny=None):
+    def ask(self, question, default=None, masked=None, regexp=None, choices=None, tiny=None):
         """
         Ask a question to user.
 
@@ -370,7 +370,8 @@ class ConsoleApplication(BaseApplication):
             v = copy(question)
             if default is not None:
                 v.default = default
-            v.masked = masked
+            if masked is not None:
+                v.masked = masked
             if regexp is not None:
                 v.regexp = regexp
             if choices is not None:
