@@ -144,7 +144,7 @@ class DetailsPage(BasePage):
             try:
                 mydate = mydate.replace(month=mydate.month + 1)
             except ValueError:
-                lastday = calendar.monthrange(date.year, date.month + 1)[1]
+                lastday = calendar.monthrange(mydate.year, mydate.month + 1)[1]
                 mydate = mydate.replace(month=mydate.month + 1, day=lastday)
         return mydate
 
