@@ -23,9 +23,9 @@ from weboob.tools.browser import BasePage
 
 class LoginPage(BasePage):
     def login(self, username, password):
-        self.browser.select_form(nr=1)
-        self.browser['username'] = username
-        self.browser['password'] = password
+        self.browser.select_form(predicate=lambda f: f.attrs.get('method', '') == 'post')
+        self.browser['username'] = username.encode(self.browser.ENCODING)
+        self.browser['password'] = password.encode(self.browser.ENCODING)
         self.browser.submit()
 
 

@@ -115,33 +115,52 @@ class RedmineBrowser(BaseBrowser):
         preview_html.find("legend").drop_tree()
         return lxml.html.tostring(preview_html)
 
+    METHODS = {'POST': {'project_id': 'project_id',
+                        'column':     'query[column_names][]',
+                        'value':      'values[%s][]',
+                        'field':      'fields[]',
+                        'operator':   'operators[%s]',
+                       },
+               'GET':  {'project_id': 'project_id',
+                        'column':     'c[]',
+                        'value':      'v[%s][]',
+                        'field':      'f[]',
+                        'operator':   'op[%s]',
+                       }
+            }
+
     def query_issues(self, project_name, **kwargs):
         self.location('/projects/%s/issues' % project_name)
         token = self.page.get_authenticity_token()
-        data = (('project_id',            project_name),
-                ('query[column_names][]', 'tracker'),
+        method = self.page.get_query_method()
+        data = ((self.METHODS[method]['project_id'], project_name),
+                (self.METHODS[method]['column'], 'tracker'),
                 ('authenticity_token',    token),
-                ('query[column_names][]', 'status'),
-                ('query[column_names][]', 'priority'),
-                ('query[column_names][]', 'subject'),
-                ('query[column_names][]', 'assigned_to'),
-                ('query[column_names][]', 'updated_on'),
-                ('query[column_names][]', 'category'),
-                ('query[column_names][]', 'fixed_version'),
-                ('query[column_names][]', 'done_ratio'),
-                ('query[column_names][]', 'author'),
-                ('query[column_names][]', 'start_date'),
-                ('query[column_names][]', 'due_date'),
-                ('query[column_names][]', 'estimated_hours'),
-                ('query[column_names][]', 'created_on'),
+                (self.METHODS[method]['column'], 'status'),
+                (self.METHODS[method]['column'], 'priority'),
+                (self.METHODS[method]['column'], 'subject'),
+                (self.METHODS[method]['column'], 'assigned_to'),
+                (self.METHODS[method]['column'], 'updated_on'),
+                (self.METHODS[method]['column'], 'category'),
+                (self.METHODS[method]['column'], 'fixed_version'),
+                (self.METHODS[method]['column'], 'done_ratio'),
+                (self.METHODS[method]['column'], 'author'),
+                (self.METHODS[method]['column'], 'start_date'),
+                (self.METHODS[method]['column'], 'due_date'),
+                (self.METHODS[method]['column'], 'estimated_hours'),
+                (self.METHODS[method]['column'], 'created_on'),
                )
         for key, value in kwargs.iteritems():
             if value:
-                data += (('values[%s][]' % key, value),)
-                data += (('fields[]', key),)
-                data += (('operators[%s]' % key, '~'),)
+                data += ((self.METHODS[method]['value'] % key, value),)
+                data += ((self.METHODS[method]['field'], key),)
+                data += ((self.METHODS[method]['operator'] % key, '~'),)
 
-        self.location('/issues?set_filter=1&per_page=100', urllib.urlencode(data))
+        if method == 'POST':
+            self.location('/issues?set_filter=1&per_page=100', urllib.urlencode(data))
+        else:
+            data += (('set_filter', '1'), ('per_page', '100'))
+            self.location(self.buildurl('/issues', *data))
 
         assert self.is_on_page(IssuesPage)
         return {'project': self.page.get_project(project_name),

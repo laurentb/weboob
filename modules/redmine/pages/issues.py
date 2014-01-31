@@ -61,7 +61,10 @@ class BaseIssuePage(BasePage):
         try:
             select = self.parser.select(self.document.getroot(), 'select#%s' % name, 1)
         except BrokenPageError:
-            return
+            try:
+                select = self.parser.select(self.document.getroot(), 'select#%s_1' % name, 1)
+            except BrokenPageError:
+                return
         for option in select.findall('option'):
             if option.attrib['value'].isdigit():
                 yield (option.attrib['value'], option.text)
@@ -94,6 +97,9 @@ class IssuesPage(BaseIssuePage):
                       'versions':   'values_fixed_version_id',
                       'statuses':   'values_status_id',
                      }
+
+    def get_query_method(self):
+        return self.document.xpath('//form[@id="query_form"]')[0].attrib['method'].upper()
 
     def iter_issues(self):
         try:
@@ -268,9 +274,9 @@ class IssuePage(NewIssuePage):
         params['updates'] = []
         for div in self.parser.select(content, 'div.journal'):
             update = {}
-            update['id'] = div.find('h4').find('div').find('a').text[1:]
-            alist = div.find('h4').findall('a')
-            if len(alist) == 3:
+            alist = div.find('h4').xpath('.//a')
+            update['id'] = alist[0].text[1:]
+            if len(alist) == 4:
                 update['author'] = (int(alist[-2].attrib['href'].split('/')[-1]),
                                     to_unicode(alist[-2].text))
             else:
