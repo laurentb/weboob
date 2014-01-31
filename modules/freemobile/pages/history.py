@@ -19,6 +19,7 @@
 
 
 import re
+import calendar
 from datetime import datetime, date, time
 from decimal import Decimal
 
@@ -140,7 +141,11 @@ class DetailsPage(BasePage):
             mydate = mydate.replace(month=1)
             mydate = mydate.replace(year=mydate.year + 1)
         else:
-            mydate = mydate.replace(month=mydate.month + 1)
+            try:
+                mydate = mydate.replace(month=mydate.month + 1)
+            except ValueError:
+                lastday = calendar.monthrange(date.year, date.month + 1)[1]
+                mydate = mydate.replace(month=mydate.month + 1, day=lastday)
         return mydate
 
 
