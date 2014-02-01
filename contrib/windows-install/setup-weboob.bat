@@ -15,8 +15,13 @@ set WGET=wget-%ARCHITECTURE%.exe
 
 echo.
 echo 2.Check Python 2.7 Installation
+
 set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
-REG QUERY %KEY_NAME% > nul || 	(
+if %ARCHITECTURE% == x64 (
+	set KEY_NAME=HKLM\SOFTWARE\Wow6432Node\Python\PythonCore\2.7\InstallPath							
+)
+
+REG QUERY !KEY_NAME! > nul || 	(
 									set PYTHON_MSI=python-2.7.5.msi
 									if %ARCHITECTURE% == x64 (
 										set PYTHON_MSI=python-2.7.5.amd64.msi								
@@ -32,7 +37,7 @@ REG QUERY %KEY_NAME% > nul || 	(
 									del python_donwload
 								)
 								
-for /F "tokens=4" %%A IN ('REG QUERY %KEY_NAME%') do (
+for /F "tokens=4" %%A IN ('REG QUERY !KEY_NAME!') do (
     set PythonPath=%%A
 )
 
@@ -131,7 +136,7 @@ for %%i in (%LIST_APPLIQUATIONS_QT%) do (
 		del "%StartupFolder%\Weboob\%%i.exe"
 	)
 
-	"Bat_To_Exe_Converter.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" %%i"
+	"Bat_To_Exe_Converter_%ARCHITECTURE%.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" %%i"
 	del "%%i.bat"
 	del "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico"
 )

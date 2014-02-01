@@ -2,7 +2,7 @@
 
 2. update settings.cmd
 
-3. Download http://www.f2ko.de/downloads/Bat_To_Exe_Converter.zip
+3. Download http://www.f2ko.de/downloads/Bat_To_Exe_Converter.zip extrat 32 and 64bit version and respectivly rename to Bat_To_Exe_Converter_x32.exe and Bat_To_Exe_Converter_x64.exe
 
 4. Download http://nebm.ist.utl.pt/~glopes/wget/wget-1.11.4-x64.zip, unzip and rename to => wget-x64.exe
 
