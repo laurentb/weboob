@@ -38,7 +38,7 @@ def parse_b(b):
 class ProgramPage(BasePage):
     def list_events(self, date_from, date_to=None, city=None, categories=None, is_concert=True):
         divs = self.document.getroot().xpath("//div[@class='ligne']")
-        for i in range(1, len(divs)):
+        for i in range(2, len(divs)):
             event = self.create_event(divs[i], date_from, date_to, city, categories, is_concert=is_concert)
             if event:
                 yield event
