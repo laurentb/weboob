@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 import re
 import HTMLParser
 
@@ -119,10 +118,11 @@ class ArteLivePage(BasePage):
     def iter_resources(self):
         items = list()
         for el in self.document.xpath('//ul[@id="categoryArray"]/li'):
-            m = re.match(r'http://liveweb.arte.tv/*', el.find('a').attrib['href'])
+            a = el.find('a')
+            m = re.match(r'http://liveweb.arte.tv/*', a.attrib['href'])
             if m:
-                url = u'%s' % el.find('a').attrib['href']
+                url = u'%s' % a.attrib['href']
                 _id = url.split('/')[-2:-1][0]
-                item = ArteLiveCollection([u'live', u'%s' % _id], u'%s' % (el.find('a').text))
+                item = ArteLiveCollection([u'arte-live', u'%s' % _id], u'%s' % (a.text))
                 items.append(item)
         return items
