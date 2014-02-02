@@ -74,6 +74,7 @@ class Account(Recipient):
     TYPE_LOAN             = 4
     TYPE_MARKET           = 5  # Stock market or other variable investments
     TYPE_JOINT            = 6  # Joint account
+    TYPE_CARD             = 7  # Card account
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')

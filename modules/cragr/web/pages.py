@@ -148,6 +148,7 @@ class CardsPage(BasePage):
             get = lambda name: self.parser.tocleanstring(table.xpath(xpaths[name])[0])
 
             account = Account()
+            account.type = account.TYPE_CARD
             account.id = ''.join(get('_id').split()[1:])
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
