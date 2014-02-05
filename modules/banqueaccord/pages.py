@@ -21,7 +21,7 @@
 from decimal import Decimal
 import re
 
-from weboob.tools.browser import BasePage
+from weboob.tools.browser import BasePage, BrokenPageError
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -69,7 +69,7 @@ class VirtKeyboard(MappedVirtKeyboard):
             except VirtKeyboardError:
                 continue
             else:
-                return ''.join(re.findall("'(\d+)'", code)[1:])
+                return ''.join(re.findall("'(\d+)'", code)[-2:])
         raise VirtKeyboardError('Symbol not found')
 
     def get_string_code(self, string):
@@ -83,7 +83,9 @@ class LoginPage(BasePage):
         vk = VirtKeyboard(self)
 
         form = self.document.xpath('//form[@id="formulaire-login"]')[0]
-        self.browser.location(self.browser.buildurl(form.attrib['action'], identifiant=login, code=vk.get_string_code(password)), no_login=True)
+        code = vk.get_string_code(password)
+        assert len(code)==10, BrokenPageError("Wrong number of character.")
+        self.browser.location(self.browser.buildurl(form.attrib['action'], identifiant=login, code=code), no_login=True)
 
 class IndexPage(BasePage):
     def get_card_name(self):
