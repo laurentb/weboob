@@ -460,7 +460,7 @@ class ConsoleApplication(BaseApplication):
                 if sys.platform == 'win32':
                     line = getpass.getpass(str(question))
                 else:
-                    line = getpass.getpass(question)
+                    line = getpass.getpass(question.encode(sys.stdout.encoding or locale.getpreferredencoding()))
             else:
                 self.stdout.write(question.encode(sys.stdout.encoding or locale.getpreferredencoding()))
                 self.stdout.flush()
