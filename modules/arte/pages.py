@@ -17,112 +17,62 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import HTMLParser
 
 from weboob.tools.browser import BasePage
+from weboob.tools.misc import html2text
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.image import BaseImage
-
+from weboob.capabilities.collection import Collection
 from .video import ArteLiveVideo
-from .collection import ArteLiveCollection
 
-__all__ = ['ArteLivePage', 'ArteLiveCategorieVideoPage', 'ArteLiveVideoPage']
+__all__ = ['ArteLivePage', 'ArteLiveVideoPage']
 
 
 class ArteLiveVideoPage(BasePage):
-    def get_video(self, video=None, lang='fr', quality='hd'):
+    def get_video(self, video=None):
         if not video:
             video = ArteLiveVideo(self.group_dict['id'])
 
-        urls = {}
-        for url in self.document.xpath('//video')[0].getchildren():
-            if url.tag.startswith('url'):
-                urls[url.tag[-2:]] = url.text
+        div = self.document.xpath('//div[@class="bloc-presentation"]')[0]
 
-        if quality in urls:
-            video.url = u'%s' % urls[quality]
-        else:
-            video.url = u'%s' % urls.popitem()[1]
-        return video
+        description = self.parser.select(div,
+                                         'div[@class="field field-name-body field-type-text-with-summary field-label-hidden bloc-rte"]',
+                                         1,
+                                         method='xpath')
+        video.description = html2text(self.parser.tostring(description))
 
-
-class ArteLiveCategorieVideoPage(BasePage):
-    def iter_videos(self, lang='fr'):
-        videos = list()
-        xml_url = (self.document.xpath('//link')[0]).attrib['href']
-        datas = self.browser.readurl(xml_url)
-        re_items = re.compile("(<item>.*?</item>)", re.DOTALL)
-        items = re.findall(re_items, datas)
-        for item in items:
-            parsed_element = self.get_element(item, lang)
-            if parsed_element:
-                video = ArteLiveVideo(parsed_element['ID'])
-                video.title = parsed_element['title']
-                video.description = parsed_element['pitch']
-                video.author = parsed_element['author']
-                if parsed_element['pict']:
-                    video.thumbnail = BaseImage(parsed_element['pict'])
-                    video.thumbnail.url = video.thumbnail.id
-                video.set_empty_fields(NotAvailable, ('url',))
-                videos.append(video)
-        return videos
-
-    def get_element(self, chain, lang):
-        ele = {}
-        tt = re.compile("(?<=<title>)(.*?)(?=</title>)", re.DOTALL)
-        lk = re.compile("(?<=<link>)(http://liveweb.arte.tv/{0}/video/.*?)"
-                        "(?=</link>)".format(lang), re.DOTALL)
-        dt = re.compile("(?<=<pubDate>)(.*?)(?=</pubDate>)", re.DOTALL)
-        pt = re.compile("(?<=<description>)(.*?)(?=</description>)", re.DOTALL)
-        at = re.compile("(?<=<author>)(.*?)(?=</author>)", re.DOTALL)
-        en = re.compile("<enclosure.*?/event/.*?/(.*?)-.*?/>", re.DOTALL)
-        pix = re.compile("(?<=<enclosure url=\")(.*?)(?=\" type=\"image/)", re.DOTALL)
-        try:
-            ele['link'] = lk.search(chain).group(0)
-        except:
-            return None
-        try:
-            ele['ID'] = int(en.search(chain).group(1))
-        except:
-            return None
-        try:
-            s = tt.search(chain).group(0)
-            ele['title'] = s.decode('utf-8', 'replace')
-        except:
-            ele['title'] = "No title"
-        try:
-            s = (dt.search(chain).group(0))
-            ele['date'] = s.decode('utf-8', 'replace')
-        except:
-            ele['date'] = "No date"
-        try:
-            s = (pt.search(chain).group(0))
-            s = HTMLParser.HTMLParser().unescape(s)
-            ele['pitch'] = HTMLParser.HTMLParser().unescape(s)
-        except:
-            ele['pitch'] = "No description"
-        try:
-            s = (at.search(chain).group(0))
-            ele['author'] = s.decode('utf-8', 'replace')
-        except:
-            ele['author'] = "Unknow"
-        try:
-            ele['pict'] = pix.search(chain).group(0)
-        except:
-            ele['pict'] = None
-        return ele
+        json_url = self.document.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
+        return json_url, video
 
 
 class ArteLivePage(BasePage):
     def iter_resources(self):
         items = list()
-        for el in self.document.xpath('//ul[@id="categoryArray"]/li'):
-            a = el.find('a')
-            m = re.match(r'http://liveweb.arte.tv/*', a.attrib['href'])
-            if m:
-                url = u'%s' % a.attrib['href']
-                _id = url.split('/')[-2:-1][0]
-                item = ArteLiveCollection([u'arte-live', u'%s' % _id], u'%s' % (a.text))
-                items.append(item)
+        for el in self.document.xpath('//ul[@class="filter-liste"]/li'):
+            _id = el.attrib['data-target'].replace('video_box_tab_','')
+            text = self.parser.select(el, 'a/span', 1, method='xpath').text
+            item = Collection([u'arte-live', u'%s' % _id], u'%s' % (text))
+            items.append(item)
         return items
+
+    def iter_videos(self, cat, lang='fr'):
+        articles = self.document.xpath('//div[@id="video_box_tab_%s"]/article' % cat)
+        videos = list()
+        for article in articles:
+            _id = article.attrib['about']
+            title = self.parser.select(article,
+                                   'div/div[@class="info-article "]/div/h3/a',
+                                   1,
+                                   method='xpath').text
+            thumbnail = self.parser.select(article,
+                                          'div/div/a/figure/span/span',
+                                          1,
+                                          method='xpath').attrib['data-src']
+
+            video = ArteLiveVideo(_id)
+            video.title = u'%s' % title
+            video.thumbnail = BaseImage(thumbnail)
+            video.thumbnail.url = video.thumbnail.id
+            video.set_empty_fields(NotAvailable, ('url',))
+            videos.append(video)
+        return videos

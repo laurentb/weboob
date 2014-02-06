@@ -27,7 +27,7 @@ from weboob.tools.value import Value
 
 from .browser import ArteBrowser
 from .video import ArteVideo, ArteLiveVideo
-from .collection import ArteLiveCollection
+
 
 __all__ = ['ArteBackend']
 
@@ -76,9 +76,9 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
         if m:
             return 'program', m.group(1)
 
-        m = re.match('https?://liveweb.arte.tv/\w+/video/(.*)/', _id)
+        m = re.match('https?://concert.arte.tv/(\w+)/(.*)', _id)
         if m:
-            return 'live_url', _id
+            return 'live', '/%s/%s' % (m.group(1), m.group(2))
 
         return 'videos', _id
 
@@ -88,9 +88,6 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
 
             if site == 'live':
                 return self.browser.get_live_video(_id)
-
-            elif site == 'live_url':
-                return self.browser.get_live_from_url(_id)
 
             elif site == 'program':
                 return self.browser.get_video_from_program_id(_id)
@@ -134,7 +131,7 @@ class ArteBackend(BaseBackend, ICapVideo, ICapCollection):
                             yield categorie
                 if collection.path_level == 2:
                     if collection.split_path[0] == u'arte-live':
-                        for video in self.browser.live_videos(ArteLiveCollection.id2url(collection.basename, self.browser.LIVE_LANG[self.browser.lang])):
+                        for video in self.browser.live_videos(collection.basename):
                             yield video
 
     def validate_collection(self, objs, collection):

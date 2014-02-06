@@ -27,7 +27,7 @@ from weboob.tools.json import json as simplejson
 from weboob.tools.browser import BaseBrowser
 from weboob.tools.browser.decorators import id2url
 
-from .pages import ArteLivePage, ArteLiveCategorieVideoPage, ArteLiveVideoPage
+from .pages import ArteLivePage, ArteLiveVideoPage
 from .video import ArteVideo, ArteLiveVideo
 
 __all__ = ['ArteBrowser']
@@ -36,14 +36,14 @@ __all__ = ['ArteBrowser']
 class ArteBrowser(BaseBrowser):
     DOMAIN = u'videos.arte.tv'
     ENCODING = None
-    PAGES = {r'http://liveweb.arte.tv/\w+': ArteLivePage,
-             r'http://liveweb.arte.tv/\w+/cat/.*': ArteLiveCategorieVideoPage,
-             r'http://arte.vo.llnwd.net/o21/liveweb/events/event-(?P<id>.+).xml': ArteLiveVideoPage,
-             }
+    PAGES = {r'http://concert.arte.tv/\w+': ArteLivePage,
+             r'http://concert.arte.tv/(?P<id>.+)': ArteLiveVideoPage,
+            }
 
     LIVE_LANG = {'F': 'fr',
                  'D': 'de'
                  }
+
     API_URL = 'http://arte.tv/papi/tvguide'
 
     def __init__(self, lang, quality, order, *args, **kwargs):
@@ -85,7 +85,39 @@ class ArteBrowser(BaseBrowser):
     def get_live_video(self, url, video=None):
         self.location(url)
         assert self.is_on_page(ArteLiveVideoPage)
-        return self.page.get_video(video, self.lang, self.quality)
+        json_url, video = self.page.get_video(video)
+        return self.fill_live_video(video, json_url)
+
+    def fill_live_video(self, video, json_url):
+
+        response = self.openurl(json_url)
+        result = simplejson.loads(response.read(), self.ENCODING)
+
+        quality = None
+        if 'VSR' in result['videoJsonPlayer']:
+            for item in result['videoJsonPlayer']['VSR']:
+                if self.quality in item:
+                    quality = item
+                    break
+
+            if not quality:
+                url = result['videoJsonPlayer']['VSR'][0]['url']
+                ext = result['videoJsonPlayer']['VSR'][0]['mediaType']
+            else:
+                url = result['videoJsonPlayer']['VSR'][quality]['url']
+                ext = result['videoJsonPlayer']['VSR'][quality]['mediaType']
+
+            video.url = u'%s' % url
+            video.ext = u'%s' % ext
+            video.date = datetime.datetime.strptime(result['videoJsonPlayer']['VDA'][:-6], '%d/%m/%Y %H:%M:%S')
+
+            if 'VDU' in result['videoJsonPlayer'].keys():
+                video.duration = int(result['videoJsonPlayer']['VDU'])
+
+            if 'IUR' in result['videoJsonPlayer']['VTU'].keys():
+                video.thumbnail = BaseImage(result['videoJsonPlayer']['VTU']['IUR'])
+                video.thumbnail.url = video.thumbnail.id
+        return video
 
     def home(self):
         self.location('http://videos.arte.tv/%s/videos/toutesLesVideos' % self.lang)
@@ -182,11 +214,11 @@ class ArteBrowser(BaseBrowser):
         return self.create_video_from_plus7(result['videoList'])
 
     def get_arte_live_categories(self):
-        self.location('http://liveweb.arte.tv/%s' % self.LIVE_LANG[self.lang])
+        self.location('http://concert.arte.tv/%s' % self.LIVE_LANG[self.lang])
         assert self.is_on_page(ArteLivePage)
         return self.page.iter_resources()
 
-    def live_videos(self, url):
-        self.location(url)
-        assert self.is_on_page(ArteLiveCategorieVideoPage)
-        return self.page.iter_videos(self.LIVE_LANG[self.lang])
+    def live_videos(self, cat):
+        self.location('http://concert.arte.tv/%s' % self.LIVE_LANG[self.lang])
+        assert self.is_on_page(ArteLivePage)
+        return self.page.iter_videos(cat, lang=self.LIVE_LANG[self.lang])

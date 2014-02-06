@@ -35,7 +35,7 @@ class ArteTest(BackendTest):
     def test_live(self):
         l1 = list(self.backend.iter_resources([BaseVideo], [u'arte-live']))
         assert len(l1)
-        l2 = list(self.backend.iter_resources([BaseVideo], [u'arte-live', u'%s' % l1[0]]))
+        l2 = list(self.backend.iter_resources([BaseVideo], l1[0].split_path))
         assert len(l2)
         v = l2[0]
         self.backend.fillobj(v, ('url',))
