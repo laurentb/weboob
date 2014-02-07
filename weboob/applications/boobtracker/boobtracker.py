@@ -347,9 +347,9 @@ class BoobTracker(ReplApplication):
 
         issue.body = content
 
-        emails = re.findall('<(.*@.*)>', m['From'] or '')
-        if len(emails) > 0:
-            return emails[0]
+        m = re.search('([^< ]+@[^ >]+)', m['From'] or '')
+        if m:
+            return m.group(1)
 
     def edit_issue(self, issue, edit=True):
         backend = self.weboob.get_backend(issue.backend)
@@ -398,7 +398,7 @@ Regards,
 
 Weboob Team
 """ % (issue.title, issue.id)
-        msg = MIMEText(text)
+        msg = MIMEText(text, 'plain', 'utf-8')
         msg['Subject'] = 'Issue #%s reported' % issue.id
         msg['From'] = 'Weboob <weboob@weboob.org>'
         msg['To'] = email_to
