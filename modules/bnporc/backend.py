@@ -43,9 +43,9 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     CONFIG = BackendConfig(
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
         ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6}|)$'),
-        ValueBackendPassword('rotating_password', default='',
-            label='Password to set when the allowed uses are exhausted (6 digits)',
-            regexp='^(\d{6}|)$'),
+        #ValueBackendPassword('rotating_password', default='',
+        #    label='Password to set when the allowed uses are exhausted (6 digits)',
+        #    regexp='^(\d{6}|)$'),
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels', 'ent': 'Entreprises'}))
     STORAGE = {'seen': []}
@@ -61,10 +61,10 @@ class BNPorcBackend(BaseBackend, ICapBank, ICapMessages):
     def create_default_browser(self):
         b = {'pp': BNPorc, 'ent': BNPEnterprise}
         self.BROWSER = b[self.config['website'].get()]
-        if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
-            rotating_password = self.config['rotating_password'].get()
-        else:
-            rotating_password = None
+        #if self.config['rotating_password'].get().isdigit() and len(self.config['rotating_password'].get()) == 6:
+        #    rotating_password = self.config['rotating_password'].get()
+        #else:
+        rotating_password = None
         if self.config['website'].get() != 'pp':
             return self.create_browser(self.config['login'].get(),
                                        self.config['password'].get())
