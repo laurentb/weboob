@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from mechanize import Item
 import re
 import datetime
 
@@ -205,7 +204,7 @@ class NewIssuePage(BaseIssuePage):
                 value = self.browser.create_category(self.get_project_name(), category, self.get_authenticity_token())
             if value:
                 control = self.browser.find_control('issue[category_id]')
-                Item(control, {'name': category, 'value': value})
+                ClientForm.Item(control, {'name': category, 'value': value})
                 self.browser['issue[category_id]'] = [value]
             else:
                 self.logger.warning('Category "%s" not found' % category)
