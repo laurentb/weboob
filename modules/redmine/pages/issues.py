@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from mechanize import Item
 import re
 import datetime
 
@@ -79,9 +80,14 @@ class BaseIssuePage(BasePage):
     def get_authenticity_token(self):
         tokens = self.parser.select(self.document.getroot(), 'input[name=authenticity_token]')
         if len(tokens) == 0:
-            raise IssueError("You doesn't have rights to remove this issue.")
+            tokens = self.document.xpath('//meta[@name="csrf-token"]')
+        if len(tokens) == 0:
+            raise IssueError("You don't have rights to remove this issue.")
 
-        token = tokens[0].attrib['value']
+        try:
+            token = tokens[0].attrib['value']
+        except KeyError:
+            token = tokens[0].attrib['content']
         return token
 
     def get_errors(self):
@@ -89,6 +95,12 @@ class BaseIssuePage(BasePage):
         for li in self.document.xpath('//div[@id="errorExplanation"]//li'):
             errors.append(li.text.strip())
         return ', '.join(errors)
+
+    def get_value_from_label(self, name, label):
+        for option in self.document.xpath('//select[@name="%s"]/option' % name):
+            if option.text.strip().lower() == label.lower():
+                return option.attrib['value']
+        return label
 
 
 class IssuesPage(BaseIssuePage):
@@ -151,6 +163,10 @@ class NewIssuePage(BaseIssuePage):
                       'statuses':   'issue_status_id',
                      }
 
+    def get_project_name(self):
+        m = re.search('/projects/([^/]+)/', self.url)
+        return m.group(1)
+
     def iter_custom_fields(self):
         for div in self.document.xpath('//form//input[starts-with(@id, "issue_custom_field")]'):
             label = self.document.xpath('//label[@for="%s"]' % div.attrib['id'])[0]
@@ -184,7 +200,15 @@ class NewIssuePage(BaseIssuePage):
                 if option.text and option.text.strip() == category:
                     self.browser['issue[category_id]'] = [option.attrib['value']]
                     return
-            self.logger.warning('Category "%s" not found' % category)
+            value = None
+            if len(self.document.xpath('//a[@title="New category"]')) > 0:
+                value = self.browser.create_category(self.get_project_name(), category, self.get_authenticity_token())
+            if value:
+                control = self.browser.find_control('issue[category_id]')
+                Item(control, {'name': category, 'value': value})
+                self.browser['issue[category_id]'] = [value]
+            else:
+                self.logger.warning('Category "%s" not found' % category)
         else:
             self.browser['issue[category_id]'] = ['']
 

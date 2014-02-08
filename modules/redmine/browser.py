@@ -20,6 +20,7 @@
 
 from urlparse import urlsplit
 import urllib
+import re
 import lxml.html
 
 from weboob.capabilities.bugtracker import IssueError
@@ -152,6 +153,7 @@ class RedmineBrowser(BaseBrowser):
                )
         for key, value in kwargs.iteritems():
             if value:
+                value = self.page.get_value_from_label(self.METHODS[method]['value'] % key, value)
                 data += ((self.METHODS[method]['value'] % key, value),)
                 data += ((self.METHODS[method]['field'], key),)
                 data += ((self.METHODS[method]['operator'] % key, '~'),)
@@ -236,3 +238,20 @@ class RedmineBrowser(BaseBrowser):
         self.location('/projects')
 
         return self.page.iter_projects()
+
+    def create_category(self, project, name, token):
+        data = {'issue_category[name]': name.encode('utf-8')}
+        headers = {'X-CSRF-Token': token,
+                   'X-Prototype-Version': '1.7',
+                   'X-Requested-With': 'XMLHttpRequest',
+                   'Accept': 'text/javascript, text/html, application/xml, text/xml, */*',
+                  }
+        request = self.request_class(self.absurl(self.buildurl('%s/projects/%s/issue_categories' % (self.BASEPATH, project), **data)),
+                                     '', headers)
+        r = self.readurl(request)
+
+        # Element.replace("issue_category_id", "\u003Cselect id=\"issue_category_id\" name=\"issue[category_id]\"\u003E\u003Coption\u003E\u003C/option\u003E\u003Coption value=\"28\"\u003Ebnporc\u003C/option\u003E\n\u003Coption value=\"31\"\u003Ebp\u003C/option\u003E\n\u003Coption value=\"30\"\u003Ecrag2r\u003C/option\u003E\n\u003Coption value=\"29\"\u003Ecragr\u003C/option\u003E\n\u003Coption value=\"27\"\u003Ei\u003C/option\u003E\n\u003Coption value=\"32\"\u003Elol\u003C/option\u003E\n\u003Coption value=\"33\" selected=\"selected\"\u003Elouiel\u003C/option\u003E\u003C/select\u003E");
+
+        m = re.search('''value=\\\\"(\d+)\\\\" selected''', r)
+        if m:
+            return m.group(1)
