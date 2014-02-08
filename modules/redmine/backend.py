@@ -290,11 +290,11 @@ class RedmineBackend(BaseBackend, ICapContent, ICapBugTracker, ICapCollection):
     def get_project(self, id):
         try:
             with self.browser:
-                params = self.browser.get_issue(id)
+                params = self.browser.get_project(id)
         except BrowserHTTPNotFound:
             return None
 
-        return self._build_project(params['project'])
+        return self._build_project(params)
 
     def fill_issue(self, issue, fields):
         return self.get_issue(issue)
