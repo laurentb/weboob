@@ -270,6 +270,7 @@ class BoobTracker(ReplApplication):
             sender = os.environ.get('USERNAME', 'boobtracker')
         output = u'From: %s\n' % sender
         for key, (list_name, is_list_object) in self.ISSUE_FIELDS:
+            value = None
             if not self.interactive:
                 value = getattr(self.options, key)
             if not value:
