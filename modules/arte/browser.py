@@ -117,8 +117,6 @@ class ArteBrowser(BaseBrowser):
             except TypeError:
                 video.date = datetime.datetime(*(time.strptime(date_string, '%d/%m/%Y %H:%M:%S')[0:6]))
 
-            #video.date = datetime.datetime.strptime(result['videoJsonPlayer']['VDA'][:-6], '%d/%m/%Y %H:%M:%S')
-
             if 'VDU' in result['videoJsonPlayer'].keys():
                 video.duration = int(result['videoJsonPlayer']['VDU'])
 
