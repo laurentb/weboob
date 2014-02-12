@@ -19,6 +19,7 @@
 
 import re
 import datetime
+import time
 import urllib
 
 from weboob.capabilities import NotAvailable
@@ -109,7 +110,14 @@ class ArteBrowser(BaseBrowser):
 
             video.url = u'%s' % url
             video.ext = u'%s' % ext
-            video.date = datetime.datetime.strptime(result['videoJsonPlayer']['VDA'][:-6], '%d/%m/%Y %H:%M:%S')
+            date_string = result['videoJsonPlayer']['VDA'][:-6]
+
+            try:
+                video.date = datetime.datetime.strptime(date_string, '%d/%m/%Y %H:%M:%S')
+            except TypeError:
+                video.date = datetime.datetime(*(time.strptime(date_string, '%d/%m/%Y %H:%M:%S')[0:6]))
+
+            #video.date = datetime.datetime.strptime(result['videoJsonPlayer']['VDA'][:-6], '%d/%m/%Y %H:%M:%S')
 
             if 'VDU' in result['videoJsonPlayer'].keys():
                 video.duration = int(result['videoJsonPlayer']['VDU'])
