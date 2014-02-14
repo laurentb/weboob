@@ -49,13 +49,17 @@ class IndexPage(BasePage):
 
             time_span = self.parser.select(span, 'span.thumbtime span', 1)
             time_txt = time_span.text.strip().replace(';', ':')
-            if time_txt == 'N/A':
-                minutes, seconds = 0, 0
-            elif ':' in time_txt:
-                minutes, seconds = (int(v) for v in time_txt.split(':'))
-            else:
+            hours, minutes, seconds = 0, 0, 0
+            if ':' in time_txt:
+                t = time_txt.split(':')
+                t.reverse()
+                seconds = int(t[0])
+                minutes = int(t[1])
+                if len(t) == 3:
+                    hours = int(t[2])
+            elif time_txt != 'N/A':
                 raise BrokenPageError('Unable to parse the video duration: %s' % time_txt)
 
-            video.duration = datetime.timedelta(minutes=minutes, seconds=seconds)
+            video.duration = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
             yield video
