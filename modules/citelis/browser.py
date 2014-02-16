@@ -61,7 +61,7 @@ class CitelisBrowser(BaseBrowser):
         self.location('%s://%s/summarySearch.do?reqCode=search' % (self.PROTOCOL, self.DOMAIN))
         account = Account()
         account.id = u'1'
-        account.currency = Account.CUR_EUR
+        account.currency = 'EUR'
         account.balance = self.page.get_balance()
         account.label = u'Synthèse financière'
         return [account]

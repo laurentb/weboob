@@ -49,8 +49,8 @@ class Recipient(CapBaseObject, Currency):
     Recipient of a transfer.
     """
 
-    label = StringField('Name')
-    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
+    label =     StringField('Name')
+    currency =  StringField('Currency', default=None)
 
     def __init__(self):
         CapBaseObject.__init__(self, 0)

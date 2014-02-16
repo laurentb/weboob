@@ -22,7 +22,6 @@
 from weboob.capabilities.bill import ICapBill, SubscriptionNotFound,\
     BillNotFound, Subscription, Bill
 from weboob.tools.backend import BaseBackend, BackendConfig
-from weboob.capabilities.base import Currency
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Leclercmobile
@@ -106,5 +105,5 @@ class LeclercMobileBackend(BaseBackend, ICapBill):
             balance = self.browser.get_balance()
             balance.label = u"Balance %s" % subscription.id
             balance.id = "%s-balance" % subscription.id
-            balance.currency = Currency.CUR_EUR
+            balance.currency = 'EUR'
             return balance

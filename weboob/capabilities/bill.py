@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import CapBaseObject, StringField, DateField, DecimalField, IntField, UserError, Currency
+from .base import CapBaseObject, StringField, DateField, DecimalField, UserError
 from .collection import ICapCollection
 
 
@@ -50,7 +50,7 @@ class Detail(CapBaseObject):
     datetime =  DateField('date information')
     price =     DecimalField('Total price, taxes included')
     vat =       DecimalField('Value added Tax')
-    currency =  IntField('Currency', default=Currency.CUR_UNKNOWN)
+    currency =  StringField('Currency', default=None)
     quantity =  DecimalField('Number of units consumed')
     unit =      StringField('Unit of the consumption')
 
@@ -67,7 +67,7 @@ class Bill(CapBaseObject):
     label =         StringField('label of bill')
     idparent =      StringField('id of the parent subscription')
     price =         DecimalField('Price to pay')
-    currency =      IntField('Currency', default=Currency.CUR_UNKNOWN)
+    currency =      StringField('Currency', default=None)
     deadline =      DateField('The latest day to pay')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')

@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.browser import BasePage
-from weboob.capabilities.base import Currency
 from weboob.capabilities.bill import Subscription, Detail
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, date, time
@@ -106,7 +105,7 @@ class HistoryPage(BasePage):
                 detail.price = Decimal(price)
             except InvalidOperation:
                 detail.price = Decimal(0)  # free calls
-            detail.currency = Currency.CUR_EUR
+            detail.currency = 'EUR'
 
             yield detail
 

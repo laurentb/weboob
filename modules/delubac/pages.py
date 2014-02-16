@@ -65,8 +65,7 @@ class DashboardPage(BasePage):
         account.balance = Decimal(FrenchTransaction.clean_amount(
             get_field('accountTotal')))
         account.label = get_field('accountLabel2')
-        account.currency = Account.TXT2CUR.get(get_field('accountDev'),
-                                               Account.CUR_UNKNOWN)
+        account.currency = account.get_currency(get_field('accountDev'))
 
         return account
 

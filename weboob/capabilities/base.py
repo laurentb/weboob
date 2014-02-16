@@ -428,17 +428,11 @@ class CapBaseObject(object):
 
 
 class Currency(object):
-    CUR_UNKNOWN        = 0
-    CUR_EUR            = 1
-    CUR_CHF            = 2
-    CUR_USD            = 3
-
-    TXT2CUR = OrderedDict(((u'€',   CUR_EUR),
-                           (u'EUR', CUR_EUR),
-                           (u'CHF', CUR_CHF),
-                           (u'$',   CUR_USD),
-                           (u'USD', CUR_USD),
-              ))
+    CURRENCIES = {u'EUR': u'€',
+                  u'CHF': u'CHF',
+                  u'USD': u'$',
+                  u'GBP': u'£',
+                 }
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
 
@@ -462,14 +456,11 @@ class Currency(object):
         """
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
         for curtext in curtexts:
-            cur = klass.TXT2CUR.get(curtext)
-            if cur is not None:
-                return cur
-        return klass.CUR_UNKNOWN
+            for currency, symbol in klass.CURRENCIES.iteritems():
+                if curtext in (currency, symbol):
+                    return currency
+        return None
 
     @classmethod
     def currency2txt(klass, currency):
-        for txt, value in klass.TXT2CUR.iteritems():
-            if value == currency:
-                return txt
-        return u''
+        return klass.CURRENCIES.get(currency, u'')

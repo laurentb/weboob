@@ -23,7 +23,6 @@ from datetime import date, timedelta
 import re
 import hashlib
 
-from weboob.capabilities.base import Currency
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.browser import BasePage
@@ -59,7 +58,7 @@ class AccountsList(BasePage):
         # TODO: no idea abount how proxy account are displayed
         for a in self.document.xpath('//a[@class="mainclic"]'):
             account = Account()
-            account.currency = Currency.CUR_EUR
+            account.currency = 'EUR'
             account.id = unicode(a.find('span[@class="account-number"]').text)
             account._id = account.id
             account.label = unicode(a.find('span[@class="title"]').text)
