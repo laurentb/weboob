@@ -205,7 +205,7 @@ class AccountsPage(BasePage):
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile('^(?P<category>CB)  (?P<text>RETRAIT) DU  (?P<dd>\d+)/(?P<mm>\d+)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<category>PRLV) (?P<text>.*)'),
+                (re.compile('^(?P<category>(PRLV|PE)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CHECK),
@@ -216,7 +216,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile('^(?P<category>VIR(EM(EN)?)?T? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+                (re.compile('^(?P<category>VIR(EM(EN)?)?T?(.PERMANENT)? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^(?P<category>COM(MISSIONS?)?)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
@@ -280,7 +280,10 @@ class AccountHistoryPage(BasePage):
                     date = u''.join([txt.strip() for txt in td.itertext()])
                 elif value.startswith("lib") or value.startswith("opLib"):
                     # misclosed A tag requires to grab text from td
-                    raw = self.strip_label(u''.join([txt.strip() for txt in td.itertext()]))
+                    tooltip = td.xpath('./div[@class="autoTooltip"]')
+                    if len(tooltip) > 0:
+                        td.remove(tooltip[0])
+                    raw = self.parser.tocleanstring(td)
                 elif value.startswith("solde") or value.startswith("mnt") or \
                      value.startswith('debit') or value.startswith('credit'):
                     mntColumn += 1

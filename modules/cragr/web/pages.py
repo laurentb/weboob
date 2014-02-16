@@ -75,6 +75,13 @@ class _AccountsPage(BasePage):
     COL_VALUE    = 4
     COL_CURRENCY = 5
 
+    TYPES = {'CCHQ':   Account.TYPE_CHECKING,
+             'LIV A':  Account.TYPE_SAVINGS,
+             'LDD':    Account.TYPE_SAVINGS,
+             'PEL':    Account.TYPE_MARKET,
+             'TITR':   Account.TYPE_MARKET,
+            }
+
     def get_list(self):
         for tr in self.document.xpath('//table[@class="ca-table"]/tr'):
             if not tr.attrib.get('class', '').startswith('colcelligne'):
@@ -87,6 +94,7 @@ class _AccountsPage(BasePage):
             account = Account()
             account.id = self.parser.tocleanstring(cols[self.COL_ID])
             account.label = self.parser.tocleanstring(cols[self.COL_LABEL])
+            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN)
             balance = self.parser.tocleanstring(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
@@ -252,6 +260,7 @@ class TransactionsPage(BasePage):
              'Remise De Cheque':            Transaction.TYPE_DEPOSIT,
              'Prelevement':                 Transaction.TYPE_ORDER,
              'Prelevt':                     Transaction.TYPE_ORDER,
+             'Prelevmnt':                   Transaction.TYPE_ORDER,
             }
 
     def get_history(self, date_guesser):

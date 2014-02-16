@@ -68,6 +68,14 @@ class UserSpacePage(BasePage):
 
 
 class AccountsPage(BasePage):
+    TYPES = {'C/C':             Account.TYPE_CHECKING,
+             'Livret':          Account.TYPE_SAVINGS,
+             'Pret':            Account.TYPE_LOAN,
+             'Compte Courant':  Account.TYPE_CHECKING,
+             'Compte Cheque':   Account.TYPE_CHECKING,
+             'Compte Epargne':  Account.TYPE_SAVINGS,
+            }
+
     def get_list(self):
         accounts = OrderedDict()
 
@@ -105,6 +113,11 @@ class AccountsPage(BasePage):
                 account = Account()
                 account.id = id
                 account.label = unicode(a.text).strip().lstrip(' 0123456789').title()
+
+                for pattern, actype in self.TYPES.iteritems():
+                    if account.label.startswith(pattern):
+                        account.type = actype
+
                 account._link_id = link
                 account._card_links = []
 
@@ -142,11 +155,11 @@ class Transaction(FrenchTransaction):
                 (re.compile('^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
                                                           FrenchTransaction.TYPE_CARD),
-                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+'),
+                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
                                                           FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^CHEQUE$'),                  FrenchTransaction.TYPE_CHECK),
-                (re.compile('^COTIS\.? (?P<text>.*)'),    FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),      FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^CHEQUE( (?P<text>.*))?$'),  FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(F )?COTIS\.? (?P<text>.*)'),FrenchTransaction.TYPE_BANK),
+                (re.compile('^(REMISE|REM CHQ) (?P<text>.*)'),FrenchTransaction.TYPE_DEPOSIT),
                ]
 
     _is_coming = False

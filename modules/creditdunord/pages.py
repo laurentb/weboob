@@ -79,6 +79,21 @@ class AccountsPage(CDNBasePage):
     COL_LABEL = 5
     COL_BALANCE = -1
 
+    TYPES = {'ASSURANCE VIE':       Account.TYPE_DEPOSIT,
+             'CARTE':               Account.TYPE_CARD,
+             'COMPTE COURANT':      Account.TYPE_CHECKING,
+             'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
+             'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
+             'LIVRET':              Account.TYPE_SAVINGS,
+             'P.E.A.':              Account.TYPE_MARKET,
+             'PEA':                 Account.TYPE_MARKET,
+            }
+
+    def get_account_type(self, label):
+        for pattern, actype in self.TYPES.iteritems():
+            if label.startswith(pattern):
+                return actype
+
     def get_history_link(self):
         return self.parser.strip(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'"))
 
@@ -98,6 +113,8 @@ class AccountsPage(CDNBasePage):
             fp = StringIO(unicode(line[self.COL_LABEL]).encode(self.browser.ENCODING))
             a.label = self.parser.tocleanstring(self.parser.parse(fp, self.browser.ENCODING).xpath('//div[@class="libelleCompteTDB"]')[0])
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
+            a.currency = a.get_currency(line[self.COL_BALANCE])
+            a.type = self.get_account_type(a.label)
             a._link = self.get_history_link()
             if line[self.COL_HISTORY] == 'true':
                 a._args = {'_eventId':         'clicDetailCompte',
@@ -158,6 +175,7 @@ class ProAccountsPage(AccountsPage):
             a = Account()
             a.id = cols[self.COL_ID].xpath('.//span[@class="right-underline"]')[0].text.strip()
             a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"]')[0].text.strip())
+            a.type = self.get_account_type(a.label)
             balance = self.parser.tocleanstring(cols[self.COL_BALANCE])
             a.balance = Decimal(FrenchTransaction.clean_amount(balance))
             a.currency = a.get_currency(balance)

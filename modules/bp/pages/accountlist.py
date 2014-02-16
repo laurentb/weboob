@@ -33,16 +33,16 @@ __all__ = ['AccountList']
 class AccountList(BasePage):
     def on_loaded(self):
         self.accounts = OrderedDict()
-        self.parse_table('comptes')
-        self.parse_table('comptesEpargne')
-        self.parse_table('comptesTitres')
-        self.parse_table('comptesVie')
+        self.parse_table('comptes',         Account.TYPE_CHECKING)
+        self.parse_table('comptesEpargne',  Account.TYPE_SAVINGS)
+        self.parse_table('comptesTitres',   Account.TYPE_MARKET)
+        self.parse_table('comptesVie',      Account.TYPE_DEPOSIT)
         self.parse_table('comptesRetraireEuros')
 
     def get_accounts_list(self):
         return self.accounts.itervalues()
 
-    def parse_table(self, what):
+    def parse_table(self, what, actype=None):
         tables = self.document.xpath("//table[@id='%s']" % what, smart_strings=False)
         if len(tables) < 1:
             return
@@ -52,6 +52,7 @@ class AccountList(BasePage):
             account = Account()
             tmp = line.xpath("./td//a")[0]
             account.label = to_unicode(tmp.text)
+            account.type = actype
             account._link_id = tmp.get("href")
             if 'BourseEnLigne' in account._link_id:
                 account.type = Account.TYPE_MARKET

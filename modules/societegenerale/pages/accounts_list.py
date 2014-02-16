@@ -42,6 +42,18 @@ class AccountsList(BasePage):
     def on_loaded(self):
         pass
 
+    TYPES = {u'Compte Bancaire':     Account.TYPE_CHECKING,
+             u'Compte Epargne':      Account.TYPE_SAVINGS,
+             u'Compte Sur Livret':   Account.TYPE_SAVINGS,
+             u'Compte Titres':       Account.TYPE_MARKET,
+             u'Crédit':              Account.TYPE_LOAN,
+             u'Livret':              Account.TYPE_SAVINGS,
+             u'PEA':                 Account.TYPE_MARKET,
+             u'Plan Epargne':        Account.TYPE_SAVINGS,
+             u'Prêt':                Account.TYPE_LOAN,
+            }
+
+
     def get_list(self):
         accounts = []
         for tr in self.document.getiterator('tr'):
@@ -55,6 +67,9 @@ class AccountsList(BasePage):
                     if a is None:
                         break
                     account.label = unicode(a.find("span").text)
+                    for pattern, actype in self.TYPES.iteritems():
+                        if account.label.startswith(pattern):
+                            account.type = type
                     account._link_id = a.get('href', '')
 
                 elif td.attrib.get('headers', '') == 'NumeroCompte':

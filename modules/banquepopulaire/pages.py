@@ -220,8 +220,11 @@ class HomePage(BasePage):
 class AccountsPage(BasePage):
     ACCOUNT_TYPES = {u'Mes comptes d\'épargne':     Account.TYPE_SAVINGS,
                      u'Mon épargne':                Account.TYPE_SAVINGS,
+                     u'Placements':                 Account.TYPE_SAVINGS,
                      u'Mes comptes':                Account.TYPE_CHECKING,
+                     u'Comptes en euros':           Account.TYPE_CHECKING,
                      u'Mes emprunts':               Account.TYPE_LOAN,
+                     u'Financements':               Account.TYPE_LOAN,
                      u'Mes services':               None,    # ignore this kind of accounts (no bank ones)
                     }
 
@@ -257,6 +260,12 @@ class AccountsPage(BasePage):
                 # ignore services accounts
                 continue
 
+            currency = None
+            for th in div.getnext().xpath('.//thead//th'):
+                m = re.match('.*\((\w+)\)$', th.text)
+                if m and currency is None:
+                    currency = Account.get_currency(m.group(1))
+
             for tr in div.getnext().xpath('.//tbody/tr'):
                 if not 'id' in tr.attrib:
                     continue
@@ -276,7 +285,7 @@ class AccountsPage(BasePage):
 
                 balance = FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[3].itertext()]))
                 account.balance = Decimal(balance or '0.0')
-                account.currency = account.get_currency(balance)
+                account.currency = currency
                 if account.type == account.TYPE_LOAN:
                     account.balance = - abs(account.balance)
 
